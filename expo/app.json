@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Cutzio Barbershop",
+    "slug": "cutzio-barbershop",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "../public/icons/icon-512x512.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cutzio.barbershop",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app uses the camera to scan barcodes for quick booking.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to photos for profile pictures."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.cutzio.barbershop"
+    },
+    "web": {
+      "favicon": "../public/favicon.ico"
+    }
+  }
+}

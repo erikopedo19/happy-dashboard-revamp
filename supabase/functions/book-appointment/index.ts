@@ -1,0 +1,388 @@
+/* eslint-disable */
+// @ts-ignore
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-ignore
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+type BookingPayload = {
+  businessId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  serviceIds: string[];
+  stylistId?: string | null;
+  appointmentDate: string; // YYYY-MM-DD
+  appointmentTime: string; // HH:mm
+  notes?: string | null;
+  accentColor?: string | null;
+};
+
+type AgendaSettings = {
+  start_hour: string | null;
+  end_hour: string | null;
+  service_duration: number | null;
+  working_days: number[] | null;
+};
+
+type Service = {
+  id: string;
+  name: string;
+  duration: number;
+  price: number | null;
+};
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const parseTimeToMinutes = (time: string) => {
+  const [h, m] = time.split(":").map((n) => Number(n));
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
+
+const isSameDateString = (dateStr: string, compare: Date) => {
+  const [y, m, d] = dateStr.split("-").map((n) => Number(n));
+  if (!y || !m || !d) return false;
+  return (
+    compare.getFullYear() === y &&
+    compare.getMonth() + 1 === m &&
+    compare.getDate() === d
+  );
+};
+
+const formatDateLong = (dateStr: string) => {
+  const [y, m, d] = dateStr.split("-").map((n) => Number(n));
+  if (!y || !m || !d) return dateStr;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(dt);
+};
+
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return json({ error: "Method not allowed" }, 405);
+  }
+
+  try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get(
+      "SUPABASE_SERVICE_ROLE_KEY",
+    );
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return json(
+        { error: "Server misconfigured: missing Supabase credentials" },
+        500,
+      );
+    }
+
+    const payload = (await req.json()) as BookingPayload;
+
+    if (
+      !payload?.businessId ||
+      !payload?.customerName ||
+      !payload?.customerEmail ||
+      !payload?.appointmentDate ||
+      !payload?.appointmentTime ||
+      !Array.isArray(payload?.serviceIds) ||
+      payload.serviceIds.length === 0
+    ) {
+      return json({ error: "Missing required fields" }, 400);
+    }
+
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY,
+    );
+
+    // Fetch business profile for email details and validation
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, full_name, business_name, brand_color, timezone")
+      .eq("id", payload.businessId)
+      .single();
+
+    if (profileError || !profile) {
+      return json(
+        {
+          error: "Business not found",
+          details: profileError?.message ?? "Invalid businessId",
+        },
+        404,
+      );
+    }
+
+    // Fetch services and validate ownership
+    const { data: services, error: servicesError } = await supabase
+      .from("services")
+      .select("id, name, duration, price, user_id")
+      .in("id", payload.serviceIds);
+
+    if (servicesError || !services || services.length === 0) {
+      return json(
+        {
+          error: "Invalid services selection",
+          details: servicesError?.message,
+        },
+        400,
+      );
+    }
+
+    const invalidService = services.find((s: any) =>
+      s.user_id !== payload.businessId
+    );
+    if (invalidService) {
+      return json({ error: "Service does not belong to business" }, 403);
+    }
+
+    const primaryService = services[0] as Service;
+
+    // Fetch agenda settings for slot duration and working days
+    const { data: settings } = await supabase
+      .from("agenda_settings")
+      .select("start_hour, end_hour, service_duration, working_days")
+      .eq("user_id", payload.businessId)
+      .maybeSingle();
+
+    const effectiveSettings: AgendaSettings = settings ?? {
+      start_hour: "08:00",
+      end_hour: "18:00",
+      service_duration: 30,
+      working_days: [0, 1, 2, 3, 4, 5, 6],
+    };
+
+    // Validate working day
+    const dateParts = payload.appointmentDate.split("-").map((n) => Number(n));
+    const selectedDate = new Date(
+      Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]),
+    );
+    const dayOfWeek = selectedDate.getUTCDay();
+    if (
+      Array.isArray(effectiveSettings.working_days) &&
+      !effectiveSettings.working_days.includes(dayOfWeek)
+    ) {
+      return json({ error: "Selected date is not a working day" }, 400);
+    }
+
+    // Basic "past time" guard (UTC)
+    const now = new Date();
+    if (isSameDateString(payload.appointmentDate, now)) {
+      const appointmentMinutes = parseTimeToMinutes(payload.appointmentTime);
+      if (appointmentMinutes !== null) {
+        const nowMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+        if (appointmentMinutes <= nowMinutes) {
+          return json({ error: "Selected time is in the past" }, 400);
+        }
+      }
+    }
+
+    // Slot availability check
+    const slotInterval = effectiveSettings.service_duration ?? 30;
+    const totalDuration = services.reduce(
+      (sum: number, s: { duration?: number | null }) => sum + (s?.duration || 0),
+      0,
+    );
+    const slotsNeeded = Math.ceil(totalDuration / slotInterval);
+
+    const { data: existingAppointments } = await supabase
+      .from("appointments")
+      .select("appointment_time, stylist_id, service:services(duration)")
+      .eq("user_id", payload.businessId)
+      .eq("appointment_date", payload.appointmentDate);
+
+    const isSlotTaken = (existingAppointments || []).some((apt: any) => {
+      const aptTime = apt.appointment_time?.substring(0, 5);
+      const aptDuration = apt.service?.duration || 0;
+      const aptSlots = Math.ceil(aptDuration / slotInterval);
+
+      const aptStart = parseTimeToMinutes(aptTime);
+      const reqStart = parseTimeToMinutes(payload.appointmentTime);
+      if (aptStart === null || reqStart === null) return false;
+
+      const aptEnd = aptStart + aptSlots * slotInterval;
+      const reqEnd = reqStart + slotsNeeded * slotInterval;
+
+      // If stylist specified, only consider conflicts with same stylist
+      if (payload.stylistId) {
+        if (apt.stylist_id !== payload.stylistId) return false;
+      }
+
+      // Overlap test
+      return reqStart < aptEnd && reqEnd > aptStart;
+    });
+
+    if (isSlotTaken) {
+      return json(
+        { error: "Time slot unavailable", code: "SLOT_TAKEN" },
+        409,
+      );
+    }
+
+    // Find or create customer
+    const { data: existingCustomer } = await supabase
+      .from("customers")
+      .select("id, name, phone")
+      .eq("user_id", payload.businessId)
+      .eq("email", payload.customerEmail)
+      .maybeSingle();
+
+    let customerId = existingCustomer?.id;
+
+    if (!customerId) {
+      const { data: newCustomer, error: createCustomerError } = await supabase
+        .from("customers")
+        .insert({
+          name: payload.customerName,
+          email: payload.customerEmail,
+          phone: payload.customerPhone ?? null,
+          user_id: payload.businessId,
+        })
+        .select("id")
+        .single();
+
+      if (createCustomerError || !newCustomer) {
+        return json(
+          {
+            error: "Failed to create customer",
+            details: createCustomerError?.message,
+          },
+          500,
+        );
+      }
+      customerId = newCustomer.id;
+    } else {
+      const updates: Record<string, string | null> = {};
+      if (payload.customerName && payload.customerName !== existingCustomer.name) {
+        updates.name = payload.customerName;
+      }
+      if (
+        payload.customerPhone !== undefined &&
+        payload.customerPhone !== existingCustomer.phone
+      ) {
+        updates.phone = payload.customerPhone ?? null;
+      }
+      if (Object.keys(updates).length > 0) {
+        await supabase.from("customers").update(updates).eq("id", customerId);
+      }
+    }
+
+    // Build notes with additional services
+    const additionalServiceNames = services
+      .slice(1)
+      .map((s: { name?: string | null }) => s?.name)
+      .filter(Boolean);
+    let notesText = payload.notes ?? "";
+    if (additionalServiceNames.length > 0) {
+      notesText = notesText
+        ? `${notesText} | Additional: ${additionalServiceNames.join(", ")}`
+        : `Additional services: ${additionalServiceNames.join(", ")}`;
+    }
+
+    // Create appointment
+    const { data: appointment, error: appointmentError } = await supabase
+      .from("appointments")
+      .insert({
+        customer_id: customerId,
+        service_id: primaryService.id,
+        appointment_date: payload.appointmentDate,
+        appointment_time: payload.appointmentTime,
+        price: services.reduce(
+          (sum: number, s: { price?: number | null }) => sum + (s?.price || 0),
+          0,
+        ),
+        notes: notesText || null,
+        status: "scheduled",
+        user_id: payload.businessId,
+        stylist_id: payload.stylistId ?? null,
+      })
+      .select()
+      .single();
+
+    if (appointmentError || !appointment) {
+      return json(
+        {
+          error: "Failed to create appointment",
+          details: appointmentError?.message,
+        },
+        500,
+      );
+    }
+
+    // Fetch stylist details if present
+    let stylistName: string | undefined;
+    let stylistTitle: string | undefined;
+    if (payload.stylistId) {
+      const { data: stylist } = await supabase
+        .from("stylists")
+        .select("name, title")
+        .eq("id", payload.stylistId)
+        .maybeSingle();
+      stylistName = stylist?.name ?? undefined;
+      stylistTitle = stylist?.title ?? undefined;
+    }
+
+    // Fire-and-forget confirmation email
+    try {
+      await fetch(
+        `${SUPABASE_URL}/functions/v1/send-booking-confirmation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customerEmail: payload.customerEmail,
+            customerName: payload.customerName,
+            customerPhone: payload.customerPhone ?? undefined,
+            businessName: profile.business_name || profile.full_name,
+            serviceName: primaryService.name || "Service",
+            appointmentDate: formatDateLong(payload.appointmentDate),
+            appointmentTime: payload.appointmentTime,
+            price: services.reduce(
+              (sum: number, s: { price?: number | null }) => sum + (s?.price || 0),
+              0,
+            ),
+            notes: notesText || undefined,
+            bookingId: appointment.id?.toString().substring(0, 8),
+            accentColor: payload.accentColor || profile.brand_color || "#1a1a1a",
+            stylistName,
+            stylistTitle,
+          }),
+        },
+      );
+    } catch (_err) {
+      // Email failures should not block booking success
+    }
+
+    return json({ success: true, appointment }, 200);
+  } catch (error: any) {
+    return json(
+      { error: error?.message || "Unexpected server error" },
+      500,
+    );
+  }
+});

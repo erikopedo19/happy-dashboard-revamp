@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "resend": {
+      "type": "command",
+      "command": "node /home/sneaky/cutzio.betaproject/happy/mcp-send-email/build/index.js --key=YOUR_RESEND_API_KEY"
+    }
+  }
+}
