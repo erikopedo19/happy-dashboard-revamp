@@ -316,7 +316,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       }
 
       // Create appointment
-      const { error: appointmentError } = await (supabase as any)
+      const { data: createdAppt, error: appointmentError } = await (supabase as any)
         .from('appointments')
         .insert({
           customer_id: customerId,
@@ -327,9 +327,33 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           notes: notes.trim() || null,
           status: 'scheduled',
           user_id: user.id,
-        });
+        })
+        .select()
+        .single();
 
       if (appointmentError) throw appointmentError;
+
+      // Send confirmation email (non-blocking)
+      if (customerEmail) {
+        try {
+          await (supabase as any).functions.invoke('send-booking-confirmation', {
+            body: {
+              customerEmail,
+              customerName,
+              businessName: profile?.business_name || profile?.full_name || 'Your appointment',
+              serviceName: validSelectedService.name,
+              appointmentDate: format(selectedDateObj, 'EEEE, MMMM d, yyyy'),
+              appointmentTime: selectedTimeSlot,
+              price: validSelectedService.price,
+              notes: notes.trim() || undefined,
+              bookingId: createdAppt?.id?.toString().substring(0, 8),
+              accentColor: profile?.brand_color || '#1a1a1a',
+            },
+          });
+        } catch (emailErr) {
+          console.warn('Confirmation email failed:', emailErr);
+        }
+      }
 
       toast({
         title: "Appointment Booked!",
