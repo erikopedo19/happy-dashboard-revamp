@@ -333,7 +333,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={isLoading || !canSubmitSignIn}
-                    className="h-11 w-full rounded-xl bg-gray-900 text-white hover:bg-black"
+                    className="h-12 w-full rounded-full font-medium tracking-tight bg-[#0071e3] text-white hover:bg-[#0077ed] shadow-[0_2px_10px_-2px_rgba(0,113,227,0.4)]"
                   >
                     {isLoading ? (
                       <>
@@ -457,7 +457,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={isLoading || !canSubmitSignUp}
-                    className="h-11 w-full rounded-xl bg-gray-900 text-white hover:bg-black"
+                    className="h-12 w-full rounded-full font-medium tracking-tight bg-[#0071e3] text-white hover:bg-[#0077ed] shadow-[0_2px_10px_-2px_rgba(0,113,227,0.4)]"
                   >
                     {isLoading ? (
                       <>
