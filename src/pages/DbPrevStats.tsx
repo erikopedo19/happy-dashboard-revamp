@@ -63,12 +63,8 @@ const DbPrevStats = () => {
 
       if (stylistsError) throw stylistsError;
 
-      // Fetch brand profiles data
-      const { data: brandData, error: brandError } = await supabase
-        .from('brand_profiles')
-        .select('*') as { data: BrandProfile[] | null, error: any };
-
-      if (brandError) throw brandError;
+      // brand_profiles table not available
+      const brandData: BrandProfile[] | null = null;
 
       // Calculate statistics
       const stats: StatsData = {

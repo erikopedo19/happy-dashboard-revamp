@@ -39,7 +39,6 @@ const BookingLinkGenerator = () => {
             .from('profiles')
             .insert({
               id: user.id,
-              email: user.email,
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               ask_phone: true, // Default to true for new profiles
               ask_notes: true,  // Default to true for new profiles
