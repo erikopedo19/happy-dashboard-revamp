@@ -44,6 +44,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(selectedTime);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -333,13 +334,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       if (appointmentError) throw appointmentError;
 
-      // Send confirmation email (non-blocking)
-      if (customerEmail) {
+      // Send confirmation email + SMS (non-blocking)
+      if (customerEmail || customerPhone) {
         try {
           await (supabase as any).functions.invoke('send-booking-confirmation', {
             body: {
-              customerEmail,
+              customerEmail: customerEmail || undefined,
               customerName,
+              customerPhone: customerPhone || undefined,
               businessName: profile?.business_name || profile?.full_name || 'Your appointment',
               serviceName: validSelectedService.name,
               appointmentDate: format(selectedDateObj, 'EEEE, MMMM d, yyyy'),
@@ -348,10 +350,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               notes: notes.trim() || undefined,
               bookingId: createdAppt?.id?.toString().substring(0, 8),
               accentColor: profile?.brand_color || '#1a1a1a',
+              senderEmail: profile?.sender_email || undefined,
+              senderName: profile?.sender_name || undefined,
             },
           });
         } catch (emailErr) {
-          console.warn('Confirmation email failed:', emailErr);
+          console.warn('Confirmation email/SMS failed:', emailErr);
         }
       }
 
@@ -617,6 +621,22 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       We'll send a confirmation email to this address.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+1 555 123 4567"
+                      className="w-full px-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-red-500 focus:outline-none transition-colors text-white placeholder-gray-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional — we'll send an SMS confirmation if provided.
                     </p>
                   </div>
 
