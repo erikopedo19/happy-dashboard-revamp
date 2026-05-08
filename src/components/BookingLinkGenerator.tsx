@@ -40,7 +40,6 @@ const BookingLinkGenerator = () => {
             .insert({
               id: user.id,
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               ask_phone: true, // Default to true for new profiles
               ask_notes: true,  // Default to true for new profiles
               brand_color: "#1a1a1a"
