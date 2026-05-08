@@ -251,41 +251,7 @@ const CompleteProfile = () => {
 
         if (stylistError) throw stylistError;
 
-        // Check if brand profile exists
-        const { data: existingBrand } = await supabase
-          .from("brand_profiles")
-          .select("id")
-          .eq("user_id", user.id)
-          .single();
-
-        if (existingBrand) {
-          // Update existing brand profile
-          const { error: brandError } = await supabase
-            .from("brand_profiles")
-            .update({
-              name: formData.businessName,
-              industry: formData.businessType,
-              contact_phone: formData.phoneNumber,
-              location: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`.trim(),
-              updated_at: new Date().toISOString()
-            })
-            .eq("user_id", user.id);
-
-          if (brandError) throw brandError;
-        } else {
-          // Create new brand profile
-          const { error: brandError } = await supabase
-            .from("brand_profiles")
-            .insert({
-              user_id: user.id,
-              name: formData.businessName,
-              industry: formData.businessType,
-              contact_phone: formData.phoneNumber,
-              location: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`.trim()
-            });
-
-          if (brandError) throw brandError;
-        }
+        // brand_profiles table not available — skipping brand profile sync
       }
 
       toast.success("Profile completed successfully!", {
