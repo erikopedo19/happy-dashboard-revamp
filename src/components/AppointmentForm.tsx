@@ -626,6 +626,22 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+1 555 123 4567"
+                      className="w-full px-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-red-500 focus:outline-none transition-colors text-white placeholder-gray-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional — we'll send an SMS confirmation if provided.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
                       Notes
                     </label>
                     <textarea
