@@ -44,6 +44,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(selectedTime);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
