@@ -334,13 +334,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       if (appointmentError) throw appointmentError;
 
-      // Send confirmation email (non-blocking)
-      if (customerEmail) {
+      // Send confirmation email + SMS (non-blocking)
+      if (customerEmail || customerPhone) {
         try {
           await (supabase as any).functions.invoke('send-booking-confirmation', {
             body: {
-              customerEmail,
+              customerEmail: customerEmail || undefined,
               customerName,
+              customerPhone: customerPhone || undefined,
               businessName: profile?.business_name || profile?.full_name || 'Your appointment',
               serviceName: validSelectedService.name,
               appointmentDate: format(selectedDateObj, 'EEEE, MMMM d, yyyy'),
@@ -349,10 +350,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               notes: notes.trim() || undefined,
               bookingId: createdAppt?.id?.toString().substring(0, 8),
               accentColor: profile?.brand_color || '#1a1a1a',
+              senderEmail: profile?.sender_email || undefined,
+              senderName: profile?.sender_name || undefined,
             },
           });
         } catch (emailErr) {
-          console.warn('Confirmation email failed:', emailErr);
+          console.warn('Confirmation email/SMS failed:', emailErr);
         }
       }
 
