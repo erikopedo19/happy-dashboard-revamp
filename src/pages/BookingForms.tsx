@@ -26,27 +26,17 @@ const BookingForms = () => {
         throw profilesError;
       }
 
-      // Get brand profiles for additional info
-      const { data: brandProfiles, error: brandError } = await supabase
-        .from('brand_profiles')
-        .select('user_id, name, about, industry, location, contact_email, contact_phone, logo_url');
-      
-      if (brandError) {
-        console.error('Error fetching brand profiles:', brandError);
-      }
-
-      // Combine the data
+      // Combine the data (brand_profiles table not available)
       const combinedData = profiles.map(profile => {
-        const brandProfile = brandProfiles?.find(bp => bp.user_id === profile.id);
         return {
           ...profile,
-          brandName: brandProfile?.name || profile.full_name || 'Unknown Business',
-          about: brandProfile?.about,
-          industry: brandProfile?.industry,
-          location: brandProfile?.location,
-          contactEmail: brandProfile?.contact_email,
-          contactPhone: brandProfile?.contact_phone,
-          logoUrl: brandProfile?.logo_url
+          brandName: profile.business_name || profile.full_name || 'Unknown Business',
+          about: profile.description,
+          industry: undefined as string | undefined,
+          location: profile.address,
+          contactEmail: profile.sender_email,
+          contactPhone: profile.phone,
+          logoUrl: profile.avatar_url
         };
       });
 
