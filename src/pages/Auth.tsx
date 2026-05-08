@@ -201,23 +201,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] px-4 py-8 md:px-6 md:py-10 flex items-center justify-center font-['Sora',_Inter,_sans-serif]">
+    <div className="min-h-screen bg-gradient-to-b from-[#fbfbfd] to-[#f2f2f7] px-4 py-8 md:px-6 md:py-10 flex items-center justify-center">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch gap-0 overflow-hidden rounded-[24px] border border-gray-200 bg-white shadow-sm transition-all duration-500 ease-out">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch gap-0 overflow-hidden rounded-[28px] border border-black/5 bg-white/80 backdrop-blur-2xl shadow-[0_30px_80px_-30px_rgba(0,0,0,0.18)] transition-all duration-500 ease-out">
         {/* Left: Form */}
-        <Card className="rounded-none border-0 bg-white shadow-none w-full mx-auto h-full flex flex-col transition-all duration-500 ease-out">
-          <CardHeader className="space-y-3 text-center">
+        <Card className="rounded-none border-0 bg-transparent shadow-none w-full mx-auto h-full flex flex-col">
+          <CardHeader className="space-y-3 text-center pt-10">
             <div className="flex justify-center">
               <img
                 src="/logo.svg"
                 alt="Cutzio logo"
-                className="h-12 w-12 object-contain"
+                className="h-14 w-14 object-contain drop-shadow-sm"
               />
             </div>
-            <CardTitle className="text-2xl font-semibold tracking-tight text-gray-900">
+            <CardTitle className="text-[28px] font-semibold tracking-[-0.025em] text-[#1d1d1f]">
               Welcome to Cutzio
             </CardTitle>
-            <CardDescription className="text-gray-500">
+            <CardDescription className="text-[15px] text-[#6e6e73]">
               Sign in to manage your barbershop, bookings, team, and reports.
             </CardDescription>
           </CardHeader>
