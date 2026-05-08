@@ -115,7 +115,7 @@ export const ModernAppointmentsCalendar = ({
   const {
     user
   } = useAuth();
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isLongPressing, setIsLongPressing] = useState(false);
 
   // Fetch agenda settings for dynamic time slots
