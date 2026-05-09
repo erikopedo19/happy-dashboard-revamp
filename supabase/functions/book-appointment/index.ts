@@ -345,14 +345,24 @@ serve(async (req: Request) => {
       stylistTitle = stylist?.title ?? undefined;
     }
 
-    // Fire-and-forget confirmation email
+    // Fetch sender configuration
+    const { data: senderProfile } = await supabase
+      .from("profiles")
+      .select("sender_email, sender_name, business_name, full_name")
+      .eq("id", payload.businessId)
+      .maybeSingle();
+
+    // Fire-and-forget confirmation email + SMS
     try {
+      const ANON = Deno.env.get("SUPABASE_ANON_KEY") || "";
       await fetch(
         `${SUPABASE_URL}/functions/v1/send-booking-confirmation`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${ANON}`,
+            apikey: ANON,
           },
           body: JSON.stringify({
             customerEmail: payload.customerEmail,
@@ -371,11 +381,13 @@ serve(async (req: Request) => {
             accentColor: payload.accentColor || profile.brand_color || "#1a1a1a",
             stylistName,
             stylistTitle,
+            senderEmail: senderProfile?.sender_email || "noreply@cutzioo.com",
+            senderName: senderProfile?.sender_name || senderProfile?.business_name || senderProfile?.full_name || "Cutzioo",
           }),
         },
       );
-    } catch (_err) {
-      // Email failures should not block booking success
+    } catch (err) {
+      console.error("Notification dispatch failed:", err);
     }
 
     return json({ success: true, appointment }, 200);

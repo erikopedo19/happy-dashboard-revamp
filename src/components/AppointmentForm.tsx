@@ -350,8 +350,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               notes: notes.trim() || undefined,
               bookingId: createdAppt?.id?.toString().substring(0, 8),
               accentColor: profile?.brand_color || '#1a1a1a',
-              senderEmail: profile?.sender_email || undefined,
-              senderName: profile?.sender_name || undefined,
+              senderEmail: profile?.sender_email || 'noreply@cutzioo.com',
+              senderName: profile?.sender_name || profile?.business_name || profile?.full_name || 'Cutzioo',
             },
           });
         } catch (emailErr) {
