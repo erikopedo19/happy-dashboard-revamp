@@ -382,12 +382,13 @@ export function LoginForm() {
           </div>
 
           {/* Right: Image */}
-          <div className="hidden md:block relative overflow-hidden min-h-[600px] bg-gray-50">
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: 'url("/src/pages/Frame 316.png")' }}
+          <div className="hidden md:block relative overflow-hidden min-h-[600px] bg-gray-50 flex items-center justify-center">
+            <img
+              src="/src/pages/Frame 316.png"
+              alt="Login illustration"
+              className="h-full w-full object-contain"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF]/15 to-[#5856D6]/15" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF]/10 to-[#5856D6]/10 pointer-events-none" />
           </div>
         </div>
       </div>
