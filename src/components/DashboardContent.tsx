@@ -110,20 +110,20 @@ export function DashboardContent() {
   }, [appointments]);
 
   return (
-    <div className="h-full overflow-auto bg-[#F2F2F7]">
+    <div className="h-full overflow-auto bg-[#F2F2F7] dark:bg-[#1C1C1E]">
       <div className="px-6 py-6 max-w-[1600px] mx-auto space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#1C1C1E]">Dashboard</h1>
-            <p className="text-sm text-[#8E8E93] mt-1">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+            <h1 className="text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Dashboard</h1>
+            <p className="text-sm text-[#8E8E93] dark:text-[#8E8E93] mt-1">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] bg-white hover:bg-[#F2F2F7]">
-              <Bell className="h-4 w-4 text-[#1C1C1E]" />
+            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
+              <Bell className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
             </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] bg-white hover:bg-[#F2F2F7]">
-              <Mail className="h-4 w-4 text-[#1C1C1E]" />
+            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
+              <Mail className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
             </Button>
             <Button className="h-9 rounded-xl bg-[#007AFF] hover:bg-[#0062CC] text-white gap-2">
               <Plus className="h-4 w-4" /> New booking
@@ -134,26 +134,26 @@ export function DashboardContent() {
         {/* Tabs + actions */}
         <div className="flex items-center justify-between">
           <Tabs defaultValue="overview">
-            <TabsList className="bg-white border border-[#E5E5EA] rounded-xl p-1 h-10 shadow-sm">
-              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:text-[#1C1C1E] data-[state=active]:shadow-sm px-4">Overview</TabsTrigger>
-              <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:shadow-sm px-4">Bookings</TabsTrigger>
-              <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:shadow-sm px-4">Sales</TabsTrigger>
+            <TabsList className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl p-1 h-10 shadow-sm">
+              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E] data-[state=active]:text-[#1C1C1E] dark:data-[state=active]:text-[#F2F2F7] data-[state=active]:shadow-sm px-4">Overview</TabsTrigger>
+              <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E] data-[state=active]:shadow-sm px-4">Bookings</TabsTrigger>
+              <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E] data-[state=active]:shadow-sm px-4">Sales</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93] dark:text-[#8E8E93]" />
               <Input 
                 placeholder="Search..." 
-                className="pl-10 w-40 bg-white border-[#C6C6C8] h-9 rounded-xl focus:border-[#007AFF] focus:ring-1 focus:ring-[#007AFF]"
+                className="pl-10 w-40 bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] h-9 rounded-xl focus:border-[#007AFF] focus:ring-1 focus:ring-[#007AFF] dark:text-[#F2F2F7]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] bg-white hover:bg-[#F2F2F7]">
-              <RefreshCw className="h-4 w-4 text-[#1C1C1E]" />
+            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
+              <RefreshCw className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
             </Button>
-            <Button variant="outline" className="h-9 rounded-xl border-[#C6C6C8] bg-white hover:bg-[#F2F2F7] text-[#1C1C1E]">Monthly</Button>
+            <Button variant="outline" className="h-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]">Monthly</Button>
             <Button className="h-9 rounded-xl bg-[#007AFF] text-white gap-2">
               <Download className="h-4 w-4" /> Download
             </Button>
@@ -203,19 +203,19 @@ export function DashboardContent() {
 
         {/* Charts row */}
         <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4">
-          <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm">
+          <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-base font-semibold text-[#1C1C1E]">Sales Performance</CardTitle>
-                <p className="text-xs text-[#8E8E93] mt-1">Last 14 days</p>
+                <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Sales Performance</CardTitle>
+                <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93] mt-1">Last 14 days</p>
               </div>
-              <Badge variant="outline" className="rounded-full border-[#E5E5EA] bg-[#F2F2F7] text-[#8E8E93]">2 Weeks</Badge>
+              <Badge variant="outline" className="rounded-full border-[#E5E5EA] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#8E8E93]">2 Weeks</Badge>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-6 mb-4">
                 <div>
-                  <div className="text-2xl font-semibold text-[#1C1C1E]">€{stats.totalRevenue.toFixed(0)}</div>
-                  <div className="text-xs text-[#8E8E93]">Total revenue</div>
+                  <div className="text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">€{stats.totalRevenue.toFixed(0)}</div>
+                  <div className="text-xs text-[#8E8E93] dark:text-[#8E8E93]">Total revenue</div>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-[#34C759]">
                   <ArrowUpRight className="h-3 w-3" /> {stats.trend}%
@@ -236,13 +236,13 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm">
+          <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-base font-semibold text-[#1C1C1E]">Bookings Trend</CardTitle>
+                <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Bookings Trend</CardTitle>
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="flex items-center gap-1.5 text-[#1C1C1E]"><span className="h-2 w-2 rounded-full bg-[#007AFF]" />Bookings</span>
-                  <span className="flex items-center gap-1.5 text-[#8E8E93]"><span className="h-2 w-2 rounded-full bg-[#8E8E93]" />Revenue</span>
+                  <span className="flex items-center gap-1.5 text-[#1C1C1E] dark:text-[#F2F2F7]"><span className="h-2 w-2 rounded-full bg-[#007AFF]" />Bookings</span>
+                  <span className="flex items-center gap-1.5 text-[#8E8E93] dark:text-[#8E8E93]"><span className="h-2 w-2 rounded-full bg-[#8E8E93]" />Revenue</span>
                 </div>
               </div>
             </CardHeader>
@@ -266,13 +266,13 @@ export function DashboardContent() {
         </div>
 
         {/* Upcoming list */}
-        <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm">
+        <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base font-semibold text-[#1C1C1E]">Upcoming Appointments</CardTitle>
-              <p className="text-xs text-[#8E8E93] mt-1">{upcoming.length} scheduled</p>
+              <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Upcoming Appointments</CardTitle>
+              <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93] mt-1">{upcoming.length} scheduled</p>
             </div>
-            <Button variant="outline" className="h-8 rounded-lg border-[#E5E5EA] bg-[#F2F2F7] text-[#1C1C1E] text-xs hover:bg-[#E5E5EA]">View all</Button>
+            <Button variant="outline" className="h-8 rounded-lg border-[#E5E5EA] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] text-xs hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]">View all</Button>
           </CardHeader>
           <CardContent>
             {upcoming.length === 0 ? (
@@ -351,12 +351,12 @@ function KpiIcon({
 }) {
   const isPositive = negative ? delta < 0 : delta >= 0;
   return (
-    <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+    <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-xs text-[#8E8E93] mb-2 font-medium uppercase tracking-wide">{title}</p>
-            <div className="text-2xl font-semibold text-[#1C1C1E]">{value}</div>
+            <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93] mb-2 font-medium uppercase tracking-wide">{title}</p>
+            <div className="text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{value}</div>
             <div className="flex items-center gap-2 mt-2">
               <Badge className={`rounded-full border-0 gap-0.5 text-[11px] ${
                 isPositive ? 'bg-[#34C759]/10 text-[#34C759]' : 'bg-[#FF3B30]/10 text-[#FF3B30]'
@@ -364,7 +364,7 @@ function KpiIcon({
                 {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                 {Math.abs(delta)}%
               </Badge>
-              <span className="text-xs text-[#8E8E93]">{sub}</span>
+              <span className="text-xs text-[#8E8E93] dark:text-[#8E8E93]">{sub}</span>
             </div>
           </div>
           <div className={`h-12 w-12 rounded-2xl ${iconBg} flex items-center justify-center shrink-0`}>
