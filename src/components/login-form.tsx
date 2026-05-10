@@ -174,7 +174,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted p-6 md:p-10">
+    <div className="flex min-h-screen w-full items-center justify-center bg-muted p-6 md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
       <div className="w-full max-w-sm md:max-w-4xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-2xl bg-white shadow-lg">
           {/* Left: Form */}
@@ -187,10 +187,10 @@ export function LoginForm() {
                   className="h-12 w-12 object-contain"
                 />
               </div>
-              <h1 className="text-2xl font-semibold tracking-tight">
+              <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}>
                 Welcome to Cutzio
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
                 Sign in to manage your barbershop
               </p>
             </div>
@@ -382,7 +382,7 @@ export function LoginForm() {
           </div>
 
           {/* Right: Image */}
-          <div className="hidden md:block relative overflow-hidden">
+          <div className="hidden md:block relative overflow-hidden min-h-[500px]">
             <img
               src="/src/pages/Frame 316.png"
               alt="Login illustration"
