@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, Mail, Lock, User as UserIcon, ArrowRight } from "
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
+import { cn } from "@/lib/utils"
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -175,8 +176,8 @@ export function LoginForm() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted p-6 md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
-      <div className="w-full max-w-sm md:max-w-4xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-2xl bg-white shadow-lg">
+      <div className="w-full max-w-sm md:max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
           {/* Left: Form */}
           <div className="flex flex-col p-8">
             <div className="flex flex-col space-y-2 text-center mb-6">
@@ -196,9 +197,9 @@ export function LoginForm() {
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign in</TabsTrigger>
-                <TabsTrigger value="signup">Sign up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 transition-all duration-200">
+                <TabsTrigger value="signin" className="transition-all duration-200 data-[state=active]:scale-105 data-[state=active]:shadow-md">Sign in</TabsTrigger>
+                <TabsTrigger value="signup" className="transition-all duration-200 data-[state=active]:scale-105 data-[state=active]:shadow-md">Sign up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -206,14 +207,14 @@ export function LoginForm() {
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                       <Input
                         id="signin-email"
                         type="email"
                         placeholder="you@example.com"
                         value={signInForm.email}
                         onChange={(e) => setSignInForm(prev => ({ ...prev, email: e.target.value }))}
-                        className="pl-10"
+                        className="pl-10 transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                         required
                       />
                     </div>
@@ -222,19 +223,19 @@ export function LoginForm() {
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                       <Input
                         id="signin-password"
                         type={showPassword ? "text" : "password"}
                         value={signInForm.password}
                         onChange={(e) => setSignInForm(prev => ({ ...prev, password: e.target.value }))}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110 active:scale-95"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -247,13 +248,14 @@ export function LoginForm() {
                         id="remember"
                         checked={signInForm.rememberMe}
                         onCheckedChange={(checked) => setSignInForm(prev => ({ ...prev, rememberMe: !!checked }))}
+                        className="transition-all duration-200 hover:scale-110 active:scale-95"
                       />
-                      <Label htmlFor="remember" className="text-sm cursor-pointer">Remember me</Label>
+                      <Label htmlFor="remember" className="text-sm cursor-pointer transition-colors hover:text-foreground">Remember me</Label>
                     </div>
                     <Button
                       type="button"
                       variant="link"
-                      className="h-auto p-0 text-sm"
+                      className="h-auto p-0 text-sm transition-all duration-200 hover:scale-105 active:scale-95"
                       onClick={handleForgotPassword}
                       disabled={isResettingPassword}
                     >
@@ -263,7 +265,7 @@ export function LoginForm() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
                     disabled={isLoading || !canSubmitSignIn}
                   >
                     {isLoading ? (
@@ -274,7 +276,7 @@ export function LoginForm() {
                     ) : (
                       <>
                         Sign in
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </>
                     )}
                   </Button>
@@ -286,14 +288,14 @@ export function LoginForm() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full name</Label>
                     <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                       <Input
                         id="signup-name"
                         type="text"
                         placeholder="John Doe"
                         value={signUpForm.fullName}
                         onChange={(e) => setSignUpForm(prev => ({ ...prev, fullName: e.target.value }))}
-                        className="pl-10"
+                        className="pl-10 transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                         required
                       />
                     </div>
@@ -302,14 +304,14 @@ export function LoginForm() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                       <Input
                         id="signup-email"
                         type="email"
                         placeholder="you@example.com"
                         value={signUpForm.email}
                         onChange={(e) => setSignUpForm(prev => ({ ...prev, email: e.target.value }))}
-                        className="pl-10"
+                        className="pl-10 transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                         required
                       />
                     </div>
@@ -318,19 +320,19 @@ export function LoginForm() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                       <Input
                         id="signup-password"
                         type={showSignupPassword ? "text" : "password"}
                         value={signUpForm.password}
                         onChange={(e) => setSignUpForm(prev => ({ ...prev, password: e.target.value }))}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowSignupPassword(!showSignupPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110 active:scale-95"
                       >
                         {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -340,19 +342,19 @@ export function LoginForm() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm">Confirm password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                       <Input
                         id="signup-confirm"
                         type={showSignupConfirmPassword ? "text" : "password"}
                         value={signUpForm.confirmPassword}
                         onChange={(e) => setSignUpForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110 active:scale-95"
                       >
                         {showSignupConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -361,7 +363,7 @@ export function LoginForm() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
                     disabled={isLoading || !canSubmitSignUp}
                   >
                     {isLoading ? (
@@ -372,7 +374,7 @@ export function LoginForm() {
                     ) : (
                       <>
                         Create account
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </>
                     )}
                   </Button>
