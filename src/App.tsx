@@ -13,7 +13,6 @@ import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import Waitlist from "./pages/Waitlist";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
@@ -93,7 +92,7 @@ function App() {
               <Route path="/book/:bookingLink" element={<Booking />} />
               <Route path="/bookingforms" element={<BookingForms />} />
               <Route path="/find-barber" element={<FindBarber />} />
-              <Route path="/" element={<Waitlist />} />
+              <Route path="/" element={<FindBarber />} />
               <Route path="/app" element={<LandingRoute />} />
               <Route path="/superadmin" element={<SuperAdminLogin />} />
               <Route path="/superadmin/dashboard" element={
