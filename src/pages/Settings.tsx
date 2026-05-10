@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { MessageTemplates } from "@/components/MessageTemplates";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -359,6 +360,10 @@ const Settings = () => {
                         <Link2 className="w-4 h-4 mr-2" />
                         Booking
                       </TabsTrigger>
+                      <TabsTrigger value="messages" className="rounded-xl">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Messages
+                      </TabsTrigger>
                       <TabsTrigger value="notifications" className="rounded-xl">
                         <Bell className="w-4 h-4 mr-2" />
                         Notifications
@@ -368,6 +373,10 @@ const Settings = () => {
                         Business
                       </TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="messages" className="mt-0 space-y-6">
+                      <MessageTemplates />
+                    </TabsContent>
 
                     <TabsContent value="general" className="mt-0 space-y-6">
                       <Card className="rounded-3xl border-border shadow-sm bg-card">
