@@ -380,7 +380,7 @@ const Teams = () => {
                     <div className="bg-blue-100 p-4 rounded-full mb-4 shadow-inner">
                       <Users className="h-12 w-12 text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">Create Your First Team</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">Create Your First Team</h3>
                     <p className="text-muted-foreground mb-6 text-center max-w-md">Teams help you organize your stylists and manage their schedules more efficiently</p>
                     <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 gap-2 shadow-lg hover:shadow-xl transition-all">
                       <Plus className="h-4 w-4" />
@@ -395,7 +395,7 @@ const Teams = () => {
                     <div className="bg-purple-100 p-4 rounded-full mb-4 shadow-inner">
                       <Scissors className="h-12 w-12 text-purple-600" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">Team Benefits</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">Team Benefits</h3>
                     <ul className="space-y-3 text-sm text-muted-foreground mb-4">
                       <li className="flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>

@@ -47,7 +47,7 @@ export default function Brand() {
   return (
     <div className="min-h-screen bg-[#fafbfa] flex">
       {/* Sidebar */}
-      <aside className="w-[250px] border-r border-[#ececec] bg-white flex flex-col py-7 px-0 min-h-screen">
+      <aside className="w-[250px] border-r border-[#ececec] bg-card flex flex-col py-7 px-0 min-h-screen">
         <nav className="flex-1 px-5">
           <div>
             <p className="mb-5 text-[15px] tracking-wide font-semibold text-[#222]">Settings</p>
@@ -103,7 +103,7 @@ export default function Brand() {
       <main className="flex-1 flex flex-col px-0" style={{ minWidth: 0 }}>
         <div className="w-full" style={{ minWidth: 0 }}>
           {/* Header */}
-          <div className="flex items-center py-8 px-16 border-b border-[#ececec] bg-white">
+          <div className="flex items-center py-8 px-16 border-b border-[#ececec] bg-card">
             <h1 className="text-[22px] font-semibold text-[#2d2c4f] mr-5">Your brand</h1>
             <div className="flex items-center">
               {/* Progress ring (SVG) */}
@@ -129,7 +129,7 @@ export default function Brand() {
             {/* Brand details */}
             <div className="flex-[2] min-w-[330px] max-w-[530px]">
               <h2 className="text-lg font-semibold text-[#353462] mb-6">Brand details</h2>
-              <Card className="p-8 mb-7 rounded-2xl border-[#f1f0fb] shadow-sm bg-white">
+              <Card className="p-8 mb-7 rounded-2xl border-[#f1f0fb] shadow-sm bg-card">
                 {/* Banner upload */}
                 <div className="mb-7">
                   <div className="rounded-[12px] border border-[#ececec] bg-[#f9f9fc] flex flex-col items-center py-8 px-4">
@@ -137,7 +137,7 @@ export default function Brand() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="px-5 py-2 rounded-full border-[#d7d7d7] font-normal text-[15px] bg-white hover:bg-[#f1f9f4] text-[#7771b5]"
+                      className="px-5 py-2 rounded-full border-[#d7d7d7] font-normal text-[15px] bg-card hover:bg-[#f1f9f4] text-[#7771b5]"
                     >
                       <span className="mr-2">🖼️</span>
                       Upload banner image
@@ -153,7 +153,7 @@ export default function Brand() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="px-5 py-1.5 rounded-full border-[#dadada] bg-white font-medium text-[15px] text-[#8881d9] hover:bg-[#f1f9f4]"
+                      className="px-5 py-1.5 rounded-full border-[#dadada] bg-card font-medium text-[15px] text-[#8881d9] hover:bg-[#f1f9f4]"
                     >
                       <span className="mr-2">🖼️</span>
                       Upload logo
@@ -196,7 +196,7 @@ export default function Brand() {
                     <SelectTrigger className="max-w-lg rounded-md border-[#edecef] text-[15px] bg-[#fbfbfd] focus:ring-0 py-2.5 px-3">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="z-[40] bg-white border border-[#edecef] shadow-lg">
+                    <SelectContent className="z-[40] bg-card border border-[#edecef] shadow-lg">
                       <SelectItem value="automotive">Automotive</SelectItem>
                       <SelectItem value="healthcare">Healthcare</SelectItem>
                       <SelectItem value="beauty">Beauty & Wellness</SelectItem>
@@ -235,7 +235,7 @@ export default function Brand() {
                 </div>
               </div>
               {/* Help section */}
-              <div className="rounded-2xl bg-white px-4 py-5 border border-[#ececec] text-center shadow-sm">
+              <div className="rounded-2xl bg-card px-4 py-5 border border-[#ececec] text-center shadow-sm">
                 <div className="flex justify-center -space-x-2 mb-3">
                   <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="" className="w-8 h-8 rounded-full border-2 border-white" />
                   <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face" alt="" className="w-8 h-8 rounded-full border-2 border-white" />

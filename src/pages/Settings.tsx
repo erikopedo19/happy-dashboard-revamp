@@ -309,22 +309,22 @@ const Settings = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#f6f7fb] overflow-hidden">
+      <div className="h-screen flex w-full bg-background overflow-hidden">
         <AppSidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-white/60 bg-white/85 backdrop-blur-xl">
+          <div className="sticky top-0 z-20 border-b border-white/60 bg-card/80 backdrop-blur-xl">
             <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <SidebarTrigger className="lg:hidden" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-lg md:text-2xl font-semibold text-gray-950">Settings</h1>
+                    <h1 className="text-lg md:text-2xl font-semibold text-foreground">Settings</h1>
                     <Badge className="rounded-full bg-gray-900 text-white border-0">
                       Live sync
                     </Badge>
                   </div>
-                  <p className="text-xs md:text-sm text-gray-500">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Save once and your agenda and booking flow update immediately.
                   </p>
                 </div>
@@ -333,7 +333,7 @@ const Settings = () => {
               <Button
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || isLoading}
-                className="rounded-2xl bg-gray-950 hover:bg-black text-white shadow-sm"
+                className="rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-sm"
               >
                 {saveMutation.isPending ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -350,7 +350,7 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="w-full justify-start rounded-2xl bg-white border border-gray-200 p-1 h-auto flex-wrap">
+                    <TabsList className="w-full justify-start rounded-2xl bg-card border border-border p-1 h-auto flex-wrap">
                       <TabsTrigger value="general" className="rounded-xl">
                         <Settings2 className="w-4 h-4 mr-2" />
                         General
@@ -370,7 +370,7 @@ const Settings = () => {
                     </TabsList>
 
                     <TabsContent value="general" className="mt-0 space-y-6">
-                      <Card className="rounded-3xl border-gray-200 shadow-sm bg-white">
+                      <Card className="rounded-3xl border-border shadow-sm bg-card">
                         <CardHeader>
                           <div className="flex items-center gap-3">
                             <div className="w-11 h-11 rounded-2xl bg-blue-100 flex items-center justify-center">
@@ -387,7 +387,7 @@ const Settings = () => {
 
                         <CardContent className="space-y-6">
                           <div>
-                            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                            <Label className="text-sm font-medium text-foreground/80 mb-3 block">
                               Slot duration
                             </Label>
                             <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
@@ -401,8 +401,8 @@ const Settings = () => {
                                   className={cn(
                                     "h-11 rounded-2xl border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-gray-950 text-white border-gray-950 shadow-sm"
-                                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-950"
+                                      ? "bg-primary text-white border-gray-950 shadow-sm"
+                                      : "bg-card text-muted-foreground border-border hover:border-gray-400 hover:text-foreground"
                                   )}
                                 >
                                   {duration}m
@@ -413,7 +413,7 @@ const Settings = () => {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                                 Opens at
                               </Label>
                               <Input
@@ -422,11 +422,11 @@ const Settings = () => {
                                 onChange={(e) =>
                                   setAgendaForm((prev) => ({ ...prev, start_hour: e.target.value }))
                                 }
-                                className="h-12 rounded-2xl border-gray-200"
+                                className="h-12 rounded-2xl border-border"
                               />
                             </div>
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                                 Closes at
                               </Label>
                               <Input
@@ -435,7 +435,7 @@ const Settings = () => {
                                 onChange={(e) =>
                                   setAgendaForm((prev) => ({ ...prev, end_hour: e.target.value }))
                                 }
-                                className="h-12 rounded-2xl border-gray-200"
+                                className="h-12 rounded-2xl border-border"
                               />
                             </div>
                           </div>
@@ -449,7 +449,7 @@ const Settings = () => {
                           <Separator />
 
                           <div>
-                            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                            <Label className="text-sm font-medium text-foreground/80 mb-3 block">
                               Working days
                             </Label>
                             <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
@@ -464,8 +464,8 @@ const Settings = () => {
                                     className={cn(
                                       "rounded-2xl border px-4 py-3 text-left transition-all",
                                       active
-                                        ? "border-gray-950 bg-gray-950 text-white shadow-sm"
-                                        : "border-gray-200 bg-white hover:border-gray-400"
+                                        ? "border-gray-950 bg-primary text-white shadow-sm"
+                                        : "border-border bg-card hover:border-gray-400"
                                     )}
                                   >
                                     <div className="flex items-center justify-between">
@@ -475,7 +475,7 @@ const Settings = () => {
                                     <p
                                       className={cn(
                                         "text-xs mt-1",
-                                        active ? "text-white/70" : "text-gray-500"
+                                        active ? "text-white/70" : "text-muted-foreground"
                                       )}
                                     >
                                       {day.full}
@@ -494,7 +494,7 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="notifications" className="mt-0">
-                      <Card className="rounded-3xl border-gray-200 shadow-sm bg-white">
+                      <Card className="rounded-3xl border-border shadow-sm bg-card">
                         <CardHeader>
                           <div className="flex items-center gap-3">
                             <div className="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center">
@@ -513,8 +513,8 @@ const Settings = () => {
                             <div key={item.id}>
                               <div className="flex items-center justify-between gap-4 py-3">
                                 <div className="min-w-0">
-                                  <p className="text-sm font-medium text-gray-950">{item.label}</p>
-                                  <p className="text-sm text-gray-500">{item.desc}</p>
+                                  <p className="text-sm font-medium text-foreground">{item.label}</p>
+                                  <p className="text-sm text-muted-foreground">{item.desc}</p>
                                 </div>
                                 <Switch
                                   checked={notificationPrefs[item.id]}
@@ -534,7 +534,7 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6">
-                      <Card className="rounded-3xl border-gray-200 shadow-sm bg-white">
+                      <Card className="rounded-3xl border-border shadow-sm bg-card">
                         <CardHeader>
                           <div className="flex items-center gap-3">
                             <div className="w-11 h-11 rounded-2xl bg-purple-100 flex items-center justify-center">
@@ -552,7 +552,7 @@ const Settings = () => {
                         <CardContent className="space-y-5">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                                 Owner / profile name
                               </Label>
                               <Input
@@ -561,12 +561,12 @@ const Settings = () => {
                                   setProfileForm((prev) => ({ ...prev, full_name: e.target.value }))
                                 }
                                 placeholder="Your full name"
-                                className="h-12 rounded-2xl border-gray-200"
+                                className="h-12 rounded-2xl border-border"
                               />
                             </div>
 
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                                 Personal phone
                               </Label>
                               <Input
@@ -575,7 +575,7 @@ const Settings = () => {
                                   setProfileForm((prev) => ({ ...prev, phone: e.target.value }))
                                 }
                                 placeholder="+1 555 123 4567"
-                                className="h-12 rounded-2xl border-gray-200"
+                                className="h-12 rounded-2xl border-border"
                               />
                             </div>
                           </div>
@@ -584,7 +584,7 @@ const Settings = () => {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                                 Business name
                               </Label>
                               <Input
@@ -593,12 +593,12 @@ const Settings = () => {
                                   setBrandForm((prev) => ({ ...prev, name: e.target.value }))
                                 }
                                 placeholder="Cutzio Studio"
-                                className="h-12 rounded-2xl border-gray-200"
+                                className="h-12 rounded-2xl border-border"
                               />
                             </div>
 
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                                 Public business phone
                               </Label>
                               <Input
@@ -610,13 +610,13 @@ const Settings = () => {
                                   }))
                                 }
                                 placeholder="+1 555 987 6543"
-                                className="h-12 rounded-2xl border-gray-200"
+                                className="h-12 rounded-2xl border-border"
                               />
                             </div>
                           </div>
 
                           <div>
-                            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                            <Label className="text-sm font-medium text-foreground/80 mb-2 block">
                               Location
                             </Label>
                             <Input
@@ -625,7 +625,7 @@ const Settings = () => {
                                 setBrandForm((prev) => ({ ...prev, location: e.target.value }))
                               }
                               placeholder="123 Main Street, New York"
-                              className="h-12 rounded-2xl border-gray-200"
+                              className="h-12 rounded-2xl border-border"
                             />
                           </div>
                         </CardContent>
@@ -635,7 +635,7 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <Card className="rounded-3xl border-gray-200 shadow-sm bg-white overflow-hidden">
+                  <Card className="rounded-3xl border-border shadow-sm bg-card overflow-hidden">
                     <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 p-6 text-white">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="w-4 h-4 text-white/80" />
@@ -649,22 +649,22 @@ const Settings = () => {
 
                     <CardContent className="p-6 space-y-5">
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-                          <p className="text-xs uppercase tracking-wide text-gray-500">Open</p>
-                          <p className="text-lg font-semibold text-gray-950 mt-1">
+                        <div className="rounded-2xl bg-secondary/40 border border-border p-4">
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Open</p>
+                          <p className="text-lg font-semibold text-foreground mt-1">
                             {agendaForm.start_hour}
                           </p>
                         </div>
-                        <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-                          <p className="text-xs uppercase tracking-wide text-gray-500">Close</p>
-                          <p className="text-lg font-semibold text-gray-950 mt-1">
+                        <div className="rounded-2xl bg-secondary/40 border border-border p-4">
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Close</p>
+                          <p className="text-lg font-semibold text-foreground mt-1">
                             {agendaForm.end_hour}
                           </p>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-                        <p className="text-xs uppercase tracking-wide text-gray-500">Active days</p>
+                      <div className="rounded-2xl bg-secondary/40 border border-border p-4">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Active days</p>
                         <div className="flex flex-wrap gap-2 mt-3">
                           {agendaForm.working_days.length > 0 ? (
                             weekDays
@@ -673,20 +673,20 @@ const Settings = () => {
                                 <Badge
                                   key={day.value}
                                   variant="secondary"
-                                  className="rounded-full px-3 py-1 bg-white border border-gray-200 text-gray-700"
+                                  className="rounded-full px-3 py-1 bg-card border border-border text-foreground/80"
                                 >
                                   {day.label}
                                 </Badge>
                               ))
                           ) : (
-                            <span className="text-sm text-gray-500">No working days selected</span>
+                            <span className="text-sm text-muted-foreground">No working days selected</span>
                           )}
                         </div>
                       </div>
 
-                      <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
+                      <div className="rounded-2xl bg-secondary/40 border border-border p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <p className="text-xs uppercase tracking-wide text-gray-500">Time slots</p>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Time slots</p>
                           <Badge className="rounded-full bg-blue-100 text-blue-700 border-0">
                             {agendaForm.service_duration} min
                           </Badge>
@@ -698,7 +698,7 @@ const Settings = () => {
                               <Badge
                                 key={slot}
                                 variant="secondary"
-                                className="rounded-xl px-2.5 py-1 bg-white border border-gray-200 text-gray-700"
+                                className="rounded-xl px-2.5 py-1 bg-card border border-border text-foreground/80"
                               >
                                 {slot}
                               </Badge>
@@ -708,7 +708,7 @@ const Settings = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-3xl border-gray-200 shadow-sm bg-white">
+                  <Card className="rounded-3xl border-border shadow-sm bg-card">
                     <CardHeader>
                       <CardTitle>Business summary</CardTitle>
                       <CardDescription>
@@ -716,21 +716,21 @@ const Settings = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Business</p>
-                        <p className="text-base font-semibold text-gray-950 mt-1">
+                      <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Business</p>
+                        <p className="text-base font-semibold text-foreground mt-1">
                           {brandForm.name || "Unnamed business"}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Phone</p>
-                        <p className="text-base font-semibold text-gray-950 mt-1">
+                      <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Phone</p>
+                        <p className="text-base font-semibold text-foreground mt-1">
                           {brandForm.contact_phone || profileForm.phone || "Not set"}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Location</p>
-                        <p className="text-base font-semibold text-gray-950 mt-1">
+                      <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Location</p>
+                        <p className="text-base font-semibold text-foreground mt-1">
                           {brandForm.location || "Not set"}
                         </p>
                       </div>
