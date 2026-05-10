@@ -365,6 +365,7 @@ serve(async (req: Request) => {
             apikey: ANON,
           },
           body: JSON.stringify({
+            userId: payload.businessId,
             customerEmail: payload.customerEmail,
             customerName: payload.customerName,
             customerPhone: payload.customerPhone ?? undefined,
@@ -378,7 +379,7 @@ serve(async (req: Request) => {
             ),
             notes: notesText || undefined,
             bookingId: appointment.id?.toString().substring(0, 8),
-            accentColor: payload.accentColor || profile.brand_color || "#1a1a1a",
+            accentColor: payload.accentColor || profile.brand_color || "#2563eb",
             stylistName,
             stylistTitle,
             senderEmail: senderProfile?.sender_email || "noreply@cutzioo.com",

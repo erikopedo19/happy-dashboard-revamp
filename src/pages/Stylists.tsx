@@ -265,7 +265,7 @@ const Stylists = () => {
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 border-2 border-gray-100">
+                            <Avatar className="h-12 w-12 border-2 border-border">
                               <AvatarImage src={stylist.avatar_url || undefined} />
                               <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
                                 {initials}
@@ -296,7 +296,7 @@ const Stylists = () => {
                               "font-normal capitalize",
                               stylist.status?.toLowerCase() === 'available' ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : 
                               stylist.status?.toLowerCase() === 'booked' ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : 
-                              "bg-gray-100 text-gray-700 hover:bg-gray-100"
+                              "bg-secondary text-foreground/80 hover:bg-secondary"
                             )}>
                               {stylist.status || 'Unknown'}
                             </Badge>
@@ -337,7 +337,7 @@ const Stylists = () => {
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
           <div
-            className="fixed z-[101] w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+            className="fixed z-[101] w-80 bg-card dark:bg-gray-900 rounded-2xl shadow-2xl border border-border dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
             style={{
               left: Math.min(contextMenu.x, window.innerWidth - 340),
               top: Math.min(contextMenu.y, window.innerHeight - 420),
@@ -349,7 +349,7 @@ const Stylists = () => {
               <div className="relative z-10 flex items-center gap-3">
                 <Avatar className="h-12 w-12 border-2 border-white/30">
                   <AvatarImage src={contextMenu.stylist.avatar_url || undefined} />
-                  <AvatarFallback className="bg-white/20 text-white font-semibold text-lg">
+                  <AvatarFallback className="bg-card/20 text-white font-semibold text-lg">
                     {contextMenu.stylist.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -359,7 +359,7 @@ const Stylists = () => {
                     <p className="text-white/80 text-xs mt-0.5">{contextMenu.stylist.title}</p>
                   )}
                 </div>
-                <button onClick={() => setContextMenu(null)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                <button onClick={() => setContextMenu(null)} className="w-7 h-7 rounded-full bg-card/20 flex items-center justify-center hover:bg-card/30 transition-colors">
                   <X className="w-3.5 h-3.5 text-white" />
                 </button>
               </div>
@@ -368,20 +368,20 @@ const Stylists = () => {
             {/* Info Grid */}
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-3 gap-2">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status</p>
+                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Status</p>
                   <p className={cn(
                     "text-sm font-semibold mt-0.5 capitalize",
                     contextMenu.stylist.status === 'available' ? 'text-green-600' :
-                    contextMenu.stylist.status === 'booked' ? 'text-amber-600' : 'text-gray-500'
+                    contextMenu.stylist.status === 'booked' ? 'text-amber-600' : 'text-muted-foreground'
                   )}>{contextMenu.stylist.status || 'Unknown'}</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Today</p>
+                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Today</p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{contextMenu.stylist.bookings_today || 0}</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Rating</p>
+                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Rating</p>
                   <div className="flex items-center justify-center gap-0.5 mt-0.5">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                     <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{contextMenu.stylist.satisfaction?.toFixed(1) || 'N/A'}</p>
@@ -396,7 +396,7 @@ const Stylists = () => {
                     <div className="w-7 h-7 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
                       <Clock className="h-3.5 w-3.5 text-green-600" />
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300">Next: {contextMenu.stylist.next_availability}</span>
+                    <span className="text-foreground/80 dark:text-gray-300">Next: {contextMenu.stylist.next_availability}</span>
                   </div>
                 )}
                 {contextMenu.stylist.specialties && contextMenu.stylist.specialties.length > 0 && (

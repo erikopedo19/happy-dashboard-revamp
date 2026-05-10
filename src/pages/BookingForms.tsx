@@ -53,28 +53,28 @@ const BookingForms = () => {
 //fix the stylist to not let book on blocked day
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-secondary/40 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading booking forms...</p>
+          <p className="text-muted-foreground">Loading booking forms...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary/40">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Find Your Perfect Service</h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Find Your Perfect Service</h1>
+          <p className="text-xl text-muted-foreground mb-8">
             Browse and book appointments with local businesses
           </p>
           
           {/* Search */}
           <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input
               type="text"
               placeholder="Search by business name, industry, or location..."
@@ -89,10 +89,10 @@ const BookingForms = () => {
         {filteredBrands.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-10 h-10 text-gray-400" />
+              <Search className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No booking forms found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold text-foreground mb-2">No booking forms found</h3>
+            <p className="text-muted-foreground">
               {searchTerm ? 'Try adjusting your search terms.' : 'No businesses have set up booking forms yet.'}
             </p>
           </div>
@@ -115,11 +115,11 @@ const BookingForms = () => {
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg font-semibold text-gray-900">
+                        <CardTitle className="text-lg font-semibold text-foreground">
                           {brand.brandName}
                         </CardTitle>
                         {brand.industry && (
-                          <p className="text-sm text-gray-500">{brand.industry}</p>
+                          <p className="text-sm text-muted-foreground">{brand.industry}</p>
                         )}
                       </div>
                     </div>
@@ -128,24 +128,24 @@ const BookingForms = () => {
                 
                 <CardContent className="space-y-4">
                   {brand.about && (
-                    <p className="text-gray-600 text-sm line-clamp-3">{brand.about}</p>
+                    <p className="text-muted-foreground text-sm line-clamp-3">{brand.about}</p>
                   )}
                   
                   <div className="space-y-2">
                     {brand.location && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="w-4 h-4" />
                         <span>{brand.location}</span>
                       </div>
                     )}
                     {brand.contactPhone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Phone className="w-4 h-4" />
                         <span>{brand.contactPhone}</span>
                       </div>
                     )}
                     {brand.contactEmail && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Mail className="w-4 h-4" />
                         <span>{brand.contactEmail}</span>
                       </div>

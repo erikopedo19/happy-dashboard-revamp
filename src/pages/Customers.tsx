@@ -163,14 +163,14 @@ const Customers = () => {
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 bg-[#f8f9fa] flex flex-col overflow-hidden">
-          <header className="bg-white border-b border-apple-gray-200 px-4 md:px-6 py-3 md:py-4 glass-effect flex-shrink-0">
+        <main className="flex-1 bg-background flex flex-col overflow-hidden">
+          <header className="bg-card border-b border-border px-4 md:px-6 py-3 md:py-4 glass-effect flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-apple-gray-600 hover:text-apple-gray-900 transition-all duration-200" />
+                <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all duration-200" />
                 <div>
-                  <h1 className="text-lg md:text-xl font-semibold text-apple-gray-900">Customers</h1>
-                  <p className="text-xs md:text-sm text-apple-gray-600 hidden sm:block">Manage your customer database</p>
+                  <h1 className="text-lg md:text-xl font-semibold text-foreground">Customers</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Manage your customer database</p>
                 </div>
               </div>
               <div className="flex gap-2 md:gap-3">
@@ -178,7 +178,7 @@ const Customers = () => {
                   <Search className="w-4 h-4 mr-2" />
                   Search
                 </Button>
-                <Button size="sm" className="bg-gradient-blue hover:opacity-90 text-white">
+                <Button size="sm" className="bg-primary hover:opacity-90 text-white">
                   <Plus className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Add Customer</span>
                 </Button>
@@ -187,21 +187,21 @@ const Customers = () => {
           </header>
 
           <div className="flex-1 overflow-auto p-3 md:p-6">
-            <Card className="bg-white border-0 shadow-sm overflow-hidden">
+            <Card className="bg-card border-0 shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-apple-gray-50">
-                    <TableHead className="w-[35%] text-apple-gray-600 font-semibold">Name</TableHead>
-                    <TableHead className="text-apple-gray-600 font-semibold hidden md:table-cell">Email</TableHead>
-                    <TableHead className="text-apple-gray-600 font-semibold hidden sm:table-cell">Phone</TableHead>
-                    <TableHead className="text-right text-apple-gray-600 font-semibold">Actions</TableHead>
+                  <TableRow className="bg-secondary/50">
+                    <TableHead className="w-[35%] text-muted-foreground font-semibold">Name</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold hidden md:table-cell">Email</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold hidden sm:table-cell">Phone</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-semibold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, index) => (
-                      <TableRow key={index} className="hover:bg-apple-gray-50/50 transition-colors">
+                      <TableRow key={index} className="hover:bg-secondary/50 transition-colors">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Skeleton className="w-8 h-8 rounded-full" />
@@ -235,10 +235,10 @@ const Customers = () => {
                     </TableRow>
                   ) : customers && customers.length > 0 ? (
                     customers.map((customer) => (
-                      <TableRow key={customer.id} className="hover:bg-apple-gray-50/50 transition-colors">
-                        <TableCell className="font-medium text-apple-gray-900">
+                      <TableRow key={customer.id} className="hover:bg-secondary/50 transition-colors">
+                        <TableCell className="font-medium text-foreground">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-blue rounded-full flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                               <User className="w-4 h-4 text-white" />
                             </div>
                             <span>{customer.name}</span>
@@ -246,7 +246,7 @@ const Customers = () => {
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           {customer.email && (
-                            <div className="flex items-center gap-2 text-apple-gray-600">
+                            <div className="flex items-center gap-2 text-muted-foreground">
                               <Mail className="w-4 h-4 flex-shrink-0" />
                               <span className="truncate">{customer.email}</span>
                             </div>
@@ -254,7 +254,7 @@ const Customers = () => {
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           {customer.phone && (
-                            <div className="flex items-center gap-2 text-apple-gray-600">
+                            <div className="flex items-center gap-2 text-muted-foreground">
                               <Phone className="w-4 h-4 flex-shrink-0" />
                               <span>{customer.phone}</span>
                             </div>
@@ -290,8 +290,8 @@ const Customers = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-12">
-                        <p className="text-apple-gray-600 text-lg">No customers found.</p>
-                        <p className="text-sm text-apple-gray-500 mt-2">You can add new customers when creating an appointment on the Agenda page.</p>
+                        <p className="text-muted-foreground text-lg">No customers found.</p>
+                        <p className="text-sm text-muted-foreground mt-2">You can add new customers when creating an appointment on the Agenda page.</p>
                       </TableCell>
                     </TableRow>
                   )}

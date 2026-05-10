@@ -307,6 +307,39 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          accent_color: string
+          created_at: string
+          email_body: string
+          email_subject: string
+          enabled: boolean
+          sms_body: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string
+          created_at?: string
+          email_body?: string
+          email_subject?: string
+          enabled?: boolean
+          sms_body?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_color?: string
+          created_at?: string
+          email_body?: string
+          email_subject?: string
+          enabled?: boolean
+          sms_body?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string | null

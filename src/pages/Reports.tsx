@@ -423,24 +423,24 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#f8f9fa] overflow-hidden">
+      <div className="h-screen flex w-full bg-background overflow-hidden">
         <AppSidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-md shadow-sm">
+          <div className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur-md shadow-sm">
             <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <SidebarTrigger className="lg:hidden" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-xl md:text-3xl font-semibold tracking-tight text-gray-950">
+                    <h1 className="text-xl md:text-3xl font-semibold tracking-tight text-foreground">
                       Reports
                     </h1>
                     <Badge className="rounded-full border-0 bg-black text-white">
                       Apple-style analytics
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     Ranking stylists, revenue trends, booking insights, and modern dashboard cards.
                   </p>
                 </div>
@@ -448,8 +448,8 @@ const Reports = () => {
 
               <div className="flex items-center gap-3">
                 <Select value={dateRange} onValueChange={(value) => setDateRange(value as RangeValue)}>
-                  <SelectTrigger className="w-[160px] rounded-2xl border-gray-200 bg-white/90 shadow-sm">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                  <SelectTrigger className="w-[160px] rounded-2xl border-border bg-card/90 shadow-sm">
+                    <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
@@ -464,7 +464,7 @@ const Reports = () => {
 
                 <Button
                   variant="outline"
-                  className="rounded-2xl border-gray-200 bg-white/90 shadow-sm"
+                  className="rounded-2xl border-border bg-card/90 shadow-sm"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export
@@ -480,38 +480,38 @@ const Reports = () => {
                   title="Revenue"
                   value={currency.format(analytics.totalRevenue)}
                   description="Revenue generated in selected range"
-                  icon={<DollarSign className="w-5 h-5 text-gray-900" />}
+                  icon={<DollarSign className="w-5 h-5 text-foreground" />}
                   trend={`Avg ticket ${currency.format(analytics.averageTicket || 0)}`}
                 />
                 <MetricCard
                   title="Appointments"
                   value={numberFormat.format(analytics.totalAppointments)}
                   description="Bookings tracked in this report"
-                  icon={<CalendarDays className="w-5 h-5 text-gray-900" />}
+                  icon={<CalendarDays className="w-5 h-5 text-foreground" />}
                   trend={`${analytics.completionRate}% completion rate`}
                 />
                 <MetricCard
                   title="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   description="Unique customers in range"
-                  icon={<Users className="w-5 h-5 text-gray-900" />}
+                  icon={<Users className="w-5 h-5 text-foreground" />}
                   trend={`${analytics.activeStylists} active stylists`}
                 />
                 <MetricCard
                   title="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   description="Services contributing to performance"
-                  icon={<Scissors className="w-5 h-5 text-gray-900" />}
+                  icon={<Scissors className="w-5 h-5 text-foreground" />}
                   trend={`${analytics.completedAppointments} completed appointments`}
                 />
               </section>
 
               <section className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
-                <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm">
+                <Card className="rounded-[20px] border border-border bg-card shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <CardTitle className="text-xl font-semibold text-gray-950">
+                        <CardTitle className="text-xl font-semibold text-foreground">
                           Revenue flow
                         </CardTitle>
                         <CardDescription>
@@ -580,7 +580,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-[20px] border border-gray-200 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white shadow-sm overflow-hidden">
+                <Card className="rounded-[20px] border border-border bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <div className="flex items-center gap-2 text-white/80 mb-2">
                       <WandSparkles className="w-4 h-4" />
@@ -615,7 +615,7 @@ const Reports = () => {
                       />
                     </div>
 
-                    <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                    <div className="rounded-3xl border border-white/10 bg-card/5 p-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-white/70">Completion</p>
@@ -647,12 +647,12 @@ const Reports = () => {
               </section>
 
               <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <Card className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
                   <div className="bg-gradient-to-br from-rose-50 via-white to-rose-100/60">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <CardTitle className="text-lg text-gray-950">Service breakdown</CardTitle>
+                          <CardTitle className="text-lg text-foreground">Service breakdown</CardTitle>
                           <CardDescription>
                             Premium rose chart for your most booked services.
                           </CardDescription>
@@ -727,8 +727,8 @@ const Reports = () => {
                         </BarChart>
                       </ChartContainer>
                     </CardContent>
-                    <CardFooter className="flex-col items-start gap-2 border-t border-rose-100/80 bg-white/70 text-sm">
-                      <div className="flex gap-2 leading-none font-medium text-gray-900">
+                    <CardFooter className="flex-col items-start gap-2 border-t border-rose-100/80 bg-card/70 text-sm">
+                      <div className="flex gap-2 leading-none font-medium text-foreground">
                         Top services are trending up this period <TrendingUp className="h-4 w-4 text-rose-600" />
                       </div>
                       <div className="leading-none text-muted-foreground">
@@ -738,9 +738,9 @@ const Reports = () => {
                   </div>
                 </Card>
 
-                <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm">
+                <Card className="rounded-[20px] border border-border bg-card shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-lg text-gray-950">Booking status</CardTitle>
+                    <CardTitle className="text-lg text-foreground">Booking status</CardTitle>
                     <CardDescription>
                       A clean Apple-like distribution of appointment states.
                     </CardDescription>
@@ -789,9 +789,9 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm">
+                <Card className="rounded-[20px] border border-border bg-card shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-lg text-gray-950">Demand rhythm</CardTitle>
+                    <CardTitle className="text-lg text-foreground">Demand rhythm</CardTitle>
                     <CardDescription>
                       Quick view of the busiest hours on your schedule.
                     </CardDescription>
@@ -821,11 +821,11 @@ const Reports = () => {
               </section>
 
               <section className="grid grid-cols-1 xl:grid-cols-[1fr_0.95fr] gap-6">
-                <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm">
+                <Card className="rounded-[20px] border border-border bg-card shadow-sm">
                   <CardHeader>
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <CardTitle className="text-xl text-gray-950">
+                        <CardTitle className="text-xl text-foreground">
                           Stylist ranking
                         </CardTitle>
                         <CardDescription>
@@ -845,11 +845,11 @@ const Reports = () => {
                       analytics.stylistPerformance.map((stylist, index) => (
                         <div
                           key={stylist.id}
-                          className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-gray-100 bg-gradient-to-r from-white to-gray-50 px-4 py-4"
+                          className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-border bg-gradient-to-r from-white to-gray-50 px-4 py-4"
                         >
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-2xl bg-gray-950 text-white flex items-center justify-center font-semibold">
+                              <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-semibold">
                                 {index === 0 ? (
                                   <Crown className="w-5 h-5" />
                                 ) : (
@@ -864,7 +864,7 @@ const Reports = () => {
 
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold text-gray-950 truncate">
+                                <p className="font-semibold text-foreground truncate">
                                   {stylist.name}
                                 </p>
                                 {index === 0 && (
@@ -873,9 +873,9 @@ const Reports = () => {
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-500">{stylist.title}</p>
+                              <p className="text-sm text-muted-foreground">{stylist.title}</p>
 
-                              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                 <span>{stylist.bookings} bookings</span>
                                 <span>{stylist.completed} completed</span>
                                 <span className="flex items-center gap-1">
@@ -887,8 +887,8 @@ const Reports = () => {
                           </div>
 
                           <div className="text-right shrink-0">
-                            <p className="text-sm text-gray-500">Revenue</p>
-                            <p className="text-lg font-semibold text-gray-950">
+                            <p className="text-sm text-muted-foreground">Revenue</p>
+                            <p className="text-lg font-semibold text-foreground">
                               {currency.format(stylist.revenue)}
                             </p>
                           </div>
@@ -898,9 +898,9 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm">
+                <Card className="rounded-[20px] border border-border bg-card shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-xl text-gray-950">
+                    <CardTitle className="text-xl text-foreground">
                       Stylist revenue graph
                     </CardTitle>
                     <CardDescription>
@@ -967,7 +967,7 @@ const Reports = () => {
               </section>
 
               {isLoading && (
-                <div className="text-sm text-gray-500 px-2">
+                <div className="text-sm text-muted-foreground px-2">
                   Loading analytics...
                 </div>
               )}
@@ -993,18 +993,18 @@ function MetricCard({
   trend: string;
 }) {
   return (
-    <Card className="rounded-[20px] border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <Card className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-3xl font-semibold tracking-tight text-gray-950 mt-2">{value}</p>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="text-3xl font-semibold tracking-tight text-foreground mt-2">{value}</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-gray-100 flex items-center justify-center">
+          <div className="w-11 h-11 rounded-2xl bg-secondary flex items-center justify-center">
             {icon}
           </div>
         </div>
-        <p className="text-sm text-gray-500 mt-3">{description}</p>
+        <p className="text-sm text-muted-foreground mt-3">{description}</p>
         <div className="mt-4 flex items-center gap-2 text-sm text-emerald-600">
           <TrendingUp className="w-4 h-4" />
           <span>{trend}</span>
@@ -1016,7 +1016,7 @@ function MetricCard({
 
 function SpotlightPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+    <div className="rounded-2xl border border-white/10 bg-card/5 p-3">
       <p className="text-xs text-white/60">{label}</p>
       <p className="text-lg font-semibold text-white mt-1">{value}</p>
     </div>
@@ -1025,21 +1025,21 @@ function SpotlightPill({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50/80 px-3 py-4 text-center">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-lg font-semibold text-gray-950 mt-1">{value}</p>
+    <div className="rounded-2xl border border-border bg-secondary/40/80 px-3 py-4 text-center">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold text-foreground mt-1">{value}</p>
     </div>
   );
 }
 
 function EmptyState() {
   return (
-    <div className="rounded-[1.75rem] border border-dashed border-gray-200 bg-gray-50/70 p-8 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 mx-auto flex items-center justify-center">
-        <Sparkles className="w-6 h-6 text-gray-400" />
+    <div className="rounded-[1.75rem] border border-dashed border-border bg-secondary/40/70 p-8 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-card border border-border mx-auto flex items-center justify-center">
+        <Sparkles className="w-6 h-6 text-muted-foreground" />
       </div>
-      <p className="text-gray-900 font-medium mt-4">No report data yet</p>
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-foreground font-medium mt-4">No report data yet</p>
+      <p className="text-sm text-muted-foreground mt-2">
         Add appointments, services, and stylists to unlock the new analytics page.
       </p>
     </div>
