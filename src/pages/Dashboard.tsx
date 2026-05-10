@@ -5,16 +5,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
   const isMobile = useIsMobile();
-
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full overflow-hidden">
+      <div className="h-screen flex w-full overflow-hidden bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-10 bg-white/70 backdrop-blur-2xl border-b border-black/[0.06] p-3 lg:hidden">
+          <div className="sticky top-0 z-10 bg-background border-b border-border p-3 lg:hidden">
             <div className="flex items-center justify-between">
-              <SidebarTrigger className="text-[#0071e3]" />
-              <h1 className="text-base font-semibold text-[#1d1d1f]">Summary</h1>
+              <SidebarTrigger />
+              <h1 className="text-base font-semibold text-foreground">Dashboard</h1>
               <div className="w-8" />
             </div>
           </div>

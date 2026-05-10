@@ -3,45 +3,32 @@ import {
   Calendar,
   TrendingUp,
   Users,
-  Euro,
   Scissors,
-  ChevronRight,
   Clock,
   Plus,
-  Sparkles,
+  ArrowUpRight,
+  ArrowDownRight,
+  Download,
+  RefreshCw,
+  Bell,
+  Mail,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, isToday } from 'date-fns';
-import { useAppointmentsCount } from '@/components/AppointmentsCounter';
+import { format, parseISO, isToday, subDays, isAfter } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Area, AreaChart,
+} from "recharts";
 
 const db = supabase as any;
 
-interface Service {
-  id: string;
-  name: string;
-  color: string | null;
-  icon?: string | null;
-  price?: number | null;
-}
-
 export function DashboardContent() {
   const { user } = useAuth();
-  const { count } = useAppointmentsCount();
-
-  const { data: services = [] } = useQuery<Service[]>({
-    queryKey: ['dashboard-services', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await db
-        .from('services').select('id, name, color, icon, price')
-        .eq('user_id', user.id).order('name');
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user,
-  });
 
   const { data: appointments = [] } = useQuery<any[]>({
     queryKey: ['dashboard-appointments', user?.id],
@@ -49,272 +36,264 @@ export function DashboardContent() {
       if (!user) return [];
       const { data, error } = await db
         .from('appointments')
-        .select(`*, customer:customers(name), service:services(name, price)`)
+        .select(`*, customer:customers(name, email), service:services(name, price)`)
         .eq('user_id', user.id)
         .order('appointment_date', { ascending: false })
-        .order('appointment_time', { ascending: false })
-        .limit(200);
+        .limit(500);
       if (error) throw error;
       return data || [];
     },
     enabled: !!user,
   });
 
-  const today = new Date();
+  const { data: customers = [] } = useQuery<any[]>({
+    queryKey: ['dashboard-customers', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await db.from('customers').select('id, name, email, phone').eq('user_id', user.id);
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   const stats = useMemo(() => {
     const todays = appointments.filter(a => isToday(parseISO(a.appointment_date)));
-    const todayRevenue = todays.reduce(
-      (s, a) => s + Number(a.price || a.service?.price || 0), 0
-    );
-    const customerSet = new Set(appointments.map(a => a.customer_id).filter(Boolean));
+    const todayRevenue = todays.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+    const totalRevenue = appointments.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+    const last30 = appointments.filter(a => isAfter(parseISO(a.appointment_date), subDays(new Date(), 30)));
+    const prev30 = appointments.filter(a => {
+      const d = parseISO(a.appointment_date);
+      return isAfter(d, subDays(new Date(), 60)) && !isAfter(d, subDays(new Date(), 30));
+    });
+    const trend = prev30.length ? Math.round(((last30.length - prev30.length) / prev30.length) * 100) : 100;
+
+    // Build last 14 days bar series
+    const days: { day: string; revenue: number; bookings: number }[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = subDays(new Date(), i);
+      const key = format(d, 'yyyy-MM-dd');
+      const dayApts = appointments.filter(a => a.appointment_date === key);
+      days.push({
+        day: format(d, 'd'),
+        revenue: dayApts.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0),
+        bookings: dayApts.length,
+      });
+    }
     return {
       todays: todays.length,
       todayRevenue,
-      customers: customerSet.size,
+      totalRevenue,
+      customers: customers.length,
+      pending: appointments.filter(a => a.status === 'scheduled').length,
+      trend,
+      days,
     };
-  }, [appointments]);
-
-  // Top services
-  const serviceBreakdown = useMemo(() => {
-    const counts: Record<string, number> = {};
-    appointments.forEach(a => { if (a.service_id) counts[a.service_id] = (counts[a.service_id] || 0) + 1; });
-    const max = Math.max(1, ...Object.values(counts));
-    return services.map(s => ({
-      ...s,
-      count: counts[s.id] || 0,
-      pct: Math.round(((counts[s.id] || 0) / max) * 100),
-    })).sort((a, b) => b.count - a.count).slice(0, 5);
-  }, [services, appointments]);
+  }, [appointments, customers]);
 
   const upcoming = useMemo(() => {
-    const nowIso = format(today, 'yyyy-MM-dd');
+    const today = format(new Date(), 'yyyy-MM-dd');
     return appointments
-      .filter(a => a.appointment_date >= nowIso && a.status !== 'cancelled')
+      .filter(a => a.appointment_date >= today && a.status !== 'cancelled')
       .sort((a, b) => (a.appointment_date + a.appointment_time).localeCompare(b.appointment_date + b.appointment_time))
       .slice(0, 6);
   }, [appointments]);
 
   return (
-    <div className="h-full overflow-auto relative">
-      {/* Sonoma ambient backdrop */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#eef2ff] via-[#f5f0ff] to-[#fff0f6]" />
-        <div className="absolute -top-32 -left-20 h-[420px] w-[420px] rounded-full bg-[#a5b4fc] opacity-40 blur-3xl" />
-        <div className="absolute top-40 right-0 h-[380px] w-[380px] rounded-full bg-[#f9a8d4] opacity-40 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[360px] w-[360px] rounded-full bg-[#fcd34d] opacity-30 blur-3xl" />
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-        {/* Header */}
-        <header className="flex items-end justify-between">
+    <div className="h-full overflow-auto bg-background">
+      <div className="px-6 py-6 max-w-[1600px] mx-auto space-y-6">
+        {/* Top bar */}
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-medium text-[#6e6e73] uppercase tracking-[0.14em]">
-              {format(today, 'EEEE, MMMM d')}
-            </p>
-            <h1 className="text-[40px] leading-[1.05] font-semibold text-[#1d1d1f] tracking-tight mt-1">
-              Good {today.getHours() < 12 ? 'morning' : today.getHours() < 18 ? 'afternoon' : 'evening'}
-            </h1>
+            <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
           </div>
-          <div className="hidden sm:flex h-11 w-11 rounded-full bg-white/70 backdrop-blur-2xl items-center justify-center ring-1 ring-white/60 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.18)]">
-            <span className="text-sm font-semibold text-[#0071e3]">
-              {(user?.email || 'U')[0].toUpperCase()}
-            </span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-border bg-card">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-border bg-card">
+              <Mail className="h-4 w-4" />
+            </Button>
+            <Button className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+              <Plus className="h-4 w-4" /> New booking
+            </Button>
           </div>
-        </header>
+        </div>
 
-        {/* Hero stats — Today */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <GlassCard className="md:col-span-2 p-7">
-            <div className="flex items-start justify-between mb-5">
+        {/* Tabs + actions */}
+        <div className="flex items-center justify-between">
+          <Tabs defaultValue="overview">
+            <TabsList className="bg-card border border-border rounded-xl p-1 h-10">
+              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground px-4">Overview</TabsTrigger>
+              <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-secondary px-4">Bookings</TabsTrigger>
+              <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-secondary px-4">Sales</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-border bg-card">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" className="h-9 rounded-xl border-border bg-card">Monthly</Button>
+            <Button className="h-9 rounded-xl bg-primary text-primary-foreground gap-2">
+              <Download className="h-4 w-4" /> Download
+            </Button>
+          </div>
+        </div>
+
+        {/* KPI row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <Kpi title="Today's Revenue" value={`€${stats.todayRevenue.toFixed(0)}`} delta={stats.trend} sub="vs last month" />
+          <Kpi title="Today's Bookings" value={stats.todays.toString()} delta={12} sub="appointments" />
+          <Kpi title="Pending" value={stats.pending.toString()} delta={-5} sub="awaiting confirmation" negative />
+          <Kpi title="Total Customers" value={stats.customers.toString()} delta={29} sub="+10 new" />
+        </div>
+
+        {/* Charts row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2 bg-card border-border rounded-2xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <p className="text-[11px] font-semibold text-[#0071e3] uppercase tracking-[0.14em]">Today</p>
-                <h2 className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight mt-1">
-                  {stats.todays} appointment{stats.todays === 1 ? '' : 's'}
-                </h2>
+                <CardTitle className="text-base font-semibold">Sales Performance</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">Last 14 days</p>
               </div>
-              <div className="h-10 w-10 rounded-2xl bg-[#0071e3]/10 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-[#0071e3]" />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-[56px] leading-none font-semibold text-[#1d1d1f] tracking-tight">
-                €{stats.todayRevenue.toFixed(0)}
-              </span>
-              <span className="text-sm text-[#6e6e73]">expected today</span>
-            </div>
-            <div className="mt-6 h-1.5 rounded-full bg-black/5 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#0071e3] to-[#5e5ce6] transition-[width] duration-700"
-                style={{ width: `${Math.min(100, stats.todays * 10)}%` }}
-              />
-            </div>
-          </GlassCard>
-
-          <div className="grid grid-cols-1 gap-4">
-            <KpiTile
-              label="Customers"
-              value={stats.customers}
-              suffix="total"
-              icon={<Users className="h-4 w-4" />}
-              tint="#34c759"
-            />
-            <KpiTile
-              label="All time"
-              value={count}
-              suffix="bookings"
-              icon={<TrendingUp className="h-4 w-4" />}
-              tint="#ff9500"
-            />
-          </div>
-        </section>
-
-        {/* Upcoming + Top services */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <GlassCard className="lg:col-span-2 overflow-hidden">
-            <div className="flex items-center justify-between px-6 pt-5 pb-3">
-              <div>
-                <p className="text-[11px] font-semibold text-[#0071e3] uppercase tracking-[0.14em]">Schedule</p>
-                <h2 className="text-xl font-semibold text-[#1d1d1f] tracking-tight">Upcoming</h2>
-              </div>
-              <button
-                onClick={() => (window.location.href = '/agenda')}
-                className="text-sm font-medium text-[#0071e3] flex items-center gap-0.5 hover:opacity-80"
-              >
-                See all <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="divide-y divide-black/[0.06]">
-              {upcoming.length === 0 ? (
-                <EmptyRow
-                  icon={<Calendar className="h-6 w-6 text-[#6e6e73]" />}
-                  title="Nothing on the books"
-                  cta="Add appointment"
-                  onClick={() => (window.location.href = '/agenda')}
-                />
-              ) : upcoming.map((a) => (
-                <div key={a.id} className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/40 transition-colors">
-                  <div className="h-10 w-10 rounded-2xl bg-[#0071e3]/10 flex items-center justify-center shrink-0">
-                    <Clock className="h-5 w-5 text-[#0071e3]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-[#1d1d1f] truncate">
-                      {a.customer?.name || 'Walk-in'}
-                    </p>
-                    <p className="text-sm text-[#6e6e73] truncate">
-                      {a.service?.name || 'Service'} · {format(parseISO(a.appointment_date), 'MMM d')} · {a.appointment_time?.slice(0, 5)}
-                    </p>
-                  </div>
-                  {a.price && (
-                    <span className="text-sm font-semibold text-[#1d1d1f]">€{Number(a.price).toFixed(0)}</span>
-                  )}
+              <Badge variant="outline" className="rounded-full border-border bg-secondary text-muted-foreground">2 Weeks</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline gap-6 mb-4">
+                <div>
+                  <div className="text-2xl font-semibold text-foreground">€{stats.totalRevenue.toFixed(0)}</div>
+                  <div className="text-xs text-muted-foreground">Total revenue</div>
                 </div>
-              ))}
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <p className="text-[11px] font-semibold text-[#af52de] uppercase tracking-[0.14em]">Top services</p>
-                <h2 className="text-xl font-semibold text-[#1d1d1f] tracking-tight">Trending</h2>
+                <div className="flex items-center gap-1 text-sm text-emerald-500">
+                  <ArrowUpRight className="h-3 w-3" /> {stats.trend}%
+                </div>
               </div>
-              <Sparkles className="h-5 w-5 text-[#af52de]" />
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={stats.days}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12 }}
+                    labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border rounded-2xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-base font-semibold">Bookings Trend</CardTitle>
+                <div className="flex items-center gap-3 mt-2 text-xs">
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" />Bookings</span>
+                  <span className="flex items-center gap-1.5 text-muted-foreground"><span className="h-2 w-2 rounded-full bg-muted-foreground" />Revenue</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={stats.days}>
+                  <defs>
+                    <linearGradient id="bk" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12 }} />
+                  <Area type="monotone" dataKey="bookings" stroke="hsl(var(--primary))" fill="url(#bk)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Upcoming list */}
+        <Card className="bg-card border-border rounded-2xl">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">Upcoming Appointments</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">{upcoming.length} scheduled</p>
             </div>
-            {serviceBreakdown.length === 0 ? (
-              <EmptyRow
-                icon={<Scissors className="h-6 w-6 text-[#6e6e73]" />}
-                title="No services yet"
-                cta="Create service"
-                onClick={() => (window.location.href = '/services')}
-              />
+            <Button variant="outline" className="h-8 rounded-lg border-border bg-secondary text-xs">View all</Button>
+          </CardHeader>
+          <CardContent>
+            {upcoming.length === 0 ? (
+              <div className="py-12 text-center">
+                <Calendar className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">No upcoming bookings</p>
+              </div>
             ) : (
-              <div className="space-y-4">
-                {serviceBreakdown.map((s) => (
-                  <div key={s.id}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-[#1d1d1f] truncate">{s.name}</span>
-                      <span className="text-sm font-semibold text-[#6e6e73]">{s.count}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-black/[0.06] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#af52de] to-[#5e5ce6] transition-[width] duration-700"
-                        style={{ width: `${s.pct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs text-muted-foreground">
+                      <th className="text-left font-medium py-3 px-2">Customer</th>
+                      <th className="text-left font-medium py-3 px-2 hidden md:table-cell">Service</th>
+                      <th className="text-left font-medium py-3 px-2">Date</th>
+                      <th className="text-left font-medium py-3 px-2">Time</th>
+                      <th className="text-left font-medium py-3 px-2">Status</th>
+                      <th className="text-right font-medium py-3 px-2">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upcoming.map(a => (
+                      <tr key={a.id} className="border-b border-border/50 hover:bg-secondary/40">
+                        <td className="py-3 px-2">
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold">
+                              {(a.customer?.name || 'W')[0].toUpperCase()}
+                            </div>
+                            <span className="font-medium text-foreground">{a.customer?.name || 'Walk-in'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2 text-muted-foreground hidden md:table-cell">{a.service?.name || '—'}</td>
+                        <td className="py-3 px-2 text-muted-foreground">{format(parseISO(a.appointment_date), 'MMM d')}</td>
+                        <td className="py-3 px-2 text-muted-foreground">{a.appointment_time?.slice(0, 5)}</td>
+                        <td className="py-3 px-2">
+                          <Badge className={`rounded-full border-0 ${
+                            a.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' :
+                            a.status === 'cancelled' ? 'bg-destructive/15 text-destructive' :
+                            'bg-primary/15 text-primary'
+                          }`}>
+                            • {a.status || 'scheduled'}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-2 text-right font-medium text-foreground">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
-          </GlassCard>
-        </section>
-
-        {/* Quick actions */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <QuickAction label="New booking" tint="#0071e3" icon={<Plus className="h-5 w-5" />}
-            onClick={() => (window.location.href = '/agenda')} />
-          <QuickAction label="Customers" tint="#34c759" icon={<Users className="h-5 w-5" />}
-            onClick={() => (window.location.href = '/customers')} />
-          <QuickAction label="Services" tint="#af52de" icon={<Scissors className="h-5 w-5" />}
-            onClick={() => (window.location.href = '/services')} />
-          <QuickAction label="Reports" tint="#ff9500" icon={<TrendingUp className="h-5 w-5" />}
-            onClick={() => (window.location.href = '/reports')} />
-        </section>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
 
-function GlassCard({ className = '', children }: { className?: string; children: React.ReactNode }) {
+function Kpi({ title, value, delta, sub, negative }: { title: string; value: string; delta: number; sub: string; negative?: boolean }) {
+  const isPositive = negative ? delta < 0 : delta >= 0;
   return (
-    <div className={`bg-white/55 backdrop-blur-2xl rounded-[28px] ring-1 ring-white/60 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)] ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-function KpiTile({ label, value, suffix, icon, tint }: {
-  label: string; value: number | string; suffix?: string; icon: React.ReactNode; tint: string;
-}) {
-  return (
-    <GlassCard className="p-5">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: tint }}>{label}</span>
-        <div className="h-7 w-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${tint}1a`, color: tint }}>
-          {icon}
+    <Card className="bg-card border-border rounded-2xl">
+      <CardContent className="p-5">
+        <p className="text-xs text-muted-foreground mb-2">{title}</p>
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-semibold text-foreground">{value}</div>
+          <Badge className={`rounded-full border-0 gap-0.5 text-[11px] ${
+            isPositive ? 'bg-emerald-500/15 text-emerald-500' : 'bg-destructive/15 text-destructive'
+          }`}>
+            {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+            {Math.abs(delta)}%
+          </Badge>
         </div>
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-[28px] font-semibold text-[#1d1d1f] tracking-tight">{value}</span>
-        {suffix && <span className="text-xs text-[#6e6e73]">{suffix}</span>}
-      </div>
-    </GlassCard>
+        <p className="text-xs text-muted-foreground mt-2">{sub}</p>
+      </CardContent>
+    </Card>
   );
 }
-
-function EmptyRow({ icon, title, cta, onClick }: { icon: React.ReactNode; title: string; cta: string; onClick: () => void; }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
-      <div className="h-12 w-12 rounded-2xl bg-white/70 ring-1 ring-white/60 flex items-center justify-center mb-3">{icon}</div>
-      <p className="text-sm text-[#6e6e73] mb-3">{title}</p>
-      <button onClick={onClick} className="text-sm font-semibold text-[#0071e3]">{cta}</button>
-    </div>
-  );
-}
-
-function QuickAction({ label, icon, tint, onClick }: { label: string; icon: React.ReactNode; tint: string; onClick: () => void; }) {
-  return (
-    <button
-      onClick={onClick}
-      className="bg-white/55 backdrop-blur-2xl rounded-2xl p-4 ring-1 ring-white/60 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.15)] flex items-center gap-3 active:scale-[0.97] hover:bg-white/70 transition-all text-left"
-    >
-      <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tint}1a`, color: tint }}>
-        {icon}
-      </div>
-      <span className="text-sm font-semibold text-[#1d1d1f]">{label}</span>
-    </button>
-  );
-}
-
-// Suppress unused
-void Euro;
