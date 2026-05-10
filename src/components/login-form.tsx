@@ -384,7 +384,7 @@ export function LoginForm() {
           {/* Right: Image */}
           <div className="hidden md:block relative overflow-hidden min-h-[600px] bg-gray-50 flex items-center justify-center">
             <img
-              src="/src/pages/Frame 316.png"
+              src="/Frame 316.png"
               alt="Login illustration"
               className="h-full w-full object-contain"
             />
