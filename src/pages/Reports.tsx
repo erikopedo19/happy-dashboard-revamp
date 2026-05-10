@@ -423,17 +423,17 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-white overflow-hidden">
+      <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 bg-[#F2F2F7] flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] bg-white/95 backdrop-blur-md shadow-sm">
+        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] flex flex-col overflow-hidden">
+          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md shadow-sm">
             <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <SidebarTrigger className="lg:hidden hover:bg-[#F2F2F7] transition-colors text-[#1C1C1E]" />
+                <SidebarTrigger className="lg:hidden hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7]" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-xl md:text-3xl font-bold text-[#1C1C1E]">
+                    <h1 className="text-xl md:text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                       Reports
                     </h1>
                     <Badge className="rounded-full border-0 bg-[#007AFF] text-white">
@@ -448,11 +448,11 @@ const Reports = () => {
 
               <div className="flex items-center gap-3">
                 <Select value={dateRange} onValueChange={(value) => setDateRange(value as RangeValue)}>
-                  <SelectTrigger className="w-[160px] rounded-xl border-[#C6C6C8] bg-[#F2F2F7] text-[#1C1C1E] shadow-sm">
-                    <Calendar className="w-4 h-4 mr-2 text-[#8E8E93]" />
+                  <SelectTrigger className="w-[160px] rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-sm">
+                    <Calendar className="w-4 h-4 mr-2 text-[#8E8E93] dark:text-[#8E8E93]" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent className="rounded-xl dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
                     <SelectItem value="today">Today</SelectItem>
                     <SelectItem value="last7days">Last 7 days</SelectItem>
                     <SelectItem value="last30days">Last 30 days</SelectItem>
@@ -464,7 +464,7 @@ const Reports = () => {
 
                 <Button
                   variant="outline"
-                  className="rounded-xl border-[#C6C6C8] bg-white text-[#1C1C1E] hover:bg-[#F2F2F7] shadow-sm"
+                  className="rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] shadow-sm"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export
@@ -507,14 +507,14 @@ const Reports = () => {
               </section>
 
               <section className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
-                <Card className="rounded-2xl border-0 bg-white shadow-sm">
+                <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <CardTitle className="text-xl font-semibold text-[#1C1C1E]">
+                        <CardTitle className="text-xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
                           Revenue flow
                         </CardTitle>
-                        <CardDescription className="text-[#8E8E93]">
+                        <CardDescription className="text-[#8E8E93] dark:text-[#8E8E93]">
                           Income and booking volume over time
                         </CardDescription>
                       </div>
@@ -993,18 +993,18 @@ function MetricCard({
   trend: string;
 }) {
   return (
-    <Card className="rounded-2xl border-0 bg-white shadow-sm overflow-hidden">
+    <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-[#8E8E93] font-medium uppercase tracking-wide">{title}</p>
-            <p className="text-3xl font-bold text-[#1C1C1E] mt-2">{value}</p>
+            <p className="text-sm text-[#8E8E93] dark:text-[#8E8E93] font-medium uppercase tracking-wide">{title}</p>
+            <p className="text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-2">{value}</p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-[#F2F2F7] flex items-center justify-center">
+          <div className="w-11 h-11 rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center">
             {icon}
           </div>
         </div>
-        <p className="text-sm text-[#8E8E93] mt-3">{description}</p>
+        <p className="text-sm text-[#8E8E93] dark:text-[#8E8E93] mt-3">{description}</p>
         <div className="mt-4 flex items-center gap-2 text-sm text-[#34C759]">
           <TrendingUp className="w-4 h-4" />
           <span>{trend}</span>

@@ -14,6 +14,12 @@ import {
   Mail,
   Search,
   Filter,
+  DollarSign,
+  Clock,
+  CreditCard,
+  Wallet,
+  BarChart3,
+  TrendingUp as TrendingUpIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,10 +134,10 @@ export function DashboardContent() {
         {/* Tabs + actions */}
         <div className="flex items-center justify-between">
           <Tabs defaultValue="overview">
-            <TabsList className="bg-white border border-[#C6C6C8] rounded-xl p-1 h-10">
-              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:text-[#1C1C1E] px-4">Overview</TabsTrigger>
-              <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-[#F2F2F7] px-4">Bookings</TabsTrigger>
-              <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-[#F2F2F7] px-4">Sales</TabsTrigger>
+            <TabsList className="bg-white border border-[#E5E5EA] rounded-xl p-1 h-10 shadow-sm">
+              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:text-[#1C1C1E] data-[state=active]:shadow-sm px-4">Overview</TabsTrigger>
+              <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:shadow-sm px-4">Bookings</TabsTrigger>
+              <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-[#F2F2F7] data-[state=active]:shadow-sm px-4">Sales</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="flex items-center gap-2">
@@ -154,23 +160,56 @@ export function DashboardContent() {
           </div>
         </div>
 
-        {/* KPI row */}
+        {/* KPI row with icons */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Kpi title="Today's Revenue" value={`€${stats.todayRevenue.toFixed(0)}`} delta={stats.trend} sub="vs last month" />
-          <Kpi title="Today's Bookings" value={stats.todays.toString()} delta={12} sub="appointments" />
-          <Kpi title="Pending" value={stats.pending.toString()} delta={-5} sub="awaiting confirmation" negative />
-          <Kpi title="Total Customers" value={stats.customers.toString()} delta={29} sub="+10 new" />
+          <KpiIcon 
+            title="Today's Revenue" 
+            value={`€${stats.todayRevenue.toFixed(0)}`} 
+            delta={stats.trend} 
+            sub="vs last month" 
+            icon={DollarSign}
+            iconBg="bg-[#34C759]/15"
+            iconColor="text-[#34C759]"
+          />
+          <KpiIcon 
+            title="Today's Bookings" 
+            value={stats.todays.toString()} 
+            delta={12} 
+            sub="appointments" 
+            icon={Calendar}
+            iconBg="bg-[#007AFF]/15"
+            iconColor="text-[#007AFF]"
+          />
+          <KpiIcon 
+            title="Pending" 
+            value={stats.pending.toString()} 
+            delta={-5} 
+            sub="awaiting confirmation" 
+            negative 
+            icon={Clock}
+            iconBg="bg-[#FF9500]/15"
+            iconColor="text-[#FF9500]"
+          />
+          <KpiIcon 
+            title="Total Customers" 
+            value={stats.customers.toString()} 
+            delta={29} 
+            sub="+10 new" 
+            icon={Users}
+            iconBg="bg-[#AF52DE]/15"
+            iconColor="text-[#AF52DE]"
+          />
         </div>
 
         {/* Charts row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2 bg-white border-0 rounded-2xl shadow-sm">
+        <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4">
+          <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-base font-semibold text-[#1C1C1E]">Sales Performance</CardTitle>
                 <p className="text-xs text-[#8E8E93] mt-1">Last 14 days</p>
               </div>
-              <Badge variant="outline" className="rounded-full border-[#C6C6C8] bg-[#F2F2F7] text-[#8E8E93]">2 Weeks</Badge>
+              <Badge variant="outline" className="rounded-full border-[#E5E5EA] bg-[#F2F2F7] text-[#8E8E93]">2 Weeks</Badge>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-6 mb-4">
@@ -182,13 +221,13 @@ export function DashboardContent() {
                   <ArrowUpRight className="h-3 w-3" /> {stats.trend}%
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={stats.days}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
                   <XAxis dataKey="day" stroke="#8E8E93" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="#8E8E93" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: 'white', border: '1px solid #C6C6C8', borderRadius: 12 }}
+                    contentStyle={{ background: 'white', border: '1px solid #E5E5EA', borderRadius: 12 }}
                     labelStyle={{ color: '#8E8E93' }}
                   />
                   <Bar dataKey="revenue" fill="#007AFF" radius={[6, 6, 0, 0]} />
@@ -197,18 +236,18 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-0 rounded-2xl shadow-sm">
+          <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-base font-semibold text-[#1C1C1E]">Bookings Trend</CardTitle>
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#007AFF]" />Bookings</span>
+                  <span className="flex items-center gap-1.5 text-[#1C1C1E]"><span className="h-2 w-2 rounded-full bg-[#007AFF]" />Bookings</span>
                   <span className="flex items-center gap-1.5 text-[#8E8E93]"><span className="h-2 w-2 rounded-full bg-[#8E8E93]" />Revenue</span>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={stats.days}>
                   <defs>
                     <linearGradient id="bk" x1="0" y1="0" x2="0" y2="1">
@@ -218,7 +257,7 @@ export function DashboardContent() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
                   <XAxis dataKey="day" stroke="#8E8E93" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: 'white', border: '1px solid #C6C6C8', borderRadius: 12 }} />
+                  <Tooltip contentStyle={{ background: 'white', border: '1px solid #E5E5EA', borderRadius: 12 }} />
                   <Area type="monotone" dataKey="bookings" stroke="#007AFF" fill="url(#bk)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -227,13 +266,13 @@ export function DashboardContent() {
         </div>
 
         {/* Upcoming list */}
-        <Card className="bg-white border-0 rounded-2xl shadow-sm">
+        <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base font-semibold text-[#1C1C1E]">Upcoming Appointments</CardTitle>
               <p className="text-xs text-[#8E8E93] mt-1">{upcoming.length} scheduled</p>
             </div>
-            <Button variant="outline" className="h-8 rounded-lg border-[#C6C6C8] bg-[#F2F2F7] text-[#1C1C1E] text-xs">View all</Button>
+            <Button variant="outline" className="h-8 rounded-lg border-[#E5E5EA] bg-[#F2F2F7] text-[#1C1C1E] text-xs hover:bg-[#E5E5EA]">View all</Button>
           </CardHeader>
           <CardContent>
             {upcoming.length === 0 ? (
@@ -245,30 +284,30 @@ export function DashboardContent() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#F2F2F7] text-xs text-[#8E8E93] font-semibold uppercase tracking-wide">
-                      <th className="text-left font-medium py-3 px-2">Customer</th>
-                      <th className="text-left font-medium py-3 px-2 hidden md:table-cell">Service</th>
-                      <th className="text-left font-medium py-3 px-2">Date</th>
-                      <th className="text-left font-medium py-3 px-2">Time</th>
-                      <th className="text-left font-medium py-3 px-2">Status</th>
-                      <th className="text-right font-medium py-3 px-2">Price</th>
+                    <tr className="border-b border-[#E5E5EA] text-xs text-[#8E8E93] font-semibold uppercase tracking-wide">
+                      <th className="text-left font-medium py-3 px-3">Customer</th>
+                      <th className="text-left font-medium py-3 px-3 hidden md:table-cell">Service</th>
+                      <th className="text-left font-medium py-3 px-3">Date</th>
+                      <th className="text-left font-medium py-3 px-3">Time</th>
+                      <th className="text-left font-medium py-3 px-3">Status</th>
+                      <th className="text-right font-medium py-3 px-3">Price</th>
                     </tr>
                   </thead>
                   <tbody>
                     {upcoming.map(a => (
-                      <tr key={a.id} className="border-b border-[#F2F2F7] hover:bg-[#F2F2F7]/50">
-                        <td className="py-3 px-2">
+                      <tr key={a.id} className="border-b border-[#F2F2F7] hover:bg-[#F5F5F7]/50 transition-colors">
+                        <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 rounded-full bg-[#007AFF]/15 text-[#007AFF] flex items-center justify-center text-xs font-semibold">
+                            <div className="h-8 w-8 rounded-full bg-[#007AFF]/15 text-[#007AFF] flex items-center justify-center text-xs font-semibold">
                               {(a.customer?.name || 'W')[0].toUpperCase()}
                             </div>
                             <span className="font-medium text-[#1C1C1E]">{a.customer?.name || 'Walk-in'}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-2 text-[#8E8E93] hidden md:table-cell">{a.service?.name || '—'}</td>
-                        <td className="py-3 px-2 text-[#8E8E93]">{format(parseISO(a.appointment_date), 'MMM d')}</td>
-                        <td className="py-3 px-2 text-[#8E8E93]">{a.appointment_time?.slice(0, 5)}</td>
-                        <td className="py-3 px-2">
+                        <td className="py-3 px-3 text-[#8E8E93] hidden md:table-cell">{a.service?.name || '—'}</td>
+                        <td className="py-3 px-3 text-[#8E8E93]">{format(parseISO(a.appointment_date), 'MMM d')}</td>
+                        <td className="py-3 px-3 text-[#8E8E93]">{a.appointment_time?.slice(0, 5)}</td>
+                        <td className="py-3 px-3">
                           <Badge className={`rounded-full border-0 ${
                             a.status === 'completed' ? 'bg-[#34C759]/10 text-[#34C759]' :
                             a.status === 'cancelled' ? 'bg-[#FF3B30]/10 text-[#FF3B30]' :
@@ -277,7 +316,7 @@ export function DashboardContent() {
                             • {a.status || 'scheduled'}
                           </Badge>
                         </td>
-                        <td className="py-3 px-2 text-right font-medium text-[#1C1C1E]">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
+                        <td className="py-3 px-3 text-right font-medium text-[#1C1C1E]">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -291,22 +330,47 @@ export function DashboardContent() {
   );
 }
 
-function Kpi({ title, value, delta, sub, negative }: { title: string; value: string; delta: number; sub: string; negative?: boolean }) {
+function KpiIcon({ 
+  title, 
+  value, 
+  delta, 
+  sub, 
+  negative,
+  icon: Icon,
+  iconBg,
+  iconColor
+}: { 
+  title: string; 
+  value: string; 
+  delta: number; 
+  sub: string; 
+  negative?: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+}) {
   const isPositive = negative ? delta < 0 : delta >= 0;
   return (
-    <Card className="bg-white border-0 rounded-2xl shadow-sm">
+    <Card className="bg-white border border-[#E5E5EA] rounded-2xl shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-5">
-        <p className="text-xs text-[#8E8E93] mb-2 font-medium uppercase tracking-wide">{title}</p>
-        <div className="flex items-end justify-between">
-          <div className="text-2xl font-semibold text-[#1C1C1E]">{value}</div>
-          <Badge className={`rounded-full border-0 gap-0.5 text-[11px] ${
-            isPositive ? 'bg-[#34C759]/10 text-[#34C759]' : 'bg-[#FF3B30]/10 text-[#FF3B30]'
-          }`}>
-            {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-            {Math.abs(delta)}%
-          </Badge>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <p className="text-xs text-[#8E8E93] mb-2 font-medium uppercase tracking-wide">{title}</p>
+            <div className="text-2xl font-semibold text-[#1C1C1E]">{value}</div>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge className={`rounded-full border-0 gap-0.5 text-[11px] ${
+                isPositive ? 'bg-[#34C759]/10 text-[#34C759]' : 'bg-[#FF3B30]/10 text-[#FF3B30]'
+              }`}>
+                {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                {Math.abs(delta)}%
+              </Badge>
+              <span className="text-xs text-[#8E8E93]">{sub}</span>
+            </div>
+          </div>
+          <div className={`h-12 w-12 rounded-2xl ${iconBg} flex items-center justify-center shrink-0`}>
+            <Icon className={`h-6 w-6 ${iconColor}`} />
+          </div>
         </div>
-        <p className="text-xs text-[#8E8E93] mt-2">{sub}</p>
       </CardContent>
     </Card>
   );

@@ -175,11 +175,11 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted p-6 md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
+    <div className="flex min-h-screen w-full items-center justify-center bg-muted dark:bg-[#0c0c0c] p-6 md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
       <div className="w-full max-w-sm md:max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-lg transition-all duration-300 hover:shadow-xl dark:shadow-none dark:border dark:border-[#2C2C2E]">
           {/* Left: Form */}
-          <div className="flex flex-col p-8">
+          <div className="flex flex-col p-8 dark:bg-[#1C1C1E]">
             <div className="flex flex-col space-y-2 text-center mb-6">
               <div className="flex justify-center mb-4">
                 <img
@@ -384,13 +384,13 @@ export function LoginForm() {
           </div>
 
           {/* Right: Image */}
-          <div className="hidden md:block relative overflow-hidden min-h-[600px] bg-gray-50 flex items-center justify-center">
+          <div className="hidden md:block relative overflow-hidden min-h-[600px] bg-gray-50 dark:bg-[#0c0c0c] flex items-center justify-center">
             <img
               src="/Frame 316.png"
               alt="Login illustration"
-              className="h-full w-full object-contain"
+              className="h-full w-full object-contain dark:opacity-90"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF]/10 to-[#5856D6]/10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF]/10 to-[#5856D6]/10 dark:from-[#007AFF]/20 dark:to-[#5856D6]/20 pointer-events-none" />
           </div>
         </div>
       </div>

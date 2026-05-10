@@ -328,18 +328,18 @@ const Agenda = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+      <div className="h-screen flex w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* iOS-style Header */}
-          <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-20">
+          <div className="bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-gray-200 dark:border-[#2C2C2E] sticky top-0 z-20">
             <div className="px-4 md:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Left: Title & Date */}
               <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-gray-600 hover:text-gray-900 lg:hidden" />
+                <SidebarTrigger className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 lg:hidden" />
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900">Agenda</h1>
-                  <p className="text-xs text-gray-500">
+                  <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Agenda</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
                     {format(currentWeek, 'MMMM yyyy')} • Week {format(currentWeek, 'w')}
                   </p>
                 </div>
@@ -348,12 +348,12 @@ const Agenda = () => {
               {/* Center: Search - Hidden on mobile, shown on md+ */}
               <div className="hidden md:block flex-1 max-w-sm mx-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                   <Input
                     placeholder="Search appointments..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 bg-gray-100/80 border-0 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm"
+                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -361,14 +361,14 @@ const Agenda = () => {
               {/* Right: View Toggle & Navigation */}
               <div className="flex items-center gap-2">
                 {/* View Mode Tabs - iOS Style */}
-                <div className="flex items-center bg-gray-100 rounded-xl p-1">
+                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] rounded-xl p-1">
                   <button
                     onClick={() => setViewMode('week')}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
                       viewMode === 'week'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     )}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
@@ -379,8 +379,8 @@ const Agenda = () => {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
                       viewMode === 'day'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     )}
                   >
                     <List className="w-3.5 h-3.5" />
@@ -389,12 +389,12 @@ const Agenda = () => {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex items-center bg-gray-100 rounded-xl p-1">
+                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] rounded-xl p-1">
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={handlePreviousWeek} 
-                    className="h-8 w-8 rounded-lg hover:bg-white text-gray-600"
+                    className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-[#3A3A3C] text-gray-600 dark:text-gray-400"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -402,7 +402,7 @@ const Agenda = () => {
                     variant="ghost" 
                     size="sm" 
                     onClick={handleToday}
-                    className="h-8 px-3 rounded-lg hover:bg-white text-xs font-medium text-gray-700"
+                    className="h-8 px-3 rounded-lg hover:bg-white dark:hover:bg-[#3A3A3C] text-xs font-medium text-gray-700 dark:text-gray-300"
                   >
                     Today
                   </Button>
@@ -410,7 +410,7 @@ const Agenda = () => {
                     variant="ghost" 
                     size="icon" 
                     onClick={handleNextWeek} 
-                    className="h-8 w-8 rounded-lg hover:bg-white text-gray-600"
+                    className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-[#3A3A3C] text-gray-600 dark:text-gray-400"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -422,50 +422,50 @@ const Agenda = () => {
             {viewMode === 'week' && (
             <div className="px-4 md:px-6 pb-3">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
-                      <CalendarIcon className="w-4 h-4 text-blue-600" />
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Bookings</p>
-                      <p className="text-lg font-semibold text-gray-900">{weeklyStats.total}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Bookings</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{weeklyStats.total}</p>
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-green-600" />
+                    <div className="w-8 h-8 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Completed</p>
-                      <p className="text-lg font-semibold text-gray-900">{weeklyStats.completed}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Completed</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{weeklyStats.completed}</p>
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center">
-                      <Filter className="w-4 h-4 text-purple-600" />
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                      <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Pending</p>
-                      <p className="text-lg font-semibold text-gray-900">{weeklyStats.pending}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{weeklyStats.pending}</p>
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-orange-600" />
+                    <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                      <Plus className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Revenue</p>
-                      <p className="text-lg font-semibold text-gray-900">${weeklyStats.revenue}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">${weeklyStats.revenue}</p>
                     </div>
                   </CardContent>
                 </Card>
