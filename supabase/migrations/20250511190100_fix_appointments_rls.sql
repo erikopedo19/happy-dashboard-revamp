@@ -57,7 +57,7 @@ USING (false);  -- Anon users cannot view appointments by default
 
 -- Grant necessary permissions
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.appointments TO authenticated;
-GRANT USAGE ON SEQUENCE public.appointments_id_seq TO authenticated;
+-- Note: appointments uses gen_random_uuid() for IDs, no sequence needed
 
 -- Verify the table structure is correct
 COMMENT ON TABLE public.appointments IS 'Appointments table with RLS enabled - users can only access their own appointments';
