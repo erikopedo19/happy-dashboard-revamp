@@ -247,23 +247,12 @@ const Booking = () => {
       if (!businessProfile?.id || !selectedDate) return [];
 
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      console.log('Fetching appointments for date:', dateStr);
-
-      let query = (supabase
-        .from('appointments') as any)
-        .select(`
-          *,
-          service:services(*)
-        `)
-        .eq('user_id', businessProfile.id)
-        .eq('appointment_date', dateStr);
-
-      const { data, error } = await query;
-
-      console.log('Appointments query result:', { data, error });
-
+      const { data, error } = await (supabase as any).rpc('get_booked_slots', {
+        _business_id: businessProfile.id,
+        _date: dateStr,
+      });
       if (error) {
-        console.error('Error fetching appointments:', error);
+        console.error('Error fetching booked slots:', error);
         return [];
       }
       return (data || []) as Appointment[];
@@ -276,10 +265,9 @@ const Booking = () => {
     queryKey: ['stylist-services', businessProfile?.id],
     queryFn: async () => {
       if (!businessProfile?.id) return [];
-      const { data, error } = await supabase
-        .from('stylist_services')
-        .select('stylist_id, service_id')
-        .eq('user_id', businessProfile.id);
+      const { data, error } = await (supabase as any).rpc('get_public_stylist_services', {
+        _business_id: businessProfile.id,
+      });
       if (error) {
         console.error('Error fetching stylist services:', error);
         return [];
