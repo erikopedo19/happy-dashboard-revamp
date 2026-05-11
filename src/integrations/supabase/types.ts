@@ -733,6 +733,7 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
+      cleanup_old_logs: { Args: never; Returns: undefined }
       create_public_booking: {
         Args: {
           p_appointment_date: string
