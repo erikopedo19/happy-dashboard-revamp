@@ -1,15 +1,4 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix for default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
 
 interface Barbershop {
   id: string;
@@ -27,6 +16,35 @@ interface BarbershopMapProps {
   onBarbershopClick?: (barbershop: Barbershop) => void;
 }
 
+// Dynamically import leaflet only on client side
+let MapContainer: any;
+let TileLayer: any;
+let Marker: any;
+let Popup: any;
+let useMap: any;
+let L: any;
+
+if (typeof window !== "undefined") {
+  // Dynamic import for SSR compatibility
+  const reactLeaflet = require("react-leaflet");
+  MapContainer = reactLeaflet.MapContainer;
+  TileLayer = reactLeaflet.TileLayer;
+  Marker = reactLeaflet.Marker;
+  Popup = reactLeaflet.Popup;
+  useMap = reactLeaflet.useMap;
+  
+  L = require("leaflet");
+  require("leaflet/dist/leaflet.css");
+  
+  // Fix for default marker icon
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+  });
+}
+
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
@@ -42,8 +60,11 @@ export function BarbershopMap({
   onBarbershopClick,
 }: BarbershopMapProps) {
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+    
     if (userLocation) {
       setUserCoords([userLocation.lat, userLocation.lng]);
     } else if ("geolocation" in navigator) {
@@ -53,7 +74,6 @@ export function BarbershopMap({
         },
         (error) => {
           console.error("Error getting user location:", error);
-          // Default to a central location if geolocation fails
           setUserCoords([40.7128, -74.0060]); // New York City
         }
       );
@@ -62,7 +82,7 @@ export function BarbershopMap({
     }
   }, [userLocation]);
 
-  if (!userCoords) {
+  if (!isClient || !userCoords || !MapContainer) {
     return (
       <div
         className="w-full bg-[#F2F2F7] dark:bg-[#2C2C2E] rounded-2xl flex items-center justify-center"
@@ -92,11 +112,9 @@ export function BarbershopMap({
         <MapUpdater center={userCoords} />
         
         {/* User location marker */}
-        {userCoords && (
-          <Marker position={userCoords}>
-            <Popup>You are here</Popup>
-          </Marker>
-        )}
+        <Marker position={userCoords}>
+          <Popup>You are here</Popup>
+        </Marker>
 
         {/* Barbershop markers */}
         {validBarbershops.map((barbershop) => (
