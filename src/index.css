@@ -519,3 +519,186 @@ html, body, #root {
     }
   }
 }
+
+/* === GLOW SLOT DESIGN - From Uiverse.io by SouravBandyopadhyay === */
+/* For PC and Tablet only - Time slots with glow effect */
+
+.glow-slot {
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  position: relative;
+  background: #1C1C1E;
+  border-radius: 1rem;
+  overflow: hidden;
+  --gradient: linear-gradient(to bottom, #2eadff, #3d83ff, #7e61ff);
+  --color: #32a6ff;
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+.glow-slot::before {
+  position: absolute;
+  content: "";
+  inset: 0.0625rem;
+  border-radius: 0.9375rem;
+  background: #0c0c0c;
+  z-index: 2;
+}
+
+.glow-slot::after {
+  position: absolute;
+  content: "";
+  width: 0.25rem;
+  inset: 0.65rem auto 0.65rem 0.5rem;
+  border-radius: 0.125rem;
+  background: var(--gradient);
+  transition: transform 300ms ease;
+  z-index: 4;
+}
+
+.glow-slot:hover::after {
+  transform: translateX(0.15rem);
+}
+
+.glow-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(46, 173, 255, 0.15);
+}
+
+.glow-slot-title {
+  color: var(--color);
+  padding: 0.65rem 0.25rem 0.4rem 1.25rem;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: transform 300ms ease;
+  z-index: 5;
+  position: relative;
+}
+
+.glow-slot:hover .glow-slot-title {
+  transform: translateX(0.15rem);
+}
+
+.glow-slot-body {
+  color: #99999d;
+  padding: 0 1.25rem;
+  transition: transform 300ms ease;
+  z-index: 5;
+  position: relative;
+}
+
+.glow-slot:hover .glow-slot-body {
+  transform: translateX(0.25rem);
+}
+
+.glow-slot-glow,
+.glow-slot-border-glow {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle closest-side at center, white, transparent);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.glow-slot-glow {
+  z-index: 3;
+}
+
+.glow-slot-border-glow {
+  z-index: 1;
+}
+
+.glow-slot:hover .glow-slot-glow {
+  opacity: 0.1;
+}
+
+.glow-slot:hover .glow-slot-border-glow {
+  opacity: 0.1;
+}
+
+/* Time Slot Specific Variants */
+.glow-slot-time {
+  height: auto;
+  min-height: 4rem;
+  cursor: pointer;
+}
+
+.glow-slot-time .glow-slot-title {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.25rem 0.3rem 1.25rem;
+}
+
+.glow-slot-time .glow-slot-body {
+  font-size: 0.75rem;
+  padding: 0 1.25rem 0.5rem 1.25rem;
+}
+
+/* Break Slot Variant */
+.glow-slot-break {
+  --gradient: linear-gradient(to bottom, #ff9500, #ff6b00);
+  --color: #ff9500;
+}
+
+.glow-slot-break::after {
+  background: var(--gradient);
+}
+
+/* Booked Slot Variant */
+.glow-slot-booked {
+  --gradient: linear-gradient(to bottom, #34c759, #30d158);
+  --color: #34c759;
+  cursor: pointer;
+}
+
+.glow-slot-booked::after {
+  background: var(--gradient);
+}
+
+/* Past Slot Variant */
+.glow-slot-past {
+  --gradient: linear-gradient(to bottom, #8e8e93, #636366);
+  --color: #8e8e93;
+  opacity: 0.7;
+}
+
+/* Current Hour Indicator */
+.glow-slot-current {
+  --gradient: linear-gradient(to bottom, #ff2d55, #ff375f);
+  --color: #ff2d55;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(255, 45, 85, 0.2);
+  }
+}
+
+/* Mobile: Use simpler design */
+@media (max-width: 1023px) {
+  .glow-slot {
+    background: #2C2C2E;
+    border-radius: 0.75rem;
+  }
+  
+  .glow-slot::before {
+    border-radius: 0.6875rem;
+    background: #1C1C1E;
+  }
+  
+  .glow-slot::after {
+    width: 0.2rem;
+    inset: 0.5rem auto 0.5rem 0.4rem;
+  }
+  
+  .glow-slot-glow,
+  .glow-slot-border-glow {
+    display: none;
+  }
+}

@@ -868,9 +868,20 @@ export const ModernAppointmentsCalendar = ({
                       return null;
                     }
 
+                    // Determine glow slot classes for PC/Tablet (lg screens and up)
+                    const glowSlotClasses = isBreak 
+                      ? 'glow-slot glow-slot-time glow-slot-break hidden lg:flex'
+                      : hasAppointments 
+                        ? 'glow-slot glow-slot-time glow-slot-booked hidden lg:flex'
+                        : isPastSlot
+                          ? 'glow-slot glow-slot-time glow-slot-past hidden lg:flex'
+                          : isCurrentHour
+                            ? 'glow-slot glow-slot-time glow-slot-current hidden lg:flex'
+                            : 'glow-slot glow-slot-time hidden lg:flex';
+
                     return <div
                       key={`${day.toISOString()}-${time}`}
-                      className={`h-[80px] border-b border-r border-gray-200 dark:border-[#2C2C2E] last:border-r-0 p-2 group hover:bg-white/60 dark:hover:bg-[#2C2C2E]/60 transition-colors relative ${isCurrentHour ? 'bg-blue-50/40 dark:bg-blue-900/20' : ''} ${isBreak ? 'bg-slate-50/40 dark:bg-slate-800/40' : ''} ${isPastSlot ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                      className={`h-[80px] border-b border-r border-gray-200 dark:border-[#2C2C2E] last:border-r-0 p-1 lg:p-2 group hover:bg-white/60 dark:hover:bg-[#2C2C2E]/60 transition-colors relative ${isCurrentHour ? 'bg-blue-50/40 dark:bg-blue-900/20' : ''} ${isBreak ? 'bg-slate-50/40 dark:bg-slate-800/40' : ''} ${isPastSlot ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                       style={hasAppointments ? { gridRow: `span ${rowSpan}`, height: `${rowSpan * 80}px` } : {}}
                       onContextMenu={(e) => {
                       e.preventDefault();
@@ -882,91 +893,139 @@ export const ModernAppointmentsCalendar = ({
                         toggleBreakSlot(day, time);
                       }
                     }}>
-                      {isCurrentHour && <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 z-10 animate-pulse" />}
+                      {isCurrentHour && <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 z-10 animate-pulse lg:hidden" />}
 
                       {isBreak ? (
-                        // Break Slot with diagonal stripes pattern
-                        <div className="w-full h-full bg-slate-200/80 dark:bg-slate-700/80 rounded-xl border border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer transition-all relative overflow-hidden">
-                          {/* Diagonal stripes pattern */}
-                          <div className="absolute inset-0 opacity-20"
-                            style={{
-                              backgroundImage: `repeating-linear-gradient(
-                                   45deg,
-                                   transparent,
-                                   transparent 6px,
-                                   rgba(100, 116, 139, 0.4) 6px,
-                                   rgba(100, 116, 139, 0.4) 12px
-                                 )`
-                            }} />
-                          <div className="text-center relative z-10">
-                            <Coffee className="h-4 w-4 text-slate-500 dark:text-slate-300 mx-auto mb-1" />
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-300">Break</span>
+                        <>
+                          {/* Mobile: Standard break slot */}
+                          <div className="w-full h-full bg-slate-200/80 dark:bg-slate-700/80 rounded-xl border border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer transition-all relative overflow-hidden lg:hidden">
+                            <div className="absolute inset-0 opacity-20"
+                              style={{
+                                backgroundImage: `repeating-linear-gradient(
+                                     45deg,
+                                     transparent,
+                                     transparent 6px,
+                                     rgba(100, 116, 139, 0.4) 6px,
+                                     rgba(100, 116, 139, 0.4) 12px
+                                   )`
+                              }} />
+                            <div className="text-center relative z-10">
+                              <Coffee className="h-4 w-4 text-slate-500 dark:text-slate-300 mx-auto mb-1" />
+                              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-300">Break</span>
+                            </div>
                           </div>
-                        </div>
+                          {/* Desktop: Glow break slot */}
+                          <div className={glowSlotClasses} onClick={() => toggleBreakSlot(day, time)}>
+                            <div className="glow-slot-glow"></div>
+                            <div className="glow-slot-border-glow"></div>
+                            <div className="glow-slot-title flex items-center gap-2">
+                              <Coffee className="h-4 w-4" />
+                              Break Time
+                            </div>
+                            <div className="glow-slot-body">Click to remove break</div>
+                          </div>
+                        </>
                       ) : hasAppointments ? (
-                        // Appointment Card - Realistic ticket style
-                        <div
-                          className={`w-full h-full bg-white/80 dark:bg-[#1C1C1E]/90 rounded-xl border border-gray-200 dark:border-[#2C2C2E] transition-all cursor-pointer relative overflow-hidden p-2 group ${isLongPressing && longPressedId === dayAppointments[0].id ? 'animate-pulse scale-105' : ''}`}
-                          onClick={() => {
+                        <>
+                          {/* Mobile: Standard appointment card */}
+                          <div
+                            className={`w-full h-full bg-white/80 dark:bg-[#1C1C1E]/90 rounded-xl border border-gray-200 dark:border-[#2C2C2E] transition-all cursor-pointer relative overflow-hidden p-2 group lg:hidden ${isLongPressing && longPressedId === dayAppointments[0].id ? 'animate-pulse scale-105' : ''}`}
+                            onClick={() => {
+                              setSelectedAppointment(dayAppointments[0]);
+                              setShowAppointmentDetails(true);
+                            }}
+                          >
+                            <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-xl" style={{
+                              background: getServiceGradient(dayAppointments[0].service)
+                            }} />
+                            <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 pointer-events-none" />
+                            {longPressedId === dayAppointments[0].id && <div className="absolute inset-0 -left-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[sweep_1.5s_ease-in-out] pointer-events-none" />}
+                            <div className="relative z-10 flex flex-col justify-center h-full pt-1.5">
+                              <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-tight mb-0.5 truncate">
+                                {dayAppointments[0].service.name}
+                              </div>
+                              <div className="text-[11px] text-gray-600 dark:text-gray-400 mb-1 truncate">
+                                {dayAppointments[0].customer.name}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="text-[11px] text-gray-600 dark:text-gray-400 font-normal">
+                                  {dayAppointments[0].appointment_time.slice(0, 5)}
+                                  {rowSpan > 1 && (() => {
+                                    const startTime = dayAppointments[0].appointment_time.slice(0, 5);
+                                    const [hours, minutes] = startTime.split(':').map(Number);
+                                    const startDate = new Date();
+                                    startDate.setHours(hours, minutes, 0, 0);
+                                    const endDate = addMinutes(startDate, dayAppointments[0].totalDurationMinutes || dayAppointments[0].service.duration);
+                                    return ` → ${format(endDate, 'HH:mm')}`;
+                                  })()}
+                                </div>
+                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-normal pr-1 flex items-center gap-1">
+                                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                  Confirmed
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Desktop: Glow appointment slot */}
+                          <div className={glowSlotClasses} onClick={() => {
                             setSelectedAppointment(dayAppointments[0]);
                             setShowAppointmentDetails(true);
-                          }}
-                        >
-                          {/* Colored top border based on service */}
-                          <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-xl" style={{
-                            background: getServiceGradient(dayAppointments[0].service)
-                          }} />
-
-                          {/* Subtle icon-colored background */}
-                          <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 pointer-events-none" />
-
-                          {/* Light sweep effect - only on the specific card being long-pressed */}
-                          {longPressedId === dayAppointments[0].id && <div className="absolute inset-0 -left-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[sweep_1.5s_ease-in-out] pointer-events-none" />}
-
-                          <div className="relative z-10 flex flex-col justify-center h-full pt-1.5">
-                            {/* Event title */}
-                            <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-tight mb-0.5 truncate">
-                              {dayAppointments[0].service.name}
-                            </div>
-
-                            {/* Customer name */}
-                            <div className="text-[11px] text-gray-600 dark:text-gray-400 mb-1 truncate">
-                              {dayAppointments[0].customer.name}
-                            </div>
-
-                            {/* Time and realistic ticket details */}
-                            <div className="flex items-center justify-between">
-                              <div className="text-[11px] text-gray-600 dark:text-gray-400 font-normal">
-                                {dayAppointments[0].appointment_time.slice(0, 5)}
-                                {rowSpan > 1 && (() => {
-                                  const startTime = dayAppointments[0].appointment_time.slice(0, 5);
-                                  const [hours, minutes] = startTime.split(':').map(Number);
-                                  const startDate = new Date();
-                                  startDate.setHours(hours, minutes, 0, 0);
-                                  const endDate = addMinutes(startDate, dayAppointments[0].totalDurationMinutes || dayAppointments[0].service.duration);
-                                  return ` → ${format(endDate, 'HH:mm')}`;
-                                })()}
-                              </div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400 font-normal pr-1 flex items-center gap-1">
-                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                Confirmed
-                              </div>
+                          }}>
+                            <div className="glow-slot-glow"></div>
+                            <div className="glow-slot-border-glow"></div>
+                            <div className="glow-slot-title truncate">{dayAppointments[0].service.name}</div>
+                            <div className="glow-slot-body truncate">{dayAppointments[0].customer.name}</div>
+                            <div className="glow-slot-body text-[10px] mt-1 flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {dayAppointments[0].appointment_time.slice(0, 5)}
+                              {rowSpan > 1 && (() => {
+                                const startTime = dayAppointments[0].appointment_time.slice(0, 5);
+                                const [hours, minutes] = startTime.split(':').map(Number);
+                                const startDate = new Date();
+                                startDate.setHours(hours, minutes, 0, 0);
+                                const endDate = addMinutes(startDate, dayAppointments[0].totalDurationMinutes || dayAppointments[0].service.duration);
+                                return ` - ${format(endDate, 'HH:mm')}`;
+                              })()}
                             </div>
                           </div>
-                        </div>
+                        </>
                       ) : isPastSlot ? (
-                        // Past slot - disabled and grayed out
-                        <div className="w-full h-full rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed">
-                          <div className="text-center">
-                            <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500 mx-auto mb-1" />
-                            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">Past</span>
+                        <>
+                          {/* Mobile: Past slot */}
+                          <div className="w-full h-full rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed lg:hidden">
+                            <div className="text-center">
+                              <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500 mx-auto mb-1" />
+                              <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">Past</span>
+                            </div>
                           </div>
-                        </div>
+                          {/* Desktop: Glow past slot */}
+                          <div className={glowSlotClasses}>
+                            <div className="glow-slot-glow"></div>
+                            <div className="glow-slot-border-glow"></div>
+                            <div className="glow-slot-title flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              {time}
+                            </div>
+                            <div className="glow-slot-body">Past time slot</div>
+                          </div>
+                        </>
                       ) : (
-                        // Empty slot - clickable for new appointment
-                        <button onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} className="w-full h-full rounded-xl border border-dashed border-transparent group-hover:border-gray-200 dark:group-hover:border-[#2C2C2E] transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/70 dark:hover:bg-[#2C2C2E]/70">
-                          <Plus className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                        </button>
+                        <>
+                          {/* Mobile: Empty slot */}
+                          <button onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} className="w-full h-full rounded-xl border border-dashed border-transparent group-hover:border-gray-200 dark:group-hover:border-[#2C2C2E] transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/70 dark:hover:bg-[#2C2C2E]/70 lg:hidden">
+                            <Plus className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                          </button>
+                          {/* Desktop: Glow empty slot */}
+                          <div className={glowSlotClasses} onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)}>
+                            <div className="glow-slot-glow"></div>
+                            <div className="glow-slot-border-glow"></div>
+                            <div className="glow-slot-title flex items-center gap-2">
+                              <Plus className="h-4 w-4" />
+                              {time}
+                            </div>
+                            <div className="glow-slot-body">Click to book</div>
+                          </div>
+                        </>
                       )}
                     </div>
                   })}
