@@ -34,6 +34,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
+import { BarbershopMap } from "@/components/BarbershopMap";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -64,6 +65,8 @@ type BrandProfileRecord = {
   name: string;
   contact_phone: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 const defaultAgendaSettings: AgendaSettingsRecord = {
@@ -83,6 +86,8 @@ const defaultBrandProfile: BrandProfileRecord = {
   name: "",
   contact_phone: "",
   location: "",
+  latitude: undefined,
+  longitude: undefined,
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -133,7 +138,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("brand_profiles")
-          .select("name, contact_phone, location")
+          .select("name, contact_phone, location, latitude, longitude")
           .eq("user_id", user.id)
           .maybeSingle(),
       ]);
@@ -183,6 +188,8 @@ const Settings = () => {
       name: data.brand?.name ?? user.user_metadata?.full_name ?? "",
       contact_phone: data.brand?.contact_phone ?? data.profile?.phone ?? "",
       location: data.brand?.location ?? "",
+      latitude: data.brand?.latitude,
+      longitude: data.brand?.longitude,
     });
 
     // Set dark mode from profile, default to dark mode
@@ -261,6 +268,8 @@ const Settings = () => {
         name: brandForm.name.trim() || profileForm.full_name.trim() || "My Business",
         contact_phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
         location: brandForm.location.trim() || null,
+        latitude: brandForm.latitude,
+        longitude: brandForm.longitude,
         updated_at: new Date().toISOString(),
       };
 
@@ -706,8 +715,63 @@ const Settings = () => {
                                 setBrandForm((prev) => ({ ...prev, location: e.target.value }))
                               }
                               placeholder="123 Main Street, New York"
-                                                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
                             />
+                          </div>
+
+                          <div>
+                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                              Map Location
+                            </Label>
+                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-3">
+                              Click on the map to set your barbershop location
+                            </p>
+                            <BarbershopMap
+                              barbershops={brandForm.latitude && brandForm.longitude ? [{
+                                id: 'current',
+                                name: brandForm.name || 'Your Business',
+                                location: brandForm.location || '',
+                                latitude: brandForm.latitude,
+                                longitude: brandForm.longitude,
+                                contact_phone: brandForm.contact_phone,
+                              }] : []}
+                              height="300px"
+                              onBarbershopClick={(barbershop) => {
+                                // This is for when clicking on other barbershops in the public page
+                              }}
+                            />
+                            <div className="grid grid-cols-2 gap-4 mt-3">
+                              <div>
+                                <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-1 block">
+                                  Latitude
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  value={brandForm.latitude || ''}
+                                  onChange={(e) =>
+                                    setBrandForm((prev) => ({ ...prev, latitude: e.target.value ? parseFloat(e.target.value) : undefined }))
+                                  }
+                                  placeholder="40.7128"
+                                  className="h-10 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-1 block">
+                                  Longitude
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="any"
+                                  value={brandForm.longitude || ''}
+                                  onChange={(e) =>
+                                    setBrandForm((prev) => ({ ...prev, longitude: e.target.value ? parseFloat(e.target.value) : undefined }))
+                                  }
+                                  placeholder="-74.0060"
+                                  className="h-10 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                                />
+                              </div>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>

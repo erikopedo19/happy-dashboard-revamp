@@ -14,7 +14,7 @@ import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+// import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,6 +23,7 @@ import Booking from "./pages/Booking";
 import BookingPage from "./pages/BookingPage";
 import BookingForms from "./pages/BookingForms";
 import FindBarber from "./pages/FindBarber";
+import FindBarbershop from "./pages/FindBarbershop";
 import Stylists from "./pages/Stylists";
 import Teams from "./pages/Teams";
 import ChooseRole from "./pages/ChooseRole";
@@ -92,14 +93,15 @@ function App() {
               <Route path="/book/:bookingLink" element={<Booking />} />
               <Route path="/bookingforms" element={<BookingForms />} />
               <Route path="/find-barber" element={<FindBarber />} />
+              <Route path="/find-barbershop" element={<FindBarbershop />} />
               <Route path="/" element={<FindBarber />} />
               <Route path="/app" element={<LandingRoute />} />
               <Route path="/superadmin" element={<SuperAdminLogin />} />
-              <Route path="/superadmin/dashboard" element={
+              {/* <Route path="/superadmin/dashboard" element={
                 <SuperAdminRoute>
                   <SuperAdminDashboard />
                 </SuperAdminRoute>
-              } />
+              } /> */}
               <Route path="/admin" element={
                 <ProtectedRoute>
                   <Dashboard />
