@@ -162,16 +162,16 @@ const Customers = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-screen flex w-full bg-background overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 bg-background flex flex-col overflow-hidden">
-          <header className="bg-card border-b border-border px-4 md:px-6 py-3 md:py-4 glass-effect flex-shrink-0">
+        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
+          <header className="bg-white dark:bg-[#1C1C1E] border-b border-[#C6C6C8] dark:border-[#2C2C2E] px-4 md:px-6 py-3 md:py-4 glass-effect flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-all duration-200" />
+                <SidebarTrigger className="text-[#8E8E93] dark:text-gray-500 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] transition-all duration-200" />
                 <div>
-                  <h1 className="text-lg md:text-xl font-semibold text-foreground">Customers</h1>
-                  <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Manage your customer database</p>
+                  <h1 className="text-lg md:text-xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Customers</h1>
+                  <p className="text-xs md:text-sm text-[#8E8E93] dark:text-gray-500 hidden sm:block">Manage your customer database</p>
                 </div>
               </div>
               <div className="flex gap-2 md:gap-3">
@@ -188,14 +188,14 @@ const Customers = () => {
           </header>
 
           <div className="flex-1 overflow-auto p-3 md:p-6">
-            <Card className="bg-card border-0 shadow-sm overflow-hidden">
+            <Card className="bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-secondary/50">
-                    <TableHead className="w-[35%] text-muted-foreground font-semibold">Name</TableHead>
-                    <TableHead className="text-muted-foreground font-semibold hidden md:table-cell">Email</TableHead>
-                    <TableHead className="text-muted-foreground font-semibold hidden sm:table-cell">Phone</TableHead>
-                    <TableHead className="text-right text-muted-foreground font-semibold">Actions</TableHead>
+                  <TableRow className="bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+                    <TableHead className="w-[35%] text-[#8E8E93] dark:text-gray-500 font-semibold">Name</TableHead>
+                    <TableHead className="text-[#8E8E93] dark:text-gray-500 font-semibold hidden md:table-cell">Email</TableHead>
+                    <TableHead className="text-[#8E8E93] dark:text-gray-500 font-semibold hidden sm:table-cell">Phone</TableHead>
+                    <TableHead className="text-right text-[#8E8E93] dark:text-gray-500 font-semibold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

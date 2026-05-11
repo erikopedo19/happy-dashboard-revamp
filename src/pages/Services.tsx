@@ -220,15 +220,15 @@ const Services = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-screen flex w-full bg-card overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-auto p-4 md:p-6">
             <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6 md:mb-8">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Services</h1>
-                <p className="text-muted-foreground text-sm md:text-base mt-1 md:mt-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Services</h1>
+                <p className="text-[#8E8E93] dark:text-gray-500 text-sm md:text-base mt-1 md:mt-2">
                   Manage your salon services
                 </p>
               </div>
@@ -341,14 +341,14 @@ const Services = () => {
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Card key={i} className="animate-pulse">
+                  <Card key={i} className="animate-pulse bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E]">
                     <CardHeader>
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                      <div className="h-4 bg-[#E5E5EA] dark:bg-[#2C2C2E] rounded w-3/4"></div>
+                      <div className="h-3 bg-[#E5E5EA] dark:bg-[#2C2C2E] rounded w-1/2"></div>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-3 bg-muted rounded w-full mb-2"></div>
-                      <div className="h-3 bg-muted rounded w-2/3"></div>
+                      <div className="h-3 bg-[#E5E5EA] dark:bg-[#2C2C2E] rounded w-full mb-2"></div>
+                      <div className="h-3 bg-[#E5E5EA] dark:bg-[#2C2C2E] rounded w-2/3"></div>
                     </CardContent>
                   </Card>
                 ))}
@@ -366,7 +366,7 @@ const Services = () => {
                   ).length;
                   
                   return (
-                    <Card key={service.id} className="relative group hover:shadow-lg transition-all duration-200 border-l-4 overflow-hidden" style={{ borderLeftColor: colorOption?.gradient?.match(/#[0-9a-f]{6}/i)?.[0] || '#3b82f6' }}>
+                    <Card key={service.id} className="relative group hover:shadow-lg transition-all duration-200 border-l-4 overflow-hidden bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E]" style={{ borderLeftColor: colorOption?.gradient?.match(/#[0-9a-f]{6}/i)?.[0] || '#3b82f6' }}>
                       {/* Appointment count badge - shows on card */}
                       {appointmentCount > 0 && (
                         <div 
@@ -391,8 +391,8 @@ const Services = () => {
                               <ServiceIcon className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                              <CardTitle className="text-lg">{service.name}</CardTitle>
-                              <CardDescription className="flex items-center gap-1 mt-1">
+                              <CardTitle className="text-lg text-[#1C1C1E] dark:text-[#F2F2F7]">{service.name}</CardTitle>
+                              <CardDescription className="flex items-center gap-1 mt-1 text-[#8E8E93] dark:text-gray-500">
                                 <Clock className="h-3 w-3" />
                                 {service.duration} minutes
                               </CardDescription>
@@ -402,7 +402,7 @@ const Services = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-8 w-8 text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]"
                               onClick={() => handleEdit(service)}
                             >
                               <Edit className="h-4 w-4" />
@@ -410,7 +410,7 @@ const Services = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                               onClick={() => handleDeleteClick(service.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -468,6 +468,7 @@ const Services = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <MobileDock />
       </div>
     </SidebarProvider>
   );
