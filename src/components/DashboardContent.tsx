@@ -284,7 +284,7 @@ export function DashboardContent() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#E5E5EA] text-xs text-[#8E8E93] font-semibold uppercase tracking-wide">
+                    <tr className="border-b border-[#E5E5EA] dark:border-[#2C2C2E] text-xs text-[#8E8E93] dark:text-[#8E8E93] font-semibold uppercase tracking-wide">
                       <th className="text-left font-medium py-3 px-3">Customer</th>
                       <th className="text-left font-medium py-3 px-3 hidden md:table-cell">Service</th>
                       <th className="text-left font-medium py-3 px-3">Date</th>
@@ -295,18 +295,18 @@ export function DashboardContent() {
                   </thead>
                   <tbody>
                     {upcoming.map(a => (
-                      <tr key={a.id} className="border-b border-[#F2F2F7] hover:bg-[#F5F5F7]/50 transition-colors">
+                      <tr key={a.id} className="border-b border-[#F2F2F7] dark:border-[#2C2C2E] hover:bg-[#F5F5F7]/50 dark:hover:bg-[#2C2C2E]/50 transition-colors">
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
                             <div className="h-8 w-8 rounded-full bg-[#007AFF]/15 text-[#007AFF] flex items-center justify-center text-xs font-semibold">
                               {(a.customer?.name || 'W')[0].toUpperCase()}
                             </div>
-                            <span className="font-medium text-[#1C1C1E]">{a.customer?.name || 'Walk-in'}</span>
+                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{a.customer?.name || 'Walk-in'}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-[#8E8E93] hidden md:table-cell">{a.service?.name || '—'}</td>
-                        <td className="py-3 px-3 text-[#8E8E93]">{format(parseISO(a.appointment_date), 'MMM d')}</td>
-                        <td className="py-3 px-3 text-[#8E8E93]">{a.appointment_time?.slice(0, 5)}</td>
+                        <td className="py-3 px-3 text-[#8E8E93] dark:text-[#8E8E93] hidden md:table-cell">{a.service?.name || '—'}</td>
+                        <td className="py-3 px-3 text-[#8E8E93] dark:text-[#8E8E93]">{format(parseISO(a.appointment_date), 'MMM d')}</td>
+                        <td className="py-3 px-3 text-[#8E8E93] dark:text-[#8E8E93]">{a.appointment_time?.slice(0, 5)}</td>
                         <td className="py-3 px-3">
                           <Badge className={`rounded-full border-0 ${
                             a.status === 'completed' ? 'bg-[#34C759]/10 text-[#34C759]' :
@@ -316,7 +316,7 @@ export function DashboardContent() {
                             • {a.status || 'scheduled'}
                           </Badge>
                         </td>
-                        <td className="py-3 px-3 text-right font-medium text-[#1C1C1E]">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
+                        <td className="py-3 px-3 text-right font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileDock } from "@/components/MobileDock";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -309,6 +310,7 @@ const Agenda = () => {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
             />
+            <MobileDock />
           </main>
         </div>
 
@@ -475,7 +477,7 @@ const Agenda = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 overflow-auto p-4 md:p-6">
+          <div className="flex-1 overflow-auto p-4 md:p-6 pb-20">
             {viewMode === 'week' ? (
               /* Week Overview Cards */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

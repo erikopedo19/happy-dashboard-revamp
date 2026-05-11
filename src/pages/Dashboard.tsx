@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
+import { MobileDock } from "@/components/MobileDock";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
@@ -18,6 +19,7 @@ const Dashboard = () => {
             </div>
           </div>
           <DashboardContent />
+          <MobileDock />
         </main>
       </div>
     </SidebarProvider>

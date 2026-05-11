@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileDock } from "@/components/MobileDock";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -973,6 +974,7 @@ const Reports = () => {
               )}
             </div>
           </div>
+          <MobileDock />
         </main>
       </div>
     </SidebarProvider>

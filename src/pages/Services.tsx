@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileDock } from "@/components/MobileDock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -444,6 +445,7 @@ const Services = () => {
             )}
           </div>
           </div>
+          <MobileDock />
         </main>
 
         {/* Delete Confirmation Dialog */}

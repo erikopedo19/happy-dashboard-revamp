@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileDock } from "@/components/MobileDock";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -193,13 +194,13 @@ const Stylists = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-background overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 bg-gradient-to-br from-background via-background to-muted/30 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border/50 p-4 lg:hidden shadow-sm">
+        <main className="flex-1 bg-gradient-to-br from-[#F2F2F7] dark:from-[#0c0c0c] via-[#F2F2F7] dark:via-[#0c0c0c] to-[#E5E5EA]/30 dark:to-[#1C1C1E]/30 flex flex-col overflow-hidden">
+          <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md border-b border-[#C6C6C8] dark:border-[#2C2C2E] p-4 lg:hidden shadow-sm">
             <div className="flex items-center justify-between">
-              <SidebarTrigger className="hover:bg-muted/80 transition-colors" />
-              <h1 className="text-lg font-semibold">Stylists</h1>
+              <SidebarTrigger className="hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7]" />
+              <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
               <div></div>
             </div>
           </div>
@@ -207,10 +208,10 @@ const Stylists = () => {
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold">Stylists</h1>
-                <p className="text-muted-foreground mt-1">Manage your salon's stylists</p>
+                <h1 className="text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
+                <p className="text-[#8E8E93] dark:text-gray-500 mt-1">Manage your salon's stylists</p>
               </div>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2 bg-[#007AFF] hover:bg-[#0062CC]">
                 <Plus className="h-4 w-4" />
                 Add Stylist
               </Button>
@@ -218,25 +219,25 @@ const Stylists = () => {
 
             <div className="mb-6">
               <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[#8E8E93] dark:text-gray-500" />
                 <Input 
                   placeholder="Search stylists..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2" 
+                  className="pl-10 pr-4 py-2 bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]" 
                 />
               </div>
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12">Loading stylists...</div>
+              <div className="text-center py-12 text-[#8E8E93] dark:text-gray-500">Loading stylists...</div>
             ) : filteredStylists.length === 0 ? (
-              <Card className="border-dashed">
+              <Card className="border-dashed border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]">
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                  <UserCheck className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No stylists yet</h3>
-                  <p className="text-muted-foreground mb-4">Add your first stylist to get started</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <UserCheck className="h-12 w-12 text-[#8E8E93] dark:text-gray-500 mb-4" />
+                  <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mb-2">No stylists yet</h3>
+                  <p className="text-[#8E8E93] dark:text-gray-500 mb-4">Add your first stylist to get started</p>
+                  <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-[#007AFF] hover:bg-[#0062CC]">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Stylist
                   </Button>
@@ -256,7 +257,7 @@ const Stylists = () => {
                   return (
                     <Card 
                       key={stylist.id} 
-                      className="overflow-hidden hover:shadow-lg transition-all duration-200"
+                      className="overflow-hidden hover:shadow-lg transition-all duration-200 border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]"
                       onContextMenu={(e) => {
                         e.preventDefault();
                         setContextMenu({ x: e.clientX, y: e.clientY, stylist });
@@ -265,24 +266,24 @@ const Stylists = () => {
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 border-2 border-border">
+                            <Avatar className="h-12 w-12 border-2 border-[#C6C6C8] dark:border-[#2C2C2E]">
                               <AvatarImage src={stylist.avatar_url || undefined} />
-                              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
+                              <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold">
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <CardTitle className="text-lg">{stylist.name}</CardTitle>
+                              <CardTitle className="text-lg text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.name}</CardTitle>
                               {stylist.title && (
-                                <p className="text-sm text-muted-foreground">{stylist.title}</p>
+                                <p className="text-sm text-[#8E8E93] dark:text-gray-500">{stylist.title}</p>
                               )}
                             </div>
                           </div>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(stylist)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(stylist)} className="text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(stylist)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(stylist)} className="text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -291,30 +292,30 @@ const Stylists = () => {
                       <CardContent>
                         <div className="space-y-3">
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Status:</span>
+                            <span className="text-[#8E8E93] dark:text-gray-500">Status:</span>
                             <Badge className={cn(
                               "font-normal capitalize",
-                              stylist.status?.toLowerCase() === 'available' ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : 
-                              stylist.status?.toLowerCase() === 'booked' ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : 
-                              "bg-secondary text-foreground/80 hover:bg-secondary"
+                              stylist.status?.toLowerCase() === 'available' ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30" : 
+                              stylist.status?.toLowerCase() === 'booked' ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30" : 
+                              "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80 hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]"
                             )}>
                               {stylist.status || 'Unknown'}
                             </Badge>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Bookings today:</span>
-                            <span className="font-medium">{stylist.bookings_today || 0}</span>
+                            <span className="text-[#8E8E93] dark:text-gray-500">Bookings today:</span>
+                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.bookings_today || 0}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Satisfaction:</span>
-                            <span className="font-medium">{stylist.satisfaction?.toFixed(1) || 'N/A'}</span>
+                            <span className="text-[#8E8E93] dark:text-gray-500">Satisfaction:</span>
+                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.satisfaction?.toFixed(1) || 'N/A'}</span>
                           </div>
                           {stylist.specialties && stylist.specialties.length > 0 && (
                             <div className="pt-2">
-                              <p className="text-xs text-muted-foreground mb-1">Specialties:</p>
+                              <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-1">Specialties:</p>
                               <div className="flex flex-wrap gap-1">
                                 {stylist.specialties.map((specialty, i) => (
-                                  <Badge key={i} variant="outline" className="text-xs font-normal">
+                                  <Badge key={i} variant="outline" className="text-xs font-normal border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]">
                                     {specialty}
                                   </Badge>
                                 ))}
@@ -329,6 +330,7 @@ const Stylists = () => {
               </div>
             )}
           </div>
+          <MobileDock />
         </main>
       </div>
 

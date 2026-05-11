@@ -841,8 +841,8 @@ export const ModernAppointmentsCalendar = ({
               {timeSlots.map((time, index) => (
                 <React.Fragment key={`timeslot-${time}-${index}`}>
                   {/* Time Label */}
-                  <div key={`time-${time}`} className="h-[80px] flex items-center justify-center border-b border-r border-gray-200 bg-white/50 last:border-b-0">
-                    <span className="text-[12px] font-medium text-gray-500">{time}</span>
+                  <div key={`time-${time}`} className="h-[80px] flex items-center justify-center border-b border-r border-gray-200 dark:border-[#2C2C2E] bg-white/50 dark:bg-[#1C1C1E]/50 last:border-b-0">
+                    <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400">{time}</span>
                   </div>
 
                   {/* Day Cells */}
@@ -870,7 +870,7 @@ export const ModernAppointmentsCalendar = ({
 
                     return <div
                       key={`${day.toISOString()}-${time}`}
-                      className={`h-[80px] border-b border-r border-gray-200 last:border-r-0 p-2 group hover:bg-white/60 transition-colors relative ${isCurrentHour ? 'bg-blue-50/40' : ''} ${isBreak ? 'bg-slate-50/40' : ''} ${isPastSlot ? 'bg-gray-100' : ''}`}
+                      className={`h-[80px] border-b border-r border-gray-200 dark:border-[#2C2C2E] last:border-r-0 p-2 group hover:bg-white/60 dark:hover:bg-[#2C2C2E]/60 transition-colors relative ${isCurrentHour ? 'bg-blue-50/40 dark:bg-blue-900/20' : ''} ${isBreak ? 'bg-slate-50/40 dark:bg-slate-800/40' : ''} ${isPastSlot ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                       style={hasAppointments ? { gridRow: `span ${rowSpan}`, height: `${rowSpan * 80}px` } : {}}
                       onContextMenu={(e) => {
                       e.preventDefault();
@@ -906,7 +906,7 @@ export const ModernAppointmentsCalendar = ({
                       ) : hasAppointments ? (
                         // Appointment Card - Realistic ticket style
                         <div
-                          className={`w-full h-full bg-white/80 dark:bg-card/90 rounded-xl border border-gray-200 transition-all cursor-pointer relative overflow-hidden p-2 group ${isLongPressing && longPressedId === dayAppointments[0].id ? 'animate-pulse scale-105' : ''}`}
+                          className={`w-full h-full bg-white/80 dark:bg-[#1C1C1E]/90 rounded-xl border border-gray-200 dark:border-[#2C2C2E] transition-all cursor-pointer relative overflow-hidden p-2 group ${isLongPressing && longPressedId === dayAppointments[0].id ? 'animate-pulse scale-105' : ''}`}
                           onClick={() => {
                             setSelectedAppointment(dayAppointments[0]);
                             setShowAppointmentDetails(true);
@@ -918,25 +918,25 @@ export const ModernAppointmentsCalendar = ({
                           }} />
 
                           {/* Subtle icon-colored background */}
-                          <div className="absolute inset-0 bg-blue-500/5 pointer-events-none" />
+                          <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 pointer-events-none" />
 
                           {/* Light sweep effect - only on the specific card being long-pressed */}
                           {longPressedId === dayAppointments[0].id && <div className="absolute inset-0 -left-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[sweep_1.5s_ease-in-out] pointer-events-none" />}
 
                           <div className="relative z-10 flex flex-col justify-center h-full pt-1.5">
                             {/* Event title */}
-                            <div className="text-[13px] font-medium text-gray-800 leading-tight mb-0.5 truncate">
+                            <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-tight mb-0.5 truncate">
                               {dayAppointments[0].service.name}
                             </div>
 
                             {/* Customer name */}
-                            <div className="text-[11px] text-gray-600 mb-1 truncate">
+                            <div className="text-[11px] text-gray-600 dark:text-gray-400 mb-1 truncate">
                               {dayAppointments[0].customer.name}
                             </div>
 
                             {/* Time and realistic ticket details */}
                             <div className="flex items-center justify-between">
-                              <div className="text-[11px] text-gray-600 font-normal">
+                              <div className="text-[11px] text-gray-600 dark:text-gray-400 font-normal">
                                 {dayAppointments[0].appointment_time.slice(0, 5)}
                                 {rowSpan > 1 && (() => {
                                   const startTime = dayAppointments[0].appointment_time.slice(0, 5);
@@ -947,7 +947,7 @@ export const ModernAppointmentsCalendar = ({
                                   return ` → ${format(endDate, 'HH:mm')}`;
                                 })()}
                               </div>
-                              <div className="text-[10px] text-gray-500 font-normal pr-1 flex items-center gap-1">
+                              <div className="text-[10px] text-gray-500 dark:text-gray-400 font-normal pr-1 flex items-center gap-1">
                                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                 Confirmed
                               </div>
@@ -958,14 +958,14 @@ export const ModernAppointmentsCalendar = ({
                         // Past slot - disabled and grayed out
                         <div className="w-full h-full rounded-xl flex items-center justify-center opacity-40 cursor-not-allowed">
                           <div className="text-center">
-                            <Clock className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-                            <span className="text-[10px] font-medium text-gray-400">Past</span>
+                            <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500 mx-auto mb-1" />
+                            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">Past</span>
                           </div>
                         </div>
                       ) : (
                         // Empty slot - clickable for new appointment
-                        <button onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} className="w-full h-full rounded-xl border border-dashed border-transparent group-hover:border-gray-200 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/70">
-                          <Plus className="h-5 w-5 text-gray-400" />
+                        <button onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} className="w-full h-full rounded-xl border border-dashed border-transparent group-hover:border-gray-200 dark:group-hover:border-[#2C2C2E] transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/70 dark:hover:bg-[#2C2C2E]/70">
+                          <Plus className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                         </button>
                       )}
                     </div>
@@ -993,27 +993,27 @@ export const ModernAppointmentsCalendar = ({
           </SheetHeader>
           {selectedAppointment && (
             <div className="mt-6 space-y-4">
-              <div className="p-4 bg-white/60 rounded-lg border border-gray-200 backdrop-blur-sm relative overflow-hidden">
+              <div className="p-4 bg-white/60 dark:bg-[#1C1C1E]/60 rounded-lg border border-gray-200 dark:border-[#2C2C2E] backdrop-blur-sm relative overflow-hidden">
                 {/* Subtle colored background based on service */}
                 <div className="absolute inset-0 opacity-10" style={{
                   background: getServiceGradient(selectedAppointment.service)
                 }} />
-                <h3 className="font-medium text-lg text-gray-800 relative z-10">{selectedAppointment.service.name}</h3>
-                <p className="text-sm text-gray-500 relative z-10">{selectedAppointment.customer.name}</p>
+                <h3 className="font-medium text-lg text-gray-800 dark:text-gray-200 relative z-10">{selectedAppointment.service.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 relative z-10">{selectedAppointment.customer.name}</p>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-700">{format(new Date(selectedAppointment.appointment_date), 'EEEE, MMMM d, yyyy')}</span>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-gray-700 dark:text-gray-300">{format(new Date(selectedAppointment.appointment_date), 'EEEE, MMMM d, yyyy')}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-700">{selectedAppointment.appointment_time}</span>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-gray-700 dark:text-gray-300">{selectedAppointment.appointment_time}</span>
                 </div>
                 {selectedAppointment.price && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-700">${selectedAppointment.price}</span>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <DollarSign className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                    <span className="text-gray-700 dark:text-gray-300">${selectedAppointment.price}</span>
                   </div>
                 )}
               </div>

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileDock } from "@/components/MobileDock";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -299,6 +300,7 @@ const Customers = () => {
               </Table>
             </Card>
           </div>
+          <MobileDock />
         </main>
       </div>
 

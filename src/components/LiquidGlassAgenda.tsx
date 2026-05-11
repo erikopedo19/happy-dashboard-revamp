@@ -180,9 +180,9 @@ export const LiquidGlassAgenda = ({
     const interval = agendaSettings?.service_duration || 60;
     const result: string[] = [];
 
-    for (let hour = timeRange.startHour; hour <= timeRange.endHour; hour++) {
+    for (let hour = timeRange.startHour; hour < timeRange.endHour; hour++) {
       for (let minutes = 0; minutes < 60; minutes += interval) {
-        if (hour === timeRange.endHour && minutes > 0) break;
+        if (hour === timeRange.endHour - 1 && minutes > 0 && hour * 60 + minutes >= timeRange.endHour * 60) break;
         result.push(
           `${hour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
         );
