@@ -44,6 +44,8 @@ interface LiquidGlassAgendaProps {
   onWeekChange: (week: Date) => void;
   viewMode: 'week' | 'day';
   onViewModeChange: (mode: 'week' | 'day') => void;
+  // When false, hides the "mini tabs" (Week/Day) at the top.
+  showViewModeToggle?: boolean;
 }
 
 interface AgendaSettings {
@@ -92,6 +94,7 @@ export const LiquidGlassAgenda = ({
   onWeekChange,
   viewMode,
   onViewModeChange,
+  showViewModeToggle = true,
 }: LiquidGlassAgendaProps) => {
   const [selectedDay, setSelectedDay] = useState(new Date());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -256,6 +259,7 @@ export const LiquidGlassAgenda = ({
   const completedCount = dayAppointments.filter(a => a.status === 'completed').length;
   const totalCount = dayAppointments.length;
   const completionPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const shouldShowViewToggle = showViewModeToggle && appointments.length > 0;
 
   const weekSummary = useMemo(() => {
     return weekDays
@@ -292,30 +296,32 @@ export const LiquidGlassAgenda = ({
         "sticky top-0 z-30"
       )}>
         <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onViewModeChange('week')}
-              className={cn(
-                "px-3 py-1.5 rounded-xl text-xs font-medium transition-all",
-                viewMode === 'week'
-                  ? "bg-gray-900 text-white dark:bg-white dark:text-black"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5"
-              )}
-            >
-              Week
-            </button>
-            <button
-              onClick={() => onViewModeChange('day')}
-              className={cn(
-                "px-3 py-1.5 rounded-xl text-xs font-medium transition-all",
-                viewMode === 'day'
-                  ? "bg-gray-900 text-white dark:bg-white dark:text-black"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5"
-              )}
-            >
-              Day
-            </button>
-          </div>
+          {shouldShowViewToggle && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onViewModeChange('week')}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-xs font-medium transition-all",
+                  viewMode === 'week'
+                    ? "bg-gray-900 text-white dark:bg-white dark:text-black"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5"
+                )}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => onViewModeChange('day')}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-xs font-medium transition-all",
+                  viewMode === 'day'
+                    ? "bg-gray-900 text-white dark:bg-white dark:text-black"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5"
+                )}
+              >
+                Day
+              </button>
+            </div>
+          )}
 
           <button
             onClick={() => onWeekChange(addDays(currentWeek, 7))}
@@ -461,7 +467,7 @@ export const LiquidGlassAgenda = ({
                     </div>
                   )) : (
                     <div className={cn("text-xs", isDark ? "text-white/35" : "text-gray-400")}>
-                      No appointments
+                      No appointment set on agenda
                     </div>
                   )}
                   {items.length > 3 && (
@@ -483,7 +489,7 @@ export const LiquidGlassAgenda = ({
             )}>
               <Clock className="w-8 h-8 text-gray-300 dark:text-gray-600" />
             </div>
-            <p className="text-gray-400 dark:text-gray-500 text-sm font-medium">No appointments</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm font-medium">No appointment set on agenda</p>
             <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">
               {format(selectedDay, 'EEEE, MMMM d')}
             </p>

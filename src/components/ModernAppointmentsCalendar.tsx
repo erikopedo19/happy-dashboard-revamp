@@ -626,6 +626,34 @@ export const ModernAppointmentsCalendar = ({
       uniqueCustomers: customerAppointments.size
     };
   }, [appointments]);
+
+  // When there are no appointments, hide the mini tabs/time-slot grid entirely.
+  if (appointments.length === 0) {
+    const defaultDate = format(new Date(), 'yyyy-MM-dd');
+    const defaultTime = agendaSettings?.start_hour ?? '09:00';
+
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="p-6 flex flex-col items-center justify-center text-center min-h-[calc(100vh-140px)]">
+          <Calendar className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-3" />
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            No appointment set on agenda
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Add your first booking to start using the agenda.
+          </p>
+
+          <Button
+            onClick={() => onDateTimeClick(defaultDate, defaultTime)}
+            className="mt-5 bg-[#007AFF] hover:bg-[#0062CC] text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Book appointment
+          </Button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Modern Header - Only show when not controlled externally */}

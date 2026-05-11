@@ -73,6 +73,11 @@ const Agenda = () => {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
+  // On phones, default to "day" view so we can book quickly without switching.
+  useEffect(() => {
+    if (isMobile) setViewMode('day');
+  }, [isMobile]);
+
   const getAdditionalServiceNames = (notes?: string) => {
     if (!notes) return [] as string[];
 
@@ -309,6 +314,7 @@ const Agenda = () => {
               onWeekChange={setCurrentWeek}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              showViewModeToggle={false}
             />
             <MobileDock />
           </main>

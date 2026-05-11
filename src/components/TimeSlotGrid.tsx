@@ -47,7 +47,6 @@ export const TimeSlotGrid = ({
 }: TimeSlotGridProps) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
   const isMobile = useIsMobile();
   const startOfCurrentWeek = startOfWeek(currentWeek, {
     weekStartsOn: 1
@@ -218,34 +217,6 @@ export const TimeSlotGrid = ({
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Mini Tabs */}
-              <div className="flex items-center bg-gray-50 rounded-lg p-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setViewMode('day')}
-                  className={`h-7 px-3 text-xs transition-all ${viewMode === 'day' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
-                >
-                  Day
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setViewMode('week')}
-                  className={`h-7 px-3 text-xs transition-all ${viewMode === 'week' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
-                >
-                  Week
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setViewMode('month')}
-                  className={`h-7 px-3 text-xs transition-all ${viewMode === 'month' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
-                >
-                  Month
-                </Button>
-              </div>
-              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-10 px-3">
@@ -358,39 +329,5 @@ export const TimeSlotGrid = ({
           </div>
         </div>
       </div>
-
-      {/* Bottom Booking Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-t border-gray-200 px-4 py-3">
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
-          {[
-            { icon: '🍽️', label: 'Lunch Break', duration: '30 min' },
-            { icon: '🛍️', label: 'Shopping Time', duration: '60 min' },
-            { icon: '💊', label: 'Doctor Visit', duration: '45 min' },
-            { icon: '🏃', label: 'Gym Session', duration: '90 min' },
-            { icon: '☕', label: 'Coffee Meet', duration: '20 min' },
-            { icon: '📞', label: 'Phone Call', duration: '15 min' }
-          ].map((item, index) => (
-            <button
-              key={index}
-              onClick={() => onDateTimeClick(format(new Date(), 'yyyy-MM-dd'), '12:00')}
-              className="flex-shrink-0 group relative"
-            >
-              {/* Active Line Indicator */}
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors min-w-[80px]">
-                <div className="text-lg">{item.icon}</div>
-                <div className="text-xs font-medium text-gray-900 leading-tight text-center">
-                  {item.label}
-                </div>
-                <div className="text-xs text-gray-500">{item.duration}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom padding to account for fixed tab bar */}
-      <div className="h-24" />
     </div>;
 };
