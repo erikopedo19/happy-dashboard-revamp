@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
+import { RoseGradientButton } from "@/components/RoseGradientButton";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -51,6 +53,7 @@ import {
   Crown,
   DollarSign,
   Download,
+  Plus,
   Scissors,
   Sparkles,
   Star,
@@ -184,6 +187,8 @@ const roseChartConfig = {
 const Reports = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
 
   const { startDate, endDate } = useMemo(() => getRangeDates(dateRange), [dateRange]);
@@ -348,7 +353,7 @@ const Reports = () => {
       {
         name: "Scheduled",
         value: scheduledAppointments,
-        fill: "#2563eb",
+        fill: "#f43f5e",
       },
       {
         name: "Cancelled",
@@ -399,7 +404,7 @@ const Reports = () => {
 
   const revenueChartConfig = {
     revenue: { label: "Revenue", color: "#111827" },
-    appointments: { label: "Appointments", color: "#60a5fa" },
+    appointments: { label: "Appointments", color: "#fb7185" },
   } satisfies ChartConfig;
 
   const servicesChartConfig = useMemo(() => {
@@ -414,7 +419,7 @@ const Reports = () => {
 
   const statusChartConfig = {
     Completed: { label: "Completed", color: "#111827" },
-    Scheduled: { label: "Scheduled", color: "#2563eb" },
+    Scheduled: { label: "Scheduled", color: "#f43f5e" },
     Cancelled: { label: "Cancelled", color: "#e5e7eb" },
   } satisfies ChartConfig;
 
@@ -422,12 +427,30 @@ const Reports = () => {
     revenue: { label: "Revenue", color: "#111827" },
   } satisfies ChartConfig;
 
+  const handleExport = () => {
+    const header = "label,revenue,appointments,completed";
+    const rows = analytics.revenueTrend
+      .map((r) => `${r.label},${r.revenue},${r.appointments},${r.completed}`)
+      .join("\n");
+    const blob = new Blob([`${header}\n${rows}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reports-${dateRange}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Export ready",
+      description: "Your analytics CSV has been downloaded.",
+    });
+  };
+
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] flex flex-col overflow-hidden">
+        <main className="flex-1 bg-gradient-to-b from-rose-50/60 via-[#F2F2F7] to-[#ebe4f0] dark:from-rose-950/25 dark:via-[#1C1C1E] dark:to-[#0f0f12] flex flex-col overflow-hidden">
           <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md shadow-sm">
             <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
@@ -437,7 +460,7 @@ const Reports = () => {
                     <h1 className="text-xl md:text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                       Reports
                     </h1>
-                    <Badge className="rounded-full border-0 bg-[#007AFF] text-white">
+                    <Badge className="rounded-full border-0 bg-gradient-to-r from-rose-600 to-fuchsia-600 text-white shadow-sm shadow-rose-900/30">
                       Analytics
                     </Badge>
                   </div>
@@ -462,26 +485,56 @@ const Reports = () => {
                     <SelectItem value="thisYear">This year</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <Button
-                  variant="outline"
-                  className="rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] shadow-sm"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
               </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-auto">
             <div className="w-full px-4 md:px-6 py-6 space-y-6">
+              <section className="relative overflow-hidden rounded-3xl border border-rose-500/20 bg-zinc-950 p-6 md:p-10 shadow-2xl shadow-rose-950/40">
+                <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-rose-500/30 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-fuchsia-600/25 blur-3xl" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_40%,rgba(244,63,94,0.08)_50%,transparent_60%)]" />
+                <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="max-w-xl space-y-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-rose-300/90">
+                      Command center
+                    </p>
+                    <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                      Revenue pulse & crew performance
+                    </h2>
+                    <p className="text-sm leading-relaxed text-zinc-400 md:text-base">
+                      Live mix of bookings, completion rate, and stylist impact — tuned for fast decisions,
+                      not spreadsheet archaeology.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                        {analytics.totalAppointments} events in range
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
+                        {analytics.completionRate}% completion
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-shrink-0 flex-wrap gap-3">
+                    <RoseGradientButton type="button" size="sm" onClick={() => navigate("/agenda")}>
+                      <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                      New booking
+                    </RoseGradientButton>
+                    <RoseGradientButton type="button" size="sm" onClick={handleExport}>
+                      <Download className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                      Export
+                    </RoseGradientButton>
+                  </div>
+                </div>
+              </section>
+
               <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <MetricCard
                   title="Revenue"
                   value={currency.format(analytics.totalRevenue)}
                   description="Revenue generated in selected range"
-                  icon={<DollarSign className="w-5 h-5 text-[#007AFF]" />}
+                  icon={<DollarSign className="w-5 h-5 text-rose-500" />}
                   trend={`Avg ticket ${currency.format(analytics.averageTicket || 0)}`}
                 />
                 <MetricCard
@@ -537,8 +590,8 @@ const Reports = () => {
                             <stop offset="95%" stopColor="#111827" stopOpacity={0.02} />
                           </linearGradient>
                           <linearGradient id="fillAppointments" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.2} />
-                            <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.02} />
+                            <stop offset="5%" stopColor="#fb7185" stopOpacity={0.22} />
+                            <stop offset="95%" stopColor="#fb7185" stopOpacity={0.02} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -572,7 +625,7 @@ const Reports = () => {
                           yAxisId="right"
                           type="monotone"
                           dataKey="appointments"
-                          stroke="#60a5fa"
+                          stroke="#fb7185"
                           strokeWidth={2}
                           fill="url(#fillAppointments)"
                         />
@@ -850,7 +903,7 @@ const Reports = () => {
                         >
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-xl bg-[#007AFF] text-white flex items-center justify-center font-semibold">
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-semibold shadow-lg shadow-rose-900/40">
                                 {index === 0 ? (
                                   <Crown className="w-5 h-5" />
                                 ) : (
@@ -995,7 +1048,7 @@ function MetricCard({
   trend: string;
 }) {
   return (
-    <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden">
+    <Card className="rounded-2xl border border-rose-100/80 bg-white shadow-sm shadow-rose-900/5 ring-1 ring-rose-500/10 dark:border-rose-900/30 dark:bg-[#1C1C1E] dark:ring-rose-500/15 overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>

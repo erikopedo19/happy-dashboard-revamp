@@ -25,8 +25,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, subDays, isAfter } from 'date-fns';
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RoseGradientButton } from "@/components/RoseGradientButton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -39,6 +41,7 @@ const db = supabase as any;
 
 export function DashboardContent() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: appointments = [] } = useQuery<any[]>({
@@ -125,9 +128,15 @@ export function DashboardContent() {
             <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
               <Mail className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
             </Button>
-            <Button className="h-9 rounded-xl bg-[#007AFF] hover:bg-[#0062CC] text-white gap-2">
-              <Plus className="h-4 w-4" /> New booking
-            </Button>
+            <RoseGradientButton
+              type="button"
+              size="sm"
+              className="shrink-0"
+              onClick={() => navigate("/agenda")}
+            >
+              <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+              New booking
+            </RoseGradientButton>
           </div>
         </div>
 
@@ -154,9 +163,10 @@ export function DashboardContent() {
               <RefreshCw className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
             </Button>
             <Button variant="outline" className="h-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]">Monthly</Button>
-            <Button className="h-9 rounded-xl bg-[#007AFF] text-white gap-2">
-              <Download className="h-4 w-4" /> Download
-            </Button>
+            <RoseGradientButton type="button" size="sm" className="shrink-0">
+              <Download className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+              Download
+            </RoseGradientButton>
           </div>
         </div>
 

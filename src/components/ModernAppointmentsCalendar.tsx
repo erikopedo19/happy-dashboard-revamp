@@ -1043,15 +1043,25 @@ export const ModernAppointmentsCalendar = ({
                           <button onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} className="w-full h-full rounded-xl border border-dashed border-transparent group-hover:border-gray-200 dark:group-hover:border-[#2C2C2E] transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/70 dark:hover:bg-[#2C2C2E]/70 lg:hidden">
                             <Plus className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                           </button>
-                          {/* Desktop: Glow empty slot */}
-                          <div className={glowSlotClasses} onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)}>
+                          {/* Desktop (lg+): empty slot — plus only; no "Click to book" subtitle */}
+                          <div
+                            className={glowSlotClasses}
+                            onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)}
+                            aria-label={`Book at ${time}`}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onDateTimeClick(format(day, 'yyyy-MM-dd'), time);
+                              }
+                            }}
+                          >
                             <div className="glow-slot-glow"></div>
                             <div className="glow-slot-border-glow"></div>
-                            <div className="glow-slot-title flex items-center gap-2">
-                              <Plus className="h-4 w-4" />
-                              {time}
+                            <div className="glow-slot-title flex flex-1 items-center justify-center gap-0 !px-2 !py-2 min-h-[2.75rem]">
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
                             </div>
-                            <div className="glow-slot-body">Click to book</div>
                           </div>
                         </>
                       )}

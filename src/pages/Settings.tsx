@@ -20,7 +20,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { RoseGradientButton } from "@/components/RoseGradientButton";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -368,7 +368,7 @@ const Settings = () => {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h1 className="text-lg md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Settings</h1>
-                    <Badge className="rounded-full bg-gray-900 dark:bg-[#007AFF] text-white border-0">
+                    <Badge className="rounded-full bg-gray-900 dark:bg-rose-600 text-white border-0">
                       Live sync
                     </Badge>
                   </div>
@@ -378,18 +378,19 @@ const Settings = () => {
                 </div>
               </div>
 
-              <Button
+              <RoseGradientButton
+                type="button"
+                size="sm"
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || isLoading}
-                className="rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-sm"
               >
                 {saveMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
                 ) : (
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
                 )}
                 {saveMutation.isPending ? "Saving..." : "Save changes"}
-              </Button>
+              </RoseGradientButton>
             </div>
           </div>
 
