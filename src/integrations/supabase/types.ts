@@ -749,6 +749,13 @@ export type Database = {
       }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
+      get_booked_slots: {
+        Args: { _business_id: string; _date: string }
+        Returns: {
+          appointment_time: string
+          service_id: string
+        }[]
+      }
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
@@ -756,6 +763,13 @@ export type Database = {
           brand_color: string
           full_name: string
           id: string
+        }[]
+      }
+      get_public_stylist_services: {
+        Args: { _business_id: string }
+        Returns: {
+          service_id: string
+          stylist_id: string
         }[]
       }
       list_public_profiles: {
