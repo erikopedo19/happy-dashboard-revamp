@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors } from "lucide-react";
+import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useOrganization } from "@/hooks/use-organization";
 
@@ -357,13 +357,11 @@ const Teams = () => {
                 <p className="text-[#8E8E93] dark:text-gray-500 mt-1">Organize your stylists into teams</p>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  className="gap-2"
-                  disabled={teams.length >= maxTeams}
-                >
-                  <Plus className="h-4 w-4" />
-                  Create Team
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose btn-gradient-rose-sm">
+                  <span>
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Create Team</span>
+                  </span>
                 </Button>
                 <div className="text-xs text-muted-foreground">
                   {teams.length}/{maxTeams} teams used (premium)
@@ -379,14 +377,18 @@ const Teams = () => {
                   <div className="absolute inset-0 bg-blue-500/5 backdrop-blur-sm z-0"></div>
                   <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
                     <div className="bg-blue-100 p-4 rounded-full mb-4 shadow-inner">
-                      <Users className="h-12 w-12 text-blue-600" />
+                      <button className="btn-gradient-rose">
+                        <span>Sign In</span>
+                      </button>
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-foreground">Create Your First Team</h3>
                     <p className="text-muted-foreground mb-6 text-center max-w-md">Teams help you organize your stylists and manage their schedules more efficiently</p>
-                    <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 gap-2 shadow-lg hover:shadow-xl transition-all">
-                      <Plus className="h-4 w-4" />
-                      Create Team
-                    </Button>
+                    <button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
+                      <span>
+                        <Plus className="h-4 w-4" />
+                        Create Team
+                      </span>
+                    </button>
                   </CardContent>
                 </Card>
                 
@@ -435,20 +437,22 @@ const Teams = () => {
                             <CardDescription className="mt-1">{team.description || "No description"}</CardDescription>
                           </div>
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(team)}>
-                              <Edit className="h-4 w-4" />
+                            <Button className="btn-gradient-rose w-full">
+                              <span>
+                                <Calendar className="w-4 h-4" />
+                                Book Now
+                              </span>
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
+                            <button
+                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2C2C2E] transition-colors"
                               onClick={() => {
                                 if (confirm("Are you sure you want to delete this team?")) {
                                   deleteTeamMutation.mutate(team.id);
                                 }
                               }}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                              <Trash2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                            </button>
                           </div>
                         </div>
                       </CardHeader>

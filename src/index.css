@@ -702,3 +702,67 @@ html, body, #root {
     display: none;
   }
 }
+
+/* === GRADIENT ROSE BUTTON - From Uiverse.io by adamgiebl === */
+/* Main action buttons with rose gradient */
+
+.btn-gradient-rose {
+  position: relative;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  padding: 2px;
+  background: black;
+  border-radius: 16px;
+  background: linear-gradient(to top, #be123c, #fb7185);
+  border: none;
+  outline: none;
+}
+
+.btn-gradient-rose:hover {
+  opacity: 1;
+}
+
+.btn-gradient-rose:active {
+  transform: scale(0.95);
+}
+
+.btn-gradient-rose span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: #e11d48;
+  color: white;
+  border-radius: 14px;
+  background: linear-gradient(to top, #db2777, #f43f5e);
+  font-weight: 500;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.btn-gradient-rose span svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Size variants */
+.btn-gradient-rose-sm span {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.btn-gradient-rose-sm span svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-gradient-rose-lg span {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+}
+
+.btn-gradient-rose-lg span svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
