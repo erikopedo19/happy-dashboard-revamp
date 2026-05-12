@@ -681,14 +681,18 @@ const CompleteProfile = () => {
               </Button>
 
               {currentStep < totalSteps ? (
-                <Button onClick={handleNext} className="gap-2">
-                  Next
-                  <ArrowRight className="h-4 w-4" />
+                <Button onClick={handleNext} className="btn-gradient-rose">
+                  <span>
+                    Next
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
                 </Button>
               ) : (
-                <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
-                  {isSubmitting ? "Finishing..." : "Finish"}
-                  <CheckCircle2 className="h-4 w-4" />
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="btn-gradient-rose">
+                  <span>
+                    {isSubmitting ? "Finishing..." : "Finish"}
+                    <CheckCircle2 className="h-4 w-4" />
+                  </span>
                 </Button>
               )}
             </div>

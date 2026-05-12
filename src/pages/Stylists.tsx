@@ -211,9 +211,11 @@ const Stylists = () => {
                 <h1 className="text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
                 <p className="text-[#8E8E93] dark:text-gray-500 mt-1">Manage your salon's stylists</p>
               </div>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2 bg-[#007AFF] hover:bg-[#0062CC]">
-                <Plus className="h-4 w-4" />
-                Add Stylist
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
+                <span>
+                  <Plus className="h-4 w-4" />
+                  Add Stylist
+                </span>
               </Button>
             </div>
 
@@ -237,9 +239,11 @@ const Stylists = () => {
                   <UserCheck className="h-12 w-12 text-[#8E8E93] dark:text-gray-500 mb-4" />
                   <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mb-2">No stylists yet</h3>
                   <p className="text-[#8E8E93] dark:text-gray-500 mb-4">Add your first stylist to get started</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-[#007AFF] hover:bg-[#0062CC]">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Stylist
+                  <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
+                    <span>
+                      <Plus className="h-4 w-4" />
+                      Add Stylist
+                    </span>
                   </Button>
                 </CardContent>
               </Card>

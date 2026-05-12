@@ -377,18 +377,16 @@ const Teams = () => {
                   <div className="absolute inset-0 bg-blue-500/5 backdrop-blur-sm z-0"></div>
                   <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
                     <div className="bg-blue-100 p-4 rounded-full mb-4 shadow-inner">
-                      <button className="btn-gradient-rose">
-                        <span>Sign In</span>
-                      </button>
+                      <Plus className="h-12 w-12 text-blue-600" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-foreground">Create Your First Team</h3>
                     <p className="text-muted-foreground mb-6 text-center max-w-md">Teams help you organize your stylists and manage their schedules more efficiently</p>
-                    <button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
+                    <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
                       <span>
                         <Plus className="h-4 w-4" />
                         Create Team
                       </span>
-                    </button>
+                    </Button>
                   </CardContent>
                 </Card>
                 

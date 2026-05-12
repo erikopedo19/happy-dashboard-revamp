@@ -179,9 +179,11 @@ const Customers = () => {
                   <Search className="w-4 h-4 mr-2" />
                   Search
                 </Button>
-                <Button size="sm" className="bg-primary hover:opacity-90 text-white">
-                  <Plus className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Add Customer</span>
+                <Button size="sm" className="btn-gradient-rose">
+                  <span>
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Add Customer</span>
+                  </span>
                 </Button>
               </div>
             </div>

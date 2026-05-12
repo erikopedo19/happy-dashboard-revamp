@@ -368,9 +368,11 @@ const FindBarber = () => {
                       <div className="flex items-center gap-2">
                         {barber.booking_link ? (
                           <Link to={`/book/${barber.booking_link}`} className="flex-1">
-                            <Button className="w-full bg-[#007AFF] hover:bg-[#0062CC] text-white rounded-xl">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              Book Now
+                            <Button className="btn-gradient-rose w-full">
+                              <span>
+                                <Calendar className="w-4 h-4" />
+                                Book Now
+                              </span>
                             </Button>
                           </Link>
                         ) : (
@@ -446,8 +448,8 @@ const FindBarber = () => {
                 <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mb-2">Sign in to see your bookings</h3>
                 <p className="text-[#8E8E93] dark:text-gray-500 mb-4">Track all your appointments in one place</p>
                 <Link to="/auth">
-                  <Button className="bg-[#007AFF] hover:bg-[#0062CC] text-white rounded-xl">
-                    Sign In
+                  <Button className="btn-gradient-rose">
+                    <span>Sign In</span>
                   </Button>
                 </Link>
               </div>
@@ -565,9 +567,11 @@ const FindBarber = () => {
                       <div className="flex items-center gap-2">
                         {barber.booking_link ? (
                           <Link to={`/book/${barber.booking_link}`} className="flex-1">
-                            <Button className="w-full bg-[#007AFF] hover:bg-[#0062CC] text-white rounded-xl">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              Book Now
+                            <Button className="btn-gradient-rose w-full">
+                              <span>
+                                <Calendar className="w-4 h-4" />
+                                Book Now
+                              </span>
                             </Button>
                           </Link>
                         ) : (
