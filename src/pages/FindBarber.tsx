@@ -305,12 +305,7 @@ function BarberCard({
       className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-sm"
     >
       <div className="p-4 flex items-start gap-3">
-        <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
-        >
-          <Scissors className="w-7 h-7 text-white" />
-        </div>
+          <img src="/logo.svg" alt="Logo" className="w-14 h-14" />
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
             {barber.brandName}
