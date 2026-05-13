@@ -265,8 +265,6 @@ const FindBarber = () => {
 
 /* ---------- Sub-components ---------- */
 
-import type { Variants } from "framer-motion";
-
 const cardItem: Variants = {
   hidden: { opacity: 0, y: 14, scale: 0.98 },
   show: (i: number) => ({
