@@ -756,6 +756,18 @@ export type Database = {
           service_id: string
         }[]
       }
+      get_my_bookings: {
+        Args: never
+        Returns: {
+          appointment_date: string
+          appointment_time: string
+          barber_id: string
+          barber_name: string
+          id: string
+          service_name: string
+          status: string
+        }[]
+      }
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
