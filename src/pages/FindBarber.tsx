@@ -29,6 +29,8 @@ interface BarberProfile {
   booking_link: string | null;
   brand_color: string | null;
   brandName: string;
+  profile_photo_url?: string;
+  description?: string;
   distance?: number;
 }
 
@@ -287,11 +289,15 @@ function BarberCard({
   index,
   isFavorite,
   onToggleFavorite,
+  isExpanded,
+  onExpand,
 }: {
   barber: BarberProfile;
   index: number;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
+  isExpanded?: boolean;
+  onExpand?: () => void;
 }) {
   const accent = barber.brand_color || "#007AFF";
   return (
@@ -302,7 +308,8 @@ function BarberCard({
       animate="show"
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.985 }}
-      className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-sm"
+      className={`rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-sm ${isExpanded ? 'scale-105' : ''}`}
+      onClick={onExpand}
     >
       <div className="p-4 flex items-start gap-3">
           <img src="/logo.svg" alt="Logo" className="w-14 h-14" />
