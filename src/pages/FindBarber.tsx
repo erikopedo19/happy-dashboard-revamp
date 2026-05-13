@@ -59,6 +59,7 @@ const FindBarber = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
+  const [expandedBarber, setExpandedBarber] = useState<string | null>(null);
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -220,9 +221,7 @@ const FindBarber = () => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#007AFF] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <Scissors className="w-5 h-5 text-white" />
-              </div>
+              <img src="/logo.svg" alt="Cutzio Logo" className="w-10 h-10" />
               <div>
                 <h1 className="text-xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Cutzio</h1>
                 <p className="text-xs text-[#8E8E93] dark:text-gray-500">Find your barber</p>
@@ -310,7 +309,14 @@ const FindBarber = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedBarbers.map((barber) => (
-                  <Card key={barber.id} className="bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-200 group">
+                  <Card 
+                    key={barber.id} 
+                    className={cn(
+                      "bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-200 group cursor-pointer",
+                      expandedBarber === barber.id && "md:col-span-2 lg:col-span-3"
+                    )}
+                    onClick={() => setExpandedBarber(expandedBarber === barber.id ? null : barber.id)}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start gap-3">
                         {barber.logoUrl ? (
@@ -320,9 +326,7 @@ const FindBarber = () => {
                             className="w-14 h-14 rounded-2xl object-cover"
                           />
                         ) : (
-                          <div className="w-14 h-14 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-2xl flex items-center justify-center">
-                            <Scissors className="w-7 h-7 text-white" />
-                          </div>
+                          <img src="/logo.svg" alt="Logo" className="w-14 h-14 rounded-2xl" />
                         )}
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
@@ -344,7 +348,10 @@ const FindBarber = () => {
                           variant="ghost"
                           size="icon"
                           className="rounded-full h-8 w-8 shrink-0"
-                          onClick={() => toggleFavorite(barber.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(barber.id);
+                          }}
                         >
                           <Heart 
                             className={cn(
@@ -359,39 +366,104 @@ const FindBarber = () => {
                     </CardHeader>
                     
                     <CardContent className="pt-0">
-                      {barber.about && (
-                        <p className="text-sm text-[#8E8E93] dark:text-gray-500 line-clamp-2 mb-3">
-                          {barber.about}
-                        </p>
+                      {expandedBarber === barber.id ? (
+                        <div className="space-y-4">
+                          {barber.about && (
+                            <div>
+                              <p className="text-sm text-[#8E8E93] dark:text-gray-500">
+                                {barber.about}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {barber.industry && (
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="bg-[#007AFF]/10 text-[#007AFF]">
+                                {barber.industry}
+                              </Badge>
+                            </div>
+                          )}
+
+                          {barber.contactEmail && (
+                            <div className="flex items-center gap-2 text-sm text-[#8E8E93] dark:text-gray-500">
+                              <Mail className="w-4 h-4" />
+                              <a href={`mailto:${barber.contactEmail}`} className="hover:text-[#007AFF]" onClick={(e) => e.stopPropagation()}>
+                                {barber.contactEmail}
+                              </a>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-2">
+                            {barber.booking_link ? (
+                              <Link to={`/book/${barber.booking_link}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                                <Button className="btn-gradient-rose w-full">
+                                  <span>
+                                    <Calendar className="w-4 h-4" />
+                                    Book Now
+                                  </span>
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button disabled className="flex-1 bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93] rounded-xl">
+                                Not Available
+                              </Button>
+                            )}
+                            
+                            {barber.contactPhone && (
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                className="rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(`tel:${barber.contactPhone}`);
+                                }}
+                              >
+                                <Phone className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {barber.about && (
+                            <p className="text-sm text-[#8E8E93] dark:text-gray-500 line-clamp-2 mb-3">
+                              {barber.about}
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center gap-2">
+                            {barber.booking_link ? (
+                              <Link to={`/book/${barber.booking_link}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                                <Button className="btn-gradient-rose w-full">
+                                  <span>
+                                    <Calendar className="w-4 h-4" />
+                                    Book Now
+                                  </span>
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button disabled className="flex-1 bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93] rounded-xl">
+                                Not Available
+                              </Button>
+                            )}
+                            
+                            {barber.contactPhone && (
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                className="rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(`tel:${barber.contactPhone}`);
+                                }}
+                              >
+                                <Phone className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </>
                       )}
-                      
-                      <div className="flex items-center gap-2">
-                        {barber.booking_link ? (
-                          <Link to={`/book/${barber.booking_link}`} className="flex-1">
-                            <Button className="btn-gradient-rose w-full">
-                              <span>
-                                <Calendar className="w-4 h-4" />
-                                Book Now
-                              </span>
-                            </Button>
-                          </Link>
-                        ) : (
-                          <Button disabled className="flex-1 bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93] rounded-xl">
-                            Not Available
-                          </Button>
-                        )}
-                        
-                        {barber.contactPhone && (
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            className="rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E]"
-                            onClick={() => window.open(`tel:${barber.contactPhone}`)}
-                          >
-                            <Phone className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -421,9 +493,15 @@ const FindBarber = () => {
                   key={barber.id}
                   className="flex items-center gap-3 p-3 bg-white dark:bg-[#1C1C1E] rounded-xl border border-[#C6C6C8] dark:border-[#2C2C2E]"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-xl flex items-center justify-center shrink-0">
-                    <Scissors className="w-6 h-6 text-white" />
-                  </div>
+                  {barber.logoUrl ? (
+                    <img
+                      src={barber.logoUrl}
+                      alt={barber.brandName}
+                      className="w-12 h-12 rounded-xl object-cover shrink-0"
+                    />
+                  ) : (
+                    <img src="/logo.svg" alt="Logo" className="w-12 h-12 rounded-xl shrink-0" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{barber.brandName}</p>
                     <p className="text-xs text-[#8E8E93] dark:text-gray-500 truncate">{barber.location}</p>
@@ -465,9 +543,7 @@ const FindBarber = () => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-xl flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-white" />
-                          </div>
+                          <img src="/logo.svg" alt="Logo" className="w-12 h-12 rounded-xl" />
                           <div>
                             <p className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{booking.barber_name}</p>
                             <p className="text-sm text-[#8E8E93] dark:text-gray-500">{booking.service_name}</p>
@@ -539,9 +615,15 @@ const FindBarber = () => {
                   <Card key={barber.id} className="bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] rounded-2xl overflow-hidden">
                     <CardHeader className="pb-3">
                       <div className="flex items-start gap-3">
-                        <div className="w-14 h-14 bg-gradient-to-br from-[#FF2D55] to-[#FF6B8A] rounded-2xl flex items-center justify-center">
-                          <Heart className="w-7 h-7 text-white" />
-                        </div>
+                        {barber.logoUrl ? (
+                          <img
+                            src={barber.logoUrl}
+                            alt={barber.brandName}
+                            className="w-14 h-14 rounded-2xl object-cover"
+                          />
+                        ) : (
+                          <img src="/logo.svg" alt="Logo" className="w-14 h-14 rounded-2xl" />
+                        )}
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
                             {barber.brandName}
