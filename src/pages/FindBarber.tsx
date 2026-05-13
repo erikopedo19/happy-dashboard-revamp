@@ -45,9 +45,9 @@ interface ClientBooking {
 type TabKey = "explore" | "map" | "bookings" | "favorites";
 
 const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
-  { key: "explore", label: "Explore", icon: Search, activeColor: "#007AFF" },
-  { key: "map", label: "Map", icon: MapIcon, activeColor: "#007AFF" },
-  { key: "bookings", label: "Bookings", icon: Calendar, activeColor: "#007AFF" },
+  { key: "explore", label: "Explore", icon: Search, activeColor: "#FF2D55" },
+  { key: "map", label: "Map", icon: MapIcon, activeColor: "#FF2D55" },
+  { key: "bookings", label: "Bookings", icon: Calendar, activeColor: "#FF2D55" },
   { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#FF2D55" },
 ];
 
@@ -150,7 +150,7 @@ const FindBarber = () => {
               className="flex items-center gap-3"
             >
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shadow-md shadow-blue-500/30">
-                <Scissors className="w-5 h-5 text-white" />
+                <img src="/logo.svg" alt="Logo" className="w-5 h-5" />
               </div>
               <div>
                 <h1 className="text-[22px] leading-tight font-bold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -161,9 +161,16 @@ const FindBarber = () => {
             </motion.div>
             <Link to="/settings">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:scale-95 transition-transform">
-                <User className="w-5 h-5 text-[#007AFF]" />
+                <User className="w-5 h-5 text-[#FF2D55]" />
               </Button>
             </Link>
+            {user && user.user_metadata?.role === 'client' && (
+              <Link to="/profile">
+                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:scale-95 transition-transform ml-2">
+                  <User className="w-5 h-5 text-[#FF2D55]" />
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="relative">
