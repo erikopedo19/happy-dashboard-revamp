@@ -264,32 +264,42 @@ const Settings = () => {
         working_days: agendaForm.working_days,
       };
 
+      // Auto-extract coordinates from a Google Maps URL if pasted
+      let lat = brandForm.latitude;
+      let lng = brandForm.longitude;
+      const mapsUrl = (brandForm.google_maps_url || "").trim();
+      if (mapsUrl) {
+        const parsed = extractLatLngFromGoogleUrl(mapsUrl);
+        if (parsed) {
+          lat = parsed.lat;
+          lng = parsed.lng;
+        }
+      }
+
       const profilePayload = {
         id: user.id,
         full_name: profileForm.full_name.trim() || null,
-        phone: profileForm.phone.trim() || null,
+        phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
+        business_name: brandForm.name.trim() || profileForm.full_name.trim() || null,
+        address: brandForm.location.trim() || null,
+        latitude: lat ?? null,
+        longitude: lng ?? null,
+        google_maps_url: mapsUrl || null,
         updated_at: new Date().toISOString(),
       };
 
-      const brandPayload = {
-        user_id: user.id,
-        name: brandForm.name.trim() || profileForm.full_name.trim() || "My Business",
-        contact_phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
-        location: brandForm.location.trim() || null,
-        latitude: brandForm.latitude,
-        longitude: brandForm.longitude,
-        updated_at: new Date().toISOString(),
-      };
-
-      const [agendaResult, profileResult, brandResult] = await Promise.all([
+      const [agendaResult, profileResult] = await Promise.all([
         (supabase as any).from("agenda_settings").upsert(agendaPayload, { onConflict: "user_id" }),
         (supabase as any).from("profiles").upsert(profilePayload, { onConflict: "id" }),
-        (supabase as any).from("brand_profiles").upsert(brandPayload, { onConflict: "user_id" }),
       ]);
 
       if (agendaResult.error) throw agendaResult.error;
       if (profileResult.error) throw profileResult.error;
-      if (brandResult.error) throw brandResult.error;
+
+      // Reflect parsed coordinates back into the form
+      if (mapsUrl && lat !== undefined && lng !== undefined) {
+        setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      }
 
       return true;
     },
