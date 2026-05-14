@@ -4,18 +4,16 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
-  MapPin,
-  Phone,
   Scissors,
   Heart,
   Calendar,
   User,
-  Clock,
+  Star,
   Map as MapIcon,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,28 +26,19 @@ interface BarberProfile {
   full_name: string | null;
   booking_link: string | null;
   brand_color: string | null;
+  avatar_url: string | null;
+  banner_url: string | null;
+  rating: number | null;
+  rating_count: number | null;
+  description: string | null;
   brandName: string;
-  profile_photo_url?: string;
-  description?: string;
-  distance?: number;
 }
 
-interface ClientBooking {
-  id: string;
-  appointment_date: string;
-  appointment_time: string;
-  barber_name: string | null;
-  barber_id: string;
-  service_name: string | null;
-  status: string;
-}
-
-type TabKey = "explore" | "map" | "bookings" | "favorites";
+type TabKey = "explore" | "map" | "favorites";
 
 const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
-  { key: "explore", label: "Explore", icon: Search, activeColor: "#FF2D55" },
-  { key: "map", label: "Map", icon: MapIcon, activeColor: "#FF2D55" },
-  { key: "bookings", label: "Bookings", icon: Calendar, activeColor: "#FF2D55" },
+  { key: "explore", label: "Explore", icon: Search, activeColor: "#007AFF" },
+  { key: "map", label: "Map", icon: MapIcon, activeColor: "#007AFF" },
   { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#FF2D55" },
 ];
 
@@ -60,6 +49,7 @@ const FindBarber = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("explore");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
@@ -93,28 +83,20 @@ const FindBarber = () => {
     queryKey: ["find-barbers"],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("list_public_profiles");
+      const { data, error } = await (supabase as any).rpc("list_public_profiles");
       if (error) throw error;
       return (data || []).map((p: any): BarberProfile => ({
         id: p.id,
         full_name: p.full_name,
         booking_link: p.booking_link,
         brand_color: p.brand_color,
+        avatar_url: p.avatar_url ?? null,
+        banner_url: p.banner_url ?? null,
+        rating: p.rating ?? null,
+        rating_count: p.rating_count ?? null,
+        description: p.description ?? null,
         brandName: p.full_name || "Barber",
       }));
-    },
-  });
-
-  const { data: myBookings, isLoading: bookingsLoading } = useQuery({
-    queryKey: ["my-bookings", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_my_bookings" as any);
-      if (error) {
-        console.error("bookings error", error);
-        return [] as ClientBooking[];
-      }
-      return (data || []) as ClientBooking[];
     },
   });
 
@@ -127,7 +109,6 @@ const FindBarber = () => {
 
   const favoriteBarbers = (barbers ?? []).filter((b) => favorites.includes(b.id));
 
-  // Auth gate
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
@@ -152,7 +133,7 @@ const FindBarber = () => {
               className="flex items-center gap-3"
             >
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shadow-md shadow-blue-500/30">
-                <img src="/logo.svg" alt="Logo" className="w-5 h-5" />
+                <Scissors className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-[22px] leading-tight font-bold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -163,16 +144,9 @@ const FindBarber = () => {
             </motion.div>
             <Link to="/settings">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:scale-95 transition-transform">
-                <User className="w-5 h-5 text-[#FF2D55]" />
+                <User className="w-5 h-5 text-[#007AFF]" />
               </Button>
             </Link>
-            {user && user.user_metadata?.role === 'client' && (
-              <Link to="/profile">
-                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:scale-95 transition-transform ml-2">
-                  <User className="w-5 h-5 text-[#FF2D55]" />
-                </Button>
-              </Link>
-            )}
           </div>
 
           <div className="relative">
@@ -187,7 +161,7 @@ const FindBarber = () => {
           </div>
 
           {/* Segmented Tabs */}
-          <div className="mt-4 relative grid grid-cols-4 gap-1 p-1 bg-[#E9E9EE] dark:bg-[#2C2C2E] rounded-2xl">
+          <div className="mt-4 relative grid grid-cols-3 gap-1 p-1 bg-[#E9E9EE] dark:bg-[#2C2C2E] rounded-2xl">
             {TABS.map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.key;
@@ -232,6 +206,8 @@ const FindBarber = () => {
                 favorites={favorites}
                 onToggleFavorite={toggleFavorite}
                 searchTerm={searchTerm}
+                expandedId={expandedId}
+                onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
               />
             )}
 
@@ -252,15 +228,13 @@ const FindBarber = () => {
               </div>
             )}
 
-            {activeTab === "bookings" && (
-              <BookingsList loading={bookingsLoading} items={myBookings || []} onExplore={() => setActiveTab("explore")} />
-            )}
-
             {activeTab === "favorites" && (
               <FavoritesList
                 items={favoriteBarbers}
                 onToggleFavorite={toggleFavorite}
                 onExplore={() => setActiveTab("explore")}
+                expandedId={expandedId}
+                onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
               />
             )}
           </motion.div>
@@ -288,49 +262,138 @@ function BarberCard({
   barber,
   index,
   isFavorite,
-  onToggleFavorite,
   isExpanded,
+  onToggleFavorite,
   onExpand,
 }: {
   barber: BarberProfile;
   index: number;
   isFavorite: boolean;
+  isExpanded: boolean;
   onToggleFavorite: (id: string) => void;
-  isExpanded?: boolean;
-  onExpand?: () => void;
+  onExpand: (id: string) => void;
 }) {
   const accent = barber.brand_color || "#007AFF";
+  const rating = barber.rating ?? 5;
+  const reviews = barber.rating_count ?? 0;
+
   return (
     <motion.div
+      layout
       custom={index}
       variants={cardItem}
       initial="hidden"
       animate="show"
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.985 }}
-      className={`rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-sm ${isExpanded ? 'scale-105' : ''}`}
-      onClick={onExpand}
+      transition={spring}
+      className={cn(
+        "rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-sm",
+        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-lg"
+      )}
     >
-      <div className="p-4 flex items-start gap-3">
-          <img src="/logo.svg" alt="Logo" className="w-14 h-14" />
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-            {barber.brandName}
-          </h3>
-          <p className="text-[12px] text-[#8E8E93] mt-0.5">Independent stylist</p>
+      {/* Banner area – appears when expanded */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            key="banner"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 160, opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={spring}
+            className="relative w-full overflow-hidden"
+            style={{
+              background: barber.banner_url
+                ? `url(${barber.banner_url}) center/cover`
+                : `linear-gradient(135deg, ${accent}, ${accent}88)`,
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        onClick={() => onExpand(barber.id)}
+        className="w-full text-left"
+      >
+        <div className={cn("p-4 flex items-start gap-3", isExpanded && "-mt-8 relative")}>
+          {barber.avatar_url ? (
+            <img
+              src={barber.avatar_url}
+              alt={barber.brandName}
+              className={cn(
+                "rounded-2xl object-cover shrink-0 border-2 border-white dark:border-[#1C1C1E]",
+                isExpanded ? "w-16 h-16" : "w-14 h-14"
+              )}
+            />
+          ) : (
+            <div
+              className={cn(
+                "rounded-2xl flex items-center justify-center shrink-0 border-2 border-white dark:border-[#1C1C1E]",
+                isExpanded ? "w-16 h-16" : "w-14 h-14"
+              )}
+              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+            >
+              <Scissors className={cn("text-white", isExpanded ? "w-8 h-8" : "w-7 h-7")} />
+            </div>
+          )}
+          <div className="flex-1 min-w-0 pt-1">
+            <h3 className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+              {barber.brandName}
+            </h3>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Star className="w-3.5 h-3.5 fill-[#FFB800] text-[#FFB800]" />
+              <span className="text-[12px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">
+                {Number(rating).toFixed(1)}
+              </span>
+              <span className="text-[12px] text-[#8E8E93]">({reviews})</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(barber.id);
+              }}
+              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors active:scale-90"
+            >
+              <Heart
+                className={cn(
+                  "w-5 h-5 transition-colors",
+                  isFavorite ? "fill-[#FF2D55] text-[#FF2D55]" : "text-[#8E8E93]"
+                )}
+              />
+            </button>
+            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={spring}>
+              <ChevronDown className="w-4 h-4 text-[#8E8E93]" />
+            </motion.div>
+          </div>
         </div>
-        <button
-          onClick={() => onToggleFavorite(barber.id)}
-          className="p-2 -mr-2 -mt-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors active:scale-90"
-        >
-          <Heart
-            className={cn(
-              "w-5 h-5 transition-colors",
-              isFavorite ? "fill-[#FF2D55] text-[#FF2D55]" : "text-[#8E8E93]"
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            key="details"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="px-4 pb-4"
+          >
+            {barber.description && (
+              <p className="text-[13px] text-[#3C3C43] dark:text-[#EBEBF5]/80 leading-relaxed mb-3">
+                {barber.description}
+              </p>
             )}
-          />
-        </button>
-      </div>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <Stat label="Rating" value={Number(rating).toFixed(1)} />
+              <Stat label="Reviews" value={String(reviews)} />
+              <Stat label="Service" value="Pro" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="px-4 pb-4">
         {barber.booking_link ? (
           <Link to={`/book/${barber.booking_link}`} className="block">
@@ -352,18 +415,31 @@ function BarberCard({
   );
 }
 
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] py-2 text-center">
+      <div className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-[#8E8E93]">{label}</div>
+    </div>
+  );
+}
+
 function ExploreList({
   loading,
   items,
   favorites,
   onToggleFavorite,
   searchTerm,
+  expandedId,
+  onExpand,
 }: {
   loading: boolean;
   items: BarberProfile[];
   favorites: string[];
   onToggleFavorite: (id: string) => void;
   searchTerm: string;
+  expandedId: string | null;
+  onExpand: (id: string) => void;
 }) {
   if (loading) {
     return (
@@ -384,100 +460,19 @@ function ExploreList({
     );
   }
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
         <BarberCard
           key={b.id}
           barber={b}
           index={i}
           isFavorite={favorites.includes(b.id)}
+          isExpanded={expandedId === b.id}
           onToggleFavorite={onToggleFavorite}
+          onExpand={onExpand}
         />
       ))}
-    </div>
-  );
-}
-
-function BookingsList({
-  loading,
-  items,
-  onExplore,
-}: {
-  loading: boolean;
-  items: ClientBooking[];
-  onExplore: () => void;
-}) {
-  if (loading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-white/60 dark:bg-[#1C1C1E]/60 animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<Calendar className="w-9 h-9 text-[#8E8E93]" />}
-        title="No bookings yet"
-        subtitle="Your appointments will show up here"
-        action={
-          <Button onClick={onExplore} className="bg-[#007AFF] hover:bg-[#0062CC] rounded-2xl h-11 px-6">
-            <Search className="w-4 h-4 mr-2" /> Find barbers
-          </Button>
-        }
-      />
-    );
-  }
-  return (
-    <div className="space-y-3">
-      {items.map((b, i) => (
-        <motion.div
-          key={b.id}
-          custom={i}
-          variants={cardItem}
-          initial="hidden"
-          animate="show"
-          className="rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shrink-0">
-                <Calendar className="w-6 h-6 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                  {b.barber_name || "Barber"}
-                </p>
-                <p className="text-sm text-[#8E8E93] truncate">{b.service_name || "Service"}</p>
-              </div>
-            </div>
-            <Badge
-              className={cn(
-                "rounded-full font-medium",
-                b.status === "confirmed" && "bg-[#34C759]/10 text-[#34C759]",
-                b.status === "scheduled" && "bg-[#007AFF]/10 text-[#007AFF]",
-                b.status === "pending" && "bg-[#FF9500]/10 text-[#FF9500]",
-                b.status === "cancelled" && "bg-[#FF3B30]/10 text-[#FF3B30]"
-              )}
-            >
-              {b.status}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-4 mt-3 text-sm text-[#8E8E93]">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {b.appointment_date}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {b.appointment_time?.slice(0, 5)}
-            </span>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -485,10 +480,14 @@ function FavoritesList({
   items,
   onToggleFavorite,
   onExplore,
+  expandedId,
+  onExpand,
 }: {
   items: BarberProfile[];
   onToggleFavorite: (id: string) => void;
   onExplore: () => void;
+  expandedId: string | null;
+  onExpand: (id: string) => void;
 }) {
   if (items.length === 0) {
     return (
@@ -505,11 +504,19 @@ function FavoritesList({
     );
   }
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
-        <BarberCard key={b.id} barber={b} index={i} isFavorite={true} onToggleFavorite={onToggleFavorite} />
+        <BarberCard
+          key={b.id}
+          barber={b}
+          index={i}
+          isFavorite={true}
+          isExpanded={expandedId === b.id}
+          onToggleFavorite={onToggleFavorite}
+          onExpand={onExpand}
+        />
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -531,12 +538,12 @@ function EmptyState({
       transition={spring}
       className="text-center py-20"
     >
-      <div className="w-20 h-20 mx-auto rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center mb-4">
+      <div className="w-20 h-20 rounded-3xl bg-white dark:bg-[#1C1C1E] flex items-center justify-center mx-auto mb-4 shadow-sm">
         {icon}
       </div>
-      <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</h3>
-      <p className="text-sm text-[#8E8E93] mt-1 mb-5">{subtitle}</p>
-      {action}
+      <h3 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</h3>
+      <p className="text-sm text-[#8E8E93] mt-1">{subtitle}</p>
+      {action && <div className="mt-5">{action}</div>}
     </motion.div>
   );
 }
