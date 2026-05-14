@@ -33,6 +33,7 @@ export function LoginForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "client" as "barber" | "client",
   })
 
   if (user) {
