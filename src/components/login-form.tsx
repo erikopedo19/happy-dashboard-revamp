@@ -290,6 +290,42 @@ export function LoginForm() {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  {/* Role chooser */}
+                  <div className="space-y-2">
+                    <Label>I'm signing up as</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { key: "client", label: "Client", desc: "Book appointments", Icon: UserCircle2 },
+                        { key: "barber", label: "Barber", desc: "Manage my shop", Icon: Scissors },
+                      ] as const).map(({ key, label, desc, Icon }) => {
+                        const selected = signUpForm.role === key
+                        return (
+                          <button
+                            type="button"
+                            key={key}
+                            onClick={() => setSignUpForm(prev => ({ ...prev, role: key }))}
+                            className={cn(
+                              "relative flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
+                              selected
+                                ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
+                                : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40"
+                            )}
+                            aria-pressed={selected}
+                          >
+                            <div className={cn(
+                              "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                              selected ? "bg-[#007AFF] text-white" : "bg-muted text-muted-foreground"
+                            )}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="text-sm font-semibold">{label}</div>
+                            <div className="text-[11px] text-muted-foreground">{desc}</div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full name</Label>
                     <div className="relative">
