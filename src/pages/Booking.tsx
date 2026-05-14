@@ -583,34 +583,30 @@ const Booking = () => {
         return false;
       }
 
-      // Create booking on the server (customers + appointment + email)
-      const { data: bookingResult, error: bookingFunctionError } = await (supabase as any).functions.invoke('book-appointment', {
-        body: {
-          businessId: businessProfile.id,
-          customerName: values.customer_name,
-          customerEmail: values.customer_email,
-          customerPhone: values.customer_phone || null,
-          serviceIds: selectedServicesList.map(service => service.id),
-          stylistId: values.stylist_id || null,
-          appointmentDate: format(selectedDate, 'yyyy-MM-dd'),
-          appointmentTime: selectedTime,
-          notes: values.notes || null,
-          accentColor,
-        },
+      // Create booking via SECURITY DEFINER RPC (works without auth, no edge fn dependency)
+      const { data: rpcResult, error: rpcError } = await (supabase as any).rpc('create_public_booking', {
+        p_business_id: businessProfile.id,
+        p_customer_name: values.customer_name,
+        p_customer_email: values.customer_email,
+        p_customer_phone: values.customer_phone || null,
+        p_service_id: primaryService.id,
+        p_appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+        p_appointment_time: selectedTime,
+        p_notes: values.notes || null,
       });
 
-      if (bookingFunctionError || !bookingResult?.appointment) {
-        console.error('Booking function error:', bookingFunctionError);
+      if (rpcError || !rpcResult?.success) {
+        console.error('Booking RPC error:', rpcError, rpcResult);
         const error: BookingError = {
-          code: bookingFunctionError?.code || 'BOOKING_FUNCTION_ERROR',
+          code: rpcError?.code || 'BOOKING_RPC_ERROR',
           message: 'Failed to create appointment',
-          details: bookingFunctionError?.message || 'Could not schedule the appointment. The time slot may no longer be available.',
+          details: rpcResult?.error || rpcError?.message || 'Could not schedule the appointment. Please try again.',
         };
         setBookingError(error);
         throw error;
       }
 
-      const newAppointment = bookingResult.appointment;
+      const newAppointment = { id: rpcResult.appointment_id };
 
       console.log('Appointment created successfully:', newAppointment);
 
