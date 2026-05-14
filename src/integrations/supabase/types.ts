@@ -445,6 +445,7 @@ export type Database = {
           ask_notes: boolean | null
           ask_phone: boolean | null
           avatar_url: string | null
+          banner_url: string | null
           booking_link: string | null
           booking_theme: string | null
           brand_color: string | null
@@ -456,6 +457,8 @@ export type Database = {
           id: string
           onboarding_completed: boolean | null
           phone: string | null
+          rating: number | null
+          rating_count: number | null
           sender_email: string | null
           sender_name: string | null
           timezone: string | null
@@ -467,6 +470,7 @@ export type Database = {
           ask_notes?: boolean | null
           ask_phone?: boolean | null
           avatar_url?: string | null
+          banner_url?: string | null
           booking_link?: string | null
           booking_theme?: string | null
           brand_color?: string | null
@@ -478,6 +482,8 @@ export type Database = {
           id: string
           onboarding_completed?: boolean | null
           phone?: string | null
+          rating?: number | null
+          rating_count?: number | null
           sender_email?: string | null
           sender_name?: string | null
           timezone?: string | null
@@ -489,6 +495,7 @@ export type Database = {
           ask_notes?: boolean | null
           ask_phone?: boolean | null
           avatar_url?: string | null
+          banner_url?: string | null
           booking_link?: string | null
           booking_theme?: string | null
           brand_color?: string | null
@@ -500,6 +507,8 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean | null
           phone?: string | null
+          rating?: number | null
+          rating_count?: number | null
           sender_email?: string | null
           sender_name?: string | null
           timezone?: string | null
@@ -818,10 +827,15 @@ export type Database = {
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
+          avatar_url: string
+          banner_url: string
           booking_link: string
           brand_color: string
+          description: string
           full_name: string
           id: string
+          rating: number
+          rating_count: number
         }[]
       }
       get_public_stylist_services: {
@@ -834,10 +848,15 @@ export type Database = {
       list_public_profiles: {
         Args: never
         Returns: {
+          avatar_url: string
+          banner_url: string
           booking_link: string
           brand_color: string
+          description: string
           full_name: string
           id: string
+          rating: number
+          rating_count: number
         }[]
       }
       user_organizations: { Args: never; Returns: string[] }
