@@ -9,7 +9,8 @@ interface AuthContextType {
   signUp: (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    role?: "barber" | "client"
   ) => Promise<{ error: any }>;
   signIn: (
     email: string,
