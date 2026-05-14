@@ -26,13 +26,20 @@ const FindBarbershop = () => {
     queryKey: ["public-barbershops"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("brand_profiles")
-        .select("id, name, location, latitude, longitude, contact_phone")
+        .from("profiles")
+        .select("id, business_name, full_name, address, latitude, longitude, phone")
         .not("latitude", "is", null)
         .not("longitude", "is", null);
 
       if (error) throw error;
-      return data as Barbershop[];
+      return ((data || []) as any[]).map((p) => ({
+        id: p.id,
+        name: p.business_name || p.full_name || "Barbershop",
+        location: p.address || "",
+        latitude: p.latitude,
+        longitude: p.longitude,
+        contact_phone: p.phone || undefined,
+      })) as Barbershop[];
     },
   });
 

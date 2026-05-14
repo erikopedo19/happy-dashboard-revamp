@@ -67,6 +67,22 @@ type BrandProfileRecord = {
   location: string;
   latitude?: number;
   longitude?: number;
+  google_maps_url?: string;
+};
+
+// Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
+const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } | null => {
+  if (!url) return null;
+  // Pattern 1: /@lat,lng,zoom
+  const at = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (at) return { lat: parseFloat(at[1]), lng: parseFloat(at[2]) };
+  // Pattern 2: q=lat,lng or destination=lat,lng or ll=lat,lng
+  const q = url.match(/[?&](?:q|destination|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (q) return { lat: parseFloat(q[1]), lng: parseFloat(q[2]) };
+  // Pattern 3: !3dlat!4dlng (places format)
+  const place = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (place) return { lat: parseFloat(place[1]), lng: parseFloat(place[2]) };
+  return null;
 };
 
 const defaultAgendaSettings: AgendaSettingsRecord = {
@@ -88,6 +104,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   location: "",
   latitude: undefined,
   longitude: undefined,
+  google_maps_url: "",
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -125,7 +142,7 @@ const Settings = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      const [agendaResult, profileResult, brandResult] = await Promise.all([
+      const [agendaResult, profileResult] = await Promise.all([
         (supabase as any)
           .from("agenda_settings")
           .select("user_id, service_duration, start_hour, end_hour, working_days")
@@ -133,13 +150,8 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url")
           .eq("id", user.id)
-          .maybeSingle(),
-        (supabase as any)
-          .from("brand_profiles")
-          .select("name, contact_phone, location, latitude, longitude")
-          .eq("user_id", user.id)
           .maybeSingle(),
       ]);
 
@@ -151,14 +163,9 @@ const Settings = () => {
         throw profileResult.error;
       }
 
-      if (brandResult.error && brandResult.error.code !== "PGRST116") {
-        throw brandResult.error;
-      }
-
       return {
         agenda: agendaResult.data,
         profile: profileResult.data,
-        brand: brandResult.data,
       };
     },
   });
@@ -185,11 +192,12 @@ const Settings = () => {
     });
 
     setBrandForm({
-      name: data.brand?.name ?? user.user_metadata?.full_name ?? "",
-      contact_phone: data.brand?.contact_phone ?? data.profile?.phone ?? "",
-      location: data.brand?.location ?? "",
-      latitude: data.brand?.latitude,
-      longitude: data.brand?.longitude,
+      name: data.profile?.business_name ?? data.profile?.full_name ?? user.user_metadata?.full_name ?? "",
+      contact_phone: data.profile?.phone ?? "",
+      location: data.profile?.address ?? "",
+      latitude: data.profile?.latitude ?? undefined,
+      longitude: data.profile?.longitude ?? undefined,
+      google_maps_url: data.profile?.google_maps_url ?? "",
     });
 
     // Set dark mode from profile, default to dark mode
@@ -256,32 +264,42 @@ const Settings = () => {
         working_days: agendaForm.working_days,
       };
 
+      // Auto-extract coordinates from a Google Maps URL if pasted
+      let lat = brandForm.latitude;
+      let lng = brandForm.longitude;
+      const mapsUrl = (brandForm.google_maps_url || "").trim();
+      if (mapsUrl) {
+        const parsed = extractLatLngFromGoogleUrl(mapsUrl);
+        if (parsed) {
+          lat = parsed.lat;
+          lng = parsed.lng;
+        }
+      }
+
       const profilePayload = {
         id: user.id,
         full_name: profileForm.full_name.trim() || null,
-        phone: profileForm.phone.trim() || null,
+        phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
+        business_name: brandForm.name.trim() || profileForm.full_name.trim() || null,
+        address: brandForm.location.trim() || null,
+        latitude: lat ?? null,
+        longitude: lng ?? null,
+        google_maps_url: mapsUrl || null,
         updated_at: new Date().toISOString(),
       };
 
-      const brandPayload = {
-        user_id: user.id,
-        name: brandForm.name.trim() || profileForm.full_name.trim() || "My Business",
-        contact_phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
-        location: brandForm.location.trim() || null,
-        latitude: brandForm.latitude,
-        longitude: brandForm.longitude,
-        updated_at: new Date().toISOString(),
-      };
-
-      const [agendaResult, profileResult, brandResult] = await Promise.all([
+      const [agendaResult, profileResult] = await Promise.all([
         (supabase as any).from("agenda_settings").upsert(agendaPayload, { onConflict: "user_id" }),
         (supabase as any).from("profiles").upsert(profilePayload, { onConflict: "id" }),
-        (supabase as any).from("brand_profiles").upsert(brandPayload, { onConflict: "user_id" }),
       ]);
 
       if (agendaResult.error) throw agendaResult.error;
       if (profileResult.error) throw profileResult.error;
-      if (brandResult.error) throw brandResult.error;
+
+      // Reflect parsed coordinates back into the form
+      if (mapsUrl && lat !== undefined && lng !== undefined) {
+        setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      }
 
       return true;
     },
@@ -716,6 +734,32 @@ const Settings = () => {
                                 setBrandForm((prev) => ({ ...prev, location: e.target.value }))
                               }
                               placeholder="123 Main Street, New York"
+                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                              Google Maps link
+                            </Label>
+                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-2">
+                              Paste a Google Maps share link — coordinates auto-fill on save.
+                            </p>
+                            <Input
+                              value={brandForm.google_maps_url || ""}
+                              onChange={(e) => {
+                                const url = e.target.value;
+                                setBrandForm((prev) => {
+                                  const parsed = extractLatLngFromGoogleUrl(url);
+                                  return {
+                                    ...prev,
+                                    google_maps_url: url,
+                                    latitude: parsed?.lat ?? prev.latitude,
+                                    longitude: parsed?.lng ?? prev.longitude,
+                                  };
+                                });
+                              }}
+                              placeholder="https://maps.google.com/?q=40.7128,-74.0060"
                               className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
                             />
                           </div>

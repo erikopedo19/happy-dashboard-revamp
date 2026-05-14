@@ -650,22 +650,21 @@ export const LiquidGlassAgenda = ({
                     );
                   })}
 
-                  {/* Buffer zone between appointments */}
+                  {/* Empty slot - visible quick-add */}
                   {hourAppointments.length === 0 && !isOccupied && (
                     <div className="pl-[60px] mb-1">
                       <button
                         onClick={() => onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), hour)}
                         className={cn(
-                          "w-full h-10 rounded-xl border border-dashed flex items-center justify-center gap-2 transition-all",
-                          "opacity-0 hover:opacity-100 active:opacity-100 active:scale-[0.98]",
+                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all active:scale-[0.98]",
                           isDark
-                            ? "border-white/10 hover:bg-white/5"
-                            : "border-gray-200 hover:bg-gray-50"
+                            ? "border-white/15 bg-white/[0.03] hover:bg-white/[0.07] text-white/60"
+                            : "border-gray-300/70 bg-gray-50/60 hover:bg-blue-50 hover:border-blue-300 text-gray-500"
                         )}
                       >
-                        <Plus className={cn("w-3.5 h-3.5", isDark ? "text-white/30" : "text-gray-300")} />
-                        <span className={cn("text-[11px] font-medium", isDark ? "text-white/30" : "text-gray-300")}>
-                          Book here
+                        <Plus className="w-3.5 h-3.5" />
+                        <span className="text-[12px] font-medium">
+                          Tap to book at {hour}
                         </span>
                       </button>
                     </div>

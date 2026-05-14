@@ -454,7 +454,10 @@ export type Database = {
           description: string | null
           email_template_html: string | null
           full_name: string | null
+          google_maps_url: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           onboarding_completed: boolean | null
           phone: string | null
           rating: number | null
@@ -479,7 +482,10 @@ export type Database = {
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
+          google_maps_url?: string | null
           id: string
+          latitude?: number | null
+          longitude?: number | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
@@ -504,7 +510,10 @@ export type Database = {
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
+          google_maps_url?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
