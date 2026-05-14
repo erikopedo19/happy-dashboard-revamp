@@ -104,6 +104,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   location: "",
   latitude: undefined,
   longitude: undefined,
+  google_maps_url: "",
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
