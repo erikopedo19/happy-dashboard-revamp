@@ -127,6 +127,33 @@ export type Database = {
           },
         ]
       }
+      brand_profiles_raw: {
+        Row: {
+          booking_link: string | null
+          brand_color: string | null
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_link?: string | null
+          brand_color?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_link?: string | null
+          brand_color?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       business_hours: {
         Row: {
           close_time: string
@@ -729,7 +756,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      brand_profiles: {
+        Row: {
+          booking_link: string | null
+          brand_color: string | null
+          full_name: string | null
+          id: string | null
+        }
+        Insert: {
+          booking_link?: string | null
+          brand_color?: string | null
+          full_name?: string | null
+          id?: string | null
+        }
+        Update: {
+          booking_link?: string | null
+          brand_color?: string | null
+          full_name?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
