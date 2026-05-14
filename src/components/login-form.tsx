@@ -101,7 +101,8 @@ export function LoginForm() {
       const { error } = await signUp(
         signUpForm.email.trim(),
         signUpForm.password,
-        signUpForm.fullName.trim()
+        signUpForm.fullName.trim(),
+        signUpForm.role
       )
 
       if (error) {
@@ -115,7 +116,9 @@ export function LoginForm() {
 
       toast({
         title: "Account created",
-        description: "Check your email to verify your account.",
+        description: signUpForm.role === "barber"
+          ? "Welcome aboard. Check your email to verify your barber account."
+          : "Welcome. Check your email to verify your account.",
       })
 
       setActiveTab("signin")
@@ -125,6 +128,7 @@ export function LoginForm() {
         email: "",
         password: "",
         confirmPassword: "",
+        role: "client",
       })
     } catch (_err) {
       toast({
