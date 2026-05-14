@@ -972,12 +972,13 @@ export const ModernAppointmentsCalendar = ({
                           <Clock className="h-3 w-3 text-gray-500/50" />
                         </div>
                       ) : (
-                        // Empty slot - just + on hover
+                        // Empty slot - visible + so quick-add is obvious
                         <button 
                           onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} 
-                          className="w-full h-full rounded-lg border-l-2 border-transparent group-hover:border-blue-500/30 hover:bg-blue-500/5 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
+                          className="w-full h-full rounded-lg border border-dashed border-gray-200 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500/60 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all flex items-center justify-center text-gray-300 dark:text-white/20 hover:text-blue-500 dark:hover:text-blue-400"
+                          title={`Book at ${time}`}
                         >
-                          <Plus className="h-4 w-4 text-blue-500/50 group-hover:text-blue-500/70" />
+                          <Plus className="h-4 w-4" />
                         </button>
                       )}
                     </div>
