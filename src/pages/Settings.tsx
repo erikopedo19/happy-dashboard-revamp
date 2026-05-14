@@ -142,7 +142,7 @@ const Settings = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      const [agendaResult, profileResult, brandResult] = await Promise.all([
+      const [agendaResult, profileResult] = await Promise.all([
         (supabase as any)
           .from("agenda_settings")
           .select("user_id, service_duration, start_hour, end_hour, working_days")
@@ -150,13 +150,8 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url")
           .eq("id", user.id)
-          .maybeSingle(),
-        (supabase as any)
-          .from("brand_profiles")
-          .select("name, contact_phone, location, latitude, longitude")
-          .eq("user_id", user.id)
           .maybeSingle(),
       ]);
 
@@ -168,14 +163,9 @@ const Settings = () => {
         throw profileResult.error;
       }
 
-      if (brandResult.error && brandResult.error.code !== "PGRST116") {
-        throw brandResult.error;
-      }
-
       return {
         agenda: agendaResult.data,
         profile: profileResult.data,
-        brand: brandResult.data,
       };
     },
   });
@@ -202,11 +192,12 @@ const Settings = () => {
     });
 
     setBrandForm({
-      name: data.brand?.name ?? user.user_metadata?.full_name ?? "",
-      contact_phone: data.brand?.contact_phone ?? data.profile?.phone ?? "",
-      location: data.brand?.location ?? "",
-      latitude: data.brand?.latitude,
-      longitude: data.brand?.longitude,
+      name: data.profile?.business_name ?? data.profile?.full_name ?? user.user_metadata?.full_name ?? "",
+      contact_phone: data.profile?.phone ?? "",
+      location: data.profile?.address ?? "",
+      latitude: data.profile?.latitude ?? undefined,
+      longitude: data.profile?.longitude ?? undefined,
+      google_maps_url: data.profile?.google_maps_url ?? "",
     });
 
     // Set dark mode from profile, default to dark mode
