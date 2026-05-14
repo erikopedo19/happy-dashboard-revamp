@@ -610,6 +610,28 @@ const Booking = () => {
 
       console.log('Appointment created successfully:', newAppointment);
 
+      // Fire-and-forget Brevo confirmation email via existing edge function
+      try {
+        (supabase as any).functions.invoke('send-booking-confirmation', {
+          body: {
+            userId: businessProfile.id,
+            customerEmail: values.customer_email,
+            customerName: values.customer_name,
+            customerPhone: values.customer_phone || null,
+            businessName: businessProfile.full_name,
+            serviceName: primaryService.name,
+            appointmentDate: format(selectedDate, 'EEEE, MMMM d, yyyy'),
+            appointmentTime: selectedTime,
+            price: primaryService.price,
+            notes: values.notes || null,
+            bookingId: rpcResult.appointment_id,
+            accentColor: accentColor,
+          },
+        }).catch((e: any) => console.warn('Email send failed (non-fatal):', e));
+      } catch (e) {
+        console.warn('Email invoke threw (non-fatal):', e);
+      }
+
       toast({
         title: "Booking Confirmed!",
         description: "Your appointment has been scheduled successfully. Check your email for confirmation.",
