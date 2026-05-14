@@ -44,8 +44,79 @@ const sidebarSections = [
 ];
 
 export default function Brand() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [businessName, setBusinessName] = useState('sdadad');
   const [bookingUrl, setBookingUrl] = useState('sdadad');
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Load existing profile media
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('profiles')
+        .select('banner_url, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (data) {
+        setBannerUrl(data.banner_url ?? null);
+        setAvatarUrl(data.avatar_url ?? null);
+      }
+    })();
+  }, [user]);
+
+  const MAX_BYTES = 2 * 1024 * 1024;
+
+  const handleUpload = async (
+    file: File,
+    kind: 'banner' | 'avatar',
+  ) => {
+    if (!user) {
+      toast({ title: 'Please sign in', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      toast({
+        title: 'File too large',
+        description: 'Please upload an image under 2 MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const setUploading = kind === 'banner' ? setUploadingBanner : setUploadingAvatar;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/${kind}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('brand-images')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('brand-images').getPublicUrl(path);
+      const url = pub.publicUrl;
+      const column = kind === 'banner' ? 'banner_url' : 'avatar_url';
+      const { error: updErr } = await (supabase as any)
+        .from('profiles')
+        .update({ [column]: url })
+        .eq('id', user.id);
+      if (updErr) throw updErr;
+      if (kind === 'banner') setBannerUrl(url);
+      else setAvatarUrl(url);
+      toast({ title: 'Uploaded', description: `${kind === 'banner' ? 'Banner' : 'Profile photo'} updated.` });
+    } catch (e: any) {
+      toast({
+        title: 'Upload failed',
+        description: e?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fafbfa] flex">
