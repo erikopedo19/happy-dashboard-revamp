@@ -30,6 +30,9 @@ import ChooseRole from "./pages/ChooseRole";
 import CompleteProfile from "./pages/CompleteProfile";
 import DbPrevStats from "./pages/DbPrevStats";
 import Reports from "./pages/Reports";
+import MyBookings from "./pages/MyBookings";
+import Me from "./pages/Me";
+import Favorites from "./pages/Favorites";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +97,9 @@ function App() {
               <Route path="/bookingforms" element={<BookingForms />} />
               <Route path="/find-barber" element={<FindBarber />} />
               <Route path="/find-barbershop" element={<FindBarbershop />} />
+              <Route path="/my-bookings" element={<MyBookings />} />
+              <Route path="/me" element={<Me />} />
+              <Route path="/favorites" element={<Favorites />} />
               <Route path="/" element={<FindBarber />} />
               <Route path="/app" element={<LandingRoute />} />
               <Route path="/superadmin" element={<SuperAdminLogin />} />
