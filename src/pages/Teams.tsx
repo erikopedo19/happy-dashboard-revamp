@@ -314,12 +314,12 @@ const Teams = () => {
   };
 
   const colorOptions = [
-    { value: "bg-blue-500", label: "Blue", gradient: "from-blue-500 to-cyan-500" },
-    { value: "bg-purple-500", label: "Purple", gradient: "from-purple-500 to-pink-500" },
-    { value: "bg-green-500", label: "Green", gradient: "from-green-500 to-emerald-500" },
-    { value: "bg-orange-500", label: "Orange", gradient: "from-orange-500 to-red-500" },
-    { value: "bg-pink-500", label: "Pink", gradient: "from-pink-500 to-rose-500" },
-    { value: "bg-indigo-500", label: "Indigo", gradient: "from-indigo-500 to-purple-500" },
+    { value: "bg-blue-500", label: "Blue", dot: "#007AFF" },
+    { value: "bg-purple-500", label: "Purple", dot: "#AF52DE" },
+    { value: "bg-green-500", label: "Green", dot: "#34C759" },
+    { value: "bg-orange-500", label: "Orange", dot: "#FF9500" },
+    { value: "bg-pink-500", label: "Pink", dot: "#e11d48" },
+    { value: "bg-indigo-500", label: "Indigo", dot: "#5856D6" },
   ];
 
   if (orgLoading) {
@@ -340,136 +340,138 @@ const Teams = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex w-full bg-[#F5F5F7] dark:bg-[#0c0c0c]">
         <AppSidebar />
-        <main className="flex-1 bg-gradient-to-br from-[#F2F2F7] dark:from-[#0c0c0c] via-[#F2F2F7] dark:via-[#0c0c0c] to-[#E5E5EA]/30 dark:to-[#1C1C1E]/30">
-          <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md border-b border-[#C6C6C8] dark:border-[#2C2C2E] p-4 lg:hidden shadow-sm">
+        <main className="flex-1">
+          <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] p-4 lg:hidden">
             <div className="flex items-center justify-between">
-              <SidebarTrigger className="hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7]" />
-              <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Teams</h1>
-              <div></div>
+              <SidebarTrigger className="text-[#1C1C1E] dark:text-white" />
+              <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">Teams</h1>
+              <div />
             </div>
           </div>
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+
+          <div className="px-6 lg:px-10 py-8 max-w-[1400px] mx-auto">
+            <div className="flex items-end justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Teams</h1>
-                <p className="text-[#8E8E93] dark:text-gray-500 mt-1">Organize your stylists into teams</p>
+                <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#8E8E93]">
+                  Organization
+                </p>
+                <h1 className="text-[34px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white leading-none mt-1">
+                  Teams
+                </h1>
+                <p className="text-sm text-[#8E8E93] mt-2">
+                  {teams.length}/{maxTeams} teams · organize stylists into squads
+                </p>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose btn-gradient-rose-sm">
-                  <span>
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Create Team</span>
-                  </span>
-                </Button>
-                <div className="text-xs text-muted-foreground">
-                  {teams.length}/{maxTeams} teams used (premium)
-                </div>
-              </div>
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="h-10 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:hover:bg-white/90 px-5 font-medium text-sm"
+              >
+                <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
+                New team
+              </Button>
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12">Loading teams...</div>
+              <div className="text-center py-16 text-sm text-[#8E8E93]">Loading teams…</div>
             ) : teams.length === 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="border-dashed bg-gradient-to-br from-blue-50 to-blue-100/30 backdrop-blur-md shadow-lg hover:shadow-xl transition-all overflow-hidden">
-                  <div className="absolute inset-0 bg-blue-500/5 backdrop-blur-sm z-0"></div>
-                  <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
-                    <div className="bg-blue-100 p-4 rounded-full mb-4 shadow-inner">
-                      <Plus className="h-12 w-12 text-blue-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground">Create Your First Team</h3>
-                    <p className="text-muted-foreground mb-6 text-center max-w-md">Teams help you organize your stylists and manage their schedules more efficiently</p>
-                    <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
-                      <span>
-                        <Plus className="h-4 w-4" />
-                        Create Team
-                      </span>
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-dashed bg-gradient-to-br from-purple-50 to-purple-100/30 backdrop-blur-md shadow-lg hover:shadow-xl transition-all overflow-hidden">
-                  <div className="absolute inset-0 bg-purple-500/5 backdrop-blur-sm z-0"></div>
-                  <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
-                    <div className="bg-purple-100 p-4 rounded-full mb-4 shadow-inner">
-                      <Scissors className="h-12 w-12 text-purple-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground">Team Benefits</h3>
-                    <ul className="space-y-3 text-sm text-muted-foreground mb-4">
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-                        <span>Organize stylists by specialization</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-                        <span>Manage team schedules efficiently</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-                        <span>Track team performance metrics</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-                        <span>Assign clients to specific teams</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
+              <div className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] p-12 text-center">
+                <div className="h-12 w-12 mx-auto rounded-2xl bg-[#F5F5F7] dark:bg-[#2C2C2E] flex items-center justify-center mb-4">
+                  <Users className="h-6 w-6 text-[#1C1C1E] dark:text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">
+                  No teams yet
+                </h3>
+                <p className="text-sm text-[#8E8E93] mt-1 max-w-sm mx-auto">
+                  Create a team to group stylists, share schedules, and track performance together.
+                </p>
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="mt-6 h-10 rounded-full bg-[#e11d48] hover:bg-[#e11d48]/90 text-white px-5"
+                >
+                  <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
+                  Create your first team
+                </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {teams.map((team) => {
-                  // Handle missing color value gracefully
                   const colorScheme = team.color ? colorOptions.find((c) => c.value === team.color) || colorOptions[0] : colorOptions[0];
-                  // Calculate actual member count for this team
                   const memberCount = allTeamMembers.filter(member => member.team_id === team.id).length;
+                  const teamMembers = allTeamMembers.filter(m => m.team_id === team.id).slice(0, 4);
                   return (
-                    <Card key={team.id} className="overflow-hidden border-0 hover:shadow-xl transition-all">
-                      <div className={`h-2 bg-gradient-to-r ${colorScheme?.gradient || 'from-blue-500 to-cyan-500'}`} />
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-xl">{team.name}</CardTitle>
-                            <CardDescription className="mt-1">{team.description || "No description"}</CardDescription>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button className="btn-gradient-rose w-full">
-                              <span>
-                                <Calendar className="w-4 h-4" />
-                                Book Now
-                              </span>
-                            </Button>
-                            <button
-                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2C2C2E] transition-colors"
-                              onClick={() => {
-                                if (confirm("Are you sure you want to delete this team?")) {
-                                  deleteTeamMutation.mutate(team.id);
-                                }
-                              }}
+                    <Card
+                      key={team.id}
+                      className="group bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all overflow-hidden"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-5">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div
+                              className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: `${colorScheme.dot}1A` }}
                             >
-                              <Trash2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                            </button>
+                              <span
+                                className="h-3 w-3 rounded-full"
+                                style={{ backgroundColor: colorScheme.dot }}
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-white truncate">
+                                {team.name}
+                              </h3>
+                              <p className="text-xs text-[#8E8E93] truncate">
+                                {team.description || "No description"}
+                              </p>
+                            </div>
                           </div>
+                          <button
+                            className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E] transition-all"
+                            onClick={() => {
+                              if (confirm("Delete this team?")) {
+                                deleteTeamMutation.mutate(team.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-[#8E8E93]" />
+                          </button>
                         </div>
-                      </CardHeader>
-                      <CardContent>
+
+                        {/* Members preview */}
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">{memberCount} members</span>
+                          <div className="flex items-center">
+                            {teamMembers.length > 0 ? (
+                              <div className="flex -space-x-2">
+                                {teamMembers.map((m) => (
+                                  <Avatar key={m.id} className="h-7 w-7 border-2 border-white dark:border-[#1C1C1E]">
+                                    <AvatarImage src={m.stylist?.avatar_url || undefined} />
+                                    <AvatarFallback className="text-[10px] bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white">
+                                      {m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ))}
+                                {memberCount > teamMembers.length && (
+                                  <div className="h-7 w-7 rounded-full bg-[#F5F5F7] dark:bg-[#2C2C2E] border-2 border-white dark:border-[#1C1C1E] flex items-center justify-center text-[10px] font-semibold text-[#8E8E93]">
+                                    +{memberCount - teamMembers.length}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-[#8E8E93]">No members yet</span>
+                            )}
                           </div>
                           <Button
-                            variant="outline"
                             size="sm"
+                            variant="ghost"
+                            className="h-8 rounded-full text-xs font-medium text-[#1C1C1E] dark:text-white hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E]"
                             onClick={() => {
                               setSelectedTeam(team);
                               setIsAddMemberDialogOpen(true);
                             }}
                           >
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Add Member
+                            <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                            Add
                           </Button>
                         </div>
                       </CardContent>
@@ -599,7 +601,7 @@ const Teams = () => {
                   {colorOptions.map((color) => (
                     <SelectItem key={color.value} value={color.value}>
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${color.gradient}`} />
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color.dot }} />
                         {color.label}
                       </div>
                     </SelectItem>
@@ -653,7 +655,7 @@ const Teams = () => {
                   {colorOptions.map((color) => (
                     <SelectItem key={color.value} value={color.value}>
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${color.gradient}`} />
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color.dot }} />
                         {color.label}
                       </div>
                     </SelectItem>
