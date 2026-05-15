@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
+import { BrandImageUpload } from "@/components/BrandImageUpload";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -151,7 +152,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -418,28 +419,25 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="w-full justify-start rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto flex-wrap">
-                      <TabsTrigger value="general" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Settings2 className="w-4 h-4 mr-2" />
-                        General
-                      </TabsTrigger>
-                      <TabsTrigger value="booking" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Link2 className="w-4 h-4 mr-2" />
-                        Booking
-                      </TabsTrigger>
-                      <TabsTrigger value="messages" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Messages
-                      </TabsTrigger>
-                      <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Bell className="w-4 h-4 mr-2" />
-                        Notifications
-                      </TabsTrigger>
-                      <TabsTrigger value="business" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Store className="w-4 h-4 mr-2" />
-                        Business
-                      </TabsTrigger>
-                    </TabsList>
+                    <div className="overflow-x-auto -mx-1 px-1">
+                      <TabsList className="inline-flex w-max min-w-full justify-start rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto">
+                        <TabsTrigger value="general" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                          <Settings2 className="w-4 h-4 mr-2" />General
+                        </TabsTrigger>
+                        <TabsTrigger value="booking" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                          <Link2 className="w-4 h-4 mr-2" />Booking
+                        </TabsTrigger>
+                        <TabsTrigger value="messages" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                          <Sparkles className="w-4 h-4 mr-2" />Messages
+                        </TabsTrigger>
+                        <TabsTrigger value="notifications" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                          <Bell className="w-4 h-4 mr-2" />Notifications
+                        </TabsTrigger>
+                        <TabsTrigger value="business" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                          <Store className="w-4 h-4 mr-2" />Business
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
 
                     <TabsContent value="messages" className="mt-0 space-y-6">
                       <MessageTemplates />

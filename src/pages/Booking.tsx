@@ -625,6 +625,8 @@ const Booking = () => {
             price: primaryService.price,
             notes: values.notes || null,
             bookingId: rpcResult.appointment_id,
+            cancelToken: rpcResult.cancel_token,
+            manageUrl: `${window.location.origin}/manage/${rpcResult.cancel_token}`,
             accentColor: accentColor,
           },
         }).catch((e: any) => console.warn('Email send failed (non-fatal):', e));

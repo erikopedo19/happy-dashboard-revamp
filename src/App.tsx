@@ -33,7 +33,9 @@ import Reports from "./pages/Reports";
 import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
+import ManageBooking from "./pages/ManageBooking";
 import { PersistentDock } from "./components/PersistentDock";
+import { NotificationBell } from "./components/NotificationBell";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
@@ -94,6 +96,7 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               {/* Public routes - no authentication required */}
               <Route path="/book/:bookingLink" element={<Booking />} />
+              <Route path="/manage/:token" element={<ManageBooking />} />
               <Route path="/bookingforms" element={<BookingForms />} />
               <Route path="/find-barber" element={<FindBarber />} />
               <Route path="/find-barbershop" element={<FindBarbershop />} />
@@ -119,6 +122,7 @@ function App() {
               <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <NotificationBell />
             <PersistentDock />
           </BrowserRouter>
         </div>
