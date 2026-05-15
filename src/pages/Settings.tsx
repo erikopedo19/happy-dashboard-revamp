@@ -386,36 +386,27 @@ const Settings = () => {
         <AppSidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl">
-            <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <SidebarTrigger className="lg:hidden text-gray-600 dark:text-gray-400" />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-lg md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Settings</h1>
-                    <Badge className="rounded-full bg-gray-900 dark:bg-rose-600 text-white border-0">
-                      Live sync
-                    </Badge>
-                  </div>
-                  <p className="text-xs md:text-sm text-[#8E8E93] dark:text-gray-500">
-                    Save once and your agenda and booking flow update immediately.
-                  </p>
-                </div>
+          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+            <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">Settings</h1>
               </div>
 
-              <RoseGradientButton
+              <Button
                 type="button"
                 size="sm"
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || isLoading}
+                className="rounded-full h-9 px-4 bg-[#007AFF] hover:bg-[#0a6fd6] text-white font-semibold shadow-none"
               >
                 {saveMutation.isPending ? (
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
                 )}
-                {saveMutation.isPending ? "Saving..." : "Save changes"}
-              </RoseGradientButton>
+                {saveMutation.isPending ? "Saving" : "Save"}
+              </Button>
             </div>
           </div>
 

@@ -6,6 +6,7 @@ import { MobileDock } from "@/components/MobileDock";
 import { RoseGradientButton } from "@/components/RoseGradientButton";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -450,33 +451,23 @@ const Reports = () => {
       <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 bg-gradient-to-b from-rose-50/60 via-[#F2F2F7] to-[#ebe4f0] dark:from-rose-950/25 dark:via-[#1C1C1E] dark:to-[#0f0f12] flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md shadow-sm">
-            <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <SidebarTrigger className="lg:hidden hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl md:text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                      Reports
-                    </h1>
-                    <Badge className="rounded-full border-0 bg-gradient-to-r from-rose-600 to-fuchsia-600 text-white shadow-sm shadow-rose-900/30">
-                      Analytics
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-[#8E8E93] mt-1">
-                    Revenue trends, booking insights, and stylist performance
-                  </p>
-                </div>
+        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
+          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+            <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                  Reports
+                </h1>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Select value={dateRange} onValueChange={(value) => setDateRange(value as RangeValue)}>
-                  <SelectTrigger className="w-[160px] rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-sm">
-                    <Calendar className="w-4 h-4 mr-2 text-[#8E8E93] dark:text-[#8E8E93]" />
+                  <SelectTrigger className="h-9 w-[140px] md:w-[160px] rounded-full border-0 bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm">
+                    <Calendar className="w-4 h-4 mr-1.5 text-[#8E8E93]" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
+                  <SelectContent className="rounded-2xl dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
                     <SelectItem value="today">Today</SelectItem>
                     <SelectItem value="last7days">Last 7 days</SelectItem>
                     <SelectItem value="last30days">Last 30 days</SelectItem>
@@ -485,51 +476,24 @@ const Reports = () => {
                     <SelectItem value="thisYear">This year</SelectItem>
                   </SelectContent>
                 </Select>
+                {!isMobile && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleExport}
+                    className="rounded-full h-9 px-4 bg-[#007AFF] hover:bg-[#0a6fd6] text-white font-semibold"
+                  >
+                    <Download className="h-4 w-4" strokeWidth={2.5} />
+                    Export
+                  </Button>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-auto">
-            <div className="w-full px-4 md:px-6 py-6 space-y-6">
-              <section className="relative overflow-hidden rounded-3xl border border-rose-500/20 bg-zinc-950 p-6 md:p-10 shadow-2xl shadow-rose-950/40">
-                <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-rose-500/30 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-fuchsia-600/25 blur-3xl" />
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_40%,rgba(244,63,94,0.08)_50%,transparent_60%)]" />
-                <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="max-w-xl space-y-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-rose-300/90">
-                      Command center
-                    </p>
-                    <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                      Revenue pulse & crew performance
-                    </h2>
-                    <p className="text-sm leading-relaxed text-zinc-400 md:text-base">
-                      Live mix of bookings, completion rate, and stylist impact — tuned for fast decisions,
-                      not spreadsheet archaeology.
-                    </p>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
-                        {analytics.totalAppointments} events in range
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
-                        {analytics.completionRate}% completion
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-shrink-0 flex-wrap gap-3">
-                    <RoseGradientButton type="button" size="sm" onClick={() => navigate("/agenda")}>
-                      <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-                      New booking
-                    </RoseGradientButton>
-                    <RoseGradientButton type="button" size="sm" onClick={handleExport}>
-                      <Download className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-                      Export
-                    </RoseGradientButton>
-                  </div>
-                </div>
-              </section>
-
-              <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6 pb-32 md:pb-6">
+              <section className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
                 <MetricCard
                   title="Revenue"
                   value={currency.format(analytics.totalRevenue)}
@@ -634,7 +598,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border-0 bg-gradient-to-br from-[#1C1C1E] via-[#2C2C2E] to-[#3A3A3C] text-white shadow-sm overflow-hidden">
+                <Card className="rounded-2xl border-0 bg-[#1C1C1E] text-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <div className="flex items-center gap-2 text-white/80 mb-2">
                       <WandSparkles className="w-4 h-4" />
@@ -702,7 +666,7 @@ const Reports = () => {
 
               <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <Card className="rounded-2xl border-0 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-br from-[#FF3B30]/5 via-white to-[#FF3B30]/5">
+                  <div className="bg-white dark:bg-[#1C1C1E]">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -899,11 +863,11 @@ const Reports = () => {
                       analytics.stylistPerformance.map((stylist, index) => (
                         <div
                           key={stylist.id}
-                          className="flex items-center justify-between gap-4 rounded-2xl border border-[#F2F2F7] bg-gradient-to-r from-white to-[#F9F9F9] px-4 py-4 hover:bg-[#F2F2F7]/50 transition-colors"
+                          className="flex items-center justify-between gap-4 rounded-2xl border border-[#F2F2F7] bg-white dark:bg-[#1C1C1E] px-4 py-4 hover:bg-[#F2F2F7]/50 transition-colors"
                         >
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-semibold shadow-lg shadow-rose-900/40">
+                              <div className="w-12 h-12 rounded-xl bg-[#FF3B30] text-white flex items-center justify-center font-semibold shadow-lg ">
                                 {index === 0 ? (
                                   <Crown className="w-5 h-5" />
                                 ) : (
@@ -997,7 +961,7 @@ const Reports = () => {
                       </BarChart>
                     </ChartContainer>
 
-                    <div className="rounded-2xl bg-gradient-to-br from-[#1C1C1E] to-[#2C2C2E] p-5 text-white">
+                    <div className="rounded-2xl bg-[#1C1C1E] p-5 text-white">
                       <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
                         <Sparkles className="w-4 h-4" />
                         Insight
