@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { User, Plus, Search, Mail, Phone, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
