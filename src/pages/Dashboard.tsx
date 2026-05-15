@@ -205,7 +205,7 @@ function MobileDashboard() {
                       : ""
                   }`}
                 >
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-[#007AFF] text-white flex items-center justify-center text-sm font-semibold shrink-0">
                     {(a.customer?.name || "W")[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
