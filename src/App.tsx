@@ -33,6 +33,9 @@ import Reports from "./pages/Reports";
 import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
+import { useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const queryClient = new QueryClient();
 
