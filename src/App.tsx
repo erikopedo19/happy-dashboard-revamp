@@ -96,6 +96,7 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               {/* Public routes - no authentication required */}
               <Route path="/book/:bookingLink" element={<Booking />} />
+              <Route path="/manage/:token" element={<ManageBooking />} />
               <Route path="/bookingforms" element={<BookingForms />} />
               <Route path="/find-barber" element={<FindBarber />} />
               <Route path="/find-barbershop" element={<FindBarbershop />} />
