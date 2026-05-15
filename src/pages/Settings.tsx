@@ -398,7 +398,7 @@ const Settings = () => {
                 size="sm"
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || isLoading}
-                className="rounded-full h-9 px-4 bg-[#007AFF] hover:bg-[#0a6fd6] text-white font-semibold shadow-none"
+                className="rounded-full h-9 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold shadow-none"
               >
                 {saveMutation.isPending ? (
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
@@ -443,8 +443,8 @@ const Settings = () => {
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                             </div>
                             <div>
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Agenda timing</CardTitle>
@@ -471,7 +471,7 @@ const Settings = () => {
                                   className={cn(
                                     "h-11 rounded-2xl border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-[#007AFF] text-white border-gray-950 shadow-sm"
+                                      ? "bg-[#e11d48] text-white border-gray-950 shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >
@@ -568,7 +568,7 @@ const Settings = () => {
                                     className={cn(
                                       "rounded-2xl border px-4 py-3 text-left transition-all",
                                       active
-                                        ? "border-gray-950 bg-[#007AFF] text-white shadow-sm"
+                                        ? "border-gray-950 bg-[#e11d48] text-white shadow-sm"
                                         : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
                                     )}
                                   >
@@ -874,7 +874,7 @@ const Settings = () => {
                       <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs uppercase tracking-wide text-[#8E8E93] dark:text-gray-500">Time slots</p>
-                          <Badge className="rounded-full bg-blue-100 text-blue-700 border-0">
+                          <Badge className="rounded-full bg-rose-100 text-rose-700 border-0">
                             {agendaForm.service_duration} min
                           </Badge>
                         </div>

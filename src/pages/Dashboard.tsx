@@ -94,15 +94,15 @@ function MobileDashboard() {
       label: "Today",
       value: todays.length.toString(),
       icon: Calendar,
-      bg: "bg-[#007AFF]/15",
-      color: "text-[#007AFF]",
+      bg: "bg-[#e11d48]/15",
+      color: "text-[#e11d48]",
     },
     {
       label: "Pending",
       value: pending.toString(),
       icon: Clock,
-      bg: "bg-[#FF9500]/15",
-      color: "text-[#FF9500]",
+      bg: "bg-[#fb7185]/15",
+      color: "text-[#fb7185]",
     },
     {
       label: "Clients",
@@ -183,7 +183,7 @@ function MobileDashboard() {
             </div>
             <button
               onClick={() => navigate("/agenda")}
-              className="text-sm font-medium text-[#007AFF] active:opacity-60"
+              className="text-sm font-medium text-[#e11d48] active:opacity-60"
             >
               See all
             </button>
@@ -205,7 +205,7 @@ function MobileDashboard() {
                       : ""
                   }`}
                 >
-                  <div className="h-10 w-10 rounded-full bg-[#007AFF] text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-[#e11d48] text-white flex items-center justify-center text-sm font-semibold shrink-0">
                     {(a.customer?.name || "W")[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -228,7 +228,7 @@ function MobileDashboard() {
                           ? "text-[#34C759]"
                           : a.status === "cancelled"
                           ? "text-[#FF3B30]"
-                          : "text-[#007AFF]"
+                          : "text-[#e11d48]"
                       }`}
                     >
                       {a.status || "scheduled"}
