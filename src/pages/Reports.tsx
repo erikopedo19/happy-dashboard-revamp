@@ -598,7 +598,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border-0 bg-gradient-to-br from-[#1C1C1E] via-[#2C2C2E] to-[#3A3A3C] text-white shadow-sm overflow-hidden">
+                <Card className="rounded-2xl border-0 bg-[#1C1C1E] text-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <div className="flex items-center gap-2 text-white/80 mb-2">
                       <WandSparkles className="w-4 h-4" />
@@ -666,7 +666,7 @@ const Reports = () => {
 
               <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <Card className="rounded-2xl border-0 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-br from-[#FF3B30]/5 via-white to-[#FF3B30]/5">
+                  <div className="bg-white dark:bg-[#1C1C1E]">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -863,11 +863,11 @@ const Reports = () => {
                       analytics.stylistPerformance.map((stylist, index) => (
                         <div
                           key={stylist.id}
-                          className="flex items-center justify-between gap-4 rounded-2xl border border-[#F2F2F7] bg-gradient-to-r from-white to-[#F9F9F9] px-4 py-4 hover:bg-[#F2F2F7]/50 transition-colors"
+                          className="flex items-center justify-between gap-4 rounded-2xl border border-[#F2F2F7] bg-white dark:bg-[#1C1C1E] px-4 py-4 hover:bg-[#F2F2F7]/50 transition-colors"
                         >
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-semibold shadow-lg shadow-rose-900/40">
+                              <div className="w-12 h-12 rounded-xl bg-[#FF3B30] text-white flex items-center justify-center font-semibold shadow-lg ">
                                 {index === 0 ? (
                                   <Crown className="w-5 h-5" />
                                 ) : (
@@ -961,7 +961,7 @@ const Reports = () => {
                       </BarChart>
                     </ChartContainer>
 
-                    <div className="rounded-2xl bg-gradient-to-br from-[#1C1C1E] to-[#2C2C2E] p-5 text-white">
+                    <div className="rounded-2xl bg-[#1C1C1E] p-5 text-white">
                       <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
                         <Sparkles className="w-4 h-4" />
                         Insight
