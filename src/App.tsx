@@ -105,7 +105,7 @@ function App() {
               <Route path="/my-bookings" element={<MyBookings />} />
               <Route path="/me" element={<Me />} />
               <Route path="/favorites" element={<Favorites />} />
-              <Route path="/" element={<FindBarber />} />
+              <Route path="/" element={<LandingRoute />} />
               <Route path="/app" element={<LandingRoute />} />
               <Route path="/superadmin" element={<SuperAdminLogin />} />
               <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
