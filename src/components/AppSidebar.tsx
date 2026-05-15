@@ -89,6 +89,29 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { organization } = useOrganization();
 
+  const { data: subscription } = useQuery({
+    queryKey: ["sidebar-subscription", user?.id],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from("subscribers")
+        .select("subscribed, subscription_tier, subscription_end")
+        .or(`user_id.eq.${user.id},email.eq.${user.email ?? ""}`)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data as { subscribed: boolean; subscription_tier: string | null; subscription_end: string | null } | null;
+    },
+  });
+
+  const subDaysLeft = subscription?.subscription_end
+    ? Math.ceil((new Date(subscription.subscription_end).getTime() - Date.now()) / 86_400_000)
+    : null;
+  const showExpiringSoon = subDaysLeft !== null && subDaysLeft >= 0 && subDaysLeft <= 7;
+  const isPro = !!subscription?.subscribed;
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
