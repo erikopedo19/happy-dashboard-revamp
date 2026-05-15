@@ -139,7 +139,6 @@ const Booking = () => {
 
       return profile as BusinessProfile;
     },
-    enabled: !!bookingLink,
     retry: (failureCount, error: any) => {
       console.log('Retry attempt:', failureCount, 'Error:', error);
       // Don't retry if it's a known error that won't resolve
