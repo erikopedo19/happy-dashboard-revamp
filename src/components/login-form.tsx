@@ -36,9 +36,18 @@ export function LoginForm() {
     role: "client" as "barber" | "client",
   })
 
-  if (user) {
-    navigate("/admin")
-  }
+  useEffect(() => {
+    if (user) {
+      const role = user.user_metadata?.role
+      if (role === "client") {
+        navigate("/find-barber", { replace: true })
+      } else if (role === "barber") {
+        navigate("/admin", { replace: true })
+      } else {
+        navigate("/choose-role", { replace: true })
+      }
+    }
+  }, [user, navigate])
 
   const canSubmitSignIn = signInForm.email.trim().length > 3 && signInForm.password.trim().length > 0
   const canSubmitSignUp = 
