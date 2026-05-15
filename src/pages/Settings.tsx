@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
+import { BrandImageUpload } from "@/components/BrandImageUpload";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
