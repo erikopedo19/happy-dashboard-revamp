@@ -12,6 +12,7 @@ import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 // import SuperAdminDashboard from "./pages/SuperAdminDashboard";
