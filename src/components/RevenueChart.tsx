@@ -268,15 +268,15 @@ export default function RevenueChart() {
         </div>
 
         {/* Chart */}
-        <div className="relative">
-          <ChartContainer config={chartConfig} className="h-[300px] w-full ps-1.5 pe-2.5">
+        <div className="relative -mx-2 sm:mx-0">
+          <ChartContainer config={chartConfig} className="h-[260px] sm:h-[300px] w-full">
             <ComposedChart
               data={filteredData.length > 0 ? filteredData : currentData}
               margin={{
-                top: 25,
-                right: 25,
-                left: 0,
-                bottom: 25,
+                top: 16,
+                right: 8,
+                left: -12,
+                bottom: 8,
               }}
             >
               <defs>
@@ -294,17 +294,19 @@ export default function RevenueChart() {
                 dataKey="period"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12 }}
-                tickMargin={12}
-                dy={10}
+                tick={{ fontSize: 10 }}
+                tickMargin={8}
+                interval="preserveStartEnd"
+                minTickGap={16}
               />
 
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `$${value / 1000}k`}
-                tickMargin={12}
+                tick={{ fontSize: 10 }}
+                tickFormatter={(value) => `$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
+                tickMargin={4}
+                width={40}
               />
 
               <ChartTooltip content={<CustomTooltip />} />
