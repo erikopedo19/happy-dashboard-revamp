@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          cancel_token: string | null
           created_at: string
           customer_id: string
           id: string
@@ -69,6 +70,7 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time: string
+          cancel_token?: string | null
           created_at?: string
           customer_id: string
           id?: string
@@ -84,6 +86,7 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string
+          cancel_token?: string | null
           created_at?: string
           customer_id?: string
           id?: string
@@ -363,6 +366,39 @@ export type Database = {
           enabled?: boolean
           sms_body?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          appointment_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
@@ -813,6 +849,7 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
+      cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }
       create_public_booking: {
         Args: {
@@ -829,6 +866,7 @@ export type Database = {
       }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
+      get_appointment_by_token: { Args: { _token: string }; Returns: Json }
       get_booked_slots: {
         Args: { _business_id: string; _date: string }
         Returns: {
@@ -886,6 +924,10 @@ export type Database = {
         }[]
       }
       list_public_shops: { Args: never; Returns: Json }
+      reschedule_appointment_by_token: {
+        Args: { _new_date: string; _new_time: string; _token: string }
+        Returns: Json
+      }
       user_organizations: { Args: never; Returns: string[] }
     }
     Enums: {
