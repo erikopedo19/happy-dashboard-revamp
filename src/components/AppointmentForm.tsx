@@ -491,6 +491,30 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             "bg-[#1a1a1a]",
             isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a]"
           )}>
+            {isMobile && (
+              <div className="flex items-center gap-2 mb-5">
+                {(["datetime", "details", "success"] as const).map((s, idx) => {
+                  const reached = ["datetime", "details", "success"].indexOf(step) >= idx;
+                  return (
+                    <div
+                      key={s}
+                      className={cn(
+                        "h-1.5 flex-1 rounded-full transition-all duration-500",
+                        reached ? "bg-red-500" : "bg-[#2a2a2a]"
+                      )}
+                    />
+                  );
+                })}
+              </div>
+            )}
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
             {step === "datetime" ? (
               <div className="h-full flex flex-col">
                 {/* Month Navigation */}
