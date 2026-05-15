@@ -74,9 +74,9 @@ const Agenda = () => {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
-  // On phones, default to "day" view so we can book quickly without switching.
+  // Always default to grid (day) view; user can switch to weekly overview manually.
   useEffect(() => {
-    if (isMobile) setViewMode('day');
+    setViewMode('day');
   }, [isMobile]);
 
   const getAdditionalServiceNames = (notes?: string) => {
