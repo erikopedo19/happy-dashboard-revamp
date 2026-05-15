@@ -1,50 +1,58 @@
 # Plan
 
-## 1. Avatar upload on Settings
-Add a round avatar uploader (reusing `BrandImageUpload`) to the Profile section of `Settings.tsx`. Saves to `profiles.avatar_url`.
+## 1. Settings → simple "Your plan" card
 
-## 2. Email redesign + cancel/reschedule
-**DB migration:**
-- Add `cancel_token uuid unique default gen_random_uuid()` to `appointments`
-- RPC `cancel_appointment_by_token(token)` → sets status='cancelled'
-- RPC `reschedule_appointment_by_token(token, new_date, new_time)`
-- RPC `get_appointment_by_token(token)` → returns booking + business info for the page
+Replace the full pricing table inside Settings with a compact iOS-style card:
 
-**Public routes (no auth needed, token-gated):**
-- `/manage/:token` — public page showing booking, with **Cancel** and **Reschedule** buttons. Reschedule reuses the existing time-slot picker.
+- Title: **Your plan** · Badge: `Free` or `Pro`
+- One line: "Active until Jun 14" (Pro) or "Upgrade to unlock map listing & unlimited bookings" (Free)
+- Single primary button: **Manage plan** → navigates to `/pricing`
 
-**Email (`send-booking-confirmation`):**
-- Sender: `booking@cutzioo.com` (name = business name)
-- Modern dark-accent design, larger header, booking detail card, two CTA buttons (Cancel / Reschedule) pointing at `https://cutzioo.com/manage/{token}`
-- Footer: small Cutzioo logo + "Sent by cutzioo.com" watermark
-- Update SMS to include short manage link
+The full `PricingTableOne` lives only on `/pricing`. No more inline pricing on Settings.
 
-> ⚠️ Until `cutzioo.com` is verified in Brevo, emails from `booking@cutzioo.com` may bounce or be rejected. You'll need to add the domain in Brevo → Senders & Domains and add the DNS records they give you. I'll wire the code; you complete verification when ready.
+## 2. Stripe: payment-link only, no secret key
 
-## 3. Push notifications (booking created / updated / cancelled)
-**In-app (works immediately):**
-- Supabase Realtime subscription on `appointments` filtered by `user_id`
-- Toast + bell badge in dock when INSERT/UPDATE/DELETE arrives
-- New `notifications` table to persist a feed (read/unread)
+Stop calling Stripe's API. Remove dependency on `STRIPE_SECRET_KEY`.
 
-**Web push (browser, PWA — needs VAPID keys):**
-- `push_subscriptions` table
-- Service worker `public/sw.js` to receive push
-- Settings toggle to enable browser push (asks permission, stores subscription)
-- Edge function `send-push` triggered by DB trigger via pg_net or by client realtime hook
-- I'll need you to provide **VAPID public/private keys** (I'll generate them or you can use `npx web-push generate-vapid-keys`). Stored as secrets `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`.
+- Drop `check-subscription`, `create-checkout`, `customer-portal` invocations from the client.
+- New table column already exists (`subscribers.subscribed`); we'll read it directly via the Supabase client (RLS: own row only).
+- Subscription state is updated by a **Stripe webhook** (signature-verified, no secret key needed for our app — just `STRIPE_WEBHOOK_SECRET`):
+  - `checkout.session.completed` → set `subscribed = true`, `subscription_end = period_end`
+  - `customer.subscription.deleted` / `invoice.payment_failed` → set `subscribed = false`
+- "Manage subscription" becomes a plain link to Stripe's hosted **customer portal link** (configurable in Stripe dashboard, no API call).
+- Until the webhook is wired in Stripe dashboard, status stays at whatever's in the DB (manual toggle works for testing).
 
-## 4. Mobile-responsive Settings
-Refactor `Settings.tsx`:
-- Replace cramped tab bar with a clean sectioned layout on mobile (vertical accordion / segmented sheets)
-- Larger touch targets, simpler spacing, hide desktop-only chrome
-- Keep existing tab UI on ≥md breakpoint
+## 3. Address pasted → auto map marker
 
----
+In Settings → Business identity, the address field already exists. Add:
 
-## Suggested order
-I'll ship in two batches to avoid one giant commit:
-- **Batch A (now):** avatar upload, email redesign + sender + watermark + cancel/reschedule (DB + public page + email links), mobile Settings polish, in-app realtime notifications
-- **Batch B (after):** Web push (once VAPID keys are decided)
+- On blur of the address input, geocode via a free provider (Nominatim — no API key) and write `latitude` / `longitude` to `profiles`.
+- Small inline preview map below the field showing the pinned location (read-only MapLibre).
+- The existing public `BarbershopMap` (FindBarbershop page) already reads `list_public_shops()` which returns lat/lng — clients will see the new pin automatically once `is_public = true`.
 
-Approve and I'll start with Batch A.
+## 4. Mobile admin UI polish (iOS clean)
+
+Pass over the admin pages at ≤414px:
+
+- Remove heavy colored tab pills / gradient chips → use neutral `bg-muted` with rounded-2xl, single accent color only on active state.
+- Cards: `rounded-3xl`, `border-[#E5E5EA] dark:border-[#2C2C2E]`, no shadow except a soft `shadow-[0_1px_2px_rgba(0,0,0,0.04)]`.
+- Replace any colored icon backgrounds (purple/blue/green tinted boxes) with monochrome `bg-muted` + `text-foreground` icons.
+- Tighter spacing: `px-4 py-5` sections, larger touch targets (44px min).
+- Pages in scope: Dashboard, Agenda, Customers, Settings, Products. Skip desktop (≥768px) — keep current.
+
+## Files touched
+
+- `src/components/SubscriptionCard.tsx` — rewrite as compact card
+- `src/pages/Pricing.tsx` — already exists, keep
+- `src/pages/Settings.tsx` — add geocode-on-blur + inline preview map for address
+- `src/components/ui/map.tsx` — add `<AddressPreviewMap lat lng />` variant
+- `src/lib/geocode.ts` — new, Nominatim wrapper
+- `supabase/functions/stripe-webhook/index.ts` — new, signature-verified webhook
+- Delete: `supabase/functions/check-subscription`, `create-checkout`, `customer-portal`
+- Mobile pass: `Dashboard.tsx`, `Agenda.tsx`, `Customers.tsx`, `Settings.tsx`, `Products.tsx`, `MobileDock.tsx`
+
+## What you'll need to do after
+
+1. Add `STRIPE_WEBHOOK_SECRET` (I'll prompt) — this is the webhook signing secret, NOT your secret API key.
+2. In Stripe dashboard → Webhooks → add endpoint pointing to the new function URL, select the 3 events above.
+3. In Stripe dashboard → Customer Portal → enable + copy the portal link, paste into one config var.
