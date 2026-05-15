@@ -601,7 +601,7 @@ const Teams = () => {
                   {colorOptions.map((color) => (
                     <SelectItem key={color.value} value={color.value}>
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${color.gradient}`} />
+                        <div className={"w-4 h-4 rounded-full"} />
                         {color.label}
                       </div>
                     </SelectItem>
@@ -655,7 +655,7 @@ const Teams = () => {
                   {colorOptions.map((color) => (
                     <SelectItem key={color.value} value={color.value}>
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${color.gradient}`} />
+                        <div className={"w-4 h-4 rounded-full"} />
                         {color.label}
                       </div>
                     </SelectItem>
