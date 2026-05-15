@@ -456,6 +456,7 @@ export type Database = {
           full_name: string | null
           google_maps_url: string | null
           id: string
+          is_public: boolean | null
           latitude: number | null
           longitude: number | null
           onboarding_completed: boolean | null
@@ -484,6 +485,7 @@ export type Database = {
           full_name?: string | null
           google_maps_url?: string | null
           id: string
+          is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
           onboarding_completed?: boolean | null
@@ -512,6 +514,7 @@ export type Database = {
           full_name?: string | null
           google_maps_url?: string | null
           id?: string
+          is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
           onboarding_completed?: boolean | null
@@ -716,6 +719,7 @@ export type Database = {
       teams: {
         Row: {
           address: string | null
+          banner_url: string | null
           color: string | null
           created_at: string | null
           created_by: string | null
@@ -723,7 +727,10 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean | null
+          is_public: boolean | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           name: string
           org_id: string
           phone: string | null
@@ -732,6 +739,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          banner_url?: string | null
           color?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -739,7 +747,10 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_public?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name: string
           org_id: string
           phone?: string | null
@@ -748,6 +759,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          banner_url?: string | null
           color?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -755,7 +767,10 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_public?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name?: string
           org_id?: string
           phone?: string | null
@@ -864,10 +879,13 @@ export type Database = {
           description: string
           full_name: string
           id: string
+          latitude: number
+          longitude: number
           rating: number
           rating_count: number
         }[]
       }
+      list_public_shops: { Args: never; Returns: Json }
       user_organizations: { Args: never; Returns: string[] }
     }
     Enums: {

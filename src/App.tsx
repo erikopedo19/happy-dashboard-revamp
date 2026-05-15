@@ -33,6 +33,7 @@ import Reports from "./pages/Reports";
 import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
+import { PersistentDock } from "./components/PersistentDock";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
@@ -118,6 +119,7 @@ function App() {
               <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <PersistentDock />
           </BrowserRouter>
         </div>
       </AuthProvider>

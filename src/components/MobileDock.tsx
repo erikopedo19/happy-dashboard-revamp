@@ -52,12 +52,12 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
   );
 };
 
-export const MobileDock = () => {
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
+// Old per-page mount: now no-op (PersistentDock handles rendering globally)
+export const MobileDock = () => null;
 
-  if (!isMobile) return null;
+export const MobileDockInner = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const adminActive = location.pathname.startsWith('/admin');
 
