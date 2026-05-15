@@ -184,6 +184,30 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="px-3 py-3 border-t border-sidebar-border">
+        {/* Subscription expiry banner */}
+        {sidebar.state !== "collapsed" && showExpiringSoon && (
+          <Link
+            to="/pricing"
+            className="mb-2 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left transition-colors hover:bg-amber-500/15"
+          >
+            <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold text-amber-700 dark:text-amber-300 leading-tight">
+                {isPro ? "Pro" : "Trial"} expires in {subDaysLeft === 0 ? "today" : `${subDaysLeft}d`}
+              </p>
+              <p className="text-[10px] text-amber-700/70 dark:text-amber-300/70 mt-0.5">
+                Tap to {isPro ? "manage plan" : "upgrade"}
+              </p>
+            </div>
+          </Link>
+        )}
+        {sidebar.state !== "collapsed" && isPro && !showExpiringSoon && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500/10 to-amber-500/10 border border-rose-500/20 px-3 py-1.5">
+            <Crown className="h-3.5 w-3.5 text-rose-500" />
+            <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-300">Pro plan active</span>
+          </div>
+        )}
+
         {/* Remember Me Indicator */}
         {sidebar.state !== "collapsed" && (
           <div className="flex items-center gap-2 px-2 py-1.5 mb-2 text-xs text-muted-foreground">
