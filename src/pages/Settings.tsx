@@ -646,11 +646,6 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6">
-                      <div className="flex justify-end">
-                        <Button variant="outline" size="sm" onClick={() => navigate("/pricing")}>
-                          View full pricing
-                        </Button>
-                      </div>
                       <SubscriptionCard />
                       {user?.id && <PublicVisibilityCard userId={user.id} />}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
