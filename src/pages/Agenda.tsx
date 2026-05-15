@@ -66,7 +66,7 @@ const Agenda = () => {
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; time: string } | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
+  const [viewMode, setViewMode] = useState<'week' | 'day'>('day');
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
