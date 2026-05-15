@@ -823,7 +823,7 @@ const Settings = () => {
 
                 <div className="space-y-6">
                   <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
-                    <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 p-6 text-white">
+                    <div className="bg-[#1C1C1E] p-6 text-white">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="w-4 h-4 text-white/80" />
                         <span className="text-sm font-medium text-white/80">Live agenda preview</span>

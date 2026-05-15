@@ -337,7 +337,7 @@ const Agenda = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-gray-50 dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* iOS-style Header */}
@@ -362,7 +362,7 @@ const Agenda = () => {
                     placeholder="Search appointments..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm dark:text-gray-100"
+                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-rose-500/20 rounded-xl text-sm dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -490,10 +490,10 @@ const Agenda = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {weekCards.map((week, index) => {
                   const colors = [
-                    { bg: 'from-blue-50 to-indigo-50', accent: 'bg-rose-500', text: 'text-rose-600' },
+                    { bg: 'from-rose-50 to-pink-50', accent: 'bg-rose-500', text: 'text-rose-600' },
                     { bg: 'from-purple-50 to-pink-50', accent: 'bg-purple-500', text: 'text-purple-600' },
                     { bg: 'from-green-50 to-emerald-50', accent: 'bg-green-500', text: 'text-green-600' },
-                    { bg: 'from-orange-50 to-amber-50', accent: 'bg-rose-500', text: 'text-rose-600' },
+                    { bg: 'from-rose-50 to-pink-50', accent: 'bg-rose-500', text: 'text-rose-600' },
                     { bg: 'from-rose-50 to-red-50', accent: 'bg-rose-500', text: 'text-rose-600' },
                     { bg: 'from-cyan-50 to-teal-50', accent: 'bg-cyan-500', text: 'text-cyan-600' },
                   ][index % 6];
@@ -507,7 +507,7 @@ const Agenda = () => {
                       }}
                       className={cn(
                         "group cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-                        week.isCurrentWeek && "ring-2 ring-blue-500/20"
+                        week.isCurrentWeek && "ring-2 ring-rose-500/20"
                       )}
                     >
                       <div className={cn("h-2 bg-gradient-to-r", colors.bg)} />
