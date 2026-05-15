@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Crown } from "lucide-react";
+import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
 
 export function SubscriptionCard() {
   const navigate = useNavigate();
