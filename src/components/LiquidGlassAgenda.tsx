@@ -195,6 +195,23 @@ export const LiquidGlassAgenda = ({
     return result;
   }, [agendaSettings, timeRange]);
 
+  // Auto-scroll to current hour when viewing today
+  useEffect(() => {
+    if (!isSameDay(selectedDay, new Date())) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const now = new Date();
+    const minutesFromStart = (now.getHours() - timeRange.startHour) * 60 + now.getMinutes();
+    if (minutesFromStart < 0) return;
+    const pixelsPerMinute = 80 / 60;
+    const target = Math.max(0, minutesFromStart * pixelsPerMinute - 80);
+    // Defer until layout is painted
+    const id = window.setTimeout(() => {
+      el.scrollTo({ top: target, behavior: 'smooth' });
+    }, 150);
+    return () => window.clearTimeout(id);
+  }, [selectedDay, timeRange.startHour, hours.length]);
+
   // Format time display (e.g., "3 PM")
   const formatTimeLabel = (time: string) => {
     const hour = parseInt(time.split(':')[0]);
