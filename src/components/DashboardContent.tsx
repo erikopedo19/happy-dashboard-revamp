@@ -1,48 +1,27 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Scissors,
-  Plus,
-  ArrowUpRight,
-  ArrowDownRight,
-  Download,
-  RefreshCw,
-  Bell,
-  Mail,
-  Search,
-  Filter,
-  DollarSign,
-  Clock,
-  CreditCard,
-  Wallet,
-  BarChart3,
-  TrendingUp as TrendingUpIcon,
+  Calendar, Users, Plus, ArrowUpRight, ArrowDownRight, DollarSign, Clock, ChevronRight,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, subDays, isAfter } from 'date-fns';
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RoseGradientButton } from "@/components/RoseGradientButton";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Area, AreaChart,
+  Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
 
 const db = supabase as any;
 
+// 3-color minimal palette
+// Surface (white/black), Ink (foreground), Accent (rose)
+const ACCENT = "#e11d48";
+
 export function DashboardContent() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: appointments = [] } = useQuery<any[]>({
     queryKey: ['dashboard-appointments', user?.id],
@@ -64,7 +43,7 @@ export function DashboardContent() {
     queryKey: ['dashboard-customers', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await db.from('customers').select('id, name, email, phone').eq('user_id', user.id);
+      const { data } = await db.from('customers').select('id').eq('user_id', user.id);
       return data || [];
     },
     enabled: !!user,
@@ -73,15 +52,17 @@ export function DashboardContent() {
   const stats = useMemo(() => {
     const todays = appointments.filter(a => isToday(parseISO(a.appointment_date)));
     const todayRevenue = todays.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
-    const totalRevenue = appointments.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
     const last30 = appointments.filter(a => isAfter(parseISO(a.appointment_date), subDays(new Date(), 30)));
     const prev30 = appointments.filter(a => {
       const d = parseISO(a.appointment_date);
       return isAfter(d, subDays(new Date(), 60)) && !isAfter(d, subDays(new Date(), 30));
     });
-    const trend = prev30.length ? Math.round(((last30.length - prev30.length) / prev30.length) * 100) : 100;
+    const last30Revenue = last30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+    const prev30Revenue = prev30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+    const trend = prev30.length ? Math.round(((last30.length - prev30.length) / prev30.length) * 100) : 0;
+    const revenueTrend = prev30Revenue ? Math.round(((last30Revenue - prev30Revenue) / prev30Revenue) * 100) : 0;
 
-    // Build last 14 days bar series
+    // Last 14 day series
     const days: { day: string; revenue: number; bookings: number }[] = [];
     for (let i = 13; i >= 0; i--) {
       const d = subDays(new Date(), i);
@@ -93,13 +74,18 @@ export function DashboardContent() {
         bookings: dayApts.length,
       });
     }
+    // New customers in last 30 days
+    const newCustomers30 = (customers as any[]).filter((c: any) => c.created_at && isAfter(parseISO(c.created_at), subDays(new Date(), 30))).length;
+
     return {
       todays: todays.length,
       todayRevenue,
-      totalRevenue,
+      last30Revenue,
       customers: customers.length,
+      newCustomers30,
       pending: appointments.filter(a => a.status === 'scheduled').length,
       trend,
+      revenueTrend,
       days,
     };
   }, [appointments, customers]);
@@ -113,274 +99,200 @@ export function DashboardContent() {
   }, [appointments]);
 
   return (
-    <div className="h-full overflow-auto bg-[#F2F2F7] dark:bg-[#1C1C1E]">
-      <div className="px-6 py-6 max-w-[1600px] mx-auto space-y-6">
-        {/* Top bar */}
-        <div className="flex items-center justify-between">
+    <div className="h-full overflow-auto bg-[#F5F5F7] dark:bg-[#0c0c0c]">
+      <div className="px-8 py-8 max-w-[1400px] mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Dashboard</h1>
-            <p className="text-sm text-[#8E8E93] dark:text-[#8E8E93] mt-1">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+            <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#8E8E93]">
+              {format(new Date(), 'EEEE, MMMM d')}
+            </p>
+            <h1 className="text-[34px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white mt-1 leading-none">
+              Dashboard
+            </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
-              <Bell className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
-              <Mail className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-            </Button>
-            <RoseGradientButton
-              type="button"
-              size="sm"
-              className="shrink-0"
-              onClick={() => navigate("/agenda")}
-            >
-              <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-              New booking
-            </RoseGradientButton>
-          </div>
+          <Button
+            onClick={() => navigate('/agenda')}
+            className="h-10 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:hover:bg-white/90 px-5 font-medium text-sm"
+          >
+            <Plus className="h-4 w-4 mr-1.5" strokeWidth={2.5} />
+            New booking
+          </Button>
         </div>
 
-        {/* Tabs + actions */}
-        <div className="flex items-center justify-between">
-          <Tabs defaultValue="overview">
-            <TabsList className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl p-1 h-10 shadow-sm">
-              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E] data-[state=active]:text-[#1C1C1E] dark:data-[state=active]:text-[#F2F2F7] data-[state=active]:shadow-sm px-4">Overview</TabsTrigger>
-              <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E] data-[state=active]:shadow-sm px-4">Bookings</TabsTrigger>
-              <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E] data-[state=active]:shadow-sm px-4">Sales</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93] dark:text-[#8E8E93]" />
-              <Input 
-                placeholder="Search..." 
-                className="pl-10 w-40 bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] h-9 rounded-xl focus:border-[#007AFF] focus:ring-1 focus:ring-[#007AFF] dark:text-[#F2F2F7]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
-              <RefreshCw className="h-4 w-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-            </Button>
-            <Button variant="outline" className="h-9 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]">Monthly</Button>
-            <RoseGradientButton type="button" size="sm" className="shrink-0">
-              <Download className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-              Download
-            </RoseGradientButton>
-          </div>
-        </div>
-
-        {/* KPI row with icons */}
+        {/* KPI grid – 4 cards, monochrome with one rose accent on revenue */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <KpiIcon 
-            title="Today's Revenue" 
-            value={`€${stats.todayRevenue.toFixed(0)}`} 
-            delta={stats.trend} 
-            sub="vs last month" 
+          <Kpi
+            title="Today's revenue"
+            value={`€${stats.todayRevenue.toFixed(0)}`}
+            delta={stats.revenueTrend}
+            sub="vs last 30d"
             icon={DollarSign}
-            iconBg="bg-[#34C759]/15"
-            iconColor="text-[#34C759]"
+            accent
           />
-          <KpiIcon 
-            title="Today's Bookings" 
-            value={stats.todays.toString()} 
-            delta={12} 
-            sub="appointments" 
+          <Kpi
+            title="Today's bookings"
+            value={stats.todays.toString()}
+            delta={stats.trend}
+            sub="vs last 30d"
             icon={Calendar}
-            iconBg="bg-[#007AFF]/15"
-            iconColor="text-[#007AFF]"
           />
-          <KpiIcon 
-            title="Pending" 
-            value={stats.pending.toString()} 
-            delta={-5} 
-            sub="awaiting confirmation" 
-            negative 
+          <Kpi
+            title="Pending"
+            value={stats.pending.toString()}
+            delta={0}
+            sub="awaiting confirmation"
             icon={Clock}
-            iconBg="bg-[#FF9500]/15"
-            iconColor="text-[#FF9500]"
+            hideDelta
           />
-          <KpiIcon 
-            title="Total Customers" 
-            value={stats.customers.toString()} 
-            delta={29} 
-            sub="+10 new" 
+          <Kpi
+            title="Customers"
+            value={stats.customers.toString()}
+            delta={stats.newCustomers30}
+            sub={`+${stats.newCustomers30} this month`}
             icon={Users}
-            iconBg="bg-[#AF52DE]/15"
-            iconColor="text-[#AF52DE]"
+            isCount
           />
         </div>
 
-        {/* Charts row */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4">
-          <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Sales Performance</CardTitle>
-                <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93] mt-1">Last 14 days</p>
-              </div>
-              <Badge variant="outline" className="rounded-full border-[#E5E5EA] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#8E8E93]">2 Weeks</Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-6 mb-4">
+        {/* Chart + Upcoming */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-4">
+          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <CardContent className="p-6">
+              <div className="flex items-end justify-between mb-6">
                 <div>
-                  <div className="text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">€{stats.totalRevenue.toFixed(0)}</div>
-                  <div className="text-xs text-[#8E8E93] dark:text-[#8E8E93]">Total revenue</div>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-[#34C759]">
-                  <ArrowUpRight className="h-3 w-3" /> {stats.trend}%
+                  <p className="text-xs uppercase tracking-[0.16em] font-semibold text-[#8E8E93]">Last 14 days</p>
+                  <div className="flex items-baseline gap-3 mt-1">
+                    <h2 className="text-3xl font-semibold tracking-tight text-[#1C1C1E] dark:text-white">
+                      €{stats.last30Revenue.toFixed(0)}
+                    </h2>
+                    <DeltaPill value={stats.revenueTrend} />
+                  </div>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={stats.days}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={stats.days} margin={{ top: 8, right: 0, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="2 4" stroke="#E5E5EA" vertical={false} className="dark:stroke-[#2C2C2E]" />
                   <XAxis dataKey="day" stroke="#8E8E93" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="#8E8E93" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: 'white', border: '1px solid #E5E5EA', borderRadius: 12 }}
-                    labelStyle={{ color: '#8E8E93' }}
+                    cursor={{ fill: 'rgba(225,29,72,0.06)' }}
+                    contentStyle={{ background: 'white', border: '1px solid #E5E5EA', borderRadius: 12, fontSize: 12 }}
+                    formatter={(v: any) => [`€${Number(v).toFixed(0)}`, 'Revenue']}
                   />
-                  <Bar dataKey="revenue" fill="#007AFF" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="revenue" fill={ACCENT} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Bookings Trend</CardTitle>
-                <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="flex items-center gap-1.5 text-[#1C1C1E] dark:text-[#F2F2F7]"><span className="h-2 w-2 rounded-full bg-[#007AFF]" />Bookings</span>
-                  <span className="flex items-center gap-1.5 text-[#8E8E93] dark:text-[#8E8E93]"><span className="h-2 w-2 rounded-full bg-[#8E8E93]" />Revenue</span>
+          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] font-semibold text-[#8E8E93]">Upcoming</p>
+                  <h2 className="text-base font-semibold text-[#1C1C1E] dark:text-white mt-1">
+                    {upcoming.length} scheduled
+                  </h2>
                 </div>
+                <button
+                  onClick={() => navigate('/agenda')}
+                  className="text-xs font-semibold text-[#e11d48] hover:underline"
+                >
+                  See all
+                </button>
               </div>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={stats.days}>
-                  <defs>
-                    <linearGradient id="bk" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#007AFF" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#007AFF" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
-                  <XAxis dataKey="day" stroke="#8E8E93" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: 'white', border: '1px solid #E5E5EA', borderRadius: 12 }} />
-                  <Area type="monotone" dataKey="bookings" stroke="#007AFF" fill="url(#bk)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
+              {upcoming.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Calendar className="h-8 w-8 mx-auto text-[#C6C6C8] mb-2" />
+                  <p className="text-sm text-[#8E8E93]">No upcoming bookings</p>
+                </div>
+              ) : (
+                <ul className="-mx-2">
+                  {upcoming.map((a, idx) => (
+                    <li
+                      key={a.id}
+                      className={`flex items-center gap-3 px-2 py-3 rounded-xl hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E] transition-colors cursor-pointer ${
+                        idx !== upcoming.length - 1 ? 'border-b border-[#F5F5F7] dark:border-[#2C2C2E]/60' : ''
+                      }`}
+                      onClick={() => navigate('/agenda')}
+                    >
+                      <div className="h-9 w-9 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center text-xs font-semibold shrink-0">
+                        {(a.customer?.name || 'W')[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#1C1C1E] dark:text-white truncate">
+                          {a.customer?.name || 'Walk-in'}
+                        </p>
+                        <p className="text-xs text-[#8E8E93] truncate">
+                          {a.service?.name || 'Service'} · {format(parseISO(a.appointment_date), 'MMM d')} · {a.appointment_time?.slice(0, 5)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-[#1C1C1E] dark:text-white">
+                          €{Number(a.price || a.service?.price || 0).toFixed(0)}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[#C6C6C8]" />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </div>
-
-        {/* Upcoming list */}
-        <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Upcoming Appointments</CardTitle>
-              <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93] mt-1">{upcoming.length} scheduled</p>
-            </div>
-            <Button variant="outline" className="h-8 rounded-lg border-[#E5E5EA] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] text-xs hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]">View all</Button>
-          </CardHeader>
-          <CardContent>
-            {upcoming.length === 0 ? (
-              <div className="py-12 text-center">
-                <Calendar className="h-10 w-10 mx-auto text-[#C6C6C8] mb-2" />
-                <p className="text-sm text-[#8E8E93]">No upcoming bookings</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[#E5E5EA] dark:border-[#2C2C2E] text-xs text-[#8E8E93] dark:text-[#8E8E93] font-semibold uppercase tracking-wide">
-                      <th className="text-left font-medium py-3 px-3">Customer</th>
-                      <th className="text-left font-medium py-3 px-3 hidden md:table-cell">Service</th>
-                      <th className="text-left font-medium py-3 px-3">Date</th>
-                      <th className="text-left font-medium py-3 px-3">Time</th>
-                      <th className="text-left font-medium py-3 px-3">Status</th>
-                      <th className="text-right font-medium py-3 px-3">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {upcoming.map(a => (
-                      <tr key={a.id} className="border-b border-[#F2F2F7] dark:border-[#2C2C2E] hover:bg-[#F5F5F7]/50 dark:hover:bg-[#2C2C2E]/50 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-[#007AFF]/15 text-[#007AFF] flex items-center justify-center text-xs font-semibold">
-                              {(a.customer?.name || 'W')[0].toUpperCase()}
-                            </div>
-                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{a.customer?.name || 'Walk-in'}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-[#8E8E93] dark:text-[#8E8E93] hidden md:table-cell">{a.service?.name || '—'}</td>
-                        <td className="py-3 px-3 text-[#8E8E93] dark:text-[#8E8E93]">{format(parseISO(a.appointment_date), 'MMM d')}</td>
-                        <td className="py-3 px-3 text-[#8E8E93] dark:text-[#8E8E93]">{a.appointment_time?.slice(0, 5)}</td>
-                        <td className="py-3 px-3">
-                          <Badge className={`rounded-full border-0 ${
-                            a.status === 'completed' ? 'bg-[#34C759]/10 text-[#34C759]' :
-                            a.status === 'cancelled' ? 'bg-[#FF3B30]/10 text-[#FF3B30]' :
-                            'bg-[#007AFF]/10 text-[#007AFF]'
-                          }`}>
-                            • {a.status || 'scheduled'}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-3 text-right font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 }
 
-function KpiIcon({ 
-  title, 
-  value, 
-  delta, 
-  sub, 
-  negative,
-  icon: Icon,
-  iconBg,
-  iconColor
-}: { 
-  title: string; 
-  value: string; 
-  delta: number; 
-  sub: string; 
-  negative?: boolean;
-  icon: React.ComponentType<{ className?: string }>;
-  iconBg: string;
-  iconColor: string;
-}) {
-  const isPositive = negative ? delta < 0 : delta >= 0;
+function DeltaPill({ value }: { value: number }) {
+  if (value === 0) return null;
+  const positive = value > 0;
   return (
-    <Card className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+    <span
+      className={`inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
+        positive ? 'text-[#1C1C1E] dark:text-white bg-[#F5F5F7] dark:bg-[#2C2C2E]' : 'text-[#e11d48] bg-[#e11d48]/10'
+      }`}
+    >
+      {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+      {Math.abs(value)}%
+    </span>
+  );
+}
+
+function Kpi({
+  title, value, delta, sub, icon: Icon, accent, hideDelta, isCount,
+}: {
+  title: string;
+  value: string;
+  delta: number;
+  sub: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  accent?: boolean;
+  hideDelta?: boolean;
+  isCount?: boolean;
+}) {
+  return (
+    <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93] mb-2 font-medium uppercase tracking-wide">{title}</p>
-            <div className="text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{value}</div>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge className={`rounded-full border-0 gap-0.5 text-[11px] ${
-                isPositive ? 'bg-[#34C759]/10 text-[#34C759]' : 'bg-[#FF3B30]/10 text-[#FF3B30]'
-              }`}>
-                {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                {Math.abs(delta)}%
-              </Badge>
-              <span className="text-xs text-[#8E8E93] dark:text-[#8E8E93]">{sub}</span>
-            </div>
+        <div className="flex items-start justify-between mb-4">
+          <div
+            className={`h-9 w-9 rounded-2xl flex items-center justify-center ${
+              accent
+                ? 'bg-[#e11d48] text-white'
+                : 'bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white'
+            }`}
+          >
+            <Icon className="h-4 w-4" strokeWidth={2.2} />
           </div>
-          <div className={`h-12 w-12 rounded-2xl ${iconBg} flex items-center justify-center shrink-0`}>
-            <Icon className={`h-6 w-6 ${iconColor}`} />
-          </div>
+          {!hideDelta && !isCount && <DeltaPill value={delta} />}
         </div>
+        <p className="text-xs uppercase tracking-[0.16em] font-semibold text-[#8E8E93]">{title}</p>
+        <p className="text-[28px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white mt-1 leading-none">
+          {value}
+        </p>
+        <p className="text-xs text-[#8E8E93] mt-2">{sub}</p>
       </CardContent>
     </Card>
   );
