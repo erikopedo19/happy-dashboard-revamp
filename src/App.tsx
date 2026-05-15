@@ -35,6 +35,7 @@ import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
 import ManageBooking from "./pages/ManageBooking";
+import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
 const queryClient = new QueryClient();
@@ -55,11 +56,11 @@ const LandingRoute = () => {
     if (role === 'client') {
       return <FindBarber />;
     }
-    // Barbers and other roles go to admin dashboard
     return <Navigate to="/admin" replace />;
   }
 
-  return <FindBarber />;
+  // Logged out → marketing landing page
+  return <Landing />;
 };
 
 function App() {
@@ -104,7 +105,7 @@ function App() {
               <Route path="/my-bookings" element={<MyBookings />} />
               <Route path="/me" element={<Me />} />
               <Route path="/favorites" element={<Favorites />} />
-              <Route path="/" element={<FindBarber />} />
+              <Route path="/" element={<LandingRoute />} />
               <Route path="/app" element={<LandingRoute />} />
               <Route path="/superadmin" element={<SuperAdminLogin />} />
               <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
