@@ -301,21 +301,34 @@ const Services = () => {
                   const Icon = getIconByName(s.icon || "Scissors");
                   const tint = hexFor(s.color);
                   const count = appointments.filter((a) => a.service_id === s.id).length;
+                  const pendingDeletion = !!s.deleted_at;
+                  const futureCount = futureCountFor(s.id);
                   return (
-                    <div key={s.id} className="group flex items-center gap-3 px-4 py-3.5 active:bg-[#F2F2F7] dark:active:bg-[#2C2C2E] transition-colors">
+                    <div key={s.id} className={cn(
+                      "group flex items-center gap-3 px-4 py-3.5 active:bg-[#F2F2F7] dark:active:bg-[#2C2C2E] transition-colors",
+                      pendingDeletion && "opacity-70"
+                    )}>
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: `${tint}18` }}>
                         <Icon className="h-5 w-5" style={{ color: tint }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-white truncate">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={cn(
+                            "font-semibold text-[15px] text-[#1C1C1E] dark:text-white truncate",
+                            pendingDeletion && "line-through text-[#8E8E93]"
+                          )}>
                             {s.name}
                           </p>
-                          {count > 0 && (
+                          {count > 0 && !pendingDeletion && (
                             <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
                               style={{ background: `${ROSE}15`, color: ROSE }}>
                               {count}
+                            </span>
+                          )}
+                          {pendingDeletion && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 uppercase tracking-wide">
+                              Deletes after {futureCount} booking{futureCount === 1 ? "" : "s"}
                             </span>
                           )}
                         </div>
@@ -327,15 +340,25 @@ const Services = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => handleEdit(s)}
-                          className="w-9 h-9 rounded-full hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] flex items-center justify-center text-[#8E8E93]">
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => { setServiceToDelete(s.id); setIsDeleteDialogOpen(true); }}
-                          className="w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center"
-                          style={{ color: ROSE }}>
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {pendingDeletion ? (
+                          <button onClick={() => restoreService(s.id)}
+                            className="text-xs font-medium px-3 h-9 rounded-full hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]"
+                            style={{ color: ROSE }}>
+                            Restore
+                          </button>
+                        ) : (
+                          <>
+                            <button onClick={() => handleEdit(s)}
+                              className="w-9 h-9 rounded-full hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] flex items-center justify-center text-[#8E8E93]">
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => { setServiceToDelete(s.id); setIsDeleteDialogOpen(true); }}
+                              className="w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center"
+                              style={{ color: ROSE }}>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                         <ChevronRight className="h-4 w-4 text-[#C7C7CC] ml-1 hidden md:block" />
                       </div>
                     </div>
