@@ -210,7 +210,7 @@ export function AppSidebar() {
           <div className="space-y-3">
             <Avatar className="h-8 w-8 mx-auto border border-blue-100">
               <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold text-xs">
+              <AvatarFallback className="bg-rose-100 text-rose-600 font-semibold text-xs">
                 {userInitials}
               </AvatarFallback>
             </Avatar>

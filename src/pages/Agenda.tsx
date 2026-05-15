@@ -337,7 +337,7 @@ const Agenda = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-gray-50 dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* iOS-style Header */}
@@ -362,7 +362,7 @@ const Agenda = () => {
                     placeholder="Search appointments..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm dark:text-gray-100"
+                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-rose-500/20 rounded-xl text-sm dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -433,8 +433,8 @@ const Agenda = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                 <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                      <CalendarIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Bookings</p>
@@ -469,8 +469,8 @@ const Agenda = () => {
                 
                 <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                      <Plus className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
@@ -490,10 +490,10 @@ const Agenda = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {weekCards.map((week, index) => {
                   const colors = [
-                    { bg: 'from-blue-50 to-indigo-50', accent: 'bg-blue-500', text: 'text-blue-600' },
+                    { bg: 'from-rose-50 to-pink-50', accent: 'bg-rose-500', text: 'text-rose-600' },
                     { bg: 'from-purple-50 to-pink-50', accent: 'bg-purple-500', text: 'text-purple-600' },
                     { bg: 'from-green-50 to-emerald-50', accent: 'bg-green-500', text: 'text-green-600' },
-                    { bg: 'from-orange-50 to-amber-50', accent: 'bg-orange-500', text: 'text-orange-600' },
+                    { bg: 'from-rose-50 to-pink-50', accent: 'bg-rose-500', text: 'text-rose-600' },
                     { bg: 'from-rose-50 to-red-50', accent: 'bg-rose-500', text: 'text-rose-600' },
                     { bg: 'from-cyan-50 to-teal-50', accent: 'bg-cyan-500', text: 'text-cyan-600' },
                   ][index % 6];
@@ -507,10 +507,10 @@ const Agenda = () => {
                       }}
                       className={cn(
                         "group cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-                        week.isCurrentWeek && "ring-2 ring-blue-500/20"
+                        week.isCurrentWeek && "ring-2 ring-rose-500/20"
                       )}
                     >
-                      <div className={cn("h-2 bg-gradient-to-r", colors.bg)} />
+                      <div className={"h-2 bg-rose-500"} />
                       <CardContent className="p-5">
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
@@ -528,7 +528,7 @@ const Agenda = () => {
                             </p>
                           </div>
                           {week.isCurrentWeek && (
-                            <Badge className="bg-blue-100 text-blue-700 border-0 font-medium">
+                            <Badge className="bg-rose-100 text-rose-700 border-0 font-medium">
                               Current
                             </Badge>
                           )}

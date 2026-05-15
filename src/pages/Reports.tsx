@@ -481,7 +481,7 @@ const Reports = () => {
                     type="button"
                     size="sm"
                     onClick={handleExport}
-                    className="rounded-full h-9 px-4 bg-[#007AFF] hover:bg-[#0a6fd6] text-white font-semibold"
+                    className="rounded-full h-9 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold"
                   >
                     <Download className="h-4 w-4" strokeWidth={2.5} />
                     Export
@@ -505,7 +505,7 @@ const Reports = () => {
                   title="Appointments"
                   value={numberFormat.format(analytics.totalAppointments)}
                   description="Bookings tracked in this report"
-                  icon={<CalendarDays className="w-5 h-5 text-[#5856D6]" />}
+                  icon={<CalendarDays className="w-5 h-5 text-[#e11d48]" />}
                   trend={`${analytics.completionRate}% completion rate`}
                 />
                 <MetricCard
@@ -519,7 +519,7 @@ const Reports = () => {
                   title="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   description="Services contributing to performance"
-                  icon={<Scissors className="w-5 h-5 text-[#FF9500]" />}
+                  icon={<Scissors className="w-5 h-5 text-[#fb7185]" />}
                   trend={`${analytics.completedAppointments} completed appointments`}
                 />
               </section>
@@ -850,7 +850,7 @@ const Reports = () => {
                           Ranked by revenue, completions, and satisfaction
                         </CardDescription>
                       </div>
-                      <Badge className="rounded-full bg-[#FF9500]/10 text-[#FF9500] border-0">
+                      <Badge className="rounded-full bg-[#fb7185]/10 text-[#fb7185] border-0">
                         <Trophy className="w-3.5 h-3.5 mr-1" />
                         Top performers
                       </Badge>
@@ -886,7 +886,7 @@ const Reports = () => {
                                   {stylist.name}
                                 </p>
                                 {index === 0 && (
-                                  <Badge className="rounded-full bg-[#FF9500] text-white border-0">
+                                  <Badge className="rounded-full bg-[#fb7185] text-white border-0">
                                     #1
                                   </Badge>
                                 )}
