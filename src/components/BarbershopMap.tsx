@@ -3,6 +3,7 @@ import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LocateFixed, Search } from "lucide-react";
+import { Map, type MapRef, maplibregl } from "@/components/ui/map";
 
 interface Barbershop {
   id: string;
@@ -22,30 +23,10 @@ interface BarbershopMapProps {
 
 const STORAGE_KEY = "barbershop-map-location";
 
-type LeafletMods = {
-  MapContainer: any;
-  TileLayer: any;
-  Marker: any;
-  Popup: any;
-  useMap: any;
-  L: any;
+const STYLES = {
+  light: "https://tiles.openfreemap.org/styles/bright",
+  dark: "https://tiles.openfreemap.org/styles/dark",
 };
-
-function MapController({
-  center,
-  zoom,
-  useMap,
-}: {
-  center: [number, number];
-  zoom: number;
-  useMap: any;
-}) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
-  return null;
-}
 
 export function BarbershopMap({
   barbershops,
@@ -55,17 +36,16 @@ export function BarbershopMap({
 }: BarbershopMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const mapRef = useRef<MapRef | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
 
-  const [mods, setMods] = useState<LeafletMods | null>(null);
   const [center, setCenter] = useState<[number, number] | null>(() => {
     if (typeof window === "undefined") return null;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (typeof parsed.lat === "number" && typeof parsed.lng === "number") {
-          return [parsed.lat, parsed.lng];
-        }
+        const p = JSON.parse(saved);
+        if (typeof p.lat === "number" && typeof p.lng === "number") return [p.lat, p.lng];
       }
     } catch {}
     return null;
@@ -75,41 +55,13 @@ export function BarbershopMap({
   const [searching, setSearching] = useState(false);
   const searchAbort = useRef<AbortController | null>(null);
 
-  // Dynamic ESM import (no require())
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const [rl, leaflet] = await Promise.all([
-        import("react-leaflet"),
-        import("leaflet"),
-      ]);
-      await import("leaflet/dist/leaflet.css");
-      const L = (leaflet as any).default ?? leaflet;
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-        iconUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-      });
-      if (cancelled) return;
-      setMods({
-        MapContainer: rl.MapContainer,
-        TileLayer: rl.TileLayer,
-        Marker: rl.Marker,
-        Popup: rl.Popup,
-        useMap: rl.useMap,
-        L,
-      });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  function persist(c: [number, number]) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ lat: c[0], lng: c[1] }));
+    } catch {}
+  }
 
-  // Initialize center: prop > saved > geolocation > fallback
+  // Initial center
   useEffect(() => {
     if (userLocation) {
       const next: [number, number] = [userLocation.lat, userLocation.lng];
@@ -125,7 +77,7 @@ export function BarbershopMap({
           setCenter(next);
           persist(next);
         },
-        () => setCenter([40.7128, -74.006])
+        () => setCenter([40.7128, -74.006]),
       );
     } else {
       setCenter([40.7128, -74.006]);
@@ -133,11 +85,56 @@ export function BarbershopMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLocation]);
 
-  function persist(c: [number, number]) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ lat: c[0], lng: c[1] }));
-    } catch {}
-  }
+  // Fly to center/zoom changes
+  useEffect(() => {
+    if (mapRef.current && center) {
+      mapRef.current.flyTo({ center: [center[1], center[0]], zoom });
+    }
+  }, [center, zoom]);
+
+  const validBarbershops = useMemo(
+    () => barbershops.filter((b) => b.latitude && b.longitude),
+    [barbershops],
+  );
+
+  // Render markers
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !center) return;
+
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    // user marker
+    const userEl = document.createElement("div");
+    userEl.style.cssText =
+      "width:14px;height:14px;border-radius:9999px;background:hsl(var(--primary));border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);";
+    const userMarker = new maplibregl.Marker({ element: userEl })
+      .setLngLat([center[1], center[0]])
+      .setPopup(new maplibregl.Popup({ offset: 12 }).setText("You are here"))
+      .addTo(map);
+    markersRef.current.push(userMarker);
+
+    validBarbershops.forEach((b) => {
+      const el = document.createElement("div");
+      el.style.cssText =
+        "width:30px;height:30px;border-radius:9999px;background:hsl(var(--primary));border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;";
+      el.textContent = "✂";
+      el.addEventListener("click", () => onBarbershopClick?.(b));
+      const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
+        `<div style="padding:4px;"><strong>${b.name}</strong><br/><span style="opacity:0.7;font-size:12px;">${b.location}</span>${
+          b.contact_phone
+            ? `<br/><span style="opacity:0.7;font-size:12px;">${b.contact_phone}</span>`
+            : ""
+        }</div>`,
+      );
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([b.longitude!, b.latitude!])
+        .setPopup(popup)
+        .addTo(map);
+      markersRef.current.push(marker);
+    });
+  }, [validBarbershops, center, onBarbershopClick]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -150,7 +147,7 @@ export function BarbershopMap({
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
-        { signal: ctrl.signal, headers: { Accept: "application/json" } }
+        { signal: ctrl.signal, headers: { Accept: "application/json" } },
       );
       const data = await res.json();
       if (Array.isArray(data) && data[0]) {
@@ -176,16 +173,7 @@ export function BarbershopMap({
     });
   }
 
-  const tileUrl = isDark
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-
-  const validBarbershops = useMemo(
-    () => barbershops.filter((b) => b.latitude && b.longitude),
-    [barbershops]
-  );
-
-  if (!mods || !center) {
+  if (!center) {
     return (
       <div
         className="w-full bg-muted rounded-2xl flex items-center justify-center text-muted-foreground"
@@ -195,8 +183,6 @@ export function BarbershopMap({
       </div>
     );
   }
-
-  const { MapContainer, TileLayer, Marker, Popup, useMap } = mods;
 
   return (
     <div className="w-full space-y-2">
@@ -219,36 +205,16 @@ export function BarbershopMap({
       </form>
 
       <div className="w-full rounded-2xl overflow-hidden border border-border">
-        <MapContainer
-          center={center}
-          zoom={zoom}
+        <Map
+          ref={mapRef}
+          mapStyle={isDark ? STYLES.dark : STYLES.light}
+          initialViewState={{
+            longitude: center[1],
+            latitude: center[0],
+            zoom,
+          }}
           style={{ height, width: "100%" }}
-          className="z-0"
-          attributionControl={false}
-        >
-          <TileLayer url={tileUrl} />
-          <MapController center={center} zoom={zoom} useMap={useMap} />
-
-          <Marker position={center}>
-            <Popup>You are here</Popup>
-          </Marker>
-
-          {validBarbershops.map((b) => (
-            <Marker
-              key={b.id}
-              position={[b.latitude!, b.longitude!]}
-              eventHandlers={{ click: () => onBarbershopClick?.(b) }}
-            >
-              <Popup>
-                <div className="p-1">
-                  <h3 className="font-semibold">{b.name}</h3>
-                  <p className="text-sm opacity-70">{b.location}</p>
-                  {b.contact_phone && <p className="text-sm opacity-70">{b.contact_phone}</p>}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        />
       </div>
     </div>
   );
