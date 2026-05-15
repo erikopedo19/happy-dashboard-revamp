@@ -158,11 +158,5 @@ function AnimatedAppRoutes() {
     </AnimatePresence>
   );
 }
-        </div>
-      </AuthProvider>
-    </ThemeProvider>
-    </QueryClientProvider>
-  );
-}
 
 export default App;
