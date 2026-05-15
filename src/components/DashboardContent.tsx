@@ -268,12 +268,6 @@ function Kpi({
   value: string;
   delta: number;
   sub: string;
-  icon: Icon, accent, hideDelta, isCount,
-}: {
-  title: string;
-  value: string;
-  delta: number;
-  sub: string;
   icon: any;
   accent?: boolean;
   hideDelta?: boolean;
