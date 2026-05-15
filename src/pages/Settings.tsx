@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
+import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -643,6 +644,7 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6">
+                      {user?.id && <PublicVisibilityCard userId={user.id} />}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
