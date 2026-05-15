@@ -122,6 +122,7 @@ function App() {
               <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <NotificationBell />
             <PersistentDock />
           </BrowserRouter>
         </div>
