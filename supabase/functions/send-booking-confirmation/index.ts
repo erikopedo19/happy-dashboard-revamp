@@ -104,11 +104,14 @@ function buildHtml(opts: {
         <span style="font-size:11px;color:#5a5a63;font-family:'SF Mono',Menlo,monospace;">REF · ${escapeHtml(String(bookingId).slice(0, 8))}</span>
       </td></tr>` : ""}
 
-      <tr><td style="padding:32px;text-align:center;border-top:1px solid #1f1f23;margin-top:24px;">
-        <div style="display:inline-flex;align-items:center;gap:8px;opacity:0.55;">
-          <span style="display:inline-block;width:18px;height:18px;border-radius:6px;background:${accent};color:#0a0a0b;font-size:11px;font-weight:800;line-height:18px;text-align:center;vertical-align:middle;">C</span>
-          <span style="font-size:11px;color:#8a8a93;letter-spacing:0.04em;vertical-align:middle;">Sent by <a href="${APP_URL}" style="color:#a8a8b3;text-decoration:none;font-weight:600;">cutzioo.com</a></span>
-        </div>
+      <tr><td style="padding:28px 32px 32px;text-align:center;border-top:1px solid #1f1f23;">
+        <a href="${APP_URL}" style="text-decoration:none;display:inline-block;">
+          <img src="${APP_URL}/cutzioo-logo.webp" alt="Cutzioo" width="44" height="44" style="display:block;margin:0 auto 10px;border-radius:10px;" />
+          <div style="font-size:11px;color:#8a8a93;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;">
+            Powered by <span style="color:${accent};">Cutzioo</span>
+          </div>
+          <div style="font-size:10px;color:#5a5a63;margin-top:4px;">cutzioo.com</div>
+        </a>
       </td></tr>
     </table>
   </td></tr>
