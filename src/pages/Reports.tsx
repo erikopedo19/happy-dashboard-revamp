@@ -1,24 +1,12 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
-import { RoseGradientButton } from "@/components/RoseGradientButton";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -34,34 +22,25 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  LabelList,
   Line,
   LineChart,
   Pie,
   PieChart,
-  RadialBar,
-  RadialBarChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
 } from "recharts";
 import {
+  ArrowDownRight,
   ArrowUpRight,
-  BarChart3,
-  Calendar,
   CalendarDays,
-  ChevronRight,
   Crown,
   DollarSign,
   Download,
-  Plus,
   Scissors,
   Sparkles,
   Star,
-  TrendingUp,
-  Trophy,
   Users,
-  WandSparkles,
 } from "lucide-react";
 
 type RangeValue =
@@ -113,6 +92,15 @@ const currency = new Intl.NumberFormat("en-US", {
 });
 
 const numberFormat = new Intl.NumberFormat("en-US");
+
+const RANGES: { value: RangeValue; label: string; short: string }[] = [
+  { value: "today", label: "Today", short: "1D" },
+  { value: "last7days", label: "Last 7 days", short: "7D" },
+  { value: "last30days", label: "Last 30 days", short: "30D" },
+  { value: "thisMonth", label: "This month", short: "MTD" },
+  { value: "lastMonth", label: "Last month", short: "LM" },
+  { value: "thisYear", label: "This year", short: "YTD" },
+];
 
 const getRangeDates = (range: RangeValue) => {
   const now = new Date();
@@ -166,29 +154,19 @@ const dayLabel = (date: string) =>
     day: "numeric",
   });
 
-const colorPalette = [
-  "#111827",
-  "#334155",
+// Rose-only palette (no blue/orange)
+const rosePalette = [
   "#e11d48",
+  "#f43f5e",
   "#fb7185",
   "#fda4af",
   "#fecdd3",
+  "#9f1239",
 ];
-
-const roseChartConfig = {
-  bookings: {
-    label: "Bookings",
-    color: "#e11d48",
-  },
-  label: {
-    color: "var(--background)",
-  },
-} satisfies ChartConfig;
 
 const Reports = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
 
@@ -309,7 +287,7 @@ const Reports = () => {
         revenue: 0,
         color:
           apt.service?.color ||
-          colorPalette[serviceUsageMap.size % colorPalette.length],
+          rosePalette[serviceUsageMap.size % rosePalette.length],
       };
 
       existing.bookings += 1;
@@ -338,7 +316,7 @@ const Reports = () => {
           revenue,
           satisfaction: stylist.satisfaction || 0,
           score,
-          color: colorPalette[index % colorPalette.length],
+          color: rosePalette[index % rosePalette.length],
         };
       })
       .sort((a, b) => b.score - a.score);
@@ -346,30 +324,10 @@ const Reports = () => {
     const topStylist = stylistPerformance[0];
 
     const statusBreakdown = [
-      {
-        name: "Completed",
-        value: completedAppointments,
-        fill: "#111827",
-      },
-      {
-        name: "Scheduled",
-        value: scheduledAppointments,
-        fill: "#f43f5e",
-      },
-      {
-        name: "Cancelled",
-        value: cancelledAppointments,
-        fill: "#e5e7eb",
-      },
+      { name: "Completed", value: completedAppointments, fill: "#e11d48" },
+      { name: "Scheduled", value: scheduledAppointments, fill: "#fb7185" },
+      { name: "Cancelled", value: cancelledAppointments, fill: "#fecdd3" },
     ].filter((item) => item.value > 0);
-
-    const radialCompletion = [
-      {
-        name: "completion",
-        value: completionRate,
-        fill: "#111827",
-      },
-    ];
 
     const busiestHourMap = new Map<string, number>();
     appointments.forEach((apt) => {
@@ -380,7 +338,13 @@ const Reports = () => {
     const hourlyDemand = Array.from(busiestHourMap.entries())
       .map(([hour, value]) => ({ hour, value }))
       .sort((a, b) => a.hour.localeCompare(b.hour))
-      .slice(0, 8);
+      .slice(0, 10);
+
+    // simple delta vs first half of window
+    const half = Math.floor(revenueTrend.length / 2);
+    const firstHalf = revenueTrend.slice(0, half).reduce((s, r) => s + r.revenue, 0);
+    const secondHalf = revenueTrend.slice(half).reduce((s, r) => s + r.revenue, 0);
+    const revenueDelta = firstHalf > 0 ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100) : 0;
 
     return {
       totalRevenue,
@@ -396,36 +360,15 @@ const Reports = () => {
       stylistPerformance,
       topStylist,
       statusBreakdown,
-      radialCompletion,
       hourlyDemand,
       activeServices: services.length,
       activeStylists: stylists.length,
+      revenueDelta,
     };
   }, [data]);
 
   const revenueChartConfig = {
-    revenue: { label: "Revenue", color: "#111827" },
-    appointments: { label: "Appointments", color: "#fb7185" },
-  } satisfies ChartConfig;
-
-  const servicesChartConfig = useMemo(() => {
-    return analytics.serviceBreakdown.reduce((acc, item, index) => {
-      acc[`service_${index}`] = {
-        label: item.name,
-        color: item.color || colorPalette[index % colorPalette.length],
-      };
-      return acc;
-    }, {} as ChartConfig);
-  }, [analytics.serviceBreakdown]);
-
-  const statusChartConfig = {
-    Completed: { label: "Completed", color: "#111827" },
-    Scheduled: { label: "Scheduled", color: "#f43f5e" },
-    Cancelled: { label: "Cancelled", color: "#e5e7eb" },
-  } satisfies ChartConfig;
-
-  const performanceChartConfig = {
-    revenue: { label: "Revenue", color: "#111827" },
+    revenue: { label: "Revenue", color: "#e11d48" },
   } satisfies ChartConfig;
 
   const handleExport = () => {
@@ -448,11 +391,12 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
 
         <main className="flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+          {/* Header */}
+          <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
@@ -461,489 +405,393 @@ const Reports = () => {
                 </h1>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Select value={dateRange} onValueChange={(value) => setDateRange(value as RangeValue)}>
-                  <SelectTrigger className="h-9 w-[140px] md:w-[160px] rounded-full border-0 bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm">
-                    <Calendar className="w-4 h-4 mr-1.5 text-[#8E8E93]" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="last7days">Last 7 days</SelectItem>
-                    <SelectItem value="last30days">Last 30 days</SelectItem>
-                    <SelectItem value="thisMonth">This month</SelectItem>
-                    <SelectItem value="lastMonth">Last month</SelectItem>
-                    <SelectItem value="thisYear">This year</SelectItem>
-                  </SelectContent>
-                </Select>
-                {!isMobile && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleExport}
-                    className="rounded-full h-9 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold"
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleExport}
+                className="rounded-full h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white font-semibold gap-1.5"
+              >
+                <Download className="h-4 w-4" strokeWidth={2.5} />
+                {!isMobile && "Export"}
+              </Button>
+            </div>
+
+            {/* Range pills */}
+            <div className="px-4 md:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
+              {RANGES.map((r) => {
+                const active = dateRange === r.value;
+                return (
+                  <button
+                    key={r.value}
+                    onClick={() => setDateRange(r.value)}
+                    className={`shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
+                      active
+                        ? "bg-rose-600 text-white shadow-sm"
+                        : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                    }`}
                   >
-                    <Download className="h-4 w-4" strokeWidth={2.5} />
-                    Export
-                  </Button>
-                )}
-              </div>
+                    {isMobile ? r.short : r.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
+          {/* Content */}
           <div className="flex-1 overflow-auto">
-            <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6 pb-32 md:pb-6">
-              <section className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-                <MetricCard
-                  title="Revenue"
-                  value={currency.format(analytics.totalRevenue)}
-                  description="Revenue generated in selected range"
-                  icon={<DollarSign className="w-5 h-5 text-rose-500" />}
-                  trend={`Avg ticket ${currency.format(analytics.averageTicket || 0)}`}
-                />
-                <MetricCard
-                  title="Appointments"
-                  value={numberFormat.format(analytics.totalAppointments)}
-                  description="Bookings tracked in this report"
-                  icon={<CalendarDays className="w-5 h-5 text-[#e11d48]" />}
-                  trend={`${analytics.completionRate}% completion rate`}
-                />
-                <MetricCard
-                  title="Clients"
-                  value={numberFormat.format(analytics.totalCustomers)}
-                  description="Unique customers in range"
-                  icon={<Users className="w-5 h-5 text-[#34C759]" />}
-                  trend={`${analytics.activeStylists} active stylists`}
-                />
-                <MetricCard
-                  title="Services"
-                  value={numberFormat.format(analytics.activeServices)}
-                  description="Services contributing to performance"
-                  icon={<Scissors className="w-5 h-5 text-[#fb7185]" />}
-                  trend={`${analytics.completedAppointments} completed appointments`}
-                />
-              </section>
-
-              <section className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
-                <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <CardTitle className="text-xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                          Revenue flow
-                        </CardTitle>
-                        <CardDescription className="text-[#8E8E93] dark:text-[#8E8E93]">
-                          Income and booking volume over time
-                        </CardDescription>
-                      </div>
-                      <Badge variant="secondary" className="rounded-full px-3 py-1 bg-[#34C759]/10 text-[#34C759] border-0">
-                        <TrendingUp className="w-3.5 h-3.5 mr-1" />
-                        Live
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ChartContainer
-                      config={revenueChartConfig}
-                      className="h-[320px] w-full aspect-auto"
-                    >
-                      <AreaChart data={analytics.revenueTrend}>
-                        <defs>
-                          <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#111827" stopOpacity={0.24} />
-                            <stop offset="95%" stopColor="#111827" stopOpacity={0.02} />
-                          </linearGradient>
-                          <linearGradient id="fillAppointments" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#fb7185" stopOpacity={0.22} />
-                            <stop offset="95%" stopColor="#fb7185" stopOpacity={0.02} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                        <YAxis
-                          yAxisId="left"
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value) => `$${value}`}
-                        />
-                        <YAxis yAxisId="right" orientation="right" hide />
-                        <ChartTooltip
-                          content={
-                            <ChartTooltipContent
-                              formatter={(value, name) => [
-                                name === "revenue" ? currency.format(Number(value)) : value,
-                                name,
-                              ]}
-                            />
-                          }
-                        />
-                        <Area
-                          yAxisId="left"
-                          type="monotone"
-                          dataKey="revenue"
-                          stroke="#111827"
-                          strokeWidth={2.5}
-                          fill="url(#fillRevenue)"
-                        />
-                        <Area
-                          yAxisId="right"
-                          type="monotone"
-                          dataKey="appointments"
-                          stroke="#fb7185"
-                          strokeWidth={2}
-                          fill="url(#fillAppointments)"
-                        />
-                      </AreaChart>
-                    </ChartContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border-0 bg-[#1C1C1E] text-white shadow-sm overflow-hidden">
-                  <CardHeader>
-                    <div className="flex items-center gap-2 text-white/80 mb-2">
-                      <WandSparkles className="w-4 h-4" />
-                      <span className="text-sm">Performance spotlight</span>
-                    </div>
-                    <CardTitle className="text-2xl text-white">
-                      {analytics.topStylist?.name || "No stylist data yet"}
-                    </CardTitle>
-                    <CardDescription className="text-white/70">
-                      {analytics.topStylist
-                        ? `${analytics.topStylist.title} is leading this reporting window.`
-                        : "Add appointments and stylists to unlock rankings."}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <SpotlightPill
-                        label="Revenue"
-                        value={currency.format(analytics.topStylist?.revenue || 0)}
-                      />
-                      <SpotlightPill
-                        label="Bookings"
-                        value={numberFormat.format(analytics.topStylist?.bookings || 0)}
-                      />
-                      <SpotlightPill
-                        label="Completed"
-                        value={numberFormat.format(analytics.topStylist?.completed || 0)}
-                      />
-                      <SpotlightPill
-                        label="Satisfaction"
-                        value={`${(analytics.topStylist?.satisfaction || 0).toFixed(1)}★`}
-                      />
-                    </div>
-
-                    <div className="rounded-3xl border border-white/10 bg-card/5 p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-white/70">Completion</p>
-                          <p className="text-3xl font-semibold text-white">
-                            {analytics.completionRate}%
-                          </p>
-                        </div>
-                        <ResponsiveContainer width={110} height={110}>
-                          <RadialBarChart
-                            innerRadius="72%"
-                            outerRadius="100%"
-                            barSize={10}
-                            data={analytics.radialCompletion}
-                            startAngle={90}
-                            endAngle={-270}
-                          >
-                            <RadialBar background dataKey="value" cornerRadius={999} />
-                          </RadialBarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm text-white/70">
-                      <span>Styled like a premium mobile dashboard</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </section>
-
-              <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <Card className="rounded-2xl border-0 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-white dark:bg-[#1C1C1E]">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <CardTitle className="text-lg text-[#1C1C1E]">Service breakdown</CardTitle>
-                          <CardDescription className="text-[#8E8E93]">
-                            Most booked services
-                          </CardDescription>
-                        </div>
-                        <div className="w-10 h-10 rounded-xl bg-[#FF3B30]/10 flex items-center justify-center">
-                          <BarChart3 className="w-4 h-4 text-[#FF3B30]" />
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartContainer config={roseChartConfig} className="h-[280px] w-full aspect-auto">
-                        <BarChart
-                          accessibilityLayer
-                          data={analytics.serviceBreakdown}
-                          layout="vertical"
-                          margin={{
-                            right: 24,
-                            left: 8,
-                          }}
-                        >
-                          <defs>
-                            <linearGradient id="serviceBreakdownRose" x1="0" y1="0" x2="1" y2="0">
-                              <stop offset="0%" stopColor="#fb7185" />
-                              <stop offset="55%" stopColor="#f43f5e" />
-                              <stop offset="100%" stopColor="#e11d48" />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                          <YAxis
-                            dataKey="name"
-                            type="category"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 18)}
-                            hide
-                          />
-                          <XAxis dataKey="bookings" type="number" hide />
-                          <ChartTooltip
-                            cursor={false}
-                            content={
-                              <ChartTooltipContent
-                                indicator="line"
-                                formatter={(value, _, item) => [
-                                  `${value} bookings`,
-                                  item?.payload?.name || "Service",
-                                ]}
-                              />
-                            }
-                          />
-                          <Bar
-                            dataKey="bookings"
-                            layout="vertical"
-                            fill="url(#serviceBreakdownRose)"
-                            radius={8}
-                          >
-                            <LabelList
-                              dataKey="name"
-                              position="insideLeft"
-                              offset={10}
-                              className="fill-white"
-                              fontSize={12}
-                            />
-                            <LabelList
-                              dataKey="bookings"
-                              position="right"
-                              offset={10}
-                              className="fill-foreground"
-                              fontSize={12}
-                            />
-                          </Bar>
-                        </BarChart>
-                      </ChartContainer>
-                    </CardContent>
-                    <CardFooter className="flex-col items-start gap-2 border-t border-rose-100/80 bg-card/70 text-sm">
-                      <div className="flex gap-2 leading-none font-medium text-foreground">
-                        Top services are trending up this period <TrendingUp className="h-4 w-4 text-rose-600" />
-                      </div>
-                      <div className="leading-none text-muted-foreground">
-                        Rose gradient chart with minimal colors for a faster, premium feel.
-                      </div>
-                    </CardFooter>
-                  </div>
-                </Card>
-
-                <Card className="rounded-2xl border-0 bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-[#1C1C1E]">Booking status</CardTitle>
-                    <CardDescription className="text-[#8E8E93]">
-                      Appointment status distribution
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <ChartContainer
-                      config={statusChartConfig}
-                      className="h-[260px] w-full aspect-auto"
-                    >
-                      <PieChart>
-                        <Pie
-                          data={analytics.statusBreakdown}
-                          dataKey="value"
-                          nameKey="name"
-                          innerRadius={70}
-                          outerRadius={100}
-                          paddingAngle={4}
-                          cornerRadius={10}
-                        >
-                          {analytics.statusBreakdown.map((item) => (
-                            <Cell key={item.name} fill={item.fill} />
-                          ))}
-                        </Pie>
-                        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                        <ChartLegend
-                          content={<ChartLegendContent nameKey="name" />}
-                          verticalAlign="bottom"
-                        />
-                      </PieChart>
-                    </ChartContainer>
-
-                    <div className="grid grid-cols-3 gap-3">
-                      <MiniStat
-                        label="Completed"
-                        value={numberFormat.format(analytics.completedAppointments)}
-                      />
-                      <MiniStat
-                        label="Scheduled"
-                        value={numberFormat.format(analytics.scheduledAppointments)}
-                      />
-                      <MiniStat
-                        label="Cancelled"
-                        value={numberFormat.format(analytics.cancelledAppointments)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border-0 bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-[#1C1C1E]">Demand rhythm</CardTitle>
-                    <CardDescription className="text-[#8E8E93]">
-                      Busiest hours on your schedule
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ChartContainer
-                      config={{ value: { label: "Bookings", color: "#111827" } }}
-                      className="h-[260px] w-full aspect-auto"
-                    >
-                      <LineChart data={analytics.hourlyDemand}>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis dataKey="hour" tickLine={false} axisLine={false} />
-                        <YAxis tickLine={false} axisLine={false} />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          stroke="#111827"
-                          strokeWidth={3}
-                          dot={{ fill: "#111827", r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      </LineChart>
-                    </ChartContainer>
-                  </CardContent>
-                </Card>
-              </section>
-
-              <section className="grid grid-cols-1 xl:grid-cols-[1fr_0.95fr] gap-6">
-                <Card className="rounded-2xl border-0 bg-white shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <CardTitle className="text-xl text-[#1C1C1E]">
-                          Stylist ranking
-                        </CardTitle>
-                        <CardDescription className="text-[#8E8E93]">
-                          Ranked by revenue, completions, and satisfaction
-                        </CardDescription>
-                      </div>
-                      <Badge className="rounded-full bg-[#fb7185]/10 text-[#fb7185] border-0">
-                        <Trophy className="w-3.5 h-3.5 mr-1" />
-                        Top performers
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {analytics.stylistPerformance.length === 0 ? (
-                      <EmptyState />
-                    ) : (
-                      analytics.stylistPerformance.map((stylist, index) => (
+            <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1400px] mx-auto">
+              {/* Hero revenue card */}
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden">
+                <CardContent className="p-5 md:p-6">
+                  <div className="flex items-start justify-between gap-4 mb-1">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93]">
+                        Total revenue
+                      </p>
+                      <p className="text-3xl md:text-5xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-2 tracking-tight">
+                        {currency.format(analytics.totalRevenue)}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
                         <div
-                          key={stylist.id}
-                          className="flex items-center justify-between gap-4 rounded-2xl border border-[#F2F2F7] bg-white dark:bg-[#1C1C1E] px-4 py-4 hover:bg-[#F2F2F7]/50 transition-colors"
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            analytics.revenueDelta >= 0
+                              ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40"
+                              : "bg-[#F2F2F7] text-[#8E8E93] dark:bg-[#2C2C2E]"
+                          }`}
                         >
-                          <div className="flex items-center gap-4 min-w-0">
-                            <div className="relative">
-                              <div className="w-12 h-12 rounded-xl bg-[#FF3B30] text-white flex items-center justify-center font-semibold shadow-lg ">
-                                {index === 0 ? (
-                                  <Crown className="w-5 h-5" />
-                                ) : (
-                                  <span>{index + 1}</span>
-                                )}
-                              </div>
-                              <div
-                                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white"
-                                style={{ backgroundColor: stylist.color }}
-                              />
-                            </div>
+                          {analytics.revenueDelta >= 0 ? (
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowDownRight className="w-3.5 h-3.5" />
+                          )}
+                          {Math.abs(analytics.revenueDelta)}%
+                        </div>
+                        <span className="text-xs text-[#8E8E93]">
+                          vs first half
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center shrink-0">
+                      <DollarSign className="w-5 h-5 text-rose-600" strokeWidth={2.5} />
+                    </div>
+                  </div>
 
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-[#1C1C1E] truncate">
-                                  {stylist.name}
-                                </p>
-                                {index === 0 && (
-                                  <Badge className="rounded-full bg-[#fb7185] text-white border-0">
-                                    #1
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-[#8E8E93]">{stylist.title}</p>
+                  <ChartContainer
+                    config={revenueChartConfig}
+                    className="h-[180px] md:h-[240px] w-full aspect-auto mt-4"
+                  >
+                    <AreaChart data={analytics.revenueTrend} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#e11d48" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
+                      <ChartTooltip
+                        cursor={{ stroke: "#e11d48", strokeWidth: 1, strokeDasharray: "3 3" }}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value) => [currency.format(Number(value)), "Revenue"]}
+                          />
+                        }
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#e11d48"
+                        strokeWidth={2.5}
+                        fill="url(#fillRev)"
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
 
-                              <div className="flex items-center gap-4 mt-2 text-xs text-[#8E8E93]">
-                                <span>{stylist.bookings} bookings</span>
-                                <span>{stylist.completed} completed</span>
-                                <span className="flex items-center gap-1">
-                                  <Star className="w-3 h-3 fill-current" />
-                                  {stylist.satisfaction.toFixed(1)}
+              {/* KPI grid */}
+              <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <KpiTile
+                  icon={<CalendarDays className="w-4 h-4 text-rose-600" />}
+                  label="Appointments"
+                  value={numberFormat.format(analytics.totalAppointments)}
+                  hint={`${analytics.completionRate}% completed`}
+                />
+                <KpiTile
+                  icon={<Users className="w-4 h-4 text-rose-600" />}
+                  label="Clients"
+                  value={numberFormat.format(analytics.totalCustomers)}
+                  hint={`${analytics.activeStylists} stylists`}
+                />
+                <KpiTile
+                  icon={<DollarSign className="w-4 h-4 text-rose-600" />}
+                  label="Avg ticket"
+                  value={currency.format(analytics.averageTicket || 0)}
+                  hint="Per booking"
+                />
+                <KpiTile
+                  icon={<Scissors className="w-4 h-4 text-rose-600" />}
+                  label="Services"
+                  value={numberFormat.format(analytics.activeServices)}
+                  hint={`${analytics.completedAppointments} completed`}
+                />
+              </section>
+
+              {/* Status + Demand */}
+              <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
+                {/* Booking status */}
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                          Booking status
+                        </h3>
+                        <p className="text-xs text-[#8E8E93] mt-0.5">
+                          Distribution this period
+                        </p>
+                      </div>
+                    </div>
+
+                    {analytics.statusBreakdown.length === 0 ? (
+                      <EmptyMini />
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div className="relative w-32 h-32 shrink-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={analytics.statusBreakdown}
+                                dataKey="value"
+                                nameKey="name"
+                                innerRadius={42}
+                                outerRadius={62}
+                                paddingAngle={3}
+                                cornerRadius={6}
+                                strokeWidth={0}
+                              >
+                                {analytics.statusBreakdown.map((item) => (
+                                  <Cell key={item.name} fill={item.fill} />
+                                ))}
+                              </Pie>
+                            </PieChart>
+                          </ResponsiveContainer>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                              {analytics.completionRate}%
+                            </span>
+                            <span className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
+                              done
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 space-y-2">
+                          {analytics.statusBreakdown.map((s) => (
+                            <div key={s.name} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: s.fill }}
+                                />
+                                <span className="text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                                  {s.name}
                                 </span>
                               </div>
+                              <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                                {s.value}
+                              </span>
                             </div>
-                          </div>
-
-                          <div className="text-right shrink-0">
-                            <p className="text-sm text-[#8E8E93]">Revenue</p>
-                            <p className="text-lg font-semibold text-[#1C1C1E]">
-                              {currency.format(stylist.revenue)}
-                            </p>
-                          </div>
+                          ))}
                         </div>
-                      ))
+                      </div>
                     )}
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border-0 bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-[#1C1C1E]">
-                      Stylist revenue graph
-                    </CardTitle>
-                    <CardDescription className="text-[#8E8E93]">
-                      Compare stylist output
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
+                {/* Hourly demand */}
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="mb-4">
+                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        Demand by hour
+                      </h3>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">
+                        When clients book most
+                      </p>
+                    </div>
+
+                    {analytics.hourlyDemand.length === 0 ? (
+                      <EmptyMini />
+                    ) : (
+                      <ChartContainer
+                        config={{ value: { label: "Bookings", color: "#e11d48" } }}
+                        className="h-[160px] w-full aspect-auto"
+                      >
+                        <LineChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                          <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
+                          <YAxis hide />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#e11d48"
+                            strokeWidth={2.5}
+                            dot={{ fill: "#e11d48", r: 3 }}
+                            activeDot={{ r: 5 }}
+                          />
+                        </LineChart>
+                      </ChartContainer>
+                    )}
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Top services */}
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                <CardContent className="p-5">
+                  <div className="mb-4">
+                    <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      Top services
+                    </h3>
+                    <p className="text-xs text-[#8E8E93] mt-0.5">
+                      Most booked in this period
+                    </p>
+                  </div>
+
+                  {analytics.serviceBreakdown.length === 0 ? (
+                    <EmptyMini />
+                  ) : (
+                    <div className="space-y-3">
+                      {analytics.serviceBreakdown.map((s, idx) => {
+                        const max = analytics.serviceBreakdown[0]?.bookings || 1;
+                        const pct = (s.bookings / max) * 100;
+                        return (
+                          <div key={s.name} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="w-5 h-5 rounded-md bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[10px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0">
+                                  {idx + 1}
+                                </span>
+                                <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                                  {s.name}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-xs text-[#8E8E93]">
+                                  {currency.format(s.revenue)}
+                                </span>
+                                <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                                  {s.bookings}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="h-2 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-rose-500 transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Stylist ranking */}
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        Stylist leaderboard
+                      </h3>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">
+                        Ranked by revenue & satisfaction
+                      </p>
+                    </div>
+                  </div>
+
+                  {analytics.stylistPerformance.length === 0 ? (
+                    <EmptyMini />
+                  ) : (
+                    <div className="space-y-2">
+                      {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
+                        <div
+                          key={stylist.id}
+                          className="flex items-center gap-3 rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 px-3 py-3"
+                        >
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
+                              index === 0 ? "bg-rose-600" : "bg-[#1C1C1E] dark:bg-[#3A3A3C]"
+                            }`}
+                          >
+                            {index === 0 ? <Crown className="w-4 h-4" /> : index + 1}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                              {stylist.name}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-[#8E8E93] mt-0.5">
+                              <span>{stylist.bookings} bookings</span>
+                              <span>·</span>
+                              <span className="flex items-center gap-0.5">
+                                <Star className="w-3 h-3 fill-rose-500 text-rose-500" />
+                                {stylist.satisfaction.toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                              {currency.format(stylist.revenue)}
+                            </p>
+                            <p className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
+                              revenue
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Stylist comparison chart */}
+              {analytics.stylistPerformance.length > 0 && (
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="mb-4">
+                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        Revenue comparison
+                      </h3>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">
+                        Side-by-side stylist output
+                      </p>
+                    </div>
                     <ChartContainer
-                      config={performanceChartConfig}
-                      className="h-[300px] w-full aspect-auto"
+                      config={{ revenue: { label: "Revenue", color: "#e11d48" } }}
+                      className="h-[220px] w-full aspect-auto"
                     >
                       <BarChart
                         data={analytics.stylistPerformance.slice(0, 6)}
-                        margin={{ left: 10, right: 10 }}
+                        margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
                       >
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
                         <XAxis
                           dataKey="name"
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={(value) => value.slice(0, 6)}
+                          tick={{ fontSize: 11, fill: "#8E8E93" }}
+                          tickFormatter={(value) => value.slice(0, 8)}
                         />
                         <YAxis
                           tickLine={false}
                           axisLine={false}
+                          tick={{ fontSize: 11, fill: "#8E8E93" }}
                           tickFormatter={(value) => `$${value}`}
                         />
                         <ChartTooltip
@@ -953,39 +801,15 @@ const Reports = () => {
                             />
                           }
                         />
-                        <Bar dataKey="revenue" radius={16}>
-                          {analytics.stylistPerformance.slice(0, 6).map((stylist) => (
-                            <Cell key={stylist.id} fill={stylist.color} />
-                          ))}
-                        </Bar>
+                        <Bar dataKey="revenue" radius={[10, 10, 0, 0]} fill="#e11d48" />
                       </BarChart>
                     </ChartContainer>
-
-                    <div className="rounded-2xl bg-[#1C1C1E] p-5 text-white">
-                      <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
-                        <Sparkles className="w-4 h-4" />
-                        Insight
-                      </div>
-                      <p className="text-xl font-semibold">
-                        {analytics.topStylist
-                          ? `${analytics.topStylist.name} is your highest-impact stylist`
-                          : "No stylist trend yet"}
-                      </p>
-                      <p className="text-sm text-white/70 mt-2">
-                        Use this ranking to reward performance, optimize availability, and improve
-                        team capacity planning.
-                      </p>
-                      <div className="mt-4 flex items-center gap-2 text-sm text-white/80">
-                        <ArrowUpRight className="w-4 h-4" />
-                        iOS-style analytics
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
-              </section>
+              )}
 
               {isLoading && (
-                <div className="text-sm text-[#8E8E93] px-2">
+                <div className="text-sm text-[#8E8E93] text-center py-4">
                   Loading analytics...
                 </div>
               )}
@@ -998,69 +822,44 @@ const Reports = () => {
   );
 };
 
-function MetricCard({
-  title,
-  value,
-  description,
+function KpiTile({
   icon,
-  trend,
+  label,
+  value,
+  hint,
 }: {
-  title: string;
-  value: string;
-  description: string;
   icon: React.ReactNode;
-  trend: string;
+  label: string;
+  value: string;
+  hint: string;
 }) {
   return (
-    <Card className="rounded-2xl border border-rose-100/80 bg-white shadow-sm shadow-rose-900/5 ring-1 ring-rose-500/10 dark:border-rose-900/30 dark:bg-[#1C1C1E] dark:ring-rose-500/15 overflow-hidden">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-[#8E8E93] dark:text-[#8E8E93] font-medium uppercase tracking-wide">{title}</p>
-            <p className="text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-2">{value}</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center">
+    <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
             {icon}
           </div>
         </div>
-        <p className="text-sm text-[#8E8E93] dark:text-[#8E8E93] mt-3">{description}</p>
-        <div className="mt-4 flex items-center gap-2 text-sm text-[#34C759]">
-          <TrendingUp className="w-4 h-4" />
-          <span>{trend}</span>
-        </div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">
+          {label}
+        </p>
+        <p className="text-xl md:text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-1 tabular-nums">
+          {value}
+        </p>
+        <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
       </CardContent>
     </Card>
   );
 }
 
-function SpotlightPill({ label, value }: { label: string; value: string }) {
+function EmptyMini() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-card/5 p-3">
-      <p className="text-xs text-white/60">{label}</p>
-      <p className="text-lg font-semibold text-white mt-1">{value}</p>
-    </div>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-[#F2F2F7] bg-[#F9F9F9] px-3 py-4 text-center">
-      <p className="text-xs text-[#8E8E93] font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-lg font-semibold text-[#1C1C1E] mt-1">{value}</p>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="rounded-2xl border border-dashed border-[#C6C6C8] bg-[#F9F9F9] p-8 text-center">
-      <div className="w-14 h-14 rounded-xl bg-white border border-[#C6C6C8] mx-auto flex items-center justify-center">
-        <Sparkles className="w-6 h-6 text-[#8E8E93]" />
+    <div className="rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 p-6 text-center">
+      <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1C1C1E] mx-auto flex items-center justify-center">
+        <Sparkles className="w-4 h-4 text-[#8E8E93]" />
       </div>
-      <p className="text-[#1C1C1E] font-medium mt-4">No report data yet</p>
-      <p className="text-sm text-[#8E8E93] mt-2">
-        Add appointments, services, and stylists to unlock the analytics page.
-      </p>
+      <p className="text-xs text-[#8E8E93] mt-3">No data in this range yet</p>
     </div>
   );
 }
