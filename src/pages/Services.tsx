@@ -23,11 +23,12 @@ import { cn } from "@/lib/utils";
 
 const db = supabase as any;
 
-interface Appointment { id: string; service_id: string; status: string; }
+interface Appointment { id: string; service_id: string; status: string; appointment_date: string; appointment_time: string; }
 interface Service {
   id: string; name: string; duration: number;
   color: string; text_color: string; border_color: string;
   user_id: string; price?: number; icon?: string;
+  deleted_at?: string | null;
 }
 
 const ROSE = "#e11d48";
