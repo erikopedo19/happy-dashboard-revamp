@@ -66,7 +66,7 @@ const Agenda = () => {
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; time: string } | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
+  const [viewMode, setViewMode] = useState<'week' | 'day'>('day');
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
@@ -74,9 +74,9 @@ const Agenda = () => {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
-  // On phones, default to "day" view so we can book quickly without switching.
+  // Always default to grid (day) view; user can switch to weekly overview manually.
   useEffect(() => {
-    if (isMobile) setViewMode('day');
+    setViewMode('day');
   }, [isMobile]);
 
   const getAdditionalServiceNames = (notes?: string) => {
@@ -337,7 +337,7 @@ const Agenda = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-gray-50 dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-gray-50 dark:bg-gradient-to-br dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* iOS-style Header */}
