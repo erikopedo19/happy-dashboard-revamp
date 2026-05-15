@@ -23,11 +23,12 @@ import { cn } from "@/lib/utils";
 
 const db = supabase as any;
 
-interface Appointment { id: string; service_id: string; status: string; }
+interface Appointment { id: string; service_id: string; status: string; appointment_date: string; appointment_time: string; }
 interface Service {
   id: string; name: string; duration: number;
   color: string; text_color: string; border_color: string;
   user_id: string; price?: number; icon?: string;
+  deleted_at?: string | null;
 }
 
 const ROSE = "#e11d48";
@@ -74,12 +75,21 @@ const Services = () => {
     queryFn: async (): Promise<Appointment[]> => {
       if (!user) return [];
       const { data, error } = await db.from("appointments")
-        .select("id, service_id, status").eq("user_id", user.id).neq("status", "cancelled");
+        .select("id, service_id, status, appointment_date, appointment_time").eq("user_id", user.id).neq("status", "cancelled");
       if (error) throw error;
       return (data || []) as Appointment[];
     },
     enabled: !!user, staleTime: 30000,
   });
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const futureCountFor = (sid: string) =>
+    appointments.filter((a) =>
+      a.service_id === sid &&
+      a.status !== "completed" &&
+      a.status !== "cancelled" &&
+      a.appointment_date >= todayStr
+    ).length;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,14 +134,38 @@ const Services = () => {
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
     try {
-      const { error } = await db.from("services").delete().eq("id", serviceToDelete);
-      if (error) throw error;
-      toast({ title: "Service deleted" });
+      const pending = futureCountFor(serviceToDelete);
+      if (pending > 0) {
+        // Soft delete — auto-purges once last booking is past
+        const { error } = await db.from("services")
+          .update({ deleted_at: new Date().toISOString() })
+          .eq("id", serviceToDelete);
+        if (error) throw error;
+        toast({
+          title: "Marked for deletion",
+          description: `Service will be removed after ${pending} pending booking${pending === 1 ? "" : "s"} complete.`,
+        });
+      } else {
+        const { error } = await db.from("services").delete().eq("id", serviceToDelete);
+        if (error) throw error;
+        toast({ title: "Service deleted" });
+      }
       queryClient.invalidateQueries({ queryKey: ["services"] });
     } catch {
       toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
     } finally {
       setIsDeleteDialogOpen(false); setServiceToDelete(null);
+    }
+  };
+
+  const restoreService = async (id: string) => {
+    try {
+      const { error } = await db.from("services").update({ deleted_at: null }).eq("id", id);
+      if (error) throw error;
+      toast({ title: "Service restored" });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    } catch {
+      toast({ title: "Error", description: "Failed to restore", variant: "destructive" });
     }
   };
 
@@ -267,21 +301,34 @@ const Services = () => {
                   const Icon = getIconByName(s.icon || "Scissors");
                   const tint = hexFor(s.color);
                   const count = appointments.filter((a) => a.service_id === s.id).length;
+                  const pendingDeletion = !!s.deleted_at;
+                  const futureCount = futureCountFor(s.id);
                   return (
-                    <div key={s.id} className="group flex items-center gap-3 px-4 py-3.5 active:bg-[#F2F2F7] dark:active:bg-[#2C2C2E] transition-colors">
+                    <div key={s.id} className={cn(
+                      "group flex items-center gap-3 px-4 py-3.5 active:bg-[#F2F2F7] dark:active:bg-[#2C2C2E] transition-colors",
+                      pendingDeletion && "opacity-70"
+                    )}>
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: `${tint}18` }}>
                         <Icon className="h-5 w-5" style={{ color: tint }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-white truncate">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={cn(
+                            "font-semibold text-[15px] text-[#1C1C1E] dark:text-white truncate",
+                            pendingDeletion && "line-through text-[#8E8E93]"
+                          )}>
                             {s.name}
                           </p>
-                          {count > 0 && (
+                          {count > 0 && !pendingDeletion && (
                             <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
                               style={{ background: `${ROSE}15`, color: ROSE }}>
                               {count}
+                            </span>
+                          )}
+                          {pendingDeletion && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 uppercase tracking-wide">
+                              Deletes after {futureCount} booking{futureCount === 1 ? "" : "s"}
                             </span>
                           )}
                         </div>
@@ -293,15 +340,25 @@ const Services = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => handleEdit(s)}
-                          className="w-9 h-9 rounded-full hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] flex items-center justify-center text-[#8E8E93]">
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => { setServiceToDelete(s.id); setIsDeleteDialogOpen(true); }}
-                          className="w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center"
-                          style={{ color: ROSE }}>
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {pendingDeletion ? (
+                          <button onClick={() => restoreService(s.id)}
+                            className="text-xs font-medium px-3 h-9 rounded-full hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]"
+                            style={{ color: ROSE }}>
+                            Restore
+                          </button>
+                        ) : (
+                          <>
+                            <button onClick={() => handleEdit(s)}
+                              className="w-9 h-9 rounded-full hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] flex items-center justify-center text-[#8E8E93]">
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => { setServiceToDelete(s.id); setIsDeleteDialogOpen(true); }}
+                              className="w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center"
+                              style={{ color: ROSE }}>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                         <ChevronRight className="h-4 w-4 text-[#C7C7CC] ml-1 hidden md:block" />
                       </div>
                     </div>
@@ -315,16 +372,18 @@ const Services = () => {
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete service?</AlertDialogTitle>
+              <AlertDialogTitle>Delete this service?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action can't be undone. Existing appointments are not affected.
+                {serviceToDelete && futureCountFor(serviceToDelete) > 0
+                  ? `This service has ${futureCountFor(serviceToDelete)} pending booking${futureCountFor(serviceToDelete) === 1 ? "" : "s"}. We'll keep it visible until those appointments are completed, then remove it automatically. You can restore it any time before then.`
+                  : "This will remove the service immediately. Past appointments are not affected."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete}
                 className="rounded-full text-white border-0" style={{ background: ROSE }}>
-                Delete
+                {serviceToDelete && futureCountFor(serviceToDelete) > 0 ? "Schedule deletion" : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

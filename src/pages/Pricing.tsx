@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PricingTableOne } from "@/components/billingsdk/pricing-table-one";
+import { PricingTableFour } from "@/components/billingsdk/pricing-table-four";
 import { plans, STRIPE_PAYMENT_LINK } from "@/lib/billingsdk-config";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,20 +21,23 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-5xl mx-auto px-4 py-8">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
+      <div className="container max-w-6xl mx-auto px-4 pt-6">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <PricingTableOne
-          plans={plans}
-          title="Pricing"
-          description="Choose the plan that's right for you"
-          onPlanSelect={handlePlanSelect}
-          size="small"
-          theme="minimal"
-          className="w-full"
-        />
       </div>
+      <PricingTableFour
+        plans={plans}
+        title="Choose Your Perfect Plan"
+        theme="classic"
+        description="Transform your workflow with pricing that fits every stage."
+        subtitle="Simple Pricing"
+        onPlanSelect={handlePlanSelect}
+        size="medium"
+        className="w-full"
+        showBillingToggle={true}
+        billingToggleLabels={{ monthly: "Monthly", yearly: "Yearly" }}
+      />
     </div>
   );
 }
