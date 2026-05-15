@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Github, Mail, ArrowRight, Sparkles } from "lucide-react"
+import { Eye, EyeOff, Code2 as Github, Mail, ArrowRight, Sparkles } from "lucide-react"
 
 export function Login04() {
   const navigate = useNavigate()
