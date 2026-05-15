@@ -56,11 +56,11 @@ const LandingRoute = () => {
     if (role === 'client') {
       return <FindBarber />;
     }
-    // Barbers and other roles go to admin dashboard
     return <Navigate to="/admin" replace />;
   }
 
-  return <FindBarber />;
+  // Logged out → marketing landing page
+  return <Landing />;
 };
 
 function App() {
