@@ -75,12 +75,21 @@ const Services = () => {
     queryFn: async (): Promise<Appointment[]> => {
       if (!user) return [];
       const { data, error } = await db.from("appointments")
-        .select("id, service_id, status").eq("user_id", user.id).neq("status", "cancelled");
+        .select("id, service_id, status, appointment_date, appointment_time").eq("user_id", user.id).neq("status", "cancelled");
       if (error) throw error;
       return (data || []) as Appointment[];
     },
     enabled: !!user, staleTime: 30000,
   });
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const futureCountFor = (sid: string) =>
+    appointments.filter((a) =>
+      a.service_id === sid &&
+      a.status !== "completed" &&
+      a.status !== "cancelled" &&
+      a.appointment_date >= todayStr
+    ).length;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,14 +134,38 @@ const Services = () => {
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
     try {
-      const { error } = await db.from("services").delete().eq("id", serviceToDelete);
-      if (error) throw error;
-      toast({ title: "Service deleted" });
+      const pending = futureCountFor(serviceToDelete);
+      if (pending > 0) {
+        // Soft delete — auto-purges once last booking is past
+        const { error } = await db.from("services")
+          .update({ deleted_at: new Date().toISOString() })
+          .eq("id", serviceToDelete);
+        if (error) throw error;
+        toast({
+          title: "Marked for deletion",
+          description: `Service will be removed after ${pending} pending booking${pending === 1 ? "" : "s"} complete.`,
+        });
+      } else {
+        const { error } = await db.from("services").delete().eq("id", serviceToDelete);
+        if (error) throw error;
+        toast({ title: "Service deleted" });
+      }
       queryClient.invalidateQueries({ queryKey: ["services"] });
     } catch {
       toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
     } finally {
       setIsDeleteDialogOpen(false); setServiceToDelete(null);
+    }
+  };
+
+  const restoreService = async (id: string) => {
+    try {
+      const { error } = await db.from("services").update({ deleted_at: null }).eq("id", id);
+      if (error) throw error;
+      toast({ title: "Service restored" });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    } catch {
+      toast({ title: "Error", description: "Failed to restore", variant: "destructive" });
     }
   };
 
