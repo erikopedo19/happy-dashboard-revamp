@@ -510,7 +510,7 @@ const Agenda = () => {
                         week.isCurrentWeek && "ring-2 ring-rose-500/20"
                       )}
                     >
-                      <div className={cn("h-2 bg-gradient-to-r", colors.bg)} />
+                      <div className={"h-2 bg-rose-500"} />
                       <CardContent className="p-5">
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
