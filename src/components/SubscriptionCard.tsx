@@ -52,7 +52,13 @@ export function SubscriptionCard() {
           </div>
         </div>
         <Button
-          onClick={() => navigate("/pricing")}
+          onClick={() => {
+            if (subscribed && STRIPE_PORTAL_LINK) {
+              window.open(STRIPE_PORTAL_LINK, "_blank", "noopener,noreferrer");
+            } else {
+              navigate("/pricing");
+            }
+          }}
           className="rounded-full h-10 px-5 shrink-0"
           variant={subscribed ? "outline" : "default"}
         >
