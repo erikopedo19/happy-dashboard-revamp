@@ -10,11 +10,10 @@ const navItems = [
   { label: 'Profile', icon: User, path: '/me' },
 ];
 
-export const ClientMobileDock = () => {
-  const location = useLocation();
-  const isMobile = useIsMobile();
+export const ClientMobileDock = () => null;
 
-  if (!isMobile) return null;
+export const ClientMobileDockInner = () => {
+  const location = useLocation();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/85 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border-t border-black/5 dark:border-white/5 pb-safe">
