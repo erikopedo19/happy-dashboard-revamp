@@ -37,6 +37,8 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
@@ -122,6 +124,7 @@ const sortWorkingDays = (days: number[]) =>
   });
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
@@ -643,6 +646,11 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6">
+                      <div className="flex justify-end">
+                        <Button variant="outline" size="sm" onClick={() => navigate("/pricing")}>
+                          View full pricing
+                        </Button>
+                      </div>
                       <SubscriptionCard />
                       {user?.id && <PublicVisibilityCard userId={user.id} />}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">

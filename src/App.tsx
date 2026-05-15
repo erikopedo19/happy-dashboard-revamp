@@ -12,6 +12,7 @@ import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 // import SuperAdminDashboard from "./pages/SuperAdminDashboard";
@@ -117,6 +118,7 @@ function App() {
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
               <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
               <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
               <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
               <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
