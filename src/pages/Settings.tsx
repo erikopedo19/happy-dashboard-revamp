@@ -37,6 +37,8 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
