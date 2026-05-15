@@ -33,7 +33,9 @@ import Reports from "./pages/Reports";
 import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
+import ManageBooking from "./pages/ManageBooking";
 import { PersistentDock } from "./components/PersistentDock";
+import { NotificationBell } from "./components/NotificationBell";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
