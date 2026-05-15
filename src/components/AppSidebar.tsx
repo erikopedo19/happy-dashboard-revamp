@@ -1,4 +1,4 @@
-import { Calendar, Users, Settings, Home, Package, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark } from "lucide-react";
+import { Calendar, Users, Settings, Home, Package, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark, Crown, AlertCircle } from "lucide-react";
 import logoMark from "@/assets/logo-mark.webp";
 import {
   Sidebar,
@@ -18,6 +18,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useOrganization } from "@/hooks/use-organization";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
