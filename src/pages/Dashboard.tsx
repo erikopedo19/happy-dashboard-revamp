@@ -3,15 +3,15 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDock } from "@/components/MobileDock";
-import { MobileSpringboard } from "@/components/MobileSpringboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, isToday } from "date-fns";
+import { format, parseISO, isToday, startOfWeek, addDays, isSameDay } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar, DollarSign, Clock, Users, ChevronRight } from "lucide-react";
+import { Calendar, DollarSign, Clock, Users, ChevronRight, TrendingUp, Plus, Scissors, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 const db = supabase as any;
 
