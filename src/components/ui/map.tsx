@@ -48,7 +48,6 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
     };
     const map = new maplibregl.Map(opts);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    map.addControl(new maplibregl.AttributionControl({ compact: true }));
     mapRef.current = map;
     map.on("load", () => onLoad?.(map));
     return () => {
