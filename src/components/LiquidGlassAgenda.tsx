@@ -529,8 +529,14 @@ export const LiquidGlassAgenda = ({
                 return aptStartMin < slotStartMin && aptEndMin > slotStartMin;
               });
 
+              // Past slot detection: same day + slot start time already passed
+              const now = new Date();
+              const slotDate = new Date(selectedDay);
+              slotDate.setHours(slotHour, slotMinute, 0, 0);
+              const isPastSlot = isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime();
+
               return (
-                <div key={hour} className="relative">
+                <div key={hour} className={cn("relative", isPastSlot && "opacity-50")}>
                   {/* Time label */}
                   <div className="flex items-start gap-3 mb-1">
                     <div className="w-12 flex-shrink-0 pt-0.5">
