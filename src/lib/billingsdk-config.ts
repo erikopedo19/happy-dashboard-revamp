@@ -34,7 +34,7 @@ export const plans: Plan[] = [
     id: "free",
     title: "Free",
     description: "Get started with the essentials.",
-    currency: "$",
+    currency: "€",
     monthlyPrice: "0",
     yearlyPrice: "0",
     buttonText: "Current plan",
