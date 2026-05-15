@@ -314,12 +314,12 @@ const Teams = () => {
   };
 
   const colorOptions = [
-    { value: "bg-blue-500", label: "Blue", gradient: "from-blue-500 to-cyan-500" },
-    { value: "bg-purple-500", label: "Purple", gradient: "from-purple-500 to-pink-500" },
-    { value: "bg-green-500", label: "Green", gradient: "from-green-500 to-emerald-500" },
-    { value: "bg-orange-500", label: "Orange", gradient: "from-orange-500 to-red-500" },
-    { value: "bg-pink-500", label: "Pink", gradient: "from-pink-500 to-rose-500" },
-    { value: "bg-indigo-500", label: "Indigo", gradient: "from-indigo-500 to-purple-500" },
+    { value: "bg-blue-500", label: "Blue", dot: "#007AFF" },
+    { value: "bg-purple-500", label: "Purple", dot: "#AF52DE" },
+    { value: "bg-green-500", label: "Green", dot: "#34C759" },
+    { value: "bg-orange-500", label: "Orange", dot: "#FF9500" },
+    { value: "bg-pink-500", label: "Pink", dot: "#e11d48" },
+    { value: "bg-indigo-500", label: "Indigo", dot: "#5856D6" },
   ];
 
   if (orgLoading) {
