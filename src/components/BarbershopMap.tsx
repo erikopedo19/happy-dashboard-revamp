@@ -224,11 +224,9 @@ export function BarbershopMap({
           zoom={zoom}
           style={{ height, width: "100%" }}
           className="z-0"
+          attributionControl={false}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={tileUrl}
-          />
+          <TileLayer url={tileUrl} />
           <MapController center={center} zoom={zoom} useMap={useMap} />
 
           <Marker position={center}>
