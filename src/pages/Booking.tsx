@@ -97,7 +97,6 @@ const Booking = () => {
   const { data: businessProfile, isLoading: profileLoading, isFetching: profileFetching, error: profileError } = useQuery<BusinessProfile>({
     queryKey: ['business-profile', bookingLink],
     enabled: !!bookingLink,
-    retry: 1,
     queryFn: async () => {
       console.log('Fetching business profile for booking link:', bookingLink);
 
