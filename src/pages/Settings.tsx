@@ -152,7 +152,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
