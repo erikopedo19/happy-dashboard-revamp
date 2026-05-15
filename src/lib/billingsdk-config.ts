@@ -25,9 +25,14 @@ export interface CurrentPlan {
   status: "active" | "inactive" | "past_due" | "cancelled";
 }
 
-// Stripe Payment Link for Cutzio Pro Monthly ($19/mo)
+// Stripe Payment Link for Pro Monthly (€8.99/mo) — checkout
 export const STRIPE_PAYMENT_LINK =
   "https://buy.stripe.com/3cI3cn7lodSC9ODcvq2ZO04";
+
+// Stripe-hosted Customer Portal login link — used to cancel / pause / update card.
+// Get yours at: Stripe Dashboard → Settings → Billing → Customer portal → "Login link".
+// Leave empty until configured; users will fall back to /pricing.
+export const STRIPE_PORTAL_LINK = "";
 
 export const plans: Plan[] = [
   {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Crown } from "lucide-react";
+import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
 
 export function SubscriptionCard() {
   const navigate = useNavigate();
@@ -51,7 +52,13 @@ export function SubscriptionCard() {
           </div>
         </div>
         <Button
-          onClick={() => navigate("/pricing")}
+          onClick={() => {
+            if (subscribed && STRIPE_PORTAL_LINK) {
+              window.open(STRIPE_PORTAL_LINK, "_blank", "noopener,noreferrer");
+            } else {
+              navigate("/pricing");
+            }
+          }}
           className="rounded-full h-10 px-5 shrink-0"
           variant={subscribed ? "outline" : "default"}
         >
