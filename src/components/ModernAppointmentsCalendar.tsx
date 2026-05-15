@@ -658,14 +658,14 @@ export const ModernAppointmentsCalendar = ({
     <div className="min-h-screen bg-background">
       {/* Modern Header - Only show when not controlled externally */}
       {!isControlledExternally && (
-        <div className="border-b border-gray-200 backdrop-blur-sm sticky top-0 z-10 bg-white/90">
+        <div className="border-b border-gray-200 dark:border-[#2C2C2E] backdrop-blur-sm sticky top-0 z-10 bg-white/90 dark:bg-[#1C1C1E]/90">
         <div className="px-6 py-3 flex items-center justify-between gap-4">
           {/* Left: Date and Week */}
           <div>
-            <h1 className="text-2xl font-medium text-gray-800 tracking-tight">
+            <h1 className="text-2xl font-medium text-gray-800 dark:text-[#F2F2F7] tracking-tight">
               {format(currentWeek, 'EEEE, MMM d')}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-[#8E8E93]">
               Week {format(currentWeek, 'w')}
             </p>
           </div>
