@@ -570,6 +570,7 @@ export type Database = {
           border_color: string | null
           color: string | null
           created_at: string
+          deleted_at: string | null
           duration: number
           icon: string | null
           id: string
@@ -583,6 +584,7 @@ export type Database = {
           border_color?: string | null
           color?: string | null
           created_at?: string
+          deleted_at?: string | null
           duration: number
           icon?: string | null
           id?: string
@@ -596,6 +598,7 @@ export type Database = {
           border_color?: string | null
           color?: string | null
           created_at?: string
+          deleted_at?: string | null
           duration?: number
           icon?: string | null
           id?: string
@@ -887,6 +890,7 @@ export type Database = {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }
+      cleanup_pending_services: { Args: never; Returns: undefined }
       create_public_booking: {
         Args: {
           p_appointment_date: string
