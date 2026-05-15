@@ -7,6 +7,29 @@ import { ClientMobileDockInner } from "@/components/ClientMobileDock";
 const HIDE_ON = ["/auth", "/superadmin", "/choose-role", "/complete-profile"];
 const HIDE_PREFIX = ["/book/"];
 
+const CLIENT_ROUTES = [
+  "/find-barber",
+  "/find-barbershop",
+  "/my-bookings",
+  "/favorites",
+  "/me",
+];
+
+const ADMIN_ROUTES = [
+  "/admin",
+  "/agenda",
+  "/reports",
+  "/services",
+  "/settings",
+  "/customers",
+  "/booking-page",
+  "/stylists",
+  "/teams",
+  "/products",
+  "/booking-forms",
+  "/brand",
+];
+
 export const PersistentDock = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -17,11 +40,18 @@ export const PersistentDock = () => {
   if (HIDE_PREFIX.some((p) => location.pathname.startsWith(p))) return null;
 
   const role = (user?.user_metadata as any)?.role;
-  const clientRoutes = ["/find-barber", "/find-barbershop", "/my-bookings", "/favorites", "/me"];
-  const isClientRoute = clientRoutes.some((r) => location.pathname.startsWith(r));
+  const isClientRoute = CLIENT_ROUTES.some((r) => location.pathname.startsWith(r));
+  const isAdminRoute = ADMIN_ROUTES.some((r) => location.pathname.startsWith(r));
 
-  if (isClientRoute || role === "client") return <ClientMobileDockInner />;
-  return <MobileDockInner />;
+  // Route-based wins (handles role mismatch). Client routes → client dock.
+  if (isClientRoute) return <ClientMobileDockInner />;
+  if (isAdminRoute && role !== "client") return <MobileDockInner />;
+
+  // Fallback by role: only barbers/admins see admin dock.
+  if (role === "barber" || role === "admin" || role === "owner") {
+    return <MobileDockInner />;
+  }
+  return <ClientMobileDockInner />;
 };
 
 export default PersistentDock;

@@ -204,7 +204,7 @@ export function BarbershopMap({
         </Button>
       </form>
 
-      <div className="w-full rounded-2xl overflow-hidden border border-border">
+      <div className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
         <Map
           ref={mapRef}
           mapStyle={isDark ? STYLES.dark : STYLES.light}
