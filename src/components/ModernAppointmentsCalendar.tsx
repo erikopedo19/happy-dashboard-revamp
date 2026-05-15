@@ -843,23 +843,23 @@ export const ModernAppointmentsCalendar = ({
       ) : (
         /* Day/Detail View Mode */
         <div className="p-6">
-          <div className="bg-white/40 rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="bg-white/40 dark:bg-[#1C1C1E]/40 rounded-2xl border border-gray-200 dark:border-[#2C2C2E] overflow-hidden">
             {/* Grid Container */}
             <div
               className="grid gap-0"
               style={{ gridTemplateColumns: `80px repeat(${Math.max(weekDays.length, 1)}, minmax(0, 1fr))` }}
             >
               {/* Time Column Header */}
-              <div className="h-[60px] flex items-center justify-center border-b border-r border-gray-200 bg-white/50">
-                <Clock className="h-4 w-4 text-gray-500" />
+              <div className="h-[60px] flex items-center justify-center border-b border-r border-gray-200 dark:border-[#2C2C2E] bg-white/50 dark:bg-[#1C1C1E]/60">
+                <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               </div>
 
               {/* Day Headers */}
-              {weekDays.map(day => <div key={day.toISOString()} className="h-[60px] flex flex-col justify-center items-center border-b border-r border-gray-200 last:border-r-0 bg-white/50">
-                <div className="text-[14px] font-medium text-gray-800">
+              {weekDays.map(day => <div key={day.toISOString()} className="h-[60px] flex flex-col justify-center items-center border-b border-r border-gray-200 dark:border-[#2C2C2E] last:border-r-0 bg-white/50 dark:bg-[#1C1C1E]/60">
+                <div className="text-[14px] font-medium text-gray-800 dark:text-gray-100">
                   {format(day, 'EEE')}
                 </div>
-                <div className="text-[12px] text-gray-500 mt-0.5">
+                <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
                   {format(day, 'd')}
                 </div>
                 {isSameDay(day, new Date()) && <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1" />}
