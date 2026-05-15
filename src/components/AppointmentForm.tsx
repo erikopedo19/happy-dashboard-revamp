@@ -730,6 +730,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </button>
               </div>
             )}
+            </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Right Panel - Time Slots */}
