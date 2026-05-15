@@ -25,116 +25,43 @@ export interface CurrentPlan {
   status: "active" | "inactive" | "past_due" | "cancelled";
 }
 
+// Stripe Payment Link for Cutzio Pro Monthly ($19/mo)
+export const STRIPE_PAYMENT_LINK =
+  "https://buy.stripe.com/3cI3cn7lodSC9ODcvq2ZO04";
+
 export const plans: Plan[] = [
   {
-    id: "starter",
-    title: "Starter",
-    description: "For developers testing out Liveblocks locally.",
+    id: "free",
+    title: "Free",
+    description: "Get started with the essentials.",
     currency: "$",
     monthlyPrice: "0",
     yearlyPrice: "0",
-    buttonText: "Start today for free",
+    buttonText: "Current plan",
     features: [
-      {
-        name: "Presence",
-        icon: "check",
-        iconColor: "text-green-500",
-      },
-      {
-        name: "Comments",
-        icon: "check",
-        iconColor: "text-orange-500",
-      },
-      {
-        name: "Notifications",
-        icon: "check",
-        iconColor: "text-teal-500",
-      },
-      {
-        name: "Text Editor",
-        icon: "check",
-        iconColor: "text-blue-500",
-      },
-      {
-        name: "Sync Datastore",
-        icon: "check",
-        iconColor: "text-zinc-500",
-      },
+      { name: "Up to 20 bookings / month", icon: "check", iconColor: "text-rose-500" },
+      { name: "Public booking page", icon: "check", iconColor: "text-rose-500" },
+      { name: "Email confirmations", icon: "check", iconColor: "text-rose-500" },
+      { name: "Single user", icon: "check", iconColor: "text-rose-500" },
     ],
   },
   {
     id: "pro",
     title: "Pro",
-    description: "For companies adding collaboration in production.",
+    description: "For barbers serious about growth.",
     currency: "$",
-    monthlyPrice: "20",
-    yearlyPrice: "199",
-    buttonText: "Sign up",
+    monthlyPrice: "19",
+    yearlyPrice: "190",
+    buttonText: "Subscribe",
     badge: "Most popular",
     highlight: true,
     features: [
-      {
-        name: "Presence",
-        icon: "check",
-        iconColor: "text-green-500",
-      },
-      {
-        name: "Comments",
-        icon: "check",
-        iconColor: "text-orange-500",
-      },
-      {
-        name: "Notifications",
-        icon: "check",
-        iconColor: "text-teal-500",
-      },
-      {
-        name: "Text Editor",
-        icon: "check",
-        iconColor: "text-blue-500",
-      },
-      {
-        name: "Sync Datastore",
-        icon: "check",
-        iconColor: "text-zinc-500",
-      },
-    ],
-  },
-  {
-    id: "enterprise",
-    title: "Enterprise",
-    description:
-      "For organizations that need more support and compliance features.",
-    currency: "$",
-    monthlyPrice: "Custom",
-    yearlyPrice: "Custom",
-    buttonText: "Contact sales",
-    features: [
-      {
-        name: "Presence",
-        icon: "check",
-        iconColor: "text-green-500",
-      },
-      {
-        name: "Comments",
-        icon: "check",
-        iconColor: "text-orange-500",
-      },
-      {
-        name: "Notifications",
-        icon: "check",
-        iconColor: "text-teal-500",
-      },
-      {
-        name: "Text Editor",
-        icon: "check",
-        iconColor: "text-blue-500",
-      },
-      {
-        name: "Sync Datastore",
-        icon: "check",
-        iconColor: "text-zinc-500",
-      },
+      { name: "Unlimited bookings", icon: "check", iconColor: "text-rose-500" },
+      { name: "Map listing & discovery", icon: "check", iconColor: "text-rose-500" },
+      { name: "Custom branding & themes", icon: "check", iconColor: "text-rose-500" },
+      { name: "Team members & stylists", icon: "check", iconColor: "text-rose-500" },
+      { name: "Reports & analytics", icon: "check", iconColor: "text-rose-500" },
+      { name: "Cancel anytime", icon: "check", iconColor: "text-rose-500" },
     ],
   },
 ];

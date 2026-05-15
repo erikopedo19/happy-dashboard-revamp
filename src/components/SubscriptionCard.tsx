@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Crown, Loader2, ExternalLink } from "lucide-react";
+import { Crown, Loader2, ExternalLink, RefreshCw } from "lucide-react";
+import { PricingTableOne } from "@/components/billingsdk/pricing-table-one";
+import { plans, STRIPE_PAYMENT_LINK } from "@/lib/billingsdk-config";
 
 interface SubState {
   subscribed: boolean;
@@ -38,23 +40,23 @@ export function SubscriptionCard() {
     refresh();
     const params = new URLSearchParams(window.location.search);
     if (params.get("subscribed") === "true") {
-      toast.success("Subscription activated!");
+      toast.success("Welcome to Pro! Refreshing your status…");
       window.history.replaceState({}, "", window.location.pathname);
       setTimeout(refresh, 1500);
-    } else if (params.get("canceled") === "true") {
-      toast.info("Checkout canceled");
-      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 
-  async function startCheckout() {
+  async function handlePlanSelect(planId: string) {
+    if (planId === "free") return;
+    if (planId !== "pro") return;
     setActing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout");
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-    } catch (e: any) {
-      toast.error(e.message ?? "Failed to start checkout");
+      const { data: { user } } = await supabase.auth.getUser();
+      const url = new URL(STRIPE_PAYMENT_LINK);
+      if (user?.email) url.searchParams.set("prefilled_email", user.email);
+      if (user?.id) url.searchParams.set("client_reference_id", user.id);
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
+      toast.info("Opening secure Stripe checkout…");
     } finally {
       setActing(false);
     }
@@ -65,65 +67,79 @@ export function SubscriptionCard() {
     try {
       const { data, error } = await supabase.functions.invoke("customer-portal");
       if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
+      if (data?.url) window.open(data.url, "_blank", "noopener,noreferrer");
     } catch (e: any) {
-      toast.error(e.message ?? "Failed to open portal");
+      toast.error(e?.message ?? "Failed to open billing portal");
     } finally {
       setActing(false);
     }
   }
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-10 flex items-center justify-center text-muted-foreground gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" /> Checking subscription…
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (sub.subscribed) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-rose-500" />
+                Cutzio Pro
+              </CardTitle>
+              <CardDescription>
+                Active until{" "}
+                {sub.subscription_end
+                  ? new Date(sub.subscription_end).toLocaleDateString()
+                  : "—"}
+                . Manage or cancel renewal anytime from the Stripe portal.
+              </CardDescription>
+            </div>
+            <Badge>{sub.subscription_tier ?? "Pro"}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="flex gap-2">
+          <Button onClick={openPortal} disabled={acting}>
+            {acting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ExternalLink className="h-4 w-4" />
+            )}
+            Manage subscription
+          </Button>
+          <Button variant="outline" onClick={refresh} disabled={acting}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-primary" />
-              Subscription
-            </CardTitle>
-            <CardDescription>
-              Cutzio Pro — $19/month. Cancel anytime.
-            </CardDescription>
-          </div>
-          {sub.subscribed && <Badge>{sub.subscription_tier ?? "Pro"}</Badge>}
+      <CardContent className="pt-6 space-y-4">
+        <PricingTableOne
+          plans={plans}
+          title="Upgrade your plan"
+          description="Unlock map discovery, unlimited bookings, and team tools."
+          onPlanSelect={handlePlanSelect}
+          size="small"
+          theme="minimal"
+          className="w-full"
+        />
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" onClick={refresh} disabled={acting}>
+            <RefreshCw className="h-4 w-4" /> I've already paid — refresh status
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Checking status…
-          </div>
-        ) : sub.subscribed ? (
-          <>
-            <p className="text-sm text-muted-foreground">
-              Active until{" "}
-              {sub.subscription_end
-                ? new Date(sub.subscription_end).toLocaleDateString()
-                : "—"}
-              . Manage or cancel from the customer portal.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={openPortal} disabled={acting}>
-                {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4 mr-1" />}
-                Manage subscription
-              </Button>
-              <Button variant="outline" onClick={refresh} disabled={acting}>
-                Refresh
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground">
-              You're on the free plan. Upgrade to unlock Pro features.
-            </p>
-            <Button onClick={startCheckout} disabled={acting}>
-              {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4 mr-1" />}
-              Subscribe — $19/month
-            </Button>
-          </>
-        )}
       </CardContent>
     </Card>
   );
