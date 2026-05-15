@@ -372,16 +372,18 @@ const Services = () => {
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete service?</AlertDialogTitle>
+              <AlertDialogTitle>Delete this service?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action can't be undone. Existing appointments are not affected.
+                {serviceToDelete && futureCountFor(serviceToDelete) > 0
+                  ? `This service has ${futureCountFor(serviceToDelete)} pending booking${futureCountFor(serviceToDelete) === 1 ? "" : "s"}. We'll keep it visible until those appointments are completed, then remove it automatically. You can restore it any time before then.`
+                  : "This will remove the service immediately. Past appointments are not affected."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete}
                 className="rounded-full text-white border-0" style={{ background: ROSE }}>
-                Delete
+                {serviceToDelete && futureCountFor(serviceToDelete) > 0 ? "Schedule deletion" : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
