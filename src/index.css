@@ -20,29 +20,29 @@ html, body, #root {
 /* Modern Dashboard Design System - CSS Variables */
 @layer base {
   :root {
-    /* Amplilo-style dark dashboard */
-    --background: 225 14% 7%;
-    --foreground: 220 14% 96%;
-    --card: 224 14% 10%;
-    --card-foreground: 220 14% 96%;
-    --popover: 224 14% 10%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 217 91% 60%;
+    /* iOS 26 — Charcoal & Ember (dark warm, flat, no glass) */
+    --background: 0 0% 6%;            /* #0f0f0f */
+    --foreground: 30 8% 96%;
+    --card: 0 0% 10%;                 /* #1a1a1a */
+    --card-foreground: 30 8% 96%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 30 8% 96%;
+    --primary: 14 78% 57%;            /* #e85d3a ember */
     --primary-foreground: 0 0% 100%;
-    --secondary: 224 12% 14%;
-    --secondary-foreground: 220 14% 96%;
-    --muted: 224 12% 14%;
-    --muted-foreground: 220 9% 60%;
-    --accent: 224 12% 16%;
-    --accent-foreground: 220 14% 96%;
+    --secondary: 0 0% 15%;            /* #262626 */
+    --secondary-foreground: 30 8% 96%;
+    --muted: 0 0% 18%;                /* #2d2d2d */
+    --muted-foreground: 0 0% 62%;     /* #9e9e9e */
+    --accent: 14 78% 57%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 224 12% 16%;
-    --input: 224 12% 14%;
-    --ring: 217 91% 60%;
-    --radius: 1rem;
-    --success: 142 71% 45%;
-    --warning: 38 92% 50%;
+    --border: 0 0% 18%;
+    --input: 0 0% 15%;
+    --ring: 14 78% 57%;
+    --radius: 1.25rem;
+    --success: 142 65% 50%;
+    --warning: 38 92% 55%;
 
     /* Glass morphism variables */
     --glass-background: rgba(255, 255, 255, 0.05);
