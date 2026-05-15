@@ -93,103 +93,71 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              {/* Public routes - no authentication required */}
-              <Route path="/book/:bookingLink" element={<Booking />} />
-              <Route path="/bookingforms" element={<BookingForms />} />
-              <Route path="/find-barber" element={<FindBarber />} />
-              <Route path="/find-barbershop" element={<FindBarbershop />} />
-              <Route path="/my-bookings" element={<MyBookings />} />
-              <Route path="/me" element={<Me />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/" element={<FindBarber />} />
-              <Route path="/app" element={<LandingRoute />} />
-              <Route path="/superadmin" element={<SuperAdminLogin />} />
-              {/* <Route path="/superadmin/dashboard" element={
-                <SuperAdminRoute>
-                  <SuperAdminDashboard />
-                </SuperAdminRoute>
-              } /> */}
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/agenda" element={
-                <ProtectedRoute>
-                  <Agenda />
-                </ProtectedRoute>
-              } />
-              <Route path="/customers" element={
-                <ProtectedRoute>
-                  <Customers />
-                </ProtectedRoute>
-              } />
-              <Route
-                path="/choose-role"
-                element={
-                  <ProtectedRoute>
-                    <ChooseRole />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/complete-profile"
-                element={
-                  <ProtectedRoute>
-                    <CompleteProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/stylists" element={
-                <ProtectedRoute>
-                  <Stylists />
-                </ProtectedRoute>
-              } />
-              <Route path="/teams" element={
-                <ProtectedRoute>
-                  <Teams />
-                </ProtectedRoute>
-              } />
-              <Route path="/products" element={
-                <ProtectedRoute>
-                  <Products />
-                </ProtectedRoute>
-              } />
-              <Route path="/reports" element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              } />
-              <Route path="/services" element={
-                <ProtectedRoute>
-                  <Services />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/brand" element={
-                <ProtectedRoute>
-                  <Brand />
-                </ProtectedRoute>
-              } />
-              <Route path="/booking-page" element={
-                <ProtectedRoute>
-                  <BookingPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dbprevstats07" element={
-                <ProtectedRoute>
-                  <DbPrevStats />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedAppRoutes />
           </BrowserRouter>
+        </div>
+      </AuthProvider>
+    </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
+
+function AnimatedAppRoutes() {
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  const transition = isMobile
+    ? {
+        initial: { opacity: 0, x: 20 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -20 },
+      }
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+      };
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        {...transition}
+        transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+        style={{ minHeight: "100vh" }}
+      >
+        <Routes location={location}>
+          <Route path="/auth" element={<Auth />} />
+          {/* Public routes - no authentication required */}
+          <Route path="/book/:bookingLink" element={<Booking />} />
+          <Route path="/bookingforms" element={<BookingForms />} />
+          <Route path="/find-barber" element={<FindBarber />} />
+          <Route path="/find-barbershop" element={<FindBarbershop />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/me" element={<Me />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/" element={<FindBarber />} />
+          <Route path="/app" element={<LandingRoute />} />
+          <Route path="/superadmin" element={<SuperAdminLogin />} />
+          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+          <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
+          <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+          <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
+          <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
+          <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+          <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
         </div>
       </AuthProvider>
     </ThemeProvider>
