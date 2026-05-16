@@ -835,7 +835,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );
