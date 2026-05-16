@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
@@ -13,13 +14,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit2, Trash2, Clock, Scissors, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, Clock, Scissors, ChevronRight, Crown } from "lucide-react";
 import { IconPicker, getIconByName } from "@/components/IconPicker";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { usePremium, PREMIUM_LIMITS } from "@/hooks/use-premium";
 
 const db = supabase as any;
 
@@ -48,6 +50,7 @@ const hexFor = (key: string) =>
   ?? (key?.startsWith("#") ? key : ROSE);
 
 const Services = () => {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [formData, setFormData] = useState({
@@ -58,12 +61,13 @@ const Services = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isPremium } = usePremium();
 
   const { data: services = [], isLoading } = useQuery<Service[]>({
     queryKey: ["services", user?.id],
     queryFn: async (): Promise<Service[]> => {
       if (!user) return [];
-      const { data, error } = await db.from("services").select("*").eq("user_id", user.id).order("name");
+      const { data, error } = await db.from("services").select("*").eq("user_id", user.id).is("deleted_at", null).order("name");
       if (error) throw error;
       return (data || []) as Service[];
     },
@@ -94,6 +98,16 @@ const Services = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    // Free-tier cap
+    if (!editingService && !isPremium && services.length >= PREMIUM_LIMITS.freeServices) {
+      toast({
+        title: "Free plan limit reached",
+        description: `Upgrade to Pro for unlimited services (free is ${PREMIUM_LIMITS.freeServices}).`,
+        variant: "destructive",
+      });
+      navigate("/pricing");
+      return;
+    }
     try {
       const dur = Number(formData.duration);
       const duration = Number.isFinite(dur) && dur > 0 ? dur : 30;

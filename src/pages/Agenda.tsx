@@ -103,6 +103,7 @@ const Agenda = () => {
         .from('services')
         .select('*')
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .order('name');
       const { data, error } = result;
       

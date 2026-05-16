@@ -71,6 +71,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         .from('services')
         .select('*')
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .order('name');
       
       if (error) throw error;
@@ -411,15 +412,18 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className={cn(
-        "p-0 overflow-hidden bg-[#1a1a1a] border-0 shadow-2xl",
+        "p-0 overflow-hidden border-0 shadow-2xl",
         isMobile
-          ? "w-screen h-[100dvh] max-w-none rounded-none m-0"
-          : "max-w-5xl rounded-none"
+          ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#1a1a1a] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
+          : "max-w-5xl rounded-none bg-[#1a1a1a]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
         
-        <div
+        <motion.div
           ref={contentRef}
+          initial={isMobile ? { y: 24, opacity: 0 } : false}
+          animate={isMobile ? { y: 0, opacity: 1 } : {}}
+          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#1a1a1a]",
             isMobile ? "h-[100dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]" : "flex min-h-[600px]"
@@ -831,7 +835,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );

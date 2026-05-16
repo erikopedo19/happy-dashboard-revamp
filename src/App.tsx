@@ -13,6 +13,8 @@ import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
+import PricingSuccess from "./pages/PricingSuccess";
+import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 // import SuperAdminDashboard from "./pages/SuperAdminDashboard";
@@ -114,12 +116,13 @@ function App() {
               <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
               <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
               <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
-              <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
-              <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
+              <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
               <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+              <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
               <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
               <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
               <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />

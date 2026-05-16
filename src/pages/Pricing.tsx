@@ -15,7 +15,10 @@ export default function Pricing() {
     const url = new URL(STRIPE_PAYMENT_LINK);
     if (user?.email) url.searchParams.set("prefilled_email", user.email);
     if (user?.id) url.searchParams.set("client_reference_id", user.id);
-    window.open(url.toString(), "_blank", "noopener,noreferrer");
+    // Redirect back here after checkout
+    const origin = window.location.origin;
+    url.searchParams.set("success_url", `${origin}/pricing/success`);
+    window.location.href = url.toString();
     toast.info("Opening secure Stripe checkout…");
   }
 
