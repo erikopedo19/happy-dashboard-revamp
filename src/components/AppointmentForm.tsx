@@ -71,6 +71,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         .from('services')
         .select('*')
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .order('name');
       
       if (error) throw error;

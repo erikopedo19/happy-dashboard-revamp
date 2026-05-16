@@ -63,7 +63,7 @@ const Services = () => {
     queryKey: ["services", user?.id],
     queryFn: async (): Promise<Service[]> => {
       if (!user) return [];
-      const { data, error } = await db.from("services").select("*").eq("user_id", user.id).order("name");
+      const { data, error } = await db.from("services").select("*").eq("user_id", user.id).is("deleted_at", null).order("name");
       if (error) throw error;
       return (data || []) as Service[];
     },

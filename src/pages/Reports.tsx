@@ -212,6 +212,7 @@ const Reports = () => {
           .from("services")
           .select("id, name, color")
           .eq("user_id", user.id)
+          .is("deleted_at", null)
           .order("name"),
       ]);
 
