@@ -1,6 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
-import BookingFormPreview from "@/components/BookingFormPreview";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Globe, Share2, Eye } from "lucide-react";
@@ -54,57 +53,43 @@ const BookingPage = () => {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-4">
-              {/* Left column */}
-              <div className="space-y-4">
-                {/* Link generator card */}
-                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
-                  <BookingLinkGenerator />
-                </div>
+            <div className="max-w-2xl space-y-4">
+              {/* Link generator card */}
+              <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
+                <BookingLinkGenerator />
+              </div>
 
-                {/* How it works */}
-                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
-                  <div className="px-4 pt-4 pb-2">
-                    <h2 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-white">
-                      How it works
-                    </h2>
-                  </div>
-                  <div className="divide-y divide-[#E5E5EA] dark:divide-[#2C2C2E]">
-                    <Step n={1} title="Generate your link" desc="Create a unique booking URL for your business." />
-                    <Step n={2} title="Share with customers" desc="Post on social, email signatures, or your website." />
-                    <Step n={3} title="Receive bookings" desc="New appointments appear instantly in your agenda." />
-                  </div>
+              {/* How it works */}
+              <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
+                <div className="px-4 pt-4 pb-2">
+                  <h2 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-white">
+                    How it works
+                  </h2>
                 </div>
-
-                {/* Quick stats row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-4">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
-                      style={{ background: `${ROSE}18` }}>
-                      <Share2 className="h-4 w-4" style={{ color: ROSE }} />
-                    </div>
-                    <p className="text-[13px] text-[#8E8E93]">Share anywhere</p>
-                    <p className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">One link</p>
-                  </div>
-                  <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-4">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
-                      style={{ background: `${ROSE}18` }}>
-                      <Eye className="h-4 w-4" style={{ color: ROSE }} />
-                    </div>
-                    <p className="text-[13px] text-[#8E8E93]">Live preview</p>
-                    <p className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">Always visible</p>
-                  </div>
+                <div className="divide-y divide-[#E5E5EA] dark:divide-[#2C2C2E]">
+                  <Step n={1} title="Generate your link" desc="Create a unique booking URL for your business." />
+                  <Step n={2} title="Share with customers" desc="Post on social, email signatures, or your website." />
+                  <Step n={3} title="Receive bookings" desc="New appointments appear instantly in your agenda." />
                 </div>
               </div>
 
-              {/* Right column — Preview */}
-              <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
-                <div className="px-4 pt-4 pb-3 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
-                  <h2 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-white">Form preview</h2>
-                  <p className="text-[13px] text-[#8E8E93] mt-0.5">What customers see when they book.</p>
+              {/* Quick stats row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
+                    style={{ background: `${ROSE}18` }}>
+                    <Share2 className="h-4 w-4" style={{ color: ROSE }} />
+                  </div>
+                  <p className="text-[13px] text-[#8E8E93]">Share anywhere</p>
+                  <p className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">One link</p>
                 </div>
-                <div className="p-4">
-                  <BookingFormPreview />
+                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
+                    style={{ background: `${ROSE}18` }}>
+                    <Eye className="h-4 w-4" style={{ color: ROSE }} />
+                  </div>
+                  <p className="text-[13px] text-[#8E8E93]">Instant sync</p>
+                  <p className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">Auto agenda</p>
                 </div>
               </div>
             </div>

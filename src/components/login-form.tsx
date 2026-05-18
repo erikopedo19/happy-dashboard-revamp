@@ -211,9 +211,9 @@ export function LoginForm() {
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 transition-all duration-200">
-                <TabsTrigger value="signin" className="transition-all duration-200 data-[state=active]:scale-105 data-[state=active]:shadow-md">Sign in</TabsTrigger>
-                <TabsTrigger value="signup" className="transition-all duration-200 data-[state=active]:scale-105 data-[state=active]:shadow-md">Sign up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 gap-1 h-11 p-1 rounded-xl">
+                <TabsTrigger value="signin" className="h-9 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:shadow-sm">Sign in</TabsTrigger>
+                <TabsTrigger value="signup" className="h-9 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:shadow-sm">Sign up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
