@@ -415,25 +415,23 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <div className="overflow-x-auto -mx-1 px-1">
-                      <TabsList className="inline-flex w-max min-w-full justify-start rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto">
-                        <TabsTrigger value="general" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                          <Settings2 className="w-4 h-4 mr-2" />General
-                        </TabsTrigger>
-                        <TabsTrigger value="booking" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                          <Link2 className="w-4 h-4 mr-2" />Booking
-                        </TabsTrigger>
-                        <TabsTrigger value="messages" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                          <Sparkles className="w-4 h-4 mr-2" />Messages
-                        </TabsTrigger>
-                        <TabsTrigger value="notifications" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                          <Bell className="w-4 h-4 mr-2" />Notifications
-                        </TabsTrigger>
-                        <TabsTrigger value="business" className="rounded-xl whitespace-nowrap data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                          <Store className="w-4 h-4 mr-2" />Business
-                        </TabsTrigger>
-                      </TabsList>
-                    </div>
+                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto">
+                      <TabsTrigger value="general" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Settings2 className="w-4 h-4" />General
+                      </TabsTrigger>
+                      <TabsTrigger value="booking" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Link2 className="w-4 h-4" />Booking
+                      </TabsTrigger>
+                      <TabsTrigger value="messages" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Sparkles className="w-4 h-4" />Messages
+                      </TabsTrigger>
+                      <TabsTrigger value="notifications" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Bell className="w-4 h-4" />Alerts
+                      </TabsTrigger>
+                      <TabsTrigger value="business" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Store className="w-4 h-4" />Business
+                      </TabsTrigger>
+                    </TabsList>
 
                     <TabsContent value="messages" className="mt-0 space-y-6">
                       <MessageTemplates />

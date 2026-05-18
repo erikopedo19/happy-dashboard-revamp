@@ -1,6 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
-import BookingFormPreview from "@/components/BookingFormPreview";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Globe, Share2, Eye } from "lucide-react";
