@@ -78,6 +78,54 @@ export function DashboardContent() {
     // New customers in last 30 days
     const newCustomers30 = (customers as any[]).filter((c: any) => c.created_at && isAfter(parseISO(c.created_at), subDays(new Date(), 30))).length;
 
+    // Top services by booking count (last 30d)
+    const serviceMap = new Map<string, { name: string; count: number; revenue: number }>();
+    last30.forEach((a: any) => {
+      const name = a.service?.name || 'Service';
+      const cur = serviceMap.get(name) || { name, count: 0, revenue: 0 };
+      cur.count += 1;
+      cur.revenue += Number(a.price || a.service?.price || 0);
+      serviceMap.set(name, cur);
+    });
+    const topServices = Array.from(serviceMap.values()).sort((a, b) => b.count - a.count).slice(0, 4);
+
+    // Top customers
+    const customerMap = new Map<string, { name: string; visits: number; spend: number }>();
+    appointments.forEach((a: any) => {
+      const name = a.customer?.name || 'Walk-in';
+      const cur = customerMap.get(name) || { name, visits: 0, spend: 0 };
+      cur.visits += 1;
+      cur.spend += Number(a.price || a.service?.price || 0);
+      customerMap.set(name, cur);
+    });
+    const topCustomers = Array.from(customerMap.values()).sort((a, b) => b.spend - a.spend).slice(0, 4);
+
+    // Busiest hour
+    const hourMap = new Map<number, number>();
+    appointments.forEach((a: any) => {
+      const h = parseInt((a.appointment_time || '0').slice(0, 2));
+      hourMap.set(h, (hourMap.get(h) || 0) + 1);
+    });
+    const busiest = Array.from(hourMap.entries()).sort((a, b) => b[1] - a[1])[0];
+    const busiestHour = busiest ? `${busiest[0].toString().padStart(2, '0')}:00` : '—';
+
+    // Week ahead bookings (next 7 days, grouped by day)
+    const weekAhead: { label: string; count: number; isToday: boolean }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(new Date(), i);
+      const key = format(d, 'yyyy-MM-dd');
+      weekAhead.push({
+        label: format(d, 'EEE'),
+        count: appointments.filter((a: any) => a.appointment_date === key && a.status !== 'cancelled').length,
+        isToday: i === 0,
+      });
+    }
+
+    // Completion rate
+    const completed = appointments.filter((a: any) => a.status === 'completed').length;
+    const cancelled = appointments.filter((a: any) => a.status === 'cancelled').length;
+    const completionRate = appointments.length ? Math.round((completed / appointments.length) * 100) : 0;
+
     return {
       todays: todays.length,
       todayRevenue,
@@ -88,6 +136,14 @@ export function DashboardContent() {
       trend,
       revenueTrend,
       days,
+      topServices,
+      topCustomers,
+      busiestHour,
+      weekAhead,
+      completed,
+      cancelled,
+      completionRate,
+      avgTicket: last30.length ? Math.round(last30Revenue / last30.length) : 0,
     };
   }, [appointments, customers]);
 
