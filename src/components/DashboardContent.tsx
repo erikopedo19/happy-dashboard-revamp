@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import {
   Calendar, Users, Plus, ArrowUpRight, ArrowDownRight, DollarSign, Clock, ChevronRight,
+  TrendingUp, Star, Activity, Scissors,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, isToday, subDays, isAfter } from 'date-fns';
+import { format, parseISO, isToday, subDays, isAfter, addDays, startOfWeek } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
