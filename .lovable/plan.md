@@ -1,58 +1,51 @@
-# Plan
+## 1. Premium unlock audit (Stripe → Pro role)
 
-## 1. Settings → simple "Your plan" card
+**Current flow (verified):**
+- `Pricing.tsx` → redirects to Stripe Payment Link with `client_reference_id = user.id`
+- `stripe-webhook` edge function → verifies signature, upserts `subscribers` row with `subscribed=true, subscription_tier='Pro', subscription_end=…`
+- `usePremium` hook → reads `subscribers`, treats `subscribed && (end is null || end > now)` as Pro
+- `PremiumGate` component → wraps gated pages
 
-Replace the full pricing table inside Settings with a compact iOS-style card:
+**Small fixes I'll apply:**
+- In `stripe-webhook`, `checkout.session.completed` currently uses `s.expires_at` for `subscription_end` (that's the *checkout session* expiry, not the subscription period). I'll switch to fetching the subscription period via the `subscription` object on the session, falling back to `invoice.payment_succeeded` (which already sets it correctly).
+- Add `customer.subscription.updated` handler so plan changes / renewals refresh `subscription_end` and `subscribed` accurately — this is what makes "premium for as long as they pay" automatic. When Stripe cancels at period end, `subscribed` flips to false.
 
-- Title: **Your plan** · Badge: `Free` or `Pro`
-- One line: "Active until Jun 14" (Pro) or "Upgrade to unlock map listing & unlimited bookings" (Free)
-- Single primary button: **Manage plan** → navigates to `/pricing`
+**Manual test guide (Stripe test mode):**
+1. In Stripe Dashboard → switch to Test mode → use the Payment Link in test mode (or create a test one)
+2. Sign in to the app with a test user → go to `/pricing` → click Pro → checkout with card `4242 4242 4242 4242`
+3. Watch the webhook in Supabase → `stripe-webhook` logs should show `checkout.session.completed`
+4. Run in SQL editor: `select * from subscribers where email = '<your email>'` → confirm `subscribed=true`
+5. Refresh the app → gated pages should unlock immediately (the hook re-checks on window focus)
+6. To test downgrade: in Stripe → cancel the test subscription → webhook fires `customer.subscription.deleted` → `subscribed=false` → pages re-lock
 
-The full `PricingTableOne` lives only on `/pricing`. No more inline pricing on Settings.
+## 2. Push notifications for new bookings (Web + iOS)
 
-## 2. Stripe: payment-link only, no secret key
+### Database
+- New table `push_subscriptions(user_id, endpoint, p256dh, auth, platform, created_at)` for Web Push
+- New table `device_tokens(user_id, token, platform, created_at)` for APNs
+- DB trigger on `notifications` INSERT → calls `send-push` edge function via `pg_net` (so pushes fire even when app is closed)
 
-Stop calling Stripe's API. Remove dependency on `STRIPE_SECRET_KEY`.
+### Web Push (PC + Android + installed iOS PWA)
+- Generate VAPID key pair (I'll need you to add `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` as secrets)
+- `public/sw.js` service worker — listens for `push` events, shows notification, deep-links on click
+- `src/lib/push.ts` — registers SW, requests permission, subscribes, stores subscription in DB
+- Settings page → "Enable booking alerts" toggle
+- `send-push` edge function fans out to all subscriptions for the booking owner
 
-- Drop `check-subscription`, `create-checkout`, `customer-portal` invocations from the client.
-- New table column already exists (`subscribers.subscribed`); we'll read it directly via the Supabase client (RLS: own row only).
-- Subscription state is updated by a **Stripe webhook** (signature-verified, no secret key needed for our app — just `STRIPE_WEBHOOK_SECRET`):
-  - `checkout.session.completed` → set `subscribed = true`, `subscription_end = period_end`
-  - `customer.subscription.deleted` / `invoice.payment_failed` → set `subscribed = false`
-- "Manage subscription" becomes a plain link to Stripe's hosted **customer portal link** (configurable in Stripe dashboard, no API call).
-- Until the webhook is wired in Stripe dashboard, status stays at whatever's in the DB (manual toggle works for testing).
+### Native iOS (APNs)
+- `send-push` edge function also sends to APNs via JWT auth (token-based, no certs)
+- Needs these secrets from you (Apple Developer account):
+  - `APNS_KEY_ID` (10-char Key ID)
+  - `APNS_TEAM_ID` (10-char Team ID)
+  - `APNS_BUNDLE_ID` (e.g. `com.cutzio.app`)
+  - `APNS_PRIVATE_KEY` (contents of the `.p8` file)
+  - `APNS_USE_SANDBOX` (`true` for dev, `false` for prod)
+- iOS app changes (in `ios/CutzioApp`):
+  - Register for remote notifications on launch
+  - Upsert the device token into `device_tokens` via Supabase Swift SDK after sign-in
+  - I'll provide the Swift snippet to drop in
 
-## 3. Address pasted → auto map marker
+### After approval
+I'll: apply the webhook fixes → run migrations for the two tables + trigger → write the service worker + push lib → write `send-push` edge function → request the VAPID + APNs secrets → give you the iOS snippet and test steps.
 
-In Settings → Business identity, the address field already exists. Add:
-
-- On blur of the address input, geocode via a free provider (Nominatim — no API key) and write `latitude` / `longitude` to `profiles`.
-- Small inline preview map below the field showing the pinned location (read-only MapLibre).
-- The existing public `BarbershopMap` (FindBarbershop page) already reads `list_public_shops()` which returns lat/lng — clients will see the new pin automatically once `is_public = true`.
-
-## 4. Mobile admin UI polish (iOS clean)
-
-Pass over the admin pages at ≤414px:
-
-- Remove heavy colored tab pills / gradient chips → use neutral `bg-muted` with rounded-2xl, single accent color only on active state.
-- Cards: `rounded-3xl`, `border-[#E5E5EA] dark:border-[#2C2C2E]`, no shadow except a soft `shadow-[0_1px_2px_rgba(0,0,0,0.04)]`.
-- Replace any colored icon backgrounds (purple/blue/green tinted boxes) with monochrome `bg-muted` + `text-foreground` icons.
-- Tighter spacing: `px-4 py-5` sections, larger touch targets (44px min).
-- Pages in scope: Dashboard, Agenda, Customers, Settings, Products. Skip desktop (≥768px) — keep current.
-
-## Files touched
-
-- `src/components/SubscriptionCard.tsx` — rewrite as compact card
-- `src/pages/Pricing.tsx` — already exists, keep
-- `src/pages/Settings.tsx` — add geocode-on-blur + inline preview map for address
-- `src/components/ui/map.tsx` — add `<AddressPreviewMap lat lng />` variant
-- `src/lib/geocode.ts` — new, Nominatim wrapper
-- `supabase/functions/stripe-webhook/index.ts` — new, signature-verified webhook
-- Delete: `supabase/functions/check-subscription`, `create-checkout`, `customer-portal`
-- Mobile pass: `Dashboard.tsx`, `Agenda.tsx`, `Customers.tsx`, `Settings.tsx`, `Products.tsx`, `MobileDock.tsx`
-
-## What you'll need to do after
-
-1. Add `STRIPE_WEBHOOK_SECRET` (I'll prompt) — this is the webhook signing secret, NOT your secret API key.
-2. In Stripe dashboard → Webhooks → add endpoint pointing to the new function URL, select the 3 events above.
-3. In Stripe dashboard → Customer Portal → enable + copy the portal link, paste into one config var.
+If you don't have APNs credentials handy, I can ship Web Push fully working today and stub the APNs path so it activates the moment you add the secrets.
