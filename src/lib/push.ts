@@ -1,6 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+let cachedVapid: string | null = null;
+async function getVapidPublicKey(): Promise<string | null> {
+  if (cachedVapid) return cachedVapid;
+  try {
+    const { data, error } = await (supabase as any).functions.invoke("vapid-public-key");
+    if (error || !data?.key) return null;
+    cachedVapid = data.key as string;
+    return cachedVapid;
+  } catch { return null; }
+}
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -22,7 +31,8 @@ export async function registerSW() {
 
 export async function enableBookingPush(): Promise<{ ok: boolean; reason?: string }> {
   if (!pushSupported()) return { ok: false, reason: "Push not supported on this device/browser" };
-  if (!VAPID_PUBLIC_KEY) return { ok: false, reason: "Missing VAPID public key" };
+  const vapid = await getVapidPublicKey();
+  if (!vapid) return { ok: false, reason: "Server missing VAPID public key — add VAPID_PUBLIC_KEY secret" };
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, reason: "Not signed in" };
@@ -37,7 +47,7 @@ export async function enableBookingPush(): Promise<{ ok: boolean; reason?: strin
   if (!sub) {
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      applicationServerKey: urlBase64ToUint8Array(vapid),
     });
   }
 
