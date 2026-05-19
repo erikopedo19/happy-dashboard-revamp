@@ -59,6 +59,13 @@ serve(async (req) => {
   };
 
   try {
+    // Helper to find email from a customer id by checking existing subscribers row
+    const emailFromCustomer = async (cid: string | null | undefined) => {
+      if (!cid) return null;
+      const { data } = await supabase.from("subscribers").select("email").eq("stripe_customer_id", cid).maybeSingle();
+      return data?.email ?? null;
+    };
+
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object;
@@ -68,7 +75,7 @@ serve(async (req) => {
             subscribed: true,
             subscription_tier: "Pro",
             stripe_customer_id: s.customer,
-            subscription_end: s.expires_at ? new Date(s.expires_at * 1000).toISOString() : null,
+            // We'll get the accurate period end from invoice.payment_succeeded; leave null here.
             updated_at: new Date().toISOString(),
           });
         }
@@ -76,7 +83,7 @@ serve(async (req) => {
       }
       case "invoice.payment_succeeded": {
         const inv = event.data.object;
-        const email = inv.customer_email;
+        const email = inv.customer_email || (await emailFromCustomer(inv.customer));
         const periodEnd = inv.lines?.data?.[0]?.period?.end;
         if (email) {
           await upsert(email, {
@@ -89,16 +96,32 @@ serve(async (req) => {
         }
         break;
       }
+      case "customer.subscription.updated": {
+        const sub = event.data.object;
+        const email = await emailFromCustomer(sub.customer);
+        if (email) {
+          const active = sub.status === "active" || sub.status === "trialing";
+          await upsert(email, {
+            subscribed: active,
+            subscription_tier: active ? "Pro" : null,
+            stripe_customer_id: sub.customer,
+            subscription_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
+            updated_at: new Date().toISOString(),
+          });
+        }
+        break;
+      }
       case "customer.subscription.deleted":
       case "invoice.payment_failed": {
         const o = event.data.object;
-        const email = o.customer_email;
+        const email = o.customer_email || (await emailFromCustomer(o.customer));
         if (email) {
           await upsert(email, { subscribed: false, updated_at: new Date().toISOString() });
         }
         break;
       }
     }
+
     return new Response(JSON.stringify({ received: true }), {
       headers: { "Content-Type": "application/json" },
     });
