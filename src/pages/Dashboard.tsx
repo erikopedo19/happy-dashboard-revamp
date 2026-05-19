@@ -22,14 +22,8 @@ const Dashboard = () => {
       <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] flex flex-col overflow-hidden">
-          {isMobile ? (
-            <MobileDashboard />
-          ) : (
-            <>
-              <DashboardContent />
-              <MobileDock />
-            </>
-          )}
+          <DashboardContent />
+          {isMobile && <MobileDock />}
         </main>
       </div>
     </SidebarProvider>
