@@ -157,7 +157,7 @@ export function DashboardContent() {
 
   return (
     <div className="h-full overflow-auto bg-[#F5F5F7] dark:bg-[#0c0c0c]">
-      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-8 max-w-[1400px] mx-auto space-y-4 sm:space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-32 sm:pb-8 max-w-[1400px] mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
