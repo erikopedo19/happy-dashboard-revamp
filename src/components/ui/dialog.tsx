@@ -30,15 +30,42 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const innerRef = React.useRef<HTMLDivElement | null>(null);
+  // Merge refs
+  const setRefs = React.useCallback((node: HTMLDivElement | null) => {
+    innerRef.current = node;
+    if (typeof ref === "function") ref(node);
+    else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+  }, [ref]);
+
+  // When a field inside the sheet receives focus on mobile, scroll it into view
+  // so the on-screen keyboard does not cover it.
+  React.useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const onFocusIn = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      if (!["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return;
+      // Defer to let the keyboard animate, then center the field
+      setTimeout(() => {
+        t.scrollIntoView({ block: "center", behavior: "smooth" });
+      }, 250);
+    };
+    el.addEventListener("focusin", onFocusIn);
+    return () => el.removeEventListener("focusin", onFocusIn);
+  }, []);
+
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
-      ref={ref}
+      ref={setRefs}
       className={cn(
         // Mobile: bottom sheet with iOS-style spring slide-up, safe-area, drag handle space
         "fixed z-50 bg-background shadow-2xl duration-300",
-        "inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border-t p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+        "inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto overscroll-contain rounded-t-3xl border-t p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
         // Desktop: classic centered modal
@@ -57,7 +84,8 @@ const DialogContent = React.forwardRef<
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-))
+  );
+})
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
 const DialogHeader = ({

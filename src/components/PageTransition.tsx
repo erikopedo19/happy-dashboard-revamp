@@ -1,14 +1,50 @@
 import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+const SESSION_KEY = "pt:seen-routes";
+
+function getSeen(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function markSeen(path: string) {
+  try {
+    const seen = getSeen();
+    seen.add(path);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(Array.from(seen)));
+  } catch {
+    /* noop */
+  }
+}
 
 /**
  * iOS-style page transition wrapper.
- * Mobile: subtle slide + fade (right→left) like a UINavigationController push.
- * Desktop: gentle opacity/scale fade.
+ * Plays the slide/fade animation only the FIRST time a route is opened in
+ * this session. Repeat visits render instantly for a snappier feel.
  */
 export const PageTransition = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
+  const { pathname } = useLocation();
+
+  // Decide once per mount, before the first paint
+  const shouldAnimateRef = useRef<boolean | null>(null);
+  if (shouldAnimateRef.current === null) {
+    const seen = getSeen();
+    shouldAnimateRef.current = !seen.has(pathname);
+    if (shouldAnimateRef.current) markSeen(pathname);
+  }
+  const shouldAnimate = shouldAnimateRef.current;
+
+  if (!shouldAnimate) {
+    return <div style={{ height: "100%" }}>{children}</div>;
+  }
 
   return (
     <motion.div
