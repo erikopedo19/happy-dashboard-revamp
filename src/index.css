@@ -140,68 +140,85 @@ html, body, #root {
     font-family: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  /* Splash screen styling */
+  /* Splash screen — refined iOS loader */
   .splash-screen {
     position: fixed;
     inset: 0;
     z-index: 9999;
     display: grid;
     place-items: center;
-    background: radial-gradient(circle at 20% 20%, hsl(var(--muted) / 0.6), transparent 40%),
-      radial-gradient(circle at 80% 30%, hsl(var(--accent) / 0.25), transparent 35%),
+    background:
+      radial-gradient(circle at 50% 40%, hsl(var(--muted) / 0.5), transparent 55%),
       hsl(var(--background));
-    overflow: hidden;
+    animation: splash-out 0.5s ease 2.5s forwards;
   }
 
-  .splash-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--background) / 0.8));
-  }
-
-  .splash-content {
+  .splash-stage {
     position: relative;
-    width: min(360px, 60vw);
-    aspect-ratio: 1;
+    width: 132px;
+    height: 132px;
     display: grid;
     place-items: center;
-    filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.35));
   }
 
   .splash-logo {
-    max-width: 100%;
-    max-height: 100%;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
-    animation: splash-pop 0.7s ease forwards;
     opacity: 0;
+    transform: scale(0.85);
+    animation: splash-logo-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+    filter: drop-shadow(0 8px 24px hsl(var(--foreground) / 0.18));
   }
 
-  .splash-wipe {
+  .splash-ring {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.08) 20%,
-      rgba(255, 255, 255, 0.2) 50%,
-      rgba(255, 255, 255, 0.08) 80%,
-      transparent 100%);
-    transform: translateX(-100%);
-    animation: splash-wipe 1.4s ease forwards 0.4s;
-    pointer-events: none;
+    border-radius: 50%;
+    border: 2px solid hsl(var(--foreground) / 0.08);
   }
 
-  @keyframes splash-pop {
-    0% { transform: scale(0.9); opacity: 0; }
-    60% { transform: scale(1.02); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+  .splash-ring::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: hsl(var(--foreground) / 0.85);
+    animation: splash-spin 1.1s linear infinite;
   }
 
-  @keyframes splash-wipe {
-    0% { transform: translateX(-120%); opacity: 0; }
-    20% { opacity: 1; }
-    70% { transform: translateX(10%); opacity: 1; }
-    100% { transform: translateX(120%); opacity: 0; }
+  .splash-label {
+    position: absolute;
+    bottom: -44px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    opacity: 0;
+    animation: splash-fade-in 0.6s ease 0.6s forwards;
+    white-space: nowrap;
   }
+
+  @keyframes splash-logo-in {
+    0% { opacity: 0; transform: scale(0.82); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes splash-fade-in {
+    to { opacity: 1; }
+  }
+
+  @keyframes splash-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes splash-out {
+    to { opacity: 0; visibility: hidden; }
+  }
+
 
   .glass-heading {
     font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
