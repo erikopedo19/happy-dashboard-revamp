@@ -84,14 +84,10 @@ function App() {
             <Sonner />
             {showSplash && (
               <div className="splash-screen">
-                <div className="splash-overlay" />
-                <div className="splash-content">
-                  <img
-                    src={logoSrc}
-                    alt="Logo"
-                    className="splash-logo"
-                  />
-                  <div className="splash-wipe" />
+                <div className="splash-stage">
+                  <div className="splash-ring" />
+                  <img src={logoSrc} alt="Logo" className="splash-logo" />
+                  <span className="splash-label">Loading</span>
                 </div>
               </div>
             )}
