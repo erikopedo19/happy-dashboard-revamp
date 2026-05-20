@@ -17,7 +17,7 @@ import PricingSuccess from "./pages/PricingSuccess";
 import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
-// import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -106,6 +106,7 @@ function App() {
               <Route path="/" element={<LandingRoute />} />
               <Route path="/app" element={<LandingRoute />} />
               <Route path="/superadmin" element={<SuperAdminLogin />} />
+              <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
               <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
