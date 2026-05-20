@@ -569,4 +569,18 @@ const Stylists = () => {
   );
 };
 
+function StatPill({ label, value, accent }: { label: string; value: number; accent?: "emerald" | "amber" }) {
+  const color = accent === "emerald"
+    ? "text-emerald-600 dark:text-emerald-400"
+    : accent === "amber"
+    ? "text-amber-600 dark:text-amber-400"
+    : "text-[#1C1C1E] dark:text-[#F2F2F7]";
+  return (
+    <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 px-3 py-2.5">
+      <p className="text-[10px] uppercase tracking-wider text-[#8E8E93]">{label}</p>
+      <p className={cn("text-xl font-semibold mt-0.5", color)}>{value}</p>
+    </div>
+  );
+}
+
 export default Stylists;
