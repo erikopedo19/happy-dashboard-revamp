@@ -1,6 +1,7 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
@@ -40,6 +41,7 @@ import ManageBooking from "./pages/ManageBooking";
 import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
+import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
@@ -64,6 +66,54 @@ const LandingRoute = () => {
   // Logged out → marketing landing page
   return <Landing />;
 };
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Routes location={location}>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/book/:bookingLink" element={<Booking />} />
+          <Route path="/manage/:token" element={<ManageBooking />} />
+          <Route path="/bookingforms" element={<BookingForms />} />
+          <Route path="/find-barber" element={<FindBarber />} />
+          <Route path="/find-barbershop" element={<FindBarbershop />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/me" element={<Me />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/" element={<LandingRoute />} />
+          <Route path="/app" element={<LandingRoute />} />
+          <Route path="/superadmin" element={<SuperAdminLogin />} />
+          <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+          <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
+          <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+          <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
+          <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
+          <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+          <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+          <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
+          <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+          <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -92,40 +142,9 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              {/* Public routes - no authentication required */}
-              <Route path="/book/:bookingLink" element={<Booking />} />
-              <Route path="/manage/:token" element={<ManageBooking />} />
-              <Route path="/bookingforms" element={<BookingForms />} />
-              <Route path="/find-barber" element={<FindBarber />} />
-              <Route path="/find-barbershop" element={<FindBarbershop />} />
-              <Route path="/my-bookings" element={<MyBookings />} />
-              <Route path="/me" element={<Me />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/" element={<LandingRoute />} />
-              <Route path="/app" element={<LandingRoute />} />
-              <Route path="/superadmin" element={<SuperAdminLogin />} />
-              <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-              <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-              <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
-              <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
-              <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
-              <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
-              <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
-              <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-              <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
-              <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
-              <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-              <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedRoutes />
             <NotificationBell />
+            <PremiumGiftPopup />
             <PersistentDock />
           </BrowserRouter>
         </div>

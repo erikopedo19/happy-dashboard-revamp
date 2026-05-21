@@ -53,10 +53,14 @@ export function usePremium(): PremiumState {
   useEffect(() => {
     setLoading(true);
     load();
-    // Re-check when window regains focus (after returning from Stripe)
     const onFocus = () => load();
+    const onRefresh = () => load();
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    window.addEventListener("premium:refresh", onRefresh);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("premium:refresh", onRefresh);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 

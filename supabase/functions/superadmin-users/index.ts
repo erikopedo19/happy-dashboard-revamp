@@ -36,10 +36,9 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get("action") ?? "list";
+    const isMutation = req.method === "POST";
 
-    if (req.method === "GET" || action === "list") {
-      // Paginate through all auth users
+    if (!isMutation) {
       const all: any[] = [];
       let page = 1;
       while (true) {
@@ -48,10 +47,9 @@ Deno.serve(async (req) => {
         all.push(...(data.users ?? []));
         if (!data.users || data.users.length < 200) break;
         page++;
-        if (page > 25) break; // safety
+        if (page > 25) break;
       }
       const ids = all.map((u) => u.id);
-      const emails = all.map((u) => u.email?.toLowerCase()).filter(Boolean) as string[];
 
       const [{ data: profiles }, { data: subs }] = await Promise.all([
         admin.from("profiles").select("id, full_name, business_name, avatar_url, role").in("id", ids),
@@ -59,11 +57,11 @@ Deno.serve(async (req) => {
       ]);
       const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
       const sByUser = new Map((subs ?? []).filter((s: any) => s.user_id).map((s: any) => [s.user_id, s]));
-      const sByEmail = new Map((subs ?? []).map((s: any) => [s.email?.toLowerCase(), s]));
+      const sByEmail = new Map((subs ?? []).map((s: any) => [(s.email ?? "").toLowerCase(), s]));
 
       const rows = all.map((u) => {
         const profile = pMap.get(u.id) ?? {};
-        const sub = sByUser.get(u.id) ?? sByEmail.get(u.email?.toLowerCase() ?? "") ?? null;
+        const sub = sByUser.get(u.id) ?? sByEmail.get((u.email ?? "").toLowerCase()) ?? null;
         const active = !!sub?.subscribed && (!sub?.subscription_end || new Date(sub.subscription_end) > new Date());
         return {
           id: u.id,
@@ -83,30 +81,83 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (req.method === "POST") {
-      const body = await req.json();
-      const { user_id, email, subscribed, subscription_tier, subscription_end } = body ?? {};
-      if (!user_id || !email) {
-        return new Response(JSON.stringify({ error: "user_id and email required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      const fields: any = { updated_at: new Date().toISOString() };
-      if (typeof subscribed === "boolean") fields.subscribed = subscribed;
-      if (subscription_tier !== undefined) fields.subscription_tier = subscription_tier;
-      if (subscription_end !== undefined) fields.subscription_end = subscription_end;
-
-      const { data: existing } = await admin.from("subscribers").select("id").eq("user_id", user_id).maybeSingle();
-      if (existing) {
-        await admin.from("subscribers").update(fields).eq("user_id", user_id);
-      } else {
-        await admin.from("subscribers").insert({ user_id, email, subscribed: !!subscribed, subscription_tier: subscription_tier ?? "Pro", subscription_end: subscription_end ?? null });
-      }
-      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // POST: upsert subscription
+    const body = await req.json().catch(() => ({}));
+    const { user_id, email, subscribed, subscription_tier, subscription_end } = body ?? {};
+    if (!user_id || !email) {
+      return new Response(JSON.stringify({ error: "user_id and email required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ error: "Unsupported" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const tier = subscription_tier ?? "Pro";
+    const endIso = subscription_end ?? null;
+    const sub = !!subscribed;
+
+    // Find any existing row by user_id OR email (some rows may have been created by Stripe with email only).
+    const { data: existingRows, error: findErr } = await admin
+      .from("subscribers")
+      .select("id, user_id, email")
+      .or(`user_id.eq.${user_id},email.eq.${email}`);
+    if (findErr) throw findErr;
+
+    let savedId: string | null = null;
+    if (existingRows && existingRows.length > 0) {
+      // Keep the first row, update it; delete any duplicates to avoid drift.
+      const [keep, ...dupes] = existingRows;
+      const { error: upErr } = await admin
+        .from("subscribers")
+        .update({
+          user_id,
+          email,
+          subscribed: sub,
+          subscription_tier: sub ? tier : null,
+          subscription_end: endIso,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", keep.id);
+      if (upErr) throw upErr;
+      savedId = keep.id;
+      if (dupes.length) {
+        await admin.from("subscribers").delete().in("id", dupes.map((d: any) => d.id));
+      }
+    } else {
+      const { data: ins, error: insErr } = await admin
+        .from("subscribers")
+        .insert({
+          user_id,
+          email,
+          subscribed: sub,
+          subscription_tier: sub ? tier : null,
+          subscription_end: endIso,
+        })
+        .select("id")
+        .single();
+      if (insErr) throw insErr;
+      savedId = ins.id;
+    }
+
+    // Drop a celebratory notification when premium is granted.
+    if (sub) {
+      const untilStr = endIso ? ` until ${new Date(endIso).toLocaleDateString()}` : "";
+      await admin.from("notifications").insert({
+        user_id,
+        type: "premium_granted",
+        title: `🎁 You unlocked ${tier} from Cutzioo`,
+        body: `All premium features are now unlocked${untilStr}. Enjoy!`,
+      });
+    }
+
+    // Verify by re-reading
+    const { data: verify } = await admin
+      .from("subscribers")
+      .select("user_id, email, subscribed, subscription_tier, subscription_end")
+      .eq("id", savedId!)
+      .maybeSingle();
+
+    return new Response(JSON.stringify({ ok: true, subscriber: verify }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
-    console.error(e);
+    console.error("superadmin-users error", e);
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
