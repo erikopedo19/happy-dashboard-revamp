@@ -115,7 +115,7 @@ function AnimatedRoutes() {
   );
 }
 
-
+function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
