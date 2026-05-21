@@ -493,7 +493,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Center Panel - Calendar */}
           <div className={cn(
             "bg-[#1a1a1a]",
-            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a]"
+            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a] overflow-y-auto"
           )}>
             {isMobile && (
               <div className="flex items-center gap-2 mb-5">
