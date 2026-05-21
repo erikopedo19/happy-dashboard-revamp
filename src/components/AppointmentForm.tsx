@@ -336,30 +336,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       if (appointmentError) throw appointmentError;
 
-      // Send confirmation email + SMS (non-blocking)
-      if (customerEmail || customerPhone) {
-        try {
-          await (supabase as any).functions.invoke('send-booking-confirmation', {
-            body: {
-              customerEmail: customerEmail || undefined,
-              customerName,
-              customerPhone: customerPhone || undefined,
-              businessName: profile?.business_name || profile?.full_name || 'Your appointment',
-              serviceName: validSelectedService.name,
-              appointmentDate: format(selectedDateObj, 'EEEE, MMMM d, yyyy'),
-              appointmentTime: selectedTimeSlot,
-              price: validSelectedService.price,
-              notes: notes.trim() || undefined,
-              bookingId: createdAppt?.id?.toString().substring(0, 8),
-              accentColor: profile?.brand_color || '#1a1a1a',
-              senderEmail: profile?.sender_email || 'noreply@cutzioo.com',
-              senderName: profile?.sender_name || profile?.business_name || profile?.full_name || 'Cutzioo',
-            },
-          });
-        } catch (emailErr) {
-          console.warn('Confirmation email/SMS failed:', emailErr);
-        }
-      }
+      // Confirmation email + SMS sent automatically by DB trigger (works for all booking sources)
+
 
       toast({
         title: "Appointment Booked!",
