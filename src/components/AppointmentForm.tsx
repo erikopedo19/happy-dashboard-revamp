@@ -742,7 +742,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {step === "datetime" && showTimeSelection && selectedService && (
             <div className={cn(
               "bg-[#1a1a1a]",
-              isMobile ? "p-4 pb-8" : "w-[280px] p-6"
+              isMobile ? "p-4 pb-8" : "w-[280px] p-6 overflow-y-auto"
             )}>
               {!showSelectedTimeSummary && (
                 <>
