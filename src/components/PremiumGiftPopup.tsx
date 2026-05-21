@@ -21,6 +21,7 @@ export function PremiumGiftPopup() {
           const n = payload.new;
           if (n?.type === "premium_granted") {
             setGift({ title: n.title, body: n.body });
+            try { window.dispatchEvent(new Event("premium:refresh")); } catch {}
           }
         }
       )
