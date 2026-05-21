@@ -127,6 +127,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <NotificationBell />
+            <PremiumGiftPopup />
             <PersistentDock />
           </BrowserRouter>
         </div>
