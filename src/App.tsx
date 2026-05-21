@@ -94,7 +94,7 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <Routes>
+            <AnimatedRoutes />
               <Route path="/auth" element={<Auth />} />
               {/* Public routes - no authentication required */}
               <Route path="/book/:bookingLink" element={<Booking />} />
