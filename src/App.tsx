@@ -40,6 +40,7 @@ import ManageBooking from "./pages/ManageBooking";
 import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
+import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
