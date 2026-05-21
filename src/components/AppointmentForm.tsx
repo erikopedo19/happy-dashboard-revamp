@@ -336,30 +336,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       if (appointmentError) throw appointmentError;
 
-      // Send confirmation email + SMS (non-blocking)
-      if (customerEmail || customerPhone) {
-        try {
-          await (supabase as any).functions.invoke('send-booking-confirmation', {
-            body: {
-              customerEmail: customerEmail || undefined,
-              customerName,
-              customerPhone: customerPhone || undefined,
-              businessName: profile?.business_name || profile?.full_name || 'Your appointment',
-              serviceName: validSelectedService.name,
-              appointmentDate: format(selectedDateObj, 'EEEE, MMMM d, yyyy'),
-              appointmentTime: selectedTimeSlot,
-              price: validSelectedService.price,
-              notes: notes.trim() || undefined,
-              bookingId: createdAppt?.id?.toString().substring(0, 8),
-              accentColor: profile?.brand_color || '#1a1a1a',
-              senderEmail: profile?.sender_email || 'noreply@cutzioo.com',
-              senderName: profile?.sender_name || profile?.business_name || profile?.full_name || 'Cutzioo',
-            },
-          });
-        } catch (emailErr) {
-          console.warn('Confirmation email/SMS failed:', emailErr);
-        }
-      }
+      // Confirmation email + SMS sent automatically by DB trigger (works for all booking sources)
+
 
       toast({
         title: "Appointment Booked!",
@@ -415,7 +393,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         "p-0 overflow-hidden border-0 shadow-2xl",
         isMobile
           ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#1a1a1a] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
-          : "max-w-5xl rounded-none bg-[#1a1a1a]"
+          : "max-w-5xl w-[92vw] max-h-[88vh] rounded-2xl bg-[#1a1a1a]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
         
@@ -426,7 +404,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#1a1a1a]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]" : "flex min-h-[600px]"
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Left Panel - Service Info */}
@@ -493,7 +471,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Center Panel - Calendar */}
           <div className={cn(
             "bg-[#1a1a1a]",
-            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a]"
+            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a] overflow-y-auto"
           )}>
             {isMobile && (
               <div className="flex items-center gap-2 mb-5">
@@ -742,7 +720,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {step === "datetime" && showTimeSelection && selectedService && (
             <div className={cn(
               "bg-[#1a1a1a]",
-              isMobile ? "p-4 pb-8" : "w-[280px] p-6"
+              isMobile ? "p-4 pb-8" : "w-[280px] p-6 overflow-y-auto"
             )}>
               {!showSelectedTimeSummary && (
                 <>
