@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
@@ -37,11 +37,13 @@ import {
   Crown,
   DollarSign,
   Download,
+  MessageSquare,
   Scissors,
   Sparkles,
   Star,
   Users,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 type RangeValue =
   | "today"
@@ -75,6 +77,14 @@ interface StylistRow {
   satisfaction: number | null;
   status: string | null;
   bookings_today: number | null;
+}
+
+interface ReviewRow {
+  id: string;
+  rating: number;
+  comment: string | null;
+  reviewer_name: string | null;
+  created_at: string;
 }
 
 interface ServiceRow {
@@ -171,6 +181,17 @@ const Reports = () => {
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
 
   const { startDate, endDate } = useMemo(() => getRangeDates(dateRange), [dateRange]);
+
+  const { data: reviewsData } = useQuery<ReviewRow[]>({
+    queryKey: ["reports-reviews", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await db.rpc("get_reviews_for_business", { _business_id: user.id });
+      if (error) return [];
+      return (data || []) as ReviewRow[];
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["reports-analytics", user?.id, dateRange, startDate, endDate],
@@ -809,6 +830,9 @@ const Reports = () => {
                 </Card>
               )}
 
+              {/* Reviews section */}
+              <ReviewsSection reviews={reviewsData || []} />
+
               {isLoading && (
                 <div className="text-sm text-[#8E8E93] text-center py-4">
                   Loading analytics...
@@ -849,6 +873,115 @@ function KpiTile({
           {value}
         </p>
         <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
+  const avgRating = reviews.length
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : 0;
+
+  const distribution = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: reviews.filter((r) => r.rating === star).length,
+  }));
+  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
+
+  return (
+    <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Customer reviews</h3>
+            <p className="text-xs text-[#8E8E93] mt-0.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""} total</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-rose-600" strokeWidth={2.5} />
+          </div>
+        </div>
+
+        {reviews.length === 0 ? (
+          <EmptyMini />
+        ) : (
+          <div className="space-y-5">
+            {/* Rating overview */}
+            <div className="flex items-center gap-5">
+              <div className="text-center shrink-0">
+                <p className="text-5xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                  {avgRating.toFixed(1)}
+                </p>
+                <div className="flex justify-center gap-0.5 my-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`w-4 h-4 ${
+                        s <= Math.round(avgRating)
+                          ? "fill-[#FFCC00] text-[#FFCC00]"
+                          : "text-[#E5E5EA] dark:text-[#3A3A3C]"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-[#8E8E93]">{reviews.length} reviews</p>
+              </div>
+              <div className="flex-1 space-y-1.5">
+                {distribution.map(({ star, count }) => (
+                  <div key={star} className="flex items-center gap-2">
+                    <span className="text-xs text-[#8E8E93] w-3 shrink-0">{star}</span>
+                    <div className="flex-1 h-2 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#FFCC00] transition-all"
+                        style={{ width: `${(count / maxCount) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-[#8E8E93] w-4 text-right tabular-nums shrink-0">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent reviews list */}
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-wide font-semibold text-[#8E8E93]">Recent</p>
+              {reviews.slice(0, 8).map((r) => (
+                <div
+                  key={r.id}
+                  className="rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 p-4 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-3.5 h-3.5 ${
+                            s <= r.rating
+                              ? "fill-[#FFCC00] text-[#FFCC00]"
+                              : "text-[#E5E5EA] dark:text-[#3A3A3C]"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-[#8E8E93]">
+                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                  {r.reviewer_name && (
+                    <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      {r.reviewer_name}
+                    </p>
+                  )}
+                  {r.comment && (
+                    <p className="text-sm text-[#3A3A3C] dark:text-[#C6C6C8] leading-relaxed">
+                      &ldquo;{r.comment}&rdquo;
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

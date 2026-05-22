@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Phone, Loader2, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, Loader2, CheckCircle2, XCircle, ArrowLeft, Star } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 
@@ -306,6 +306,22 @@ export default function ManageBooking() {
               </Button>
             </CardContent>
           </Card>
+        )}
+
+        {/* Review CTA for completed bookings */}
+        {booking.status === "completed" && token && (
+          <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 backdrop-blur p-5 text-center">
+            <p className="text-sm text-white/70 mb-3">
+              How was your experience at <span className="text-white font-semibold">{booking.business.name}</span>?
+            </p>
+            <a
+              href={`/review/${token}`}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition active:scale-95"
+              style={{ background: accent, color: "#0A0A0B" }}
+            >
+              <Star className="w-4 h-4" /> Leave a review
+            </a>
+          </div>
         )}
 
         <div className="mt-10 text-center text-xs text-white/30">

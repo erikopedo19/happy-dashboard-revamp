@@ -38,6 +38,7 @@ import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
 import ManageBooking from "./pages/ManageBooking";
+import ReviewPage from "./pages/ReviewPage";
 import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
@@ -82,6 +83,7 @@ function AnimatedRoutes() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/book/:bookingLink" element={<Booking />} />
           <Route path="/manage/:token" element={<ManageBooking />} />
+          <Route path="/review/:token" element={<ReviewPage />} />
           <Route path="/bookingforms" element={<BookingForms />} />
           <Route path="/find-barber" element={<FindBarber />} />
           <Route path="/find-barbershop" element={<FindBarbershop />} />
