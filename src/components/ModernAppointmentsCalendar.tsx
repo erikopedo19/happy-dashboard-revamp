@@ -296,6 +296,18 @@ export const ModernAppointmentsCalendar = ({
   };
   const handleConfirmReschedule = async () => {
     if (!selectedAppointment || !rescheduleDate || !rescheduleTime) return;
+
+    // Block scheduling in the past
+    const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}:00`);
+    if (newDateTime <= new Date()) {
+      toast({
+        title: "Cannot reschedule to the past",
+        description: "Please choose a future date and time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const {
         error
@@ -794,9 +806,9 @@ export const ModernAppointmentsCalendar = ({
                         <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">Week</div>
                       </div>
                       {isCurrentWeek && (
-                        <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 font-medium">
+                        <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                           Current
-                        </Badge>
+                        </span>
                       )}
                     </div>
 
@@ -1077,11 +1089,23 @@ export const ModernAppointmentsCalendar = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-2">New Date</label>
-                <Input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)} className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm" />
+                <Input
+                  type="date"
+                  value={rescheduleDate}
+                  onChange={e => setRescheduleDate(e.target.value)}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                  className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm"
+                />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-2">New Time</label>
-                <Input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)} className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm" />
+                <Input
+                  type="time"
+                  value={rescheduleTime}
+                  onChange={e => setRescheduleTime(e.target.value)}
+                  min={rescheduleDate === format(new Date(), 'yyyy-MM-dd') ? format(new Date(), 'HH:mm') : undefined}
+                  className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm"
+                />
               </div>
             </div>
           </div>}
