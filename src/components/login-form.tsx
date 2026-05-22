@@ -188,26 +188,23 @@ export function LoginForm() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#F5F5F7] p-4 text-[#1D1D1F] dark:bg-[#050507] dark:text-white md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
-      <div className="absolute -left-24 top-10 h-72 w-72 animate-pulse rounded-full bg-[#007AFF]/25 blur-3xl" />
-      <div className="absolute -right-24 bottom-8 h-80 w-80 animate-pulse rounded-full bg-[#AF52DE]/25 blur-3xl [animation-delay:700ms]" />
-      <div className="absolute left-1/2 top-1/4 h-64 w-64 -translate-x-1/2 rounded-full bg-[#34C759]/10 blur-3xl" />
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#2b0a14] p-4 text-white md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
+      <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 animate-pulse rounded-full bg-[#fb7185]/30 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 animate-pulse rounded-full bg-[#be123c]/35 blur-3xl [animation-delay:700ms]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-[#9f1239]/25 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
 
       <div className="relative w-full max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-700 md:max-w-5xl">
-        <div className="grid grid-cols-1 gap-0 overflow-hidden rounded-[32px] border border-white/60 bg-white/75 shadow-[0_24px_80px_rgba(0,0,0,0.14)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_32px_100px_rgba(0,0,0,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]/70 md:grid-cols-[0.95fr_1.05fr]">
-          <div className="flex flex-col p-6 sm:p-8 dark:bg-transparent">
-            <div className="flex flex-col space-y-2 text-center mb-6">
-              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[22px] bg-white shadow-lg shadow-black/10 ring-1 ring-black/5 dark:bg-white/10 dark:ring-white/10">
-                <img src="/logo.svg" alt="Logo" className="h-10 w-10 object-contain" />
+        <div className="grid grid-cols-1 gap-0 overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.04] shadow-[0_24px_80px_rgba(244,63,94,0.18)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_32px_100px_rgba(244,63,94,0.28)] md:grid-cols-[0.95fr_1.05fr]">
+          <div className="flex flex-col p-6 sm:p-8">
+            <div className="flex flex-col items-center space-y-2 text-center mb-6">
+              <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-[24px] bg-gradient-to-br from-[#fb7185] to-[#9f1239] shadow-[0_12px_40px_rgba(244,63,94,0.45)] ring-1 ring-white/20">
+                <img src="/logo.svg" alt="Cutzio" className="h-11 w-11 object-contain brightness-0 invert" />
               </div>
-              <div className="mx-auto mb-1 inline-flex items-center gap-1.5 rounded-full border border-[#007AFF]/20 bg-[#007AFF]/10 px-3 py-1 text-xs font-semibold text-[#007AFF]">
-                <Sparkles className="h-3.5 w-3.5" />
-                iOS-style booking workspace
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}>
+              <h1 className="text-3xl font-bold tracking-tight text-white" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}>
                 Welcome to Cutzio
               </h1>
-              <p className="text-sm text-muted-foreground" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+              <p className="text-sm text-white/60" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
                 Sign in to manage bookings, clients, and your barbershop flow.
               </p>
             </div>
