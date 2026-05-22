@@ -544,3 +544,174 @@ function EmptyState({
 }
 
 export default FindBarber;
+
+/* ---------- Expanded details (fetched on demand) ---------- */
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function BarberExpandedDetails({
+  barberId,
+  fallbackDescription,
+  accent,
+  rating,
+  reviews,
+}: {
+  barberId: string;
+  fallbackDescription: string | null;
+  accent: string;
+  rating: number;
+  reviews: number;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["barber-details", barberId],
+    queryFn: async () => {
+      const [profileRes, servicesRes, hoursRes, productsRes] = await Promise.all([
+        (supabase as any)
+          .from("profiles")
+          .select("description, years_experience, business_name, full_name")
+          .eq("id", barberId)
+          .maybeSingle(),
+        (supabase as any)
+          .from("services")
+          .select("id, name, price, duration")
+          .eq("user_id", barberId)
+          .is("deleted_at", null)
+          .order("price", { ascending: true })
+          .limit(8),
+        (supabase as any)
+          .from("business_hours")
+          .select("day_of_week, open_time, close_time, is_closed")
+          .eq("user_id", barberId)
+          .order("day_of_week", { ascending: true }),
+        (supabase as any)
+          .from("products")
+          .select("id, name, price, image_url, category")
+          .eq("user_id", barberId)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(6),
+      ]);
+      return {
+        profile: profileRes.data,
+        services: servicesRes.data || [],
+        hours: hoursRes.data || [],
+        products: productsRes.data || [],
+      };
+    },
+    staleTime: 60_000,
+  });
+
+  const description = data?.profile?.description ?? fallbackDescription;
+  const years = data?.profile?.years_experience;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-16 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] animate-pulse" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] animate-pulse" />
+          <div className="h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] animate-pulse" />
+          <div className="h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <Stat label="Rating" value={Number(rating).toFixed(1)} />
+        <Stat label="Reviews" value={String(reviews)} />
+        <Stat label="Experience" value={years ? `${years}y` : "Pro"} />
+      </div>
+
+      {/* About */}
+      {description && (
+        <Section icon={<Sparkles className="w-3.5 h-3.5" style={{ color: accent }} />} title="About">
+          <p className="text-[13px] text-[#3C3C43] dark:text-[#EBEBF5]/80 leading-relaxed">
+            {description}
+          </p>
+        </Section>
+      )}
+
+      {/* Services / Rates */}
+      {data && data.services.length > 0 && (
+        <Section icon={<Award className="w-3.5 h-3.5" style={{ color: accent }} />} title="Services & rates">
+          <ul className="divide-y divide-black/5 dark:divide-white/5 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
+            {data.services.map((s: any) => (
+              <li key={s.id} className="flex items-center justify-between px-3 py-2.5">
+                <div className="min-w-0">
+                  <div className="text-[13px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{s.name}</div>
+                  {s.duration && (
+                    <div className="text-[11px] text-[#8E8E93]">{s.duration} min</div>
+                  )}
+                </div>
+                {s.price != null && (
+                  <div className="text-[13px] font-semibold tabular-nums" style={{ color: accent }}>
+                    ${Number(s.price).toFixed(0)}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      {/* Working hours */}
+      {data && data.hours.length > 0 && (
+        <Section icon={<Clock className="w-3.5 h-3.5" style={{ color: accent }} />} title="Working hours">
+          <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] p-3 grid grid-cols-1 gap-1">
+            {data.hours.map((h: any) => (
+              <div key={h.day_of_week} className="flex items-center justify-between text-[12px]">
+                <span className="text-[#1C1C1E] dark:text-[#F2F2F7] font-medium">{DAY_NAMES[h.day_of_week] || "—"}</span>
+                <span className="text-[#8E8E93] tabular-nums">
+                  {h.is_closed
+                    ? "Closed"
+                    : `${(h.open_time || "").slice(0, 5)} – ${(h.close_time || "").slice(0, 5)}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Products */}
+      {data && data.products.length > 0 && (
+        <Section icon={<ShoppingBag className="w-3.5 h-3.5" style={{ color: accent }} />} title="Products">
+          <div className="grid grid-cols-3 gap-2">
+            {data.products.map((p: any) => (
+              <div key={p.id} className="rounded-2xl overflow-hidden bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="w-full aspect-square object-cover" />
+                ) : (
+                  <div className="w-full aspect-square flex items-center justify-center">
+                    <ShoppingBag className="w-5 h-5 text-[#8E8E93]" />
+                  </div>
+                )}
+                <div className="p-2">
+                  <div className="text-[11px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{p.name}</div>
+                  <div className="text-[11px] font-semibold tabular-nums" style={{ color: accent }}>
+                    ${Number(p.price).toFixed(0)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
+function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-2">
+        {icon}
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[#8E8E93]">{title}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
