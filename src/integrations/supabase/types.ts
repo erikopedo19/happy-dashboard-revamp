@@ -528,6 +528,7 @@ export type Database = {
           timezone: string | null
           updated_at: string
           website: string | null
+          years_experience: number | null
         }
         Insert: {
           address?: string | null
@@ -557,6 +558,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          years_experience?: number | null
         }
         Update: {
           address?: string | null
@@ -586,6 +588,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
@@ -1045,6 +1048,7 @@ export type Database = {
           services_count: number
           stylists_count: number
           total_bookings: number
+          years_experience: number
         }[]
       }
       get_public_stylist_services: {

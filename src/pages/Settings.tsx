@@ -75,6 +75,8 @@ type BrandProfileRecord = {
   latitude?: number;
   longitude?: number;
   google_maps_url?: string;
+  description: string;
+  years_experience?: number;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
@@ -112,6 +114,8 @@ const defaultBrandProfile: BrandProfileRecord = {
   latitude: undefined,
   longitude: undefined,
   google_maps_url: "",
+  description: "",
+  years_experience: undefined,
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -158,7 +162,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -206,6 +210,8 @@ const Settings = () => {
       latitude: data.profile?.latitude ?? undefined,
       longitude: data.profile?.longitude ?? undefined,
       google_maps_url: data.profile?.google_maps_url ?? "",
+      description: data.profile?.description ?? "",
+      years_experience: data.profile?.years_experience ?? undefined,
     });
 
     // Set dark mode from profile, default to dark mode
@@ -293,6 +299,8 @@ const Settings = () => {
         latitude: lat ?? null,
         longitude: lng ?? null,
         google_maps_url: mapsUrl || null,
+        description: brandForm.description.trim() || null,
+        years_experience: brandForm.years_experience ?? null,
         updated_at: new Date().toISOString(),
       };
 
@@ -719,6 +727,49 @@ const Settings = () => {
                                 placeholder="+1 555 987 6543"
                                                                 className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
                               />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                                Years of experience
+                              </Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={80}
+                                value={brandForm.years_experience ?? ""}
+                                onChange={(e) =>
+                                  setBrandForm((prev) => ({
+                                    ...prev,
+                                    years_experience: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                                  }))
+                                }
+                                placeholder="e.g. 7"
+                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                              />
+                              <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5">
+                                Shown on your Find Barber profile.
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                                About / short bio
+                              </Label>
+                              <textarea
+                                value={brandForm.description}
+                                onChange={(e) =>
+                                  setBrandForm((prev) => ({ ...prev, description: e.target.value }))
+                                }
+                                placeholder="Tell clients about your style, experience, and what makes you stand out."
+                                rows={3}
+                                maxLength={400}
+                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                              />
+                              <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5 text-right">
+                                {brandForm.description.length}/400
+                              </p>
                             </div>
                           </div>
 

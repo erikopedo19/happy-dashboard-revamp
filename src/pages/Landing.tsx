@@ -91,12 +91,12 @@ export default function Landing() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
       {/* Aurora background */}
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-70">
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-60">
         <Aurora
-          colorStops={["#e85d3a", "#7c3aed", "#3b82f6"]}
-          blend={0.55}
-          amplitude={1.2}
-          speed={0.6}
+          colorStops={["#7f0b20", "#e11d48", "#6b0c1f"]}
+          blend={0.5}
+          amplitude={1.1}
+          speed={0.5}
         />
       </div>
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-background/40 via-background/70 to-background" />
@@ -131,21 +131,21 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-1.5 text-xs font-medium text-[#fb7185] backdrop-blur"
           >
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            New · Smart no-show reminders
+            <Sparkles className="h-3.5 w-3.5" />
+            New · Smart no-show reminders &amp; email templates
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="mt-6 text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05]"
+            className="mt-6 text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]"
           >
             The booking platform <br className="hidden md:block" />
             built for{" "}
-            <span className="bg-gradient-to-r from-primary via-fuchsia-400 to-blue-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#fb7185] via-[#e11d48] to-[#9f1239] bg-clip-text text-transparent">
               modern barbers.
             </span>
           </motion.h1>
@@ -186,9 +186,21 @@ export default function Landing() {
             className="mt-12 flex items-center justify-center gap-1 text-sm text-muted-foreground"
           >
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+              <Star key={i} className="h-4 w-4 fill-[#e11d48] text-[#e11d48]" />
             ))}
             <span className="ml-2">Loved by 1,200+ barbers</span>
+          </motion.div>
+
+          {/* Hero brand image */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1, delay: 0.85 }}
+            className="mt-16 mx-auto max-w-2xl"
+          >
+            <div className="rounded-3xl overflow-hidden border border-white/10 shadow-[0_32px_80px_rgba(225,29,72,0.22)] ring-1 ring-[#e11d48]/10">
+              <img src="/Frame 316.png" alt="Cutzioo" className="w-full" />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -226,11 +238,11 @@ export default function Landing() {
 
       {/* Showcase */}
       <section className="relative px-6 py-24">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-md p-8 md:p-16 text-center overflow-hidden">
-          <div className="absolute inset-0 -z-10 opacity-50">
-            <Aurora colorStops={["#3b82f6", "#e85d3a", "#7c3aed"]} blend={0.7} amplitude={0.8} speed={0.4} />
+        <div className="mx-auto max-w-6xl rounded-3xl border border-[#e11d48]/20 bg-gradient-to-br from-[#e11d48]/10 to-transparent backdrop-blur-md p-8 md:p-16 text-center overflow-hidden">
+          <div className="absolute inset-0 -z-10 opacity-40">
+            <Aurora colorStops={["#e11d48", "#7f0b20", "#1a0305"]} blend={0.6} amplitude={0.8} speed={0.4} />
           </div>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Your chair, on autopilot.
           </h2>
           <p className="mt-4 mx-auto max-w-xl text-muted-foreground">
@@ -303,11 +315,11 @@ export default function Landing() {
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6"
+                className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6 hover:bg-white/[0.06] hover:border-[#e11d48]/20 transition-all duration-300"
               >
                 <div className="flex gap-1 mb-3">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                    <Star key={i} className="h-4 w-4 fill-[#e11d48] text-[#e11d48]" />
                   ))}
                 </div>
                 <p className="text-foreground/90 leading-relaxed">"{t.quote}"</p>
