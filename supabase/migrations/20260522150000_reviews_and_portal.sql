@@ -111,6 +111,7 @@ GRANT EXECUTE ON FUNCTION public.get_reviews_for_business(uuid) TO anon, authent
 -- ============================================================
 -- Update get_my_bookings: add cancel_token, has_review, booking_link
 -- ============================================================
+DROP FUNCTION IF EXISTS public.get_my_bookings();
 CREATE OR REPLACE FUNCTION public.get_my_bookings()
 RETURNS TABLE(
   id               uuid,

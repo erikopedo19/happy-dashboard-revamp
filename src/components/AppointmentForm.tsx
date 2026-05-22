@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { X, ChevronLeft, Clock, User, ArrowRight, Video, Globe, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -592,7 +592,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 )}
               </div>
             ) : step === "details" ? (
-              <div className="h-full flex flex-col">
+              <div className={cn("h-full flex flex-col", !isMobile && "max-w-lg mx-auto")}>
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Enter Your Details
                 </h3>
@@ -716,12 +716,37 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             </AnimatePresence>
           </div>
 
-          {/* Right Panel - Time Slots */}
-          {step === "datetime" && showTimeSelection && selectedService && (
+          {/* Right Panel - Time Slots / Booking Summary */}
+          {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
               "bg-[#1a1a1a]",
               isMobile ? "p-4 pb-8" : "w-[280px] p-6 overflow-y-auto"
             )}>
+            {!isMobile && step === "details" && (
+              <div className="space-y-4">
+                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Booking summary</p>
+                <div className="rounded-2xl border border-[#2a2a2a] bg-[#2a2a2a]/50 p-4 space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Service</p>
+                    <p className="text-white font-semibold text-sm mt-0.5">{selectedService.name}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{selectedService.duration} min · ${selectedService.price}</p>
+                  </div>
+                  <div className="border-t border-[#3a3a3a]" />
+                  <div>
+                    <p className="text-xs text-gray-500">Date & time</p>
+                    <p className="text-white font-semibold text-sm mt-0.5">{format(selectedDateObj, "EEE, MMM d")}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{selectedTimeSlot}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep("datetime")}
+                  className="w-full py-2.5 rounded-xl border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Change slot
+                </button>
+              </div>
+            )}
               {!showSelectedTimeSummary && (
                 <>
                   <div className="flex gap-2 mb-6">

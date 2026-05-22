@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
@@ -362,6 +363,13 @@ const Reports = () => {
       .sort((a, b) => a.hour.localeCompare(b.hour))
       .slice(0, 10);
 
+    const dayOfWeekDemand = [0, 1, 2, 3, 4, 5, 6].map((dow) => ({
+      day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dow],
+      count: appointments.filter(
+        (apt) => new Date(`${apt.appointment_date}T00:00:00`).getDay() === dow
+      ).length,
+    }));
+
     // simple delta vs first half of window
     const half = Math.floor(revenueTrend.length / 2);
     const firstHalf = revenueTrend.slice(0, half).reduce((s, r) => s + r.revenue, 0);
@@ -383,6 +391,7 @@ const Reports = () => {
       topStylist,
       statusBreakdown,
       hourlyDemand,
+      dayOfWeekDemand,
       activeServices: services.length,
       activeStylists: stylists.length,
       revenueDelta,
@@ -524,6 +533,8 @@ const Reports = () => {
                         stroke="#e11d48"
                         strokeWidth={2.5}
                         fill="url(#fillRev)"
+                        animationDuration={1200}
+                        animationBegin={300}
                       />
                     </AreaChart>
                   </ChartContainer>
@@ -532,25 +543,25 @@ const Reports = () => {
 
               {/* KPI grid */}
               <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <KpiTile
+                <KpiTile index={0}
                   icon={<CalendarDays className="w-4 h-4 text-rose-600" />}
                   label="Appointments"
                   value={numberFormat.format(analytics.totalAppointments)}
                   hint={`${analytics.completionRate}% completed`}
                 />
-                <KpiTile
+                <KpiTile index={1}
                   icon={<Users className="w-4 h-4 text-rose-600" />}
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
                 />
-                <KpiTile
+                <KpiTile index={2}
                   icon={<DollarSign className="w-4 h-4 text-rose-600" />}
                   label="Avg ticket"
                   value={currency.format(analytics.averageTicket || 0)}
                   hint="Per booking"
                 />
-                <KpiTile
+                <KpiTile index={3}
                   icon={<Scissors className="w-4 h-4 text-rose-600" />}
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
@@ -561,7 +572,7 @@ const Reports = () => {
               {/* Status + Demand */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
                 {/* Booking status */}
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -631,7 +642,7 @@ const Reports = () => {
                 </Card>
 
                 {/* Hourly demand */}
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -661,6 +672,8 @@ const Reports = () => {
                             strokeWidth={2.5}
                             dot={{ fill: "#e11d48", r: 3 }}
                             activeDot={{ r: 5 }}
+                            animationDuration={900}
+                            animationBegin={200}
                           />
                         </LineChart>
                       </ChartContainer>
@@ -670,7 +683,7 @@ const Reports = () => {
               </section>
 
               {/* Top services */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
                 <CardContent className="p-5">
                   <div className="mb-4">
                     <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -723,7 +736,7 @@ const Reports = () => {
               </Card>
 
               {/* Stylist ranking */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -784,7 +797,7 @@ const Reports = () => {
 
               {/* Stylist comparison chart */}
               {analytics.stylistPerformance.length > 0 && (
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -823,12 +836,50 @@ const Reports = () => {
                             />
                           }
                         />
-                        <Bar dataKey="revenue" radius={[10, 10, 0, 0]} fill="#e11d48" />
+                        <Bar dataKey="revenue" radius={[10, 10, 0, 0]} fill="#e11d48" animationDuration={900} animationBegin={200} />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
                 </Card>
               )}
+
+              {/* Busiest days */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+                <CardContent className="p-5">
+                  <div className="mb-4">
+                    <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Busiest days</h3>
+                    <p className="text-xs text-[#8E8E93] mt-0.5">Bookings by day of week</p>
+                  </div>
+                  {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
+                    <EmptyMini />
+                  ) : (
+                    <ChartContainer
+                      config={{ count: { label: "Bookings", color: "#e11d48" } }}
+                      className="h-[160px] w-full aspect-auto"
+                    >
+                      <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
+                        <YAxis hide />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="count" radius={[8, 8, 0, 0]} animationDuration={900} animationBegin={200}>
+                          {analytics.dayOfWeekDemand.map((entry, i) => {
+                            const maxCount = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
+                            const opacity = 0.35 + (entry.count / maxCount) * 0.65;
+                            return <Cell key={i} fill={`rgba(225,29,72,${opacity})`} />;
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+              </motion.div>
 
               {/* Reviews section */}
               <ReviewsSection reviews={reviewsData || []} />
@@ -852,29 +903,38 @@ function KpiTile({
   label,
   value,
   hint,
+  index = 0,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   hint: string;
+  index?: number;
 }) {
   return (
-    <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
-            {icon}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
+    >
+      <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm cursor-default transition-shadow duration-300 hover:shadow-[0_8px_36px_rgba(225,29,72,0.13)] dark:hover:shadow-[0_8px_36px_rgba(225,29,72,0.28)]">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
+              {icon}
+            </div>
           </div>
-        </div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-          {label}
-        </p>
-        <p className="text-xl md:text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-1 tabular-nums">
-          {value}
-        </p>
-        <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
-      </CardContent>
-    </Card>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">
+            {label}
+          </p>
+          <p className="text-xl md:text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-1 tabular-nums">
+            {value}
+          </p>
+          <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
