@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, startOfWeek, addDays, isSameDay } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar, DollarSign, Clock, Users, ChevronRight, TrendingUp, Plus, Scissors, BarChart3 } from "lucide-react";
+import { Calendar, DollarSign, Clock, Users, ChevronRight, TrendingUp, Plus, Scissors, BarChart3, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
@@ -22,7 +22,7 @@ const Dashboard = () => {
       <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
         <main className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] flex flex-col overflow-hidden">
-          <DashboardContent />
+          {isMobile ? <MobileDashboard /> : <DashboardContent />}
           {isMobile && <MobileDock />}
         </main>
       </div>
@@ -33,6 +33,14 @@ const Dashboard = () => {
 function MobileDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  })();
+  const firstName = (user?.user_metadata?.full_name || user?.email || "").split(/[\s@]/)[0];
 
   const { data: appointments = [] } = useQuery<any[]>({
     queryKey: ["dashboard-appointments-mobile", user?.id],
@@ -65,6 +73,14 @@ function MobileDashboard() {
     0
   );
   const pending = appointments.filter((a) => a.status === "scheduled").length;
+
+  const yesterdayRevenue = (() => {
+    const y = format(addDays(new Date(), -1), "yyyy-MM-dd");
+    return appointments
+      .filter((a) => a.appointment_date === y)
+      .reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+  })();
+  const revDelta = yesterdayRevenue > 0 ? Math.round(((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100) : null;
 
   const today = format(new Date(), "yyyy-MM-dd");
   const upcoming = appointments
@@ -114,10 +130,10 @@ function MobileDashboard() {
   ];
 
   const quickActions = [
-    { label: "New booking", icon: Plus, path: "/agenda" },
-    { label: "Services", icon: Scissors, path: "/services" },
-    { label: "Reports", icon: BarChart3, path: "/reports" },
-    { label: "Clients", icon: Users, path: "/customers" },
+    { label: "New booking", icon: Plus, path: "/agenda", accent: true },
+    { label: "Services", icon: Scissors, path: "/services", accent: false },
+    { label: "Reports", icon: BarChart3, path: "/reports", accent: false },
+    { label: "Clients", icon: Users, path: "/customers", accent: false },
   ];
 
   return (
@@ -128,8 +144,8 @@ function MobileDashboard() {
           <p className="text-xs text-[#8E8E93] uppercase tracking-wide font-semibold">
             {format(new Date(), "EEEE, MMM d")}
           </p>
-          <h1 className="text-[28px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-tight">
-            Dashboard
+          <h1 className="text-[26px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-tight">
+            {greeting}{firstName ? `, ${firstName}` : ""} 👋
           </h1>
         </div>
         <SidebarTrigger className="hover:bg-white/60 dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7] rounded-xl" />
@@ -152,9 +168,21 @@ function MobileDashboard() {
                 €{todayRevenue.toFixed(0)}
               </p>
             </div>
-            <div className="flex items-center gap-1 text-[#34C759] text-xs font-semibold bg-[#34C759]/10 px-2 py-1 rounded-full">
-              <TrendingUp className="h-3 w-3" />
-              {weekRevenue > 0 ? `€${weekRevenue.toFixed(0)} wk` : "—"}
+            <div className="flex flex-col items-end gap-1.5">
+              {revDelta !== null && (
+                <span className={`inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  revDelta >= 0
+                    ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40"
+                    : "text-[#e11d48] bg-[#e11d48]/10"
+                }`}>
+                  {revDelta >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {Math.abs(revDelta)}% vs yest.
+                </span>
+              )}
+              <div className="flex items-center gap-1 text-[#34C759] text-xs font-semibold bg-[#34C759]/10 px-2 py-1 rounded-full">
+                <TrendingUp className="h-3 w-3" />
+                {weekRevenue > 0 ? `€${weekRevenue.toFixed(0)} wk` : "—"}
+              </div>
             </div>
           </div>
 
@@ -228,21 +256,25 @@ function MobileDashboard() {
             Quick actions
           </p>
           <div className="grid grid-cols-4 gap-2">
-            {quickActions.map((a) => {
+            {quickActions.map((a, i) => {
               const Icon = a.icon;
               return (
-                <button
+                <motion.button
                   key={a.label}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.15 + i * 0.06, type: "spring", stiffness: 400, damping: 24 }}
+                  whileTap={{ scale: 0.93 }}
                   onClick={() => navigate(a.path)}
-                  className="flex flex-col items-center gap-1.5 rounded-2xl bg-white dark:bg-[#2C2C2E] p-3 shadow-sm active:scale-95 transition-transform"
+                  className="flex flex-col items-center gap-1.5 rounded-2xl bg-white dark:bg-[#2C2C2E] p-3 shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className="h-9 w-9 rounded-full bg-[#e11d48] flex items-center justify-center">
-                    <Icon className="h-4 w-4 text-white" />
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center ${a.accent ? "bg-[#e11d48]" : "bg-[#F2F2F7] dark:bg-[#3A3A3C]"}`}>
+                    <Icon className={`h-4 w-4 ${a.accent ? "text-white" : "text-[#1C1C1E] dark:text-[#F2F2F7]"}`} />
                   </div>
                   <span className="text-[10px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] text-center leading-tight">
                     {a.label}
                   </span>
-                </button>
+                </motion.button>
               );
             })}
           </div>

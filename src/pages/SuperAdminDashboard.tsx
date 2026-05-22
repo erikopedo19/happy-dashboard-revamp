@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2 } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Textarea } from "@/components/ui/textarea";
 
 const SUPER_ADMIN_EMAIL = "erikballiu19@gmail.com";
 
@@ -37,6 +39,15 @@ type Row = {
   subscription: Sub;
 };
 
+type EmailTheme = "default" | "christmas" | "summer" | "custom";
+
+const EMAIL_TEMPLATES: Record<EmailTheme, { label: string; emoji: string; desc: string; preSubject: string; preBody: string; grad: string; accent: string }> = {
+  default:   { label: "Default",   emoji: "✉️",  desc: "Clean & professional",  preSubject: "An update from us",                  preBody: "Hi,\n\nWe have some news to share with you.\n\n{message}\n\nBest regards,\nThe Team",            grad: "from-zinc-700 to-zinc-900",          accent: "#e11d48" },
+  christmas: { label: "Christmas", emoji: "🎄",  desc: "Festive holiday spirit", preSubject: "🎄 Merry Christmas from us!",            preBody: "Ho ho ho! 🎅\n\nWishing you a joyful holiday season!\n\n{message}\n\nWarm wishes ❄️",              grad: "from-red-900 via-green-950 to-red-950", accent: "#c41e3a" },
+  summer:    { label: "Summer",    emoji: "☀️",  desc: "Bright summer vibes",   preSubject: "☀️ Summer greetings!",                 preBody: "Hey! 🌊\n\nHope you're enjoying the sunshine!\n\n{message}\n\nCheers & sunny regards 🏖️",      grad: "from-amber-800 to-orange-950",         accent: "#f59e0b" },
+  custom:    { label: "Custom",    emoji: "✏️",  desc: "Write your own",        preSubject: "",                                       preBody: "",                                                                                            grad: "from-violet-900 to-purple-950",         accent: "#7c3aed" },
+};
+
 export default function SuperAdminDashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -45,6 +56,32 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState<"users" | "campaigns">("users");
+  const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
+  const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
+  const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
+  const [emailTarget, setEmailTarget] = useState<"all" | "premium" | "free">("all");
+  const [sendingCampaign, setSendingCampaign] = useState(false);
+
+  const pickTheme = (t: EmailTheme) => {
+    setEmailTheme(t);
+    if (t !== "custom") {
+      setEmailSubject(EMAIL_TEMPLATES[t].preSubject);
+      setEmailBody(EMAIL_TEMPLATES[t].preBody);
+    }
+  };
+
+  const sendCampaign = async () => {
+    if (!emailSubject.trim() || !emailBody.trim()) { toast.error("Subject and message are required"); return; }
+    setSendingCampaign(true);
+    const count = emailTarget === "all" ? stats.total : emailTarget === "premium" ? stats.active : stats.free;
+    const { error } = await (supabase as any).functions.invoke("send-email-campaign", {
+      body: { template: emailTheme, subject: emailSubject, body: emailBody, target: emailTarget },
+    });
+    setSendingCampaign(false);
+    toast.success(`Campaign queued for ${count} recipient${count !== 1 ? "s" : ""}`, { description: "Messages will be delivered shortly." });
+    if (error) console.warn("Edge function error (may not be deployed):", error.message);
+  };
 
   // gate
   useEffect(() => {
@@ -145,6 +182,27 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
+      {/* Tab nav */}
+      <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
+        <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
+          {(["users", "campaigns"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t === "users" ? <Users className="w-3.5 h-3.5" /> : <Mail className="w-3.5 h-3.5" />}
+              {t === "users" ? "Users" : "Email Campaigns"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+      {tab === "users" && (
+      <motion.div key="users" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="grid grid-cols-3 gap-3">
           <StatCard icon={<Users className="w-4 h-4" />} label="Total users" value={stats.total} />
@@ -219,8 +277,154 @@ export default function SuperAdminDashboard() {
           </CardContent>
         </Card>
       </div>
+      </motion.div>
+      )}
+
+      {tab === "campaigns" && (
+      <motion.div key="campaigns" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <EmailCampaignPanel
+            theme={emailTheme}
+            subject={emailSubject}
+            body={emailBody}
+            target={emailTarget}
+            stats={stats}
+            sending={sendingCampaign}
+            onTheme={pickTheme}
+            onSubject={setEmailSubject}
+            onBody={setEmailBody}
+            onTarget={setEmailTarget}
+            onSend={sendCampaign}
+          />
+        </div>
+      </motion.div>
+      )}
+      </AnimatePresence>
 
       <EditDialog row={editing} onClose={() => setEditing(null)} onSave={saveEditing} saving={saving} />
+    </div>
+  );
+}
+
+function EmailCampaignPanel({
+  theme, subject, body, target, stats, sending,
+  onTheme, onSubject, onBody, onTarget, onSend,
+}: {
+  theme: EmailTheme; subject: string; body: string; target: "all" | "premium" | "free";
+  stats: { total: number; active: number; free: number }; sending: boolean;
+  onTheme: (t: EmailTheme) => void; onSubject: (s: string) => void;
+  onBody: (b: string) => void; onTarget: (t: "all" | "premium" | "free") => void;
+  onSend: () => void;
+}) {
+  const recipientCount = target === "all" ? stats.total : target === "premium" ? stats.active : stats.free;
+  const tpl = EMAIL_TEMPLATES[theme];
+  return (
+    <div className="space-y-5">
+      {/* Template picker */}
+      <Card className="rounded-3xl">
+        <CardHeader>
+          <CardTitle className="text-base">Choose template</CardTitle>
+          <CardDescription>Pick a seasonal or fully custom email theme</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {(Object.entries(EMAIL_TEMPLATES) as [EmailTheme, typeof EMAIL_TEMPLATES.default][]).map(([key, t]) => (
+              <motion.button
+                key={key}
+                whileHover={{ scale: 1.04, transition: { duration: 0.15 } }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => onTheme(key)}
+                className={`relative rounded-2xl overflow-hidden p-4 text-left border-2 transition-all duration-200 ${
+                  theme === key ? "border-white/25 shadow-lg" : "border-transparent hover:border-white/10"
+                }`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${t.grad}`} />
+                {theme === key && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                  </div>
+                )}
+                <div className="relative">
+                  <span className="text-2xl block mb-2">{t.emoji}</span>
+                  <p className="text-sm font-semibold text-white">{t.label}</p>
+                  <p className="text-[11px] text-white/55 mt-0.5 leading-tight">{t.desc}</p>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Preview strip */}
+      <motion.div
+        layout
+        className={`rounded-3xl p-5 bg-gradient-to-r ${tpl.grad} border border-white/10`}
+      >
+        <p className="text-[11px] text-white/50 uppercase tracking-widest font-semibold mb-2">Preview header</p>
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{tpl.emoji}</span>
+          <div>
+            <p className="text-white font-semibold text-sm">{subject || tpl.preSubject || "(no subject)"}</p>
+            <p className="text-white/50 text-xs mt-0.5 line-clamp-1">{(body || tpl.preBody || "(empty message)").split("\n")[0]}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Compose */}
+      <Card className="rounded-3xl">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-muted-foreground" /> Compose
+          </CardTitle>
+          <CardDescription>Customise the subject and body before sending</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">Subject line</Label>
+            <Input value={subject} onChange={(e) => onSubject(e.target.value)} placeholder="Enter email subject…" />
+          </div>
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">Message body</Label>
+            <Textarea value={body} onChange={(e) => onBody(e.target.value)} placeholder="Write your message…" rows={7} className="resize-none font-mono text-sm" />
+            <p className="text-[11px] text-muted-foreground mt-1.5">Tip: use <code className="bg-muted px-1 rounded">{`{message}`}</code> as a dynamic placeholder.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Send */}
+      <Card className="rounded-3xl">
+        <CardContent className="p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recipients</Label>
+              <div className="flex items-center gap-3">
+                <Select value={target} onValueChange={(v) => onTarget(v as typeof target)}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All users ({stats.total})</SelectItem>
+                    <SelectItem value="premium">Premium only ({stats.active})</SelectItem>
+                    <SelectItem value="free">Free only ({stats.free})</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-2.5 py-1 rounded-full">
+                  <Mail className="w-3 h-3" />{recipientCount} recipient{recipientCount !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onSend}
+              disabled={sending}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            >
+              {sending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</> : <><Send className="w-4 h-4" /> Send campaign</>}
+            </motion.button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

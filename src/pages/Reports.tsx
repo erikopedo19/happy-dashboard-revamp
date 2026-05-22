@@ -94,7 +94,28 @@ interface ServiceRow {
   color: string | null;
 }
 
+interface CustomerRow {
+  id: string;
+  name: string;
+  email: string | null;
+}
+
+interface TopCustomerRow {
+  id: string;
+  name: string;
+  bookings: number;
+  revenue: number;
+  lastVisit: string | null;
+  initials: string;
+  color: string;
+}
+
 const db = supabase as any;
+
+const customerColors = [
+  "#e11d48", "#7c3aed", "#2563eb", "#059669",
+  "#d97706", "#db2777", "#0891b2", "#65a30d",
+];
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -191,6 +212,20 @@ const Reports = () => {
       const { data, error } = await db.rpc("get_reviews_for_business", { _business_id: user.id });
       if (error) return [];
       return (data || []) as ReviewRow[];
+    },
+  });
+
+  const { data: customersData = [] } = useQuery<CustomerRow[]>({
+    queryKey: ["reports-customers", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [];
+      const { data: rows } = await (supabase as any)
+        .from("customers")
+        .select("id, name, email")
+        .eq("user_id", user.id)
+        .order("name");
+      return (rows || []) as CustomerRow[];
     },
   });
 
@@ -397,6 +432,41 @@ const Reports = () => {
       revenueDelta,
     };
   }, [data]);
+
+  const topCustomers = useMemo<TopCustomerRow[]>(() => {
+    if (!data?.appointments || !customersData.length) return [];
+    const map = new Map<string, { bookings: number; revenue: number; lastVisit: string | null }>();
+    data.appointments.forEach((apt) => {
+      if (!apt.customer_id) return;
+      const prev = map.get(apt.customer_id) ?? { bookings: 0, revenue: 0, lastVisit: null };
+      map.set(apt.customer_id, {
+        bookings: prev.bookings + 1,
+        revenue: prev.revenue + (apt.price || 0),
+        lastVisit:
+          !prev.lastVisit || apt.appointment_date > prev.lastVisit
+            ? apt.appointment_date
+            : prev.lastVisit,
+      });
+    });
+    return customersData
+      .map((c, i) => {
+        const stats = map.get(c.id) ?? { bookings: 0, revenue: 0, lastVisit: null };
+        const parts = c.name.trim().split(" ");
+        const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+        return {
+          id: c.id,
+          name: c.name,
+          bookings: stats.bookings,
+          revenue: stats.revenue,
+          lastVisit: stats.lastVisit,
+          initials: initials.toUpperCase(),
+          color: customerColors[i % customerColors.length],
+        };
+      })
+      .filter((c) => c.bookings > 0)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 8);
+  }, [data, customersData]);
 
   const revenueChartConfig = {
     revenue: { label: "Revenue", color: "#e11d48" },
@@ -881,6 +951,9 @@ const Reports = () => {
               </Card>
               </motion.div>
 
+              {/* Best customers */}
+              <TopCustomersSection customers={topCustomers} />
+
               {/* Reviews section */}
               <ReviewsSection reviews={reviewsData || []} />
 
@@ -932,6 +1005,146 @@ function KpiTile({
             {value}
           </p>
           <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
+  const podiumSlots = [
+    { c: customers[1], height: 72, color: "#7c3aed", glow: "rgba(124,58,237,0.45)", rank: 2 },
+    { c: customers[0], height: 104, color: "#e11d48", glow: "rgba(225,29,72,0.55)", rank: 1 },
+    { c: customers[2], height: 52, color: "#2563eb", glow: "rgba(37,99,235,0.40)", rank: 3 },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+        <CardContent className="p-5">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Best customers</h3>
+              <p className="text-xs text-[#8E8E93] mt-0.5">Ranked by total spend this period</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-rose-600" />
+            </div>
+          </div>
+
+          {customers.length === 0 ? (
+            <EmptyMini />
+          ) : (
+            <>
+              {/* Animated podium */}
+              <div className="flex items-end justify-center gap-4 mb-6" style={{ height: 172 }}>
+                {podiumSlots.map(({ c, height, color, glow, rank }) =>
+                  !c ? (
+                    <div key={rank} className="w-20" />
+                  ) : (
+                    <div key={c.id} className="flex flex-col items-center gap-1">
+                      {/* Avatar */}
+                      <motion.div
+                        className="relative mb-0.5"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.3 + rank * 0.08, duration: 0.45, type: "spring", stiffness: 260, damping: 20 }}
+                      >
+                        {rank === 1 && (
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 absolute -top-3.5 left-1/2 -translate-x-1/2" />
+                        )}
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-bold text-white ring-2 ring-white/30"
+                          style={{ backgroundColor: color }}
+                        >
+                          {c.initials}
+                        </div>
+                      </motion.div>
+                      {/* Name */}
+                      <p className="text-[10px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate max-w-[76px] text-center">
+                        {c.name.split(" ")[0]}
+                      </p>
+                      <p className="text-[9px] text-[#8E8E93] truncate max-w-[76px] text-center">
+                        {currency.format(c.revenue)}
+                      </p>
+                      {/* Rising bar */}
+                      <motion.div
+                        className="w-20 rounded-t-xl flex items-end justify-center pb-1.5"
+                        style={{
+                          backgroundColor: `${color}15`,
+                          borderTop: `2.5px solid ${color}`,
+                          boxShadow: `0 -4px 18px ${glow}`,
+                        }}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height, opacity: 1 }}
+                        transition={{ delay: 0.12 + rank * 0.09, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        <span className="text-[11px] font-bold" style={{ color }}>#{rank}</span>
+                      </motion.div>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* Ranked list */}
+              <div className="space-y-2">
+                {customers.slice(0, 8).map((c, i) => {
+                  const pct = Math.min(100, (c.revenue / (customers[0]?.revenue || 1)) * 100);
+                  return (
+                    <motion.div
+                      key={c.id}
+                      initial={{ opacity: 0, x: -14 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.07 * i + 0.32, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                      className="flex items-center gap-3 rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 px-3 py-2.5 group"
+                    >
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0 transition-transform duration-200 group-hover:scale-110"
+                        style={{ backgroundColor: c.color }}
+                      >
+                        {c.initials}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{c.name}</p>
+                          {i === 0 && (
+                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600">
+                              VIP
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#8E8E93]">
+                          {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
+                          {c.lastVisit
+                            ? ` · ${formatDistanceToNow(new Date(c.lastVisit + "T00:00:00"), { addSuffix: true })}`
+                            : ""}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0 min-w-[64px]">
+                        <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                          {currency.format(c.revenue)}
+                        </p>
+                        <div className="w-full h-1 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] mt-1.5 overflow-hidden">
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: c.color }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ delay: 0.07 * i + 0.5, duration: 0.65, ease: "easeOut" }}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </motion.div>

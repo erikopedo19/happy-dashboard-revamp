@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
+import { motion } from "framer-motion";
 
 const db = supabase as any;
 
@@ -179,10 +180,10 @@ export function DashboardContent() {
 
         {/* KPI grid */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-          <Kpi title="Today's revenue" value={`€${stats.todayRevenue.toFixed(0)}`} delta={stats.revenueTrend} sub="vs last 30d" icon={DollarSign} accent />
-          <Kpi title="Today's bookings" value={stats.todays.toString()} delta={stats.trend} sub="vs last 30d" icon={Calendar} />
-          <Kpi title="Pending" value={stats.pending.toString()} delta={0} sub="awaiting confirmation" icon={Clock} hideDelta />
-          <Kpi title="Customers" value={stats.customers.toString()} delta={stats.newCustomers30} sub={`+${stats.newCustomers30} this month`} icon={Users} isCount />
+          <Kpi index={0} title="Today's revenue" value={`€${stats.todayRevenue.toFixed(0)}`} delta={stats.revenueTrend} sub="vs last 30d" icon={DollarSign} accent />
+          <Kpi index={1} title="Today's bookings" value={stats.todays.toString()} delta={stats.trend} sub="vs last 30d" icon={Calendar} />
+          <Kpi index={2} title="Pending" value={stats.pending.toString()} delta={0} sub="awaiting confirmation" icon={Clock} hideDelta />
+          <Kpi index={3} title="Customers" value={stats.customers.toString()} delta={stats.newCustomers30} sub={`+${stats.newCustomers30} this month`} icon={Users} isCount />
         </div>
 
         {/* Secondary stats strip */}
@@ -195,7 +196,7 @@ export function DashboardContent() {
 
         {/* Chart + Upcoming */}
         <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-3 sm:gap-4">
-          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(225,29,72,0.09)] dark:hover:shadow-[0_8px_32px_rgba(225,29,72,0.18)]">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-end justify-between mb-4 sm:mb-6">
                 <div>
@@ -224,7 +225,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(225,29,72,0.09)] dark:hover:shadow-[0_8px_32px_rgba(225,29,72,0.18)]">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -278,7 +279,7 @@ export function DashboardContent() {
         </div>
 
         {/* Week ahead */}
-        <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(225,29,72,0.09)] dark:hover:shadow-[0_8px_32px_rgba(225,29,72,0.18)]">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-[#8E8E93]">Week ahead</p>
@@ -287,28 +288,36 @@ export function DashboardContent() {
               </button>
             </div>
             <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
-              {stats.weekAhead.map((d, i) => (
-                <div
-                  key={i}
-                  className={`rounded-2xl p-2 sm:p-3 text-center ${
-                    d.isToday
-                      ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]'
-                      : 'bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white'
-                  }`}
-                >
-                  <p className={`text-[10px] uppercase tracking-wider font-semibold ${d.isToday ? 'opacity-80' : 'text-[#8E8E93]'}`}>
-                    {d.label}
-                  </p>
-                  <p className="text-xl sm:text-2xl font-semibold tracking-tight mt-1">{d.count}</p>
-                </div>
-              ))}
+              {stats.weekAhead.map((d, i) => {
+                const maxCount = Math.max(...stats.weekAhead.map((x) => x.count), 1);
+                const intensity = d.count / maxCount;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    className={`rounded-2xl p-2 sm:p-3 text-center transition-all duration-200 ${
+                      d.isToday
+                        ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]'
+                        : 'bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white'
+                    }`}
+                    style={!d.isToday && d.count > 0 ? { boxShadow: `inset 0 0 0 1.5px rgba(225,29,72,${0.15 + intensity * 0.35})` } : {}}
+                  >
+                    <p className={`text-[10px] uppercase tracking-wider font-semibold ${d.isToday ? 'opacity-80' : 'text-[#8E8E93]'}`}>
+                      {d.label}
+                    </p>
+                    <p className="text-xl sm:text-2xl font-semibold tracking-tight mt-1" style={!d.isToday && d.count > 0 ? { color: `rgba(225,29,72,${0.6 + intensity * 0.4})` } : {}}>{d.count}</p>
+                  </motion.div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
         {/* Top services + Top customers */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(225,29,72,0.09)] dark:hover:shadow-[0_8px_32px_rgba(225,29,72,0.18)]">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -343,7 +352,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(225,29,72,0.09)] dark:hover:shadow-[0_8px_32px_rgba(225,29,72,0.18)]">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -387,7 +396,7 @@ export function DashboardContent() {
 
 function MiniStat({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
   return (
-    <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl px-3 py-3 sm:px-4 sm:py-3.5 flex items-center gap-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl px-3 py-3 sm:px-4 sm:py-3.5 flex items-center gap-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(225,29,72,0.08)] dark:hover:shadow-[0_4px_16px_rgba(225,29,72,0.16)]">
       <div className="h-8 w-8 rounded-xl bg-[#F5F5F7] dark:bg-[#2C2C2E] flex items-center justify-center shrink-0">
         <Icon className="h-3.5 w-3.5 text-[#1C1C1E] dark:text-white" strokeWidth={2.2} />
       </div>
@@ -405,7 +414,9 @@ function DeltaPill({ value }: { value: number }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
-        positive ? 'text-[#1C1C1E] dark:text-white bg-[#F5F5F7] dark:bg-[#2C2C2E]' : 'text-[#e11d48] bg-[#e11d48]/10'
+        positive
+          ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
+          : 'text-[#e11d48] bg-[#e11d48]/10'
       }`}
     >
       {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -415,7 +426,7 @@ function DeltaPill({ value }: { value: number }) {
 }
 
 function Kpi({
-  title, value, delta, sub, icon: Icon, accent, hideDelta, isCount,
+  title, value, delta, sub, icon: Icon, accent, hideDelta, isCount, index = 0,
 }: {
   title: string;
   value: string;
@@ -425,26 +436,34 @@ function Kpi({
   accent?: boolean;
   hideDelta?: boolean;
   isCount?: boolean;
+  index?: number;
 }) {
   return (
-    <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-shadow">
-      <CardContent className="p-4 sm:p-5">
-        <div className="flex items-start justify-between mb-3 sm:mb-4">
-          <div
-            className={`h-8 w-8 sm:h-9 sm:w-9 rounded-2xl flex items-center justify-center ${
-              accent ? 'bg-[#e11d48] text-white' : 'bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white'
-            }`}
-          >
-            <Icon className="h-4 w-4" strokeWidth={2.2} />
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ scale: 1.02, transition: { duration: 0.15 } }}
+    >
+      <Card className="bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_32px_rgba(225,29,72,0.22)] cursor-default">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start justify-between mb-3 sm:mb-4">
+            <div
+              className={`h-8 w-8 sm:h-9 sm:w-9 rounded-2xl flex items-center justify-center ${
+                accent ? 'bg-[#e11d48] text-white' : 'bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white'
+              }`}
+            >
+              <Icon className="h-4 w-4" strokeWidth={2.2} />
+            </div>
+            {!hideDelta && !isCount && <DeltaPill value={delta} />}
           </div>
-          {!hideDelta && !isCount && <DeltaPill value={delta} />}
-        </div>
-        <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-[#8E8E93] truncate">{title}</p>
-        <p className="text-[22px] sm:text-[28px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white mt-1 leading-none">
-          {value}
-        </p>
-        <p className="text-[11px] sm:text-xs text-[#8E8E93] mt-2 truncate">{sub}</p>
-      </CardContent>
-    </Card>
+          <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-[#8E8E93] truncate">{title}</p>
+          <p className="text-[22px] sm:text-[28px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white mt-1 leading-none">
+            {value}
+          </p>
+          <p className="text-[11px] sm:text-xs text-[#8E8E93] mt-2 truncate">{sub}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
