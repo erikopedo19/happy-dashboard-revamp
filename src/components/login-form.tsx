@@ -432,42 +432,45 @@ export function LoginForm() {
             </Tabs>
           </div>
 
-          <div className="relative hidden min-h-[620px] overflow-hidden bg-[#080808] md:flex md:flex-col md:items-center md:justify-center gap-0">
-            {/* Brand glow orbs */}
-            <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-[#e11d48]/15 blur-3xl" />
-            <div className="pointer-events-none absolute -right-24 bottom-1/4 h-64 w-64 rounded-full bg-[#9f1239]/20 blur-3xl" />
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#e11d48]/08 blur-2xl" />
-            {/* Frame 316 brand image */}
-            <img
-              src="/Frame 316.png"
-              alt="Cutzioo"
-              className="relative z-10 w-[82%] max-w-[320px] drop-shadow-[0_0_40px_rgba(225,29,72,0.25)] animate-in fade-in zoom-in-95 duration-700"
-            />
-            {/* Tagline + stat cards */}
-            <div className="relative z-10 w-full px-8 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-              <p className="text-center text-white/75 text-sm font-medium mb-5 tracking-wide">
-                The booking platform built for modern barbers.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-4 backdrop-blur-sm">
-                  <CalendarCheck className="mb-2.5 h-5 w-5 text-[#e11d48]" />
-                  <p className="text-white text-sm font-semibold">Smart Booking</p>
-                  <p className="text-white/45 text-xs mt-0.5 leading-relaxed">Fill your chair effortlessly</p>
+          <div className="relative hidden min-h-[620px] overflow-hidden bg-gradient-to-br from-[#0A84FF] via-[#5856D6] to-[#AF52DE] p-8 md:flex md:items-center md:justify-center">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(255,255,255,0.22),transparent_35%)]" />
+            <div className="absolute right-10 top-10 h-24 w-24 animate-bounce rounded-[28px] bg-white/15 backdrop-blur-xl [animation-duration:4s]" />
+            <div className="absolute bottom-16 left-10 h-32 w-32 animate-pulse rounded-full bg-white/15 blur-sm" />
+            <div className="relative w-full max-w-sm">
+              <div className="animate-in fade-in zoom-in-95 duration-700 rounded-[36px] border border-white/25 bg-white/20 p-5 shadow-2xl backdrop-blur-2xl">
+                <div className="rounded-[28px] bg-white/90 p-4 text-[#1D1D1F] shadow-xl">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#8E8E93]">Today</p>
+                      <p className="text-2xl font-bold">12 bookings</p>
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#34C759] text-white">
+                      <CalendarCheck className="h-6 w-6" />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {["Fade & beard", "Classic cut", "Color refresh"].map((item, index) => (
+                      <div key={item} className="flex items-center justify-between rounded-2xl bg-[#F2F2F7] p-3">
+                        <div>
+                          <p className="text-sm font-semibold">{item}</p>
+                          <p className="text-xs text-[#8E8E93]">{9 + index}:30 · confirmed</p>
+                        </div>
+                        <div className="h-2.5 w-2.5 rounded-full bg-[#34C759]" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-4 backdrop-blur-sm">
-                  <ShieldCheck className="mb-2.5 h-5 w-5 text-[#e11d48]" />
-                  <p className="text-white text-sm font-semibold">Secure Auth</p>
-                  <p className="text-white/45 text-xs mt-0.5 leading-relaxed">Powered by Supabase</p>
-                </div>
-                <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-4 backdrop-blur-sm">
-                  <Sparkles className="mb-2.5 h-5 w-5 text-[#e11d48]" />
-                  <p className="text-white text-sm font-semibold">Live Analytics</p>
-                  <p className="text-white/45 text-xs mt-0.5 leading-relaxed">Real-time insights</p>
-                </div>
-                <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-4 backdrop-blur-sm">
-                  <Scissors className="mb-2.5 h-5 w-5 text-[#e11d48]" />
-                  <p className="text-white text-sm font-semibold">Client CRM</p>
-                  <p className="text-white/45 text-xs mt-0.5 leading-relaxed">Remember every client</p>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-white">
+                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
+                    <ShieldCheck className="mb-3 h-5 w-5" />
+                    <p className="text-sm font-semibold">Secure auth</p>
+                    <p className="text-xs text-white/75">Supabase powered</p>
+                  </div>
+                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
+                    <Sparkles className="mb-3 h-5 w-5" />
+                    <p className="text-sm font-semibold">Live stats</p>
+                    <p className="text-xs text-white/75">Always fresh</p>
+                  </div>
                 </div>
               </div>
             </div>
