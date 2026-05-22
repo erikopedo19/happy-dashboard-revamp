@@ -619,6 +619,51 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          appointment_id: string
+          business_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewer_name: string | null
+        }
+        Insert: {
+          appointment_id: string
+          business_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewer_name?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          business_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewer_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           border_color: string | null
@@ -975,6 +1020,9 @@ export type Database = {
           appointment_time: string
           barber_id: string
           barber_name: string
+          booking_link: string
+          cancel_token: string
+          has_review: boolean
           id: string
           service_name: string
           status: string
@@ -983,6 +1031,7 @@ export type Database = {
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
+          address: string
           avatar_url: string
           banner_url: string
           booking_link: string
@@ -990,8 +1039,12 @@ export type Database = {
           description: string
           full_name: string
           id: string
+          phone: string
           rating: number
           rating_count: number
+          services_count: number
+          stylists_count: number
+          total_bookings: number
         }[]
       }
       get_public_stylist_services: {
@@ -999,6 +1052,16 @@ export type Database = {
         Returns: {
           service_id: string
           stylist_id: string
+        }[]
+      }
+      get_reviews_for_business: {
+        Args: { _business_id: string }
+        Returns: {
+          comment: string
+          created_at: string
+          id: string
+          rating: number
+          reviewer_name: string
         }[]
       }
       list_public_profiles: {
@@ -1020,6 +1083,10 @@ export type Database = {
       list_public_shops: { Args: never; Returns: Json }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
+        Returns: Json
+      }
+      submit_review: {
+        Args: { _cancel_token: string; _comment?: string; _rating: number }
         Returns: Json
       }
       user_organizations: { Args: never; Returns: string[] }
