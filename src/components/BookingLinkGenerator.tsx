@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, ExternalLink, RefreshCw, Share2, Save, Check } from "lucide-react";
+import { Copy, ExternalLink, RefreshCw, Share2, Save, Check, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,7 @@ const BookingLinkGenerator = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
+  const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "christmas" | "summer">("default");
   const [accentColor, setAccentColor] = useState("#1a1a1a");
 
   // Fetch user profile with booking link
@@ -278,24 +278,36 @@ const BookingLinkGenerator = () => {
                 <Label htmlFor="askNotes" className="font-normal cursor-pointer">Ask for Notes</Label>
               </div>
               <div className="grid gap-2">
-                <Label>Email Template</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {[
-                    { value: "default", label: "Default" },
-                    { value: "minimal", label: "Minimal" },
-                    { value: "festive", label: "Festive" },
-                  ].map((opt) => (
-                    <Button
-                      key={opt.value}
-                      variant={emailTheme === opt.value ? "default" : "outline"}
-                      className="w-full justify-between"
-                      onClick={() => setEmailTheme(opt.value as typeof emailTheme)}
-                      type="button"
-                    >
-                      {opt.label}
-                      {emailTheme === opt.value && <Check className="w-4 h-4" />}
-                    </Button>
-                  ))}
+                <Label className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> Email Template</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { value: "default",   emoji: "✉️",  label: "Default",   desc: "Clean & professional",  grad: "from-zinc-800 to-zinc-950",          accent: "#e11d48" },
+                    { value: "minimal",   emoji: "🪶",  label: "Minimal",   desc: "Simple & sleek",        grad: "from-slate-700 to-slate-900",         accent: "#64748b" },
+                    { value: "christmas", emoji: "🎄",  label: "Christmas", desc: "Festive holiday spirit", grad: "from-red-900 via-green-950 to-red-950", accent: "#c41e3a" },
+                    { value: "summer",    emoji: "☀️",  label: "Summer",    desc: "Bright summer vibes",   grad: "from-amber-700 to-orange-900",         accent: "#f59e0b" },
+                  ] as const).map((opt) => {
+                    const selected = emailTheme === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setEmailTheme(opt.value as typeof emailTheme)}
+                        className={`relative rounded-2xl p-3.5 text-left transition-all overflow-hidden border-2 ${
+                          selected ? "border-[#e11d48] ring-1 ring-[#e11d48]/30" : "border-transparent"
+                        }`}
+                      >
+                        <div className={`absolute inset-0 bg-gradient-to-br ${opt.grad} opacity-90`} />
+                        <div className="relative z-10">
+                          <div className="flex items-start justify-between mb-1.5">
+                            <span className="text-lg leading-none">{opt.emoji}</span>
+                            {selected && <Check className="h-3.5 w-3.5 text-white" />}
+                          </div>
+                          <p className="text-white text-xs font-semibold leading-tight">{opt.label}</p>
+                          <p className="text-white/55 text-[10px] mt-0.5 leading-tight">{opt.desc}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="grid gap-2">
