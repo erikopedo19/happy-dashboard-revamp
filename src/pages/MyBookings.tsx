@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
-import { Calendar, Clock, Scissors, Loader2, ChevronRight } from "lucide-react";
+import { Calendar, Clock, Scissors, Loader2, ChevronRight, Star, Settings2 } from "lucide-react";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,9 @@ interface Booking {
   service_name: string | null;
   barber_id: string;
   barber_name: string | null;
+  cancel_token: string | null;
+  has_review: boolean;
+  booking_link: string | null;
 }
 
 const statusColor = (s: string) => {
@@ -80,7 +83,7 @@ const MyBookings = () => {
           <EmptyState />
         ) : (
           <>
-            <Section title="Upcoming" items={upcoming} />
+            <Section title="Upcoming" items={upcoming} upcoming />
             <Section title="Past" items={past} />
           </>
         )}
@@ -91,48 +94,87 @@ const MyBookings = () => {
   );
 };
 
-function Section({ title, items }: { title: string; items: Booking[] }) {
+function Section({ title, items, upcoming }: { title: string; items: Booking[]; upcoming?: boolean }) {
   if (items.length === 0) return null;
   return (
     <div>
       <h2 className="text-[13px] uppercase tracking-wide text-[#8E8E93] font-semibold px-1 mb-2">
         {title}
       </h2>
-      <div className="space-y-2">
-        {items.map((b, i) => (
-          <motion.div
-            key={b.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04, type: "spring", stiffness: 380, damping: 30 }}
-            className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4 flex items-center gap-3"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shrink-0">
-              <Scissors className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                {b.service_name || "Service"}
-              </p>
-              <p className="text-[12px] text-[#8E8E93] truncate">
-                with {b.barber_name || "Barber"}
-              </p>
-              <div className="flex items-center gap-3 mt-1.5 text-[12px] text-[#8E8E93]">
-                <span className="inline-flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {format(parseISO(b.appointment_date), "MMM d")}
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {b.appointment_time?.substring(0, 5)}
+      <div className="space-y-3">
+        {items.map((b, i) => {
+          const isPast = !upcoming;
+          const isCompleted = b.status === "completed";
+          const canReview = isPast && isCompleted && !b.has_review && !!b.cancel_token;
+          const canManage = upcoming && !!b.cancel_token && b.status !== "cancelled";
+
+          return (
+            <motion.div
+              key={b.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, type: "spring", stiffness: 380, damping: 30 }}
+              className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden"
+            >
+              <div className="p-4 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shrink-0">
+                  <Scissors className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                    {b.service_name || "Service"}
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93] truncate">
+                    with {b.barber_name || "Barber"}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1.5 text-[12px] text-[#8E8E93]">
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {format(parseISO(b.appointment_date), "MMM d")}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {b.appointment_time?.substring(0, 5)}
+                    </span>
+                  </div>
+                </div>
+                <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize shrink-0", statusColor(b.status))}>
+                  {b.status}
                 </span>
               </div>
-            </div>
-            <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize", statusColor(b.status))}>
-              {b.status}
-            </span>
-          </motion.div>
-        ))}
+
+              {/* Action row */}
+              {(canManage || canReview || (isPast && isCompleted && b.has_review)) && (
+                <div className="px-4 pb-4 flex gap-2">
+                  {canManage && (
+                    <Link
+                      to={`/manage/${b.cancel_token}`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-2xl bg-[#007AFF]/10 text-[#007AFF] text-[13px] font-semibold active:scale-95 transition-transform"
+                    >
+                      <Settings2 className="w-3.5 h-3.5" />
+                      Manage
+                    </Link>
+                  )}
+                  {canReview && (
+                    <Link
+                      to={`/review/${b.cancel_token}`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-2xl bg-[#FFCC00]/15 text-[#B8860B] dark:text-[#FFCC00] text-[13px] font-semibold active:scale-95 transition-transform"
+                    >
+                      <Star className="w-3.5 h-3.5" />
+                      Leave a review
+                    </Link>
+                  )}
+                  {isPast && isCompleted && b.has_review && (
+                    <div className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-2xl bg-[#34C759]/10 text-[#34C759] text-[13px] font-semibold">
+                      <Star className="w-3.5 h-3.5 fill-[#34C759]" />
+                      Reviewed
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
