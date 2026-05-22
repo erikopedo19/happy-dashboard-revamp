@@ -983,6 +983,7 @@ export type Database = {
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
+          address: string
           avatar_url: string
           banner_url: string
           booking_link: string
@@ -990,8 +991,12 @@ export type Database = {
           description: string
           full_name: string
           id: string
+          phone: string
           rating: number
           rating_count: number
+          services_count: number
+          stylists_count: number
+          total_bookings: number
         }[]
       }
       get_public_stylist_services: {
