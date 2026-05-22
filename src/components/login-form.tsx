@@ -2,10 +2,9 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Loader2, Mail, Lock, User as UserIcon, ArrowRight, Scissors, UserCircle2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, Mail, Lock, User as UserIcon, ArrowRight, Scissors, UserCircle2, Sparkles, CalendarCheck, ShieldCheck } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
@@ -189,31 +188,34 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted dark:bg-[#0c0c0c] p-6 md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
-      <div className="w-full max-w-sm md:max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-lg transition-all duration-300 hover:shadow-xl dark:shadow-none dark:border dark:border-[#2C2C2E]">
-          {/* Left: Form */}
-          <div className="flex flex-col p-8 dark:bg-[#1C1C1E]">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#F5F5F7] p-4 text-[#1D1D1F] dark:bg-[#050507] dark:text-white md:p-10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}>
+      <div className="absolute -left-24 top-10 h-72 w-72 animate-pulse rounded-full bg-[#007AFF]/25 blur-3xl" />
+      <div className="absolute -right-24 bottom-8 h-80 w-80 animate-pulse rounded-full bg-[#AF52DE]/25 blur-3xl [animation-delay:700ms]" />
+      <div className="absolute left-1/2 top-1/4 h-64 w-64 -translate-x-1/2 rounded-full bg-[#34C759]/10 blur-3xl" />
+
+      <div className="relative w-full max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-700 md:max-w-5xl">
+        <div className="grid grid-cols-1 gap-0 overflow-hidden rounded-[32px] border border-white/60 bg-white/75 shadow-[0_24px_80px_rgba(0,0,0,0.14)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_32px_100px_rgba(0,0,0,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]/70 md:grid-cols-[0.95fr_1.05fr]">
+          <div className="flex flex-col p-6 sm:p-8 dark:bg-transparent">
             <div className="flex flex-col space-y-2 text-center mb-6">
-              <div className="flex justify-center mb-4">
-                <img
-                  src="/logo.svg"
-                  alt="Logo"
-                  className="h-12 w-12 object-contain"
-                />
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[22px] bg-white shadow-lg shadow-black/10 ring-1 ring-black/5 dark:bg-white/10 dark:ring-white/10">
+                <img src="/logo.svg" alt="Logo" className="h-10 w-10 object-contain" />
               </div>
-              <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}>
+              <div className="mx-auto mb-1 inline-flex items-center gap-1.5 rounded-full border border-[#007AFF]/20 bg-[#007AFF]/10 px-3 py-1 text-xs font-semibold text-[#007AFF]">
+                <Sparkles className="h-3.5 w-3.5" />
+                iOS-style booking workspace
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}>
                 Welcome to Cutzio
               </h1>
               <p className="text-sm text-muted-foreground" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
-                Sign in to manage your barbershop
+                Sign in to manage bookings, clients, and your barbershop flow.
               </p>
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 gap-1 h-11 p-1 rounded-xl">
-                <TabsTrigger value="signin" className="h-9 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:shadow-sm">Sign in</TabsTrigger>
-                <TabsTrigger value="signup" className="h-9 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:shadow-sm">Sign up</TabsTrigger>
+              <TabsList className="grid h-12 w-full grid-cols-2 gap-1 rounded-2xl bg-black/5 p-1 dark:bg-white/10">
+                <TabsTrigger value="signin" className="h-10 rounded-xl text-sm font-semibold transition-all duration-300 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-white/15">Sign in</TabsTrigger>
+                <TabsTrigger value="signup" className="h-10 rounded-xl text-sm font-semibold transition-all duration-300 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-white/15">Sign up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -314,7 +316,7 @@ export function LoginForm() {
                             key={key}
                             onClick={() => setSignUpForm(prev => ({ ...prev, role: key }))}
                             className={cn(
-                              "relative flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
+                              "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
                               selected
                                 ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
                                 : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40"
@@ -433,14 +435,48 @@ export function LoginForm() {
             </Tabs>
           </div>
 
-          {/* Right: Image */}
-          <div className="hidden md:block relative overflow-hidden min-h-[600px] bg-gray-50 dark:bg-[#0c0c0c] flex items-center justify-center">
-            <img
-              src="/Frame 316.png"
-              alt="Login illustration"
-              className="h-full w-full object-contain dark:opacity-90"
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF]/10 to-[#5856D6]/10 dark:from-[#007AFF]/20 dark:to-[#5856D6]/20 pointer-events-none" />
+          <div className="relative hidden min-h-[620px] overflow-hidden bg-gradient-to-br from-[#0A84FF] via-[#5856D6] to-[#AF52DE] p-8 md:flex md:items-center md:justify-center">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(255,255,255,0.22),transparent_35%)]" />
+            <div className="absolute right-10 top-10 h-24 w-24 animate-bounce rounded-[28px] bg-white/15 backdrop-blur-xl [animation-duration:4s]" />
+            <div className="absolute bottom-16 left-10 h-32 w-32 animate-pulse rounded-full bg-white/15 blur-sm" />
+            <div className="relative w-full max-w-sm">
+              <div className="animate-in fade-in zoom-in-95 duration-700 rounded-[36px] border border-white/25 bg-white/20 p-5 shadow-2xl backdrop-blur-2xl">
+                <div className="rounded-[28px] bg-white/90 p-4 text-[#1D1D1F] shadow-xl">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#8E8E93]">Today</p>
+                      <p className="text-2xl font-bold">12 bookings</p>
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#34C759] text-white">
+                      <CalendarCheck className="h-6 w-6" />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {["Fade & beard", "Classic cut", "Color refresh"].map((item, index) => (
+                      <div key={item} className="flex items-center justify-between rounded-2xl bg-[#F2F2F7] p-3">
+                        <div>
+                          <p className="text-sm font-semibold">{item}</p>
+                          <p className="text-xs text-[#8E8E93]">{9 + index}:30 · confirmed</p>
+                        </div>
+                        <div className="h-2.5 w-2.5 rounded-full bg-[#34C759]" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-white">
+                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
+                    <ShieldCheck className="mb-3 h-5 w-5" />
+                    <p className="text-sm font-semibold">Secure auth</p>
+                    <p className="text-xs text-white/75">Supabase powered</p>
+                  </div>
+                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
+                    <Sparkles className="mb-3 h-5 w-5" />
+                    <p className="text-sm font-semibold">Live stats</p>
+                    <p className="text-xs text-white/75">Always fresh</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -43,6 +43,15 @@ interface BusinessProfile {
   full_name: string;
   brand_color?: string;
   booking_link?: string;
+  avatar_url?: string | null;
+  banner_url?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
+  total_bookings?: number | null;
+  services_count?: number | null;
+  stylists_count?: number | null;
 }
 
 interface BookingError {
