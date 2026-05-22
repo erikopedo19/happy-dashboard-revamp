@@ -14,6 +14,10 @@ import {
   Map as MapIcon,
   Loader2,
   ChevronDown,
+  Clock,
+  Award,
+  ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -380,16 +384,7 @@ function BarberCard({
             transition={{ duration: 0.25 }}
             className="px-4 pb-4"
           >
-            {barber.description && (
-              <p className="text-[13px] text-[#3C3C43] dark:text-[#EBEBF5]/80 leading-relaxed mb-3">
-                {barber.description}
-              </p>
-            )}
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <Stat label="Rating" value={Number(rating).toFixed(1)} />
-              <Stat label="Reviews" value={String(reviews)} />
-              <Stat label="Service" value="Pro" />
-            </div>
+            <BarberExpandedDetails barberId={barber.id} fallbackDescription={barber.description} accent={accent} rating={rating} reviews={reviews} />
           </motion.div>
         )}
       </AnimatePresence>
