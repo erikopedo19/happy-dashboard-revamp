@@ -676,7 +676,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       className={cn(
                         "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
                         customerName && !isLoading
-                          ? "bg-red-500 hover:bg-red-600"
+                          ? "bg-[#e11d48] hover:bg-[#be123c]"
                           : "bg-gray-600 cursor-not-allowed"
                       )}
                     >
