@@ -404,7 +404,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#1a1a1a]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(8.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Left Panel - Service Info */}
@@ -597,7 +597,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   Enter Your Details
                 </h3>
 
-                <form onSubmit={handleSubmit} className={cn("space-y-4 flex-1", isMobile && "pb-24") }>
+                <form onSubmit={handleSubmit} className={cn("space-y-4 flex-1", isMobile && "pb-36") }>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Full Name *
@@ -669,12 +669,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     <span>Back to calendar</span>
                   </button>
 
-                  <div className={cn(isMobile ? "sticky bottom-0 bg-[#1a1a1a] pt-4 pb-2" : "mt-auto pt-6")}>
+                  <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#1a1a1a]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
                     <button
                       type="submit"
                       disabled={isLoading || !customerName}
                       className={cn(
-                        "w-full py-4 px-6 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                        "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
                         customerName && !isLoading
                           ? "bg-red-500 hover:bg-red-600"
                           : "bg-gray-600 cursor-not-allowed"
@@ -720,7 +720,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
               "bg-[#1a1a1a]",
-              isMobile ? "p-4 pb-8" : "w-[280px] p-6 overflow-y-auto"
+              isMobile ? "p-4 pb-36" : "w-[280px] p-6 overflow-y-auto"
             )}>
             {!isMobile && step === "details" && (
               <div className="space-y-4">
@@ -822,12 +822,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </div>
               )}
 
-              <div className={cn(isMobile ? "sticky bottom-0 bg-[#1a1a1a] pt-4" : "mt-6")}>
+              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#1a1a1a]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
                 <button
                   onClick={handleContinue}
                   disabled={!selectedTimeSlot}
                   className={cn(
-                    "w-full py-3 px-6 rounded-xl font-semibold text-white transition-all",
+                    "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all",
                     selectedTimeSlot
                       ? "bg-red-500 hover:bg-red-600"
                       : "bg-gray-600 cursor-not-allowed"
