@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { Area, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from 'recharts';
+import { Area, CartesianGrid, ComposedChart, XAxis, YAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 
 // Revenue data by category
@@ -312,36 +312,29 @@ export default function RevenueChart() {
               <ChartTooltip content={<CustomTooltip />} />
 
               {categoryMetrics.map((category) => (
-                <React.Fragment key={category.key}>
-                  <Area
-                    type="monotone"
-                    dataKey={category.key}
-                    fill={`url(#gradient-${category.key})`}
-                    stroke="transparent"
-                    stackId="stack"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey={category.key}
-                    stroke={category.color}
-                    strokeWidth={2}
-                    dot={false}
-                    className="transition-all duration-300 hover:opacity-90"
-                    style={{
-                      filter: `drop-shadow(0 0 6px ${category.glowColor})`
-                    }}
-                    activeDot={{
-                      r: 6,
-                      fill: category.color,
-                      stroke: 'white',
-                      strokeWidth: 2,
-                      style: {
-                        filter: `drop-shadow(0 0 12px ${category.glowColor})`,
-                        transition: 'all 0.3s ease'
-                      },
-                    }}
-                  />
-                </React.Fragment>
+                <Area
+                  key={category.key}
+                  type="monotone"
+                  dataKey={category.key}
+                  fill={`url(#gradient-${category.key})`}
+                  stroke={category.color}
+                  strokeWidth={2}
+                  dot={false}
+                  stackId="stack"
+                  style={{
+                    filter: `drop-shadow(0 0 6px ${category.glowColor})`
+                  }}
+                  activeDot={{
+                    r: 6,
+                    fill: category.color,
+                    stroke: 'white',
+                    strokeWidth: 2,
+                    style: {
+                      filter: `drop-shadow(0 0 12px ${category.glowColor})`,
+                      transition: 'all 0.3s ease'
+                    },
+                  }}
+                />
               ))}
             </ComposedChart>
           </ChartContainer>
