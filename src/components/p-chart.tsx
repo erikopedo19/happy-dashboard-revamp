@@ -55,8 +55,8 @@ export function PChart({ data, className, showCancellations = false }: PChartPro
               <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
             </linearGradient>
             <linearGradient id="fillCancelled" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
+              <stop offset="5%" stopColor="#e11d48" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#e11d48" stopOpacity={0.05} />
             </linearGradient>
           </defs>
           
@@ -85,7 +85,7 @@ export function PChart({ data, className, showCancellations = false }: PChartPro
               type="natural"
               fill="url(#fillCancelled)"
               fillOpacity={0.4}
-              stroke="#ef4444"
+              stroke="#e11d48"
               strokeWidth={2}
               stackId="a"
             />
