@@ -1362,7 +1362,7 @@ export const ModernAppointmentsCalendar = ({
                     setSelectedAppointment(apt);
                     setShowDeleteDialog(true);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-rose-50 text-[#e11d48] hover:bg-rose-100 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Cancel

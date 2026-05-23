@@ -105,7 +105,7 @@ export function AppointmentsTable() {
                             status === "completed"
                                 ? "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
                                 : status === "cancelled"
-                                  ? "bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                                  ? "bg-[#e11d48]/10 text-[#e11d48] hover:bg-[#e11d48]/20"
                                   : status === "pending"
                                     ? "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
                                     : status === "confirmed"
@@ -143,9 +143,9 @@ export function AppointmentsTable() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="secondary" className={`${statusClass} capitalize border-0`}>
+                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusClass}`}>
                                         {appointment.status || "scheduled"}
-                                    </Badge>
+                                    </span>
                                 </TableCell>
                                 <TableCell className="text-right font-medium text-foreground">{amountLabel}</TableCell>
                                 <TableCell>
@@ -161,7 +161,7 @@ export function AppointmentsTable() {
                                             <DropdownMenuItem className="focus:bg-muted focus:text-foreground">View details</DropdownMenuItem>
                                             <DropdownMenuItem className="focus:bg-muted focus:text-foreground">Edit appointment</DropdownMenuItem>
                                             <DropdownMenuSeparator className="bg-border" />
-                                            <DropdownMenuItem className="text-red-500 focus:bg-red-500/10 focus:text-red-500">Cancel appointment</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-[#e11d48] focus:bg-[#e11d48]/10 focus:text-[#e11d48]">Cancel appointment</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>

@@ -170,7 +170,7 @@ export function StatsCards() {
               </div>
             </div>
             
-            <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm border transition-all duration-300 ${stat.positive ? 'bg-emerald-500/10 text-emerald-700 border-emerald-200' : 'bg-red-500/10 text-red-700 border-red-200'}`}>
+            <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm border transition-all duration-300 ${stat.positive ? 'bg-emerald-500/10 text-emerald-700 border-emerald-200' : 'bg-[#e11d48]/10 text-[#e11d48] border-[#fda4af]'}`}>
               {stat.positive ? '↑' : '↓'} <span className="font-medium">{stat.change}</span> <span className="text-xs opacity-80">{stat.changeLabel}</span>
             </div>
           </div>
