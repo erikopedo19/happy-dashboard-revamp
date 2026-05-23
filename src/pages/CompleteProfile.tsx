@@ -129,25 +129,29 @@ const CompleteProfile = () => {
         );
       }
 
-      // Business hours
-      const hoursRows = DAYS.map((d) => ({
-        user_id: user.id,
-        day_of_week: d.n,
-        open_time: data.startHour,
-        close_time: data.endHour,
-        is_closed: !data.workingDays.includes(d.n),
-      }));
-      await supabase.from("business_hours").upsert(hoursRows, {
-        onConflict: "user_id,day_of_week",
-      } as any);
+      // Business hours — replace existing
+      try {
+        await supabase.from("business_hours").delete().eq("user_id", user.id);
+        const hoursRows = DAYS.map((d) => ({
+          user_id: user.id,
+          day_of_week: d.n,
+          open_time: data.startHour,
+          close_time: data.endHour,
+          is_closed: !data.workingDays.includes(d.n),
+        }));
+        await supabase.from("business_hours").insert(hoursRows);
+      } catch (e) { console.warn("business_hours save skipped", e); }
 
       // Agenda defaults
-      await supabase.from("agenda_settings").upsert({
-        user_id: user.id,
-        start_hour: data.startHour,
-        end_hour: data.endHour,
-        working_days: data.workingDays,
-      } as any, { onConflict: "user_id" } as any);
+      try {
+        await supabase.from("agenda_settings").delete().eq("user_id", user.id);
+        await supabase.from("agenda_settings").insert({
+          user_id: user.id,
+          start_hour: data.startHour,
+          end_hour: data.endHour,
+          working_days: data.workingDays,
+        } as any);
+      } catch (e) { console.warn("agenda_settings save skipped", e); }
 
       toast.success("Welcome to Cutzio!", { description: "Your profile is ready." });
       navigate("/admin", { replace: true });
