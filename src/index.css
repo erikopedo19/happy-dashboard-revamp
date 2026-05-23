@@ -27,7 +27,7 @@ html, body, #root {
     --card-foreground: 220 14% 96%;
     --popover: 224 14% 10%;
     --popover-foreground: 220 14% 96%;
-    --primary: 217 91% 60%;
+    --primary: 338 92% 42%;
     --primary-foreground: 0 0% 100%;
     --secondary: 224 12% 14%;
     --secondary-foreground: 220 14% 96%;
@@ -39,31 +39,31 @@ html, body, #root {
     --destructive-foreground: 0 0% 100%;
     --border: 224 12% 16%;
     --input: 224 12% 14%;
-    --ring: 217 91% 60%;
+    --ring: 338 92% 42%;
     --radius: 1rem;
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
 
     /* Glass morphism variables */
-    --glass-background: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --glass-background: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(214, 0, 82, 0.16);
+    --glass-shadow: 0 8px 32px rgba(214, 0, 82, 0.12);
     --glass-blur: blur(16px);
     --prismatic-gradient: linear-gradient(135deg,
         rgba(255, 255, 255, 0.1) 0%,
-        rgba(128, 208, 199, 0.12) 25%,
-        rgba(161, 196, 253, 0.12) 50%,
-        rgba(194, 233, 251, 0.12) 75%,
+        rgba(214, 0, 82, 0.16) 25%,
+        rgba(16, 185, 129, 0.12) 50%,
+        rgba(245, 158, 11, 0.12) 75%,
         rgba(255, 255, 255, 0.1) 100%);
 
     --sidebar-background: 225 14% 8%;
     --sidebar-foreground: 220 9% 65%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 338 92% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 12% 14%;
     --sidebar-accent-foreground: 220 14% 96%;
     --sidebar-border: 224 12% 14%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 338 92% 42%;
   }
 
   .light {
@@ -73,7 +73,7 @@ html, body, #root {
     --card-foreground: 220 13% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 9%;
-    --primary: 220 13% 9%;
+    --primary: 338 92% 42%;
     --primary-foreground: 0 0% 98%;
     --secondary: 220 13% 96%;
     --secondary-foreground: 220 13% 9%;
@@ -85,7 +85,7 @@ html, body, #root {
     --destructive-foreground: 0 0% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 220 13% 9%;
+    --ring: 338 92% 42%;
 
     /* Light mode glass variables */
     --glass-background: rgba(255, 255, 255, 0.7);
@@ -95,12 +95,12 @@ html, body, #root {
     /* Sidebar variables mapped to light theme */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 13% 45%;
-    --sidebar-primary: 220 13% 9%;
+    --sidebar-primary: 338 92% 42%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 220 13% 96%;
     --sidebar-accent-foreground: 220 13% 9%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 220 13% 9%;
+    --sidebar-ring: 338 92% 42%;
   }
   .dark {
     --destructive-foreground: var(--color-red-400);
