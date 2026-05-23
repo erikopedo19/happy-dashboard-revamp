@@ -74,7 +74,7 @@ const SuperAdminLogin: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Admin email"
               required
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#e11d48]/50 focus:border-[#e11d48]/50 transition-all"
             />
           </div>
 
@@ -86,7 +86,7 @@ const SuperAdminLogin: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#e11d48]/50 focus:border-[#e11d48]/50 transition-all"
             />
           </div>
 
