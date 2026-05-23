@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import type { ComponentType } from 'react';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, Calendar, BarChart3, Scissors, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,7 +12,7 @@ import {
 
 interface NavItem {
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   path: string;
 }
 
@@ -40,19 +41,19 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
     <Link
       to={item.path}
       className={cn(
-        'relative flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-2xl transition-colors duration-300',
-        isActive ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+        'relative flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-2xl transition-all duration-300 active:scale-95',
+        isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
       )}
     >
       {isActive && (
         <motion.div
           layoutId="dock-active-pill"
-          className="absolute inset-0 rounded-2xl bg-gradient-rose shadow-rose"
+          className="absolute inset-x-1 top-1 bottom-1 rounded-2xl bg-foreground/8 dark:bg-white/10"
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         />
       )}
-      <Icon className={cn('relative z-10 h-5 w-5 transition-transform duration-300', isActive && 'scale-110')} />
-      <span className={cn('relative z-10 text-[10px] font-medium', isActive && 'font-semibold')}>
+      <Icon className={cn('relative z-10 h-5 w-5 transition-transform duration-300', isActive && 'scale-105')} />
+      <span className={cn('relative z-10 text-[9px] font-medium tracking-[-0.03em]', isActive && 'font-semibold')}>
         {item.label}
       </span>
     </Link>
@@ -66,9 +67,9 @@ export const MobileDockInner = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
-      <div className="relative bg-card/85 backdrop-blur-2xl border-t border-border/60">
-        <div className="grid grid-cols-6 items-center px-2 py-2 max-w-lg mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pointer-events-none">
+      <div className="relative mx-auto max-w-lg rounded-[28px] border border-black/5 dark:border-white/10 bg-white/78 dark:bg-[#1c1c1e]/78 shadow-[0_14px_45px_rgba(0,0,0,0.16)] backdrop-blur-2xl pointer-events-auto">
+        <div className="grid grid-cols-6 items-center px-1.5 py-1.5">
           {mainItems.map((item) => (
             <DockLink key={item.path} item={item} location={location} />
           ))}
@@ -78,10 +79,10 @@ export const MobileDockInner = () => {
               <button
                 type="button"
                 aria-label="More"
-                className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-2xl text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-2xl text-muted-foreground hover:text-foreground active:scale-95 transition-all"
               >
                 <MoreHorizontal className="h-5 w-5" />
-                <span className="text-[10px] font-medium">More</span>
+                <span className="text-[9px] font-medium tracking-[-0.03em]">More</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 mb-2">
