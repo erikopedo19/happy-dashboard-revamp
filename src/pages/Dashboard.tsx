@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, startOfWeek, addDays, isSameDay } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar, DollarSign, Clock, Users, ChevronRight, TrendingUp, Plus, Scissors, BarChart3, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Calendar, Clock, Users, ChevronRight, TrendingUp, Plus, Scissors, BarChart3, ArrowUpRight, ArrowDownRight, Sparkles, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
@@ -73,6 +73,8 @@ function MobileDashboard() {
     0
   );
   const pending = appointments.filter((a) => a.status === "scheduled").length;
+  const completedToday = todays.filter((a) => a.status === "completed").length;
+  const todayProgress = todays.length > 0 ? Math.round((completedToday / todays.length) * 100) : 0;
 
   const yesterdayRevenue = (() => {
     const y = format(addDays(new Date(), -1), "yyyy-MM-dd");
@@ -104,6 +106,7 @@ function MobileDashboard() {
     return { day: format(d, "EEE"), revenue };
   });
   const weekRevenue = trend.reduce((s, t) => s + t.revenue, 0);
+  const busiestDay = trend.reduce((best, day) => (day.revenue > best.revenue ? day : best), trend[0] || { day: "—", revenue: 0 });
 
   const stats = [
     {
@@ -250,6 +253,71 @@ function MobileDashboard() {
           })}
         </div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, type: "spring", stiffness: 320, damping: 26 }}
+          className="rounded-3xl bg-gradient-to-br from-[#111113] via-[#1f1116] to-[#2C2C2E] p-4 shadow-[0_18px_48px_rgba(225,29,72,0.16)] overflow-hidden relative"
+        >
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#e11d48]/25 blur-3xl" />
+          <div className="relative flex items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/80">
+                <Sparkles className="h-3 w-3 text-[#fb7185]" />
+                Today flow
+              </div>
+              <p className="mt-3 text-2xl font-bold text-white">{completedToday}/{todays.length}</p>
+              <p className="text-xs text-white/50">appointments completed</p>
+            </div>
+            <div className="relative h-20 w-20 rounded-full bg-white/10 p-2">
+              <div
+                className="h-full w-full rounded-full"
+                style={{ background: `conic-gradient(#e11d48 ${todayProgress * 3.6}deg, rgba(255,255,255,0.10) 0deg)` }}
+              />
+              <div className="absolute inset-4 rounded-full bg-[#171113] flex items-center justify-center">
+                <span className="text-sm font-bold text-white">{todayProgress}%</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, type: "spring", stiffness: 320, damping: 26 }}
+          className="rounded-3xl bg-white dark:bg-[#2C2C2E] p-4 shadow-sm"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide font-semibold text-[#8E8E93]">Week pulse</p>
+              <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Best day: {busiestDay.day}</p>
+            </div>
+            <div className="inline-flex items-center gap-1 rounded-full bg-[#e11d48]/10 px-2 py-1 text-xs font-semibold text-[#e11d48]">
+              <Target className="h-3 w-3" />
+              €{busiestDay.revenue.toFixed(0)}
+            </div>
+          </div>
+          <div className="grid grid-cols-7 gap-1.5">
+            {trend.map((d, i) => {
+              const max = Math.max(...trend.map((x) => x.revenue), 1);
+              const intensity = d.revenue / max;
+              return (
+                <motion.div
+                  key={d.day}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.22 + i * 0.035 }}
+                  className="rounded-2xl px-1.5 py-2 text-center"
+                  style={{ backgroundColor: `rgba(225,29,72,${0.06 + intensity * 0.28})` }}
+                >
+                  <p className="text-[10px] font-semibold text-[#8E8E93]">{d.day.slice(0, 1)}</p>
+                  <p className="mt-1 text-[11px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">€{d.revenue.toFixed(0)}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+
         {/* Quick actions */}
         <div>
           <p className="text-xs uppercase tracking-wide font-semibold text-[#8E8E93] px-1 mb-2">
@@ -349,8 +417,6 @@ function MobileDashboard() {
           )}
         </div>
       </div>
-
-      <MobileDock />
     </>
   );
 }

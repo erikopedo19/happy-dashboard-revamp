@@ -71,6 +71,7 @@ type ProfileRecord = {
 type BrandProfileRecord = {
   name: string;
   contact_phone: string;
+  city: string;
   location: string;
   latitude?: number;
   longitude?: number;
@@ -110,6 +111,7 @@ const defaultProfile: ProfileRecord = {
 const defaultBrandProfile: BrandProfileRecord = {
   name: "",
   contact_phone: "",
+  city: "",
   location: "",
   latitude: undefined,
   longitude: undefined,
@@ -206,6 +208,7 @@ const Settings = () => {
     setBrandForm({
       name: data.profile?.business_name ?? data.profile?.full_name ?? user.user_metadata?.full_name ?? "",
       contact_phone: data.profile?.phone ?? "",
+      city: data.profile?.address?.split(",").slice(-1)[0]?.trim() ?? "",
       location: data.profile?.address ?? "",
       latitude: data.profile?.latitude ?? undefined,
       longitude: data.profile?.longitude ?? undefined,
@@ -295,7 +298,7 @@ const Settings = () => {
         full_name: profileForm.full_name.trim() || null,
         phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
         business_name: brandForm.name.trim() || profileForm.full_name.trim() || null,
-        address: brandForm.location.trim() || null,
+        address: [brandForm.location.trim(), brandForm.city.trim()].filter(Boolean).join(", ") || null,
         latitude: lat ?? null,
         longitude: lng ?? null,
         google_maps_url: mapsUrl || null,
@@ -773,18 +776,34 @@ const Settings = () => {
                             </div>
                           </div>
 
-                          <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                              Location
-                            </Label>
-                            <Input
-                              value={brandForm.location}
-                              onChange={(e) =>
-                                setBrandForm((prev) => ({ ...prev, location: e.target.value }))
-                              }
-                              placeholder="123 Main Street, New York"
-                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                            />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                                City
+                              </Label>
+                              <Input
+                                value={brandForm.city}
+                                onChange={(e) =>
+                                  setBrandForm((prev) => ({ ...prev, city: e.target.value }))
+                                }
+                                placeholder="New York"
+                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                              />
+                            </div>
+
+                            <div>
+                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                                Street address
+                              </Label>
+                              <Input
+                                value={brandForm.location}
+                                onChange={(e) =>
+                                  setBrandForm((prev) => ({ ...prev, location: e.target.value }))
+                                }
+                                placeholder="123 Main Street"
+                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                              />
+                            </div>
                           </div>
 
                           <div>
@@ -818,7 +837,7 @@ const Settings = () => {
                               Map Location
                             </Label>
                             <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-3">
-                              Click on the map to set your barbershop location
+                              Search your city/address, then tap the exact place where your barbershop is.
                             </p>
                             <BarbershopMap
                               barbershops={brandForm.latitude && brandForm.longitude ? [{
@@ -830,9 +849,10 @@ const Settings = () => {
                                 contact_phone: brandForm.contact_phone,
                               }] : []}
                               height="300px"
-                              onBarbershopClick={(barbershop) => {
-                                // This is for when clicking on other barbershops in the public page
-                              }}
+                              pickMode
+                              onLocationPick={({ lat, lng }) =>
+                                setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+                              }
                             />
                             <div className="grid grid-cols-2 gap-4 mt-3">
                               <div>
@@ -909,13 +929,12 @@ const Settings = () => {
                             weekDays
                               .filter((day) => agendaForm.working_days.includes(day.value))
                               .map((day) => (
-                                <Badge
+                                <span
                                   key={day.value}
-                                  variant="secondary"
                                   className="rounded-full px-3 py-1 bg-white dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80"
                                 >
                                   {day.label}
-                                </Badge>
+                                </span>
                               ))
                           ) : (
                             <span className="text-sm text-[#8E8E93] dark:text-gray-500">No working days selected</span>
@@ -926,21 +945,20 @@ const Settings = () => {
                       <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs uppercase tracking-wide text-[#8E8E93] dark:text-gray-500">Time slots</p>
-                          <Badge className="rounded-full bg-rose-100 text-rose-700 border-0">
+                          <span className="rounded-full bg-rose-100 text-rose-700 border-0 px-3 py-1 text-xs font-medium">
                             {agendaForm.service_duration} min
-                          </Badge>
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {generateTimeSlots()
                             .slice(0, 20)
                             .map((slot) => (
-                              <Badge
+                              <span
                                 key={slot}
-                                variant="secondary"
                                 className="rounded-xl px-2.5 py-1 bg-white dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80"
                               >
                                 {slot}
-                              </Badge>
+                              </span>
                             ))}
                         </div>
                       </div>

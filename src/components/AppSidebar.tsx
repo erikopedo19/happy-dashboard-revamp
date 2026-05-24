@@ -248,7 +248,7 @@ export function AppSidebar() {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500">
+              <DropdownMenuItem onClick={handleSignOut} className="text-[#e11d48] focus:text-[#e11d48]">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </DropdownMenuItem>
@@ -264,7 +264,7 @@ export function AppSidebar() {
             </Avatar>
             <button
               onClick={handleSignOut}
-              className="w-full flex justify-center p-2 rounded-md text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex justify-center p-2 rounded-md text-[#e11d48] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
             </button>

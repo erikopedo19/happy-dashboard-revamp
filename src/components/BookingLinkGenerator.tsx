@@ -4,7 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, ExternalLink, RefreshCw, Share2, Save, Check, Mail } from "lucide-react";
+import { 
+  Copy, 
+  ExternalLink, 
+  RefreshCw, 
+  Share2, 
+  Save, 
+  Check, 
+  Mail, 
+  QrCode, 
+  Download,
+  Settings,
+  Sparkles,
+  Link as LinkIcon
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +32,8 @@ const BookingLinkGenerator = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "christmas" | "summer">("default");
-  const [accentColor, setAccentColor] = useState("#1a1a1a");
+  const [accentColor, setAccentColor] = useState("#e11d48");
+  const [showQrCode, setShowQrCode] = useState(false);
 
   // Fetch user profile with booking link
   const { data: profile, refetch } = useQuery({
@@ -42,7 +56,7 @@ const BookingLinkGenerator = () => {
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               ask_phone: true, // Default to true for new profiles
               ask_notes: true,  // Default to true for new profiles
-              brand_color: "#1a1a1a"
+              brand_color: "#e11d48"
             })
             .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
             .single();
@@ -61,11 +75,9 @@ const BookingLinkGenerator = () => {
     if (profile?.booking_link) {
       setCustomSlug(profile.booking_link);
     }
-    // Set askPhone and askNotes from profile, default to true if not present
     setAskPhone(profile?.ask_phone ?? true);
     setAskNotes(profile?.ask_notes ?? true);
-    setAccentColor(profile?.brand_color ?? "#1a1a1a");
-    // We don't persist theme server-side yet; keep default unless user changes locally
+    setAccentColor(profile?.brand_color ?? "#e11d48");
   }, [profile]);
 
   const getBookingUrl = () => {
@@ -75,12 +87,17 @@ const BookingLinkGenerator = () => {
     if (askPhone) params.append('askPhone', 'true');
     if (askNotes) params.append('askNotes', 'true');
     if (emailTheme) params.append('theme', emailTheme);
-    if (accentColor) params.append('accent', accentColor);
+    if (accentColor) params.append('accent', accentColor.replace('#', ''));
     const queryString = params.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
 
   const bookingUrl = getBookingUrl();
+
+  // QR Code URL using QuickChart QR API with custom color
+  const qrCodeUrl = bookingUrl 
+    ? `https://quickchart.io/qr?text=${encodeURIComponent(bookingUrl)}&size=300&dark=${accentColor.replace('#', '')}&light=ffffff&ecLevel=H&margin=2`
+    : '';
 
   const updateSlug = async () => {
     if (!user || !customSlug.trim()) return;
@@ -139,15 +156,11 @@ const BookingLinkGenerator = () => {
   const generateNewLink = () => {
     let newSlug = '';
     if (profile?.full_name) {
-      // Sanitize business name: lowercase, replace spaces/symbols with hyphens, remove non-alphanumeric
       newSlug = profile.full_name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-      // Add a random suffix if it's too short or to ensure uniqueness (optional, but good practice)
-      // For now, let's just use the name as requested, maybe with a small random suffix if desired, 
-      // but the user asked for "business name". Let's try just the name first, user can edit.
       if (!newSlug) {
         newSlug = 'book-' + Math.random().toString(36).substring(2, 15);
       }
@@ -155,7 +168,6 @@ const BookingLinkGenerator = () => {
       newSlug = 'book-' + Math.random().toString(36).substring(2, 15);
     }
     setCustomSlug(newSlug);
-    // We don't auto-save here, let user click save
   };
 
   const copyToClipboard = async () => {
@@ -199,30 +211,61 @@ const BookingLinkGenerator = () => {
     }
   };
 
+  const downloadQrCode = async () => {
+    if (!qrCodeUrl) return;
+    try {
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `booking-qr-${customSlug || 'code'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast({
+        title: "Downloaded!",
+        description: "Your custom QR code has been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Could not download the QR code image.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
-    <Card className="p-6">
-      <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-12">
+      {/* Settings Panel */}
+      <div className="lg:col-span-7 space-y-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Booking Link</h3>
-          <p className="text-sm text-gray-600">
-            Customize and share your booking link with customers
+          <div className="flex items-center gap-2 mb-1">
+            <LinkIcon className="h-5 w-5 text-[#e11d48]" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Booking Link Config</h3>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Customize and optimize your public booking form and experience.
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Slug Input */}
           <div className="space-y-2">
-            <Label htmlFor="slug">Link Slug</Label>
+            <Label htmlFor="slug" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Link Slug</Label>
             <div className="flex gap-2">
-              <div className="flex-1 flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap hidden sm:inline-block">
-                  {window.location.origin}/book/
+              <div className="flex-1 flex items-center bg-gray-50 dark:bg-zinc-900/60 rounded-xl px-3 border border-gray-200 dark:border-zinc-800 focus-within:border-[#e11d48] dark:focus-within:border-[#e11d48] focus-within:ring-1 focus-within:ring-[#e11d48]/20 transition-all">
+                <span className="text-sm text-gray-400 font-mono hidden sm:inline-block border-r border-gray-200 dark:border-zinc-800 pr-2.5 mr-2.5 select-none">
+                  /book/
                 </span>
-                <Input
+                <input
                   id="slug"
                   value={customSlug}
                   onChange={(e) => setCustomSlug(e.target.value)}
                   placeholder="your-business-name"
-                  className="font-mono"
+                  className="bg-transparent font-mono text-sm h-11 w-full text-gray-800 dark:text-gray-100 outline-none"
                 />
               </div>
               <Button
@@ -233,137 +276,185 @@ const BookingLinkGenerator = () => {
                     customSlug === profile?.booking_link &&
                     askPhone === (profile?.ask_phone ?? true) &&
                     askNotes === (profile?.ask_notes ?? true) &&
-                    accentColor === (profile?.brand_color ?? "#1a1a1a")
+                    accentColor === (profile?.brand_color ?? "#e11d48")
                   )
                 }
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-[#e11d48] hover:bg-[#be123c] text-white h-11 px-5 rounded-xl font-semibold flex items-center gap-2 shadow-sm transition-all"
               >
                 {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
+                <span>Save</span>
               </Button>
             </div>
             <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
                 onClick={generateNewLink}
-                className="text-xs text-muted-foreground hover:text-primary"
+                className="text-xs font-medium text-gray-400 hover:text-[#e11d48] flex items-center gap-1 transition-colors"
               >
-                <RefreshCw className="w-3 h-3 mr-1" />
-                Generate Random Slug
-              </Button>
+                <RefreshCw className="w-3.5 h-3.5" />
+                Auto-generate from business name
+              </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Only use letters, numbers, and hyphens.
-            </p>
           </div>
 
-          <div className="space-y-3 pt-2">
-            <Label>Form Configuration</Label>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center space-x-2">
+          {/* Form Configuration */}
+          <div className="space-y-3 pt-1">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Required Details</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-3.5 rounded-xl hover:bg-gray-100/50 dark:hover:bg-zinc-900/60 transition-colors">
                 <Checkbox
                   id="askPhone"
                   checked={askPhone}
                   onCheckedChange={(checked) => setAskPhone(checked as boolean)}
+                  className="rounded-md border-gray-300 dark:border-zinc-700 data-[state=checked]:bg-[#e11d48] data-[state=checked]:border-[#e11d48]"
                 />
-                <Label htmlFor="askPhone" className="font-normal cursor-pointer">Ask for Phone Number</Label>
+                <Label htmlFor="askPhone" className="font-semibold text-sm cursor-pointer text-gray-700 dark:text-gray-300">Phone Number</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-3.5 rounded-xl hover:bg-gray-100/50 dark:hover:bg-zinc-900/60 transition-colors">
                 <Checkbox
                   id="askNotes"
                   checked={askNotes}
                   onCheckedChange={(checked) => setAskNotes(checked as boolean)}
+                  className="rounded-md border-gray-300 dark:border-zinc-700 data-[state=checked]:bg-[#e11d48] data-[state=checked]:border-[#e11d48]"
                 />
-                <Label htmlFor="askNotes" className="font-normal cursor-pointer">Ask for Notes</Label>
+                <Label htmlFor="askNotes" className="font-semibold text-sm cursor-pointer text-gray-700 dark:text-gray-300">Extra Notes</Label>
               </div>
-              <div className="grid gap-2">
-                <Label className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> Email Template</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { value: "default",   emoji: "✉️",  label: "Default",   desc: "Clean & professional",  grad: "from-zinc-800 to-zinc-950",          accent: "#e11d48" },
-                    { value: "minimal",   emoji: "🪶",  label: "Minimal",   desc: "Simple & sleek",        grad: "from-slate-700 to-slate-900",         accent: "#64748b" },
-                    { value: "christmas", emoji: "🎄",  label: "Christmas", desc: "Festive holiday spirit", grad: "from-red-900 via-green-950 to-red-950", accent: "#c41e3a" },
-                    { value: "summer",    emoji: "☀️",  label: "Summer",    desc: "Bright summer vibes",   grad: "from-amber-700 to-orange-900",         accent: "#f59e0b" },
-                  ] as const).map((opt) => {
-                    const selected = emailTheme === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setEmailTheme(opt.value as typeof emailTheme)}
-                        className={`relative rounded-2xl p-3.5 text-left transition-all overflow-hidden border-2 ${
-                          selected ? "border-[#e11d48] ring-1 ring-[#e11d48]/30" : "border-transparent"
-                        }`}
-                      >
-                        <div className={`absolute inset-0 bg-gradient-to-br ${opt.grad} opacity-90`} />
-                        <div className="relative z-10">
-                          <div className="flex items-start justify-between mb-1.5">
-                            <span className="text-lg leading-none">{opt.emoji}</span>
-                            {selected && <Check className="h-3.5 w-3.5 text-white" />}
-                          </div>
-                          <p className="text-white text-xs font-semibold leading-tight">{opt.label}</p>
-                          <p className="text-white/55 text-[10px] mt-0.5 leading-tight">{opt.desc}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="accentColor">Accent Color</Label>
-                <div className="flex items-center gap-3">
+            </div>
+          </div>
+
+          {/* Color & Theme */}
+          <div className="space-y-4 pt-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Accent Branding</Label>
+                <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-2.5 rounded-xl">
                   <input
                     id="accentColor"
                     type="color"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="h-10 w-16 rounded border border-input bg-background cursor-pointer"
+                    className="h-9 w-12 rounded-lg border border-gray-200 dark:border-zinc-800 bg-background cursor-pointer shrink-0"
                   />
-                  <Input
+                  <input
+                    type="text"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="font-mono"
+                    className="bg-transparent font-mono text-xs w-full text-gray-700 dark:text-gray-300 outline-none"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Used for email header buttons and accents. Shared in the link so the public booking page can apply it.
-                </p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1"><Mail className="h-3 w-3" /> Email Theme</Label>
+                <div className="relative">
+                  <select
+                    value={emailTheme}
+                    onChange={(e) => setEmailTheme(e.target.value as any)}
+                    className="w-full h-[46px] px-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-[#e11d48] transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="default">✉️ Classic Rose</option>
+                    <option value="minimal">🪶 Slate Minimalist</option>
+                    <option value="christmas">🎄 Festive Winter</option>
+                    <option value="summer">☀️ Sunny Vibes</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <Settings className="h-4 w-4" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {bookingUrl && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={copyToClipboard}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={shareLink}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={openBookingPage}
-                title="Open booking page"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </Button>
+      {/* Sharing & QR Code Live Panel */}
+      <div className="lg:col-span-5 flex flex-col justify-between bg-gray-50/50 dark:bg-zinc-900/20 border border-gray-100 dark:border-zinc-800/50 rounded-2xl p-5 lg:p-6 space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[#e11d48]" />
+            <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Live Preview & Share</h4>
+          </div>
+
+          {bookingUrl ? (
+            <div className="space-y-5">
+              {/* QR Code Container */}
+              <div className="flex flex-col items-center bg-white dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+                {qrCodeUrl ? (
+                  <div className="relative group overflow-hidden rounded-xl border border-gray-100 dark:border-zinc-900 p-2 bg-white">
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="Booking QR Code" 
+                      className="w-40 h-40 object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-40 h-40 bg-gray-100 dark:bg-zinc-900 rounded-xl flex items-center justify-center">
+                    <QrCode className="w-8 h-8 text-gray-400 animate-pulse" />
+                  </div>
+                )}
+                <div className="text-center mt-3">
+                  <p className="text-xs font-bold text-gray-800 dark:text-gray-200">Interactive QR Code</p>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Scans instantly to open your booking form</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 h-9 rounded-xl border-gray-200 dark:border-zinc-800 text-xs font-semibold flex items-center gap-1.5 hover:bg-gray-50 dark:hover:bg-zinc-900"
+                  onClick={downloadQrCode}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download QR Code
+                </Button>
+              </div>
+
+              {/* URL Preview */}
+              <div className="bg-white dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800 rounded-xl px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between overflow-hidden shadow-sm">
+                <span className="truncate mr-3 select-all">{bookingUrl}</span>
+                <button 
+                  onClick={copyToClipboard}
+                  className="text-gray-400 hover:text-[#e11d48] transition-colors shrink-0"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <QrCode className="h-12 w-12 text-gray-300 dark:text-zinc-800 mb-3" />
+              <p className="text-sm font-semibold text-gray-500">Save a slug to see live QR Code & link</p>
             </div>
           )}
         </div>
+
+        {bookingUrl && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-11 rounded-xl border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 font-semibold text-sm flex items-center justify-center gap-2"
+              onClick={copyToClipboard}
+            >
+              <Copy className="w-4 h-4" />
+              Copy Link
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-11 rounded-xl border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 font-semibold text-sm flex items-center justify-center gap-2"
+              onClick={shareLink}
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 w-11 rounded-xl border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 flex items-center justify-center shrink-0"
+              onClick={openBookingPage}
+              title="Open booking page"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
-    </Card>
+    </div>
   );
 };
 

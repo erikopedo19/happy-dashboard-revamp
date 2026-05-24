@@ -23,8 +23,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -730,22 +728,27 @@ const Reports = () => {
                         config={{ value: { label: "Bookings", color: "#e11d48" } }}
                         className="h-[160px] w-full aspect-auto"
                       >
-                        <LineChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                        <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barGap={0}>
+                          <defs>
+                            <linearGradient id="fillHourly" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#e11d48" stopOpacity={0.4} />
+                              <stop offset="100%" stopColor="#e11d48" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
                           <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
                           <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                           <YAxis hide />
                           <ChartTooltip content={<ChartTooltipContent />} />
-                          <Line
-                            type="monotone"
+                          <Bar
                             dataKey="value"
+                            fill="url(#fillHourly)"
                             stroke="#e11d48"
-                            strokeWidth={2.5}
-                            dot={{ fill: "#e11d48", r: 3 }}
-                            activeDot={{ r: 5 }}
+                            strokeWidth={1}
+                            radius={[4, 4, 0, 0]}
                             animationDuration={900}
                             animationBegin={200}
                           />
-                        </LineChart>
+                        </BarChart>
                       </ChartContainer>
                     )}
                   </CardContent>

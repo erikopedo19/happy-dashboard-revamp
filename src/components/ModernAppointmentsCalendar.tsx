@@ -916,12 +916,12 @@ export const ModernAppointmentsCalendar = ({
                         : isPastSlot
                           ? 'linear-gradient(135deg, #8e8e93 0%, #636366 100%)'
                           : isCurrentHour
-                            ? 'linear-gradient(135deg, #ff2d55 0%, #ff375f 100%)'
+                            ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
                             : 'linear-gradient(135deg, #2eadff 0%, #3d83ff 100%)';
 
                     return <div
                       key={`${day.toISOString()}-${time}`}
-                      className={`h-[80px] border-r border-b-[0.5px] border-gray-200/50 dark:border-[#2C2C2E]/50 last:border-r-0 p-1 group relative transition-all ${isCurrentHour ? 'bg-red-500/5 dark:bg-red-500/10' : ''} ${isBreak ? 'bg-orange-500/5 dark:bg-orange-500/10' : ''} ${isPastSlot ? 'bg-gray-500/5 dark:bg-gray-500/10' : ''}`}
+                      className={`h-[80px] border-r border-b-[0.5px] border-gray-200/50 dark:border-[#2C2C2E]/50 last:border-r-0 p-1 group relative transition-all ${isCurrentHour ? 'bg-[#e11d48]/5 dark:bg-[#e11d48]/10' : ''} ${isBreak ? 'bg-orange-500/5 dark:bg-orange-500/10' : ''} ${isPastSlot ? 'bg-gray-500/5 dark:bg-gray-500/10' : ''}`}
                       style={hasAppointments ? { gridRow: `span ${rowSpan}`, height: `${rowSpan * 80}px` } : {}}
                       onContextMenu={(e) => {
                       e.preventDefault();
@@ -1056,7 +1056,7 @@ export const ModernAppointmentsCalendar = ({
                   <Edit3 className="h-4 w-4 mr-2" />
                   Reschedule
                 </Button>
-                <Button variant="destructive" className="flex-1 bg-red-500/90 hover:bg-red-500/80 border border-red-300" onClick={handleDelete}>
+                <Button variant="destructive" className="flex-1 bg-[#e11d48]/90 hover:bg-[#e11d48]/80 border border-[#fda4af]" onClick={handleDelete}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
@@ -1137,10 +1137,10 @@ export const ModernAppointmentsCalendar = ({
               Are you sure you want to delete this appointment? This action cannot be undone.
             </p>
 
-            <div className="p-3 bg-white/60 rounded-lg border border-red-200 backdrop-blur-sm relative overflow-hidden">
+            <div className="p-3 bg-white/60 rounded-lg border border-[#fda4af] backdrop-blur-sm relative overflow-hidden">
               {/* Subtle colored background */}
-              <div className="absolute inset-0 opacity-5 bg-red-500" />
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500" />
+              <div className="absolute inset-0 opacity-5 bg-[#e11d48]" />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#e11d48]" />
               <p className="font-medium text-sm text-gray-800 relative z-10">{selectedAppointment.service.name}</p>
               <p className="text-xs text-gray-500 relative z-10">{selectedAppointment.customer.name}</p>
               <p className="text-xs text-gray-500 relative z-10">
@@ -1153,7 +1153,7 @@ export const ModernAppointmentsCalendar = ({
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="border-gray-200 hover:bg-white/60 hover:border-gray-300 text-gray-700">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete} className="bg-red-500/90 hover:bg-red-500/80 border border-red-300">
+            <Button variant="destructive" onClick={handleConfirmDelete} className="bg-[#e11d48]/90 hover:bg-[#e11d48]/80 border border-[#fda4af]">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Appointment
             </Button>
@@ -1362,7 +1362,7 @@ export const ModernAppointmentsCalendar = ({
                     setSelectedAppointment(apt);
                     setShowDeleteDialog(true);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-rose-50 text-[#e11d48] hover:bg-rose-100 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Cancel

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ interface BarbershopMapProps {
   userLocation?: { lat: number; lng: number };
   height?: string;
   onBarbershopClick?: (barbershop: Barbershop) => void;
+  onLocationPick?: (location: { lat: number; lng: number }) => void;
+  pickMode?: boolean;
 }
 
 const STORAGE_KEY = "barbershop-map-location";
@@ -33,6 +35,8 @@ export function BarbershopMap({
   userLocation,
   height = "400px",
   onBarbershopClick,
+  onLocationPick,
+  pickMode = false,
 }: BarbershopMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -54,6 +58,7 @@ export function BarbershopMap({
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
   const searchAbort = useRef<AbortController | null>(null);
+  const pickedMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   function persist(c: [number, number]) {
     try {
@@ -136,7 +141,36 @@ export function BarbershopMap({
     });
   }, [validBarbershops, center, onBarbershopClick]);
 
-  async function handleSearch(e: React.FormEvent) {
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !pickMode) return;
+
+    const handleClick = (event: maplibregl.MapMouseEvent) => {
+      const next = { lat: event.lngLat.lat, lng: event.lngLat.lng };
+      setCenter([next.lat, next.lng]);
+      persist([next.lat, next.lng]);
+      onLocationPick?.(next);
+
+      pickedMarkerRef.current?.remove();
+      const el = document.createElement("div");
+      el.style.cssText =
+        "width:34px;height:34px;border-radius:9999px;background:#e11d48;border:4px solid white;box-shadow:0 12px 28px rgba(225,29,72,0.45);display:flex;align-items:center;justify-content:center;color:white;font-size:15px;";
+      el.textContent = "✂";
+      pickedMarkerRef.current = new maplibregl.Marker({ element: el })
+        .setLngLat([next.lng, next.lat])
+        .addTo(map);
+    };
+
+    map.getCanvas().style.cursor = "crosshair";
+    map.on("click", handleClick);
+
+    return () => {
+      map.off("click", handleClick);
+      map.getCanvas().style.cursor = "";
+    };
+  }, [pickMode, onLocationPick]);
+
+  async function handleSearch(e: FormEvent) {
     e.preventDefault();
     const q = search.trim();
     if (!q) return;
@@ -155,6 +189,7 @@ export function BarbershopMap({
         setCenter(next);
         setZoom(14);
         persist(next);
+        if (pickMode) onLocationPick?.({ lat: next[0], lng: next[1] });
       }
     } catch {
       /* ignore */
@@ -203,6 +238,12 @@ export function BarbershopMap({
           <LocateFixed className="h-4 w-4" />
         </Button>
       </form>
+
+      {pickMode && (
+        <div className="rounded-2xl border border-[#e11d48]/20 bg-[#e11d48]/10 px-3 py-2 text-xs font-medium text-[#e11d48]">
+          Search your city/address, then tap the exact spot where your barbershop is.
+        </div>
+      )}
 
       <div className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
         <Map

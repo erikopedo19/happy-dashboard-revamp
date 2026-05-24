@@ -161,12 +161,12 @@ export default function ManageBooking() {
         </div>
 
         {cancelled && (
-          <Card className="rounded-3xl border-red-500/20 bg-red-500/10 mb-5">
+          <Card className="rounded-3xl border-[#e11d48]/20 bg-[#e11d48]/10 mb-5">
             <CardContent className="p-5 flex items-center gap-3">
-              <XCircle className="w-5 h-5 text-red-400" />
+              <XCircle className="w-5 h-5 text-[#fb7185]" />
               <div>
-                <div className="font-semibold text-red-300">Cancelled</div>
-                <div className="text-sm text-red-300/70">This appointment was cancelled.</div>
+                <div className="font-semibold text-[#fb7185]">Cancelled</div>
+                <div className="text-sm text-[#fb7185]/70">This appointment was cancelled.</div>
               </div>
             </CardContent>
           </Card>

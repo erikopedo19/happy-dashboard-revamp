@@ -58,8 +58,8 @@ const BookingFormPreview = () => {
         {/* Center Panel - Preview Message */}
         <div className="flex-1 bg-[#1a1a1a] p-8 flex items-center justify-center border-r border-[#2a2a2a]">
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-red-500" />
+            <div className="w-16 h-16 rounded-full bg-[#e11d48]/20 flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-[#e11d48]" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">
               Booking Form Preview
@@ -86,7 +86,7 @@ const BookingFormPreview = () => {
           </h4>
 
           <div className="space-y-2">
-            <div className="w-full py-3 px-4 rounded-xl border border-red-500 bg-red-500/10 text-white font-medium text-center">
+            <div className="w-full py-3 px-4 rounded-xl border border-[#e11d48] bg-[#e11d48]/10 text-white font-medium text-center">
               11:00 AM
             </div>
             <div className="w-full py-3 px-4 rounded-xl border border-[#2a2a2a] text-white font-medium text-center">
@@ -101,7 +101,7 @@ const BookingFormPreview = () => {
           </div>
 
           <div className="mt-6">
-            <Button className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold">
+            <Button className="w-full bg-[#e11d48] hover:bg-[#be123c] text-white py-3 rounded-xl font-semibold">
               Continue
             </Button>
           </div>
