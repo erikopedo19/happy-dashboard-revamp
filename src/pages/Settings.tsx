@@ -780,6 +780,25 @@ const Settings = () => {
                             </div>
                           </div>
 
+                          {/* Cancellation waitlist */}
+                          <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-50/60 to-pink-50/60 dark:from-rose-950/20 dark:to-pink-950/20 p-4 flex items-center gap-4">
+                            <div className="flex-1 min-w-0">
+                              <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
+                                Accept cancellation waitlist
+                              </Label>
+                              <p className="text-xs text-[#8E8E93] mt-1">
+                                Clients can join a 7-day waitlist on your profile. When you cancel an appointment, the first person in line gets emailed and has 5 minutes to claim it.
+                              </p>
+                            </div>
+                            <Switch
+                              checked={!!brandForm.accepts_waitlist}
+                              onCheckedChange={(v) =>
+                                setBrandForm((prev) => ({ ...prev, accepts_waitlist: v }))
+                              }
+                            />
+                          </div>
+
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
