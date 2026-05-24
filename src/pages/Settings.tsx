@@ -78,6 +78,7 @@ type BrandProfileRecord = {
   google_maps_url?: string;
   description: string;
   years_experience?: number;
+  accepts_waitlist?: boolean;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
@@ -118,6 +119,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   google_maps_url: "",
   description: "",
   years_experience: undefined,
+  accepts_waitlist: false,
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -164,7 +166,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -215,6 +217,7 @@ const Settings = () => {
       google_maps_url: data.profile?.google_maps_url ?? "",
       description: data.profile?.description ?? "",
       years_experience: data.profile?.years_experience ?? undefined,
+      accepts_waitlist: data.profile?.accepts_waitlist ?? false,
     });
 
     // Set dark mode from profile, default to dark mode
@@ -304,6 +307,7 @@ const Settings = () => {
         google_maps_url: mapsUrl || null,
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
+        accepts_waitlist: brandForm.accepts_waitlist ?? false,
         updated_at: new Date().toISOString(),
       };
 
