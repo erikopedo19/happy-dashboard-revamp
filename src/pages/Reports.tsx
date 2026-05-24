@@ -116,8 +116,8 @@ interface TopCustomerRow {
 const db = supabase as any;
 
 const customerColors = [
-  "#e11d48", "#7c3aed", "#2563eb", "#059669",
-  "#d97706", "#db2777", "#0891b2", "#65a30d",
+  "#1C1C1E", "#3A3A3C", "#48484A", "#636366",
+  "#0A84FF", "#5856D6", "#8E8E93", "#AEAEB2",
 ];
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -189,14 +189,14 @@ const dayLabel = (date: string) =>
     day: "numeric",
   });
 
-// Rose-only palette (no blue/orange)
+// iOS neutral palette with one subtle blue accent
 const rosePalette = [
-  "#e11d48",
-  "#f43f5e",
-  "#fb7185",
-  "#fda4af",
-  "#fecdd3",
-  "#9f1239",
+  "#1C1C1E",
+  "#3A3A3C",
+  "#0A84FF",
+  "#636366",
+  "#AEAEB2",
+  "#D1D1D6",
 ];
 
 const Reports = () => {
@@ -385,9 +385,9 @@ const Reports = () => {
     const topStylist = stylistPerformance[0];
 
     const statusBreakdown = [
-      { name: "Completed", value: completedAppointments, fill: "#e11d48" },
-      { name: "Scheduled", value: scheduledAppointments, fill: "#fb7185" },
-      { name: "Cancelled", value: cancelledAppointments, fill: "#fecdd3" },
+      { name: "Completed", value: completedAppointments, fill: "#1C1C1E" },
+      { name: "Scheduled", value: scheduledAppointments, fill: "#0A84FF" },
+      { name: "Cancelled", value: cancelledAppointments, fill: "#D1D1D6" },
     ].filter((item) => item.value > 0);
 
     const busiestHourMap = new Map<string, number>();
@@ -472,7 +472,7 @@ const Reports = () => {
   }, [data, customersData]);
 
   const revenueChartConfig = {
-    revenue: { label: "Revenue", color: "#e11d48" },
+    revenue: { label: "Revenue", color: "#0A84FF" },
   } satisfies ChartConfig;
 
   const handleExport = () => {
@@ -518,7 +518,7 @@ const Reports = () => {
                 type="button"
                 size="sm"
                 onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white font-semibold gap-1.5"
+                className="rounded-full h-9 px-4 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90 text-white font-semibold gap-1.5"
               >
                 <Download className="h-4 w-4" strokeWidth={2.5} />
                 {!isMobile && "Export"}
@@ -535,7 +535,7 @@ const Reports = () => {
                     onClick={() => setDateRange(r.value)}
                     className={`shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
                       active
-                        ? "bg-rose-600 text-white shadow-sm"
+                        ? "bg-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E] text-white shadow-sm"
                         : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
                     }`}
                   >
@@ -550,12 +550,12 @@ const Reports = () => {
           <div className="flex-1 overflow-auto">
             <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
               <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
-                <Card className="rounded-[2rem] border border-white/70 dark:border-white/10 bg-white/85 dark:bg-[#111113]/90 shadow-[0_18px_70px_rgba(15,23,42,0.08)] overflow-hidden backdrop-blur-xl">
+                <Card className="rounded-[2rem] border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
                   <CardContent className="p-5 md:p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93]">
-                        Composed chart
+                        Revenue overview
                       </p>
                       <p className="text-3xl md:text-5xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-2 tracking-tight">
                         {currency.format(analytics.totalRevenue)}
@@ -564,7 +564,7 @@ const Reports = () => {
                         <div
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
                             analytics.revenueDelta >= 0
-                              ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40"
+                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40"
                               : "bg-[#F2F2F7] text-[#8E8E93] dark:bg-[#2C2C2E]"
                           }`}
                         >
@@ -580,8 +580,8 @@ const Reports = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center shrink-0 ring-1 ring-rose-500/10">
-                      <DollarSign className="w-5 h-5 text-rose-600" strokeWidth={2.5} />
+                    <div className="w-11 h-11 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center shrink-0">
+                      <DollarSign className="w-5 h-5 text-[#1C1C1E] dark:text-[#F2F2F7]" strokeWidth={2.5} />
                     </div>
                   </div>
 
@@ -592,12 +592,12 @@ const Reports = () => {
                     <ComposedChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="fillRevLine" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#e11d48" stopOpacity={0.22} />
-                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#0A84FF" stopOpacity={0.22} />
+                          <stop offset="100%" stopColor="#0A84FF" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="fillRevBars" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.95} />
-                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.28} />
+                          <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.85} />
+                          <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.15} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
@@ -622,7 +622,7 @@ const Reports = () => {
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#e11d48"
+                        stroke="#0A84FF"
                         strokeWidth={2.5}
                         fill="url(#fillRevLine)"
                         animationDuration={1200}
@@ -631,8 +631,9 @@ const Reports = () => {
                       <Line
                         type="monotone"
                         dataKey="completed"
-                        stroke="#111827"
+                        stroke="#8E8E93"
                         strokeWidth={2}
+                        strokeDasharray="3 4"
                         dot={false}
                         animationDuration={1200}
                         animationBegin={450}
@@ -642,7 +643,7 @@ const Reports = () => {
                 </CardContent>
                 </Card>
 
-                <Card className="rounded-[2rem] border border-white/70 dark:border-white/10 bg-[#111827] text-white shadow-[0_18px_70px_rgba(15,23,42,0.16)] overflow-hidden">
+                <Card className="rounded-[2rem] border border-[#1C1C1E] dark:border-white/10 bg-[#1C1C1E] text-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden">
                   <CardContent className="p-5 md:p-6 h-full flex flex-col">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
@@ -667,7 +668,7 @@ const Reports = () => {
                     </div>
                     <div className="mt-auto pt-6">
                       <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-sky-400" style={{ width: `${analytics.completionRate}%` }} />
+                        <div className="h-full rounded-full bg-white" style={{ width: `${analytics.completionRate}%` }} />
                       </div>
                     </div>
                   </CardContent>
@@ -677,11 +678,11 @@ const Reports = () => {
               {/* KPI grid */}
               <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <KpiTile index={0}
-                  icon={<CalendarDays className="w-4 h-4 text-rose-600" />}
+                  icon={<CalendarDays className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />}
                   label="Appointments"
                   value={numberFormat.format(analytics.totalAppointments)}
                   hint={`${analytics.completionRate}% completed`}
-                  accent="rose"
+                  accent="ink"
                 />
                 <KpiTile index={1}
                   icon={<Users className="w-4 h-4 text-sky-500" />}
@@ -691,11 +692,11 @@ const Reports = () => {
                   accent="sky"
                 />
                 <KpiTile index={2}
-                  icon={<DollarSign className="w-4 h-4 text-rose-600" />}
+                  icon={<DollarSign className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />}
                   label="Avg ticket"
                   value={currency.format(analytics.averageTicket || 0)}
                   hint="Per booking"
-                  accent="rose"
+                  accent="ink"
                 />
                 <KpiTile index={3}
                   icon={<Scissors className="w-4 h-4 text-sky-500" />}
@@ -707,7 +708,7 @@ const Reports = () => {
               </section>
 
               {/* Booking status — Pie chart */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+              <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -779,7 +780,7 @@ const Reports = () => {
               {/* Hourly demand + Busiest days */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
                 {/* Hourly demand */}
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+                <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -794,25 +795,25 @@ const Reports = () => {
                       <EmptyMini />
                     ) : (
                       <ChartContainer
-                        config={{ value: { label: "Bookings", color: "#e11d48" } }}
+                        config={{ value: { label: "Bookings", color: "#1C1C1E" } }}
                         className="h-[160px] w-full aspect-auto"
                       >
                         <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barCategoryGap="25%">
                           <defs>
                             <linearGradient id="fillHourly" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#e11d48" stopOpacity={1} />
-                              <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.4} />
+                              <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.9} />
+                              <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.25} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
                           <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                           <YAxis hide />
-                          <ChartTooltip cursor={{ fill: "rgba(225,29,72,0.06)" }} content={<ChartTooltipContent />} />
+                          <ChartTooltip cursor={{ fill: "rgba(28,28,30,0.05)" }} content={<ChartTooltipContent />} />
                           <Bar
                             dataKey="value"
                             fill="url(#fillHourly)"
                             radius={[10, 10, 10, 10]}
-                            background={{ fill: "rgba(225,29,72,0.06)", radius: 10 } as any}
+                            background={{ fill: "rgba(28,28,30,0.04)", radius: 10 } as any}
                             animationDuration={900}
                             animationBegin={200}
                           />
@@ -823,7 +824,7 @@ const Reports = () => {
                 </Card>
 
                 {/* Busiest days */}
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+                <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Busiest days</h3>
@@ -833,7 +834,7 @@ const Reports = () => {
                       <EmptyMini />
                     ) : (
                       <ChartContainer
-                        config={{ count: { label: "Bookings", color: "#e11d48" } }}
+                        config={{ count: { label: "Bookings", color: "#0A84FF" } }}
                         className="h-[160px] w-full aspect-auto"
                       >
                         <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
@@ -845,7 +846,7 @@ const Reports = () => {
                             {analytics.dayOfWeekDemand.map((entry, i) => {
                               const maxCount = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
                               const opacity = 0.35 + (entry.count / maxCount) * 0.65;
-                              return <Cell key={i} fill={`rgba(225,29,72,${opacity})`} />;
+                              return <Cell key={i} fill={`rgba(10,132,255,${opacity})`} />;
                             })}
                           </Bar>
                         </BarChart>
@@ -921,7 +922,7 @@ const Reports = () => {
               </Card>
 
               {/* Top services */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+              <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="mb-4">
                     <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -974,7 +975,7 @@ const Reports = () => {
               </Card>
 
               {/* Stylist ranking */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+              <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -998,7 +999,7 @@ const Reports = () => {
                         >
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
-                              index === 0 ? "bg-rose-600" : "bg-[#1C1C1E] dark:bg-[#3A3A3C]"
+                              index === 0 ? "bg-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E]" : "bg-[#3A3A3C] dark:bg-[#3A3A3C]"
                             }`}
                           >
                             {index === 0 ? <Crown className="w-4 h-4" /> : index + 1}
@@ -1012,7 +1013,7 @@ const Reports = () => {
                               <span>{stylist.bookings} bookings</span>
                               <span>·</span>
                               <span className="flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-rose-500 text-rose-500" />
+                                <Star className="w-3 h-3 fill-[#FFCC00] text-[#FFCC00]" />
                                 {stylist.satisfaction.toFixed(1)}
                               </span>
                             </div>
@@ -1035,7 +1036,7 @@ const Reports = () => {
 
               {/* Stylist comparison chart */}
               {analytics.stylistPerformance.length > 0 && (
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+                <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -1046,7 +1047,7 @@ const Reports = () => {
                       </p>
                     </div>
                     <ChartContainer
-                      config={{ revenue: { label: "Revenue", color: "#e11d48" } }}
+                      config={{ revenue: { label: "Revenue", color: "#1C1C1E" } }}
                       className="h-[220px] w-full aspect-auto"
                     >
                       <BarChart
@@ -1056,8 +1057,8 @@ const Reports = () => {
                       >
                         <defs>
                           <linearGradient id="fillStylist" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#e11d48" stopOpacity={1} />
-                            <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.4} />
+                            <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.9} />
+                            <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.25} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
@@ -1075,7 +1076,7 @@ const Reports = () => {
                           tickFormatter={(value) => `$${value}`}
                         />
                         <ChartTooltip
-                          cursor={{ fill: "rgba(225,29,72,0.06)" }}
+                          cursor={{ fill: "rgba(28,28,30,0.05)" }}
                           content={
                             <ChartTooltipContent
                               formatter={(value) => [currency.format(Number(value)), "Revenue"]}
@@ -1086,7 +1087,7 @@ const Reports = () => {
                           dataKey="revenue"
                           radius={[12, 12, 12, 12]}
                           fill="url(#fillStylist)"
-                          background={{ fill: "rgba(225,29,72,0.06)", radius: 12 } as any}
+                          background={{ fill: "rgba(28,28,30,0.04)", radius: 12 } as any}
                           animationDuration={900}
                           animationBegin={200}
                         />
@@ -1122,21 +1123,19 @@ function KpiTile({
   value,
   hint,
   index = 0,
-  accent = "rose",
+  accent = "ink",
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   hint: string;
   index?: number;
-  accent?: "rose" | "sky";
+  accent?: "ink" | "sky" | "rose";
 }) {
   const accentBg = accent === "sky"
     ? "bg-sky-50 dark:bg-sky-950/30"
-    : "bg-rose-50 dark:bg-rose-950/40";
-  const hoverShadow = accent === "sky"
-    ? "hover:shadow-[0_8px_36px_rgba(14,165,233,0.13)] dark:hover:shadow-[0_8px_36px_rgba(14,165,233,0.28)]"
-    : "hover:shadow-[0_8px_36px_rgba(225,29,72,0.13)] dark:hover:shadow-[0_8px_36px_rgba(225,29,72,0.28)]";
+    : "bg-[#F2F2F7] dark:bg-[#2C2C2E]";
+  const hoverShadow = "hover:shadow-[0_10px_36px_rgba(0,0,0,0.08)]";
 
   return (
     <motion.div
@@ -1145,7 +1144,7 @@ function KpiTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
     >
-      <Card className={cn("rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm cursor-default transition-shadow duration-300", hoverShadow)}>
+      <Card className={cn("rounded-2xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", accentBg)}>
@@ -1167,9 +1166,9 @@ function KpiTile({
 
 function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
   const podiumSlots = [
-    { c: customers[1], height: 72, color: "#7c3aed", glow: "rgba(124,58,237,0.45)", rank: 2 },
-    { c: customers[0], height: 104, color: "#e11d48", glow: "rgba(225,29,72,0.55)", rank: 1 },
-    { c: customers[2], height: 52, color: "#2563eb", glow: "rgba(37,99,235,0.40)", rank: 3 },
+    { c: customers[1], height: 72, color: "#3A3A3C", glow: "rgba(28,28,30,0.20)", rank: 2 },
+    { c: customers[0], height: 104, color: "#1C1C1E", glow: "rgba(28,28,30,0.30)", rank: 1 },
+    { c: customers[2], height: 52, color: "#0A84FF", glow: "rgba(10,132,255,0.20)", rank: 3 },
   ];
 
   return (
@@ -1178,7 +1177,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+      <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
         <CardContent className="p-5">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
@@ -1267,7 +1266,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                         <div className="flex items-center gap-1.5">
                           <p className="font-semibold text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{c.name}</p>
                           {i === 0 && (
-                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600">
+                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
                               VIP
                             </span>
                           )}
