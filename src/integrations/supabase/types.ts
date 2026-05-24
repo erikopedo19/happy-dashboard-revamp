@@ -190,6 +190,54 @@ export type Database = {
         }
         Relationships: []
       }
+      cancellation_waitlist: {
+        Row: {
+          barber_id: string
+          claim_token: string | null
+          client_email: string
+          client_name: string | null
+          client_user_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          offer_expires_at: string | null
+          offered_appointment_id: string | null
+          offered_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          barber_id: string
+          claim_token?: string | null
+          client_email: string
+          client_name?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          offer_expires_at?: string | null
+          offered_appointment_id?: string | null
+          offered_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          barber_id?: string
+          claim_token?: string | null
+          client_email?: string
+          client_name?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          offer_expires_at?: string | null
+          offered_appointment_id?: string | null
+          offered_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
@@ -501,6 +549,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepts_waitlist: boolean | null
           address: string | null
           ask_notes: boolean | null
           ask_phone: boolean | null
@@ -519,6 +568,7 @@ export type Database = {
           is_public: boolean | null
           latitude: number | null
           longitude: number | null
+          notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
           phone: string | null
           rating: number | null
@@ -531,6 +581,7 @@ export type Database = {
           years_experience: number | null
         }
         Insert: {
+          accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
@@ -549,6 +600,7 @@ export type Database = {
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
@@ -561,6 +613,7 @@ export type Database = {
           years_experience?: number | null
         }
         Update: {
+          accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
@@ -579,6 +632,7 @@ export type Database = {
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
@@ -991,6 +1045,7 @@ export type Database = {
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
+      claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_pending_services: { Args: never; Returns: undefined }
       create_public_booking: {
@@ -1007,6 +1062,7 @@ export type Database = {
         Returns: Json
       }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
+      expire_waitlist_offers: { Args: never; Returns: undefined }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
       get_appointment_by_token: { Args: { _token: string }; Returns: Json }
       get_booked_slots: {
@@ -1067,6 +1123,10 @@ export type Database = {
           rating: number
           reviewer_name: string
         }[]
+      }
+      join_cancellation_waitlist: {
+        Args: { _barber_id: string }
+        Returns: Json
       }
       list_public_profiles: {
         Args: never
