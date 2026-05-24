@@ -18,7 +18,9 @@ import {
   Award,
   ShoppingBag,
   Sparkles,
+  BellRing,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarbershopMap } from "@/components/BarbershopMap";
@@ -562,13 +564,17 @@ function BarberExpandedDetails({
   rating: number;
   reviews: number;
 }) {
+  const { toast } = useToast();
+  const [joining, setJoining] = useState(false);
+  const [joined, setJoined] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ["barber-details", barberId],
     queryFn: async () => {
       const [profileRes, servicesRes, hoursRes, productsRes] = await Promise.all([
         (supabase as any)
           .from("profiles")
-          .select("description, years_experience, business_name, full_name")
+          .select("description, years_experience, business_name, full_name, accepts_waitlist")
           .eq("id", barberId)
           .maybeSingle(),
         (supabase as any)
@@ -601,6 +607,21 @@ function BarberExpandedDetails({
     staleTime: 60_000,
   });
 
+  const joinWaitlist = async () => {
+    setJoining(true);
+    const { data: res, error } = await (supabase as any).rpc("join_cancellation_waitlist", {
+      _barber_id: barberId,
+    });
+    setJoining(false);
+    if (error || !res?.success) {
+      toast({ title: "Couldn't join waitlist", description: res?.error || error?.message, variant: "destructive" });
+      return;
+    }
+    setJoined(true);
+    toast({ title: "You're on the list!", description: "We'll email you the moment a slot opens in the next 7 days." });
+  };
+
+
   const description = data?.profile?.description ?? fallbackDescription;
   const years = data?.profile?.years_experience;
 
@@ -625,6 +646,29 @@ function BarberExpandedDetails({
         <Stat label="Reviews" value={String(reviews)} />
         <Stat label="Experience" value={years ? `${years}y` : "Pro"} />
       </div>
+
+      {/* Waitlist CTA */}
+      {data?.profile?.accepts_waitlist && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={joinWaitlist}
+          disabled={joining || joined}
+          className="w-full rounded-2xl p-3.5 flex items-center gap-3 border border-rose-500/20 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 text-left disabled:opacity-70"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shrink-0">
+            <BellRing className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+              {joined ? "You're on the waitlist" : "Remind me of a cancellation"}
+            </div>
+            <div className="text-[11px] text-[#8E8E93]">
+              {joined ? "We'll email you the moment a slot opens." : "Get notified if a slot opens in the next 7 days."}
+            </div>
+          </div>
+        </motion.button>
+      )}
+
 
       {/* About */}
       {description && (

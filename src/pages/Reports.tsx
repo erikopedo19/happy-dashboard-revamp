@@ -583,17 +583,18 @@ const Reports = () => {
                     config={revenueChartConfig}
                     className="h-[180px] md:h-[240px] w-full aspect-auto mt-4"
                   >
-                    <BarChart data={analytics.revenueTrend} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={0}>
+                    <BarChart data={analytics.revenueTrend} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="22%">
                       <defs>
                         <linearGradient id="fillRevBar" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.45} />
-                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.05} />
+                          <stop offset="0%" stopColor="#0ea5e9" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.4} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                      <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
                       <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                       <YAxis hide />
                       <ChartTooltip
+                        cursor={{ fill: "rgba(14,165,233,0.06)" }}
                         content={
                           <ChartTooltipContent
                             formatter={(value) => [currency.format(Number(value)), "Revenue"]}
@@ -603,20 +604,10 @@ const Reports = () => {
                       <Bar
                         dataKey="revenue"
                         fill="url(#fillRevBar)"
-                        stroke="#38bdf8"
-                        strokeWidth={1}
-                        radius={[6, 6, 0, 0]}
+                        radius={[14, 14, 14, 14]}
+                        background={{ fill: "rgba(14,165,233,0.06)", radius: 14 } as any}
                         animationDuration={900}
                         animationBegin={200}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#0ea5e9"
-                        strokeWidth={2.5}
-                        dot={false}
-                        animationDuration={1200}
-                        animationBegin={400}
                       />
                     </BarChart>
                   </ChartContainer>
@@ -746,23 +737,22 @@ const Reports = () => {
                         config={{ value: { label: "Bookings", color: "#e11d48" } }}
                         className="h-[160px] w-full aspect-auto"
                       >
-                        <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barGap={0}>
+                        <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barCategoryGap="25%">
                           <defs>
                             <linearGradient id="fillHourly" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#e11d48" stopOpacity={0.4} />
-                              <stop offset="100%" stopColor="#e11d48" stopOpacity={0.05} />
+                              <stop offset="0%" stopColor="#e11d48" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.4} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
                           <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                           <YAxis hide />
-                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <ChartTooltip cursor={{ fill: "rgba(225,29,72,0.06)" }} content={<ChartTooltipContent />} />
                           <Bar
                             dataKey="value"
                             fill="url(#fillHourly)"
-                            stroke="#e11d48"
-                            strokeWidth={1}
-                            radius={[4, 4, 0, 0]}
+                            radius={[10, 10, 10, 10]}
+                            background={{ fill: "rgba(225,29,72,0.06)", radius: 10 } as any}
                             animationDuration={900}
                             animationBegin={200}
                           />
@@ -798,15 +788,15 @@ const Reports = () => {
                         <BarChart
                           data={analytics.statusBreakdown}
                           margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                          barGap={0}
+                          barCategoryGap="28%"
                         >
                           <defs>
                             <linearGradient id="noGapGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="var(--chart-3, #38bdf8)" stopOpacity={0.55} />
-                              <stop offset="100%" stopColor="var(--chart-3, #38bdf8)" stopOpacity={0.05} />
+                              <stop offset="0%" stopColor="#0ea5e9" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.4} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
                           <XAxis
                             dataKey="name"
                             tickLine={false}
@@ -815,31 +805,21 @@ const Reports = () => {
                           />
                           <YAxis hide />
                           <Tooltip
-                            cursor={{ fill: "transparent" }}
+                            cursor={{ fill: "rgba(14,165,233,0.06)" }}
                             contentStyle={{
-                              borderRadius: "12px",
+                              borderRadius: "14px",
                               border: "1px solid #E5E5EA",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                              boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
                             }}
                             formatter={(value: number) => [value, "Bookings"]}
                           />
                           <Bar
                             dataKey="value"
                             fill="url(#noGapGradient)"
-                            stroke="var(--chart-3, #38bdf8)"
-                            strokeWidth={1}
-                            radius={[8, 8, 0, 0]}
+                            radius={[12, 12, 12, 12]}
+                            background={{ fill: "rgba(14,165,233,0.06)", radius: 12 } as any}
                             animationDuration={900}
                             animationBegin={200}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="value"
-                            stroke="#0ea5e9"
-                            strokeWidth={2.5}
-                            dot={{ r: 3, fill: "#0ea5e9", strokeWidth: 0 }}
-                            animationDuration={1200}
-                            animationBegin={400}
                           />
                         </BarChart>
                       </ResponsiveContainer>
@@ -980,8 +960,15 @@ const Reports = () => {
                       <BarChart
                         data={analytics.stylistPerformance.slice(0, 6)}
                         margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
+                        barCategoryGap="28%"
                       >
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                        <defs>
+                          <linearGradient id="fillStylist" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#e11d48" stopOpacity={1} />
+                            <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.4} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
                         <XAxis
                           dataKey="name"
                           tickLine={false}
@@ -996,13 +983,21 @@ const Reports = () => {
                           tickFormatter={(value) => `$${value}`}
                         />
                         <ChartTooltip
+                          cursor={{ fill: "rgba(225,29,72,0.06)" }}
                           content={
                             <ChartTooltipContent
                               formatter={(value) => [currency.format(Number(value)), "Revenue"]}
                             />
                           }
                         />
-                        <Bar dataKey="revenue" radius={[10, 10, 0, 0]} fill="#e11d48" animationDuration={900} animationBegin={200} />
+                        <Bar
+                          dataKey="revenue"
+                          radius={[12, 12, 12, 12]}
+                          fill="url(#fillStylist)"
+                          background={{ fill: "rgba(225,29,72,0.06)", radius: 12 } as any}
+                          animationDuration={900}
+                          animationBegin={200}
+                        />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
@@ -1028,16 +1023,22 @@ const Reports = () => {
                       config={{ count: { label: "Bookings", color: "#e11d48" } }}
                       className="h-[160px] w-full aspect-auto"
                     >
-                      <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                      <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barCategoryGap="22%">
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
                         <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                         <YAxis hide />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="count" radius={[8, 8, 0, 0]} animationDuration={900} animationBegin={200}>
+                        <ChartTooltip cursor={{ fill: "rgba(225,29,72,0.06)" }} content={<ChartTooltipContent />} />
+                        <Bar
+                          dataKey="count"
+                          radius={[10, 10, 10, 10]}
+                          background={{ fill: "rgba(225,29,72,0.06)", radius: 10 } as any}
+                          animationDuration={900}
+                          animationBegin={200}
+                        >
                           {analytics.dayOfWeekDemand.map((entry, i) => {
                             const maxCount = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
-                            const opacity = 0.35 + (entry.count / maxCount) * 0.65;
-                            return <Cell key={i} fill={`rgba(225,29,72,${opacity})`} />;
+                            const t = entry.count / maxCount;
+                            return <Cell key={i} fill={`rgba(225,29,72,${0.35 + t * 0.65})`} />;
                           })}
                         </Bar>
                       </BarChart>

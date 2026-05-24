@@ -39,6 +39,7 @@ import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
 import ManageBooking from "./pages/ManageBooking";
 import ReviewPage from "./pages/ReviewPage";
+import WaitlistClaim from "./pages/WaitlistClaim";
 import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
@@ -84,6 +85,7 @@ function AnimatedRoutes() {
           <Route path="/book/:bookingLink" element={<Booking />} />
           <Route path="/manage/:token" element={<ManageBooking />} />
           <Route path="/review/:token" element={<ReviewPage />} />
+          <Route path="/waitlist/claim/:token" element={<WaitlistClaim />} />
           <Route path="/bookingforms" element={<BookingForms />} />
           <Route path="/find-barber" element={<FindBarber />} />
           <Route path="/find-barbershop" element={<FindBarbershop />} />

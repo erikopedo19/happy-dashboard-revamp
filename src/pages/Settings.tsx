@@ -78,6 +78,7 @@ type BrandProfileRecord = {
   google_maps_url?: string;
   description: string;
   years_experience?: number;
+  accepts_waitlist?: boolean;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
@@ -118,6 +119,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   google_maps_url: "",
   description: "",
   years_experience: undefined,
+  accepts_waitlist: false,
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -164,7 +166,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -215,6 +217,7 @@ const Settings = () => {
       google_maps_url: data.profile?.google_maps_url ?? "",
       description: data.profile?.description ?? "",
       years_experience: data.profile?.years_experience ?? undefined,
+      accepts_waitlist: data.profile?.accepts_waitlist ?? false,
     });
 
     // Set dark mode from profile, default to dark mode
@@ -304,6 +307,7 @@ const Settings = () => {
         google_maps_url: mapsUrl || null,
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
+        accepts_waitlist: brandForm.accepts_waitlist ?? false,
         updated_at: new Date().toISOString(),
       };
 
@@ -775,6 +779,25 @@ const Settings = () => {
                               </p>
                             </div>
                           </div>
+
+                          {/* Cancellation waitlist */}
+                          <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-50/60 to-pink-50/60 dark:from-rose-950/20 dark:to-pink-950/20 p-4 flex items-center gap-4">
+                            <div className="flex-1 min-w-0">
+                              <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
+                                Accept cancellation waitlist
+                              </Label>
+                              <p className="text-xs text-[#8E8E93] mt-1">
+                                Clients can join a 7-day waitlist on your profile. When you cancel an appointment, the first person in line gets emailed and has 5 minutes to claim it.
+                              </p>
+                            </div>
+                            <Switch
+                              checked={!!brandForm.accepts_waitlist}
+                              onCheckedChange={(v) =>
+                                setBrandForm((prev) => ({ ...prev, accepts_waitlist: v }))
+                              }
+                            />
+                          </div>
+
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
