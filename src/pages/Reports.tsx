@@ -24,6 +24,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Line,
   Pie,
   PieChart,
@@ -499,13 +500,18 @@ const Reports = () => {
 
         <main className="flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+          <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                  Reports
-                </h1>
+                <div className="min-w-0">
+                  <p className="hidden md:block text-[10px] uppercase tracking-[0.22em] font-semibold text-[#8E8E93]">
+                    Analytics studio
+                  </p>
+                  <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                    Reports
+                  </h1>
+                </div>
               </div>
 
               <Button
@@ -542,14 +548,14 @@ const Reports = () => {
 
           {/* Content */}
           <div className="flex-1 overflow-auto">
-            <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1400px] mx-auto">
-              {/* Hero revenue card */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden">
-                <CardContent className="p-5 md:p-6">
-                  <div className="flex items-start justify-between gap-4 mb-1">
+            <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
+              <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
+                <Card className="rounded-[2rem] border border-white/70 dark:border-white/10 bg-white/85 dark:bg-[#111113]/90 shadow-[0_18px_70px_rgba(15,23,42,0.08)] overflow-hidden backdrop-blur-xl">
+                  <CardContent className="p-5 md:p-6">
+                    <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93]">
-                        Total revenue
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93]">
+                        Composed chart
                       </p>
                       <p className="text-3xl md:text-5xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-2 tracking-tight">
                         {currency.format(analytics.totalRevenue)}
@@ -574,20 +580,24 @@ const Reports = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center shrink-0">
+                    <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center shrink-0 ring-1 ring-rose-500/10">
                       <DollarSign className="w-5 h-5 text-rose-600" strokeWidth={2.5} />
                     </div>
                   </div>
 
                   <ChartContainer
                     config={revenueChartConfig}
-                    className="h-[180px] md:h-[240px] w-full aspect-auto mt-4"
+                    className="h-[260px] md:h-[320px] w-full aspect-auto mt-4"
                   >
-                    <AreaChart data={analytics.revenueTrend} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                    <ComposedChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="fillRevLine" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#e11d48" stopOpacity={0.22} />
+                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="fillRevBars" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.95} />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.28} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
@@ -601,19 +611,68 @@ const Reports = () => {
                           />
                         }
                       />
+                      <Bar
+                        dataKey="appointments"
+                        fill="url(#fillRevBars)"
+                        radius={[10, 10, 10, 10]}
+                        barSize={isMobile ? 12 : 18}
+                        animationDuration={900}
+                        animationBegin={100}
+                      />
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#0ea5e9"
+                        stroke="#e11d48"
                         strokeWidth={2.5}
                         fill="url(#fillRevLine)"
                         animationDuration={1200}
                         animationBegin={300}
                       />
-                    </AreaChart>
+                      <Line
+                        type="monotone"
+                        dataKey="completed"
+                        stroke="#111827"
+                        strokeWidth={2}
+                        dot={false}
+                        animationDuration={1200}
+                        animationBegin={450}
+                      />
+                    </ComposedChart>
                   </ChartContainer>
                 </CardContent>
-              </Card>
+                </Card>
+
+                <Card className="rounded-[2rem] border border-white/70 dark:border-white/10 bg-[#111827] text-white shadow-[0_18px_70px_rgba(15,23,42,0.16)] overflow-hidden">
+                  <CardContent className="p-5 md:p-6 h-full flex flex-col">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+                        Report health
+                      </p>
+                      <h2 className="text-2xl md:text-3xl font-bold mt-2">
+                        {analytics.completionRate}% completed
+                      </h2>
+                      <p className="text-sm text-white/60 mt-2">
+                        {numberFormat.format(analytics.completedAppointments)} finished bookings from {numberFormat.format(analytics.totalAppointments)} total.
+                      </p>
+                    </div>
+                    <div className="mt-6 grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                        <p className="text-[10px] uppercase tracking-wider text-white/50">Scheduled</p>
+                        <p className="text-2xl font-bold mt-2">{numberFormat.format(analytics.scheduledAppointments)}</p>
+                      </div>
+                      <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                        <p className="text-[10px] uppercase tracking-wider text-white/50">Cancelled</p>
+                        <p className="text-2xl font-bold mt-2">{numberFormat.format(analytics.cancelledAppointments)}</p>
+                      </div>
+                    </div>
+                    <div className="mt-auto pt-6">
+                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-sky-400" style={{ width: `${analytics.completionRate}%` }} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
 
               {/* KPI grid */}
               <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
