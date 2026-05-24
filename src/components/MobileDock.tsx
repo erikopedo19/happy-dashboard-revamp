@@ -114,3 +114,5 @@ export const MobileDock = () => {
     </div>
   );
 };
+
+export const MobileDockInner = MobileDock;

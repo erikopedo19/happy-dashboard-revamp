@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
@@ -23,6 +24,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -36,6 +38,7 @@ import {
   Crown,
   DollarSign,
   Download,
+  Filter,
   MessageSquare,
   Scissors,
   Sparkles,
@@ -43,6 +46,7 @@ import {
   Users,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { FunnelChart } from "@/components/FunnelChart";
 
 type RangeValue =
   | "today"
@@ -579,32 +583,42 @@ const Reports = () => {
                     config={revenueChartConfig}
                     className="h-[180px] md:h-[240px] w-full aspect-auto mt-4"
                   >
-                    <AreaChart data={analytics.revenueTrend} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
+                    <BarChart data={analytics.revenueTrend} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={0}>
                       <defs>
-                        <linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#e11d48" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                        <linearGradient id="fillRevBar" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.45} />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.05} />
                         </linearGradient>
                       </defs>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
                       <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
+                      <YAxis hide />
                       <ChartTooltip
-                        cursor={{ stroke: "#e11d48", strokeWidth: 1, strokeDasharray: "3 3" }}
                         content={
                           <ChartTooltipContent
                             formatter={(value) => [currency.format(Number(value)), "Revenue"]}
                           />
                         }
                       />
-                      <Area
+                      <Bar
+                        dataKey="revenue"
+                        fill="url(#fillRevBar)"
+                        stroke="#38bdf8"
+                        strokeWidth={1}
+                        radius={[6, 6, 0, 0]}
+                        animationDuration={900}
+                        animationBegin={200}
+                      />
+                      <Line
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#e11d48"
+                        stroke="#0ea5e9"
                         strokeWidth={2.5}
-                        fill="url(#fillRev)"
+                        dot={false}
                         animationDuration={1200}
-                        animationBegin={300}
+                        animationBegin={400}
                       />
-                    </AreaChart>
+                    </BarChart>
                   </ChartContainer>
                 </CardContent>
               </Card>
@@ -616,24 +630,28 @@ const Reports = () => {
                   label="Appointments"
                   value={numberFormat.format(analytics.totalAppointments)}
                   hint={`${analytics.completionRate}% completed`}
+                  accent="rose"
                 />
                 <KpiTile index={1}
-                  icon={<Users className="w-4 h-4 text-rose-600" />}
+                  icon={<Users className="w-4 h-4 text-sky-500" />}
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
+                  accent="sky"
                 />
                 <KpiTile index={2}
                   icon={<DollarSign className="w-4 h-4 text-rose-600" />}
                   label="Avg ticket"
                   value={currency.format(analytics.averageTicket || 0)}
                   hint="Per booking"
+                  accent="rose"
                 />
                 <KpiTile index={3}
-                  icon={<Scissors className="w-4 h-4 text-rose-600" />}
+                  icon={<Scissors className="w-4 h-4 text-sky-500" />}
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   hint={`${analytics.completedAppointments} completed`}
+                  accent="sky"
                 />
               </section>
 
@@ -754,6 +772,35 @@ const Reports = () => {
                   </CardContent>
                 </Card>
               </section>
+
+              {/* Booking funnel */}
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] dark:hover:shadow-[0_8px_40px_rgba(14,165,233,0.22)]">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        Booking funnel
+                      </h3>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">
+                        Conversion stages overview
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+                      <Filter className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <FunnelChart
+                    data={[
+                      { label: "Visitors", value: 12400, displayValue: "12.4k" },
+                      { label: "Leads", value: 6800, displayValue: "6.8k" },
+                      { label: "Qualified", value: 3200, displayValue: "3.2k" },
+                      { label: "Proposals", value: 1500, displayValue: "1.5k" },
+                      { label: "Closed", value: 620, displayValue: "620" },
+                    ]}
+                    color="#38bdf8"
+                  />
+                </CardContent>
+              </Card>
 
               {/* Top services */}
               <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
@@ -980,13 +1027,22 @@ function KpiTile({
   value,
   hint,
   index = 0,
+  accent = "rose",
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   hint: string;
   index?: number;
+  accent?: "rose" | "sky";
 }) {
+  const accentBg = accent === "sky"
+    ? "bg-sky-50 dark:bg-sky-950/30"
+    : "bg-rose-50 dark:bg-rose-950/40";
+  const hoverShadow = accent === "sky"
+    ? "hover:shadow-[0_8px_36px_rgba(14,165,233,0.13)] dark:hover:shadow-[0_8px_36px_rgba(14,165,233,0.28)]"
+    : "hover:shadow-[0_8px_36px_rgba(225,29,72,0.13)] dark:hover:shadow-[0_8px_36px_rgba(225,29,72,0.28)]";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -994,10 +1050,10 @@ function KpiTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
     >
-      <Card className="rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm cursor-default transition-shadow duration-300 hover:shadow-[0_8px_36px_rgba(225,29,72,0.13)] dark:hover:shadow-[0_8px_36px_rgba(225,29,72,0.28)]">
+      <Card className={cn("rounded-2xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm cursor-default transition-shadow duration-300", hoverShadow)}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
+            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", accentBg)}>
               {icon}
             </div>
           </div>
@@ -1035,8 +1091,8 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
               <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Best customers</h3>
               <p className="text-xs text-[#8E8E93] mt-0.5">Ranked by total spend this period</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-rose-600" />
+            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-sky-500" />
             </div>
           </div>
 
@@ -1173,8 +1229,8 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
             <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Customer reviews</h3>
             <p className="text-xs text-[#8E8E93] mt-0.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""} total</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-rose-600" strokeWidth={2.5} />
+          <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
           </div>
         </div>
 
