@@ -18,7 +18,9 @@ import {
   Award,
   ShoppingBag,
   Sparkles,
+  BellRing,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarbershopMap } from "@/components/BarbershopMap";
@@ -562,13 +564,17 @@ function BarberExpandedDetails({
   rating: number;
   reviews: number;
 }) {
+  const { toast } = useToast();
+  const [joining, setJoining] = useState(false);
+  const [joined, setJoined] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ["barber-details", barberId],
     queryFn: async () => {
       const [profileRes, servicesRes, hoursRes, productsRes] = await Promise.all([
         (supabase as any)
           .from("profiles")
-          .select("description, years_experience, business_name, full_name")
+          .select("description, years_experience, business_name, full_name, accepts_waitlist")
           .eq("id", barberId)
           .maybeSingle(),
         (supabase as any)
@@ -600,6 +606,21 @@ function BarberExpandedDetails({
     },
     staleTime: 60_000,
   });
+
+  const joinWaitlist = async () => {
+    setJoining(true);
+    const { data: res, error } = await (supabase as any).rpc("join_cancellation_waitlist", {
+      _barber_id: barberId,
+    });
+    setJoining(false);
+    if (error || !res?.success) {
+      toast({ title: "Couldn't join waitlist", description: res?.error || error?.message, variant: "destructive" });
+      return;
+    }
+    setJoined(true);
+    toast({ title: "You're on the list!", description: "We'll email you the moment a slot opens in the next 7 days." });
+  };
+
 
   const description = data?.profile?.description ?? fallbackDescription;
   const years = data?.profile?.years_experience;
