@@ -44,13 +44,13 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
       to={item.path}
       className={cn(
         'relative flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 transition-all duration-300 active:scale-95',
-        isActive ? 'text-white' : 'text-muted-foreground hover:text-[#d60052] dark:hover:text-rose-300'
+        isActive ? 'text-white' : 'text-muted-foreground hover:text-rose-500 dark:hover:text-rose-300'
       )}
     >
       {isActive && (
         <motion.div
           layoutId="dock-active-pill"
-          className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br shadow-rose', item.accent)}
+          className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br', item.accent)}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         />
       )}
@@ -68,7 +68,7 @@ export const MobileDock = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pointer-events-none">
-      <div className="relative mx-auto max-w-lg rounded-[28px] border border-[#d60052]/15 bg-white/90 shadow-[0_18px_45px_rgba(214,0,82,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#18171c]/95 pointer-events-auto">
+      <div className="relative mx-auto max-w-lg rounded-[28px] border border-gray-200/60 bg-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#18171c]/95 pointer-events-auto">
         <div className="grid grid-cols-6 items-center gap-1 px-2 py-2">
           {mainItems.map((item) => (
             <DockLink key={item.path} item={item} location={location} />
@@ -79,13 +79,13 @@ export const MobileDock = () => {
               <button
                 type="button"
                 aria-label="More"
-                className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-muted-foreground transition-all hover:bg-[#d60052]/10 hover:text-[#d60052] active:scale-95 dark:hover:text-rose-300"
+                className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-muted-foreground transition-all hover:bg-rose-500/10 hover:text-rose-500 active:scale-95 dark:hover:text-rose-300"
               >
                 <MoreHorizontal className="h-5 w-5" />
                 <span className="text-[9px] font-medium tracking-[-0.03em]">More</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="mb-2 w-52 rounded-2xl border-[#d60052]/15 bg-white/95 p-2 shadow-xl backdrop-blur-xl dark:bg-[#18171c]/95">
+            <DropdownMenuContent align="end" className="mb-2 w-52 rounded-2xl border-gray-200/60 bg-white/95 p-2 shadow-xl backdrop-blur-xl dark:bg-[#18171c]/95">
               {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive =
@@ -97,7 +97,7 @@ export const MobileDock = () => {
                     onSelect={() => navigate(item.path)}
                     className={cn(
                       'flex items-center gap-3 rounded-xl',
-                      isActive && 'bg-[#d60052]/10 text-[#d60052] dark:text-rose-300'
+                      isActive && 'bg-rose-500/10 text-rose-500 dark:text-rose-300'
                     )}
                   >
                     <span className={cn('flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br text-white', item.accent)}>

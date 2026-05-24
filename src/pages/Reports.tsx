@@ -28,6 +28,7 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -46,7 +47,6 @@ import {
   Users,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { FunnelChart } from "@/components/FunnelChart";
 
 type RangeValue =
   | "today"
@@ -773,32 +773,78 @@ const Reports = () => {
                 </Card>
               </section>
 
-              {/* Booking funnel */}
+              {/* Booking stats */}
               <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] dark:hover:shadow-[0_8px_40px_rgba(14,165,233,0.22)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-5">
                     <div>
                       <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                        Booking funnel
+                        Booking stats
                       </h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">
-                        Conversion stages overview
+                        Status breakdown this period
                       </p>
                     </div>
                     <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
                       <Filter className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
                     </div>
                   </div>
-                  <FunnelChart
-                    data={[
-                      { label: "Visitors", value: 12400, displayValue: "12.4k" },
-                      { label: "Leads", value: 6800, displayValue: "6.8k" },
-                      { label: "Qualified", value: 3200, displayValue: "3.2k" },
-                      { label: "Proposals", value: 1500, displayValue: "1.5k" },
-                      { label: "Closed", value: 620, displayValue: "620" },
-                    ]}
-                    color="#38bdf8"
-                  />
+
+                  {analytics.statusBreakdown.length === 0 ? (
+                    <EmptyMini />
+                  ) : (
+                    <div className="h-[200px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={analytics.statusBreakdown}
+                          margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                          barGap={0}
+                        >
+                          <defs>
+                            <linearGradient id="noGapGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="var(--chart-3, #38bdf8)" stopOpacity={0.55} />
+                              <stop offset="100%" stopColor="var(--chart-3, #38bdf8)" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                          <XAxis
+                            dataKey="name"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 12, fill: "#8E8E93" }}
+                          />
+                          <YAxis hide />
+                          <Tooltip
+                            cursor={{ fill: "transparent" }}
+                            contentStyle={{
+                              borderRadius: "12px",
+                              border: "1px solid #E5E5EA",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                            }}
+                            formatter={(value: number) => [value, "Bookings"]}
+                          />
+                          <Bar
+                            dataKey="value"
+                            fill="url(#noGapGradient)"
+                            stroke="var(--chart-3, #38bdf8)"
+                            strokeWidth={1}
+                            radius={[8, 8, 0, 0]}
+                            animationDuration={900}
+                            animationBegin={200}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#0ea5e9"
+                            strokeWidth={2.5}
+                            dot={{ r: 3, fill: "#0ea5e9", strokeWidth: 0 }}
+                            animationDuration={1200}
+                            animationBegin={400}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -843,7 +889,7 @@ const Reports = () => {
                             </div>
                             <div className="h-2 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
                               <div
-                                className="h-full rounded-full bg-rose-500 transition-all"
+                                className="h-full rounded-full bg-sky-500 transition-all"
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
