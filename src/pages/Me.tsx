@@ -186,6 +186,16 @@ const Me = () => {
           className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden"
         >
           <Row to="/settings" icon={<Settings className="w-5 h-5 text-[#8E8E93]" />} label="Account settings" />
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/5 dark:border-white/5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shrink-0">
+              <BellRing className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">Cancellation alerts</div>
+              <div className="text-[11px] text-[#8E8E93]">Email me when a spot opens on a waitlist I joined</div>
+            </div>
+            <Switch checked={waitlistAlerts} onCheckedChange={toggleWaitlistAlerts} disabled={waitlistSaving} />
+          </div>
           <Row icon={<Bell className="w-5 h-5 text-[#FF9500]" />} label="Notifications" disabled />
           <Row icon={<Shield className="w-5 h-5 text-[#34C759]" />} label="Privacy" disabled />
         </motion.div>
