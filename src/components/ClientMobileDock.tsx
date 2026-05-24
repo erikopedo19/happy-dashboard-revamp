@@ -1,47 +1,47 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Calendar, Heart, MapPin, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Calendar, Heart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 
-interface NavItem {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  path: string;
-}
-
-const navItems: NavItem[] = [
+const navItems = [
   { label: 'Explore', icon: Search, path: '/find-barber' },
-  { label: 'Map', icon: MapPin, path: '/find-barbershop' },
   { label: 'Bookings', icon: Calendar, path: '/my-bookings' },
   { label: 'Favorites', icon: Heart, path: '/favorites' },
+  { label: 'Profile', icon: User, path: '/me' },
 ];
 
-export const ClientMobileDock = () => {
-  const location = useLocation();
-  const isMobile = useIsMobile();
+export const ClientMobileDock = () => null;
 
-  if (!isMobile) return null;
+export const ClientMobileDockInner = () => {
+  const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border-t border-[#C6C6C8] dark:border-[#2C2C2E] pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-2xl border-t border-border/60 pb-safe">
       <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-          
+          const isActive =
+            location.pathname === item.path ||
+            (item.path !== '/' && location.pathname.startsWith(item.path));
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200",
-                isActive
-                  ? "text-[#007AFF] dark:text-[#0A84FF]"
-                  : "text-[#8E8E93] dark:text-gray-500 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
+                'relative flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-2xl transition-colors duration-300',
+                isActive ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className={cn("h-5 w-5", isActive && "scale-110")} />
-              <span className={cn("text-[10px] font-medium", isActive && "font-semibold")}>
+              {isActive && (
+                <motion.div
+                  layoutId="client-dock-active-pill"
+                  className="absolute inset-0 rounded-2xl bg-gradient-rose shadow-rose"
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                />
+              )}
+              <Icon className={cn('relative z-10 h-5 w-5 transition-transform duration-300', isActive && 'scale-110')} />
+              <span className={cn('relative z-10 text-[10px] font-medium', isActive && 'font-semibold')}>
                 {item.label}
               </span>
             </Link>

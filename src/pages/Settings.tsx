@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
@@ -25,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { PushToggle } from "@/components/PushToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +37,11 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
+import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { BrandImageUpload } from "@/components/BrandImageUpload";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -67,6 +74,24 @@ type BrandProfileRecord = {
   location: string;
   latitude?: number;
   longitude?: number;
+  google_maps_url?: string;
+  description: string;
+  years_experience?: number;
+};
+
+// Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
+const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } | null => {
+  if (!url) return null;
+  // Pattern 1: /@lat,lng,zoom
+  const at = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (at) return { lat: parseFloat(at[1]), lng: parseFloat(at[2]) };
+  // Pattern 2: q=lat,lng or destination=lat,lng or ll=lat,lng
+  const q = url.match(/[?&](?:q|destination|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (q) return { lat: parseFloat(q[1]), lng: parseFloat(q[2]) };
+  // Pattern 3: !3dlat!4dlng (places format)
+  const place = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (place) return { lat: parseFloat(place[1]), lng: parseFloat(place[2]) };
+  return null;
 };
 
 const defaultAgendaSettings: AgendaSettingsRecord = {
@@ -88,6 +113,9 @@ const defaultBrandProfile: BrandProfileRecord = {
   location: "",
   latitude: undefined,
   longitude: undefined,
+  google_maps_url: "",
+  description: "",
+  years_experience: undefined,
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -102,6 +130,7 @@ const sortWorkingDays = (days: number[]) =>
   });
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
@@ -125,7 +154,7 @@ const Settings = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      const [agendaResult, profileResult, brandResult] = await Promise.all([
+      const [agendaResult, profileResult] = await Promise.all([
         (supabase as any)
           .from("agenda_settings")
           .select("user_id, service_duration, start_hour, end_hour, working_days")
@@ -133,13 +162,8 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience")
           .eq("id", user.id)
-          .maybeSingle(),
-        (supabase as any)
-          .from("brand_profiles")
-          .select("name, contact_phone, location, latitude, longitude")
-          .eq("user_id", user.id)
           .maybeSingle(),
       ]);
 
@@ -151,14 +175,9 @@ const Settings = () => {
         throw profileResult.error;
       }
 
-      if (brandResult.error && brandResult.error.code !== "PGRST116") {
-        throw brandResult.error;
-      }
-
       return {
         agenda: agendaResult.data,
         profile: profileResult.data,
-        brand: brandResult.data,
       };
     },
   });
@@ -185,11 +204,14 @@ const Settings = () => {
     });
 
     setBrandForm({
-      name: data.brand?.name ?? user.user_metadata?.full_name ?? "",
-      contact_phone: data.brand?.contact_phone ?? data.profile?.phone ?? "",
-      location: data.brand?.location ?? "",
-      latitude: data.brand?.latitude,
-      longitude: data.brand?.longitude,
+      name: data.profile?.business_name ?? data.profile?.full_name ?? user.user_metadata?.full_name ?? "",
+      contact_phone: data.profile?.phone ?? "",
+      location: data.profile?.address ?? "",
+      latitude: data.profile?.latitude ?? undefined,
+      longitude: data.profile?.longitude ?? undefined,
+      google_maps_url: data.profile?.google_maps_url ?? "",
+      description: data.profile?.description ?? "",
+      years_experience: data.profile?.years_experience ?? undefined,
     });
 
     // Set dark mode from profile, default to dark mode
@@ -256,32 +278,44 @@ const Settings = () => {
         working_days: agendaForm.working_days,
       };
 
+      // Auto-extract coordinates from a Google Maps URL if pasted
+      let lat = brandForm.latitude;
+      let lng = brandForm.longitude;
+      const mapsUrl = (brandForm.google_maps_url || "").trim();
+      if (mapsUrl) {
+        const parsed = extractLatLngFromGoogleUrl(mapsUrl);
+        if (parsed) {
+          lat = parsed.lat;
+          lng = parsed.lng;
+        }
+      }
+
       const profilePayload = {
         id: user.id,
         full_name: profileForm.full_name.trim() || null,
-        phone: profileForm.phone.trim() || null,
+        phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
+        business_name: brandForm.name.trim() || profileForm.full_name.trim() || null,
+        address: brandForm.location.trim() || null,
+        latitude: lat ?? null,
+        longitude: lng ?? null,
+        google_maps_url: mapsUrl || null,
+        description: brandForm.description.trim() || null,
+        years_experience: brandForm.years_experience ?? null,
         updated_at: new Date().toISOString(),
       };
 
-      const brandPayload = {
-        user_id: user.id,
-        name: brandForm.name.trim() || profileForm.full_name.trim() || "My Business",
-        contact_phone: brandForm.contact_phone.trim() || profileForm.phone.trim() || null,
-        location: brandForm.location.trim() || null,
-        latitude: brandForm.latitude,
-        longitude: brandForm.longitude,
-        updated_at: new Date().toISOString(),
-      };
-
-      const [agendaResult, profileResult, brandResult] = await Promise.all([
+      const [agendaResult, profileResult] = await Promise.all([
         (supabase as any).from("agenda_settings").upsert(agendaPayload, { onConflict: "user_id" }),
         (supabase as any).from("profiles").upsert(profilePayload, { onConflict: "id" }),
-        (supabase as any).from("brand_profiles").upsert(brandPayload, { onConflict: "user_id" }),
       ]);
 
       if (agendaResult.error) throw agendaResult.error;
       if (profileResult.error) throw profileResult.error;
-      if (brandResult.error) throw brandResult.error;
+
+      // Reflect parsed coordinates back into the form
+      if (mapsUrl && lat !== undefined && lng !== undefined) {
+        setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      }
 
       return true;
     },
@@ -361,36 +395,27 @@ const Settings = () => {
         <AppSidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl">
-            <div className="px-4 md:px-6 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <SidebarTrigger className="lg:hidden text-gray-600 dark:text-gray-400" />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-lg md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Settings</h1>
-                    <Badge className="rounded-full bg-gray-900 dark:bg-rose-600 text-white border-0">
-                      Live sync
-                    </Badge>
-                  </div>
-                  <p className="text-xs md:text-sm text-[#8E8E93] dark:text-gray-500">
-                    Save once and your agenda and booking flow update immediately.
-                  </p>
-                </div>
+          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+            <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">Settings</h1>
               </div>
 
-              <RoseGradientButton
+              <Button
                 type="button"
                 size="sm"
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || isLoading}
+                className="rounded-full h-9 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold shadow-none"
               >
                 {saveMutation.isPending ? (
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
                 )}
-                {saveMutation.isPending ? "Saving..." : "Save changes"}
-              </RoseGradientButton>
+                {saveMutation.isPending ? "Saving" : "Save"}
+              </Button>
             </div>
           </div>
 
@@ -399,26 +424,21 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="w-full justify-start rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto flex-wrap">
-                      <TabsTrigger value="general" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Settings2 className="w-4 h-4 mr-2" />
-                        General
+                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto">
+                      <TabsTrigger value="general" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Settings2 className="w-4 h-4" />General
                       </TabsTrigger>
-                      <TabsTrigger value="booking" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Link2 className="w-4 h-4 mr-2" />
-                        Booking
+                      <TabsTrigger value="booking" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Link2 className="w-4 h-4" />Booking
                       </TabsTrigger>
-                      <TabsTrigger value="messages" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Messages
+                      <TabsTrigger value="messages" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Sparkles className="w-4 h-4" />Messages
                       </TabsTrigger>
-                      <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Bell className="w-4 h-4 mr-2" />
-                        Notifications
+                      <TabsTrigger value="notifications" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Bell className="w-4 h-4" />Alerts
                       </TabsTrigger>
-                      <TabsTrigger value="business" className="rounded-xl data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Store className="w-4 h-4 mr-2" />
-                        Business
+                      <TabsTrigger value="business" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
+                        <Store className="w-4 h-4" />Business
                       </TabsTrigger>
                     </TabsList>
 
@@ -430,8 +450,8 @@ const Settings = () => {
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                             </div>
                             <div>
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Agenda timing</CardTitle>
@@ -458,7 +478,7 @@ const Settings = () => {
                                   className={cn(
                                     "h-11 rounded-2xl border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-[#007AFF] text-white border-gray-950 shadow-sm"
+                                      ? "bg-[#e11d48] text-white border-gray-950 shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >
@@ -555,7 +575,7 @@ const Settings = () => {
                                     className={cn(
                                       "rounded-2xl border px-4 py-3 text-left transition-all",
                                       active
-                                        ? "border-gray-950 bg-[#007AFF] text-white shadow-sm"
+                                        ? "border-gray-950 bg-[#e11d48] text-white shadow-sm"
                                         : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
                                     )}
                                   >
@@ -600,6 +620,8 @@ const Settings = () => {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-2">
+                          <PushToggle />
+                          <Separator className="bg-[#C6C6C8] dark:bg-[#2C2C2E]" />
                           {notifications.map((item, index) => (
                             <div key={item.id}>
                               <div className="flex items-center justify-between gap-4 py-3">
@@ -625,6 +647,8 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6">
+                      <SubscriptionCard />
+                      {user?.id && <PublicVisibilityCard userId={user.id} />}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
@@ -706,6 +730,49 @@ const Settings = () => {
                             </div>
                           </div>
 
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                                Years of experience
+                              </Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={80}
+                                value={brandForm.years_experience ?? ""}
+                                onChange={(e) =>
+                                  setBrandForm((prev) => ({
+                                    ...prev,
+                                    years_experience: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                                  }))
+                                }
+                                placeholder="e.g. 7"
+                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                              />
+                              <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5">
+                                Shown on your Find Barber profile.
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                                About / short bio
+                              </Label>
+                              <textarea
+                                value={brandForm.description}
+                                onChange={(e) =>
+                                  setBrandForm((prev) => ({ ...prev, description: e.target.value }))
+                                }
+                                placeholder="Tell clients about your style, experience, and what makes you stand out."
+                                rows={3}
+                                maxLength={400}
+                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                              />
+                              <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5 text-right">
+                                {brandForm.description.length}/400
+                              </p>
+                            </div>
+                          </div>
+
                           <div>
                             <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
                               Location
@@ -716,6 +783,32 @@ const Settings = () => {
                                 setBrandForm((prev) => ({ ...prev, location: e.target.value }))
                               }
                               placeholder="123 Main Street, New York"
+                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
+                              Google Maps link
+                            </Label>
+                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-2">
+                              Paste a Google Maps share link — coordinates auto-fill on save.
+                            </p>
+                            <Input
+                              value={brandForm.google_maps_url || ""}
+                              onChange={(e) => {
+                                const url = e.target.value;
+                                setBrandForm((prev) => {
+                                  const parsed = extractLatLngFromGoogleUrl(url);
+                                  return {
+                                    ...prev,
+                                    google_maps_url: url,
+                                    latitude: parsed?.lat ?? prev.latitude,
+                                    longitude: parsed?.lng ?? prev.longitude,
+                                  };
+                                });
+                              }}
+                              placeholder="https://maps.google.com/?q=40.7128,-74.0060"
                               className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
                             />
                           </div>
@@ -782,7 +875,7 @@ const Settings = () => {
 
                 <div className="space-y-6">
                   <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
-                    <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 p-6 text-white">
+                    <div className="bg-[#1C1C1E] p-6 text-white">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="w-4 h-4 text-white/80" />
                         <span className="text-sm font-medium text-white/80">Live agenda preview</span>
@@ -833,7 +926,7 @@ const Settings = () => {
                       <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs uppercase tracking-wide text-[#8E8E93] dark:text-gray-500">Time slots</p>
-                          <Badge className="rounded-full bg-blue-100 text-blue-700 border-0">
+                          <Badge className="rounded-full bg-rose-100 text-rose-700 border-0">
                             {agendaForm.service_duration} min
                           </Badge>
                         </div>

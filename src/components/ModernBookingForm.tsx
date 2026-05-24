@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Video, Globe, ArrowRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,11 @@ interface ModernBookingFormProps {
     address?: string;
     phone?: string;
     avatar_url?: string;
+    rating?: number | null;
+    rating_count?: number | null;
+    total_bookings?: number | null;
+    services_count?: number | null;
+    stylists_count?: number | null;
   } | null;
   workingDays?: number[];
   rescheduleAppointment?: any;
@@ -92,26 +97,16 @@ const ModernBookingForm = ({
   
   // For backward compatibility - first selected service
   const selectedService = selectedServices[0];
-  const selectedStylist = stylists.find(s => s.id === selectedStylistId);
+  const profileStats = [
+    { label: "Bookings", value: businessProfile?.total_bookings ?? 0 },
+    { label: "Services", value: businessProfile?.services_count ?? services.length },
+    { label: "Team", value: businessProfile?.stylists_count ?? stylists.length },
+  ];
 
   // Get available stylists for selected time
   const availableStylistsForTime = selectedTime && getAvailableStylistsForTime
     ? getAvailableStylistsForTime(selectedTime)
     : stylists;
-
-  // Filter stylists that are available for ALL selected services
-  const availableStylistsForService = useMemo(() => {
-    if (selectedServiceIds.length === 0) return stylists;
-    if (stylistServices.length === 0) return stylists;
-    
-    return stylists.filter(stylist =>
-      selectedServiceIds.every(serviceId =>
-        stylistServices.some(ss =>
-          ss.stylist_id === stylist.id && ss.service_id === serviceId
-        )
-      )
-    );
-  }, [stylists, stylistServices, selectedServiceIds]);
 
   // Calendar days - show full weeks including prev/next month days
   const calendarDays = useMemo(() => {
@@ -472,15 +467,49 @@ const ModernBookingForm = ({
           {/* Left Panel - Service Info */}
           <div className={`w-full lg:w-[320px] ${getCardBgClass()} p-6 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r ${getBorderClass()}`}>
             {/* Profile */}
-            <div className="mb-6">
-              <div className="w-12 h-12 rounded-full overflow-hidden">
-                <img 
-                  src={businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${businessProfile?.full_name || 'user'}`}
-                  alt={businessProfile?.full_name || 'Business'}
-                  className="w-full h-full object-cover"
-                />
+            <div className={`mb-6 rounded-3xl border ${getBorderClass()} ${getCardBgClassSecondary()} p-4`}>
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden ring-1 ring-white/10">
+                  <img 
+                    src={businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${businessProfile?.full_name || 'user'}`}
+                    alt={businessProfile?.full_name || 'Business'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-xs ${getTextMutedClass()}`}>You're booking with</p>
+                  <p className={`truncate text-base font-semibold ${getTextClass()}`}>{businessProfile?.full_name || 'Business Name'}</p>
+                  <div className={`mt-1 flex items-center gap-1 text-xs ${getTextMutedClass()}`}>
+                    <Star className="h-3.5 w-3.5 fill-[#FFCC00] text-[#FFCC00]" />
+                    <span>{Number(businessProfile?.rating ?? 5).toFixed(1)}</span>
+                    <span>({businessProfile?.rating_count ?? 0})</span>
+                  </div>
+                </div>
               </div>
-              <p className={`mt-3 text-sm ${getTextMutedClass()}`}>{businessProfile?.full_name || 'Business Name'}</p>
+              {(businessProfile?.address || businessProfile?.phone) && (
+                <div className={`mt-4 space-y-2 border-t pt-4 text-xs ${getBorderClass()} ${getTextMutedClass()}`}>
+                  {businessProfile.address && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{businessProfile.address}</span>
+                    </div>
+                  )}
+                  {businessProfile.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{businessProfile.phone}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {profileStats.map((stat) => (
+                  <div key={stat.label} className={`rounded-2xl ${getCardBgClass()} p-2 text-center`}>
+                    <p className={`text-sm font-bold ${getTextClass()}`}>{stat.value}</p>
+                    <p className={`text-[10px] ${getTextMutedClass()}`}>{stat.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Service Selection or Selected Service */}

@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, User, Users, Calendar, Settings, Smartphone, CreditCard } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight, User, Users, Calendar, Settings, Smartphone, CreditCard, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const sidebarSections = [
   {
@@ -41,8 +44,79 @@ const sidebarSections = [
 ];
 
 export default function Brand() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [businessName, setBusinessName] = useState('sdadad');
   const [bookingUrl, setBookingUrl] = useState('sdadad');
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Load existing profile media
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('profiles')
+        .select('banner_url, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (data) {
+        setBannerUrl(data.banner_url ?? null);
+        setAvatarUrl(data.avatar_url ?? null);
+      }
+    })();
+  }, [user]);
+
+  const MAX_BYTES = 2 * 1024 * 1024;
+
+  const handleUpload = async (
+    file: File,
+    kind: 'banner' | 'avatar',
+  ) => {
+    if (!user) {
+      toast({ title: 'Please sign in', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      toast({
+        title: 'File too large',
+        description: 'Please upload an image under 2 MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const setUploading = kind === 'banner' ? setUploadingBanner : setUploadingAvatar;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/${kind}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('brand-images')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('brand-images').getPublicUrl(path);
+      const url = pub.publicUrl;
+      const column = kind === 'banner' ? 'banner_url' : 'avatar_url';
+      const { error: updErr } = await (supabase as any)
+        .from('profiles')
+        .update({ [column]: url })
+        .eq('id', user.id);
+      if (updErr) throw updErr;
+      if (kind === 'banner') setBannerUrl(url);
+      else setAvatarUrl(url);
+      toast({ title: 'Uploaded', description: `${kind === 'banner' ? 'Banner' : 'Profile photo'} updated.` });
+    } catch (e: any) {
+      toast({
+        title: 'Upload failed',
+        description: e?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fafbfa] flex">
@@ -130,34 +204,64 @@ export default function Brand() {
             <div className="flex-[2] min-w-[330px] max-w-[530px]">
               <h2 className="text-lg font-semibold text-[#353462] mb-6">Brand details</h2>
               <Card className="p-8 mb-7 rounded-2xl border-[#f1f0fb] shadow-sm bg-card">
-                {/* Banner upload */}
+                {/* Banner upload (live, 2 MB max) */}
                 <div className="mb-7">
-                  <div className="rounded-[12px] border border-[#ececec] bg-[#f9f9fc] flex flex-col items-center py-8 px-4">
-                    <span className="text-3xl text-[#e3e0f5] mb-3">⇡</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="px-5 py-2 rounded-full border-[#d7d7d7] font-normal text-[15px] bg-card hover:bg-[#f1f9f4] text-[#7771b5]"
-                    >
-                      <span className="mr-2">🖼️</span>
-                      Upload banner image
-                    </Button>
+                  <div
+                    className="relative rounded-[12px] border border-[#ececec] overflow-hidden bg-[#f9f9fc] h-44 flex items-center justify-center"
+                    style={
+                      bannerUrl
+                        ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                        : undefined
+                    }
+                  >
+                    {!bannerUrl && <ImageIcon className="w-8 h-8 text-[#cdcae0]" />}
+                    <label className="absolute bottom-3 right-3">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleUpload(f, 'banner');
+                          e.currentTarget.value = '';
+                        }}
+                      />
+                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 backdrop-blur border border-[#d7d7d7] text-[14px] text-[#7771b5] cursor-pointer hover:bg-[#f1f9f4] shadow-sm">
+                        {uploadingBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                        {uploadingBanner ? 'Uploading…' : bannerUrl ? 'Change banner' : 'Upload banner'}
+                      </span>
+                    </label>
                   </div>
+                  <p className="text-[11px] text-[#bcbadf] mt-2">Shown on your public profile. Max 2 MB. PNG, JPG, WebP, or GIF.</p>
                 </div>
-                {/* Brand logo row */}
+                {/* Profile photo (live, 2 MB max) */}
                 <div className="flex items-center gap-6 mb-7">
-                  <div className="w-20 h-20 rounded-full border border-[#ececec] bg-[#f9f9fc] flex items-center justify-center text-3xl text-[#e3e0f5]">⇡</div>
+                  <div className="w-20 h-20 rounded-full border border-[#ececec] overflow-hidden bg-[#f9f9fc] flex items-center justify-center">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-7 h-7 text-[#cdcae0]" />
+                    )}
+                  </div>
                   <div className="flex-1">
-                    <div className="font-medium text-[15px] text-[#252363] mb-0.5">Brand logo</div>
-                    <div className="text-xs text-[#bcbadf] mb-2">200 × 200px, up to 10MB</div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="px-5 py-1.5 rounded-full border-[#dadada] bg-card font-medium text-[15px] text-[#8881d9] hover:bg-[#f1f9f4]"
-                    >
-                      <span className="mr-2">🖼️</span>
-                      Upload logo
-                    </Button>
+                    <div className="font-medium text-[15px] text-[#252363] mb-0.5">Profile photo</div>
+                    <div className="text-xs text-[#bcbadf] mb-2">Square image works best. Max 2 MB.</div>
+                    <label>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleUpload(f, 'avatar');
+                          e.currentTarget.value = '';
+                        }}
+                      />
+                      <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border border-[#dadada] bg-card font-medium text-[15px] text-[#8881d9] hover:bg-[#f1f9f4] cursor-pointer">
+                        {uploadingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                        {uploadingAvatar ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
+                      </span>
+                    </label>
                   </div>
                 </div>
                 {/* Business name */}

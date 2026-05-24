@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { X, ChevronLeft, Clock, User, ArrowRight, Video, Globe, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface AppointmentFormProps {
   isOpen: boolean;
@@ -70,6 +71,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         .from('services')
         .select('*')
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .order('name');
       
       if (error) throw error;
@@ -334,30 +336,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       if (appointmentError) throw appointmentError;
 
-      // Send confirmation email + SMS (non-blocking)
-      if (customerEmail || customerPhone) {
-        try {
-          await (supabase as any).functions.invoke('send-booking-confirmation', {
-            body: {
-              customerEmail: customerEmail || undefined,
-              customerName,
-              customerPhone: customerPhone || undefined,
-              businessName: profile?.business_name || profile?.full_name || 'Your appointment',
-              serviceName: validSelectedService.name,
-              appointmentDate: format(selectedDateObj, 'EEEE, MMMM d, yyyy'),
-              appointmentTime: selectedTimeSlot,
-              price: validSelectedService.price,
-              notes: notes.trim() || undefined,
-              bookingId: createdAppt?.id?.toString().substring(0, 8),
-              accentColor: profile?.brand_color || '#1a1a1a',
-              senderEmail: profile?.sender_email || 'noreply@cutzioo.com',
-              senderName: profile?.sender_name || profile?.business_name || profile?.full_name || 'Cutzioo',
-            },
-          });
-        } catch (emailErr) {
-          console.warn('Confirmation email/SMS failed:', emailErr);
-        }
-      }
+      // Confirmation email + SMS sent automatically by DB trigger (works for all booking sources)
+
 
       toast({
         title: "Appointment Booked!",
@@ -410,18 +390,21 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className={cn(
-        "p-0 overflow-hidden bg-[#1a1a1a] border-0 shadow-2xl",
+        "p-0 overflow-hidden border-0 shadow-2xl",
         isMobile
-          ? "w-screen h-[100dvh] max-w-none rounded-none m-0"
-          : "max-w-5xl rounded-none"
+          ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#1a1a1a] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
+          : "max-w-5xl w-[92vw] max-h-[88vh] rounded-2xl bg-[#1a1a1a]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
         
-        <div
+        <motion.div
           ref={contentRef}
+          initial={isMobile ? { y: 24, opacity: 0 } : false}
+          animate={isMobile ? { y: 0, opacity: 1 } : {}}
+          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#1a1a1a]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]" : "flex min-h-[600px]"
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Left Panel - Service Info */}
@@ -488,8 +471,32 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Center Panel - Calendar */}
           <div className={cn(
             "bg-[#1a1a1a]",
-            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a]"
+            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a] overflow-y-auto"
           )}>
+            {isMobile && (
+              <div className="flex items-center gap-2 mb-5">
+                {(["datetime", "details", "success"] as const).map((s, idx) => {
+                  const reached = ["datetime", "details", "success"].indexOf(step) >= idx;
+                  return (
+                    <div
+                      key={s}
+                      className={cn(
+                        "h-1.5 flex-1 rounded-full transition-all duration-500",
+                        reached ? "bg-red-500" : "bg-[#2a2a2a]"
+                      )}
+                    />
+                  );
+                })}
+              </div>
+            )}
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
             {step === "datetime" ? (
               <div className="h-full flex flex-col">
                 {/* Month Navigation */}
@@ -585,7 +592,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 )}
               </div>
             ) : step === "details" ? (
-              <div className="h-full flex flex-col">
+              <div className={cn("h-full flex flex-col", !isMobile && "max-w-lg mx-auto")}>
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Enter Your Details
                 </h3>
@@ -705,14 +712,41 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </button>
               </div>
             )}
+            </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Right Panel - Time Slots */}
-          {step === "datetime" && showTimeSelection && selectedService && (
+          {/* Right Panel - Time Slots / Booking Summary */}
+          {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
               "bg-[#1a1a1a]",
-              isMobile ? "p-4 pb-8" : "w-[280px] p-6"
+              isMobile ? "p-4 pb-8" : "w-[280px] p-6 overflow-y-auto"
             )}>
+            {!isMobile && step === "details" && (
+              <div className="space-y-4">
+                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Booking summary</p>
+                <div className="rounded-2xl border border-[#2a2a2a] bg-[#2a2a2a]/50 p-4 space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Service</p>
+                    <p className="text-white font-semibold text-sm mt-0.5">{selectedService.name}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{selectedService.duration} min · ${selectedService.price}</p>
+                  </div>
+                  <div className="border-t border-[#3a3a3a]" />
+                  <div>
+                    <p className="text-xs text-gray-500">Date & time</p>
+                    <p className="text-white font-semibold text-sm mt-0.5">{format(selectedDateObj, "EEE, MMM d")}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{selectedTimeSlot}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep("datetime")}
+                  className="w-full py-2.5 rounded-xl border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Change slot
+                </button>
+              </div>
+            )}
               {!showSelectedTimeSummary && (
                 <>
                   <div className="flex gap-2 mb-6">
@@ -804,7 +838,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );

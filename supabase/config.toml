@@ -1,7 +1,18 @@
 project_id = "idcifrhzlmxcdihzdtmn"
 
-[functions.send-booking-confirmation]
-verify_jwt = false
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.book-appointment]
+    verify_jwt = false
+  [functions.send-booking-confirmation]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
+  [functions.send-push]
+    verify_jwt = false
+  [functions.vapid-public-key]
+    verify_jwt = false
+  [functions.superadmin-users]
+    verify_jwt = false
 
-[functions.book-appointment]
-verify_jwt = false

@@ -192,151 +192,148 @@ const Stylists = () => {
     (stylist.status && stylist.status.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const statusDot = (s?: string | null) => {
+    const v = (s ?? "").toLowerCase();
+    if (v === "available") return "bg-emerald-500";
+    if (v === "booked") return "bg-amber-500";
+    if (v === "off") return "bg-rose-500";
+    return "bg-zinc-400";
+  };
+
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F5F5F7] dark:bg-[#0a0a0a] overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 bg-gradient-to-br from-[#F2F2F7] dark:from-[#0c0c0c] via-[#F2F2F7] dark:via-[#0c0c0c] to-[#E5E5EA]/30 dark:to-[#1C1C1E]/30 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md border-b border-[#C6C6C8] dark:border-[#2C2C2E] p-4 lg:hidden shadow-sm">
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile top bar */}
+          <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-black/5 dark:border-white/5 p-4 lg:hidden">
             <div className="flex items-center justify-between">
-              <SidebarTrigger className="hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7]" />
+              <SidebarTrigger className="text-[#1C1C1E] dark:text-[#F2F2F7]" />
               <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-              <div></div>
+              <button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="w-9 h-9 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center active:scale-95 transition"
+                aria-label="Add stylist"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
           </div>
-          
-          <div className="flex-1 overflow-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-3xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-                <p className="text-[#8E8E93] dark:text-gray-500 mt-1">Manage your salon's stylists</p>
-              </div>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
-                <span>
-                  <Plus className="h-4 w-4" />
-                  Add Stylist
-                </span>
-              </Button>
-            </div>
 
-            <div className="mb-6">
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-[#8E8E93] dark:text-gray-500" />
-                <Input 
-                  placeholder="Search stylists..." 
+          <div className="flex-1 overflow-auto">
+            {/* Hero header */}
+            <div className="px-4 sm:px-8 pt-6 sm:pt-10 pb-4">
+              <div className="hidden lg:flex items-end justify-between gap-6 mb-6">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8E8E93] mb-2">Team</p>
+                  <h1 className="text-4xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
+                  <p className="text-[#8E8E93] mt-1.5">Manage your team, schedules, and specialties.</p>
+                </div>
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 text-white dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90">
+                  <Plus className="h-4 w-4 mr-1.5" /> Add stylist
+                </Button>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <StatPill label="Total" value={stylists.length} />
+                <StatPill label="Available" value={stylists.filter(s => (s.status ?? '').toLowerCase() === 'available').length} accent="emerald" />
+                <StatPill label="Booked" value={stylists.filter(s => (s.status ?? '').toLowerCase() === 'booked').length} accent="amber" />
+              </div>
+
+              {/* Search */}
+              <div className="relative mt-4">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
+                <Input
+                  placeholder="Search stylists, titles, specialties…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]" 
+                  className="h-12 pl-11 pr-4 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-sm focus-visible:ring-2 focus-visible:ring-[#1C1C1E]/10 text-[#1C1C1E] dark:text-[#F2F2F7]"
                 />
               </div>
             </div>
 
-            {isLoading ? (
-              <div className="text-center py-12 text-[#8E8E93] dark:text-gray-500">Loading stylists...</div>
-            ) : filteredStylists.length === 0 ? (
-              <Card className="border-dashed border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <UserCheck className="h-12 w-12 text-[#8E8E93] dark:text-gray-500 mb-4" />
-                  <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mb-2">No stylists yet</h3>
-                  <p className="text-[#8E8E93] dark:text-gray-500 mb-4">Add your first stylist to get started</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-gradient-rose">
-                    <span>
-                      <Plus className="h-4 w-4" />
-                      Add Stylist
-                    </span>
+            <div className="px-4 sm:px-8 pb-32 sm:pb-10">
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="rounded-3xl bg-white dark:bg-[#1C1C1E] p-5 h-44 animate-pulse" />
+                  ))}
+                </div>
+              ) : filteredStylists.length === 0 ? (
+                <div className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-dashed border-black/10 dark:border-white/10 p-10 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] mx-auto flex items-center justify-center mb-3">
+                    <UserCheck className="h-6 w-6 text-[#8E8E93]" />
+                  </div>
+                  <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">No stylists yet</h3>
+                  <p className="text-sm text-[#8E8E93] mt-1 mb-4">Add your first teammate to start assigning bookings.</p>
+                  <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
+                    <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                   </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredStylists.map((stylist) => {
-                  const initials = stylist.name
-                    .split(/\s+/)
-                    .map((word) => word.charAt(0))
-                    .filter(Boolean)
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase() || "S";
-                    
-                  return (
-                    <Card 
-                      key={stylist.id} 
-                      className="overflow-hidden hover:shadow-lg transition-all duration-200 border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]"
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setContextMenu({ x: e.clientX, y: e.clientY, stylist });
-                      }}
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 border-2 border-[#C6C6C8] dark:border-[#2C2C2E]">
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {filteredStylists.map((stylist) => {
+                    const initials = stylist.name
+                      .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
+                    return (
+                      <div
+                        key={stylist.id}
+                        onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, stylist }); }}
+                        className="group relative rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-5"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <div className="relative">
+                            <Avatar className="h-14 w-14 ring-2 ring-white dark:ring-[#1C1C1E] shadow-sm">
                               <AvatarImage src={stylist.avatar_url || undefined} />
-                              <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold">
+                              <AvatarFallback className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <CardTitle className="text-lg text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.name}</CardTitle>
-                              {stylist.title && (
-                                <p className="text-sm text-[#8E8E93] dark:text-gray-500">{stylist.title}</p>
-                              )}
+                            <span className={cn("absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-[#1C1C1E]", statusDot(stylist.status))} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
+                            <p className="text-xs text-[#8E8E93] truncate">{stylist.title || "Stylist"}</p>
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              <span className="text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.satisfaction?.toFixed(1) || "5.0"}</span>
+                              <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
                             </div>
                           </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(stylist)} className="text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(stylist)} className="text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
+                            <button onClick={() => handleEditClick(stylist)} className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]">
+                              <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                            </button>
+                            <button onClick={() => handleDeleteClick(stylist)} className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100">
+                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                            </button>
                           </div>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-[#8E8E93] dark:text-gray-500">Status:</span>
-                            <Badge className={cn(
-                              "font-normal capitalize",
-                              stylist.status?.toLowerCase() === 'available' ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30" : 
-                              stylist.status?.toLowerCase() === 'booked' ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30" : 
-                              "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80 hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]"
-                            )}>
-                              {stylist.status || 'Unknown'}
-                            </Badge>
+
+                        {stylist.specialties && stylist.specialties.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-4">
+                            {stylist.specialties.slice(0, 4).map((s, i) => (
+                              <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
+                                {s}
+                              </span>
+                            ))}
+                            {stylist.specialties.length > 4 && (
+                              <span className="px-2.5 py-1 rounded-full text-[11px] text-[#8E8E93]">+{stylist.specialties.length - 4}</span>
+                            )}
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-[#8E8E93] dark:text-gray-500">Bookings today:</span>
-                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.bookings_today || 0}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-[#8E8E93] dark:text-gray-500">Satisfaction:</span>
-                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.satisfaction?.toFixed(1) || 'N/A'}</span>
-                          </div>
-                          {stylist.specialties && stylist.specialties.length > 0 && (
-                            <div className="pt-2">
-                              <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-1">Specialties:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {stylist.specialties.map((specialty, i) => (
-                                  <Badge key={i} variant="outline" className="text-xs font-normal border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]">
-                                    {specialty}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
           <MobileDock />
         </main>
       </div>
+
 
       {/* Right-Click Context Menu - Stylist Info */}
       {contextMenu && (
@@ -571,5 +568,19 @@ const Stylists = () => {
     </SidebarProvider>
   );
 };
+
+function StatPill({ label, value, accent }: { label: string; value: number; accent?: "emerald" | "amber" }) {
+  const color = accent === "emerald"
+    ? "text-emerald-600 dark:text-emerald-400"
+    : accent === "amber"
+    ? "text-amber-600 dark:text-amber-400"
+    : "text-[#1C1C1E] dark:text-[#F2F2F7]";
+  return (
+    <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 px-3 py-2.5">
+      <p className="text-[10px] uppercase tracking-wider text-[#8E8E93]">{label}</p>
+      <p className={cn("text-xl font-semibold mt-0.5", color)}>{value}</p>
+    </div>
+  );
+}
 
 export default Stylists;

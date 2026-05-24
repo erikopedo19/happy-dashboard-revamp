@@ -1,6 +1,7 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
@@ -12,9 +13,12 @@ import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
+import PricingSuccess from "./pages/PricingSuccess";
+import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
-// import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -30,7 +34,15 @@ import ChooseRole from "./pages/ChooseRole";
 import CompleteProfile from "./pages/CompleteProfile";
 import DbPrevStats from "./pages/DbPrevStats";
 import Reports from "./pages/Reports";
-
+import MyBookings from "./pages/MyBookings";
+import Me from "./pages/Me";
+import Favorites from "./pages/Favorites";
+import ManageBooking from "./pages/ManageBooking";
+import ReviewPage from "./pages/ReviewPage";
+import Landing from "./pages/Landing";
+import { PersistentDock } from "./components/PersistentDock";
+import { NotificationBell } from "./components/NotificationBell";
+import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
@@ -49,12 +61,61 @@ const LandingRoute = () => {
     if (role === 'client') {
       return <FindBarber />;
     }
-    // Barbers and other roles go to admin dashboard
     return <Navigate to="/admin" replace />;
   }
 
-  return <FindBarber />;
+  // Logged out → marketing landing page
+  return <Landing />;
 };
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -4 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Routes location={location}>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/book/:bookingLink" element={<Booking />} />
+          <Route path="/manage/:token" element={<ManageBooking />} />
+          <Route path="/review/:token" element={<ReviewPage />} />
+          <Route path="/bookingforms" element={<BookingForms />} />
+          <Route path="/find-barber" element={<FindBarber />} />
+          <Route path="/find-barbershop" element={<FindBarbershop />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/me" element={<Me />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/" element={<LandingRoute />} />
+          <Route path="/app" element={<LandingRoute />} />
+          <Route path="/superadmin" element={<SuperAdminLogin />} />
+          <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+          <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
+          <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+          <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
+          <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
+          <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+          <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+          <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
+          <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+          <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -75,111 +136,18 @@ function App() {
             <Sonner />
             {showSplash && (
               <div className="splash-screen">
-                <div className="splash-overlay" />
-                <div className="splash-content">
-                  <img
-                    src={logoSrc}
-                    alt="Logo"
-                    className="splash-logo"
-                  />
-                  <div className="splash-wipe" />
+                <div className="splash-stage">
+                  <div className="splash-ring" />
+                  <img src={logoSrc} alt="Logo" className="splash-logo" />
+                  <span className="splash-label">Loading</span>
                 </div>
               </div>
             )}
           <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              {/* Public routes - no authentication required */}
-              <Route path="/book/:bookingLink" element={<Booking />} />
-              <Route path="/bookingforms" element={<BookingForms />} />
-              <Route path="/find-barber" element={<FindBarber />} />
-              <Route path="/find-barbershop" element={<FindBarbershop />} />
-              <Route path="/" element={<FindBarber />} />
-              <Route path="/app" element={<LandingRoute />} />
-              <Route path="/superadmin" element={<SuperAdminLogin />} />
-              {/* <Route path="/superadmin/dashboard" element={
-                <SuperAdminRoute>
-                  <SuperAdminDashboard />
-                </SuperAdminRoute>
-              } /> */}
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/agenda" element={
-                <ProtectedRoute>
-                  <Agenda />
-                </ProtectedRoute>
-              } />
-              <Route path="/customers" element={
-                <ProtectedRoute>
-                  <Customers />
-                </ProtectedRoute>
-              } />
-              <Route
-                path="/choose-role"
-                element={
-                  <ProtectedRoute>
-                    <ChooseRole />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/complete-profile"
-                element={
-                  <ProtectedRoute>
-                    <CompleteProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/stylists" element={
-                <ProtectedRoute>
-                  <Stylists />
-                </ProtectedRoute>
-              } />
-              <Route path="/teams" element={
-                <ProtectedRoute>
-                  <Teams />
-                </ProtectedRoute>
-              } />
-              <Route path="/products" element={
-                <ProtectedRoute>
-                  <Products />
-                </ProtectedRoute>
-              } />
-              <Route path="/reports" element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              } />
-              <Route path="/services" element={
-                <ProtectedRoute>
-                  <Services />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/brand" element={
-                <ProtectedRoute>
-                  <Brand />
-                </ProtectedRoute>
-              } />
-              <Route path="/booking-page" element={
-                <ProtectedRoute>
-                  <BookingPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dbprevstats07" element={
-                <ProtectedRoute>
-                  <DbPrevStats />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedRoutes />
+            <NotificationBell />
+            <PremiumGiftPopup />
+            <PersistentDock />
           </BrowserRouter>
         </div>
       </AuthProvider>

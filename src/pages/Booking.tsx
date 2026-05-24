@@ -43,6 +43,15 @@ interface BusinessProfile {
   full_name: string;
   brand_color?: string;
   booking_link?: string;
+  avatar_url?: string | null;
+  banner_url?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
+  total_bookings?: number | null;
+  services_count?: number | null;
+  stylists_count?: number | null;
 }
 
 interface BookingError {
@@ -94,8 +103,9 @@ const Booking = () => {
   });
 
   // Fetch business profile by booking link
-  const { data: businessProfile, isLoading: profileLoading, error: profileError } = useQuery<BusinessProfile>({
+  const { data: businessProfile, isLoading: profileLoading, isFetching: profileFetching, error: profileError } = useQuery<BusinessProfile>({
     queryKey: ['business-profile', bookingLink],
+    enabled: !!bookingLink,
     queryFn: async () => {
       console.log('Fetching business profile for booking link:', bookingLink);
 
@@ -138,7 +148,6 @@ const Booking = () => {
 
       return profile as BusinessProfile;
     },
-    enabled: !!bookingLink,
     retry: (failureCount, error: any) => {
       console.log('Retry attempt:', failureCount, 'Error:', error);
       // Don't retry if it's a known error that won't resolve
@@ -583,36 +592,35 @@ const Booking = () => {
         return false;
       }
 
-      // Create booking on the server (customers + appointment + email)
-      const { data: bookingResult, error: bookingFunctionError } = await (supabase as any).functions.invoke('book-appointment', {
-        body: {
-          businessId: businessProfile.id,
-          customerName: values.customer_name,
-          customerEmail: values.customer_email,
-          customerPhone: values.customer_phone || null,
-          serviceIds: selectedServicesList.map(service => service.id),
-          stylistId: values.stylist_id || null,
-          appointmentDate: format(selectedDate, 'yyyy-MM-dd'),
-          appointmentTime: selectedTime,
-          notes: values.notes || null,
-          accentColor,
-        },
+      // Create booking via SECURITY DEFINER RPC (works without auth, no edge fn dependency)
+      const { data: rpcResult, error: rpcError } = await (supabase as any).rpc('create_public_booking', {
+        p_business_id: businessProfile.id,
+        p_customer_name: values.customer_name,
+        p_customer_email: values.customer_email,
+        p_customer_phone: values.customer_phone || null,
+        p_service_id: primaryService.id,
+        p_appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+        p_appointment_time: selectedTime,
+        p_notes: values.notes || null,
       });
 
-      if (bookingFunctionError || !bookingResult?.appointment) {
-        console.error('Booking function error:', bookingFunctionError);
+      if (rpcError || !rpcResult?.success) {
+        console.error('Booking RPC error:', rpcError, rpcResult);
         const error: BookingError = {
-          code: bookingFunctionError?.code || 'BOOKING_FUNCTION_ERROR',
+          code: rpcError?.code || 'BOOKING_RPC_ERROR',
           message: 'Failed to create appointment',
-          details: bookingFunctionError?.message || 'Could not schedule the appointment. The time slot may no longer be available.',
+          details: rpcResult?.error || rpcError?.message || 'Could not schedule the appointment. Please try again.',
         };
         setBookingError(error);
         throw error;
       }
 
-      const newAppointment = bookingResult.appointment;
+      const newAppointment = { id: rpcResult.appointment_id };
 
       console.log('Appointment created successfully:', newAppointment);
+
+      // Confirmation email + SMS sent automatically by DB trigger on appointments insert
+
 
       toast({
         title: "Booking Confirmed!",
@@ -651,13 +659,13 @@ const Booking = () => {
     }
   };
 
-  // Show loading state
-  if (profileLoading) {
+  // Show loading state (also while bookingLink is missing or query is fetching)
+  if (!bookingLink || profileLoading || profileFetching || (!businessProfile && !profileError)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[#0c0c0c] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
-          <p className="mt-4 text-slate-300">Loading booking page...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e11d48] mx-auto"></div>
+          <p className="mt-4 text-[#8E8E93]">Loading booking page...</p>
         </div>
       </div>
     );

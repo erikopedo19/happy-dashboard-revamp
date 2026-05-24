@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          cancel_token: string | null
           created_at: string
           customer_id: string
           id: string
@@ -69,6 +70,7 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time: string
+          cancel_token?: string | null
           created_at?: string
           customer_id: string
           id?: string
@@ -84,6 +86,7 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string
+          cancel_token?: string | null
           created_at?: string
           customer_id?: string
           id?: string
@@ -126,6 +129,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brand_profiles_raw: {
+        Row: {
+          booking_link: string | null
+          brand_color: string | null
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_link?: string | null
+          brand_color?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_link?: string | null
+          brand_color?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       business_hours: {
         Row: {
@@ -200,6 +230,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      device_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       email_logs: {
         Row: {
@@ -340,6 +394,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          appointment_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string | null
@@ -418,6 +505,7 @@ export type Database = {
           ask_notes: boolean | null
           ask_phone: boolean | null
           avatar_url: string | null
+          banner_url: string | null
           booking_link: string | null
           booking_theme: string | null
           brand_color: string | null
@@ -426,20 +514,28 @@ export type Database = {
           description: string | null
           email_template_html: string | null
           full_name: string | null
+          google_maps_url: string | null
           id: string
+          is_public: boolean | null
+          latitude: number | null
+          longitude: number | null
           onboarding_completed: boolean | null
           phone: string | null
+          rating: number | null
+          rating_count: number | null
           sender_email: string | null
           sender_name: string | null
           timezone: string | null
           updated_at: string
           website: string | null
+          years_experience: number | null
         }
         Insert: {
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
           avatar_url?: string | null
+          banner_url?: string | null
           booking_link?: string | null
           booking_theme?: string | null
           brand_color?: string | null
@@ -448,20 +544,28 @@ export type Database = {
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
+          google_maps_url?: string | null
           id: string
+          is_public?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           onboarding_completed?: boolean | null
           phone?: string | null
+          rating?: number | null
+          rating_count?: number | null
           sender_email?: string | null
           sender_name?: string | null
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          years_experience?: number | null
         }
         Update: {
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
           avatar_url?: string | null
+          banner_url?: string | null
           booking_link?: string | null
           booking_theme?: string | null
           brand_color?: string | null
@@ -470,22 +574,105 @@ export type Database = {
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
+          google_maps_url?: string | null
           id?: string
+          is_public?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           onboarding_completed?: boolean | null
           phone?: string | null
+          rating?: number | null
+          rating_count?: number | null
           sender_email?: string | null
           sender_name?: string | null
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          years_experience?: number | null
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          appointment_id: string
+          business_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewer_name: string | null
+        }
+        Insert: {
+          appointment_id: string
+          business_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewer_name?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          business_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewer_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
           border_color: string | null
           color: string | null
           created_at: string
+          deleted_at: string | null
           duration: number
           icon: string | null
           id: string
@@ -499,6 +686,7 @@ export type Database = {
           border_color?: string | null
           color?: string | null
           created_at?: string
+          deleted_at?: string | null
           duration: number
           icon?: string | null
           id?: string
@@ -512,6 +700,7 @@ export type Database = {
           border_color?: string | null
           color?: string | null
           created_at?: string
+          deleted_at?: string | null
           duration?: number
           icon?: string | null
           id?: string
@@ -629,6 +818,42 @@ export type Database = {
           },
         ]
       }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           id: string
@@ -671,6 +896,7 @@ export type Database = {
       teams: {
         Row: {
           address: string | null
+          banner_url: string | null
           color: string | null
           created_at: string | null
           created_by: string | null
@@ -678,7 +904,10 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean | null
+          is_public: boolean | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           name: string
           org_id: string
           phone: string | null
@@ -687,6 +916,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          banner_url?: string | null
           color?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -694,7 +924,10 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_public?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name: string
           org_id: string
           phone?: string | null
@@ -703,6 +936,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          banner_url?: string | null
           color?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -710,7 +944,10 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_public?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name?: string
           org_id?: string
           phone?: string | null
@@ -729,11 +966,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      brand_profiles: {
+        Row: {
+          booking_link: string | null
+          brand_color: string | null
+          full_name: string | null
+          id: string | null
+        }
+        Insert: {
+          booking_link?: string | null
+          brand_color?: string | null
+          full_name?: string | null
+          id?: string | null
+        }
+        Update: {
+          booking_link?: string | null
+          brand_color?: string | null
+          full_name?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
+      cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }
+      cleanup_pending_services: { Args: never; Returns: undefined }
       create_public_booking: {
         Args: {
           p_appointment_date: string
@@ -749,6 +1008,7 @@ export type Database = {
       }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
+      get_appointment_by_token: { Args: { _token: string }; Returns: Json }
       get_booked_slots: {
         Args: { _business_id: string; _date: string }
         Returns: {
@@ -756,13 +1016,39 @@ export type Database = {
           service_id: string
         }[]
       }
+      get_my_bookings: {
+        Args: never
+        Returns: {
+          appointment_date: string
+          appointment_time: string
+          barber_id: string
+          barber_name: string
+          booking_link: string
+          cancel_token: string
+          has_review: boolean
+          id: string
+          service_name: string
+          status: string
+        }[]
+      }
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
+          address: string
+          avatar_url: string
+          banner_url: string
           booking_link: string
           brand_color: string
+          description: string
           full_name: string
           id: string
+          phone: string
+          rating: number
+          rating_count: number
+          services_count: number
+          stylists_count: number
+          total_bookings: number
+          years_experience: number
         }[]
       }
       get_public_stylist_services: {
@@ -772,14 +1058,40 @@ export type Database = {
           stylist_id: string
         }[]
       }
+      get_reviews_for_business: {
+        Args: { _business_id: string }
+        Returns: {
+          comment: string
+          created_at: string
+          id: string
+          rating: number
+          reviewer_name: string
+        }[]
+      }
       list_public_profiles: {
         Args: never
         Returns: {
+          avatar_url: string
+          banner_url: string
           booking_link: string
           brand_color: string
+          description: string
           full_name: string
           id: string
+          latitude: number
+          longitude: number
+          rating: number
+          rating_count: number
         }[]
+      }
+      list_public_shops: { Args: never; Returns: Json }
+      reschedule_appointment_by_token: {
+        Args: { _new_date: string; _new_time: string; _token: string }
+        Returns: Json
+      }
+      submit_review: {
+        Args: { _cancel_token: string; _comment?: string; _rating: number }
+        Returns: Json
       }
       user_organizations: { Args: never; Returns: string[] }
     }

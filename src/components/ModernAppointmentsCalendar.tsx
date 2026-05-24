@@ -296,6 +296,18 @@ export const ModernAppointmentsCalendar = ({
   };
   const handleConfirmReschedule = async () => {
     if (!selectedAppointment || !rescheduleDate || !rescheduleTime) return;
+
+    // Block scheduling in the past
+    const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}:00`);
+    if (newDateTime <= new Date()) {
+      toast({
+        title: "Cannot reschedule to the past",
+        description: "Please choose a future date and time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const {
         error
@@ -658,14 +670,14 @@ export const ModernAppointmentsCalendar = ({
     <div className="min-h-screen bg-background">
       {/* Modern Header - Only show when not controlled externally */}
       {!isControlledExternally && (
-        <div className="border-b border-gray-200 backdrop-blur-sm sticky top-0 z-10 bg-white/90">
+        <div className="border-b border-gray-200 dark:border-[#2C2C2E] backdrop-blur-sm sticky top-0 z-10 bg-white/90 dark:bg-[#1C1C1E]/90">
         <div className="px-6 py-3 flex items-center justify-between gap-4">
           {/* Left: Date and Week */}
           <div>
-            <h1 className="text-2xl font-medium text-gray-800 tracking-tight">
+            <h1 className="text-2xl font-medium text-gray-800 dark:text-[#F2F2F7] tracking-tight">
               {format(currentWeek, 'EEEE, MMM d')}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-[#8E8E93]">
               Week {format(currentWeek, 'w')}
             </p>
           </div>
@@ -794,9 +806,9 @@ export const ModernAppointmentsCalendar = ({
                         <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">Week</div>
                       </div>
                       {isCurrentWeek && (
-                        <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 font-medium">
+                        <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                           Current
-                        </Badge>
+                        </span>
                       )}
                     </div>
 
@@ -843,23 +855,23 @@ export const ModernAppointmentsCalendar = ({
       ) : (
         /* Day/Detail View Mode */
         <div className="p-6">
-          <div className="bg-white/40 rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="bg-white/40 dark:bg-[#1C1C1E]/40 rounded-2xl border border-gray-200 dark:border-[#2C2C2E] overflow-hidden">
             {/* Grid Container */}
             <div
               className="grid gap-0"
               style={{ gridTemplateColumns: `80px repeat(${Math.max(weekDays.length, 1)}, minmax(0, 1fr))` }}
             >
               {/* Time Column Header */}
-              <div className="h-[60px] flex items-center justify-center border-b border-r border-gray-200 bg-white/50">
-                <Clock className="h-4 w-4 text-gray-500" />
+              <div className="h-[60px] flex items-center justify-center border-b border-r border-gray-200 dark:border-[#2C2C2E] bg-white/50 dark:bg-[#1C1C1E]/60">
+                <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               </div>
 
               {/* Day Headers */}
-              {weekDays.map(day => <div key={day.toISOString()} className="h-[60px] flex flex-col justify-center items-center border-b border-r border-gray-200 last:border-r-0 bg-white/50">
-                <div className="text-[14px] font-medium text-gray-800">
+              {weekDays.map(day => <div key={day.toISOString()} className="h-[60px] flex flex-col justify-center items-center border-b border-r border-gray-200 dark:border-[#2C2C2E] last:border-r-0 bg-white/50 dark:bg-[#1C1C1E]/60">
+                <div className="text-[14px] font-medium text-gray-800 dark:text-gray-100">
                   {format(day, 'EEE')}
                 </div>
-                <div className="text-[12px] text-gray-500 mt-0.5">
+                <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
                   {format(day, 'd')}
                 </div>
                 {isSameDay(day, new Date()) && <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1" />}
@@ -972,12 +984,13 @@ export const ModernAppointmentsCalendar = ({
                           <Clock className="h-3 w-3 text-gray-500/50" />
                         </div>
                       ) : (
-                        // Empty slot - just + on hover
+                        // Empty slot - visible + so quick-add is obvious
                         <button 
                           onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} 
-                          className="w-full h-full rounded-lg border-l-2 border-transparent group-hover:border-blue-500/30 hover:bg-blue-500/5 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
+                          className="w-full h-full rounded-lg border border-dashed border-gray-200 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500/60 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all flex items-center justify-center text-gray-300 dark:text-white/20 hover:text-blue-500 dark:hover:text-blue-400"
+                          title={`Book at ${time}`}
                         >
-                          <Plus className="h-4 w-4 text-blue-500/50 group-hover:text-blue-500/70" />
+                          <Plus className="h-4 w-4" />
                         </button>
                       )}
                     </div>
@@ -1076,11 +1089,23 @@ export const ModernAppointmentsCalendar = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-2">New Date</label>
-                <Input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)} className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm" />
+                <Input
+                  type="date"
+                  value={rescheduleDate}
+                  onChange={e => setRescheduleDate(e.target.value)}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                  className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm"
+                />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-2">New Time</label>
-                <Input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)} className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm" />
+                <Input
+                  type="time"
+                  value={rescheduleTime}
+                  onChange={e => setRescheduleTime(e.target.value)}
+                  min={rescheduleDate === format(new Date(), 'yyyy-MM-dd') ? format(new Date(), 'HH:mm') : undefined}
+                  className="h-10 border-gray-200 focus:border-gray-300 bg-white/60 backdrop-blur-sm"
+                />
               </div>
             </div>
           </div>}

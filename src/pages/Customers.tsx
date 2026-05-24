@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { User, Plus, Search, Mail, Phone, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -179,7 +180,7 @@ const Customers = () => {
                   <Search className="w-4 h-4 mr-2" />
                   Search
                 </Button>
-                <Button size="sm" className="btn-gradient-rose">
+                <Button size="sm" className="bg-rose-600 hover:bg-rose-700 text-white">
                   <span>
                     <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">Add Customer</span>
