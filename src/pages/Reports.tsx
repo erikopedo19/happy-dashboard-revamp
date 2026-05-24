@@ -583,11 +583,11 @@ const Reports = () => {
                     config={revenueChartConfig}
                     className="h-[180px] md:h-[240px] w-full aspect-auto mt-4"
                   >
-                    <BarChart data={analytics.revenueTrend} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="22%">
+                    <AreaChart data={analytics.revenueTrend} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                       <defs>
-                        <linearGradient id="fillRevBar" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#0ea5e9" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.4} />
+                        <linearGradient id="fillRevLine" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
@@ -601,15 +601,16 @@ const Reports = () => {
                           />
                         }
                       />
-                      <Bar
+                      <Area
+                        type="monotone"
                         dataKey="revenue"
-                        fill="url(#fillRevBar)"
-                        radius={[14, 14, 14, 14]}
-                        background={{ fill: "rgba(14,165,233,0.06)", radius: 14 } as any}
-                        animationDuration={900}
-                        animationBegin={200}
+                        stroke="#0ea5e9"
+                        strokeWidth={2.5}
+                        fill="url(#fillRevLine)"
+                        animationDuration={1200}
+                        animationBegin={300}
                       />
-                    </BarChart>
+                    </AreaChart>
                   </ChartContainer>
                 </CardContent>
               </Card>
@@ -646,78 +647,78 @@ const Reports = () => {
                 />
               </section>
 
-              {/* Status + Demand */}
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
-                {/* Booking status */}
-                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                          Booking status
-                        </h3>
-                        <p className="text-xs text-[#8E8E93] mt-0.5">
-                          Distribution this period
-                        </p>
-                      </div>
+              {/* Booking status — Pie chart */}
+              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        Booking status
+                      </h3>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">
+                        Distribution this period
+                      </p>
                     </div>
+                  </div>
 
-                    {analytics.statusBreakdown.length === 0 ? (
-                      <EmptyMini />
-                    ) : (
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-32 h-32 shrink-0">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={analytics.statusBreakdown}
-                                dataKey="value"
-                                nameKey="name"
-                                innerRadius={42}
-                                outerRadius={62}
-                                paddingAngle={3}
-                                cornerRadius={6}
-                                strokeWidth={0}
-                              >
-                                {analytics.statusBreakdown.map((item) => (
-                                  <Cell key={item.name} fill={item.fill} />
-                                ))}
-                              </Pie>
-                            </PieChart>
-                          </ResponsiveContainer>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                              {analytics.completionRate}%
-                            </span>
-                            <span className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
-                              done
-                            </span>
-                          </div>
+                  {analytics.statusBreakdown.length === 0 ? (
+                    <EmptyMini />
+                  ) : (
+                    <div className="flex items-center gap-6">
+                      <div className="relative w-36 h-36 shrink-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={analytics.statusBreakdown}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={46}
+                              outerRadius={68}
+                              paddingAngle={3}
+                              cornerRadius={6}
+                              strokeWidth={0}
+                            >
+                              {analytics.statusBreakdown.map((item) => (
+                                <Cell key={item.name} fill={item.fill} />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                            {analytics.completionRate}%
+                          </span>
+                          <span className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
+                            done
+                          </span>
                         </div>
+                      </div>
 
-                        <div className="flex-1 space-y-2">
-                          {analytics.statusBreakdown.map((s) => (
-                            <div key={s.name} className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span
-                                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: s.fill }}
-                                />
-                                <span className="text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                                  {s.name}
-                                </span>
-                              </div>
-                              <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                                {s.value}
+                      <div className="flex-1 space-y-2">
+                        {analytics.statusBreakdown.map((s) => (
+                          <div key={s.name} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: s.fill }}
+                              />
+                              <span className="text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                                {s.name}
                               </span>
                             </div>
-                          ))}
-                        </div>
+                            <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                              {s.value}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
+              {/* Hourly demand + Busiest days */}
+              <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
                 {/* Hourly demand */}
                 <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
                   <CardContent className="p-5">
@@ -756,6 +757,38 @@ const Reports = () => {
                             animationDuration={900}
                             animationBegin={200}
                           />
+                        </BarChart>
+                      </ChartContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Busiest days */}
+                <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
+                  <CardContent className="p-5">
+                    <div className="mb-4">
+                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Busiest days</h3>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">Bookings by day of week</p>
+                    </div>
+                    {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
+                      <EmptyMini />
+                    ) : (
+                      <ChartContainer
+                        config={{ count: { label: "Bookings", color: "#e11d48" } }}
+                        className="h-[160px] w-full aspect-auto"
+                      >
+                        <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                          <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
+                          <YAxis hide />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="count" radius={[8, 8, 0, 0]} animationDuration={900} animationBegin={200}>
+                            {analytics.dayOfWeekDemand.map((entry, i) => {
+                              const maxCount = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
+                              const opacity = 0.35 + (entry.count / maxCount) * 0.65;
+                              return <Cell key={i} fill={`rgba(225,29,72,${opacity})`} />;
+                            })}
+                          </Bar>
                         </BarChart>
                       </ChartContainer>
                     )}
@@ -1003,50 +1036,6 @@ const Reports = () => {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Busiest days */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              >
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(225,29,72,0.10)] dark:hover:shadow-[0_8px_40px_rgba(225,29,72,0.22)]">
-                <CardContent className="p-5">
-                  <div className="mb-4">
-                    <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Busiest days</h3>
-                    <p className="text-xs text-[#8E8E93] mt-0.5">Bookings by day of week</p>
-                  </div>
-                  {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
-                    <EmptyMini />
-                  ) : (
-                    <ChartContainer
-                      config={{ count: { label: "Bookings", color: "#e11d48" } }}
-                      className="h-[160px] w-full aspect-auto"
-                    >
-                      <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barCategoryGap="22%">
-                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
-                        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
-                        <YAxis hide />
-                        <ChartTooltip cursor={{ fill: "rgba(225,29,72,0.06)" }} content={<ChartTooltipContent />} />
-                        <Bar
-                          dataKey="count"
-                          radius={[10, 10, 10, 10]}
-                          background={{ fill: "rgba(225,29,72,0.06)", radius: 10 } as any}
-                          animationDuration={900}
-                          animationBegin={200}
-                        >
-                          {analytics.dayOfWeekDemand.map((entry, i) => {
-                            const maxCount = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
-                            const t = entry.count / maxCount;
-                            return <Cell key={i} fill={`rgba(225,29,72,${0.35 + t * 0.65})`} />;
-                          })}
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-              </motion.div>
 
               {/* Best customers */}
               <TopCustomersSection customers={topCustomers} />

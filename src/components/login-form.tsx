@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export function LoginForm() {
     email: "",
     password: "",
     rememberMe: false,
+    role: "client" as "barber" | "client",
   });
 
   const [signUpForm, setSignUpForm] = useState({
@@ -83,6 +85,22 @@ export function LoginForm() {
           variant: "destructive",
         });
         return;
+      }
+
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const existingRole = currentUser?.user_metadata?.role as string | undefined;
+
+      if (!existingRole && currentUser) {
+        await supabase.auth.updateUser({
+          data: { role: signInForm.role },
+        });
+      }
+
+      const redirectRole = existingRole || signInForm.role;
+      if (redirectRole === "client") {
+        navigate("/find-barber", { replace: true });
+      } else {
+        navigate("/admin", { replace: true });
       }
 
       toast({
@@ -287,6 +305,46 @@ export function LoginForm() {
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Role chooser for sign-in */}
+                  <div className="space-y-2">
+                    <Label>Sign in as</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          { key: "client", label: "Client", desc: "Book appointments", Icon: UserCircle2 },
+                          { key: "barber", label: "Barber", desc: "Manage my shop", Icon: Scissors },
+                        ] as const
+                      ).map(({ key, label, desc, Icon }) => {
+                        const selected = signInForm.role === key;
+                        return (
+                          <button
+                            type="button"
+                            key={key}
+                            onClick={() => setSignInForm((prev) => ({ ...prev, role: key }))}
+                            className={cn(
+                              "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
+                              selected
+                                ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
+                                : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40",
+                            )}
+                            aria-pressed={selected}
+                          >
+                            <div
+                              className={cn(
+                                "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                                selected ? "bg-[#007AFF] text-white" : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="text-sm font-semibold">{label}</div>
+                            <div className="text-[11px] text-muted-foreground">{desc}</div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

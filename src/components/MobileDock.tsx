@@ -17,20 +17,22 @@ interface NavItem {
   accent: string;
 }
 
+const ACTIVE_GRADIENT = 'from-[#d60052] to-rose-500';
+
 const mainItems: NavItem[] = [
-  { label: 'Admin', icon: LayoutDashboard, path: '/admin', accent: 'from-[#d60052] to-rose-500' },
-  { label: 'Agenda', icon: Calendar, path: '/agenda', accent: 'from-emerald-500 to-teal-400' },
-  { label: 'Reports', icon: BarChart3, path: '/reports', accent: 'from-amber-500 to-orange-400' },
-  { label: 'Services', icon: Scissors, path: '/services', accent: 'from-violet-500 to-fuchsia-500' },
-  { label: 'Settings', icon: Settings, path: '/settings', accent: 'from-sky-500 to-cyan-400' },
+  { label: 'Admin', icon: LayoutDashboard, path: '/admin', accent: ACTIVE_GRADIENT },
+  { label: 'Agenda', icon: Calendar, path: '/agenda', accent: ACTIVE_GRADIENT },
+  { label: 'Reports', icon: BarChart3, path: '/reports', accent: ACTIVE_GRADIENT },
+  { label: 'Services', icon: Scissors, path: '/services', accent: ACTIVE_GRADIENT },
+  { label: 'Settings', icon: Settings, path: '/settings', accent: ACTIVE_GRADIENT },
 ];
 
 const moreItems: NavItem[] = [
-  { label: 'Customers', icon: Users, path: '/customers', accent: 'from-sky-500 to-cyan-400' },
-  { label: 'Booking', icon: Globe, path: '/booking-page', accent: 'from-emerald-500 to-teal-400' },
-  { label: 'Stylists', icon: UserCheck, path: '/stylists', accent: 'from-violet-500 to-fuchsia-500' },
-  { label: 'Teams', icon: Briefcase, path: '/teams', accent: 'from-amber-500 to-orange-400' },
-  { label: 'Products', icon: Package, path: '/products', accent: 'from-indigo-500 to-blue-500' },
+  { label: 'Customers', icon: Users, path: '/customers', accent: ACTIVE_GRADIENT },
+  { label: 'Booking', icon: Globe, path: '/booking-page', accent: ACTIVE_GRADIENT },
+  { label: 'Stylists', icon: UserCheck, path: '/stylists', accent: ACTIVE_GRADIENT },
+  { label: 'Teams', icon: Briefcase, path: '/teams', accent: ACTIVE_GRADIENT },
+  { label: 'Products', icon: Package, path: '/products', accent: ACTIVE_GRADIENT },
 ];
 
 const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<typeof useLocation> }) => {
