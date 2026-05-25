@@ -279,6 +279,27 @@ export function LoginForm() {
                 <p className="text-sm text-white/55 text-center mb-8 max-w-[260px]">
                   What brings you here?
                 </p>
+
+                {/* What you can do */}
+                <div className="w-full space-y-2 mb-6">
+                  <div className="text-[11px] text-white/40 text-center mb-3">What you can do</div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {[
+                      { icon: "📅", label: "Book" },
+                      { icon: "✂️", label: "Find barbers" },
+                      { icon: "📱", label: "24/7 booking" },
+                      { icon: "🔔", label: "Reminders" },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] text-white/60"
+                      >
+                        <span>{item.icon}</span>
+                        <span>{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3 w-full">
                   {[
                     { key: "client", label: "I need a barber", desc: "Book appointments", Icon: UserCircle2 },
@@ -288,9 +309,13 @@ export function LoginForm() {
                       key={key}
                       type="button"
                       onClick={() => {
-                        setSelectedRole(key as "client" | "barber");
-                        setSignInForm((p) => ({ ...p, role: key as "client" | "barber" }));
-                        setSignUpForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                        if (key === "client") {
+                          navigate("/find-barber");
+                        } else {
+                          setSelectedRole(key as "client" | "barber");
+                          setSignInForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                          setSignUpForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                        }
                       }}
                       className="flex flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition-all hover:bg-white/[0.09] hover:border-white/20 active:scale-[0.98]"
                     >

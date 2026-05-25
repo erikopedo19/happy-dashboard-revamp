@@ -183,24 +183,48 @@ export default function Landing() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 0.6 }}
-            className="mt-12 flex items-center justify-center gap-1 text-sm text-muted-foreground"
+            className="mt-12 flex flex-col items-center gap-2 text-sm text-muted-foreground"
           >
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 fill-white text-white" />
-            ))}
-            <span className="ml-2">Loved by 1,200+ barbers</span>
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-white text-white" />
+              ))}
+              <span className="ml-2">Loved by 1,200+ barbers</span>
+            </div>
+            <div className="flex gap-2 text-lg">
+              <span>👍</span>
+              <span>❤️</span>
+              <span>🔥</span>
+              <span>⭐</span>
+              <span>🚀</span>
+              <span>💯</span>
+              <span>✨</span>
+            </div>
           </motion.div>
 
-          {/* Hero brand image */}
+              {/* Colorful gradient cards instead of image */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.85 }}
-            className="mt-16 mx-auto max-w-2xl"
+            className="mt-16 mx-auto max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4"
           >
-            <div className="rounded-[36px] overflow-hidden border border-white/10 shadow-[0_32px_90px_rgba(0,0,0,0.45)] ring-1 ring-white/10">
-              <img src="/Frame 316.png" alt="Cutzioo" className="w-full" />
-            </div>
+            {[
+              { label: "1,200+", sub: "Barbers", color: "from-blue-500/20 to-blue-600/10" },
+              { label: "50K+", sub: "Bookings", color: "from-purple-500/20 to-purple-600/10" },
+              { label: "4.9★", sub: "Rating", color: "from-amber-500/20 to-amber-600/10" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.9 + i * 0.1 }}
+                className={`rounded-2xl border border-white/10 bg-gradient-to-br ${stat.color} backdrop-blur-md p-6 text-center`}
+              >
+                <div className="text-3xl font-bold">{stat.label}</div>
+                <div className="text-sm text-muted-foreground mt-1">{stat.sub}</div>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -330,6 +354,39 @@ export default function Landing() {
               </div>
             ))}
           </div>
+
+          {/* Multilingual ratings */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mt-12 flex flex-wrap justify-center gap-3"
+          >
+            {[
+              { lang: "GR", rating: "4.9★", label: "Εξαιρετικό" },
+              { lang: "ES", rating: "4.8★", label: "Excelente" },
+              { lang: "FR", rating: "4.9★", label: "Excellent" },
+              { lang: "DE", rating: "4.7★", label: "Ausgezeichnet" },
+              { lang: "IT", rating: "4.8★", label: "Eccellente" },
+              { lang: "PT", rating: "4.9★", label: "Excelente" },
+              { lang: "NL", rating: "4.8★", label: "Uitstekend" },
+              { lang: "PL", rating: "4.7★", label: "Doskonały" },
+              { lang: "TR", rating: "4.8★", label: "Mükemmel" },
+              { lang: "RU", rating: "4.6★", label: "Отлично" },
+              { lang: "AR", rating: "4.9★", label: "ممتاز" },
+              { lang: "JP", rating: "4.8★", label: "素晴らしい" },
+            ].map((r) => (
+              <div
+                key={r.lang}
+                className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs"
+              >
+                <span className="text-muted-foreground">{r.lang}</span>
+                <span className="font-medium">{r.rating}</span>
+                <span className="text-muted-foreground">{r.label}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
