@@ -12,6 +12,8 @@ import {
   Sparkles,
   Store,
   User,
+  UserCircle2,
+  Scissors,
   Moon,
   Sun,
 } from "lucide-react";
@@ -454,6 +456,59 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="general" className="mt-0 space-y-6">
+                      {/* Role switcher */}
+                      <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                              <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Your role</CardTitle>
+                              <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                                Switch between client and barber at any time.
+                              </CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 gap-3">
+                            {[
+                              { key: "client", label: "Client", desc: "Book appointments", Icon: UserCircle2 },
+                              { key: "barber", label: "Barber", desc: "Manage my shop", Icon: Scissors },
+                            ].map(({ key, label, desc, Icon }) => {
+                              const currentRole = user?.user_metadata?.role ?? "client";
+                              const selected = currentRole === key;
+                              return (
+                                <button
+                                  key={key}
+                                  type="button"
+                                  onClick={async () => {
+                                    if (selected) return;
+                                    await supabase.auth.updateUser({ data: { role: key } });
+                                    await (supabase as any).from("profiles").update({ role: key }).eq("id", user?.id);
+                                    toast({ title: `Switched to ${label}`, description: "Your role has been updated." });
+                                    window.location.reload();
+                                  }}
+                                  className={cn(
+                                    "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
+                                    selected
+                                      ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 shadow-sm"
+                                      : "border-border hover:border-[hsl(var(--primary))]/40 hover:bg-muted/40",
+                                  )}
+                                >
+                                  <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg transition-colors", selected ? "bg-[hsl(var(--primary))] text-white" : "bg-muted text-muted-foreground")}>
+                                    <Icon className="h-4 w-4" />
+                                  </div>
+                                  <div className="text-sm font-semibold">{label}</div>
+                                  <div className="text-[11px] text-muted-foreground">{desc}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">

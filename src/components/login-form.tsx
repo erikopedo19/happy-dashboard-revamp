@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import {
   Lock,
   User as UserIcon,
   ArrowRight,
+  ChevronRight,
   Scissors,
   UserCircle2,
   Sparkles,
@@ -35,6 +37,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"client" | "barber" | null>(null);
+  const [signupStep, setSignupStep] = useState<"onboarding" | "form">("onboarding");
 
   const [signInForm, setSignInForm] = useState({
     email: "",
@@ -184,6 +188,7 @@ export function LoginForm() {
         confirmPassword: "",
         role: "client",
       });
+      setSignupStep("onboarding");
     } catch (_err) {
       toast({
         title: "Sign up failed",
@@ -254,7 +259,63 @@ export function LoginForm() {
       className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,#20242d_0%,#0b0c10_38%,#050506_100%)] p-4 text-foreground md:p-10"
     >
       <div className="relative w-full max-w-sm">
-        <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.06] p-6 sm:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+        <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.06] p-6 sm:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+          <AnimatePresence>
+            {!selectedRole && (
+              <motion.div
+                key="role-selector"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 sm:p-8 bg-[radial-gradient(circle_at_top,#20242d_0%,#0b0c10_38%,#050506_100%)]"
+              >
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[22px] bg-white/[0.08] ring-1 ring-white/15">
+                  <img src="/logo.svg" alt="Cutzio" className="h-9 w-9 object-contain brightness-0 invert" />
+                </div>
+                <h1 className="text-2xl font-semibold tracking-tight text-white text-center mb-2">
+                  Welcome to Cutzio
+                </h1>
+                <p className="text-sm text-white/55 text-center mb-8 max-w-[260px]">
+                  What brings you here?
+                </p>
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  {[
+                    { key: "client", label: "I need a barber", desc: "Book appointments", Icon: UserCircle2 },
+                    { key: "barber", label: "I am a barber", desc: "Manage my shop", Icon: Scissors },
+                  ].map(({ key, label, desc, Icon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        setSelectedRole(key as "client" | "barber");
+                        setSignInForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                        setSignUpForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                      }}
+                      className="flex flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition-all hover:bg-white/[0.09] hover:border-white/20 active:scale-[0.98]"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="text-sm font-semibold text-white">{label}</div>
+                      <div className="text-[11px] text-white/50">{desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {selectedRole && (
+            <button
+              type="button"
+              onClick={() => { setSelectedRole(null); setSignupStep("onboarding"); }}
+              className="mb-4 text-xs text-white/50 hover:text-white/80 flex items-center gap-1 transition-colors"
+            >
+              <ArrowRight className="h-3 w-3 rotate-180" /> Change role
+            </button>
+          )}
+
           <div className="flex flex-col items-center space-y-2 text-center mb-6">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[22px] bg-white/[0.08] ring-1 ring-white/15">
               <img src="/logo.svg" alt="Cutzio" className="h-9 w-9 object-contain brightness-0 invert" />
@@ -436,6 +497,55 @@ export function LoginForm() {
               </TabsContent>
 
               <TabsContent value="signup">
+                {signupStep === "onboarding" ? (
+                  <div className="space-y-5 py-2">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-white">
+                        {selectedRole === "barber" ? "Grow your barbershop" : "Find your perfect barber"}
+                      </h3>
+                      <p className="text-sm text-white/55 mt-1">
+                        {selectedRole === "barber"
+                          ? "Everything you need to manage bookings online."
+                          : "Book appointments in seconds."}
+                      </p>
+                    </div>
+                    <div className="space-y-3">
+                      {(selectedRole === "barber" ? [
+                        { title: "Your shop online", desc: "Create a booking page clients can visit 24/7.", Icon: Scissors },
+                        { title: "Accept bookings", desc: "Clients book directly into your calendar.", Icon: CalendarCheck },
+                        { title: "Grow fast", desc: "Get discovered by new clients every day.", Icon: Sparkles },
+                      ] : [
+                        { title: "Find top barbers", desc: "Browse verified barbers near you.", Icon: UserCircle2 },
+                        { title: "Book in seconds", desc: "Pick a time and confirm instantly.", Icon: CalendarCheck },
+                        { title: "Never miss a cut", desc: "Get reminders before every appointment.", Icon: ShieldCheck },
+                      ]).map((item, i) => (
+                        <motion.div
+                          key={item.title}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-4"
+                        >
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
+                            <item.Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-white">{item.title}</div>
+                            <div className="text-xs text-white/50">{item.desc}</div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => setSignupStep("form")}
+                      className="w-full rounded-full bg-white text-black hover:bg-white/90"
+                    >
+                      Get started
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
                 <form onSubmit={handleSignUp} className="space-y-4">
                   {/* Role chooser */}
                   <div className="space-y-2">
@@ -571,6 +681,7 @@ export function LoginForm() {
                     )}
                   </Button>
                 </form>
+                )}
               </TabsContent>
             </Tabs>
         </div>
