@@ -18,6 +18,7 @@ interface AuthContextType {
     rememberMe?: boolean
   ) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -113,6 +114,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const redirectTo = `${window.location.origin}/auth`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -124,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signUp,
     signIn,
     resetPassword,
+    signInWithGoogle,
     signOut,
   };
 
