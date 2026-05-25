@@ -349,15 +349,15 @@ export function LoginForm() {
                             className={cn(
                               "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
                               selected
-                                ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
-                                : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40",
+                                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 shadow-sm"
+                                : "border-border hover:border-[hsl(var(--primary))]/40 hover:bg-muted/40",
                             )}
                             aria-pressed={selected}
                           >
                             <div
                               className={cn(
                                 "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                                selected ? "bg-[#007AFF] text-white" : "bg-muted text-muted-foreground",
+                                selected ? "bg-[hsl(var(--primary))] text-white" : "bg-muted text-muted-foreground",
                               )}
                             >
                               <Icon className="h-4 w-4" />
@@ -437,15 +437,15 @@ export function LoginForm() {
                             className={cn(
                               "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
                               selected
-                                ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
-                                : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40",
+                                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 shadow-sm"
+                                : "border-border hover:border-[hsl(var(--primary))]/40 hover:bg-muted/40",
                             )}
                             aria-pressed={selected}
                           >
                             <div
                               className={cn(
                                 "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                                selected ? "bg-[#007AFF] text-white" : "bg-muted text-muted-foreground",
+                                selected ? "bg-[hsl(var(--primary))] text-white" : "bg-muted text-muted-foreground",
                               )}
                             >
                               <Icon className="h-4 w-4" />
