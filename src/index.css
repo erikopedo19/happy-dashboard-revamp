@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 /* Apple SF Pro system font stack — applied globally */
 :root {
@@ -20,66 +20,61 @@ html, body, #root {
 /* Modern Dashboard Design System - CSS Variables */
 @layer base {
   :root {
-    /* Cutzio — Rose & Dark (matches Auth gradient) */
-    --background: 345 60% 4%;            /* #0f0407 deep rose-black */
-    --foreground: 350 25% 96%;
-    --card: 345 35% 8%;                  /* #1a0a10 */
-    --card-foreground: 350 25% 96%;
-    --popover: 345 40% 9%;
-    --popover-foreground: 350 25% 96%;
-    --primary: 346 77% 49%;              /* #e11d48 rose */
+    /* Cutzio — Deep Blue + Rose */
+    --background: 222 47% 6%;
+    --foreground: 210 25% 96%;
+    --card: 222 40% 10%;
+    --card-foreground: 210 25% 96%;
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 25% 96%;
+    --primary: 346 77% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 350 89% 60%;         /* #f43f5e */
-    --secondary: 345 25% 14%;
-    --secondary-foreground: 350 25% 96%;
-    --muted: 220 14% 16%;
-    --muted-foreground: 220 9% 55%;
-    --accent: 346 77% 49%;
+    --primary-glow: 350 89% 65%;
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 210 25% 96%;
+    --muted: 222 25% 14%;
+    --muted-foreground: 220 12% 62%;
+    --accent: 346 77% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 345 20% 16%;
-    --input: 345 25% 14%;
-    --ring: 346 77% 49%;
+    --border: 222 25% 16%;
+    --input: 222 25% 14%;
+    --ring: 346 77% 55%;
     --radius: 1.25rem;
     --success: 142 65% 50%;
     --warning: 38 92% 55%;
 
-    /* Chart accent colors */
-    --chart-1: 346 77% 49%;
-    --chart-2: 142 65% 50%;
-    --chart-3: 199 89% 58%;
-    --chart-4: 38 92% 55%;
-    --chart-5: 262 83% 58%;
+    /* Chart accents — restrained */
+    --chart-1: 346 77% 55%;
+    --chart-2: 222 50% 55%;
+    --chart-3: 210 20% 70%;
+    --chart-4: 220 15% 45%;
+    --chart-5: 346 60% 70%;
 
-    /* Brand gradient — Auth + onboarding + cards */
-    --gradient-brand: linear-gradient(135deg, #0a0203 0%, #1a0509 45%, #2b0a14 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(346 77% 49%), hsl(350 89% 60%));
-    --gradient-sky: linear-gradient(135deg, hsl(199 89% 48%), hsl(186 94% 56%));
-    --shadow-rose: 0 10px 40px -10px hsl(346 77% 49% / 0.45);
-    --shadow-sky: 0 10px 40px -10px hsl(199 89% 58% / 0.35);
+    --gradient-brand: linear-gradient(135deg, #060a14 0%, #0b1224 45%, #131b34 100%);
+    --gradient-rose: linear-gradient(135deg, hsl(346 77% 55%), hsl(350 89% 65%));
+    --gradient-sky: linear-gradient(135deg, hsl(222 50% 35%), hsl(222 60% 50%));
+    --shadow-rose: 0 10px 40px -10px hsl(346 77% 55% / 0.45);
+    --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
 
-    /* Glass morphism variables */
-    --glass-background: rgba(255, 255, 255, 0.06);
-    --glass-border: rgba(214, 0, 82, 0.16);
-    --glass-shadow: 0 8px 32px rgba(214, 0, 82, 0.12);
+    --glass-background: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
     --glass-blur: blur(16px);
     --prismatic-gradient: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(214, 0, 82, 0.16) 20%,
-        rgba(56, 189, 248, 0.14) 40%,
-        rgba(16, 185, 129, 0.12) 60%,
-        rgba(245, 158, 11, 0.12) 80%,
-        rgba(255, 255, 255, 0.1) 100%);
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(225, 29, 72, 0.14) 50%,
+        rgba(255, 255, 255, 0.06) 100%);
 
-    --sidebar-background: 225 14% 8%;
-    --sidebar-foreground: 220 9% 65%;
-    --sidebar-primary: 338 92% 42%;
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 220 12% 70%;
+    --sidebar-primary: 346 77% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 12% 14%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 224 12% 14%;
-    --sidebar-ring: 338 92% 42%;
+    --sidebar-accent: 222 30% 12%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 222 25% 14%;
+    --sidebar-ring: 346 77% 55%;
   }
 
   .light {
@@ -130,20 +125,15 @@ html, body, #root {
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
     font-weight: 400;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     font-weight: 600;
     letter-spacing: -0.02em;

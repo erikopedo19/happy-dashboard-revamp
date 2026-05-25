@@ -117,7 +117,7 @@ const db = supabase as any;
 
 const customerColors = [
   "#1C1C1E", "#3A3A3C", "#48484A", "#636366",
-  "#0A84FF", "#5856D6", "#8E8E93", "#AEAEB2",
+  "#e11d48", "#5856D6", "#8E8E93", "#AEAEB2",
 ];
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -193,7 +193,7 @@ const dayLabel = (date: string) =>
 const rosePalette = [
   "#1C1C1E",
   "#3A3A3C",
-  "#0A84FF",
+  "#e11d48",
   "#636366",
   "#AEAEB2",
   "#D1D1D6",
@@ -386,7 +386,7 @@ const Reports = () => {
 
     const statusBreakdown = [
       { name: "Completed", value: completedAppointments, fill: "#1C1C1E" },
-      { name: "Scheduled", value: scheduledAppointments, fill: "#0A84FF" },
+      { name: "Scheduled", value: scheduledAppointments, fill: "#e11d48" },
       { name: "Cancelled", value: cancelledAppointments, fill: "#D1D1D6" },
     ].filter((item) => item.value > 0);
 
@@ -472,7 +472,7 @@ const Reports = () => {
   }, [data, customersData]);
 
   const revenueChartConfig = {
-    revenue: { label: "Revenue", color: "#0A84FF" },
+    revenue: { label: "Revenue", color: "#e11d48" },
   } satisfies ChartConfig;
 
   const handleExport = () => {
@@ -592,8 +592,8 @@ const Reports = () => {
                     <ComposedChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="fillRevLine" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#0A84FF" stopOpacity={0.22} />
-                          <stop offset="100%" stopColor="#0A84FF" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#e11d48" stopOpacity={0.22} />
+                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="fillRevBars" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.85} />
@@ -622,7 +622,7 @@ const Reports = () => {
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#0A84FF"
+                        stroke="#e11d48"
                         strokeWidth={2.5}
                         fill="url(#fillRevLine)"
                         animationDuration={1200}
@@ -834,7 +834,7 @@ const Reports = () => {
                       <EmptyMini />
                     ) : (
                       <ChartContainer
-                        config={{ count: { label: "Bookings", color: "#0A84FF" } }}
+                        config={{ count: { label: "Bookings", color: "#e11d48" } }}
                         className="h-[160px] w-full aspect-auto"
                       >
                         <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
@@ -1168,7 +1168,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
   const podiumSlots = [
     { c: customers[1], height: 72, color: "#3A3A3C", glow: "rgba(28,28,30,0.20)", rank: 2 },
     { c: customers[0], height: 104, color: "#1C1C1E", glow: "rgba(28,28,30,0.30)", rank: 1 },
-    { c: customers[2], height: 52, color: "#0A84FF", glow: "rgba(10,132,255,0.20)", rank: 3 },
+    { c: customers[2], height: 52, color: "#e11d48", glow: "rgba(10,132,255,0.20)", rank: 3 },
   ];
 
   return (

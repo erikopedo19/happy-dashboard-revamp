@@ -27,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function LoginForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signIn, signUp, resetPassword } = useAuth();
+  const { user, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -215,58 +215,80 @@ export function LoginForm() {
     }
   };
 
+  const handleGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        toast({
+          title: "Google sign-in failed",
+          description: error.message || "Unable to start Google sign-in.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#2b0a14] p-4 text-white md:p-10"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif' }}
+      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#060a14] via-[#0b1224] to-[#131b34] p-4 text-foreground md:p-10"
     >
-      <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 animate-pulse rounded-full bg-[#fb7185]/30 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 animate-pulse rounded-full bg-[#be123c]/35 blur-3xl [animation-delay:700ms]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-[#9f1239]/25 blur-3xl" />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage: "radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-        }}
-      />
+      <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
 
-      <div className="relative w-full max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-700 md:max-w-5xl">
-        <div className="grid grid-cols-1 gap-0 overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.04] shadow-[0_24px_80px_rgba(244,63,94,0.18)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_32px_100px_rgba(244,63,94,0.28)] md:grid-cols-[0.95fr_1.05fr]">
-          <div className="flex flex-col p-6 sm:p-8">
-            <div className="flex flex-col items-center space-y-2 text-center mb-6">
-              <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-[24px] bg-gradient-to-br from-[#fb7185] to-[#9f1239] shadow-[0_12px_40px_rgba(244,63,94,0.45)] ring-1 ring-white/20">
-                <img src="/logo.svg" alt="Cutzio" className="h-11 w-11 object-contain brightness-0 invert" />
-              </div>
-              <h1
-                className="text-3xl font-bold tracking-tight text-white"
-                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}
-              >
-                Welcome to Cutzio
-              </h1>
-              <p
-                className="text-sm text-white/60"
-                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}
-              >
-                Sign in to manage bookings, clients, and your barbershop flow.
-              </p>
+      <div className="relative w-full max-w-sm">
+        <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:p-8 shadow-2xl backdrop-blur-2xl">
+          <div className="flex flex-col items-center space-y-2 text-center mb-6">
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-rose shadow-rose ring-1 ring-white/20">
+              <img src="/logo.svg" alt="Cutzio" className="h-9 w-9 object-contain brightness-0 invert" />
             </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-white">
+              Welcome to Cutzio
+            </h1>
+            <p className="text-sm text-white/55">
+              Sign in to manage your barbershop flow.
+            </p>
+          </div>
 
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
-              <TabsList className="grid h-12 w-full grid-cols-2 gap-1 rounded-2xl bg-black/5 p-1 dark:bg-white/10">
-                <TabsTrigger
-                  value="signin"
-                  className="h-10 rounded-xl text-sm font-semibold transition-all duration-300 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-white/15"
-                >
-                  Sign in
-                </TabsTrigger>
-                <TabsTrigger
-                  value="signup"
-                  className="h-10 rounded-xl text-sm font-semibold transition-all duration-300 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-white/15"
-                >
-                  Sign up
-                </TabsTrigger>
-              </TabsList>
+          <Button
+            type="button"
+            onClick={handleGoogle}
+            disabled={isLoading}
+            variant="outline"
+            className="w-full mb-4 h-11 rounded-2xl bg-white text-[#1C1C1E] hover:bg-white/90 border-0 font-medium gap-2"
+          >
+            <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
+              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 7 29.4 5 24 5 16.3 5 9.6 9.1 6.3 14.7z"/>
+              <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 35 26.8 36 24 36c-5.3 0-9.7-3.1-11.3-7.9l-6.5 5C9.5 39.7 16.2 44 24 44z"/>
+              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3C40.7 36.2 44 30.6 44 24c0-1.2-.1-2.3-.4-3.5z"/>
+            </svg>
+            Continue with Google
+          </Button>
+
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-[11px] uppercase tracking-wider text-white/40">or email</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
+            <TabsList className="grid h-11 w-full grid-cols-2 gap-1 rounded-2xl bg-white/5 p-1">
+              <TabsTrigger
+                value="signin"
+                className="h-9 rounded-xl text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                Sign in
+              </TabsTrigger>
+              <TabsTrigger
+                value="signup"
+                className="h-9 rounded-xl text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                Sign up
+              </TabsTrigger>
+            </TabsList>
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
@@ -327,15 +349,15 @@ export function LoginForm() {
                             className={cn(
                               "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
                               selected
-                                ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
-                                : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40",
+                                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 shadow-sm"
+                                : "border-border hover:border-[hsl(var(--primary))]/40 hover:bg-muted/40",
                             )}
                             aria-pressed={selected}
                           >
                             <div
                               className={cn(
                                 "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                                selected ? "bg-[#007AFF] text-white" : "bg-muted text-muted-foreground",
+                                selected ? "bg-[hsl(var(--primary))] text-white" : "bg-muted text-muted-foreground",
                               )}
                             >
                               <Icon className="h-4 w-4" />
@@ -415,15 +437,15 @@ export function LoginForm() {
                             className={cn(
                               "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
                               selected
-                                ? "border-[#007AFF] bg-[#007AFF]/5 shadow-sm"
-                                : "border-border hover:border-[#007AFF]/40 hover:bg-muted/40",
+                                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 shadow-sm"
+                                : "border-border hover:border-[hsl(var(--primary))]/40 hover:bg-muted/40",
                             )}
                             aria-pressed={selected}
                           >
                             <div
                               className={cn(
                                 "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                                selected ? "bg-[#007AFF] text-white" : "bg-muted text-muted-foreground",
+                                selected ? "bg-[hsl(var(--primary))] text-white" : "bg-muted text-muted-foreground",
                               )}
                             >
                               <Icon className="h-4 w-4" />
@@ -532,50 +554,6 @@ export function LoginForm() {
                 </form>
               </TabsContent>
             </Tabs>
-          </div>
-
-          <div className="relative hidden min-h-[620px] overflow-hidden bg-gradient-to-br from-[#0A84FF] via-[#5856D6] to-[#AF52DE] p-8 md:flex md:items-center md:justify-center">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(255,255,255,0.22),transparent_35%)]" />
-            <div className="absolute right-10 top-10 h-24 w-24 animate-bounce rounded-[28px] bg-white/15 backdrop-blur-xl [animation-duration:4s]" />
-            <div className="absolute bottom-16 left-10 h-32 w-32 animate-pulse rounded-full bg-white/15 blur-sm" />
-            <div className="relative w-full max-w-sm">
-              <div className="animate-in fade-in zoom-in-95 duration-700 rounded-[36px] border border-white/25 bg-white/20 p-5 shadow-2xl backdrop-blur-2xl">
-                <div className="rounded-[28px] bg-white/90 p-4 text-[#1D1D1F] shadow-xl">
-                  <div className="mb-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-[#8E8E93]">Today</p>
-                      <p className="text-2xl font-bold">12 bookings</p>
-                    </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#34C759] text-white">
-                      <CalendarCheck className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {["Fade & beard", "Classic cut", "Color refresh"].map((item, index) => (
-                      <div key={item} className="flex items-center justify-between rounded-2xl bg-[#F2F2F7] p-3">
-                        <div>
-                          <p className="text-sm font-semibold">{item}</p>
-                          <p className="text-xs text-[#8E8E93]">{9 + index}:30 · confirmed</p>
-                        </div>
-                        <div className="h-2.5 w-2.5 rounded-full bg-[#34C759]" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 text-white">
-                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
-                    <ShieldCheck className="mb-3 h-5 w-5" />
-                    <p className="text-sm font-semibold">Secure auth</p>
-                  </div>
-                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
-                    <Sparkles className="mb-3 h-5 w-5" />
-                    <p className="text-sm font-semibold">Live stats</p>
-                    <p className="text-xs text-white/75">Always fresh</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
