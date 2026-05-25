@@ -93,31 +93,31 @@ export default function Landing() {
       {/* Aurora background */}
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-60">
         <Aurora
-          colorStops={["#7f0b20", "#e11d48", "#6b0c1f"]}
-          blend={0.5}
-          amplitude={1.1}
+          colorStops={["#0f172a", "#1f2937", "#334155"]}
+          blend={0.32}
+          amplitude={0.55}
           speed={0.5}
         />
       </div>
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-background/40 via-background/70 to-background" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-background/30 via-background/75 to-background" />
 
       {/* Nav */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/40 border-b border-white/5">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/65 border-b border-white/10">
         <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-8 w-8 rounded-lg" />
             <span className="font-semibold tracking-tight text-lg">Cutzioo</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition">Features</a>
-            <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
-            <a href="#testimonials" className="hover:text-foreground transition">Loved by</a>
+          <nav className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] p-1 text-sm text-muted-foreground">
+            <a href="#features" className="rounded-full px-4 py-2 hover:bg-white/10 hover:text-foreground transition">Features</a>
+            <a href="#pricing" className="rounded-full px-4 py-2 hover:bg-white/10 hover:text-foreground transition">Pricing</a>
+            <a href="#testimonials" className="rounded-full px-4 py-2 hover:bg-white/10 hover:text-foreground transition">Loved by</a>
           </nav>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
               Sign in
             </Button>
-            <Button size="sm" className="rounded-full" onClick={() => navigate("/auth")}>
+            <Button size="sm" className="rounded-full bg-white text-black hover:bg-white/90" onClick={() => navigate("/auth")}>
               Get started
             </Button>
           </div>
@@ -131,7 +131,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-1.5 text-xs font-medium text-[#fb7185] backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-1.5 text-xs font-medium text-white/80 backdrop-blur"
           >
             <Sparkles className="h-3.5 w-3.5" />
             New · Smart no-show reminders &amp; email templates
@@ -144,9 +144,9 @@ export default function Landing() {
             className="mt-6 text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]"
           >
             The booking platform <br className="hidden md:block" />
-            built for{" "}
-            <span className="bg-gradient-to-r from-[#fb7185] via-[#e11d48] to-[#9f1239] bg-clip-text text-transparent">
-              modern barbers.
+            built like{" "}
+            <span className="bg-gradient-to-r from-white via-slate-300 to-slate-500 bg-clip-text text-transparent">
+              a premium app.
             </span>
           </motion.h1>
 
@@ -156,8 +156,8 @@ export default function Landing() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mt-6 mx-auto max-w-2xl text-base md:text-lg text-muted-foreground"
           >
-            Agenda, clients, online booking and analytics — one beautiful app.
-            Spend less time managing, more time cutting.
+            A dark, calm workspace for agenda, clients, bookings and analytics.
+            Faster workflows, softer corners, zero visual noise.
           </motion.p>
 
           <motion.div
@@ -166,7 +166,7 @@ export default function Landing() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="mt-10 flex flex-col sm:flex-row gap-3 items-center justify-center"
           >
-            <Button size="lg" className="rounded-full px-8 h-12" onClick={() => navigate("/auth")}>
+            <Button size="lg" className="rounded-full bg-white px-8 h-12 text-black hover:bg-white/90" onClick={() => navigate("/auth")}>
               Start free <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button
@@ -186,7 +186,7 @@ export default function Landing() {
             className="mt-12 flex items-center justify-center gap-1 text-sm text-muted-foreground"
           >
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 fill-[#e11d48] text-[#e11d48]" />
+              <Star key={i} className="h-4 w-4 fill-white text-white" />
             ))}
             <span className="ml-2">Loved by 1,200+ barbers</span>
           </motion.div>
@@ -198,7 +198,7 @@ export default function Landing() {
             transition={{ duration: 1, delay: 0.85 }}
             className="mt-16 mx-auto max-w-2xl"
           >
-            <div className="rounded-3xl overflow-hidden border border-white/10 shadow-[0_32px_80px_rgba(225,29,72,0.22)] ring-1 ring-[#e11d48]/10">
+            <div className="rounded-[36px] overflow-hidden border border-white/10 shadow-[0_32px_90px_rgba(0,0,0,0.45)] ring-1 ring-white/10">
               <img src="/Frame 316.png" alt="Cutzioo" className="w-full" />
             </div>
           </motion.div>
@@ -223,9 +223,9 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="group relative rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6 hover:bg-white/[0.06] transition-all"
+                className="group relative rounded-[30px] border border-white/10 bg-white/[0.045] backdrop-blur-md p-6 hover:bg-white/[0.075] transition-all"
               >
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+                <div className="h-11 w-11 rounded-[18px] bg-white/10 border border-white/10 flex items-center justify-center text-white">
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-5 text-lg font-semibold">{f.title}</h3>
@@ -238,9 +238,9 @@ export default function Landing() {
 
       {/* Showcase */}
       <section className="relative px-6 py-24">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-[#e11d48]/20 bg-gradient-to-br from-[#e11d48]/10 to-transparent backdrop-blur-md p-8 md:p-16 text-center overflow-hidden">
-          <div className="absolute inset-0 -z-10 opacity-40">
-            <Aurora colorStops={["#e11d48", "#7f0b20", "#1a0305"]} blend={0.6} amplitude={0.8} speed={0.4} />
+        <div className="mx-auto max-w-6xl rounded-[36px] border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-md p-8 md:p-16 text-center overflow-hidden">
+          <div className="absolute inset-0 -z-10 opacity-25">
+            <Aurora colorStops={["#334155", "#111827", "#020617"]} blend={0.4} amplitude={0.45} speed={0.35} />
           </div>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Your chair, on autopilot.
@@ -249,7 +249,7 @@ export default function Landing() {
             From the first tap to the last clip — Cutzioo handles the boring stuff so
             you can focus on the craft.
           </p>
-          <Button size="lg" className="mt-8 rounded-full px-8 h-12" onClick={() => navigate("/auth")}>
+          <Button size="lg" className="mt-8 rounded-full bg-white px-8 h-12 text-black hover:bg-white/90" onClick={() => navigate("/auth")}>
             Try it free <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
@@ -269,12 +269,12 @@ export default function Landing() {
                 key={p.name}
                 className={`relative rounded-3xl border p-8 backdrop-blur-md transition-all ${
                   p.highlight
-                    ? "border-primary/40 bg-gradient-to-br from-primary/15 to-transparent"
+                    ? "border-white/20 bg-gradient-to-br from-white/[0.09] to-transparent"
                     : "border-white/10 bg-white/[0.03]"
                 }`}
               >
                 {p.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-medium text-black">
                     Most popular
                   </span>
                 )}
@@ -287,7 +287,7 @@ export default function Landing() {
                 <ul className="mt-6 space-y-3">
                   {p.features.map((feat) => (
                     <li key={feat} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <Check className="h-4 w-4 text-white mt-0.5 flex-shrink-0" />
                       <span>{feat}</span>
                     </li>
                   ))}
@@ -315,11 +315,11 @@ export default function Landing() {
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6 hover:bg-white/[0.06] hover:border-[#e11d48]/20 transition-all duration-300"
+                className="rounded-[30px] border border-white/10 bg-white/[0.04] backdrop-blur-md p-6 hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300"
               >
                 <div className="flex gap-1 mb-3">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#e11d48] text-[#e11d48]" />
+                    <Star key={i} className="h-4 w-4 fill-white text-white" />
                   ))}
                 </div>
                 <p className="text-foreground/90 leading-relaxed">"{t.quote}"</p>
@@ -342,7 +342,7 @@ export default function Landing() {
           <p className="mt-6 text-lg text-muted-foreground">
             Join the barbers running their day with Cutzioo.
           </p>
-          <Button size="lg" className="mt-10 rounded-full px-10 h-14 text-base" onClick={() => navigate("/auth")}>
+          <Button size="lg" className="mt-10 rounded-full bg-white px-10 h-14 text-base text-black hover:bg-white/90" onClick={() => navigate("/auth")}>
             Start free <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

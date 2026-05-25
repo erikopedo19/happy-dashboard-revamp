@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -56,7 +56,7 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"users" | "campaigns">("users");
+  const [tab, setTab] = useState<"users" | "campaigns" | "gifts">("users");
   const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
   const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
@@ -120,6 +120,33 @@ export default function SuperAdminDashboard() {
     const free = total - active;
     return { total, active, free };
   }, [rows]);
+
+  const newcomers = useMemo(() => {
+    const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+    return rows.filter((r) => {
+      const created = r.created_at ? new Date(r.created_at).getTime() : 0;
+      return created >= cutoff && !r.subscription?.active && r.email !== SUPER_ADMIN_EMAIL;
+    });
+  }, [rows]);
+
+  const giftNewcomers = async () => {
+    if (newcomers.length === 0) {
+      toast.info("No eligible newcomers found");
+      return;
+    }
+    setSaving(true);
+    const { error, data } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "gift_newcomers", days: 10 },
+    });
+    setSaving(false);
+    if (error) {
+      toast.error("Gift failed", { description: error.message });
+    } else {
+      const count = data?.gifted ?? newcomers.length;
+      toast.success(`Gifted 10 days premium to ${count} newcomer${count !== 1 ? "s" : ""}`);
+      load();
+    }
+  };
 
   const quickToggle = async (row: Row, next: boolean) => {
     const optimistic = rows.map((r) => r.id === row.id ? {
@@ -185,7 +212,7 @@ export default function SuperAdminDashboard() {
       {/* Tab nav */}
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
         <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
-          {(["users", "campaigns"] as const).map((t) => (
+          {(["users", "campaigns", "gifts"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -193,8 +220,8 @@ export default function SuperAdminDashboard() {
                 tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "users" ? <Users className="w-3.5 h-3.5" /> : <Mail className="w-3.5 h-3.5" />}
-              {t === "users" ? "Users" : "Email Campaigns"}
+              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : <Gift className="w-3.5 h-3.5" />}
+              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : "Gift"}
             </button>
           ))}
         </div>
@@ -296,6 +323,47 @@ export default function SuperAdminDashboard() {
             onTarget={setEmailTarget}
             onSend={sendCampaign}
           />
+        </div>
+      </motion.div>
+      )}
+
+      {tab === "gifts" && (
+      <motion.div key="gifts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+          <Card className="rounded-3xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Gift className="w-5 h-5" /> Gift newcomer premium</CardTitle>
+              <CardDescription>Grant 10 days of Pro access to free users who joined in the last 14 days.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <StatCard icon={<Gift className="w-4 h-4" />} label="Eligible newcomers" value={newcomers.length} />
+                <StatCard icon={<Crown className="w-4 h-4 text-amber-500" />} label="Gift duration" value={10} />
+                <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Window days" value={14} />
+              </div>
+              <div className="rounded-3xl border border-border overflow-hidden">
+                {newcomers.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-muted-foreground">No eligible newcomers right now.</div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {newcomers.slice(0, 8).map((r) => (
+                      <div key={r.id} className="flex items-center justify-between gap-3 p-4">
+                        <div className="min-w-0">
+                          <div className="font-medium truncate">{r.full_name || r.business_name || r.email}</div>
+                          <div className="text-xs text-muted-foreground truncate">{r.email} · joined {r.created_at ? new Date(r.created_at).toLocaleDateString() : "recently"}</div>
+                        </div>
+                        <Badge variant="secondary" className="rounded-full">10 days Pro</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button onClick={giftNewcomers} disabled={saving || newcomers.length === 0} className="rounded-full bg-white text-black hover:bg-white/90">
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Gift className="w-4 h-4 mr-2" />}
+                Gift 10 days to all newcomers
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </motion.div>
       )}

@@ -83,6 +83,86 @@ Deno.serve(async (req) => {
 
     // POST: upsert subscription
     const body = await req.json().catch(() => ({}));
+
+    if (body?.action === "gift_newcomers") {
+      const days = Number(body?.days ?? 10);
+      const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+      const endIso = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      const all: any[] = [];
+      let page = 1;
+
+      while (true) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+        if (error) throw error;
+        all.push(...(data.users ?? []));
+        if (!data.users || data.users.length < 200) break;
+        page++;
+        if (page > 25) break;
+      }
+
+      const newcomers = all.filter((u) =>
+        u.email?.toLowerCase() !== SUPER_ADMIN_EMAIL &&
+        new Date(u.created_at).getTime() >= cutoff
+      );
+
+      const { data: existing } = await admin
+        .from("subscribers")
+        .select("id, user_id, email, subscribed, subscription_end");
+
+      const activeIds = new Set((existing ?? []).filter((s: any) =>
+        s.subscribed && (!s.subscription_end || new Date(s.subscription_end) > new Date())
+      ).map((s: any) => s.user_id));
+      const activeEmails = new Set((existing ?? []).filter((s: any) =>
+        s.subscribed && (!s.subscription_end || new Date(s.subscription_end) > new Date())
+      ).map((s: any) => (s.email ?? "").toLowerCase()));
+      const eligible = newcomers.filter((u) => !activeIds.has(u.id) && !activeEmails.has((u.email ?? "").toLowerCase()));
+
+      for (const u of eligible) {
+        const existingSub = (existing ?? []).find((s: any) =>
+          s.user_id === u.id || (s.email ?? "").toLowerCase() === (u.email ?? "").toLowerCase()
+        );
+
+        if (existingSub?.id) {
+          const { error } = await admin
+            .from("subscribers")
+            .update({
+              user_id: u.id,
+              email: u.email,
+              subscribed: true,
+              subscription_tier: "Pro",
+              subscription_end: endIso,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingSub.id);
+          if (error) throw error;
+        } else {
+          const { error } = await admin
+            .from("subscribers")
+            .insert({
+              user_id: u.id,
+              email: u.email,
+              subscribed: true,
+              subscription_tier: "Pro",
+              subscription_end: endIso,
+            });
+          if (error) throw error;
+        }
+      }
+
+      if (eligible.length) {
+        await admin.from("notifications").insert(eligible.map((u) => ({
+          user_id: u.id,
+          type: "premium_granted",
+          title: "🎁 You got 10 days of Cutzioo Pro",
+          body: `Welcome to Cutzioo. Your premium features are unlocked until ${new Date(endIso).toLocaleDateString()}.`,
+        })));
+      }
+
+      return new Response(JSON.stringify({ ok: true, gifted: eligible.length, subscription_end: endIso }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { user_id, email, subscribed, subscription_tier, subscription_end } = body ?? {};
     if (!user_id || !email) {
       return new Response(JSON.stringify({ error: "user_id and email required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

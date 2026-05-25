@@ -233,15 +233,12 @@ export function LoginForm() {
 
   return (
     <div
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#060a14] via-[#0b1224] to-[#131b34] p-4 text-foreground md:p-10"
+      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,#20242d_0%,#0b0c10_38%,#050506_100%)] p-4 text-foreground md:p-10"
     >
-      <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-
       <div className="relative w-full max-w-sm">
-        <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:p-8 shadow-2xl backdrop-blur-2xl">
+        <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.06] p-6 sm:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
           <div className="flex flex-col items-center space-y-2 text-center mb-6">
-            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-rose shadow-rose ring-1 ring-white/20">
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[22px] bg-white/[0.08] ring-1 ring-white/15">
               <img src="/logo.svg" alt="Cutzio" className="h-9 w-9 object-contain brightness-0 invert" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-white">
@@ -257,7 +254,7 @@ export function LoginForm() {
             onClick={handleGoogle}
             disabled={isLoading}
             variant="outline"
-            className="w-full mb-4 h-11 rounded-2xl bg-white text-[#1C1C1E] hover:bg-white/90 border-0 font-medium gap-2"
+            className="w-full mb-4 h-11 rounded-[18px] bg-white text-[#1C1C1E] hover:bg-white/90 border-0 font-medium gap-2"
           >
             <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
               <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
@@ -275,16 +272,16 @@ export function LoginForm() {
           </div>
 
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
-            <TabsList className="grid h-11 w-full grid-cols-2 gap-1 rounded-2xl bg-white/5 p-1">
+            <TabsList className="grid h-11 w-full grid-cols-2 gap-1 rounded-full bg-white/5 p-1">
               <TabsTrigger
                 value="signin"
-                className="h-9 rounded-xl text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+                className="h-9 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
               >
                 Sign in
               </TabsTrigger>
               <TabsTrigger
                 value="signup"
-                className="h-9 rounded-xl text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+                className="h-9 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
               >
                 Sign up
               </TabsTrigger>

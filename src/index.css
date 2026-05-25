@@ -21,27 +21,27 @@ html, body, #root {
 @layer base {
   :root {
     /* Cutzio — Deep Blue + Rose */
-    --background: 222 47% 6%;
+    --background: 220 18% 5%;
     --foreground: 210 25% 96%;
-    --card: 222 40% 10%;
+    --card: 220 14% 9%;
     --card-foreground: 210 25% 96%;
-    --popover: 222 40% 10%;
+    --popover: 220 14% 9%;
     --popover-foreground: 210 25% 96%;
-    --primary: 346 77% 55%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 350 89% 65%;
-    --secondary: 222 30% 14%;
+    --primary-glow: 199 89% 62%;
+    --secondary: 220 12% 14%;
     --secondary-foreground: 210 25% 96%;
-    --muted: 222 25% 14%;
+    --muted: 220 10% 14%;
     --muted-foreground: 220 12% 62%;
-    --accent: 346 77% 55%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 25% 16%;
-    --input: 222 25% 14%;
-    --ring: 346 77% 55%;
-    --radius: 1.25rem;
+    --border: 220 10% 18%;
+    --input: 220 10% 14%;
+    --ring: 217 91% 60%;
+    --radius: 1.5rem;
     --success: 142 65% 50%;
     --warning: 38 92% 55%;
 
@@ -52,10 +52,10 @@ html, body, #root {
     --chart-4: 220 15% 45%;
     --chart-5: 346 60% 70%;
 
-    --gradient-brand: linear-gradient(135deg, #060a14 0%, #0b1224 45%, #131b34 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(346 77% 55%), hsl(350 89% 65%));
+    --gradient-brand: linear-gradient(135deg, #050506 0%, #111317 48%, #1d2027 100%);
+    --gradient-rose: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 62%));
     --gradient-sky: linear-gradient(135deg, hsl(222 50% 35%), hsl(222 60% 50%));
-    --shadow-rose: 0 10px 40px -10px hsl(346 77% 55% / 0.45);
+    --shadow-rose: 0 10px 40px -10px hsl(217 91% 60% / 0.24);
     --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
 
     --glass-background: rgba(255, 255, 255, 0.05);
@@ -64,17 +64,17 @@ html, body, #root {
     --glass-blur: blur(16px);
     --prismatic-gradient: linear-gradient(135deg,
         rgba(255, 255, 255, 0.06) 0%,
-        rgba(225, 29, 72, 0.14) 50%,
+        rgba(255, 255, 255, 0.08) 50%,
         rgba(255, 255, 255, 0.06) 100%);
 
-    --sidebar-background: 222 47% 7%;
+    --sidebar-background: 220 18% 6%;
     --sidebar-foreground: 220 12% 70%;
-    --sidebar-primary: 346 77% 55%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 30% 12%;
+    --sidebar-accent: 220 12% 12%;
     --sidebar-accent-foreground: 210 20% 96%;
-    --sidebar-border: 222 25% 14%;
-    --sidebar-ring: 346 77% 55%;
+    --sidebar-border: 220 10% 16%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .light {
@@ -84,7 +84,7 @@ html, body, #root {
     --card-foreground: 220 13% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 9%;
-    --primary: 338 92% 42%;
+    --primary: 217 91% 48%;
     --primary-foreground: 0 0% 98%;
     --secondary: 220 13% 96%;
     --secondary-foreground: 220 13% 9%;
@@ -96,7 +96,7 @@ html, body, #root {
     --destructive-foreground: 0 0% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 338 92% 42%;
+    --ring: 217 91% 48%;
 
     /* Light mode glass variables */
     --glass-background: rgba(255, 255, 255, 0.7);
@@ -106,12 +106,12 @@ html, body, #root {
     /* Sidebar variables mapped to light theme */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 13% 45%;
-    --sidebar-primary: 338 92% 42%;
+    --sidebar-primary: 217 91% 48%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 220 13% 96%;
     --sidebar-accent-foreground: 220 13% 9%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 338 92% 42%;
+    --sidebar-ring: 217 91% 48%;
   }
   .dark {
     --destructive-foreground: var(--color-red-400);
