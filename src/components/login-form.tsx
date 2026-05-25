@@ -685,6 +685,23 @@ export function LoginForm() {
               </TabsContent>
             </Tabs>
         </div>
+
+        {/* Minimal footer */}
+        <div className="mt-6 flex flex-col items-center gap-3 text-center">
+          <div className="text-[11px] text-white/40">
+            <span className="text-white/60 font-medium">Get 1 month premium</span> by signing up
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-white/30">
+            <span>Trusted by</span>
+            <span className="text-white/50 font-medium">700+ barbers</span>
+            <span className="flex gap-1 ml-1">
+              <span>👍</span>
+              <span>❤️</span>
+              <span>🔥</span>
+              <span>⭐</span>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
