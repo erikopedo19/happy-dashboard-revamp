@@ -51,9 +51,10 @@ Deno.serve(async (req) => {
       }
       const ids = all.map((u) => u.id);
 
-      const [{ data: profiles }, { data: subs }] = await Promise.all([
+      const [{ data: profiles }, { data: subs }, { data: authSettings }] = await Promise.all([
         admin.from("profiles").select("id, full_name, business_name, avatar_url, role").in("id", ids),
         admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, updated_at"),
+        admin.from("app_settings").select("value").eq("key", "auth").maybeSingle(),
       ]);
       const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
       const sByUser = new Map((subs ?? []).filter((s: any) => s.user_id).map((s: any) => [s.user_id, s]));
@@ -76,13 +77,29 @@ Deno.serve(async (req) => {
         };
       });
 
-      return new Response(JSON.stringify({ users: rows }), {
+      return new Response(JSON.stringify({ users: rows, settings: { auth: authSettings?.value ?? { show_google_button: true } } }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // POST: upsert subscription
     const body = await req.json().catch(() => ({}));
+
+    if (body?.action === "update_auth_settings") {
+      const showGoogleButton = body?.show_google_button !== false;
+      const { error } = await admin
+        .from("app_settings")
+        .upsert({
+          key: "auth",
+          value: { show_google_button: showGoogleButton },
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "key" });
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ ok: true, settings: { auth: { show_google_button: showGoogleButton } } }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (body?.action === "gift_newcomers") {
       const days = Number(body?.days ?? 10);

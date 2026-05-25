@@ -31,6 +31,7 @@ export function LoginForm() {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [showGoogleButton, setShowGoogleButton] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
@@ -49,6 +50,23 @@ export function LoginForm() {
     confirmPassword: "",
     role: "client" as "barber" | "client",
   });
+
+  useEffect(() => {
+    let mounted = true;
+    supabase
+      .from("app_settings" as any)
+      .select("value")
+      .eq("key", "auth")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!mounted) return;
+        const value = (data as any)?.value;
+        setShowGoogleButton(value?.show_google_button !== false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -249,27 +267,31 @@ export function LoginForm() {
             </p>
           </div>
 
-          <Button
-            type="button"
-            onClick={handleGoogle}
-            disabled={isLoading}
-            variant="outline"
-            className="w-full mb-4 h-11 rounded-[18px] bg-white text-[#1C1C1E] hover:bg-white/90 border-0 font-medium gap-2"
-          >
-            <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
-              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
-              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 7 29.4 5 24 5 16.3 5 9.6 9.1 6.3 14.7z"/>
-              <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 35 26.8 36 24 36c-5.3 0-9.7-3.1-11.3-7.9l-6.5 5C9.5 39.7 16.2 44 24 44z"/>
-              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3C40.7 36.2 44 30.6 44 24c0-1.2-.1-2.3-.4-3.5z"/>
-            </svg>
-            Continue with Google
-          </Button>
+          {showGoogleButton && (
+            <>
+              <Button
+                type="button"
+                onClick={handleGoogle}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full mb-4 h-11 rounded-[18px] bg-white text-[#1C1C1E] hover:bg-white/90 border-0 font-medium gap-2"
+              >
+                <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
+                  <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
+                  <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 7 29.4 5 24 5 16.3 5 9.6 9.1 6.3 14.7z"/>
+                  <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 35 26.8 36 24 36c-5.3 0-9.7-3.1-11.3-7.9l-6.5 5C9.5 39.7 16.2 44 24 44z"/>
+                  <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3C40.7 36.2 44 30.6 44 24c0-1.2-.1-2.3-.4-3.5z"/>
+                </svg>
+                Continue with Google
+              </Button>
 
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-[11px] uppercase tracking-wider text-white/40">or email</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-[11px] uppercase tracking-wider text-white/40">or email</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+            </>
+          )}
 
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
             <TabsList className="grid h-11 w-full grid-cols-2 gap-1 rounded-full bg-white/5 p-1">

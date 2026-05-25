@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -56,7 +56,8 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"users" | "campaigns" | "gifts">("users");
+  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings">("users");
+  const [showGoogleButton, setShowGoogleButton] = useState(true);
   const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
   const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
@@ -98,6 +99,7 @@ export default function SuperAdminDashboard() {
       toast.error("Failed to load users", { description: error.message });
     } else {
       setRows(data?.users ?? []);
+      setShowGoogleButton(data?.settings?.auth?.show_google_button !== false);
     }
     setBusy(false);
   };
@@ -145,6 +147,21 @@ export default function SuperAdminDashboard() {
       const count = data?.gifted ?? newcomers.length;
       toast.success(`Gifted 10 days premium to ${count} newcomer${count !== 1 ? "s" : ""}`);
       load();
+    }
+  };
+
+  const updateGoogleButton = async (next: boolean) => {
+    setShowGoogleButton(next);
+    setSaving(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "update_auth_settings", show_google_button: next },
+    });
+    setSaving(false);
+    if (error) {
+      toast.error("Setting update failed", { description: error.message });
+      setShowGoogleButton(!next);
+    } else {
+      toast.success(next ? "Google button enabled" : "Google button hidden");
     }
   };
 
@@ -212,7 +229,7 @@ export default function SuperAdminDashboard() {
       {/* Tab nav */}
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
         <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
-          {(["users", "campaigns", "gifts"] as const).map((t) => (
+          {(["users", "campaigns", "gifts", "settings"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -220,8 +237,8 @@ export default function SuperAdminDashboard() {
                 tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : <Gift className="w-3.5 h-3.5" />}
-              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : "Gift"}
+              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : "Settings"}
             </button>
           ))}
         </div>
@@ -362,6 +379,28 @@ export default function SuperAdminDashboard() {
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Gift className="w-4 h-4 mr-2" />}
                 Gift 10 days to all newcomers
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
+      )}
+
+      {tab === "settings" && (
+      <motion.div key="settings" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <Card className="rounded-3xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> App settings</CardTitle>
+              <CardDescription>Control global sign-in and platform features.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-4 rounded-3xl border border-border p-5">
+                <div>
+                  <div className="font-medium">Show Google sign-in button</div>
+                  <div className="text-sm text-muted-foreground">Turn this off to remove the Google button from the auth page for everyone.</div>
+                </div>
+                <Switch checked={showGoogleButton} disabled={saving} onCheckedChange={updateGoogleButton} />
+              </div>
             </CardContent>
           </Card>
         </div>
