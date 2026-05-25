@@ -554,50 +554,6 @@ export function LoginForm() {
                 </form>
               </TabsContent>
             </Tabs>
-          </div>
-
-          <div className="relative hidden min-h-[620px] overflow-hidden bg-gradient-to-br from-[#0A84FF] via-[#5856D6] to-[#AF52DE] p-8 md:flex md:items-center md:justify-center">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_30%),radial-gradient(circle_at_75%_65%,rgba(255,255,255,0.22),transparent_35%)]" />
-            <div className="absolute right-10 top-10 h-24 w-24 animate-bounce rounded-[28px] bg-white/15 backdrop-blur-xl [animation-duration:4s]" />
-            <div className="absolute bottom-16 left-10 h-32 w-32 animate-pulse rounded-full bg-white/15 blur-sm" />
-            <div className="relative w-full max-w-sm">
-              <div className="animate-in fade-in zoom-in-95 duration-700 rounded-[36px] border border-white/25 bg-white/20 p-5 shadow-2xl backdrop-blur-2xl">
-                <div className="rounded-[28px] bg-white/90 p-4 text-[#1D1D1F] shadow-xl">
-                  <div className="mb-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-[#8E8E93]">Today</p>
-                      <p className="text-2xl font-bold">12 bookings</p>
-                    </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#34C759] text-white">
-                      <CalendarCheck className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {["Fade & beard", "Classic cut", "Color refresh"].map((item, index) => (
-                      <div key={item} className="flex items-center justify-between rounded-2xl bg-[#F2F2F7] p-3">
-                        <div>
-                          <p className="text-sm font-semibold">{item}</p>
-                          <p className="text-xs text-[#8E8E93]">{9 + index}:30 · confirmed</p>
-                        </div>
-                        <div className="h-2.5 w-2.5 rounded-full bg-[#34C759]" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 text-white">
-                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
-                    <ShieldCheck className="mb-3 h-5 w-5" />
-                    <p className="text-sm font-semibold">Secure auth</p>
-                  </div>
-                  <div className="rounded-3xl bg-white/15 p-4 backdrop-blur-xl">
-                    <Sparkles className="mb-3 h-5 w-5" />
-                    <p className="text-sm font-semibold">Live stats</p>
-                    <p className="text-xs text-white/75">Always fresh</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
