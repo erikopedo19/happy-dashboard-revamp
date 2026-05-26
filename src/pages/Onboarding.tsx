@@ -25,6 +25,15 @@ export type OnboardingDraft = {
   workingDays: number[];
   startHour: string;
   endHour: string;
+  // Barber extras
+  goal: "grow" | "organize" | "fill_slots" | "solo" | null;
+  heardFrom: "instagram" | "tiktok" | "friend" | "search" | "other" | null;
+  acceptsWaitlist: boolean;
+  // Client extras
+  clientLookingFor: string[];
+  clientBudget: "low" | "mid" | "premium" | null;
+  clientRadiusKm: number;
+  clientFullName: string;
 };
 
 const DEFAULT_DRAFT: OnboardingDraft = {
@@ -39,6 +48,13 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   workingDays: [1, 2, 3, 4, 5],
   startHour: "09:00",
   endHour: "18:00",
+  goal: null,
+  heardFrom: null,
+  acceptsWaitlist: true,
+  clientLookingFor: [],
+  clientBudget: null,
+  clientRadiusKm: 10,
+  clientFullName: "",
 };
 
 const DAYS = [
@@ -49,6 +65,23 @@ const DAYS = [
 const PRESET_SERVICES = [
   "Haircut", "Beard Trim", "Fade", "Shave",
   "Hair Color", "Kids Cut", "Styling", "Wash",
+];
+
+const CLIENT_LOOKING = ["Haircut", "Beard Trim", "Fade", "Shave", "Hair Color", "Styling"];
+const GOALS: { k: OnboardingDraft["goal"]; label: string; desc: string }[] = [
+  { k: "grow", label: "Grow my clientele", desc: "Get discovered by new clients." },
+  { k: "organize", label: "Organize my agenda", desc: "Stop juggling DMs and missed bookings." },
+  { k: "fill_slots", label: "Fill empty slots", desc: "Use the waitlist when someone cancels." },
+  { k: "solo", label: "Just go solo", desc: "Simple booking for my regulars." },
+];
+const HEARD: { k: OnboardingDraft["heardFrom"]; label: string }[] = [
+  { k: "instagram", label: "Instagram" }, { k: "tiktok", label: "TikTok" },
+  { k: "friend", label: "A friend" }, { k: "search", label: "Google" }, { k: "other", label: "Other" },
+];
+const BUDGETS: { k: OnboardingDraft["clientBudget"]; label: string; desc: string }[] = [
+  { k: "low", label: "$", desc: "Best value" },
+  { k: "mid", label: "$$", desc: "Mid-range" },
+  { k: "premium", label: "$$$", desc: "Premium" },
 ];
 
 export default function Onboarding() {
