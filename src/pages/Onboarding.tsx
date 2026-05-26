@@ -25,6 +25,15 @@ export type OnboardingDraft = {
   workingDays: number[];
   startHour: string;
   endHour: string;
+  // Barber extras
+  goal: "grow" | "organize" | "fill_slots" | "solo" | null;
+  heardFrom: "instagram" | "tiktok" | "friend" | "search" | "other" | null;
+  acceptsWaitlist: boolean;
+  // Client extras
+  clientLookingFor: string[];
+  clientBudget: "low" | "mid" | "premium" | null;
+  clientRadiusKm: number;
+  clientFullName: string;
 };
 
 const DEFAULT_DRAFT: OnboardingDraft = {
@@ -39,6 +48,13 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   workingDays: [1, 2, 3, 4, 5],
   startHour: "09:00",
   endHour: "18:00",
+  goal: null,
+  heardFrom: null,
+  acceptsWaitlist: true,
+  clientLookingFor: [],
+  clientBudget: null,
+  clientRadiusKm: 10,
+  clientFullName: "",
 };
 
 const DAYS = [
@@ -49,6 +65,23 @@ const DAYS = [
 const PRESET_SERVICES = [
   "Haircut", "Beard Trim", "Fade", "Shave",
   "Hair Color", "Kids Cut", "Styling", "Wash",
+];
+
+const CLIENT_LOOKING = ["Haircut", "Beard Trim", "Fade", "Shave", "Hair Color", "Styling"];
+const GOALS: { k: OnboardingDraft["goal"]; label: string; desc: string }[] = [
+  { k: "grow", label: "Grow my clientele", desc: "Get discovered by new clients." },
+  { k: "organize", label: "Organize my agenda", desc: "Stop juggling DMs and missed bookings." },
+  { k: "fill_slots", label: "Fill empty slots", desc: "Use the waitlist when someone cancels." },
+  { k: "solo", label: "Just go solo", desc: "Simple booking for my regulars." },
+];
+const HEARD: { k: OnboardingDraft["heardFrom"]; label: string }[] = [
+  { k: "instagram", label: "Instagram" }, { k: "tiktok", label: "TikTok" },
+  { k: "friend", label: "A friend" }, { k: "search", label: "Google" }, { k: "other", label: "Other" },
+];
+const BUDGETS: { k: OnboardingDraft["clientBudget"]; label: string; desc: string }[] = [
+  { k: "low", label: "$", desc: "Best value" },
+  { k: "mid", label: "$$", desc: "Mid-range" },
+  { k: "premium", label: "$$$", desc: "Premium" },
 ];
 
 export default function Onboarding() {
@@ -69,17 +102,25 @@ export default function Onboarding() {
   const update = <K extends keyof OnboardingDraft>(k: K, v: OnboardingDraft[K]) =>
     setData((p) => ({ ...p, [k]: v }));
 
-  // Client path is simple (just role) → straight to auth.
   const isClient = data.role === "client";
-  const steps = isClient ? 1 : 5; // 0 welcome/role, 1 work type, 2 identity, 3 location, 4 services/hours
+  // Barber: 0 role, 1 work type, 2 identity, 3 location, 4 services/hours, 5 goal, 6 heard-from + waitlist
+  // Client: 0 role, 1 looking-for, 2 budget+radius, 3 name
+  const steps = isClient ? 4 : 7;
 
   const canNext = () => {
     if (step === 0) return data.role !== null;
-    if (isClient) return true;
+    if (isClient) {
+      if (step === 1) return data.clientLookingFor.length > 0;
+      if (step === 2) return data.clientBudget !== null;
+      if (step === 3) return true; // name optional
+      return true;
+    }
     if (step === 1) return data.workType !== null;
     if (step === 2) return data.businessName.trim().length > 1;
     if (step === 3) return true;
     if (step === 4) return data.workingDays.length > 0;
+    if (step === 5) return data.goal !== null;
+    if (step === 6) return true;
     return true;
   };
 
@@ -90,10 +131,11 @@ export default function Onboarding() {
 
   const handleNext = () => {
     if (!canNext()) return;
-    const last = isClient ? 0 : 4;
+    const last = steps - 1;
     if (step < last) setStep(step + 1);
     else finish();
   };
+
 
   const progress = ((step + 1) / steps) * 100;
 
@@ -322,6 +364,153 @@ export default function Onboarding() {
                   </div>
                 </>
               )}
+
+              {!isClient && step === 5 && (
+                <>
+                  <Header title="What's your main goal?" subtitle="We'll highlight the right features for you." />
+                  <div className="grid gap-3">
+                    {GOALS.map((g) => (
+                      <RoleCard
+                        key={g.k!}
+                        active={data.goal === g.k}
+                        onClick={() => update("goal", g.k)}
+                        icon={<Sparkles className="h-5 w-5" />}
+                        title={g.label}
+                        desc={g.desc}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {!isClient && step === 6 && (
+                <>
+                  <Header title="One last thing" subtitle="How did you find us?" />
+                  <div className="flex flex-wrap gap-2">
+                    {HEARD.map((h) => {
+                      const active = data.heardFrom === h.k;
+                      return (
+                        <button
+                          key={h.k!}
+                          type="button"
+                          onClick={() => update("heardFrom", h.k)}
+                          className={cn(
+                            "rounded-full border px-4 py-2 text-xs font-medium transition-all active:scale-95",
+                            active
+                              ? "border-transparent bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
+                              : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                          )}
+                        >
+                          {h.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:border-white/20 transition">
+                    <input
+                      type="checkbox"
+                      checked={data.acceptsWaitlist}
+                      onChange={(e) => update("acceptsWaitlist", e.target.checked)}
+                      className="mt-1 h-4 w-4 accent-rose-500"
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-white">Enable cancellation waitlist</div>
+                      <div className="text-xs text-white/55 mt-0.5">
+                        When a booking cancels, the next client in line gets emailed automatically. Fills empty slots fast.
+                      </div>
+                    </div>
+                  </label>
+                </>
+              )}
+
+              {isClient && step === 1 && (
+                <>
+                  <Header title="What are you looking for?" subtitle="Pick anything you might book." />
+                  <div className="flex flex-wrap gap-2">
+                    {CLIENT_LOOKING.map((s) => {
+                      const active = data.clientLookingFor.includes(s);
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() =>
+                            update("clientLookingFor", active
+                              ? data.clientLookingFor.filter((x) => x !== s)
+                              : [...data.clientLookingFor, s])
+                          }
+                          className={cn(
+                            "rounded-full border px-4 py-2 text-xs font-medium transition-all active:scale-95",
+                            active
+                              ? "border-transparent bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
+                              : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                          )}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {isClient && step === 2 && (
+                <>
+                  <Header title="Your style" subtitle="Helps us surface the right barbers." />
+                  <div className="space-y-3">
+                    <Label className="text-[11px] uppercase tracking-wider text-white/50">Budget</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {BUDGETS.map((b) => {
+                        const active = data.clientBudget === b.k;
+                        return (
+                          <button
+                            key={b.k!}
+                            type="button"
+                            onClick={() => update("clientBudget", b.k)}
+                            className={cn(
+                              "rounded-2xl border p-4 text-center transition-all active:scale-95",
+                              active
+                                ? "border-rose-400/60 bg-rose-500/10"
+                                : "border-white/10 bg-white/5 hover:border-white/20"
+                            )}
+                          >
+                            <div className="text-lg font-semibold text-white">{b.label}</div>
+                            <div className="text-[11px] text-white/55 mt-0.5">{b.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] uppercase tracking-wider text-white/50">Travel radius</Label>
+                      <span className="text-xs text-white/70 font-medium">{data.clientRadiusKm} km</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={50}
+                      value={data.clientRadiusKm}
+                      onChange={(e) => update("clientRadiusKm", parseInt(e.target.value))}
+                      className="w-full accent-rose-500"
+                    />
+                  </div>
+                </>
+              )}
+
+              {isClient && step === 3 && (
+                <>
+                  <Header title="What should we call you?" subtitle="Optional — we use this on your bookings." />
+                  <Field label="Full name" icon={<UserIcon className="h-4 w-4" />}>
+                    <DarkInput
+                      value={data.clientFullName}
+                      onChange={(e) => update("clientFullName", e.target.value)}
+                      placeholder="e.g. Alex Johnson"
+                    />
+                  </Field>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -342,7 +531,7 @@ export default function Onboarding() {
             disabled={!canNext()}
             className="ml-auto flex-1 h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-sm font-semibold shadow-lg shadow-rose-900/40"
           >
-            {(isClient && step === 0) || (!isClient && step === 4) ? (
+            {step === steps - 1 ? (
               <>Create account <Check className="ml-1 h-4 w-4" /></>
             ) : (
               <>Continue <ArrowRight className="ml-1 h-4 w-4" /></>
