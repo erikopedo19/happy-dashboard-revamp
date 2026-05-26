@@ -67,9 +67,21 @@ const LandingRoute = () => {
     return <Navigate to="/admin" replace />;
   }
 
+  // First-time visitors: show onboarding before login
+  const seenOnboarding = (() => {
+    try {
+      return localStorage.getItem("cutzio_seen_onboarding") === "1"
+        || !!localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    } catch { return false; }
+  })();
+  if (!seenOnboarding) {
+    try { localStorage.setItem("cutzio_seen_onboarding", "1"); } catch {}
+    return <Navigate to="/onboarding" replace />;
+  }
+
   // Logged out → marketing landing page
   return <Landing />;
-};
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
