@@ -38,6 +38,12 @@ export function useFinalizeOnboarding() {
         await supabase.auth.updateUser({ data: { role: draft.role } });
 
         if (draft.role === "client") {
+          if (draft.clientFullName?.trim()) {
+            await supabase
+              .from("profiles")
+              .update({ full_name: draft.clientFullName.trim(), updated_at: new Date().toISOString() } as any)
+              .eq("id", user.id);
+          }
           localStorage.removeItem(ONBOARDING_STORAGE_KEY);
           toast.success("Welcome to Cutzio!");
           navigate("/find-barber", { replace: true });
