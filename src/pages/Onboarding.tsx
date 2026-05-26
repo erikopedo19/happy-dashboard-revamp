@@ -364,6 +364,153 @@ export default function Onboarding() {
                   </div>
                 </>
               )}
+
+              {!isClient && step === 5 && (
+                <>
+                  <Header title="What's your main goal?" subtitle="We'll highlight the right features for you." />
+                  <div className="grid gap-3">
+                    {GOALS.map((g) => (
+                      <RoleCard
+                        key={g.k!}
+                        active={data.goal === g.k}
+                        onClick={() => update("goal", g.k)}
+                        icon={<Sparkles className="h-5 w-5" />}
+                        title={g.label}
+                        desc={g.desc}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {!isClient && step === 6 && (
+                <>
+                  <Header title="One last thing" subtitle="How did you find us?" />
+                  <div className="flex flex-wrap gap-2">
+                    {HEARD.map((h) => {
+                      const active = data.heardFrom === h.k;
+                      return (
+                        <button
+                          key={h.k!}
+                          type="button"
+                          onClick={() => update("heardFrom", h.k)}
+                          className={cn(
+                            "rounded-full border px-4 py-2 text-xs font-medium transition-all active:scale-95",
+                            active
+                              ? "border-transparent bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
+                              : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                          )}
+                        >
+                          {h.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:border-white/20 transition">
+                    <input
+                      type="checkbox"
+                      checked={data.acceptsWaitlist}
+                      onChange={(e) => update("acceptsWaitlist", e.target.checked)}
+                      className="mt-1 h-4 w-4 accent-rose-500"
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-white">Enable cancellation waitlist</div>
+                      <div className="text-xs text-white/55 mt-0.5">
+                        When a booking cancels, the next client in line gets emailed automatically. Fills empty slots fast.
+                      </div>
+                    </div>
+                  </label>
+                </>
+              )}
+
+              {isClient && step === 1 && (
+                <>
+                  <Header title="What are you looking for?" subtitle="Pick anything you might book." />
+                  <div className="flex flex-wrap gap-2">
+                    {CLIENT_LOOKING.map((s) => {
+                      const active = data.clientLookingFor.includes(s);
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() =>
+                            update("clientLookingFor", active
+                              ? data.clientLookingFor.filter((x) => x !== s)
+                              : [...data.clientLookingFor, s])
+                          }
+                          className={cn(
+                            "rounded-full border px-4 py-2 text-xs font-medium transition-all active:scale-95",
+                            active
+                              ? "border-transparent bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
+                              : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                          )}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {isClient && step === 2 && (
+                <>
+                  <Header title="Your style" subtitle="Helps us surface the right barbers." />
+                  <div className="space-y-3">
+                    <Label className="text-[11px] uppercase tracking-wider text-white/50">Budget</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {BUDGETS.map((b) => {
+                        const active = data.clientBudget === b.k;
+                        return (
+                          <button
+                            key={b.k!}
+                            type="button"
+                            onClick={() => update("clientBudget", b.k)}
+                            className={cn(
+                              "rounded-2xl border p-4 text-center transition-all active:scale-95",
+                              active
+                                ? "border-rose-400/60 bg-rose-500/10"
+                                : "border-white/10 bg-white/5 hover:border-white/20"
+                            )}
+                          >
+                            <div className="text-lg font-semibold text-white">{b.label}</div>
+                            <div className="text-[11px] text-white/55 mt-0.5">{b.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] uppercase tracking-wider text-white/50">Travel radius</Label>
+                      <span className="text-xs text-white/70 font-medium">{data.clientRadiusKm} km</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={50}
+                      value={data.clientRadiusKm}
+                      onChange={(e) => update("clientRadiusKm", parseInt(e.target.value))}
+                      className="w-full accent-rose-500"
+                    />
+                  </div>
+                </>
+              )}
+
+              {isClient && step === 3 && (
+                <>
+                  <Header title="What should we call you?" subtitle="Optional — we use this on your bookings." />
+                  <Field label="Full name" icon={<UserIcon className="h-4 w-4" />}>
+                    <DarkInput
+                      value={data.clientFullName}
+                      onChange={(e) => update("clientFullName", e.target.value)}
+                      placeholder="e.g. Alex Johnson"
+                    />
+                  </Field>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
