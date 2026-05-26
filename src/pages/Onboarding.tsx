@@ -1,0 +1,415 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Scissors, User as UserIcon, Users, Building2, Briefcase,
+  MapPin, Calendar, ArrowRight, ArrowLeft, Check, Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const ONBOARDING_STORAGE_KEY = "cutzio_onboarding_v1";
+
+export type OnboardingDraft = {
+  role: "barber" | "client" | null;
+  workType: "solo" | "team" | null;
+  businessName: string;
+  yearsExperience: string;
+  address: string;
+  city: string;
+  description: string;
+  services: string[];
+  workingDays: number[];
+  startHour: string;
+  endHour: string;
+};
+
+const DEFAULT_DRAFT: OnboardingDraft = {
+  role: null,
+  workType: null,
+  businessName: "",
+  yearsExperience: "",
+  address: "",
+  city: "",
+  description: "",
+  services: [],
+  workingDays: [1, 2, 3, 4, 5],
+  startHour: "09:00",
+  endHour: "18:00",
+};
+
+const DAYS = [
+  { n: 1, l: "Mon" }, { n: 2, l: "Tue" }, { n: 3, l: "Wed" },
+  { n: 4, l: "Thu" }, { n: 5, l: "Fri" }, { n: 6, l: "Sat" }, { n: 0, l: "Sun" },
+];
+
+const PRESET_SERVICES = [
+  "Haircut", "Beard Trim", "Fade", "Shave",
+  "Hair Color", "Kids Cut", "Styling", "Wash",
+];
+
+export default function Onboarding() {
+  const navigate = useNavigate();
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState<OnboardingDraft>(() => {
+    try {
+      const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (raw) return { ...DEFAULT_DRAFT, ...JSON.parse(raw) };
+    } catch {}
+    return DEFAULT_DRAFT;
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
+  }, [data]);
+
+  const update = <K extends keyof OnboardingDraft>(k: K, v: OnboardingDraft[K]) =>
+    setData((p) => ({ ...p, [k]: v }));
+
+  // Client path is simple (just role) → straight to auth.
+  const isClient = data.role === "client";
+  const steps = isClient ? 1 : 5; // 0 welcome/role, 1 work type, 2 identity, 3 location, 4 services/hours
+
+  const canNext = () => {
+    if (step === 0) return data.role !== null;
+    if (isClient) return true;
+    if (step === 1) return data.workType !== null;
+    if (step === 2) return data.businessName.trim().length > 1;
+    if (step === 3) return true;
+    if (step === 4) return data.workingDays.length > 0;
+    return true;
+  };
+
+  const finish = () => {
+    try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
+    navigate("/auth", { replace: true });
+  };
+
+  const handleNext = () => {
+    if (!canNext()) return;
+    const last = isClient ? 0 : 4;
+    if (step < last) setStep(step + 1);
+    else finish();
+  };
+
+  const progress = ((step + 1) / steps) * 100;
+
+  return (
+    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#0a0a1f] text-white">
+      {/* Apple-style ambient blurs (rose + blue) */}
+      <div className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-rose-500/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl" />
+
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-xl flex-col px-5 py-8">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 shadow-lg shadow-rose-900/40">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">Welcome</p>
+              <h1 className="text-base font-semibold tracking-tight">Cutzio</h1>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/auth")}
+            className="text-xs font-medium text-white/60 hover:text-white transition"
+          >
+            Sign in
+          </button>
+        </div>
+
+        {/* Progress */}
+        <div className="mb-8">
+          <div className="mb-2 flex items-center justify-between text-[11px] text-white/50">
+            <span>Step {step + 1} of {steps}</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-rose-400 to-blue-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            />
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div className="flex-1">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step + (isClient ? "-c" : "-b")}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-6"
+            >
+              {step === 0 && (
+                <>
+                  <Header
+                    title="Let's get you set up"
+                    subtitle="A few quick questions — no account needed yet."
+                  />
+                  <div className="grid gap-3">
+                    <RoleCard
+                      active={data.role === "barber"}
+                      onClick={() => update("role", "barber")}
+                      icon={<Scissors className="h-5 w-5" />}
+                      title="I'm a Barber"
+                      desc="I want to manage bookings and grow my chair."
+                    />
+                    <RoleCard
+                      active={data.role === "client"}
+                      onClick={() => update("role", "client")}
+                      icon={<UserIcon className="h-5 w-5" />}
+                      title="I'm a Client"
+                      desc="I want to find and book a barber nearby."
+                    />
+                  </div>
+                </>
+              )}
+
+              {!isClient && step === 1 && (
+                <>
+                  <Header title="How do you work?" subtitle="We'll tailor your setup." />
+                  <div className="grid gap-3">
+                    <RoleCard
+                      active={data.workType === "solo"}
+                      onClick={() => update("workType", "solo")}
+                      icon={<UserIcon className="h-5 w-5" />}
+                      title="Solo Barber"
+                      desc="Independent chair, just me."
+                    />
+                    <RoleCard
+                      active={data.workType === "team"}
+                      onClick={() => update("workType", "team")}
+                      icon={<Users className="h-5 w-5" />}
+                      title="Team / Barbershop"
+                      desc="I run or work with a team."
+                    />
+                  </div>
+                </>
+              )}
+
+              {!isClient && step === 2 && (
+                <>
+                  <Header
+                    title={data.workType === "team" ? "Your barbershop" : "Your barber identity"}
+                    subtitle="A little about who you are."
+                  />
+                  <Field label={data.workType === "team" ? "Barbershop name" : "Your name / brand"} icon={<Building2 className="h-4 w-4" />}>
+                    <DarkInput
+                      value={data.businessName}
+                      onChange={(e) => update("businessName", e.target.value)}
+                      placeholder={data.workType === "team" ? "e.g. Elite Cuts" : "e.g. Marco Rossi"}
+                    />
+                  </Field>
+                  <Field label="Years of experience" icon={<Briefcase className="h-4 w-4" />}>
+                    <DarkInput
+                      type="number" min={0} max={70}
+                      value={data.yearsExperience}
+                      onChange={(e) => update("yearsExperience", e.target.value)}
+                      placeholder="e.g. 5"
+                    />
+                  </Field>
+                  <Field label="Short bio (optional)">
+                    <Textarea
+                      value={data.description}
+                      onChange={(e) => update("description", e.target.value)}
+                      placeholder="What makes your work special?"
+                      rows={3}
+                      maxLength={400}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-rose-500/40"
+                    />
+                  </Field>
+                </>
+              )}
+
+              {!isClient && step === 3 && (
+                <>
+                  <Header title="Where are you located?" subtitle="Helps clients find you. You can change this later." />
+                  <Field label="Address" icon={<MapPin className="h-4 w-4" />}>
+                    <DarkInput
+                      value={data.address}
+                      onChange={(e) => update("address", e.target.value)}
+                      placeholder="123 Main Street"
+                    />
+                  </Field>
+                  <Field label="City">
+                    <DarkInput
+                      value={data.city}
+                      onChange={(e) => update("city", e.target.value)}
+                      placeholder="New York"
+                    />
+                  </Field>
+                </>
+              )}
+
+              {!isClient && step === 4 && (
+                <>
+                  <Header title="Services & hours" subtitle="Pick what you offer and when you work." />
+                  <div className="space-y-3">
+                    <Label className="text-xs uppercase tracking-wider text-white/50">Services</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {PRESET_SERVICES.map((s) => {
+                        const active = data.services.includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() =>
+                              update("services", active ? data.services.filter((x) => x !== s) : [...data.services, s])
+                            }
+                            className={cn(
+                              "rounded-full border px-4 py-2 text-xs font-medium transition-all active:scale-95",
+                              active
+                                ? "border-transparent bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
+                                : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                            )}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <Label className="text-xs uppercase tracking-wider text-white/50 flex items-center gap-2">
+                      <Calendar className="h-4 w-4" /> Working days
+                    </Label>
+                    <div className="grid grid-cols-7 gap-2">
+                      {DAYS.map((d) => {
+                        const active = data.workingDays.includes(d.n);
+                        return (
+                          <button
+                            key={d.n}
+                            type="button"
+                            onClick={() =>
+                              update(
+                                "workingDays",
+                                active ? data.workingDays.filter((x) => x !== d.n) : [...data.workingDays, d.n].sort()
+                              )
+                            }
+                            className={cn(
+                              "h-10 rounded-xl text-[11px] font-semibold transition-all active:scale-95",
+                              active
+                                ? "bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
+                                : "bg-white/5 text-white/50 border border-white/10"
+                            )}
+                          >
+                            {d.l}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <Field label="Opens">
+                      <DarkInput type="time" value={data.startHour} onChange={(e) => update("startHour", e.target.value)} />
+                    </Field>
+                    <Field label="Closes">
+                      <DarkInput type="time" value={data.endHour} onChange={(e) => update("endHour", e.target.value)} />
+                    </Field>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 flex items-center gap-3 pt-4">
+          {step > 0 && (
+            <Button
+              variant="ghost"
+              onClick={() => setStep(step - 1)}
+              className="text-white/70 hover:text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="mr-1 h-4 w-4" /> Back
+            </Button>
+          )}
+          <Button
+            onClick={handleNext}
+            disabled={!canNext()}
+            className="ml-auto flex-1 h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-sm font-semibold shadow-lg shadow-rose-900/40"
+          >
+            {(isClient && step === 0) || (!isClient && step === 4) ? (
+              <>Create account <Check className="ml-1 h-4 w-4" /></>
+            ) : (
+              <>Continue <ArrowRight className="ml-1 h-4 w-4" /></>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const Header = ({ title, subtitle }: { title: string; subtitle: string }) => (
+  <div className="space-y-1.5">
+    <h2 className="text-[28px] font-semibold tracking-tight leading-tight">{title}</h2>
+    <p className="text-sm text-white/55">{subtitle}</p>
+  </div>
+);
+
+const Field = ({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) => (
+  <div className="space-y-2">
+    <Label className="text-[11px] uppercase tracking-wider text-white/50 flex items-center gap-1.5">
+      {icon}{label}
+    </Label>
+    {children}
+  </div>
+);
+
+const DarkInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <Input
+    {...props}
+    className={cn(
+      "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-rose-500/40 h-11 rounded-xl",
+      props.className
+    )}
+  />
+);
+
+const RoleCard = ({
+  active, onClick, icon, title, desc,
+}: { active: boolean; onClick: () => void; icon: React.ReactNode; title: string; desc: string }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={cn(
+      "group relative flex w-full items-start gap-4 rounded-2xl border p-5 text-left transition-all active:scale-[0.99]",
+      active
+        ? "border-rose-400/60 bg-rose-500/10 shadow-lg shadow-rose-900/20"
+        : "border-white/10 bg-white/5 hover:border-white/20"
+    )}
+  >
+    <div className={cn(
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all",
+      active ? "bg-gradient-to-br from-rose-500 to-rose-700 text-white" : "bg-white/10 text-white/70"
+    )}>
+      {icon}
+    </div>
+    <div className="flex-1 pt-0.5">
+      <h3 className="font-semibold text-white">{title}</h3>
+      <p className="text-sm text-white/55">{desc}</p>
+    </div>
+    {active && (
+      <motion.div
+        initial={{ scale: 0 }} animate={{ scale: 1 }}
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-rose-700 text-white"
+      >
+        <Check className="h-3.5 w-3.5" />
+      </motion.div>
+    )}
+  </button>
+);
