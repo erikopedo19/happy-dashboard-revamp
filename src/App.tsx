@@ -44,6 +44,8 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
+import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
+import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
@@ -65,11 +67,24 @@ const LandingRoute = () => {
     return <Navigate to="/admin" replace />;
   }
 
+  // First-time visitors: show onboarding before login
+  const seenOnboarding = (() => {
+    try {
+      return localStorage.getItem("cutzio_seen_onboarding") === "1"
+        || !!localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    } catch { return false; }
+  })();
+  if (!seenOnboarding) {
+    try { localStorage.setItem("cutzio_seen_onboarding", "1"); } catch {}
+    return <Navigate to="/onboarding" replace />;
+  }
+
   // Logged out → marketing landing page
   return <Landing />;
-};
+}
 
 function AnimatedRoutes() {
+  useFinalizeOnboarding();
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
@@ -82,6 +97,7 @@ function AnimatedRoutes() {
       >
         <Routes location={location}>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/book/:bookingLink" element={<Booking />} />
           <Route path="/manage/:token" element={<ManageBooking />} />
           <Route path="/review/:token" element={<ReviewPage />} />
