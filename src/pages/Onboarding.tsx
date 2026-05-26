@@ -531,7 +531,7 @@ export default function Onboarding() {
             disabled={!canNext()}
             className="ml-auto flex-1 h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-sm font-semibold shadow-lg shadow-rose-900/40"
           >
-            {(isClient && step === 0) || (!isClient && step === 4) ? (
+            {step === steps - 1 ? (
               <>Create account <Check className="ml-1 h-4 w-4" /></>
             ) : (
               <>Continue <ArrowRight className="ml-1 h-4 w-4" /></>
