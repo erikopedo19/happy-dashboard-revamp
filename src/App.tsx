@@ -84,6 +84,7 @@ const LandingRoute = () => {
 }
 
 function AnimatedRoutes() {
+  useFinalizeOnboarding();
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
