@@ -63,6 +63,7 @@ export function useFinalizeOnboarding() {
             description: draft.description || null,
             years_experience: years,
             is_public: true,
+            accepts_waitlist: !!draft.acceptsWaitlist,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),
           } as any)
