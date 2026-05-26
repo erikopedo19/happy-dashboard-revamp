@@ -44,6 +44,8 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
+import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
+import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 const queryClient = new QueryClient();
 
 const LandingRoute = () => {
