@@ -102,17 +102,25 @@ export default function Onboarding() {
   const update = <K extends keyof OnboardingDraft>(k: K, v: OnboardingDraft[K]) =>
     setData((p) => ({ ...p, [k]: v }));
 
-  // Client path is simple (just role) → straight to auth.
   const isClient = data.role === "client";
-  const steps = isClient ? 1 : 5; // 0 welcome/role, 1 work type, 2 identity, 3 location, 4 services/hours
+  // Barber: 0 role, 1 work type, 2 identity, 3 location, 4 services/hours, 5 goal, 6 heard-from + waitlist
+  // Client: 0 role, 1 looking-for, 2 budget+radius, 3 name
+  const steps = isClient ? 4 : 7;
 
   const canNext = () => {
     if (step === 0) return data.role !== null;
-    if (isClient) return true;
+    if (isClient) {
+      if (step === 1) return data.clientLookingFor.length > 0;
+      if (step === 2) return data.clientBudget !== null;
+      if (step === 3) return true; // name optional
+      return true;
+    }
     if (step === 1) return data.workType !== null;
     if (step === 2) return data.businessName.trim().length > 1;
     if (step === 3) return true;
     if (step === 4) return data.workingDays.length > 0;
+    if (step === 5) return data.goal !== null;
+    if (step === 6) return true;
     return true;
   };
 
@@ -123,10 +131,11 @@ export default function Onboarding() {
 
   const handleNext = () => {
     if (!canNext()) return;
-    const last = isClient ? 0 : 4;
+    const last = steps - 1;
     if (step < last) setStep(step + 1);
     else finish();
   };
+
 
   const progress = ((step + 1) / steps) * 100;
 
