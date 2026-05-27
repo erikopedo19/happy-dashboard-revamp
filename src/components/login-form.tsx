@@ -22,23 +22,29 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
   const { toast } = useToast();
   const { user, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
-  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showGoogleButton, setShowGoogleButton] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"client" | "barber" | null>(null);
-  const [signupStep, setSignupStep] = useState<"onboarding" | "form">("onboarding");
+  const [selectedRole, setSelectedRole] = useState<"client" | "barber" | null>(
+    (searchParams.get("role") as "client" | "barber" | null) ?? null
+  );
+  const [signupStep, setSignupStep] = useState<"onboarding" | "form">(
+    initialMode === "signup" ? "form" : "onboarding"
+  );
 
   const [signInForm, setSignInForm] = useState({
     email: "",
@@ -52,8 +58,22 @@ export function LoginForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "client" as "barber" | "client",
+    role: ((searchParams.get("role") as "barber" | "client") || "client"),
   });
+
+  // Pre-fill from onboarding draft if available
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("cutzio_onboarding_v1");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      setSignUpForm((p) => ({
+        ...p,
+        role: draft?.role || p.role,
+        fullName: p.fullName || draft?.clientFullName || draft?.businessName || "",
+      }));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     let mounted = true;
