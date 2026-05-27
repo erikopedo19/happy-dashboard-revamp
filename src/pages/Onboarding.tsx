@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,14 +86,21 @@ const BUDGETS: { k: OnboardingDraft["clientBudget"]; label: string; desc: string
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
+  const [params] = useSearchParams();
+  const presetRole = params.get("role") as "barber" | "client" | null;
+
   const [data, setData] = useState<OnboardingDraft>(() => {
     try {
       const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (raw) return { ...DEFAULT_DRAFT, ...JSON.parse(raw) };
-    } catch {}
-    return DEFAULT_DRAFT;
+      const base = raw ? { ...DEFAULT_DRAFT, ...JSON.parse(raw) } : DEFAULT_DRAFT;
+      return presetRole ? { ...base, role: presetRole } : base;
+    } catch {
+      return presetRole ? { ...DEFAULT_DRAFT, role: presetRole } : DEFAULT_DRAFT;
+    }
   });
+
+  // If role is preset via URL, skip the role-selection step
+  const [step, setStep] = useState(presetRole ? 1 : 0);
 
   useEffect(() => {
     try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
@@ -103,8 +110,6 @@ export default function Onboarding() {
     setData((p) => ({ ...p, [k]: v }));
 
   const isClient = data.role === "client";
-  // Barber: 0 role, 1 work type, 2 identity, 3 location, 4 services/hours, 5 goal, 6 heard-from + waitlist
-  // Client: 0 role, 1 looking-for, 2 budget+radius, 3 name
   const steps = isClient ? 4 : 7;
 
   const canNext = () => {
