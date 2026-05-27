@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,14 +86,21 @@ const BUDGETS: { k: OnboardingDraft["clientBudget"]; label: string; desc: string
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
+  const [params] = useSearchParams();
+  const presetRole = params.get("role") as "barber" | "client" | null;
+
   const [data, setData] = useState<OnboardingDraft>(() => {
     try {
       const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (raw) return { ...DEFAULT_DRAFT, ...JSON.parse(raw) };
-    } catch {}
-    return DEFAULT_DRAFT;
+      const base = raw ? { ...DEFAULT_DRAFT, ...JSON.parse(raw) } : DEFAULT_DRAFT;
+      return presetRole ? { ...base, role: presetRole } : base;
+    } catch {
+      return presetRole ? { ...DEFAULT_DRAFT, role: presetRole } : DEFAULT_DRAFT;
+    }
   });
+
+  // If role is preset via URL, skip the role-selection step
+  const [step, setStep] = useState(presetRole ? 1 : 0);
 
   useEffect(() => {
     try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
@@ -103,8 +110,6 @@ export default function Onboarding() {
     setData((p) => ({ ...p, [k]: v }));
 
   const isClient = data.role === "client";
-  // Barber: 0 role, 1 work type, 2 identity, 3 location, 4 services/hours, 5 goal, 6 heard-from + waitlist
-  // Client: 0 role, 1 looking-for, 2 budget+radius, 3 name
   const steps = isClient ? 4 : 7;
 
   const canNext = () => {
@@ -140,17 +145,17 @@ export default function Onboarding() {
   const progress = ((step + 1) / steps) * 100;
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#0a0a1f] text-white">
+    <div className="h-[100dvh] w-full relative overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#0a0a1f] text-white">
       {/* Apple-style ambient blurs (rose + blue) */}
       <div className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-rose-500/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-xl flex-col px-5 py-8">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-xl flex-col px-4 pt-4 pb-[env(safe-area-inset-bottom)] sm:px-5 sm:pt-6">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 shadow-lg shadow-rose-900/40">
-              <Sparkles className="h-5 w-5 text-white" />
+        <div className="mb-3 flex items-center justify-between sm:mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 shadow-lg shadow-rose-900/40">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">Welcome</p>
@@ -167,8 +172,8 @@ export default function Onboarding() {
         </div>
 
         {/* Progress */}
-        <div className="mb-8">
-          <div className="mb-2 flex items-center justify-between text-[11px] text-white/50">
+        <div className="mb-3 sm:mb-5">
+          <div className="mb-1.5 flex items-center justify-between text-[10px] text-white/50">
             <span>Step {step + 1} of {steps}</span>
             <span>{Math.round(progress)}%</span>
           </div>
@@ -182,8 +187,8 @@ export default function Onboarding() {
           </div>
         </div>
 
-        {/* Steps */}
-        <div className="flex-1">
+        {/* Steps (internal scroll only if needed) */}
+        <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={step + (isClient ? "-c" : "-b")}
@@ -191,7 +196,7 @@ export default function Onboarding() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-6"
+              className="space-y-4 sm:space-y-6 pb-2"
             >
               {step === 0 && (
                 <>
@@ -515,13 +520,13 @@ export default function Onboarding() {
           </AnimatePresence>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 flex items-center gap-3 pt-4">
-          {step > 0 && (
+        {/* Footer (sticky inside flex column) */}
+        <div className="mt-3 flex items-center gap-2 pt-2 pb-3 sm:mt-4">
+          {step > (presetRole ? 1 : 0) && (
             <Button
               variant="ghost"
               onClick={() => setStep(step - 1)}
-              className="text-white/70 hover:text-white hover:bg-white/10"
+              className="text-white/70 hover:text-white hover:bg-white/10 h-11"
             >
               <ArrowLeft className="mr-1 h-4 w-4" /> Back
             </Button>
@@ -544,9 +549,9 @@ export default function Onboarding() {
 }
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => (
-  <div className="space-y-1.5">
-    <h2 className="text-[28px] font-semibold tracking-tight leading-tight">{title}</h2>
-    <p className="text-sm text-white/55">{subtitle}</p>
+  <div className="space-y-1">
+    <h2 className="text-[22px] sm:text-[28px] font-semibold tracking-tight leading-tight">{title}</h2>
+    <p className="text-[13px] sm:text-sm text-white/55">{subtitle}</p>
   </div>
 );
 

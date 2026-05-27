@@ -563,7 +563,7 @@ export function LoginForm() {
                     </div>
                     <Button
                       type="button"
-                      onClick={() => setSignupStep("form")}
+                      onClick={() => navigate(`/onboarding?role=${selectedRole ?? "barber"}`)}
                       className="w-full rounded-full bg-white text-black hover:bg-white/90"
                     >
                       Get started
