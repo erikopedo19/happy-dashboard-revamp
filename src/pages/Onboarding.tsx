@@ -145,17 +145,17 @@ export default function Onboarding() {
   const progress = ((step + 1) / steps) * 100;
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#0a0a1f] text-white">
+    <div className="h-[100dvh] w-full relative overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#0a0a1f] text-white">
       {/* Apple-style ambient blurs (rose + blue) */}
       <div className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-rose-500/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-xl flex-col px-5 py-8">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-xl flex-col px-4 pt-4 pb-[env(safe-area-inset-bottom)] sm:px-5 sm:pt-6">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 shadow-lg shadow-rose-900/40">
-              <Sparkles className="h-5 w-5 text-white" />
+        <div className="mb-3 flex items-center justify-between sm:mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 shadow-lg shadow-rose-900/40">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">Welcome</p>
@@ -172,8 +172,8 @@ export default function Onboarding() {
         </div>
 
         {/* Progress */}
-        <div className="mb-8">
-          <div className="mb-2 flex items-center justify-between text-[11px] text-white/50">
+        <div className="mb-3 sm:mb-5">
+          <div className="mb-1.5 flex items-center justify-between text-[10px] text-white/50">
             <span>Step {step + 1} of {steps}</span>
             <span>{Math.round(progress)}%</span>
           </div>
@@ -187,8 +187,8 @@ export default function Onboarding() {
           </div>
         </div>
 
-        {/* Steps */}
-        <div className="flex-1">
+        {/* Steps (internal scroll only if needed) */}
+        <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={step + (isClient ? "-c" : "-b")}
@@ -196,7 +196,7 @@ export default function Onboarding() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-6"
+              className="space-y-4 sm:space-y-6 pb-2"
             >
               {step === 0 && (
                 <>
@@ -520,13 +520,13 @@ export default function Onboarding() {
           </AnimatePresence>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 flex items-center gap-3 pt-4">
-          {step > 0 && (
+        {/* Footer (sticky inside flex column) */}
+        <div className="mt-3 flex items-center gap-2 pt-2 pb-3 sm:mt-4">
+          {step > (presetRole ? 1 : 0) && (
             <Button
               variant="ghost"
               onClick={() => setStep(step - 1)}
-              className="text-white/70 hover:text-white hover:bg-white/10"
+              className="text-white/70 hover:text-white hover:bg-white/10 h-11"
             >
               <ArrowLeft className="mr-1 h-4 w-4" /> Back
             </Button>
