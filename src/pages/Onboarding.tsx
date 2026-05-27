@@ -549,9 +549,9 @@ export default function Onboarding() {
 }
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => (
-  <div className="space-y-1.5">
-    <h2 className="text-[28px] font-semibold tracking-tight leading-tight">{title}</h2>
-    <p className="text-sm text-white/55">{subtitle}</p>
+  <div className="space-y-1">
+    <h2 className="text-[22px] sm:text-[28px] font-semibold tracking-tight leading-tight">{title}</h2>
+    <p className="text-[13px] sm:text-sm text-white/55">{subtitle}</p>
   </div>
 );
 
