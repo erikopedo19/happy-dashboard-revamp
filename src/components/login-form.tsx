@@ -58,8 +58,22 @@ export function LoginForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "client" as "barber" | "client",
+    role: ((searchParams.get("role") as "barber" | "client") || "client"),
   });
+
+  // Pre-fill from onboarding draft if available
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("cutzio_onboarding_v1");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      setSignUpForm((p) => ({
+        ...p,
+        role: draft?.role || p.role,
+        fullName: p.fullName || draft?.clientFullName || draft?.businessName || "",
+      }));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     let mounted = true;
