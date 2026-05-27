@@ -131,7 +131,7 @@ export default function Onboarding() {
 
   const finish = () => {
     try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
-    navigate("/auth", { replace: true });
+    navigate("/auth?mode=signup", { replace: true });
   };
 
   const handleNext = () => {
