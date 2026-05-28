@@ -10,8 +10,8 @@ import { format, parseISO, isToday, subDays, isAfter, addDays } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-  Area, AreaChart, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip,
-  CartesianGrid, Line, ComposedChart, PieChart, Pie, Cell, RadialBarChart, RadialBar,
+  Area, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip,
+  CartesianGrid, Line, ComposedChart, PieChart, Pie, Cell,
 } from "recharts";
 import { motion } from "framer-motion";
 
