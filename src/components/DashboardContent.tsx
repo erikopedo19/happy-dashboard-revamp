@@ -513,7 +513,7 @@ function Legend() {
 }
 
 function MiniStat({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone?: 'rose' | 'blue' }) {
-  const iconTone = tone === 'rose' ? 'text-[#e11d48] bg-[#e11d48]/10' : tone === 'blue' ? 'text-[#3b82f6] bg-[#3b82f6]/10' : 'text-white/70 bg-white/5';
+  const iconTone = tone === 'rose' ? 'text-[#f43f5e] bg-white/5' : tone === 'blue' ? 'text-[#3b82f6] bg-[#3b82f6]/10' : 'text-white/70 bg-white/5';
   return (
     <div className="bg-[#1a0509] rounded-3xl border border-white/[0.04] px-4 py-3.5 flex items-center gap-3">
       <div className={`h-9 w-9 rounded-2xl flex items-center justify-center shrink-0 ${iconTone}`}>
@@ -533,7 +533,7 @@ function DeltaPill({ value }: { value: number }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-        positive ? 'text-emerald-300 bg-emerald-500/10' : 'text-[#e11d48] bg-[#e11d48]/10'
+        positive ? 'text-emerald-300 bg-emerald-500/10' : 'text-[#f43f5e] bg-white/5'
       }`}
     >
       {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
