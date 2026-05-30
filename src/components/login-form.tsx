@@ -329,13 +329,9 @@ export function LoginForm() {
                       key={key}
                       type="button"
                       onClick={() => {
-                        if (key === "client") {
-                          navigate("/find-barber");
-                        } else {
-                          setSelectedRole(key as "client" | "barber");
-                          setSignInForm((p) => ({ ...p, role: key as "client" | "barber" }));
-                          setSignUpForm((p) => ({ ...p, role: key as "client" | "barber" }));
-                        }
+                        setSelectedRole(key as "client" | "barber");
+                        setSignInForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                        setSignUpForm((p) => ({ ...p, role: key as "client" | "barber" }));
                       }}
                       className="flex flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition-all hover:bg-white/[0.09] hover:border-white/20 active:scale-[0.98]"
                     >
