@@ -131,18 +131,21 @@ export function LoginForm() {
 
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       const existingRole = currentUser?.user_metadata?.role as string | undefined;
-
-      if (!existingRole && currentUser) {
+      // Honor the role the user picked on the role-selector screen.
+      // If they explicitly chose a role here, sync it to their metadata
+      // (covers users who previously signed up as the other role).
+      const chosenRole = signInForm.role;
+      if (currentUser && chosenRole && existingRole !== chosenRole) {
         await supabase.auth.updateUser({
-          data: { role: signInForm.role },
+          data: { role: chosenRole },
         });
       }
 
-      const redirectRole = existingRole || signInForm.role;
-      if (redirectRole === "client") {
-        navigate("/find-barber", { replace: true });
-      } else {
+      const redirectRole = chosenRole || existingRole;
+      if (redirectRole === "barber") {
         navigate("/admin", { replace: true });
+      } else {
+        navigate("/find-barber", { replace: true });
       }
 
       toast({
@@ -352,6 +355,37 @@ export function LoginForm() {
                   ))}
 
                 </div>
+
+                {/* Trust strip */}
+                <div className="mt-6 grid w-full grid-cols-3 gap-2">
+                  {[
+                    { k: "12k+", v: "Cuts booked" },
+                    { k: "4.9★", v: "Avg rating" },
+                    { k: "<30s", v: "To book" },
+                  ].map((s) => (
+                    <div
+                      key={s.v}
+                      className="rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-2 text-center"
+                    >
+                      <div className="font-['Sora'] text-sm font-semibold tabular-nums text-white">
+                        {s.k}
+                      </div>
+                      <div className="text-[10px] text-white/45">{s.v}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Quote */}
+                <div className="mt-4 w-full rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+                  <div className="flex items-center gap-2 text-[10px] text-white/45">
+                    <ShieldCheck className="h-3 w-3" />
+                    Trusted by independent barbers across Europe
+                  </div>
+                </div>
+
+                <p className="mt-5 text-center text-[10px] text-white/35">
+                  By continuing you agree to our Terms & Privacy.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
