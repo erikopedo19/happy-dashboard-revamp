@@ -131,18 +131,21 @@ export function LoginForm() {
 
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       const existingRole = currentUser?.user_metadata?.role as string | undefined;
-
-      if (!existingRole && currentUser) {
+      // Honor the role the user picked on the role-selector screen.
+      // If they explicitly chose a role here, sync it to their metadata
+      // (covers users who previously signed up as the other role).
+      const chosenRole = signInForm.role;
+      if (currentUser && chosenRole && existingRole !== chosenRole) {
         await supabase.auth.updateUser({
-          data: { role: signInForm.role },
+          data: { role: chosenRole },
         });
       }
 
-      const redirectRole = existingRole || signInForm.role;
-      if (redirectRole === "client") {
-        navigate("/find-barber", { replace: true });
-      } else {
+      const redirectRole = chosenRole || existingRole;
+      if (redirectRole === "barber") {
         navigate("/admin", { replace: true });
+      } else {
+        navigate("/find-barber", { replace: true });
       }
 
       toast({
