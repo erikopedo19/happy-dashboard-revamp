@@ -328,10 +328,18 @@ export function LoginForm() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() => {
-                        setSelectedRole(key as "client" | "barber");
-                        setSignInForm((p) => ({ ...p, role: key as "client" | "barber" }));
-                        setSignUpForm((p) => ({ ...p, role: key as "client" | "barber" }));
+                      onClick={async () => {
+                        const role = key as "client" | "barber";
+                        setSelectedRole(role);
+                        setSignInForm((p) => ({ ...p, role }));
+                        setSignUpForm((p) => ({ ...p, role }));
+                        // If already authenticated, set role and go directly to the right home.
+                        if (user) {
+                          try {
+                            await supabase.auth.updateUser({ data: { role } });
+                          } catch {}
+                          navigate(role === "barber" ? "/admin" : "/find-barber", { replace: true });
+                        }
                       }}
                       className="flex flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition-all hover:bg-white/[0.09] hover:border-white/20 active:scale-[0.98]"
                     >
@@ -342,6 +350,7 @@ export function LoginForm() {
                       <div className="text-[11px] text-white/50">{desc}</div>
                     </button>
                   ))}
+
                 </div>
               </motion.div>
             )}
