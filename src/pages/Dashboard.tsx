@@ -77,19 +77,63 @@ function MobileDashboard() {
   }, [appointments]);
 
   const last30 = appointments.filter((a) => isAfter(parseISO(a.appointment_date), subDays(new Date(), 30)));
+  const prev30 = appointments.filter((a) => {
+    const d = parseISO(a.appointment_date);
+    return isAfter(d, subDays(new Date(), 60)) && !isAfter(d, subDays(new Date(), 30));
+  });
   const completed = last30.filter((a) => a.status === "completed").length;
+  const cancelled = last30.filter((a) => a.status === "cancelled").length;
+  const scheduled = last30.filter((a) => a.status === "scheduled").length;
   const completionRate = last30.length ? Math.round((completed / last30.length) * 100) : 0;
+  const last30Revenue = last30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+  const prev30Revenue = prev30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+  const revenueDelta = prev30Revenue > 0 ? Math.round(((last30Revenue - prev30Revenue) / prev30Revenue) * 100) : 0;
   const avgTicket = last30.length
     ? Math.round(last30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0) / last30.length)
     : 0;
 
+  // Top services by revenue (last 30d)
+  const topServices = useMemo(() => {
+    const map = new Map<string, { name: string; revenue: number; count: number }>();
+    last30.forEach((a) => {
+      const name = a.service?.name || "Other";
+      const rev = Number(a.price || a.service?.price || 0);
+      const prev = map.get(name) || { name, revenue: 0, count: 0 };
+      map.set(name, { name, revenue: prev.revenue + rev, count: prev.count + 1 });
+    });
+    return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 4);
+  }, [last30]);
+  const topServiceMax = topServices[0]?.revenue || 1;
+
+  // Hourly demand (last 30d)
+  const hourly = useMemo(() => {
+    const buckets: { h: number; count: number }[] = Array.from({ length: 12 }).map((_, i) => ({ h: i + 8, count: 0 }));
+    last30.forEach((a) => {
+      const t = (a.appointment_time || "").slice(0, 2);
+      const h = parseInt(t, 10);
+      const idx = buckets.findIndex((b) => b.h === h);
+      if (idx >= 0) buckets[idx].count += 1;
+    });
+    return buckets;
+  }, [last30]);
+  const peakHour = hourly.reduce((m, b) => (b.count > m.count ? b : m), hourly[0]);
+
+  // Status mix
+  const statusMix = [
+    { name: "Done", value: completed, color: "#22c55e" },
+    { name: "Upcoming", value: scheduled, color: "#3b82f6" },
+    { name: "Cancelled", value: cancelled, color: "#ef4444" },
+  ].filter((s) => s.value > 0);
+
   const weekDays = Array.from({ length: 5 }).map((_, i) => {
     const d = addDays(weekStart, i);
+    const dayCount = appointments.filter((a) => isSameDay(parseISO(a.appointment_date), d) && a.status !== "cancelled").length;
     return {
       label: format(d, "EEE").toUpperCase(),
       date: format(d, "d"),
       isToday: isSameDay(d, new Date()),
       iso: format(d, "yyyy-MM-dd"),
+      count: dayCount,
     };
   });
 
