@@ -355,6 +355,37 @@ export function LoginForm() {
                   ))}
 
                 </div>
+
+                {/* Trust strip */}
+                <div className="mt-6 grid w-full grid-cols-3 gap-2">
+                  {[
+                    { k: "12k+", v: "Cuts booked" },
+                    { k: "4.9★", v: "Avg rating" },
+                    { k: "<30s", v: "To book" },
+                  ].map((s) => (
+                    <div
+                      key={s.v}
+                      className="rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-2 text-center"
+                    >
+                      <div className="font-['Sora'] text-sm font-semibold tabular-nums text-white">
+                        {s.k}
+                      </div>
+                      <div className="text-[10px] text-white/45">{s.v}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Quote */}
+                <div className="mt-4 w-full rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+                  <div className="flex items-center gap-2 text-[10px] text-white/45">
+                    <ShieldCheck className="h-3 w-3" />
+                    Trusted by independent barbers across Europe
+                  </div>
+                </div>
+
+                <p className="mt-5 text-center text-[10px] text-white/35">
+                  By continuing you agree to our Terms & Privacy.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
