@@ -7,11 +7,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, isAfter } from "date-fns";
+import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, isAfter, getHours } from "date-fns";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, BarChart, Bar, Cell, PieChart, Pie } from "recharts";
 import { useMemo } from "react";
+import { TrendingUp, TrendingDown, Clock, Users, CheckCircle2, XCircle } from "lucide-react";
 
 const db = supabase as any;
 
