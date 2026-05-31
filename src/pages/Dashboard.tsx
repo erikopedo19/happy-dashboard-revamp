@@ -220,6 +220,45 @@ function MobileDashboard() {
           <KPI label="Complete" value={`${completionRate}%`} accent="text-[#60a5fa]" numClass={numClass} />
         </motion.div>
 
+        {/* 30-day Revenue card with trend delta */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}
+          className="rounded-3xl bg-[#1a0509] border border-white/[0.04] p-5"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-white/40 text-[11px] uppercase tracking-[0.18em] font-semibold">30-Day Revenue</p>
+              <p className={`${numClass} text-[28px] font-bold text-white mt-1 leading-none`}>
+                €{last30Revenue.toFixed(0)}
+              </p>
+            </div>
+            <div
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                revenueDelta >= 0 ? "bg-[#22c55e]/15 text-[#4ade80]" : "bg-[#ef4444]/15 text-[#f87171]"
+              }`}
+            >
+              {revenueDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {Math.abs(revenueDelta)}%
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className={`${numClass} text-base font-bold text-white`}>{completed}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Done</p>
+            </div>
+            <div className="border-x border-white/5">
+              <p className={`${numClass} text-base font-bold text-[#60a5fa]`}>{scheduled}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Upcoming</p>
+            </div>
+            <div>
+              <p className={`${numClass} text-base font-bold text-[#f87171]`}>{cancelled}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Cancelled</p>
+            </div>
+          </div>
+        </motion.section>
+
         <section className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Week Schedule</h3>
@@ -250,10 +289,101 @@ function MobileDashboard() {
                 >
                   {d.date}
                 </div>
+                <span className={`text-[10px] font-bold ${numClass} ${d.count > 0 ? "text-white/70" : "text-white/20"}`}>
+                  {d.count}
+                </span>
               </motion.button>
             ))}
           </div>
         </section>
+
+        {/* Top services */}
+        {topServices.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-3"
+          >
+            <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Top Services</h3>
+            <div className="rounded-3xl bg-[#1a0509] border border-white/[0.04] p-4 space-y-3">
+              {topServices.map((s, i) => (
+                <div key={s.name} className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-white/85 font-medium truncate">{s.name}</span>
+                    <span className={`text-[12px] text-white/60 ${numClass}`}>€{s.revenue.toFixed(0)} · {s.count}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(s.revenue / topServiceMax) * 100}%` }}
+                      transition={{ delay: 0.15 + i * 0.06, duration: 0.6, ease: "easeOut" }}
+                      className="h-full rounded-full bg-gradient-to-r from-[#60a5fa] to-[#3b82f6]"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Hourly demand + Status mix */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="grid grid-cols-5 gap-3"
+        >
+          <div className="col-span-3 rounded-3xl bg-[#1a0509] border border-white/[0.04] p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Hourly Demand</p>
+                <p className={`${numClass} text-white text-sm font-bold mt-0.5 flex items-center gap-1`}>
+                  <Clock className="h-3 w-3 text-white/40" /> Peak {peakHour?.h ?? "—"}:00
+                </p>
+              </div>
+            </div>
+            <div className="h-20 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={hourly} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                  <Tooltip
+                    contentStyle={{ background: "#0a0203", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 11 }}
+                    formatter={(v: number) => [`${v} bookings`, "Count"]}
+                    labelFormatter={(l) => `${l}:00`}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {hourly.map((b, idx) => (
+                      <Cell key={idx} fill={b.h === peakHour?.h ? "#60a5fa" : "rgba(255,255,255,0.18)"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="col-span-2 rounded-3xl bg-[#1a0509] border border-white/[0.04] p-4">
+            <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Status Mix</p>
+            {statusMix.length > 0 ? (
+              <div className="h-24 mt-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusMix} dataKey="value" innerRadius={22} outerRadius={36} paddingAngle={2}>
+                      {statusMix.map((s) => (
+                        <Cell key={s.name} fill={s.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: "#0a0203", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 11 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-white/30 text-xs mt-3">No data</p>
+            )}
+          </div>
+        </motion.section>
+
 
         <section className="space-y-4">
           <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Today's Appointments</h3>
