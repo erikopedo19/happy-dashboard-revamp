@@ -499,17 +499,17 @@ const Reports = () => {
         <AppSidebar />
 
         <main className="relative flex-1 bg-[#0a0203] flex flex-col overflow-hidden">
-          {/* Vibrant ambient gradient glow (dark mode only) */}
+          {/* Vibrant ambient gradient glow — slowly cycles colors */}
           <div
             aria-hidden
-            className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-44 z-0"
+            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-56 z-0"
             style={{
-              background:
-                "radial-gradient(110% 100% at 15% 0%, rgba(99,102,241,0.32) 0%, rgba(99,102,241,0) 55%), radial-gradient(90% 90% at 85% 0%, rgba(34,211,238,0.22) 0%, rgba(34,211,238,0) 60%), radial-gradient(70% 80% at 50% 0%, rgba(168,85,247,0.18) 0%, rgba(12,12,12,0) 65%)",
+              backgroundImage:
+                "radial-gradient(60% 100% at 15% 0%, rgba(99,102,241,0.40) 0%, rgba(99,102,241,0) 60%), radial-gradient(55% 100% at 85% 0%, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0) 65%), radial-gradient(45% 90% at 50% 0%, rgba(168,85,247,0.24) 0%, rgba(10,2,3,0) 70%)",
               maskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 40%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
               WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 40%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
             }}
           />
 
