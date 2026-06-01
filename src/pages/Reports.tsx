@@ -579,7 +579,7 @@ const Reports = () => {
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
                             analytics.revenueDelta >= 0
                               ? "bg-emerald-500/15 text-emerald-300"
-                              : "bg-[#F2F2F7] text-[#8E8E93] dark:bg-[#2C2C2E]"
+                              : "bg-white/[0.06] text-white/60"
                           }`}
                         >
                           {analytics.revenueDelta >= 0 ? (
@@ -871,7 +871,7 @@ const Reports = () => {
               </section>
 
               {/* Booking stats */}
-              <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] dark:hover:shadow-[0_8px_40px_rgba(14,165,233,0.22)]">
+              <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] ">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-5">
                     <div>
@@ -1013,7 +1013,7 @@ const Reports = () => {
                         >
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
-                              index === 0 ? "bg-white text-[#0a0203]" : "bg-[#3A3A3C] dark:bg-[#3A3A3C]"
+                              index === 0 ? "bg-white text-[#0a0203]" : "bg-white/10 text-white"
                             }`}
                           >
                             {index === 0 ? <Crown className="w-4 h-4" /> : index + 1}
@@ -1280,7 +1280,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                         <div className="flex items-center gap-1.5">
                           <p className="font-semibold text-sm text-white truncate">{c.name}</p>
                           {i === 0 && (
-                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
+                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white text-[#0a0203]">
                               VIP
                             </span>
                           )}
@@ -1359,7 +1359,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                       className={`w-4 h-4 ${
                         s <= Math.round(avgRating)
                           ? "fill-[#FFCC00] text-[#FFCC00]"
-                          : "text-[#E5E5EA] dark:text-[#3A3A3C]"
+                          : "text-white/15"
                       }`}
                     />
                   ))}
@@ -1398,7 +1398,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                           className={`w-3.5 h-3.5 ${
                             s <= r.rating
                               ? "fill-[#FFCC00] text-[#FFCC00]"
-                              : "text-[#E5E5EA] dark:text-[#3A3A3C]"
+                              : "text-white/15"
                           }`}
                         />
                       ))}
@@ -1413,7 +1413,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                     </p>
                   )}
                   {r.comment && (
-                    <p className="text-sm text-[#3A3A3C] dark:text-[#C6C6C8] leading-relaxed">
+                    <p className="text-sm text-white/75 leading-relaxed">
                       &ldquo;{r.comment}&rdquo;
                     </p>
                   )}
