@@ -52,7 +52,7 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
       {isActive && (
         <motion.div
           layoutId="dock-active-pill"
-          className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br', item.accent)}
+          className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18)]', item.accent)}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         />
       )}

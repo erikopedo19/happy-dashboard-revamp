@@ -236,6 +236,71 @@ function MobileDashboard() {
           <KPI label="Complete" value={`${completionRate}%`} accent="text-[#60a5fa]" numClass={numClass} />
         </motion.div>
 
+        {/* iOS Concentric Targets Activity Rings Widget - Mobile */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.07, type: "spring", stiffness: 260, damping: 26 }}
+          className="rounded-3xl bg-[#1a0509] border border-white/[0.04] p-5 flex items-center justify-between gap-5"
+        >
+          <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+              {/* Outer: Revenue */}
+              <circle cx="60" cy="60" r="50" stroke="rgba(225,29,72,0.1)" strokeWidth="10" fill="transparent" />
+              <motion.circle
+                cx="60" cy="60" r="50"
+                stroke="#e11d48" strokeWidth="10" fill="transparent"
+                strokeDasharray={2 * Math.PI * 50}
+                initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 50 * (1 - (Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45) / 100) }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+                strokeLinecap="round"
+              />
+              {/* Middle: Capacity */}
+              <circle cx="60" cy="60" r="39" stroke="rgba(59,130,246,0.1)" strokeWidth="10" fill="transparent" />
+              <motion.circle
+                cx="60" cy="60" r="39"
+                stroke="#3b82f6" strokeWidth="10" fill="transparent"
+                strokeDasharray={2 * Math.PI * 39}
+                initial={{ strokeDashoffset: 2 * Math.PI * 39 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 39 * (1 - (Math.min(100, Math.round((todays.length / 12) * 100)) || 35) / 100) }}
+                transition={{ duration: 1.2, delay: 0.15, ease: "easeOut" }}
+                strokeLinecap="round"
+              />
+              {/* Inner: Completion */}
+              <circle cx="60" cy="60" r="28" stroke="rgba(34,197,94,0.1)" strokeWidth="10" fill="transparent" />
+              <motion.circle
+                cx="60" cy="60" r="28"
+                stroke="#22c55e" strokeWidth="10" fill="transparent"
+                strokeDasharray={2 * Math.PI * 28}
+                initial={{ strokeDashoffset: 2 * Math.PI * 28 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 28 * (1 - (completionRate || 0) / 100) }}
+                transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-white/50" />
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-2 min-w-0">
+            <p className="text-white/40 text-[9px] uppercase tracking-widest font-bold">Daily Activity</p>
+            <div className="flex items-center justify-between text-xs font-semibold text-white/80">
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#e11d48]" /> Rev Target</span>
+              <span className="tabular-nums font-['Sora']">{Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45}%</span>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-white/80">
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" /> Capacity</span>
+              <span className="tabular-nums font-['Sora']">{Math.min(100, Math.round((todays.length / 12) * 100)) || 35}%</span>
+            </div>
+            <div className="flex items-center justify-between text-xs font-semibold text-white/80">
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" /> Completed</span>
+              <span className="tabular-nums font-['Sora']">{completionRate}%</span>
+            </div>
+          </div>
+        </motion.section>
+
         {/* 30-day Revenue card with trend delta */}
         <motion.section
           initial={{ opacity: 0, y: 10 }}
@@ -465,11 +530,46 @@ function MobileDashboard() {
 }
 
 function KPI({ label, value, accent, numClass }: { label: string; value: string | number; accent: string; numClass: string }) {
+  const isPendingActive = label === "Pending" && Number(value) > 0;
+
   return (
-    <div className="bg-[#1a0509] p-3.5 rounded-2xl border border-white/[0.04]">
-      <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1.5">{label}</p>
-      <p className={`${numClass} text-lg font-bold ${accent}`}>{value}</p>
-    </div>
+    <motion.div
+      animate={
+        isPendingActive
+          ? {
+              borderColor: [
+                "rgba(244,63,94,0.1)",
+                "rgba(244,63,94,0.45)",
+                "rgba(244,63,94,0.1)",
+              ],
+              boxShadow: [
+                "0 0 0 rgba(244,63,94,0)",
+                "0 0 16px rgba(244,63,94,0.15)",
+                "0 0 0 rgba(244,63,94,0)",
+              ],
+            }
+          : {}
+      }
+      transition={{
+        repeat: Infinity,
+        duration: 2.2,
+        ease: "easeInOut",
+      }}
+      className={`bg-[#1a0509] p-3.5 rounded-2xl border transition-all ${
+        isPendingActive ? "border-rose-500/25" : "border-white/[0.04]"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">{label}</p>
+        {isPendingActive && (
+          <span className="flex h-1.5 w-1.5 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
+          </span>
+        )}
+      </div>
+      <p className={`${numClass} text-lg font-bold ${isPendingActive ? "text-rose-400" : accent}`}>{value}</p>
+    </motion.div>
   );
 }
 

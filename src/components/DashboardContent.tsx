@@ -259,9 +259,9 @@ export function DashboardContent() {
           </div>
         </Surface>
 
-        {/* Hourly + Status + Completion */}
+        {/* Hourly + Status + Completion Activity Rings */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-          <Surface className="lg:col-span-2">
+          <Surface>
             <div className="p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -322,6 +322,8 @@ export function DashboardContent() {
               )}
             </div>
           </Surface>
+
+          <IosActivityRings stats={stats} appointments={appointments} />
         </div>
 
         {/* Week ahead + Upcoming */}
@@ -555,21 +557,60 @@ function Kpi({
   isCount?: boolean;
   index?: number;
 }) {
+  const isPendingActive = title === "Pending" && parseInt(value) > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      animate={
+        isPendingActive
+          ? {
+              opacity: 1,
+              y: 0,
+              borderColor: [
+                "rgba(244,63,94,0.1)",
+                "rgba(244,63,94,0.45)",
+                "rgba(244,63,94,0.1)",
+              ],
+              boxShadow: [
+                "0 0 0 rgba(244,63,94,0)",
+                "0 0 16px rgba(244,63,94,0.15)",
+                "0 0 0 rgba(244,63,94,0)",
+              ],
+            }
+          : { opacity: 1, y: 0 }
+      }
+      transition={
+        isPendingActive
+          ? {
+              borderColor: { repeat: Infinity, duration: 2.2, ease: "easeInOut" },
+              boxShadow: { repeat: Infinity, duration: 2.2, ease: "easeInOut" },
+              default: { delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+            }
+          : { delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+      }
       whileHover={{ scale: 1.015, transition: { duration: 0.15 } }}
-      className="bg-[#1a0509] rounded-3xl border border-white/[0.04] p-5 cursor-default"
+      className={`bg-[#1a0509] rounded-3xl border p-5 cursor-default transition-all ${
+        isPendingActive ? "border-rose-500/25" : "border-white/[0.04]"
+      }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div
-          className={`h-10 w-10 rounded-2xl flex items-center justify-center ${
-            accent ? 'bg-[#e11d48] text-white shadow-lg shadow-[#e11d48]/25' : 'bg-white/5 text-white/70'
+          className={`h-10 w-10 rounded-2xl flex items-center justify-center relative ${
+            isPendingActive
+              ? "bg-[#e11d48]/15 text-[#f43f5e] border border-[#e11d48]/30"
+              : accent
+              ? 'bg-[#e11d48] text-white shadow-lg shadow-[#e11d48]/25'
+              : 'bg-white/5 text-white/70'
           }`}
         >
           <Icon className="h-4 w-4" strokeWidth={2.2} />
+          {isPendingActive && (
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+            </span>
+          )}
         </div>
         {!hideDelta && !isCount && <DeltaPill value={delta} />}
       </div>
@@ -579,5 +620,106 @@ function Kpi({
       </p>
       <p className="text-[11px] sm:text-xs text-white/40 mt-2 truncate">{sub}</p>
     </motion.div>
+  );
+}
+
+function IosActivityRings({ stats, appointments }: { stats: any; appointments: any[] }) {
+  const completionRate = stats.completionRate || 0;
+  const revenuePct = Math.min(100, Math.round((stats.todayRevenue / 500) * 100)) || 45; // daily target €500
+  const capacityPct = Math.min(100, Math.round((stats.todays / 12) * 100)) || 35; // daily target 12 slots
+
+  return (
+    <Surface>
+      <div className="p-5 sm:p-6 h-full flex flex-col justify-between">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Activity rings</p>
+            <h2 className="text-base font-semibold text-white mt-1">Daily targets</h2>
+          </div>
+          <Activity className="h-4 w-4 text-[#e11d48]" />
+        </div>
+
+        <div className="flex items-center justify-between gap-4 my-auto py-1">
+          {/* Concentric rings */}
+          <div className="relative w-[116px] h-[116px] flex items-center justify-center shrink-0">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+              {/* Outer Ring: Revenue */}
+              <circle cx="60" cy="60" r="50" stroke="rgba(225,29,72,0.1)" strokeWidth="9" fill="transparent" />
+              <motion.circle
+                cx="60" cy="60" r="50"
+                stroke="#e11d48" strokeWidth="9" fill="transparent"
+                strokeDasharray={2 * Math.PI * 50}
+                initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 50 * (1 - revenuePct / 100) }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+                strokeLinecap="round"
+              />
+
+              {/* Middle Ring: Capacity */}
+              <circle cx="60" cy="60" r="39" stroke="rgba(59,130,246,0.1)" strokeWidth="9" fill="transparent" />
+              <motion.circle
+                cx="60" cy="60" r="39"
+                stroke="#3b82f6" strokeWidth="9" fill="transparent"
+                strokeDasharray={2 * Math.PI * 39}
+                initial={{ strokeDashoffset: 2 * Math.PI * 39 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 39 * (1 - capacityPct / 100) }}
+                transition={{ duration: 1.2, delay: 0.15, ease: "easeOut" }}
+                strokeLinecap="round"
+              />
+
+              {/* Inner Ring: Completion */}
+              <circle cx="60" cy="60" r="28" stroke="rgba(34,197,94,0.1)" strokeWidth="9" fill="transparent" />
+              <motion.circle
+                cx="60" cy="60" r="28"
+                stroke="#22c55e" strokeWidth="9" fill="transparent"
+                strokeDasharray={2 * Math.PI * 28}
+                initial={{ strokeDashoffset: 2 * Math.PI * 28 }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 28 * (1 - completionRate / 100) }}
+                transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-full bg-[#0f0306] flex items-center justify-center border border-white/5">
+                <TrendingUp className="h-4 w-4 text-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Simple Compact Legend */}
+          <div className="flex-1 space-y-2.5 pl-1.5 min-w-0">
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="flex items-center gap-1 text-white/70 truncate">
+                  <span className="h-2 w-2 rounded-full bg-[#e11d48]" />
+                  Revenue
+                </span>
+                <span className="text-white font-['Sora']">{revenuePct}%</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="flex items-center gap-1 text-white/70 truncate">
+                  <span className="h-2 w-2 rounded-full bg-[#3b82f6]" />
+                  Capacity
+                </span>
+                <span className="text-white font-['Sora']">{capacityPct}%</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="flex items-center gap-1 text-white/70 truncate">
+                  <span className="h-2 w-2 rounded-full bg-[#22c55e]" />
+                  Completion
+                </span>
+                <span className="text-white font-['Sora']">{completionRate}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Surface>
   );
 }

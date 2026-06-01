@@ -439,7 +439,7 @@ export function LoginForm() {
           )}
 
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
-            <TabsList className="grid h-11 w-full grid-cols-2 gap-1 rounded-full bg-white/5 p-1">
+            <TabsList className="grid h-11 w-full grid-cols-2 gap-1 rounded-full bg-white/5 p-1 border border-white/[0.04] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
               <TabsTrigger
                 value="signin"
                 className="h-9 rounded-full text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"

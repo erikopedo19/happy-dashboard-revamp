@@ -371,13 +371,13 @@ const Agenda = () => {
               {/* Right: View Toggle & Navigation */}
               <div className="flex items-center gap-2">
                 {/* View Mode Tabs - iOS Style */}
-                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] rounded-xl p-1">
+                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] border border-gray-200 dark:border-white/5 rounded-xl p-1">
                   <button
                     onClick={() => setViewMode('week')}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
                       viewMode === 'week'
-                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm'
+                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/50 dark:border-white/5'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     )}
                   >
@@ -389,7 +389,7 @@ const Agenda = () => {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
                       viewMode === 'day'
-                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm'
+                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/50 dark:border-white/5'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     )}
                   >
@@ -399,7 +399,7 @@ const Agenda = () => {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] rounded-xl p-1">
+                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] border border-gray-200 dark:border-white/5 rounded-xl p-1">
                   <Button 
                     variant="ghost" 
                     size="icon" 
