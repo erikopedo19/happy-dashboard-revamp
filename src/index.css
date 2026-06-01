@@ -789,3 +789,20 @@ html, body, #root {
   width: 1.5rem;
   height: 1.5rem;
 }
+
+/* Slow color-cycling ambient gradient for dashboards */
+@keyframes ambient-hue {
+  0%   { filter: hue-rotate(0deg)   saturate(1); }
+  50%  { filter: hue-rotate(180deg) saturate(1.15); }
+  100% { filter: hue-rotate(360deg) saturate(1); }
+}
+@keyframes ambient-drift {
+  0%   { background-position: 0% 0%, 100% 0%, 50% 0%; }
+  50%  { background-position: 30% 10%, 70% -10%, 40% 5%; }
+  100% { background-position: 0% 0%, 100% 0%, 50% 0%; }
+}
+.ambient-gradient {
+  background-size: 140% 140%, 130% 130%, 120% 120%;
+  animation: ambient-drift 28s ease-in-out infinite, ambient-hue 40s linear infinite;
+  will-change: filter, background-position;
+}

@@ -44,6 +44,9 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
+import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
+import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -76,9 +79,10 @@ const LandingRoute = () => {
 
   // Logged out → marketing landing page
   return <Landing />;
-};
+}
 
 function AnimatedRoutes() {
+  useFinalizeOnboarding();
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
@@ -91,6 +95,7 @@ function AnimatedRoutes() {
       >
         <Routes location={location}>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/book/:bookingLink" element={<Booking />} />
           <Route path="/manage/:token" element={<ManageBooking />} />
           <Route path="/review/:token" element={<ReviewPage />} />

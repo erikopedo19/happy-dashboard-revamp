@@ -7,11 +7,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, isToday, startOfWeek, addDays, isSameDay } from "date-fns";
+import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, isAfter } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, ChevronRight, TrendingUp, Plus, Scissors, BarChart3, ArrowUpRight, ArrowDownRight, Sparkles, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, BarChart, Bar, Cell, PieChart, Pie } from "recharts";
+import { useMemo } from "react";
+import { TrendingUp, TrendingDown, Clock } from "lucide-react";
 
 const db = supabase as any;
 
@@ -19,11 +20,27 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-white dark:bg-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#0a0203] overflow-hidden font-['Manrope']">
         <AppSidebar />
-        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] flex flex-col overflow-hidden">
-          {isMobile ? <MobileDashboard /> : <DashboardContent />}
-          {isMobile && <MobileDock />}
+        <main className="relative flex-1 bg-[#0a0203] text-white flex flex-col overflow-hidden">
+          {/* Vibrant ambient gradient glow — slowly cycles colors */}
+          <div
+            aria-hidden
+            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-56 z-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(60% 100% at 15% 0%, rgba(99,102,241,0.40) 0%, rgba(99,102,241,0) 60%), radial-gradient(55% 100% at 85% 0%, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0) 65%), radial-gradient(45% 90% at 50% 0%, rgba(168,85,247,0.24) 0%, rgba(10,2,3,0) 70%)",
+              maskImage:
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
+            }}
+          />
+
+          <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+            {isMobile ? <MobileDashboard /> : <DashboardContent />}
+            {isMobile && <MobileDock />}
+          </div>
         </main>
       </div>
     </SidebarProvider>
@@ -34,14 +51,6 @@ function MobileDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
-  })();
-  const firstName = (user?.user_metadata?.full_name || user?.email || "").split(/[\s@]/)[0];
-
   const { data: appointments = [] } = useQuery<any[]>({
     queryKey: ["dashboard-appointments-mobile", user?.id],
     queryFn: async () => {
@@ -51,373 +60,416 @@ function MobileDashboard() {
         .select("*, customer:customers(name, email), service:services(name, price)")
         .eq("user_id", user.id)
         .order("appointment_date", { ascending: false })
-        .limit(300);
+        .limit(500);
       return data || [];
     },
     enabled: !!user,
   });
 
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ["dashboard-customers-mobile", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data } = await db.from("customers").select("id").eq("user_id", user.id);
-      return data || [];
-    },
-    enabled: !!user,
-  });
-
-  const todays = appointments.filter((a) => isToday(parseISO(a.appointment_date)));
-  const todayRevenue = todays.reduce(
-    (s, a) => s + Number(a.price || a.service?.price || 0),
-    0
-  );
+  const todays = appointments
+    .filter((a) => isToday(parseISO(a.appointment_date)) && a.status !== "cancelled")
+    .sort((a, b) => (a.appointment_time || "").localeCompare(b.appointment_time || ""));
   const pending = appointments.filter((a) => a.status === "scheduled").length;
-  const completedToday = todays.filter((a) => a.status === "completed").length;
-  const todayProgress = todays.length > 0 ? Math.round((completedToday / todays.length) * 100) : 0;
 
-  const yesterdayRevenue = (() => {
-    const y = format(addDays(new Date(), -1), "yyyy-MM-dd");
-    return appointments
-      .filter((a) => a.appointment_date === y)
-      .reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
-  })();
-  const revDelta = yesterdayRevenue > 0 ? Math.round(((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100) : null;
-
-  const today = format(new Date(), "yyyy-MM-dd");
-  const upcoming = appointments
-    .filter((a) => a.appointment_date >= today && a.status !== "cancelled")
-    .sort((a, b) =>
-      (a.appointment_date + a.appointment_time).localeCompare(
-        b.appointment_date + b.appointment_time
-      )
-    )
-    .slice(0, 4);
-
-  // 7-day revenue trend
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const trend = Array.from({ length: 7 }).map((_, i) => {
+  const weekRevenue = Array.from({ length: 7 }).reduce<number>((sum, _, i) => {
     const d = addDays(weekStart, i);
-    const dayAppts = appointments.filter((a) => isSameDay(parseISO(a.appointment_date), d));
-    const revenue = dayAppts.reduce(
-      (s, a) => s + Number(a.price || a.service?.price || 0),
-      0
+    return (
+      sum +
+      appointments
+        .filter((a) => isSameDay(parseISO(a.appointment_date), d))
+        .reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0)
     );
-    return { day: format(d, "EEE"), revenue };
+  }, 0);
+
+  const spark = useMemo(() => {
+    return Array.from({ length: 14 }).map((_, i) => {
+      const d = subDays(new Date(), 13 - i);
+      const rev = appointments
+        .filter((a) => isSameDay(parseISO(a.appointment_date), d))
+        .reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+      return { day: format(d, "d"), rev };
+    });
+  }, [appointments]);
+
+  const last30 = appointments.filter((a) => isAfter(parseISO(a.appointment_date), subDays(new Date(), 30)));
+  const prev30 = appointments.filter((a) => {
+    const d = parseISO(a.appointment_date);
+    return isAfter(d, subDays(new Date(), 60)) && !isAfter(d, subDays(new Date(), 30));
   });
-  const weekRevenue = trend.reduce((s, t) => s + t.revenue, 0);
-  const busiestDay = trend.reduce((best, day) => (day.revenue > best.revenue ? day : best), trend[0] || { day: "—", revenue: 0 });
+  const completed = last30.filter((a) => a.status === "completed").length;
+  const cancelled = last30.filter((a) => a.status === "cancelled").length;
+  const scheduled = last30.filter((a) => a.status === "scheduled").length;
+  const completionRate = last30.length ? Math.round((completed / last30.length) * 100) : 0;
+  const last30Revenue = last30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+  const prev30Revenue = prev30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
+  const revenueDelta = prev30Revenue > 0 ? Math.round(((last30Revenue - prev30Revenue) / prev30Revenue) * 100) : 0;
+  const avgTicket = last30.length
+    ? Math.round(last30.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0) / last30.length)
+    : 0;
 
-  const stats = [
-    {
-      label: "Today",
-      value: todays.length.toString(),
-      icon: Calendar,
-      bg: "bg-[#e11d48]/10",
-      color: "text-[#e11d48]",
-    },
-    {
-      label: "Pending",
-      value: pending.toString(),
-      icon: Clock,
-      bg: "bg-[#fb7185]/10",
-      color: "text-[#fb7185]",
-    },
-    {
-      label: "Clients",
-      value: customers.length.toString(),
-      icon: Users,
-      bg: "bg-[#34C759]/10",
-      color: "text-[#34C759]",
-    },
-  ];
+  // Top services by revenue (last 30d)
+  const topServices = useMemo(() => {
+    const map = new Map<string, { name: string; revenue: number; count: number }>();
+    last30.forEach((a) => {
+      const name = a.service?.name || "Other";
+      const rev = Number(a.price || a.service?.price || 0);
+      const prev = map.get(name) || { name, revenue: 0, count: 0 };
+      map.set(name, { name, revenue: prev.revenue + rev, count: prev.count + 1 });
+    });
+    return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 4);
+  }, [last30]);
+  const topServiceMax = topServices[0]?.revenue || 1;
 
-  const quickActions = [
-    { label: "New booking", icon: Plus, path: "/agenda", accent: true },
-    { label: "Services", icon: Scissors, path: "/services", accent: false },
-    { label: "Reports", icon: BarChart3, path: "/reports", accent: false },
-    { label: "Clients", icon: Users, path: "/customers", accent: false },
-  ];
+  // Hourly demand (last 30d)
+  const hourly = useMemo(() => {
+    const buckets: { h: number; count: number }[] = Array.from({ length: 12 }).map((_, i) => ({ h: i + 8, count: 0 }));
+    last30.forEach((a) => {
+      const t = (a.appointment_time || "").slice(0, 2);
+      const h = parseInt(t, 10);
+      const idx = buckets.findIndex((b) => b.h === h);
+      if (idx >= 0) buckets[idx].count += 1;
+    });
+    return buckets;
+  }, [last30]);
+  const peakHour = hourly.reduce((m, b) => (b.count > m.count ? b : m), hourly[0]);
+
+  // Status mix
+  const statusMix = [
+    { name: "Done", value: completed, color: "#22c55e" },
+    { name: "Upcoming", value: scheduled, color: "#3b82f6" },
+    { name: "Cancelled", value: cancelled, color: "#ef4444" },
+  ].filter((s) => s.value > 0);
+
+  const weekDays = Array.from({ length: 5 }).map((_, i) => {
+    const d = addDays(weekStart, i);
+    const dayCount = appointments.filter((a) => isSameDay(parseISO(a.appointment_date), d) && a.status !== "cancelled").length;
+    return {
+      label: format(d, "EEE").toUpperCase(),
+      date: format(d, "d"),
+      isToday: isSameDay(d, new Date()),
+      iso: format(d, "yyyy-MM-dd"),
+      count: dayCount,
+    };
+  });
+
+  const statusChipFor = (a: any) => {
+    if (a.status === "completed") return { label: "Done", cls: "bg-white/5 text-white/45" };
+    if (a.status === "in_progress") return { label: "Active", cls: "bg-[#3b82f6]/15 text-[#60a5fa]" };
+    if (a.status === "scheduled") return { label: "New", cls: "bg-white/10 text-white" };
+    return { label: "Later", cls: "bg-white/5 text-white/40" };
+  };
+
+  const numClass = "font-['Sora'] tabular-nums tracking-tight";
 
   return (
     <>
-      {/* Top bar */}
-      <div className="sticky top-0 z-10 bg-[#F2F2F7]/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl px-5 pt-5 pb-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-[#8E8E93] uppercase tracking-wide font-semibold">
+      <motion.header
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="px-6 pt-6 pb-6 flex justify-between items-end"
+      >
+        <div className="space-y-1">
+          <p className="text-white/40 text-[13px] font-medium">
             {format(new Date(), "EEEE, MMM d")}
           </p>
-          <h1 className="text-[26px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-tight">
-            {greeting}{firstName ? `, ${firstName}` : ""} 👋
+          <h1 className="text-2xl font-bold font-['Sora'] text-white tracking-tight">
+            Cutzio Admin
           </h1>
         </div>
-        <SidebarTrigger className="hover:bg-white/60 dark:hover:bg-[#2C2C2E] transition-colors text-[#1C1C1E] dark:text-[#F2F2F7] rounded-xl" />
-      </div>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="h-10 w-10 rounded-full bg-[#1a0509] border border-white/5 text-white/70 hover:bg-[#1f0710]" />
+          <div className="w-10 h-10 rounded-full bg-[#1a0509] border border-white/5 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#e11d48] to-[#f43f5e]" />
+          </div>
+        </div>
+      </motion.header>
 
-      <div className="flex-1 overflow-auto px-5 pb-32 space-y-5">
-        {/* Hero revenue card */}
-        <motion.div
+      <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-32">
+        <motion.section
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 320, damping: 26 }}
-          className="rounded-3xl bg-white dark:bg-[#2C2C2E] p-5 shadow-sm"
+          transition={{ type: "spring", stiffness: 240, damping: 26 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a0509] via-[#170410] to-[#0a0a1f] border border-white/[0.04] p-5"
         >
-          <div className="flex items-start justify-between mb-1">
+          <div className="flex items-start justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-[#8E8E93]">
-                Today's revenue
+              <p className="text-white/40 text-[11px] uppercase tracking-[0.18em] font-semibold">This Week</p>
+              <p className={`${numClass} text-[34px] font-bold text-white mt-1 leading-none`}>
+                €{weekRevenue.toFixed(0)}
               </p>
-              <p className="text-[34px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-tight tracking-tight">
-                €{todayRevenue.toFixed(0)}
-              </p>
+              <p className="text-white/45 text-xs mt-2">{last30.length} bookings · last 30d</p>
             </div>
-            <div className="flex flex-col items-end gap-1.5">
-              {revDelta !== null && (
-                <span className={`inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  revDelta >= 0
-                    ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40"
-                    : "text-[#e11d48] bg-[#e11d48]/10"
-                }`}>
-                  {revDelta >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  {Math.abs(revDelta)}% vs yest.
-                </span>
-              )}
-              <div className="flex items-center gap-1 text-[#34C759] text-xs font-semibold bg-[#34C759]/10 px-2 py-1 rounded-full">
-                <TrendingUp className="h-3 w-3" />
-                {weekRevenue > 0 ? `€${weekRevenue.toFixed(0)} wk` : "—"}
-              </div>
+            <div className="px-2.5 py-1 rounded-full bg-[#3b82f6]/15 text-[#60a5fa] text-[10px] font-bold uppercase tracking-wider">
+              Live
             </div>
           </div>
-
-          <div className="h-24 -mx-1 mt-2">
+          <div className="h-20 -mx-1 mt-3">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trend} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <AreaChart data={spark} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="dashRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#e11d48" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                  <linearGradient id="mobRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.55} />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis
-                  dataKey="day"
-                  tick={{ fontSize: 10, fill: "#8E8E93" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
                 <Tooltip
-                  cursor={{ stroke: "#e11d48", strokeOpacity: 0.2 }}
-                  contentStyle={{
-                    background: "#fff",
-                    border: "none",
-                    borderRadius: 12,
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                    fontSize: 12,
-                  }}
-                  formatter={(v: any) => [`€${Number(v).toFixed(0)}`, "Revenue"]}
+                  contentStyle={{ background: "#1a0509", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, fontSize: 11 }}
+                  formatter={(v: number) => [`€${v}`, "Revenue"]}
+                  labelFormatter={(l) => `Day ${l}`}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#e11d48"
-                  strokeWidth={2.5}
-                  fill="url(#dashRev)"
-                />
+                <Area type="monotone" dataKey="rev" stroke="#60a5fa" strokeWidth={2} fill="url(#mobRev)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </motion.div>
-
-        {/* KPI 3-up */}
-        <div className="grid grid-cols-3 gap-3">
-          {stats.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * i, type: "spring", stiffness: 360, damping: 26 }}
-                className="rounded-2xl bg-white dark:bg-[#2C2C2E] p-3 shadow-sm"
-              >
-                <div className={`h-8 w-8 rounded-xl ${s.bg} flex items-center justify-center mb-2`}>
-                  <Icon className={`h-4 w-4 ${s.color}`} />
-                </div>
-                <p className="text-[10px] uppercase tracking-wide font-semibold text-[#8E8E93]">
-                  {s.label}
-                </p>
-                <p className="text-xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-0.5">
-                  {s.value}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
+        </motion.section>
 
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12, type: "spring", stiffness: 320, damping: 26 }}
-          className="rounded-3xl bg-gradient-to-br from-[#111113] via-[#1f1116] to-[#2C2C2E] p-4 shadow-[0_18px_48px_rgba(225,29,72,0.16)] overflow-hidden relative"
+          transition={{ delay: 0.05, type: "spring", stiffness: 260, damping: 26 }}
+          className="grid grid-cols-3 gap-3"
         >
-          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#e11d48]/25 blur-3xl" />
-          <div className="relative flex items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/80">
-                <Sparkles className="h-3 w-3 text-[#fb7185]" />
-                Today flow
-              </div>
-              <p className="mt-3 text-2xl font-bold text-white">{completedToday}/{todays.length}</p>
-              <p className="text-xs text-white/50">appointments completed</p>
-            </div>
-            <div className="relative h-20 w-20 rounded-full bg-white/10 p-2">
-              <div
-                className="h-full w-full rounded-full"
-                style={{ background: `conic-gradient(#e11d48 ${todayProgress * 3.6}deg, rgba(255,255,255,0.10) 0deg)` }}
-              />
-              <div className="absolute inset-4 rounded-full bg-[#171113] flex items-center justify-center">
-                <span className="text-sm font-bold text-white">{todayProgress}%</span>
-              </div>
-            </div>
-          </div>
+          <KPI label="Pending" value={pending} accent="text-white" numClass={numClass} />
+          <KPI label="Avg Ticket" value={`€${avgTicket}`} accent="text-white" numClass={numClass} />
+          <KPI label="Complete" value={`${completionRate}%`} accent="text-[#60a5fa]" numClass={numClass} />
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
+        {/* 30-day Revenue card with trend delta */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.18, type: "spring", stiffness: 320, damping: 26 }}
-          className="rounded-3xl bg-white dark:bg-[#2C2C2E] p-4 shadow-sm"
+          transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}
+          className="rounded-3xl bg-[#1a0509] border border-white/[0.04] p-5"
         >
-          <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide font-semibold text-[#8E8E93]">Week pulse</p>
-              <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Best day: {busiestDay.day}</p>
+              <p className="text-white/40 text-[11px] uppercase tracking-[0.18em] font-semibold">30-Day Revenue</p>
+              <p className={`${numClass} text-[28px] font-bold text-white mt-1 leading-none`}>
+                €{last30Revenue.toFixed(0)}
+              </p>
             </div>
-            <div className="inline-flex items-center gap-1 rounded-full bg-[#e11d48]/10 px-2 py-1 text-xs font-semibold text-[#e11d48]">
-              <Target className="h-3 w-3" />
-              €{busiestDay.revenue.toFixed(0)}
+            <div
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                revenueDelta >= 0 ? "bg-[#22c55e]/15 text-[#4ade80]" : "bg-[#ef4444]/15 text-[#f87171]"
+              }`}
+            >
+              {revenueDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {Math.abs(revenueDelta)}%
             </div>
           </div>
-          <div className="grid grid-cols-7 gap-1.5">
-            {trend.map((d, i) => {
-              const max = Math.max(...trend.map((x) => x.revenue), 1);
-              const intensity = d.revenue / max;
-              return (
-                <motion.div
-                  key={d.day}
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.22 + i * 0.035 }}
-                  className="rounded-2xl px-1.5 py-2 text-center"
-                  style={{ backgroundColor: `rgba(225,29,72,${0.06 + intensity * 0.28})` }}
-                >
-                  <p className="text-[10px] font-semibold text-[#8E8E93]">{d.day.slice(0, 1)}</p>
-                  <p className="mt-1 text-[11px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">€{d.revenue.toFixed(0)}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Quick actions */}
-        <div>
-          <p className="text-xs uppercase tracking-wide font-semibold text-[#8E8E93] px-1 mb-2">
-            Quick actions
-          </p>
-          <div className="grid grid-cols-4 gap-2">
-            {quickActions.map((a, i) => {
-              const Icon = a.icon;
-              return (
-                <motion.button
-                  key={a.label}
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.15 + i * 0.06, type: "spring", stiffness: 400, damping: 24 }}
-                  whileTap={{ scale: 0.93 }}
-                  onClick={() => navigate(a.path)}
-                  className="flex flex-col items-center gap-1.5 rounded-2xl bg-white dark:bg-[#2C2C2E] p-3 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center ${a.accent ? "bg-[#e11d48]" : "bg-[#F2F2F7] dark:bg-[#3A3A3C]"}`}>
-                    <Icon className={`h-4 w-4 ${a.accent ? "text-white" : "text-[#1C1C1E] dark:text-[#F2F2F7]"}`} />
-                  </div>
-                  <span className="text-[10px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] text-center leading-tight">
-                    {a.label}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Upcoming */}
-        <div className="rounded-3xl bg-white dark:bg-[#2C2C2E] overflow-hidden shadow-sm">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#F2F2F7] dark:border-[#3A3A3C]">
+          <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             <div>
-              <h2 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                Upcoming
-              </h2>
-              <p className="text-xs text-[#8E8E93]">{upcoming.length} scheduled</p>
+              <p className={`${numClass} text-base font-bold text-white`}>{completed}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Done</p>
             </div>
+            <div className="border-x border-white/5">
+              <p className={`${numClass} text-base font-bold text-[#60a5fa]`}>{scheduled}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Upcoming</p>
+            </div>
+            <div>
+              <p className={`${numClass} text-base font-bold text-[#f87171]`}>{cancelled}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Cancelled</p>
+            </div>
+          </div>
+        </motion.section>
+
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Week Schedule</h3>
             <button
               onClick={() => navigate("/agenda")}
-              className="text-sm font-semibold text-[#e11d48] active:opacity-60"
+              className="text-white/60 text-xs font-bold uppercase tracking-wider active:opacity-60 hover:text-white transition"
             >
-              See all
+              Full View
             </button>
           </div>
+          <div className="flex justify-between">
+            {weekDays.map((d, i) => (
+              <motion.button
+                key={d.iso}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.04 * i }}
+                onClick={() => navigate("/agenda")}
+                className="flex flex-col items-center gap-2"
+              >
+                <span className="text-[10px] text-white/40 font-bold">{d.label}</span>
+                <div
+                  className={
+                    d.isToday
+                      ? `w-10 h-10 rounded-2xl bg-white text-[#0a0203] flex items-center justify-center text-sm font-bold shadow-lg shadow-white/10 ${numClass}`
+                      : `w-10 h-10 rounded-2xl bg-[#1a0509] border border-white/5 flex items-center justify-center text-white/70 text-sm font-bold ${numClass}`
+                  }
+                >
+                  {d.date}
+                </div>
+                <span className={`text-[10px] font-bold ${numClass} ${d.count > 0 ? "text-white/70" : "text-white/20"}`}>
+                  {d.count}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </section>
 
-          {upcoming.length === 0 ? (
-            <div className="py-10 text-center">
-              <Calendar className="h-8 w-8 mx-auto text-[#C6C6C8] mb-2" />
-              <p className="text-sm text-[#8E8E93]">No upcoming bookings</p>
+        {/* Top services */}
+        {topServices.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-3"
+          >
+            <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Top Services</h3>
+            <div className="rounded-3xl bg-[#1a0509] border border-white/[0.04] p-4 space-y-3">
+              {topServices.map((s, i) => (
+                <div key={s.name} className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-white/85 font-medium truncate">{s.name}</span>
+                    <span className={`text-[12px] text-white/60 ${numClass}`}>€{s.revenue.toFixed(0)} · {s.count}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(s.revenue / topServiceMax) * 100}%` }}
+                      transition={{ delay: 0.15 + i * 0.06, duration: 0.6, ease: "easeOut" }}
+                      className="h-full rounded-full bg-gradient-to-r from-[#60a5fa] to-[#3b82f6]"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Hourly demand + Status mix */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="grid grid-cols-5 gap-3"
+        >
+          <div className="col-span-3 rounded-3xl bg-[#1a0509] border border-white/[0.04] p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Hourly Demand</p>
+                <p className={`${numClass} text-white text-sm font-bold mt-0.5 flex items-center gap-1`}>
+                  <Clock className="h-3 w-3 text-white/40" /> Peak {peakHour?.h ?? "—"}:00
+                </p>
+              </div>
+            </div>
+            <div className="h-20 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={hourly} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                  <Tooltip
+                    contentStyle={{ background: "#0a0203", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 11 }}
+                    formatter={(v: number) => [`${v} bookings`, "Count"]}
+                    labelFormatter={(l) => `${l}:00`}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {hourly.map((b, idx) => (
+                      <Cell key={idx} fill={b.h === peakHour?.h ? "#60a5fa" : "rgba(255,255,255,0.18)"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="col-span-2 rounded-3xl bg-[#1a0509] border border-white/[0.04] p-4">
+            <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Status Mix</p>
+            {statusMix.length > 0 ? (
+              <div className="h-24 mt-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusMix} dataKey="value" innerRadius={22} outerRadius={36} paddingAngle={2}>
+                      {statusMix.map((s) => (
+                        <Cell key={s.name} fill={s.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: "#0a0203", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 11 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-white/30 text-xs mt-3">No data</p>
+            )}
+          </div>
+        </motion.section>
+
+
+        <section className="space-y-4">
+          <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Today's Appointments</h3>
+          {todays.length === 0 ? (
+            <div className="bg-[#1a0509] p-6 rounded-3xl border border-white/[0.03] text-center text-sm text-white/40">
+              Nothing scheduled today.
             </div>
           ) : (
-            <ul>
-              {upcoming.map((a, idx) => (
-                <li
-                  key={a.id}
-                  className={`flex items-center gap-3 px-4 py-3 active:bg-[#F2F2F7] dark:active:bg-[#3A3A3C] transition-colors ${
-                    idx !== upcoming.length - 1
-                      ? "border-b border-[#F2F2F7] dark:border-[#3A3A3C]"
-                      : ""
-                  }`}
-                >
-                  <div className="h-10 w-10 rounded-full bg-[#e11d48] text-white flex items-center justify-center text-sm font-semibold shrink-0">
-                    {(a.customer?.name || "W")[0].toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                      {a.customer?.name || "Walk-in"}
-                    </p>
-                    <p className="text-xs text-[#8E8E93] truncate">
-                      {a.service?.name || "Service"} ·{" "}
-                      {format(parseISO(a.appointment_date), "MMM d")} ·{" "}
-                      {a.appointment_time?.slice(0, 5)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                      €{Number(a.price || a.service?.price || 0).toFixed(0)}
-                    </p>
-                    <span
-                      className={`inline-block text-[10px] font-medium uppercase tracking-wide ${
-                        a.status === "completed"
-                          ? "text-[#34C759]"
-                          : a.status === "cancelled"
-                          ? "text-[#FF3B30]"
-                          : "text-[#e11d48]"
-                      }`}
-                    >
-                      {a.status || "scheduled"}
-                    </span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[#C6C6C8] shrink-0" />
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-3">
+              {todays.slice(0, 6).map((a, i) => {
+                const chip = statusChipFor(a);
+                return (
+                  <motion.div
+                    key={a.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, type: "spring", stiffness: 360, damping: 26 }}
+                    onClick={() => navigate("/agenda")}
+                    className="bg-[#1a0509] p-4 rounded-3xl border border-white/[0.03] flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
+                  >
+                    <div className={`w-12 h-12 rounded-2xl bg-[#0a0203] flex items-center justify-center border border-white/5 text-[11px] font-bold text-white/85 ${numClass}`}>
+                      {(a.appointment_time || "").slice(0, 5) || "--:--"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-white font-semibold text-[14px] truncate">
+                        {a.customer?.name || "Walk-in"}
+                      </h4>
+                      <p className="text-white/40 text-xs truncate">
+                        {a.service?.name || "Service"}
+                      </p>
+                    </div>
+                    <div className={`${chip.cls} px-3 py-1 rounded-full`}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{chip.label}</span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
-        </div>
+        </section>
+
+        <section className="pb-10">
+          <div className="grid grid-cols-2 gap-3">
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate("/agenda")}
+              className="h-14 bg-white text-[#0a0203] rounded-3xl font-['Sora'] font-bold text-[13px] shadow-lg shadow-white/5"
+            >
+              New Booking
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate("/services")}
+              className="h-14 bg-[#1a0509] border border-white/5 rounded-3xl font-['Sora'] font-bold text-white text-[13px]"
+            >
+              Edit Services
+            </motion.button>
+          </div>
+        </section>
       </div>
     </>
+  );
+}
+
+function KPI({ label, value, accent, numClass }: { label: string; value: string | number; accent: string; numClass: string }) {
+  return (
+    <div className="bg-[#1a0509] p-3.5 rounded-2xl border border-white/[0.04]">
+      <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1.5">{label}</p>
+      <p className={`${numClass} text-lg font-bold ${accent}`}>{value}</p>
+    </div>
   );
 }
 
