@@ -23,19 +23,20 @@ const Dashboard = () => {
       <div className="h-screen flex w-full bg-[#0a0203] overflow-hidden font-['Manrope']">
         <AppSidebar />
         <main className="relative flex-1 bg-[#0a0203] text-white flex flex-col overflow-hidden">
-          {/* Vibrant ambient gradient glow — fades into the dark background */}
+          {/* Vibrant ambient gradient glow — fades fully into the dark background */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-64 z-0"
+            className="pointer-events-none absolute inset-x-0 top-0 h-44 z-0"
             style={{
               background:
-                "radial-gradient(120% 100% at 20% 0%, rgba(244,63,94,0.32) 0%, rgba(244,63,94,0) 55%), radial-gradient(90% 90% at 80% 0%, rgba(99,102,241,0.28) 0%, rgba(99,102,241,0) 60%), radial-gradient(70% 80% at 50% 0%, rgba(34,211,238,0.18) 0%, rgba(10,2,3,0) 65%)",
+                "radial-gradient(110% 100% at 15% 0%, rgba(99,102,241,0.32) 0%, rgba(99,102,241,0) 55%), radial-gradient(90% 90% at 85% 0%, rgba(34,211,238,0.22) 0%, rgba(34,211,238,0) 60%), radial-gradient(70% 80% at 50% 0%, rgba(168,85,247,0.18) 0%, rgba(10,2,3,0) 65%)",
               maskImage:
-                "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 40%, transparent 100%)",
               WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 40%, transparent 100%)",
             }}
           />
+
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
             {isMobile ? <MobileDashboard /> : <DashboardContent />}
             {isMobile && <MobileDock />}

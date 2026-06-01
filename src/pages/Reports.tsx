@@ -498,7 +498,21 @@ const Reports = () => {
       <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
+        <main className="relative flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
+          {/* Vibrant ambient gradient glow (dark mode only) */}
+          <div
+            aria-hidden
+            className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-44 z-0"
+            style={{
+              background:
+                "radial-gradient(110% 100% at 15% 0%, rgba(99,102,241,0.32) 0%, rgba(99,102,241,0) 55%), radial-gradient(90% 90% at 85% 0%, rgba(34,211,238,0.22) 0%, rgba(34,211,238,0) 60%), radial-gradient(70% 80% at 50% 0%, rgba(168,85,247,0.18) 0%, rgba(12,12,12,0) 65%)",
+              maskImage:
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 40%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 40%, transparent 100%)",
+            }}
+          />
+
           {/* Header */}
           <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
