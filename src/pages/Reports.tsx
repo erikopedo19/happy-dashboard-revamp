@@ -561,7 +561,7 @@ const Reports = () => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-auto">
+          <div className="relative z-10 flex-1 overflow-auto">
             <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
               <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
                 <Card className="rounded-[2rem] border border-white/5 bg-[#1a0509]/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
