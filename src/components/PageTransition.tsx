@@ -25,15 +25,13 @@ function markSeen(path: string) {
 }
 
 /**
- * iOS-style page transition wrapper.
- * Plays the slide/fade animation only the FIRST time a route is opened in
- * this session. Repeat visits render instantly for a snappier feel.
+ * Snappy iOS-style page transition. Animates only the first visit to each
+ * route per session, with a very short fade/slide so navigation feels instant.
  */
 export const PageTransition = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
   const { pathname } = useLocation();
 
-  // Decide once per mount, before the first paint
   const shouldAnimateRef = useRef<boolean | null>(null);
   if (shouldAnimateRef.current === null) {
     const seen = getSeen();
@@ -48,10 +46,9 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
 
   return (
     <motion.div
-      initial={isMobile ? { opacity: 0, x: 24 } : { opacity: 0, scale: 0.985 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={isMobile ? { opacity: 0, x: -24 } : { opacity: 0, scale: 0.985 }}
-      transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+      initial={isMobile ? { opacity: 0, x: 12 } : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      transition={{ duration: 0.16, ease: [0.32, 0.72, 0, 1] }}
       style={{ height: "100%" }}
     >
       {children}
