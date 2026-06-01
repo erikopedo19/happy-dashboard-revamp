@@ -495,10 +495,10 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#0a0203] overflow-hidden">
         <AppSidebar />
 
-        <main className="relative flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
+        <main className="relative flex-1 bg-[#0a0203] flex flex-col overflow-hidden">
           {/* Vibrant ambient gradient glow (dark mode only) */}
           <div
             aria-hidden
@@ -514,15 +514,15 @@ const Reports = () => {
           />
 
           {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-2xl">
+          <div className="sticky top-0 z-20 border-b border-white/5 bg-[#0a0203]/70 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                <SidebarTrigger className="lg:hidden text-white" />
                 <div className="min-w-0">
                   <p className="hidden md:block text-[10px] uppercase tracking-[0.22em] font-semibold text-[#8E8E93]">
                     Analytics studio
                   </p>
-                  <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                  <h1 className="text-[17px] md:text-2xl font-semibold text-white truncate">
                     Reports
                   </h1>
                 </div>
@@ -532,7 +532,7 @@ const Reports = () => {
                 type="button"
                 size="sm"
                 onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90 text-white font-semibold gap-1.5"
+                className="rounded-full h-9 px-4 bg-white text-[#0a0203] hover:bg-white/90 font-semibold gap-1.5"
               >
                 <Download className="h-4 w-4" strokeWidth={2.5} />
                 {!isMobile && "Export"}
@@ -549,8 +549,8 @@ const Reports = () => {
                     onClick={() => setDateRange(r.value)}
                     className={`shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
                       active
-                        ? "bg-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E] text-white shadow-sm"
-                        : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                        ? "bg-white text-[#0a0203] shadow-sm"
+                        : "bg-white/[0.06] text-white"
                     }`}
                   >
                     {isMobile ? r.short : r.label}
@@ -564,21 +564,21 @@ const Reports = () => {
           <div className="flex-1 overflow-auto">
             <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
               <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
-                <Card className="rounded-[2rem] border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
+                <Card className="rounded-[2rem] border border-white/5 bg-[#1a0509]/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
                   <CardContent className="p-5 md:p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93]">
                         Revenue overview
                       </p>
-                      <p className="text-3xl md:text-5xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-2 tracking-tight">
+                      <p className="text-3xl md:text-5xl font-bold text-white mt-2 tracking-tight">
                         {currency.format(analytics.totalRevenue)}
                       </p>
                       <div className="mt-3 flex items-center gap-2">
                         <div
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
                             analytics.revenueDelta >= 0
-                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40"
+                              ? "bg-emerald-500/15 text-emerald-300"
                               : "bg-[#F2F2F7] text-[#8E8E93] dark:bg-[#2C2C2E]"
                           }`}
                         >
@@ -594,8 +594,8 @@ const Reports = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="w-11 h-11 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center shrink-0">
-                      <DollarSign className="w-5 h-5 text-[#1C1C1E] dark:text-[#F2F2F7]" strokeWidth={2.5} />
+                    <div className="w-11 h-11 rounded-2xl bg-white/[0.06] flex items-center justify-center shrink-0">
+                      <DollarSign className="w-5 h-5 text-white" strokeWidth={2.5} />
                     </div>
                   </div>
 
@@ -614,7 +614,7 @@ const Reports = () => {
                           <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.15} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
+                      <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                       <YAxis hide />
                       <ChartTooltip
@@ -657,7 +657,7 @@ const Reports = () => {
                 </CardContent>
                 </Card>
 
-                <Card className="rounded-[2rem] border border-[#1C1C1E] dark:border-white/10 bg-[#1C1C1E] text-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden">
+                <Card className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#170410] to-[#0a0a1f] text-white shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden">
                   <CardContent className="p-5 md:p-6 h-full flex flex-col">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
@@ -692,7 +692,7 @@ const Reports = () => {
               {/* KPI grid */}
               <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <KpiTile index={0}
-                  icon={<CalendarDays className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />}
+                  icon={<CalendarDays className="w-4 h-4 text-white" />}
                   label="Appointments"
                   value={numberFormat.format(analytics.totalAppointments)}
                   hint={`${analytics.completionRate}% completed`}
@@ -706,7 +706,7 @@ const Reports = () => {
                   accent="sky"
                 />
                 <KpiTile index={2}
-                  icon={<DollarSign className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />}
+                  icon={<DollarSign className="w-4 h-4 text-white" />}
                   label="Avg ticket"
                   value={currency.format(analytics.averageTicket || 0)}
                   hint="Per booking"
@@ -722,11 +722,11 @@ const Reports = () => {
               </section>
 
               {/* Booking status — Pie chart */}
-              <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      <h3 className="text-base font-semibold text-white">
                         Booking status
                       </h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">
@@ -759,7 +759,7 @@ const Reports = () => {
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                          <span className="text-2xl font-bold text-white">
                             {analytics.completionRate}%
                           </span>
                           <span className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
@@ -776,11 +776,11 @@ const Reports = () => {
                                 className="w-2.5 h-2.5 rounded-full shrink-0"
                                 style={{ backgroundColor: s.fill }}
                               />
-                              <span className="text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                              <span className="text-sm text-white truncate">
                                 {s.name}
                               </span>
                             </div>
-                            <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                            <span className="text-sm font-semibold text-white">
                               {s.value}
                             </span>
                           </div>
@@ -794,10 +794,10 @@ const Reports = () => {
               {/* Hourly demand + Busiest days */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
                 {/* Hourly demand */}
-                <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
-                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      <h3 className="text-base font-semibold text-white">
                         Demand by hour
                       </h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">
@@ -819,7 +819,7 @@ const Reports = () => {
                               <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.25} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
+                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
                           <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                           <YAxis hide />
                           <ChartTooltip cursor={{ fill: "rgba(28,28,30,0.05)" }} content={<ChartTooltipContent />} />
@@ -838,10 +838,10 @@ const Reports = () => {
                 </Card>
 
                 {/* Busiest days */}
-                <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
-                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Busiest days</h3>
+                      <h3 className="text-base font-semibold text-white">Busiest days</h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">Bookings by day of week</p>
                     </div>
                     {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
@@ -852,7 +852,7 @@ const Reports = () => {
                         className="h-[160px] w-full aspect-auto"
                       >
                         <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5EA" />
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                           <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
                           <YAxis hide />
                           <ChartTooltip content={<ChartTooltipContent />} />
@@ -871,18 +871,18 @@ const Reports = () => {
               </section>
 
               {/* Booking stats */}
-              <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] dark:hover:shadow-[0_8px_40px_rgba(14,165,233,0.22)]">
+              <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] dark:hover:shadow-[0_8px_40px_rgba(14,165,233,0.22)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-5">
                     <div>
-                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      <h3 className="text-base font-semibold text-white">
                         Booking stats
                       </h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">
                         Status breakdown this period
                       </p>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
                       <Filter className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
                     </div>
                   </div>
@@ -903,7 +903,7 @@ const Reports = () => {
                               <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.4} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
+                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
                           <XAxis
                             dataKey="name"
                             tickLine={false}
@@ -915,7 +915,7 @@ const Reports = () => {
                             cursor={{ fill: "rgba(14,165,233,0.06)" }}
                             contentStyle={{
                               borderRadius: "14px",
-                              border: "1px solid #E5E5EA",
+                              border: "1px solid rgba(255,255,255,0.08)",
                               boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
                             }}
                             formatter={(value: number) => [value, "Bookings"]}
@@ -936,10 +936,10 @@ const Reports = () => {
               </Card>
 
               {/* Top services */}
-              <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="mb-4">
-                    <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    <h3 className="text-base font-semibold text-white">
                       Top services
                     </h3>
                     <p className="text-xs text-[#8E8E93] mt-0.5">
@@ -958,10 +958,10 @@ const Reports = () => {
                           <div key={s.name} className="space-y-1.5">
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="w-5 h-5 rounded-md bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[10px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0">
+                                <span className="w-5 h-5 rounded-md bg-white/[0.06] text-[10px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0">
                                   {idx + 1}
                                 </span>
-                                <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                                <span className="font-medium text-white truncate">
                                   {s.name}
                                 </span>
                               </div>
@@ -969,12 +969,12 @@ const Reports = () => {
                                 <span className="text-xs text-[#8E8E93]">
                                   {currency.format(s.revenue)}
                                 </span>
-                                <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                                <span className="text-sm font-semibold text-white tabular-nums">
                                   {s.bookings}
                                 </span>
                               </div>
                             </div>
-                            <div className="h-2 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
+                            <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                               <div
                                 className="h-full rounded-full bg-sky-500 transition-all"
                                 style={{ width: `${pct}%` }}
@@ -989,11 +989,11 @@ const Reports = () => {
               </Card>
 
               {/* Stylist ranking */}
-              <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      <h3 className="text-base font-semibold text-white">
                         Stylist leaderboard
                       </h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">
@@ -1009,18 +1009,18 @@ const Reports = () => {
                       {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
                         <div
                           key={stylist.id}
-                          className="flex items-center gap-3 rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 px-3 py-3"
+                          className="flex items-center gap-3 rounded-2xl bg-white/[0.04] px-3 py-3"
                         >
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
-                              index === 0 ? "bg-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E]" : "bg-[#3A3A3C] dark:bg-[#3A3A3C]"
+                              index === 0 ? "bg-white text-[#0a0203]" : "bg-[#3A3A3C] dark:bg-[#3A3A3C]"
                             }`}
                           >
                             {index === 0 ? <Crown className="w-4 h-4" /> : index + 1}
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                            <p className="font-semibold text-sm text-white truncate">
                               {stylist.name}
                             </p>
                             <div className="flex items-center gap-2 text-xs text-[#8E8E93] mt-0.5">
@@ -1034,7 +1034,7 @@ const Reports = () => {
                           </div>
 
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                            <p className="text-sm font-semibold text-white tabular-nums">
                               {currency.format(stylist.revenue)}
                             </p>
                             <p className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
@@ -1050,10 +1050,10 @@ const Reports = () => {
 
               {/* Stylist comparison chart */}
               {analytics.stylistPerformance.length > 0 && (
-                <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
-                      <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      <h3 className="text-base font-semibold text-white">
                         Revenue comparison
                       </h3>
                       <p className="text-xs text-[#8E8E93] mt-0.5">
@@ -1075,7 +1075,7 @@ const Reports = () => {
                             <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.25} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
                         <XAxis
                           dataKey="name"
                           tickLine={false}
@@ -1147,8 +1147,8 @@ function KpiTile({
   accent?: "ink" | "sky" | "rose";
 }) {
   const accentBg = accent === "sky"
-    ? "bg-sky-50 dark:bg-sky-950/30"
-    : "bg-[#F2F2F7] dark:bg-[#2C2C2E]";
+    ? "bg-[#3b82f6]/15"
+    : "bg-white/[0.06]";
   const hoverShadow = "hover:shadow-[0_10px_36px_rgba(0,0,0,0.08)]";
 
   return (
@@ -1158,7 +1158,7 @@ function KpiTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
     >
-      <Card className={cn("rounded-2xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
+      <Card className={cn("rounded-2xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", accentBg)}>
@@ -1168,7 +1168,7 @@ function KpiTile({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">
             {label}
           </p>
-          <p className="text-xl md:text-2xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] mt-1 tabular-nums">
+          <p className="text-xl md:text-2xl font-bold text-white mt-1 tabular-nums">
             {value}
           </p>
           <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
@@ -1191,15 +1191,15 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Card className="rounded-3xl border border-white/60 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+      <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
         <CardContent className="p-5">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Best customers</h3>
+              <h3 className="text-base font-semibold text-white">Best customers</h3>
               <p className="text-xs text-[#8E8E93] mt-0.5">Ranked by total spend this period</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
               <Crown className="w-5 h-5 text-sky-500" />
             </div>
           </div>
@@ -1233,7 +1233,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                         </div>
                       </motion.div>
                       {/* Name */}
-                      <p className="text-[10px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate max-w-[76px] text-center">
+                      <p className="text-[10px] font-medium text-white truncate max-w-[76px] text-center">
                         {c.name.split(" ")[0]}
                       </p>
                       <p className="text-[9px] text-[#8E8E93] truncate max-w-[76px] text-center">
@@ -1268,7 +1268,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.07 * i + 0.32, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                      className="flex items-center gap-3 rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 px-3 py-2.5 group"
+                      className="flex items-center gap-3 rounded-2xl bg-white/[0.04] px-3 py-2.5 group"
                     >
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0 transition-transform duration-200 group-hover:scale-110"
@@ -1278,7 +1278,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="font-semibold text-sm text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{c.name}</p>
+                          <p className="font-semibold text-sm text-white truncate">{c.name}</p>
                           {i === 0 && (
                             <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
                               VIP
@@ -1293,10 +1293,10 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                         </p>
                       </div>
                       <div className="text-right shrink-0 min-w-[64px]">
-                        <p className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                        <p className="text-sm font-semibold text-white tabular-nums">
                           {currency.format(c.revenue)}
                         </p>
-                        <div className="w-full h-1 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] mt-1.5 overflow-hidden">
+                        <div className="w-full h-1 rounded-full bg-white/[0.06] mt-1.5 overflow-hidden">
                           <motion.div
                             className="h-full rounded-full"
                             style={{ backgroundColor: c.color }}
@@ -1330,14 +1330,14 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
 
   return (
-    <Card className="rounded-3xl border-0 bg-white dark:bg-[#1C1C1E] shadow-sm">
+    <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Customer reviews</h3>
+            <h3 className="text-base font-semibold text-white">Customer reviews</h3>
             <p className="text-xs text-[#8E8E93] mt-0.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""} total</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
             <MessageSquare className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
           </div>
         </div>
@@ -1349,7 +1349,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
             {/* Rating overview */}
             <div className="flex items-center gap-5">
               <div className="text-center shrink-0">
-                <p className="text-5xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+                <p className="text-5xl font-bold text-white tabular-nums">
                   {avgRating.toFixed(1)}
                 </p>
                 <div className="flex justify-center gap-0.5 my-1">
@@ -1370,7 +1370,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                 {distribution.map(({ star, count }) => (
                   <div key={star} className="flex items-center gap-2">
                     <span className="text-xs text-[#8E8E93] w-3 shrink-0">{star}</span>
-                    <div className="flex-1 h-2 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
+                    <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
                       <div
                         className="h-full rounded-full bg-[#FFCC00] transition-all"
                         style={{ width: `${(count / maxCount) * 100}%` }}
@@ -1388,7 +1388,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
               {reviews.slice(0, 8).map((r) => (
                 <div
                   key={r.id}
-                  className="rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 p-4 space-y-1.5"
+                  className="rounded-2xl bg-white/[0.04] p-4 space-y-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1">
@@ -1408,7 +1408,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                     </span>
                   </div>
                   {r.reviewer_name && (
-                    <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    <p className="text-xs font-semibold text-white">
                       {r.reviewer_name}
                     </p>
                   )}
@@ -1429,8 +1429,8 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
 
 function EmptyMini() {
   return (
-    <div className="rounded-2xl bg-[#F9F9FB] dark:bg-[#2C2C2E]/40 p-6 text-center">
-      <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1C1C1E] mx-auto flex items-center justify-center">
+    <div className="rounded-2xl bg-white/[0.04] p-6 text-center">
+      <div className="w-10 h-10 rounded-xl bg-[#1a0509] mx-auto flex items-center justify-center">
         <Sparkles className="w-4 h-4 text-[#8E8E93]" />
       </div>
       <p className="text-xs text-[#8E8E93] mt-3">No data in this range yet</p>
