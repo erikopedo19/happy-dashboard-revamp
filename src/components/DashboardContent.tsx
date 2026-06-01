@@ -183,7 +183,7 @@ export function DashboardContent() {
   }, [appointments]);
 
   return (
-    <div className="h-full overflow-auto bg-[#0a0203] text-white font-['Manrope']">
+    <div className="h-full overflow-auto bg-transparent text-white font-['Manrope']">
       <div className="px-4 sm:px-6 lg:px-10 py-6 sm:py-10 pb-32 sm:pb-10 max-w-[1500px] mx-auto space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex items-end justify-between gap-3">
