@@ -44,7 +44,16 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Keep data fresh for 5 minutes
+      gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+      refetchOnWindowFocus: false, // Prevent background refetch on focus
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 const LandingRoute = () => {
   const { user, loading } = useAuth();

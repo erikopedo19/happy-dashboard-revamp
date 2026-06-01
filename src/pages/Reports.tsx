@@ -117,7 +117,7 @@ const db = supabase as any;
 
 const customerColors = [
   "#1C1C1E", "#3A3A3C", "#48484A", "#636366",
-  "#e11d48", "#5856D6", "#8E8E93", "#AEAEB2",
+  "#34C759", "#5856D6", "#8E8E93", "#AEAEB2",
 ];
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -189,14 +189,14 @@ const dayLabel = (date: string) =>
     day: "numeric",
   });
 
-// iOS neutral palette with one subtle blue accent
-const rosePalette = [
-  "#1C1C1E",
-  "#3A3A3C",
-  "#e11d48",
-  "#636366",
-  "#AEAEB2",
-  "#D1D1D6",
+// iOS professional color palette
+const applePalette = [
+  "#007AFF", // Apple Blue
+  "#34C759", // Apple Green
+  "#5856D6", // Apple Purple
+  "#FF9500", // Apple Orange
+  "#AF52DE", // Apple Violet
+  "#FF2D55", // Apple Red
 ];
 
 const Reports = () => {
@@ -348,7 +348,7 @@ const Reports = () => {
         revenue: 0,
         color:
           apt.service?.color ||
-          rosePalette[serviceUsageMap.size % rosePalette.length],
+          applePalette[serviceUsageMap.size % applePalette.length],
       };
 
       existing.bookings += 1;
@@ -377,7 +377,7 @@ const Reports = () => {
           revenue,
           satisfaction: stylist.satisfaction || 0,
           score,
-          color: rosePalette[index % rosePalette.length],
+          color: applePalette[index % applePalette.length],
         };
       })
       .sort((a, b) => b.score - a.score);
@@ -385,9 +385,9 @@ const Reports = () => {
     const topStylist = stylistPerformance[0];
 
     const statusBreakdown = [
-      { name: "Completed", value: completedAppointments, fill: "#1C1C1E" },
-      { name: "Scheduled", value: scheduledAppointments, fill: "#e11d48" },
-      { name: "Cancelled", value: cancelledAppointments, fill: "#D1D1D6" },
+      { name: "Completed", value: completedAppointments, fill: "#34C759" }, // Apple Green
+      { name: "Scheduled", value: scheduledAppointments, fill: "#007AFF" }, // Apple Blue
+      { name: "Cancelled", value: cancelledAppointments, fill: "#8E8E93" }, // Apple Grey
     ].filter((item) => item.value > 0);
 
     const busiestHourMap = new Map<string, number>();
@@ -472,7 +472,7 @@ const Reports = () => {
   }, [data, customersData]);
 
   const revenueChartConfig = {
-    revenue: { label: "Revenue", color: "#e11d48" },
+    revenue: { label: "Revenue", color: "#007AFF" },
   } satisfies ChartConfig;
 
   const handleExport = () => {
@@ -495,12 +495,12 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#16161a] overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#0c0c0c] flex flex-col overflow-hidden">
+        <main className="flex-1 bg-[#F2F2F7] dark:bg-[#16161a] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-2xl">
+          <div className="sticky top-0 z-20 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#16161a]/80 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
@@ -518,14 +518,14 @@ const Reports = () => {
                 type="button"
                 size="sm"
                 onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90 text-white font-semibold gap-1.5"
+                className="rounded-full h-9 px-4 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90 text-white font-semibold gap-1.5 transition-all"
               >
                 <Download className="h-4 w-4" strokeWidth={2.5} />
                 {!isMobile && "Export"}
               </Button>
             </div>
 
-            {/* Range pills */}
+            {/* Range pills with subtle animations */}
             <div className="px-4 md:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
               {RANGES.map((r) => {
                 const active = dateRange === r.value;
@@ -533,12 +533,19 @@ const Reports = () => {
                   <button
                     key={r.value}
                     onClick={() => setDateRange(r.value)}
-                    className={`shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
+                    className={`relative shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
                       active
-                        ? "bg-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E] text-white shadow-sm"
-                        : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                        ? "bg-[#1C1C1E] dark:bg-[#007AFF] text-white shadow-sm"
+                        : "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-white/90 dark:hover:bg-[#3A3A3C]"
                     }`}
                   >
+                    {active && (
+                      <motion.span
+                        layoutId="activeRangePill"
+                        className="absolute inset-0 rounded-full bg-[#1C1C1E] dark:bg-[#007AFF] -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
                     {isMobile ? r.short : r.label}
                   </button>
                 );
@@ -592,12 +599,12 @@ const Reports = () => {
                     <ComposedChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="fillRevLine" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#e11d48" stopOpacity={0.22} />
-                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#007AFF" stopOpacity={0.22} />
+                          <stop offset="100%" stopColor="#007AFF" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="fillRevBars" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.85} />
-                          <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.15} />
+                          <stop offset="0%" stopColor="#30D158" stopOpacity={0.85} />
+                          <stop offset="100%" stopColor="#30D158" stopOpacity={0.15} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="#E5E5EA" />
@@ -622,7 +629,7 @@ const Reports = () => {
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#e11d48"
+                        stroke="#007AFF"
                         strokeWidth={2.5}
                         fill="url(#fillRevLine)"
                         animationDuration={1200}
@@ -834,7 +841,7 @@ const Reports = () => {
                       <EmptyMini />
                     ) : (
                       <ChartContainer
-                        config={{ count: { label: "Bookings", color: "#e11d48" } }}
+                        config={{ count: { label: "Bookings", color: "#007AFF" } }}
                         className="h-[160px] w-full aspect-auto"
                       >
                         <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
@@ -1168,7 +1175,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
   const podiumSlots = [
     { c: customers[1], height: 72, color: "#3A3A3C", glow: "rgba(28,28,30,0.20)", rank: 2 },
     { c: customers[0], height: 104, color: "#1C1C1E", glow: "rgba(28,28,30,0.30)", rank: 1 },
-    { c: customers[2], height: 52, color: "#e11d48", glow: "rgba(10,132,255,0.20)", rank: 3 },
+    { c: customers[2], height: 52, color: "#5856D6", glow: "rgba(88,86,214,0.20)", rank: 3 },
   ];
 
   return (

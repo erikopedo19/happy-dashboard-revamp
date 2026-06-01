@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -497,31 +498,103 @@ export const LiquidGlassAgenda = ({
             ))}
           </div>
         ) : dayAppointments.length === 0 ? (
-          /* Empty State */
-          <div className="flex flex-col items-center justify-center h-full py-20">
-            <div className={cn(
-              "w-20 h-20 rounded-3xl flex items-center justify-center mb-4",
-              "bg-gray-100/80 dark:bg-white/5",
-              "backdrop-blur-xl"
-            )}>
-              <Clock className="w-8 h-8 text-gray-300 dark:text-gray-600" />
-            </div>
-            <p className="text-gray-400 dark:text-gray-500 text-sm font-medium">No appointment set on agenda</p>
-            <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">
-              {format(selectedDay, 'EEEE, MMMM d')}
-            </p>
-            <button
-              onClick={() => onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), '09:00')}
-              className={cn(
-                "mt-6 flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all",
-                "bg-gray-900 dark:bg-white text-white dark:text-black",
-                "active:scale-95"
-              )}
+          /* Animated iOS-style Empty State */
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedDay.toISOString()}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
             >
-              <Plus className="w-4 h-4" />
-              Book appointment
-            </button>
-          </div>
+              {/* Floating Clock Icon */}
+              <motion.div
+                animate={{
+                  y: [0, -10, 0],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{
+                  duration: 4.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className={cn(
+                  "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
+                  "bg-gradient-to-tr from-blue-500/10 to-indigo-500/5 dark:from-[#007AFF]/15 dark:to-[#5856D6]/5",
+                  "border border-blue-500/10 dark:border-[#007AFF]/10 shadow-[0_12px_30px_rgba(0,122,255,0.08)]",
+                  "backdrop-blur-xl"
+                )}
+              >
+                <Clock className="w-10 h-10 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={2.2} />
+              </motion.div>
+
+              <motion.h3
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+              >
+                No bookings today
+              </motion.h3>
+
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 }}
+                className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
+              >
+                {isSameDay(selectedDay, new Date()) ? (
+                  "Your agenda is clear for today. Keep resting or add a slot."
+                ) : (
+                  format(selectedDay, 'EEEE, MMMM d')
+                )}
+              </motion.p>
+
+              {/* Prevent booking on past days entirely */}
+              {(() => {
+                const now = new Date();
+                const isPastDay = !isSameDay(selectedDay, now) && selectedDay.getTime() < now.getTime();
+                
+                if (isPastDay) {
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-6 text-[11px] font-medium text-gray-400 dark:text-gray-600 bg-gray-100/50 dark:bg-white/5 px-3 py-1.5 rounded-full"
+                    >
+                      📅 Calendar day has passed
+                    </motion.div>
+                  );
+                }
+
+                return (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
+                    onClick={() => {
+                      let time = '09:00';
+                      if (isSameDay(selectedDay, now)) {
+                        const nextHour = Math.min(now.getHours() + 1, 23);
+                        time = `${nextHour.toString().padStart(2, '0')}:00`;
+                      }
+                      onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
+                    }}
+                    className={cn(
+                      "mt-7 flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all",
+                      "bg-[#007AFF] text-white hover:bg-[#0062CC]",
+                      "shadow-[0_8px_24px_rgba(0,122,255,0.25)]"
+                    )}
+                  >
+                    <Plus className="w-4 h-4" strokeWidth={2.5} />
+                    New appointment
+                  </motion.button>
+                );
+              })()}
+            </motion.div>
+          </AnimatePresence>
         ) : (
           /* Timeline with appointments */
           <div className="relative pt-4">

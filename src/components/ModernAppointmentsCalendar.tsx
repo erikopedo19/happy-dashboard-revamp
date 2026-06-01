@@ -642,7 +642,13 @@ export const ModernAppointmentsCalendar = ({
   // When there are no appointments, hide the mini tabs/time-slot grid entirely.
   if (appointments.length === 0) {
     const defaultDate = format(new Date(), 'yyyy-MM-dd');
-    const defaultTime = agendaSettings?.start_hour ?? '09:00';
+    const now = new Date();
+    let defaultTime = agendaSettings?.start_hour ?? '09:00';
+    const [startH] = defaultTime.split(':').map(Number);
+    if (now.getHours() >= startH) {
+      const nextHour = Math.min(now.getHours() + 1, 23);
+      defaultTime = `${nextHour.toString().padStart(2, '0')}:00`;
+    }
 
     return (
       <div className="min-h-screen bg-background">

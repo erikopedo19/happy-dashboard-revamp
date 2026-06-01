@@ -21,11 +21,11 @@ html, body, #root {
 @layer base {
   :root {
     /* Cutzio — Deep Blue + Rose */
-    --background: 220 18% 5%;
+    --background: 220 18% 10%;
     --foreground: 210 25% 96%;
-    --card: 220 14% 9%;
+    --card: 220 14% 13%;
     --card-foreground: 210 25% 96%;
-    --popover: 220 14% 9%;
+    --popover: 220 14% 13%;
     --popover-foreground: 210 25% 96%;
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
