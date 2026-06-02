@@ -493,8 +493,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
           {/* Center Panel - Calendar */}
           <div className={cn(
-            "bg-[#1a1a1a]",
-            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a] overflow-y-auto"
+            "bg-[#0e0e10]",
+            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-8 border-r border-white/[0.06] overflow-y-auto"
           )}>
             {isMobile && (
               <div className="flex items-center gap-2 mb-5">
@@ -505,7 +505,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       key={s}
                       className={cn(
                         "h-1.5 flex-1 rounded-full transition-all duration-500",
-                        reached ? "bg-[#0A84FF]" : "bg-[#2a2a2a]"
+                        reached ? "bg-[#0A84FF]" : "bg-white/[0.06]"
                       )}
                     />
                   );
@@ -530,13 +530,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   <div className="flex gap-1">
                     <button
                       onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] transition-colors text-gray-400"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/[0.06] transition-colors text-gray-400"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] transition-colors text-gray-400"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/[0.06] transition-colors text-gray-400"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -560,8 +560,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                           className={cn(
                             "flex items-center justify-between p-4 rounded-xl border transition-all text-left",
                             serviceId === service.id
-                              ? "border-[#0A84FF] bg-[#2a2a2a]"
-                              : "border-[#2a2a2a] hover:border-gray-600"
+                              ? "border-[#0A84FF] bg-white/[0.06]"
+                              : "border-white/[0.06] hover:border-gray-600"
                           )}
                         >
                           <div>
@@ -603,7 +603,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                                 ? "bg-[#0A84FF] text-white"
                                 : !isCurrentMonth
                                 ? "text-gray-600"
-                                : "text-white hover:bg-[#2a2a2a]"
+                                : "text-white hover:bg-white/[0.06]"
                             )}
                           >
                             {format(day, 'd')}
@@ -633,7 +633,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="John Doe"
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                        className="w-full pl-12 pr-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                       />
                     </div>
                   </div>
@@ -647,7 +647,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="john@example.com"
-                      className="w-full px-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       We'll send a confirmation email to this address.
@@ -663,7 +663,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Optional — we'll send an SMS confirmation if provided.
@@ -679,7 +679,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Add any appointment notes"
                       rows={3}
-                      className="w-full px-4 py-3 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
+                      className="w-full px-4 py-3 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
                     />
                   </div>
 
@@ -692,7 +692,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     <span>Back to calendar</span>
                   </button>
 
-                  <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#1a1a1a]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
+                  <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
                     <button
                       type="submit"
                       disabled={isLoading || !customerName}
@@ -742,19 +742,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Right Panel - Time Slots / Booking Summary */}
           {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
-              "bg-[#1a1a1a]",
+              "bg-[#0e0e10]",
               isMobile ? "p-4 pb-36" : "w-[280px] p-6 overflow-y-auto"
             )}>
             {!isMobile && step === "details" && (
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Booking summary</p>
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#2a2a2a]/50 p-4 space-y-3">
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.06]/50 p-4 space-y-3">
                   <div>
                     <p className="text-xs text-gray-500">Service</p>
                     <p className="text-white font-semibold text-sm mt-0.5">{selectedService.name}</p>
                     <p className="text-gray-400 text-xs mt-0.5">{selectedService.duration} min · ${selectedService.price}</p>
                   </div>
-                  <div className="border-t border-[#3a3a3a]" />
+                  <div className="border-t border-white/[0.08]" />
                   <div>
                     <p className="text-xs text-gray-500">Date & time</p>
                     <p className="text-white font-semibold text-sm mt-0.5">{format(selectedDateObj, "EEE, MMM d")}</p>
@@ -764,7 +764,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 <button
                   type="button"
                   onClick={() => setStep("datetime")}
-                  className="w-full py-2.5 rounded-xl border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl border border-white/[0.06] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" /> Change slot
                 </button>
@@ -777,7 +777,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       onClick={() => setTimeFormat("12h")}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                        timeFormat === "12h" ? "bg-[#2a2a2a] text-white" : "text-gray-500 hover:text-white"
+                        timeFormat === "12h" ? "bg-white/[0.06] text-white" : "text-gray-500 hover:text-white"
                       )}
                     >
                       12h
@@ -786,7 +786,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       onClick={() => setTimeFormat("24h")}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                        timeFormat === "24h" ? "bg-[#2a2a2a] text-white" : "text-gray-500 hover:text-white"
+                        timeFormat === "24h" ? "bg-white/[0.06] text-white" : "text-gray-500 hover:text-white"
                       )}
                     >
                       24h
@@ -812,10 +812,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                           className={cn(
                             "w-full py-3 px-4 rounded-xl border font-medium transition-all text-center flex items-center justify-center gap-2",
                             isBooked
-                              ? "border-[#2a2a2a] text-gray-500 cursor-not-allowed opacity-60"
+                              ? "border-white/[0.06] text-gray-500 cursor-not-allowed opacity-60"
                               : selectedTimeSlot === time
                                 ? "border-[#0A84FF] bg-[#0A84FF]/10 text-white"
-                                : "border-[#2a2a2a] hover:border-gray-600 text-white"
+                                : "border-white/[0.06] hover:border-gray-600 text-white"
                           )}
                         >
                           <span>{formatTime(time)}</span>
@@ -845,7 +845,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </div>
               )}
 
-              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#1a1a1a]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
+              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
                 <button
                   onClick={handleContinue}
                   disabled={!selectedTimeSlot}
