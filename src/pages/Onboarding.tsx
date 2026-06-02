@@ -145,7 +145,7 @@ export default function Onboarding() {
   const progress = ((step + 1) / steps) * 100;
 
   return (
-    <div className="h-[100dvh] w-full relative overflow-hidden bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#0a0a1f] text-white">
+    <div className="h-[100dvh] w-full relative overflow-hidden bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#0f0f12] text-white">
       {/* Apple-style ambient blurs (rose + blue) */}
       <div className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-rose-500/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl" />

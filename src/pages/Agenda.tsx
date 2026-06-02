@@ -363,7 +363,7 @@ const Agenda = () => {
                     placeholder="Search appointments..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-rose-500/20 rounded-xl text-sm dark:text-gray-100"
+                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-sky-500/20 rounded-xl text-sm dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -434,8 +434,8 @@ const Agenda = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                 <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                      <CalendarIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                    <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                      <CalendarIcon className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Bookings</p>
@@ -470,8 +470,8 @@ const Agenda = () => {
                 
                 <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                    <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                      <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
@@ -491,11 +491,11 @@ const Agenda = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {weekCards.map((week, index) => {
                   const colors = [
-                    { bg: 'from-rose-50 to-pink-50', accent: 'bg-rose-500', text: 'text-rose-600' },
+                    { bg: 'from-sky-50 to-pink-50', accent: 'bg-sky-500', text: 'text-sky-600' },
                     { bg: 'from-purple-50 to-pink-50', accent: 'bg-purple-500', text: 'text-purple-600' },
                     { bg: 'from-green-50 to-emerald-50', accent: 'bg-green-500', text: 'text-green-600' },
-                    { bg: 'from-rose-50 to-pink-50', accent: 'bg-rose-500', text: 'text-rose-600' },
-                    { bg: 'from-rose-50 to-red-50', accent: 'bg-rose-500', text: 'text-rose-600' },
+                    { bg: 'from-sky-50 to-pink-50', accent: 'bg-sky-500', text: 'text-sky-600' },
+                    { bg: 'from-sky-50 to-cyan-50', accent: 'bg-sky-500', text: 'text-sky-600' },
                     { bg: 'from-cyan-50 to-teal-50', accent: 'bg-cyan-500', text: 'text-cyan-600' },
                   ][index % 6];
 
@@ -508,10 +508,10 @@ const Agenda = () => {
                       }}
                       className={cn(
                         "group cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-                        week.isCurrentWeek && "ring-2 ring-rose-500/20"
+                        week.isCurrentWeek && "ring-2 ring-sky-500/20"
                       )}
                     >
-                      <div className={"h-2 bg-rose-500"} />
+                      <div className={"h-2 bg-sky-500"} />
                       <CardContent className="p-5">
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
@@ -529,7 +529,7 @@ const Agenda = () => {
                             </p>
                           </div>
                           {week.isCurrentWeek && (
-                            <Badge className="bg-rose-100 text-rose-700 border-0 font-medium">
+                            <Badge className="bg-sky-100 text-sky-700 border-0 font-medium">
                               Current
                             </Badge>
                           )}

@@ -495,10 +495,10 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0a0203] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#0b0b0d] overflow-hidden">
         <AppSidebar />
 
-        <main className="relative flex-1 bg-[#0a0203] flex flex-col overflow-hidden">
+        <main className="relative flex-1 bg-[#0b0b0d] flex flex-col overflow-hidden">
           {/* Vibrant ambient gradient glow — slowly cycles colors */}
           <div
             aria-hidden
@@ -514,7 +514,7 @@ const Reports = () => {
           />
 
           {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-white/5 bg-[#0a0203]/70 backdrop-blur-2xl">
+          <div className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0b0d]/70 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
@@ -532,7 +532,7 @@ const Reports = () => {
                 type="button"
                 size="sm"
                 onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-white text-[#0a0203] hover:bg-white/90 font-semibold gap-1.5"
+                className="rounded-full h-9 px-4 bg-white text-[#0b0b0d] hover:bg-white/90 font-semibold gap-1.5"
               >
                 <Download className="h-4 w-4" strokeWidth={2.5} />
                 {!isMobile && "Export"}
@@ -549,7 +549,7 @@ const Reports = () => {
                     onClick={() => setDateRange(r.value)}
                     className={`relative shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
                       active
-                        ? "bg-white text-[#0a0203] shadow-sm"
+                        ? "bg-white text-[#0b0b0d] shadow-sm"
                         : "bg-white/[0.06] text-white"
                     }`}
                   >
@@ -571,7 +571,7 @@ const Reports = () => {
           <div className="relative z-10 flex-1 overflow-auto">
             <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
               <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
-                <Card className="rounded-[2rem] border border-white/5 bg-[#1a0509]/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
+                <Card className="rounded-[2rem] border border-white/5 bg-[#141417]/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
                   <CardContent className="p-5 md:p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="min-w-0">
@@ -664,7 +664,7 @@ const Reports = () => {
                 </CardContent>
                 </Card>
 
-                <Card className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#170410] to-[#0a0a1f] text-white shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+                <Card className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#141417] to-[#0f0f12] text-white shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden">
                   <CardContent className="p-5 md:p-6 h-full flex flex-col">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
@@ -729,7 +729,7 @@ const Reports = () => {
               </section>
 
               {/* Booking status — Pie chart */}
-              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -801,7 +801,7 @@ const Reports = () => {
               {/* Hourly demand + Busiest days */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
                 {/* Hourly demand */}
-                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-white">
@@ -845,7 +845,7 @@ const Reports = () => {
                 </Card>
 
                 {/* Busiest days */}
-                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-white">Busiest days</h3>
@@ -878,7 +878,7 @@ const Reports = () => {
               </section>
 
               {/* Booking stats */}
-              <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] ">
+              <Card className="rounded-3xl border-0 bg-[#141417] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] ">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-5">
                     <div>
@@ -943,7 +943,7 @@ const Reports = () => {
               </Card>
 
               {/* Top services */}
-              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="mb-4">
                     <h3 className="text-base font-semibold text-white">
@@ -996,7 +996,7 @@ const Reports = () => {
               </Card>
 
               {/* Stylist ranking */}
-              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -1020,7 +1020,7 @@ const Reports = () => {
                         >
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
-                              index === 0 ? "bg-white text-[#0a0203]" : "bg-white/10 text-white"
+                              index === 0 ? "bg-white text-[#0b0b0d]" : "bg-white/10 text-white"
                             }`}
                           >
                             {index === 0 ? <Crown className="w-4 h-4" /> : index + 1}
@@ -1057,7 +1057,7 @@ const Reports = () => {
 
               {/* Stylist comparison chart */}
               {analytics.stylistPerformance.length > 0 && (
-                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-white">
@@ -1165,7 +1165,7 @@ function KpiTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
     >
-      <Card className={cn("rounded-2xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
+      <Card className={cn("rounded-2xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", accentBg)}>
@@ -1198,7 +1198,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+      <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
         <CardContent className="p-5">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
@@ -1287,7 +1287,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                         <div className="flex items-center gap-1.5">
                           <p className="font-semibold text-sm text-white truncate">{c.name}</p>
                           {i === 0 && (
-                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white text-[#0a0203]">
+                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white text-[#0b0b0d]">
                               VIP
                             </span>
                           )}
@@ -1337,7 +1337,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
 
   return (
-    <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm">
+    <Card className="rounded-3xl border-0 bg-[#141417] shadow-sm">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -1437,7 +1437,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
 function EmptyMini() {
   return (
     <div className="rounded-2xl bg-white/[0.04] p-6 text-center">
-      <div className="w-10 h-10 rounded-xl bg-[#1a0509] mx-auto flex items-center justify-center">
+      <div className="w-10 h-10 rounded-xl bg-[#141417] mx-auto flex items-center justify-center">
         <Sparkles className="w-4 h-4 text-[#8E8E93]" />
       </div>
       <p className="text-xs text-[#8E8E93] mt-3">No data in this range yet</p>

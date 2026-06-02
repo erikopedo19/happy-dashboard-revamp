@@ -72,7 +72,7 @@ export default function WaitlistClaim() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0203] via-[#1a0509] to-[#2b0a14] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#2b0a14] flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 14, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
