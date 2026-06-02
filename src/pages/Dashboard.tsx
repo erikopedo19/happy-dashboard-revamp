@@ -181,7 +181,7 @@ function MobileDashboard() {
         <div className="flex items-center gap-2">
           <SidebarTrigger className="h-10 w-10 rounded-full bg-[#141417] border border-white/5 text-white/70 hover:bg-[#1a1a1e]" />
           <div className="w-10 h-10 rounded-full bg-[#141417] border border-white/5 flex items-center justify-center">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#e11d48] to-[#f43f5e]" />
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#0A84FF] to-[#5ac8fa]" />
           </div>
         </div>
       </motion.header>
