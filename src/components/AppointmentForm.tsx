@@ -392,44 +392,67 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       <DialogContent className={cn(
         "p-0 overflow-hidden border-0 shadow-2xl",
         isMobile
-          ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#1a1a1a] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
-          : "max-w-5xl w-[92vw] max-h-[88vh] rounded-2xl bg-[#1a1a1a]"
+          ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#0e0e10] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
+          : "max-w-5xl w-[92vw] max-h-[88vh] rounded-2xl bg-[#0e0e10] border border-white/[0.06]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
-        
+
         <motion.div
           ref={contentRef}
           initial={isMobile ? { y: 24, opacity: 0 } : false}
           animate={isMobile ? { y: 0, opacity: 1 } : {}}
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
-            "bg-[#1a1a1a]",
+            "bg-[#0e0e10]",
             isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(8.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
           )}
         >
+          {/* Mobile sticky top bar with drag-handle + close */}
+          {isMobile && (
+            <div className="sticky top-0 z-30 bg-[#0e0e10]/85 backdrop-blur-xl border-b border-white/[0.06]">
+              <div className="pt-2 pb-1 flex justify-center">
+                <div className="h-1 w-10 rounded-full bg-white/15" />
+              </div>
+              <div className="px-4 py-2 flex items-center justify-between">
+                <button
+                  onClick={handleClose}
+                  className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.06] text-white/70 flex items-center justify-center active:scale-95 transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <p className="text-[13px] font-semibold text-white tracking-tight">
+                  {step === "datetime" ? "Pick a slot" : step === "details" ? "Your details" : "Confirmed"}
+                </p>
+                <div className="w-9" />
+              </div>
+            </div>
+          )}
+
           {/* Left Panel - Service Info */}
           <div className={cn(
-            "bg-[#1a1a1a] flex flex-col",
-            isMobile ? "p-4 pt-14 border-b border-[#2a2a2a]" : "w-[320px] p-8 border-r border-[#2a2a2a]"
+            "bg-[#0e0e10] flex flex-col",
+            isMobile ? "p-4 border-b border-white/[0.06]" : "w-[320px] p-8 border-r border-white/[0.06]"
           )}>
-            {/* Close button */}
-            <button
-              onClick={handleClose}
-              className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#2a2a2a] text-gray-400 hover:text-white transition-colors z-10"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {/* Desktop close */}
+            {!isMobile && (
+              <button
+                onClick={handleClose}
+                className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.06] text-gray-400 hover:text-white transition-colors z-10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
 
             {/* Profile */}
-            <div className={cn(isMobile ? "mt-0 mb-4" : "mt-8 mb-6")}>
-              <div className="w-12 h-12 rounded-full overflow-hidden">
-                <img 
+            <div className={cn(isMobile ? "mt-0 mb-4 flex items-center gap-3" : "mt-8 mb-6")}>
+              <div className={cn("rounded-full overflow-hidden ring-1 ring-white/10", isMobile ? "w-11 h-11" : "w-12 h-12")}>
+                <img
                   src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
                   alt={profile?.full_name || 'User'}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="mt-3 text-sm text-gray-400">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+              <p className={cn("text-sm text-gray-400", isMobile ? "" : "mt-3")}>{profile?.full_name || profile?.business_name || 'Your Business'}</p>
             </div>
 
             {/* Service Title */}
