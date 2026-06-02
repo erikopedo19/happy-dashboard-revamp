@@ -18,8 +18,8 @@ import { motion } from "framer-motion";
 const db = supabase as any;
 
 // Noir Rose palette
-const BG = "#0a0203";
-const SURFACE = "#1a0509";
+const BG = "#0b0b0d";
+const SURFACE = "#141417";
 const SURFACE_2 = "#0f0306";
 const BORDER = "rgba(255,255,255,0.05)";
 const ROSE = "#e11d48";
@@ -499,7 +499,7 @@ export function DashboardContent() {
 
 function Surface({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-[#1a0509] rounded-3xl border border-white/[0.04] shadow-[0_1px_2px_rgba(0,0,0,0.4)] ${className}`}>
+    <div className={`bg-[#141417] rounded-3xl border border-white/[0.04] shadow-[0_1px_2px_rgba(0,0,0,0.4)] ${className}`}>
       {children}
     </div>
   );
@@ -517,7 +517,7 @@ function Legend() {
 function MiniStat({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone?: 'rose' | 'blue' }) {
   const iconTone = tone === 'rose' ? 'text-[#f43f5e] bg-white/5' : tone === 'blue' ? 'text-[#3b82f6] bg-[#3b82f6]/10' : 'text-white/70 bg-white/5';
   return (
-    <div className="bg-[#1a0509] rounded-3xl border border-white/[0.04] px-4 py-3.5 flex items-center gap-3">
+    <div className="bg-[#141417] rounded-3xl border border-white/[0.04] px-4 py-3.5 flex items-center gap-3">
       <div className={`h-9 w-9 rounded-2xl flex items-center justify-center shrink-0 ${iconTone}`}>
         <Icon className="h-4 w-4" strokeWidth={2.2} />
       </div>
@@ -590,7 +590,7 @@ function Kpi({
           : { delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }
       }
       whileHover={{ scale: 1.015, transition: { duration: 0.15 } }}
-      className={`bg-[#1a0509] rounded-3xl border p-5 cursor-default transition-all ${
+      className={`bg-[#141417] rounded-3xl border p-5 cursor-default transition-all ${
         isPendingActive ? "border-rose-500/25" : "border-white/[0.04]"
       }`}
     >
