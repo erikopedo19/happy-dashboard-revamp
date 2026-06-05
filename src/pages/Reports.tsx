@@ -495,75 +495,86 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0b0b0d] overflow-hidden">
+      <div className="h-screen flex w-full bg-black overflow-hidden">
         <AppSidebar />
 
-        <main className="relative flex-1 bg-[#0b0b0d] flex flex-col overflow-hidden">
-          {/* Vibrant ambient gradient glow — slowly cycles colors */}
+        <main className="relative flex-1 bg-black flex flex-col overflow-hidden">
+          {/* Subtle ambient glow — iOS-style, very restrained */}
           <div
             aria-hidden
-            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-56 z-0"
+            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-40 z-0"
             style={{
               backgroundImage:
-                "radial-gradient(60% 100% at 15% 0%, rgba(99,102,241,0.40) 0%, rgba(99,102,241,0) 60%), radial-gradient(55% 100% at 85% 0%, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0) 65%), radial-gradient(45% 90% at 50% 0%, rgba(168,85,247,0.24) 0%, rgba(10,2,3,0) 70%)",
+                "radial-gradient(60% 100% at 20% 0%, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0) 70%), radial-gradient(50% 100% at 80% 0%, rgba(56,189,248,0.14) 0%, rgba(56,189,248,0) 70%)",
               maskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
               WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
             }}
           />
 
           {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0b0d]/70 backdrop-blur-2xl">
+          <div className="sticky top-0 z-20 bg-black/70 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
-                <div className="min-w-0">
-                  <p className="hidden md:block text-[10px] uppercase tracking-[0.22em] font-semibold text-[#8E8E93]">
-                    Analytics studio
-                  </p>
-                  <h1 className="text-[17px] md:text-2xl font-semibold text-white truncate">
+                <motion.div
+                  className="min-w-0"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <h1 className="text-[22px] md:text-[28px] font-bold text-white tracking-tight leading-none">
                     Reports
                   </h1>
-                </div>
+                  <p className="text-[12px] text-[#8E8E93] mt-1">
+                    Analytics overview
+                  </p>
+                </motion.div>
               </div>
 
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-white text-[#0b0b0d] hover:bg-white/90 font-semibold gap-1.5"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Download className="h-4 w-4" strokeWidth={2.5} />
-                {!isMobile && "Export"}
-              </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleExport}
+                  className="rounded-full h-9 px-4 bg-white/10 text-white hover:bg-white/15 font-medium gap-1.5 border border-white/10 backdrop-blur-xl"
+                >
+                  <Download className="h-4 w-4" strokeWidth={2.5} />
+                  {!isMobile && "Export"}
+                </Button>
+              </motion.div>
             </div>
 
-            {/* Range pills with subtle animations */}
-            <div className="px-4 md:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
-              {RANGES.map((r) => {
-                const active = dateRange === r.value;
-                return (
-                  <button
-                    key={r.value}
-                    onClick={() => setDateRange(r.value)}
-                    className={`relative shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
-                      active
-                        ? "bg-white text-[#0b0b0d] shadow-sm"
-                        : "bg-white/[0.06] text-white"
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="activeRangePill"
-                        className="absolute inset-0 rounded-full bg-white -z-10"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    {isMobile ? r.short : r.label}
-                  </button>
-                );
-              })}
+            {/* iOS segmented control */}
+            <div className="px-4 md:px-6 pb-3">
+              <div className="inline-flex w-full md:w-auto p-[3px] rounded-[10px] bg-white/[0.07] backdrop-blur-xl gap-[2px] overflow-x-auto scrollbar-none">
+                {RANGES.map((r) => {
+                  const active = dateRange === r.value;
+                  return (
+                    <button
+                      key={r.value}
+                      onClick={() => setDateRange(r.value)}
+                      className={`relative shrink-0 flex-1 md:flex-none h-7 px-3 rounded-[8px] text-[12px] font-semibold transition-colors duration-200 ${
+                        active ? "text-white" : "text-[#8E8E93] hover:text-white/80"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="activeRangePill"
+                          className="absolute inset-0 rounded-[8px] bg-white/[0.14] shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_1px_2px_rgba(0,0,0,0.4)] -z-10"
+                          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        />
+                      )}
+                      <span className="relative">{isMobile ? r.short : r.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -571,7 +582,7 @@ const Reports = () => {
           <div className="relative z-10 flex-1 overflow-auto">
             <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
               <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
-                <Card className="rounded-[2rem] border border-white/5 bg-[#141417]/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
+                <Card className="rounded-[2rem] border-0 bg-[#1C1C1E] shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
                   <CardContent className="p-5 md:p-6">
                     <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="min-w-0">
@@ -664,7 +675,7 @@ const Reports = () => {
                 </CardContent>
                 </Card>
 
-                <Card className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#141417] to-[#0f0f12] text-white shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+                <Card className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#1C1C1E] to-[#141417] text-white shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden">
                   <CardContent className="p-5 md:p-6 h-full flex flex-col">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
@@ -706,7 +717,7 @@ const Reports = () => {
                   accent="ink"
                 />
                 <KpiTile index={1}
-                  icon={<Users className="w-4 h-4 text-sky-500" />}
+                  icon={<Users className="w-4 h-4 text-white" />}
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
@@ -720,7 +731,7 @@ const Reports = () => {
                   accent="ink"
                 />
                 <KpiTile index={3}
-                  icon={<Scissors className="w-4 h-4 text-sky-500" />}
+                  icon={<Scissors className="w-4 h-4 text-white" />}
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   hint={`${analytics.completedAppointments} completed`}
@@ -729,7 +740,7 @@ const Reports = () => {
               </section>
 
               {/* Booking status — Pie chart */}
-              <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -801,7 +812,7 @@ const Reports = () => {
               {/* Hourly demand + Busiest days */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
                 {/* Hourly demand */}
-                <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-white">
@@ -845,7 +856,7 @@ const Reports = () => {
                 </Card>
 
                 {/* Busiest days */}
-                <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-white">Busiest days</h3>
@@ -878,7 +889,7 @@ const Reports = () => {
               </section>
 
               {/* Booking stats */}
-              <Card className="rounded-3xl border-0 bg-[#141417] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] ">
+              <Card className="rounded-3xl border-0 bg-[#1C1C1E] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] ">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-5">
                     <div>
@@ -889,8 +900,8 @@ const Reports = () => {
                         Status breakdown this period
                       </p>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
-                      <Filter className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center">
+                      <Filter className="w-5 h-5 text-white" strokeWidth={2.5} />
                     </div>
                   </div>
 
@@ -943,7 +954,7 @@ const Reports = () => {
               </Card>
 
               {/* Top services */}
-              <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
                 <CardContent className="p-5">
                   <div className="mb-4">
                     <h3 className="text-base font-semibold text-white">
@@ -996,7 +1007,7 @@ const Reports = () => {
               </Card>
 
               {/* Stylist ranking */}
-              <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -1016,7 +1027,7 @@ const Reports = () => {
                       {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
                         <div
                           key={stylist.id}
-                          className="flex items-center gap-3 rounded-2xl bg-white/[0.04] px-3 py-3"
+                          className="flex items-center gap-3 rounded-2xl bg-white/[0.05] px-3 py-3"
                         >
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
@@ -1057,7 +1068,7 @@ const Reports = () => {
 
               {/* Stylist comparison chart */}
               {analytics.stylistPerformance.length > 0 && (
-                <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+                <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
                   <CardContent className="p-5">
                     <div className="mb-4">
                       <h3 className="text-base font-semibold text-white">
@@ -1154,7 +1165,7 @@ function KpiTile({
   accent?: "ink" | "sky" | "rose";
 }) {
   const accentBg = accent === "sky"
-    ? "bg-[#3b82f6]/15"
+    ? "bg-white/[0.08]"
     : "bg-white/[0.06]";
   const hoverShadow = "hover:shadow-[0_10px_36px_rgba(0,0,0,0.08)]";
 
@@ -1165,7 +1176,7 @@ function KpiTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
     >
-      <Card className={cn("rounded-2xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
+      <Card className={cn("rounded-2xl border-0 bg-[#1C1C1E] cursor-default transition-shadow duration-300", hoverShadow)}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", accentBg)}>
@@ -1198,7 +1209,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Card className="rounded-3xl border border-white/5 bg-[#141417]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+      <Card className="rounded-3xl border-0 bg-[#1C1C1E] transition-shadow duration-300 hover:bg-[#222224] transition-colors">
         <CardContent className="p-5">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
@@ -1206,8 +1217,8 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
               <h3 className="text-base font-semibold text-white">Best customers</h3>
               <p className="text-xs text-[#8E8E93] mt-0.5">Ranked by total spend this period</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-sky-500" />
+            <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center">
+              <Crown className="w-5 h-5 text-white" />
             </div>
           </div>
 
@@ -1275,7 +1286,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.07 * i + 0.32, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                      className="flex items-center gap-3 rounded-2xl bg-white/[0.04] px-3 py-2.5 group"
+                      className="flex items-center gap-3 rounded-2xl bg-white/[0.05] px-3 py-2.5 group"
                     >
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0 transition-transform duration-200 group-hover:scale-110"
@@ -1337,15 +1348,15 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
 
   return (
-    <Card className="rounded-3xl border-0 bg-[#141417] shadow-sm">
+    <Card className="rounded-3xl border-0 bg-[#1C1C1E] shadow-sm">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-base font-semibold text-white">Customer reviews</h3>
             <p className="text-xs text-[#8E8E93] mt-0.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""} total</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
+          <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
         </div>
 
@@ -1395,7 +1406,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
               {reviews.slice(0, 8).map((r) => (
                 <div
                   key={r.id}
-                  className="rounded-2xl bg-white/[0.04] p-4 space-y-1.5"
+                  className="rounded-2xl bg-white/[0.05] p-4 space-y-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1">
@@ -1436,8 +1447,8 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
 
 function EmptyMini() {
   return (
-    <div className="rounded-2xl bg-white/[0.04] p-6 text-center">
-      <div className="w-10 h-10 rounded-xl bg-[#141417] mx-auto flex items-center justify-center">
+    <div className="rounded-2xl bg-white/[0.05] p-6 text-center">
+      <div className="w-10 h-10 rounded-xl bg-[#1C1C1E] mx-auto flex items-center justify-center">
         <Sparkles className="w-4 h-4 text-[#8E8E93]" />
       </div>
       <p className="text-xs text-[#8E8E93] mt-3">No data in this range yet</p>
