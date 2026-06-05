@@ -495,75 +495,86 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0b0b0d] overflow-hidden">
+      <div className="h-screen flex w-full bg-black overflow-hidden">
         <AppSidebar />
 
-        <main className="relative flex-1 bg-[#0b0b0d] flex flex-col overflow-hidden">
-          {/* Vibrant ambient gradient glow — slowly cycles colors */}
+        <main className="relative flex-1 bg-black flex flex-col overflow-hidden">
+          {/* Subtle ambient glow — iOS-style, very restrained */}
           <div
             aria-hidden
-            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-56 z-0"
+            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-40 z-0"
             style={{
               backgroundImage:
-                "radial-gradient(60% 100% at 15% 0%, rgba(99,102,241,0.40) 0%, rgba(99,102,241,0) 60%), radial-gradient(55% 100% at 85% 0%, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0) 65%), radial-gradient(45% 90% at 50% 0%, rgba(168,85,247,0.24) 0%, rgba(10,2,3,0) 70%)",
+                "radial-gradient(60% 100% at 20% 0%, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0) 70%), radial-gradient(50% 100% at 80% 0%, rgba(56,189,248,0.14) 0%, rgba(56,189,248,0) 70%)",
               maskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
               WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
             }}
           />
 
           {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0b0d]/70 backdrop-blur-2xl">
+          <div className="sticky top-0 z-20 bg-black/70 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
-                <div className="min-w-0">
-                  <p className="hidden md:block text-[10px] uppercase tracking-[0.22em] font-semibold text-[#8E8E93]">
-                    Analytics studio
-                  </p>
-                  <h1 className="text-[17px] md:text-2xl font-semibold text-white truncate">
+                <motion.div
+                  className="min-w-0"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <h1 className="text-[22px] md:text-[28px] font-bold text-white tracking-tight leading-none">
                     Reports
                   </h1>
-                </div>
+                  <p className="text-[12px] text-[#8E8E93] mt-1">
+                    Analytics overview
+                  </p>
+                </motion.div>
               </div>
 
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-white text-[#0b0b0d] hover:bg-white/90 font-semibold gap-1.5"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Download className="h-4 w-4" strokeWidth={2.5} />
-                {!isMobile && "Export"}
-              </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleExport}
+                  className="rounded-full h-9 px-4 bg-white/10 text-white hover:bg-white/15 font-medium gap-1.5 border border-white/10 backdrop-blur-xl"
+                >
+                  <Download className="h-4 w-4" strokeWidth={2.5} />
+                  {!isMobile && "Export"}
+                </Button>
+              </motion.div>
             </div>
 
-            {/* Range pills with subtle animations */}
-            <div className="px-4 md:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
-              {RANGES.map((r) => {
-                const active = dateRange === r.value;
-                return (
-                  <button
-                    key={r.value}
-                    onClick={() => setDateRange(r.value)}
-                    className={`relative shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
-                      active
-                        ? "bg-white text-[#0b0b0d] shadow-sm"
-                        : "bg-white/[0.06] text-white"
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="activeRangePill"
-                        className="absolute inset-0 rounded-full bg-white -z-10"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    {isMobile ? r.short : r.label}
-                  </button>
-                );
-              })}
+            {/* iOS segmented control */}
+            <div className="px-4 md:px-6 pb-3">
+              <div className="inline-flex w-full md:w-auto p-[3px] rounded-[10px] bg-white/[0.07] backdrop-blur-xl gap-[2px] overflow-x-auto scrollbar-none">
+                {RANGES.map((r) => {
+                  const active = dateRange === r.value;
+                  return (
+                    <button
+                      key={r.value}
+                      onClick={() => setDateRange(r.value)}
+                      className={`relative shrink-0 flex-1 md:flex-none h-7 px-3 rounded-[8px] text-[12px] font-semibold transition-colors duration-200 ${
+                        active ? "text-white" : "text-[#8E8E93] hover:text-white/80"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="activeRangePill"
+                          className="absolute inset-0 rounded-[8px] bg-white/[0.14] shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_1px_2px_rgba(0,0,0,0.4)] -z-10"
+                          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        />
+                      )}
+                      <span className="relative">{isMobile ? r.short : r.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
