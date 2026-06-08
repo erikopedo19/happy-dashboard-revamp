@@ -46,6 +46,8 @@ import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
+import Microsite from "./pages/Microsite";
+import MicrositeEditor from "./pages/MicrositeEditor";
 
 const queryClient = new QueryClient({
   defaultOptions: {
