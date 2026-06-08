@@ -127,8 +127,6 @@ function AnimatedRoutes() {
           <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
           <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
           <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-          <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
-          <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
           <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
           <Route path="/site/:slug" element={<Microsite />} />
           <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
