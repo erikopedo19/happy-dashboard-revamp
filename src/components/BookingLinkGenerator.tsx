@@ -453,6 +453,24 @@ const BookingLinkGenerator = () => {
             </Button>
           </div>
         )}
+
+        {bookingUrl && (
+          <a
+            href="/microsite"
+            className="block rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 hover:border-[#e11d48] dark:hover:border-[#e11d48] transition group"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-[#e11d48]">New · Microsite</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">Generate a beautiful site for this link</div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  Lives at <span className="font-mono">{customSlug || "your-slug"}.cutzioo.com</span>
+                </div>
+              </div>
+              <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-[#e11d48] transition" />
+            </div>
+          </a>
+        )}
       </div>
     </div>
   );
