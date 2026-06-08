@@ -55,6 +55,11 @@ const mainItems = [
     icon: Globe,
   },
   {
+    title: "Microsite",
+    url: "/microsite",
+    icon: Globe,
+  },
+  {
     title: "Stylists",
     url: "/stylists",
     icon: UserCheck,
