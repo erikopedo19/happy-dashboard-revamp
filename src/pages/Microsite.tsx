@@ -271,10 +271,10 @@ const Microsite = () => {
             )}
             <div className="flex items-center gap-4 pt-2">
               {m.instagram && (
-                <a href={m.instagram} target="_blank" rel="noreferrer" className="text-stone-400 hover:text-white"><Instagram className="h-5 w-5" /></a>
+                <a href={m.instagram} target="_blank" rel="noreferrer" className="text-stone-400 hover:text-white">IG</a>
               )}
               {m.facebook && (
-                <a href={m.facebook} target="_blank" rel="noreferrer" className="text-stone-400 hover:text-white"><Facebook className="h-5 w-5" /></a>
+                <a href={m.facebook} target="_blank" rel="noreferrer" className="text-stone-400 hover:text-white">FB</a>
               )}
               {m.website_url && (
                 <a href={m.website_url} target="_blank" rel="noreferrer" className="text-stone-400 hover:text-white text-xs underline">Website</a>
