@@ -83,9 +83,26 @@ const LandingRoute = () => {
   return <Landing />;
 }
 
+const RESERVED_SUBDOMAINS = new Set([
+  "www", "app", "admin", "api", "cutzioo", "happy-ios-dash", "localhost",
+]);
+
+function isMicrositeSubdomain(): string | null {
+  const host = window.location.hostname;
+  if (host.endsWith(".cutzioo.com")) {
+    const sub = host.slice(0, -".cutzioo.com".length);
+    if (sub && !RESERVED_SUBDOMAINS.has(sub) && !sub.includes(".")) return sub;
+  }
+  return null;
+}
+
 function AnimatedRoutes() {
   useFinalizeOnboarding();
   const location = useLocation();
+  const subdomain = isMicrositeSubdomain();
+  if (subdomain) {
+    return <Microsite />;
+  }
   return (
     <AnimatePresence mode="wait">
       <motion.div
