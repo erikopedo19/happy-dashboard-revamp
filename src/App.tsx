@@ -46,6 +46,8 @@ import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
+import Microsite from "./pages/Microsite";
+import MicrositeEditor from "./pages/MicrositeEditor";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,9 +83,26 @@ const LandingRoute = () => {
   return <Landing />;
 }
 
+const RESERVED_SUBDOMAINS = new Set([
+  "www", "app", "admin", "api", "cutzioo", "happy-ios-dash", "localhost",
+]);
+
+function isMicrositeSubdomain(): string | null {
+  const host = window.location.hostname;
+  if (host.endsWith(".cutzioo.com")) {
+    const sub = host.slice(0, -".cutzioo.com".length);
+    if (sub && !RESERVED_SUBDOMAINS.has(sub) && !sub.includes(".")) return sub;
+  }
+  return null;
+}
+
 function AnimatedRoutes() {
   useFinalizeOnboarding();
   const location = useLocation();
+  const subdomain = isMicrositeSubdomain();
+  if (subdomain) {
+    return <Microsite />;
+  }
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -125,6 +144,8 @@ function AnimatedRoutes() {
           <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
           <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
           <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+          <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
+          <Route path="/site/:slug" element={<Microsite />} />
           <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -460,6 +460,69 @@ export type Database = {
         }
         Relationships: []
       }
+      microsites: {
+        Row: {
+          about: string | null
+          address: string | null
+          created_at: string
+          facebook: string | null
+          gallery: Json
+          headline: string | null
+          hero_url: string | null
+          hours: string | null
+          id: string
+          instagram: string | null
+          logo_url: string | null
+          published: boolean
+          tagline: string | null
+          theme: string
+          tiktok: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          about?: string | null
+          address?: string | null
+          created_at?: string
+          facebook?: string | null
+          gallery?: Json
+          headline?: string | null
+          hero_url?: string | null
+          hours?: string | null
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          published?: boolean
+          tagline?: string | null
+          theme?: string
+          tiktok?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          about?: string | null
+          address?: string | null
+          created_at?: string
+          facebook?: string | null
+          gallery?: Json
+          headline?: string | null
+          hero_url?: string | null
+          hours?: string | null
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          published?: boolean
+          tagline?: string | null
+          theme?: string
+          tiktok?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           appointment_id: string | null
@@ -1090,6 +1153,7 @@ export type Database = {
           service_id: string
         }[]
       }
+      get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
       get_my_bookings: {
         Args: never
         Returns: {
