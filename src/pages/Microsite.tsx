@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Instagram, Facebook } from "lucide-react";
+import { ArrowUpRight, MapPin, Clock, Phone, Star, Calendar } from "lucide-react";
 
 type SiteData = {
   profile: any;
