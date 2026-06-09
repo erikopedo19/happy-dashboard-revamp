@@ -3,6 +3,9 @@ import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Globe, Share2, Eye, QrCode, Sparkles, HelpCircle } from "lucide-react";
+import { MicrositeEditorPanel } from "@/pages/MicrositeEditor";
+
+
 
 const ROSE = "#e11d48";
 
@@ -68,6 +71,12 @@ const BookingPage = () => {
               <div className="bg-white dark:bg-[#121214] rounded-3xl border border-gray-100 dark:border-zinc-800/80 p-5 md:p-8 shadow-sm">
                 <BookingLinkGenerator />
               </div>
+
+              {/* Microsite Generator - embedded */}
+              <div className="bg-white dark:bg-[#121214] rounded-3xl border border-gray-100 dark:border-zinc-800/80 p-5 md:p-8 shadow-sm">
+                <MicrositeEditorPanel />
+              </div>
+
 
               {/* Grid with instruction and stats */}
               <div className="grid md:grid-cols-12 gap-5">
