@@ -160,6 +160,36 @@ export const MicrositeEditorPanel = () => {
         </div>
       </div>
 
+      {/* Theme picker */}
+      <PanelCard label="Theme & style" hint="Choose how your site looks">
+        <div className="grid grid-cols-3 gap-2.5">
+          {[
+            { id: "editorial", name: "Editorial", sub: "Light & airy", sw: ["#faf7f2", "#1c1917", "#c9a84c"] },
+            { id: "noir", name: "Noir", sub: "Dark & luxe", sw: ["#0a0a0a", "#fafafa", "#c9a84c"] },
+            { id: "mono", name: "Mono", sub: "Crisp minimal", sw: ["#ffffff", "#000000", "#737373"] },
+          ].map((t) => {
+            const active = state.theme === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setState((s) => ({ ...s, theme: t.id }))}
+                className={`text-left rounded-2xl border-2 p-3 transition-all ${active ? "border-[#e11d48] bg-[#e11d48]/5" : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700"}`}
+              >
+                <div className="flex gap-1 mb-2">
+                  {t.sw.map((c, i) => (
+                    <span key={i} className="h-6 w-6 rounded-md border border-black/10" style={{ background: c }} />
+                  ))}
+                </div>
+                <div className="text-sm font-bold text-gray-900 dark:text-white">{t.name}</div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400">{t.sub}</div>
+              </button>
+            );
+          })}
+        </div>
+      </PanelCard>
+
+
       {/* Hero + Logo + Headline */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <PanelCard label="Hero image" hint="Vertical 4:5">
