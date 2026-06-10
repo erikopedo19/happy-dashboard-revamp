@@ -233,7 +233,7 @@ export const MicrositeEditorPanel = () => {
       </motion.div>
 
       {/* Theme picker — iOS segmented cards */}
-      <iOSCard icon={<Sparkles className="h-3.5 w-3.5" />} label="Style" hint="Pick a vibe">
+      <IOSCard icon={<Sparkles className="h-3.5 w-3.5" />} label="Style" hint="Pick a vibe">
         <div className="grid grid-cols-3 gap-2.5">
           {[
             { id: "editorial", name: "Editorial", sub: "Light & airy", sw: ["#faf7f2", "#1c1917", "#c9a84c"] },
@@ -272,26 +272,26 @@ export const MicrositeEditorPanel = () => {
             );
           })}
         </div>
-      </iOSCard>
+      </IOSCard>
 
       {/* Hero + Logo + Headline */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <iOSCard icon={<ImageIcon className="h-3.5 w-3.5" />} label="Hero image" hint="Vertical 4:5">
+        <IOSCard icon={<ImageIcon className="h-3.5 w-3.5" />} label="Hero image" hint="Vertical 4:5">
           <ImageField url={state.hero_url} onPick={(e) => handleFile(e, "hero_url")} onClear={() => setState((s) => ({ ...s, hero_url: "" }))} aspect="aspect-[4/5]" />
-        </iOSCard>
-        <iOSCard icon={<ImageIcon className="h-3.5 w-3.5" />} label="Logo" hint="Square PNG">
+        </IOSCard>
+        <IOSCard icon={<ImageIcon className="h-3.5 w-3.5" />} label="Logo" hint="Square PNG">
           <ImageField url={state.logo_url} onPick={(e) => handleFile(e, "logo_url")} onClear={() => setState((s) => ({ ...s, logo_url: "" }))} aspect="aspect-square" rounded="rounded-full" />
-        </iOSCard>
-        <iOSCard icon={<Type className="h-3.5 w-3.5" />} label="Headline" hint="What people see first">
+        </IOSCard>
+        <IOSCard icon={<Type className="h-3.5 w-3.5" />} label="Headline" hint="What people see first">
           <div className="space-y-2.5">
-            <iOSField label="Headline" value={state.headline} onChange={(v) => setState((s) => ({ ...s, headline: v }))} />
-            <iOSField label="Tagline" value={state.tagline} onChange={(v) => setState((s) => ({ ...s, tagline: v }))} />
+            <IOSField label="Headline" value={state.headline} onChange={(v) => setState((s) => ({ ...s, headline: v }))} />
+            <IOSField label="Tagline" value={state.tagline} onChange={(v) => setState((s) => ({ ...s, tagline: v }))} />
           </div>
-        </iOSCard>
+        </IOSCard>
       </div>
 
       {/* About */}
-      <iOSCard icon={<FileText className="h-3.5 w-3.5" />} label="About">
+      <IOSCard icon={<FileText className="h-3.5 w-3.5" />} label="About">
         <Textarea
           value={state.about}
           onChange={(e) => setState((s) => ({ ...s, about: e.target.value }))}
@@ -299,10 +299,10 @@ export const MicrositeEditorPanel = () => {
           placeholder="A short story about your craft, your space, your team…"
           className="rounded-2xl border-0 bg-gray-100/80 dark:bg-zinc-900/60 focus-visible:ring-2 focus-visible:ring-[#e11d48]/40 resize-none text-[14px]"
         />
-      </iOSCard>
+      </IOSCard>
 
       {/* Gallery */}
-      <iOSCard icon={<ImagePlus className="h-3.5 w-3.5" />} label="Gallery" hint="Showcase your work">
+      <IOSCard icon={<ImagePlus className="h-3.5 w-3.5" />} label="Gallery" hint="Showcase your work">
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
           <AnimatePresence initial={false}>
             {state.gallery.map((url, i) => (
@@ -328,13 +328,13 @@ export const MicrositeEditorPanel = () => {
             <input type="file" accept="image/*" multiple className="hidden" onChange={addGallery} />
           </label>
         </div>
-      </iOSCard>
+      </IOSCard>
 
       {/* Visit & links */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <iOSCard icon={<MapPin className="h-3.5 w-3.5" />} label="Visit">
+        <IOSCard icon={<MapPin className="h-3.5 w-3.5" />} label="Visit">
           <div className="space-y-2.5">
-            <iOSField label="Address" value={state.address} onChange={(v) => setState((s) => ({ ...s, address: v }))} />
+            <IOSField label="Address" value={state.address} onChange={(v) => setState((s) => ({ ...s, address: v }))} />
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 px-1">Hours</div>
               <Textarea
@@ -346,21 +346,21 @@ export const MicrositeEditorPanel = () => {
               />
             </div>
           </div>
-        </iOSCard>
-        <iOSCard icon={<Link2 className="h-3.5 w-3.5" />} label="Social & web">
+        </IOSCard>
+        <IOSCard icon={<Link2 className="h-3.5 w-3.5" />} label="Social & web">
           <div className="space-y-2.5">
-            <iOSField label="Instagram" value={state.instagram} onChange={(v) => setState((s) => ({ ...s, instagram: v }))} placeholder="https://instagram.com/..." />
-            <iOSField label="Facebook" value={state.facebook} onChange={(v) => setState((s) => ({ ...s, facebook: v }))} placeholder="https://facebook.com/..." />
-            <iOSField label="TikTok" value={state.tiktok} onChange={(v) => setState((s) => ({ ...s, tiktok: v }))} placeholder="https://tiktok.com/@..." />
-            <iOSField label="Website" value={state.website_url} onChange={(v) => setState((s) => ({ ...s, website_url: v }))} placeholder="https://..." />
+            <IOSField label="Instagram" value={state.instagram} onChange={(v) => setState((s) => ({ ...s, instagram: v }))} placeholder="https://instagram.com/..." />
+            <IOSField label="Facebook" value={state.facebook} onChange={(v) => setState((s) => ({ ...s, facebook: v }))} placeholder="https://facebook.com/..." />
+            <IOSField label="TikTok" value={state.tiktok} onChange={(v) => setState((s) => ({ ...s, tiktok: v }))} placeholder="https://tiktok.com/@..." />
+            <IOSField label="Website" value={state.website_url} onChange={(v) => setState((s) => ({ ...s, website_url: v }))} placeholder="https://..." />
           </div>
-        </iOSCard>
+        </IOSCard>
       </div>
     </div>
   );
 };
 
-const iOSCard = ({ icon, label, hint, children, className = "" }: any) => (
+const IOSCard = ({ icon, label, hint, children, className = "" }: any) => (
   <motion.div
     initial={{ opacity: 0, y: 6 }}
     animate={{ opacity: 1, y: 0 }}
@@ -378,7 +378,7 @@ const iOSCard = ({ icon, label, hint, children, className = "" }: any) => (
   </motion.div>
 );
 
-const iOSField = ({ label, value, onChange, placeholder }: any) => (
+const IOSField = ({ label, value, onChange, placeholder }: any) => (
   <div>
     <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 px-1">{label}</div>
     <Input
