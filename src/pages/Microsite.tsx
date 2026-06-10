@@ -502,8 +502,8 @@ const Microsite = () => {
               <div className="text-[11px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: t.accent }}>Connect</div>
               <h3 className="ms-display text-2xl md:text-3xl">Follow along</h3>
               <div className="mt-5 grid grid-cols-2 gap-2.5">
-                {m.instagram && <Social href={m.instagram} icon={<Instagram className="h-4 w-4" />} label="Instagram" t={t} />}
-                {m.facebook && <Social href={m.facebook} icon={<Facebook className="h-4 w-4" />} label="Facebook" t={t} />}
+                {m.instagram && <Social href={m.instagram} icon={<Music2 className="h-4 w-4" />} label="Instagram" t={t} />}
+                {m.facebook && <Social href={m.facebook} icon={<Globe className="h-4 w-4" />} label="Facebook" t={t} />}
                 {m.tiktok && <Social href={m.tiktok} icon={<Music2 className="h-4 w-4" />} label="TikTok" t={t} />}
                 {m.website_url && <Social href={m.website_url} icon={<Globe className="h-4 w-4" />} label="Website" t={t} />}
                 {!m.instagram && !m.facebook && !m.tiktok && !m.website_url && (
