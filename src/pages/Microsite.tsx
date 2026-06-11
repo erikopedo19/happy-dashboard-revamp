@@ -205,21 +205,28 @@ const Microsite = () => {
           >
             {/* Hero image fills card */}
             {hero ? (
-              <img src={hero} alt={businessName} className="absolute inset-0 h-full w-full object-cover" />
+              <motion.img
+                src={hero}
+                alt={businessName}
+                style={{ y: heroY, scale: heroScale }}
+                className="absolute inset-0 h-[120%] w-full object-cover will-change-transform"
+              />
             ) : (
               <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${t.accent}22, ${t.accent}05)` }} />
             )}
             {/* Gradient scrim */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.9) 100%)" }} />
 
-            {/* Top chip */}
-            <div className="absolute top-5 left-5 md:top-7 md:left-7">
+            {/* Top chips */}
+            <div className="absolute top-5 left-5 right-5 md:top-7 md:left-7 md:right-7 flex items-center justify-between gap-2">
               <div className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full backdrop-blur-xl bg-white/15 border border-white/20 text-[11px] font-semibold text-white">
                 <Sparkles className="h-3 w-3" /> {p.city || "Now booking"}
               </div>
+              <div className="inline-flex items-center gap-2 px-3 h-8 rounded-full backdrop-blur-xl bg-black/30 border border-white/15 text-[11px] font-semibold text-white">
+                <span className="relative h-2 w-2 rounded-full bg-green-500 ms-pulse-dot" />
+                Booking live now
+              </div>
             </div>
-
-            {/* Bottom content */}
             <div className="absolute inset-x-0 bottom-0 p-5 md:p-10">
               <div className="max-w-2xl">
                 <motion.h1
