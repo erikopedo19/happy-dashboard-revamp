@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Check, Sparkles,
   Globe, ChevronRight, Shield, Zap, Heart, Award,
-  Music2, Coffee, Scissors,
+  Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck,
 } from "lucide-react";
 
 type SiteData = {
