@@ -103,6 +103,10 @@ const Microsite = () => {
     ["--ms-accent" as any]: t.accent,
   }), [t]);
 
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
+  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
+
   if (loading) {
     return (
       <div style={{ background: t.bg, color: t.subtext }} className="min-h-screen flex items-center justify-center text-sm font-[Inter]">
@@ -140,9 +144,6 @@ const Microsite = () => {
     { icon: Award, title: "Premium service", desc: "Expert care, every visit." },
   ];
 
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
-  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
 
   return (
     <div
