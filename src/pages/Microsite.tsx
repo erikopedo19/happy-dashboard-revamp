@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Check, Sparkles,
   Globe, ChevronRight, Shield, Zap, Heart, Award,
-  Music2, Coffee, Scissors,
+  Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck,
 } from "lucide-react";
 
 type SiteData = {
@@ -140,6 +140,10 @@ const Microsite = () => {
     { icon: Award, title: "Premium service", desc: "Expert care, every visit." },
   ];
 
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
+  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
+
   return (
     <div
       style={{ ...cssVars, background: "var(--ms-bg)", color: "var(--ms-text)", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" } as any}
@@ -152,6 +156,10 @@ const Microsite = () => {
         .ms-hairline { box-shadow: inset 0 0 0 0.5px var(--ms-border); }
         @keyframes ms-marq { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .ms-marq { animation: ms-marq 35s linear infinite; }
+        @keyframes ms-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0; } }
+        .ms-pulse-dot::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: #22c55e; animation: ms-pulse 2s ease-out infinite; }
+        @keyframes ms-float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        .ms-float { animation: ms-float 5s ease-in-out infinite; }
         .ms-card { background: var(--ms-surface); border: 1px solid var(--ms-border); border-radius: 28px; }
         .ms-tap { transition: transform .2s cubic-bezier(.22,1,.36,1); }
         .ms-tap:active { transform: scale(0.97); }
@@ -197,21 +205,28 @@ const Microsite = () => {
           >
             {/* Hero image fills card */}
             {hero ? (
-              <img src={hero} alt={businessName} className="absolute inset-0 h-full w-full object-cover" />
+              <motion.img
+                src={hero}
+                alt={businessName}
+                style={{ y: heroY, scale: heroScale }}
+                className="absolute inset-0 h-[120%] w-full object-cover will-change-transform"
+              />
             ) : (
               <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${t.accent}22, ${t.accent}05)` }} />
             )}
             {/* Gradient scrim */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.9) 100%)" }} />
 
-            {/* Top chip */}
-            <div className="absolute top-5 left-5 md:top-7 md:left-7">
+            {/* Top chips */}
+            <div className="absolute top-5 left-5 right-5 md:top-7 md:left-7 md:right-7 flex items-center justify-between gap-2">
               <div className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full backdrop-blur-xl bg-white/15 border border-white/20 text-[11px] font-semibold text-white">
                 <Sparkles className="h-3 w-3" /> {p.city || "Now booking"}
               </div>
+              <div className="inline-flex items-center gap-2 px-3 h-8 rounded-full backdrop-blur-xl bg-black/30 border border-white/15 text-[11px] font-semibold text-white">
+                <span className="relative h-2 w-2 rounded-full bg-green-500 ms-pulse-dot" />
+                Booking live now
+              </div>
             </div>
-
-            {/* Bottom content */}
             <div className="absolute inset-x-0 bottom-0 p-5 md:p-10">
               <div className="max-w-2xl">
                 <motion.h1
@@ -300,6 +315,50 @@ const Microsite = () => {
             ))}
           </div>
         </section>
+
+        {/* TRUST STRIP — small social-proof row */}
+        <section className="px-3 md:px-6 mt-3">
+          <div className="max-w-6xl mx-auto ms-card px-5 md:px-8 py-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <BadgeCheck className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">Verified studio</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Identity confirmed</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <TrendingUp className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">Booking in seconds</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Avg. 28s checkout</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <Users className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">{reviewCount > 0 ? `${reviewCount}+ happy clients` : "Trusted locally"}</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Returning every month</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <Shield className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">Secure checkout</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Encrypted end-to-end</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
 
         {/* WHY US — iOS feature grid */}
         <section className="px-3 md:px-6 mt-3">
