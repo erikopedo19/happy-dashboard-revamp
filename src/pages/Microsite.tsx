@@ -144,9 +144,6 @@ const Microsite = () => {
     { icon: Award, title: "Premium service", desc: "Expert care, every visit." },
   ];
 
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
-  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
 
   return (
     <div
