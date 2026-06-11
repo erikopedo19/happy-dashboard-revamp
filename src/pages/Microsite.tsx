@@ -140,6 +140,10 @@ const Microsite = () => {
     { icon: Award, title: "Premium service", desc: "Expert care, every visit." },
   ];
 
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
+  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
+
   return (
     <div
       style={{ ...cssVars, background: "var(--ms-bg)", color: "var(--ms-text)", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" } as any}
@@ -152,6 +156,10 @@ const Microsite = () => {
         .ms-hairline { box-shadow: inset 0 0 0 0.5px var(--ms-border); }
         @keyframes ms-marq { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .ms-marq { animation: ms-marq 35s linear infinite; }
+        @keyframes ms-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0; } }
+        .ms-pulse-dot::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: #22c55e; animation: ms-pulse 2s ease-out infinite; }
+        @keyframes ms-float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        .ms-float { animation: ms-float 5s ease-in-out infinite; }
         .ms-card { background: var(--ms-surface); border: 1px solid var(--ms-border); border-radius: 28px; }
         .ms-tap { transition: transform .2s cubic-bezier(.22,1,.36,1); }
         .ms-tap:active { transform: scale(0.97); }
