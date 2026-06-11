@@ -316,6 +316,50 @@ const Microsite = () => {
           </div>
         </section>
 
+        {/* TRUST STRIP — small social-proof row */}
+        <section className="px-3 md:px-6 mt-3">
+          <div className="max-w-6xl mx-auto ms-card px-5 md:px-8 py-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <BadgeCheck className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">Verified studio</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Identity confirmed</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <TrendingUp className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">Booking in seconds</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Avg. 28s checkout</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <Users className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">{reviewCount > 0 ? `${reviewCount}+ happy clients` : "Trusted locally"}</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Returning every month</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
+                <Shield className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold">Secure checkout</div>
+                <div className="text-[11px]" style={{ color: t.subtext }}>Encrypted end-to-end</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+
         {/* WHY US — iOS feature grid */}
         <section className="px-3 md:px-6 mt-3">
           <div className="max-w-6xl mx-auto ms-card p-5 md:p-8">
