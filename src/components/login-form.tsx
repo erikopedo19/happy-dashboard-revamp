@@ -119,6 +119,13 @@ export function LoginForm() {
           className="w-full max-w-[380px]"
         >
           <div className="mb-8 text-center">
+            <div className="flex justify-center mb-5">
+              <img
+                src="/cutzioo-logo.webp"
+                alt="Cutzio"
+                className="h-16 w-16 rounded-2xl object-contain"
+              />
+            </div>
             <h1 className="text-[28px] font-semibold tracking-tight">
               {mode === "signin" ? "Welcome back" : "Create your account"}
             </h1>
