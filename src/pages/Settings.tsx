@@ -467,11 +467,11 @@ const Settings = () => {
                       ))}
                     </TabsList>
 
-                    <TabsContent value="messages" className="mt-0 space-y-6">
+                    <TabsContent value="messages" className="mt-0 space-y-6 animate-fade-in">
                       <MessageTemplates />
                     </TabsContent>
 
-                    <TabsContent value="general" className="mt-0 space-y-6">
+                    <TabsContent value="general" className="mt-0 space-y-6 animate-fade-in">
                       {/* Role switcher */}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
@@ -678,11 +678,11 @@ const Settings = () => {
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="booking" className="mt-0 space-y-6">
+                    <TabsContent value="booking" className="mt-0 space-y-6 animate-fade-in">
                       <BookingLinkGenerator />
                     </TabsContent>
 
-                    <TabsContent value="notifications" className="mt-0">
+                    <TabsContent value="notifications" className="mt-0 animate-fade-in">
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
@@ -724,7 +724,7 @@ const Settings = () => {
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="business" className="mt-0 space-y-6">
+                    <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionCard />
                       {user?.id && <PublicVisibilityCard userId={user.id} />}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
