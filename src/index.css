@@ -812,3 +812,36 @@ html, body, #root {
   animation: ambient-drift 28s ease-in-out infinite, ambient-hue 40s linear infinite;
   will-change: filter, background-position;
 }
+
+/* Aurora gradient utilities — rose + purple + blue */
+.bg-aurora {
+  background: var(--gradient-aurora);
+}
+.bg-rose-purple {
+  background: var(--gradient-rose);
+}
+.text-aurora {
+  background: var(--gradient-aurora);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.shadow-aurora {
+  box-shadow: 0 10px 40px -10px hsl(280 84% 60% / 0.35), 0 10px 40px -10px hsl(346 84% 60% / 0.25);
+}
+.bg-aurora-soft {
+  background:
+    radial-gradient(900px circle at 0% 0%, hsl(346 84% 60% / 0.10), transparent 45%),
+    radial-gradient(900px circle at 100% 0%, hsl(280 84% 62% / 0.10), transparent 45%),
+    radial-gradient(900px circle at 50% 100%, hsl(217 91% 60% / 0.08), transparent 50%);
+}
+@keyframes aurora-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.bg-aurora-animated {
+  background: linear-gradient(120deg, hsl(346 84% 60%), hsl(280 84% 62%), hsl(217 91% 60%), hsl(280 84% 62%), hsl(346 84% 60%));
+  background-size: 300% 300%;
+  animation: aurora-shift 12s ease infinite;
+}
