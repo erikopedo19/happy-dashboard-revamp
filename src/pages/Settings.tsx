@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Bell,
   Calendar,
@@ -400,62 +401,77 @@ const Settings = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden relative">
+        {/* Ambient aurora backdrop */}
+        <div className="pointer-events-none absolute inset-0 bg-aurora-soft opacity-90 dark:opacity-60" />
         <AppSidebar />
 
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+        <main className="flex-1 flex flex-col overflow-hidden relative">
+          <div className="sticky top-0 z-20 border-b border-white/40 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-2xl">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">Settings</h1>
+                <motion.h1
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[17px] md:text-2xl font-semibold text-aurora truncate"
+                >
+                  Settings
+                </motion.h1>
               </div>
 
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending || isLoading}
-                className="rounded-full h-9 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold shadow-none"
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-                )}
-                {saveMutation.isPending ? "Saving" : "Save"}
-              </Button>
+              <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.02 }}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending || isLoading}
+                  className="rounded-full h-9 px-5 bg-aurora-animated text-white font-semibold border-0 shadow-aurora hover:opacity-95"
+                >
+                  {saveMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                  )}
+                  {saveMutation.isPending ? "Saving" : "Save"}
+                </Button>
+              </motion.div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto relative">
             <div className="max-w-6xl mx-auto p-4 md:p-6">
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto">
-                      <TabsTrigger value="general" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Settings2 className="w-4 h-4" />General
-                      </TabsTrigger>
-                      <TabsTrigger value="booking" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Link2 className="w-4 h-4" />Booking
-                      </TabsTrigger>
-                      <TabsTrigger value="messages" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Sparkles className="w-4 h-4" />Messages
-                      </TabsTrigger>
-                      <TabsTrigger value="notifications" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Bell className="w-4 h-4" />Alerts
-                      </TabsTrigger>
-                      <TabsTrigger value="business" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Store className="w-4 h-4" />Business
-                      </TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border border-white/60 dark:border-white/5 p-1 h-auto shadow-sm">
+                      {[
+                        { v: "general", icon: Settings2, label: "General" },
+                        { v: "booking", icon: Link2, label: "Booking" },
+                        { v: "messages", icon: Sparkles, label: "Messages" },
+                        { v: "notifications", icon: Bell, label: "Alerts" },
+                        { v: "business", icon: Store, label: "Business" },
+                      ].map(({ v, icon: Icon, label }) => (
+                        <TabsTrigger
+                          key={v}
+                          value={v}
+                          className={cn(
+                            "relative flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm font-medium transition-all duration-300",
+                            "data-[state=active]:bg-aurora-animated data-[state=active]:text-white data-[state=active]:shadow-aurora",
+                            "data-[state=inactive]:text-[#1C1C1E] dark:data-[state=inactive]:text-[#F2F2F7]/70 data-[state=inactive]:hover:bg-[#F2F2F7] dark:data-[state=inactive]:hover:bg-[#2C2C2E]/60"
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />{label}
+                        </TabsTrigger>
+                      ))}
                     </TabsList>
 
-                    <TabsContent value="messages" className="mt-0 space-y-6">
+                    <TabsContent value="messages" className="mt-0 space-y-6 animate-fade-in">
                       <MessageTemplates />
                     </TabsContent>
 
-                    <TabsContent value="general" className="mt-0 space-y-6">
+                    <TabsContent value="general" className="mt-0 space-y-6 animate-fade-in">
                       {/* Role switcher */}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
@@ -662,11 +678,11 @@ const Settings = () => {
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="booking" className="mt-0 space-y-6">
+                    <TabsContent value="booking" className="mt-0 space-y-6 animate-fade-in">
                       <BookingLinkGenerator />
                     </TabsContent>
 
-                    <TabsContent value="notifications" className="mt-0">
+                    <TabsContent value="notifications" className="mt-0 animate-fade-in">
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
@@ -708,7 +724,7 @@ const Settings = () => {
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="business" className="mt-0 space-y-6">
+                    <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionCard />
                       {user?.id && <PublicVisibilityCard userId={user.id} />}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
@@ -972,16 +988,20 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
-                    <div className="bg-[#1C1C1E] p-6 text-white">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-4 h-4 text-white/80" />
-                        <span className="text-sm font-medium text-white/80">Live agenda preview</span>
+                  <Card className="rounded-3xl border-white/60 dark:border-white/5 shadow-aurora bg-white dark:bg-[#1C1C1E] overflow-hidden">
+                    <div className="bg-aurora-animated p-6 text-white relative overflow-hidden">
+                      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-3xl" />
+                      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Sparkles className="w-4 h-4 text-white/90" />
+                          <span className="text-sm font-medium text-white/90">Live agenda preview</span>
+                        </div>
+                        <h3 className="text-xl font-semibold">Your saved schedule</h3>
+                        <p className="text-sm text-white/80 mt-1">
+                          These values are used by the agenda and booking availability.
+                        </p>
                       </div>
-                      <h3 className="text-xl font-semibold">Your saved schedule</h3>
-                      <p className="text-sm text-white/70 mt-1">
-                        These values are used by the agenda and booking availability.
-                      </p>
                     </div>
 
                     <CardContent className="p-6 space-y-5">

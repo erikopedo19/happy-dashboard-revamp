@@ -50,11 +50,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return () => { cancelled = true; };
   }, [user]);
 
+  // Zero loading screens — render children optimistically while auth resolves.
   if (loading || (user && isCheckingRole)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <GuestBanner />
+        {children}
+      </>
     );
   }
 
