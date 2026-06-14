@@ -988,16 +988,20 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
-                    <div className="bg-[#1C1C1E] p-6 text-white">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-4 h-4 text-white/80" />
-                        <span className="text-sm font-medium text-white/80">Live agenda preview</span>
+                  <Card className="rounded-3xl border-white/60 dark:border-white/5 shadow-aurora bg-white dark:bg-[#1C1C1E] overflow-hidden">
+                    <div className="bg-aurora-animated p-6 text-white relative overflow-hidden">
+                      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-3xl" />
+                      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Sparkles className="w-4 h-4 text-white/90" />
+                          <span className="text-sm font-medium text-white/90">Live agenda preview</span>
+                        </div>
+                        <h3 className="text-xl font-semibold">Your saved schedule</h3>
+                        <p className="text-sm text-white/80 mt-1">
+                          These values are used by the agenda and booking availability.
+                        </p>
                       </div>
-                      <h3 className="text-xl font-semibold">Your saved schedule</h3>
-                      <p className="text-sm text-white/70 mt-1">
-                        These values are used by the agenda and booking availability.
-                      </p>
                     </div>
 
                     <CardContent className="p-6 space-y-5">
