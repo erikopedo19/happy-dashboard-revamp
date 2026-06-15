@@ -737,9 +737,8 @@ html, body, #root {
   opacity: 0.9;
   transition: opacity 0.2s ease, transform 0.1s ease;
   padding: 2px;
-  background: black;
+  background: hsl(var(--primary));
   border-radius: 16px;
-  background: linear-gradient(to top, #be123c, #fb7185);
   border: none;
   outline: none;
 }
@@ -757,10 +756,9 @@ html, body, #root {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: #e11d48;
+  background: hsl(var(--primary));
   color: white;
   border-radius: 14px;
-  background: linear-gradient(to top, #db2777, #f43f5e);
   font-weight: 500;
   font-size: 0.875rem;
   white-space: nowrap;
