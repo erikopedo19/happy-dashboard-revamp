@@ -528,8 +528,8 @@ const Settings = () => {
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                            <div className="w-11 h-11 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-primary dark:text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Agenda timing</CardTitle>
