@@ -63,7 +63,7 @@ const StatTile = ({
   >
     <Card className="h-full border-border/60 bg-card/60 backdrop-blur-xl">
       <CardContent className="p-4 sm:p-5 flex flex-col gap-3">
-        <div className="h-10 w-10 rounded-2xl bg-aurora-animated/90 text-white flex items-center justify-center shadow-aurora">
+        <div className="h-10 w-10 rounded-2xl bg-primary/90 text-primary-foreground flex items-center justify-center shadow-sm">
           <Icon className="h-4.5 w-4.5" />
         </div>
         <div>
