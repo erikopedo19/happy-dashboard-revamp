@@ -843,7 +843,7 @@ const Settings = () => {
                                 placeholder="Tell clients about your style, experience, and what makes you stand out."
                                 rows={3}
                                 maxLength={400}
-                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
                               />
                               <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5 text-right">
                                 {brandForm.description.length}/400
