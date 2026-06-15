@@ -53,10 +53,6 @@ html, body, #root {
     --chart-5: 346 60% 70%;
 
     --gradient-brand: linear-gradient(135deg, #050506 0%, #111317 48%, #1d2027 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(346 84% 60%), hsl(280 84% 65%));
-    --gradient-purple: linear-gradient(135deg, hsl(280 84% 60%), hsl(217 91% 60%));
-    --gradient-aurora: linear-gradient(135deg, hsl(346 84% 60%) 0%, hsl(280 84% 60%) 50%, hsl(217 91% 60%) 100%);
-    --gradient-sky: linear-gradient(135deg, hsl(222 50% 35%), hsl(222 60% 50%));
     --shadow-rose: 0 10px 40px -10px hsl(346 84% 60% / 0.35);
     --shadow-purple: 0 10px 40px -10px hsl(280 84% 60% / 0.35);
     --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
@@ -741,9 +737,8 @@ html, body, #root {
   opacity: 0.9;
   transition: opacity 0.2s ease, transform 0.1s ease;
   padding: 2px;
-  background: black;
+  background: hsl(var(--primary));
   border-radius: 16px;
-  background: linear-gradient(to top, #be123c, #fb7185);
   border: none;
   outline: none;
 }
@@ -761,10 +756,9 @@ html, body, #root {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: #e11d48;
+  background: hsl(var(--primary));
   color: white;
   border-radius: 14px;
-  background: linear-gradient(to top, #db2777, #f43f5e);
   font-weight: 500;
   font-size: 0.875rem;
   white-space: nowrap;
@@ -813,35 +807,33 @@ html, body, #root {
   will-change: filter, background-position;
 }
 
-/* Aurora gradient utilities — rose + purple + blue */
+/* iOS minimal solid utilities — no gradients */
 .bg-aurora {
-  background: var(--gradient-aurora);
+  background: hsl(var(--primary));
 }
 .bg-rose-purple {
-  background: var(--gradient-rose);
+  background: hsl(var(--primary));
 }
 .text-aurora {
-  background: var(--gradient-aurora);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: hsl(var(--primary));
 }
 .shadow-aurora {
-  box-shadow: 0 10px 40px -10px hsl(280 84% 60% / 0.35), 0 10px 40px -10px hsl(346 84% 60% / 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .bg-aurora-soft {
-  background:
-    radial-gradient(900px circle at 0% 0%, hsl(346 84% 60% / 0.10), transparent 45%),
-    radial-gradient(900px circle at 100% 0%, hsl(280 84% 62% / 0.10), transparent 45%),
-    radial-gradient(900px circle at 50% 100%, hsl(217 91% 60% / 0.08), transparent 50%);
+  background: transparent;
 }
 @keyframes aurora-shift {
   0%, 100% { background-position: 0% 50%; }
   50%      { background-position: 100% 50%; }
 }
 .bg-aurora-animated {
-  background: linear-gradient(120deg, hsl(346 84% 60%), hsl(280 84% 62%), hsl(217 91% 60%), hsl(280 84% 62%), hsl(346 84% 60%));
-  background-size: 300% 300%;
-  animation: aurora-shift 12s ease infinite;
+  background: hsl(var(--primary));
+  background-size: auto;
+  animation: none;
+}
+
+/* Override tailwind bg-gradient-rose to solid iOS primary */
+.bg-gradient-rose {
+  background: hsl(var(--primary)) !important;
 }

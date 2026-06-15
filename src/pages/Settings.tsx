@@ -528,8 +528,8 @@ const Settings = () => {
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                            <div className="w-11 h-11 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-primary dark:text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Agenda timing</CardTitle>
@@ -556,7 +556,7 @@ const Settings = () => {
                                   className={cn(
                                     "h-11 rounded-2xl border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-[#e11d48] text-white border-gray-950 shadow-sm"
+                                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >
@@ -653,7 +653,7 @@ const Settings = () => {
                                     className={cn(
                                       "rounded-2xl border px-4 py-3 text-left transition-all",
                                       active
-                                        ? "border-gray-950 bg-[#e11d48] text-white shadow-sm"
+                                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
                                         : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
                                     )}
                                   >
@@ -843,7 +843,7 @@ const Settings = () => {
                                 placeholder="Tell clients about your style, experience, and what makes you stand out."
                                 rows={3}
                                 maxLength={400}
-                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
                               />
                               <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5 text-right">
                                 {brandForm.description.length}/400
@@ -852,7 +852,7 @@ const Settings = () => {
                           </div>
 
                           {/* Cancellation waitlist */}
-                          <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-50/60 to-pink-50/60 dark:from-rose-950/20 dark:to-pink-950/20 p-4 flex items-center gap-4">
+                          <div className="rounded-2xl border border-primary/20 bg-muted p-4 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                               <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
                                 Accept cancellation waitlist
@@ -1043,7 +1043,7 @@ const Settings = () => {
                       <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs uppercase tracking-wide text-[#8E8E93] dark:text-gray-500">Time slots</p>
-                          <span className="rounded-full bg-rose-100 text-rose-700 border-0 px-3 py-1 text-xs font-medium">
+                          <span className="rounded-full bg-primary/10 text-primary border-0 px-3 py-1 text-xs font-medium">
                             {agendaForm.service_duration} min
                           </span>
                         </div>

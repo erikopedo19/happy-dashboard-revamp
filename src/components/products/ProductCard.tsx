@@ -84,7 +84,7 @@ export const ProductCard = ({ product, onEdit, onRefetch }: ProductCardProps) =>
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 overflow-hidden">
-      <div className="aspect-square bg-gradient-to-br from-primary/5 to-primary/10 relative overflow-hidden">
+      <div className="aspect-square bg-primary/5 relative overflow-hidden">
         {product.image_url ? (
           <img
             src={product.image_url}
