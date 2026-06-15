@@ -53,10 +53,6 @@ html, body, #root {
     --chart-5: 346 60% 70%;
 
     --gradient-brand: linear-gradient(135deg, #050506 0%, #111317 48%, #1d2027 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(346 84% 60%), hsl(280 84% 65%));
-    --gradient-purple: linear-gradient(135deg, hsl(280 84% 60%), hsl(217 91% 60%));
-    --gradient-aurora: linear-gradient(135deg, hsl(346 84% 60%) 0%, hsl(280 84% 60%) 50%, hsl(217 91% 60%) 100%);
-    --gradient-sky: linear-gradient(135deg, hsl(222 50% 35%), hsl(222 60% 50%));
     --shadow-rose: 0 10px 40px -10px hsl(346 84% 60% / 0.35);
     --shadow-purple: 0 10px 40px -10px hsl(280 84% 60% / 0.35);
     --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
