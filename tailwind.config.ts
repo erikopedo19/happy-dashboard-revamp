@@ -103,10 +103,9 @@ export default {
 				"fade-in": "fade-in 0.4s ease-out both",
 				"scale-in": "scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both",
 			},
-			backgroundImage: {
-				'gradient-brand': 'var(--gradient-brand)',
-				'gradient-rose': 'var(--gradient-rose)',
-			},
+		backgroundImage: {
+			'gradient-brand': 'var(--gradient-brand)',
+		},
 			boxShadow: {
 				'rose': 'var(--shadow-rose)',
 			},
