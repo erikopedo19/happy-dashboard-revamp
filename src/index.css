@@ -832,3 +832,8 @@ html, body, #root {
   background-size: auto;
   animation: none;
 }
+
+/* Override tailwind bg-gradient-rose to solid iOS primary */
+.bg-gradient-rose {
+  background: hsl(var(--primary)) !important;
+}
