@@ -556,7 +556,7 @@ const Settings = () => {
                                   className={cn(
                                     "h-11 rounded-2xl border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-[#e11d48] text-white border-gray-950 shadow-sm"
+                                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >
