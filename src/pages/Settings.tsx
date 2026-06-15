@@ -852,7 +852,7 @@ const Settings = () => {
                           </div>
 
                           {/* Cancellation waitlist */}
-                          <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-50/60 to-pink-50/60 dark:from-rose-950/20 dark:to-pink-950/20 p-4 flex items-center gap-4">
+                          <div className="rounded-2xl border border-primary/20 bg-muted p-4 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                               <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
                                 Accept cancellation waitlist
