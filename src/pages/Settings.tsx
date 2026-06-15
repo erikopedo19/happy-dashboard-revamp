@@ -1043,7 +1043,7 @@ const Settings = () => {
                       <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs uppercase tracking-wide text-[#8E8E93] dark:text-gray-500">Time slots</p>
-                          <span className="rounded-full bg-rose-100 text-rose-700 border-0 px-3 py-1 text-xs font-medium">
+                          <span className="rounded-full bg-primary/10 text-primary border-0 px-3 py-1 text-xs font-medium">
                             {agendaForm.service_duration} min
                           </span>
                         </div>
