@@ -31,11 +31,11 @@ export function Login04() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-8">
-      {/* Background decoration */}
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4 md:p-8">
+      {/* Subtle background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 blur-3xl" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 blur-3xl" />
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center relative z-10">
