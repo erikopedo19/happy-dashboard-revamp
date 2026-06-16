@@ -1206,6 +1206,11 @@ export type Database = {
           reviewer_name: string
         }[]
       }
+      is_org_owner: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_super_admin: { Args: never; Returns: boolean }
       join_cancellation_waitlist: {
         Args: { _barber_id: string }
         Returns: Json
