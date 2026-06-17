@@ -17,7 +17,7 @@ import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, Refresh
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 
-const SUPER_ADMIN_EMAIL = "erikballiu19@gmail.com";
+
 
 type Sub = {
   subscribed: boolean;
