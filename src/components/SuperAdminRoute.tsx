@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-
-const SUPER_ADMIN_EMAIL = "erikballiu19@gmail.com";
 
 interface SuperAdminRouteProps {
   children: React.ReactNode;
@@ -11,8 +10,28 @@ interface SuperAdminRouteProps {
 
 export const SuperAdminRoute: React.FC<SuperAdminRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
+  const [checking, setChecking] = useState(true);
+  const [allowed, setAllowed] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      setAllowed(false);
+      setChecking(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any).rpc("is_super_admin");
+      if (!cancelled) {
+        setAllowed(data === true);
+        setChecking(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, loading]);
+
+  if (loading || checking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -20,7 +39,7 @@ export const SuperAdminRoute: React.FC<SuperAdminRouteProps> = ({ children }) =>
     );
   }
 
-  if (!user || user.email !== SUPER_ADMIN_EMAIL) {
+  if (!allowed) {
     return <Navigate to="/superadmin" replace />;
   }
 
