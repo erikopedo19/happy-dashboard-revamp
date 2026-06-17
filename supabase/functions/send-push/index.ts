@@ -82,8 +82,24 @@ async function sendApns(token: string, title: string, body: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { user_id, title, body, type, appointment_id } = await req.json();
+    const { user_id, appointment_id } = await req.json();
     if (!user_id) return new Response(JSON.stringify({ error: "user_id required" }), { status: 400, headers: corsHeaders });
+
+    // Authenticate the request by requiring a freshly-created matching notification row
+    // (the DB trigger writes the row and then calls this function). Use DB-stored title/body.
+    let q = sb.from("notifications").select("title, body, type, appointment_id, created_at")
+      .eq("user_id", user_id)
+      .gt("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (appointment_id) q = q.eq("appointment_id", appointment_id);
+    const { data: notif } = await q.maybeSingle();
+    if (!notif) {
+      return new Response(JSON.stringify({ error: "no recent matching notification" }), { status: 401, headers: corsHeaders });
+    }
+    const title = notif.title ?? "Notification";
+    const body = notif.body ?? "";
+    const type = notif.type;
 
     const vapidPub = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPriv = Deno.env.get("VAPID_PRIVATE_KEY");
@@ -95,8 +111,8 @@ Deno.serve(async (req) => {
       webpush.setVapidDetails(vapidSubject, vapidPub, vapidPriv);
       const { data: subs } = await sb.from("push_subscriptions").select("*").eq("user_id", user_id);
       const payload = JSON.stringify({
-        title: title ?? "New booking",
-        body: body ?? "",
+        title,
+        body,
         tag: appointment_id ?? type ?? "booking",
         url: "/admin",
       });
