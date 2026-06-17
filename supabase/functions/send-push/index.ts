@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
     let apnsResults: any[] = [];
     const { data: tokens } = await sb.from("device_tokens").select("*").eq("user_id", user_id);
     apnsResults = await Promise.all((tokens ?? []).map(async (t: any) => {
-      const r = await sendApns(t.token, title ?? "New booking", body ?? "");
+      const r = await sendApns(t.token, title, body);
       if (r && (r as any).status === 410) {
         await sb.from("device_tokens").delete().eq("token", t.token);
       }
