@@ -84,12 +84,16 @@ export default function SuperAdminDashboard() {
     if (error) console.warn("Edge function error (may not be deployed):", error.message);
   };
 
-  // gate
+  // gate via server-side RPC
+  const [isAdminVerified, setIsAdminVerified] = useState(false);
   useEffect(() => {
     if (loading) return;
-    if (!user || user.email?.toLowerCase() !== SUPER_ADMIN_EMAIL) {
-      navigate("/superadmin", { replace: true });
-    }
+    if (!user) { navigate("/superadmin", { replace: true }); return; }
+    (async () => {
+      const { data } = await (supabase as any).rpc("is_super_admin");
+      if (data === true) setIsAdminVerified(true);
+      else navigate("/superadmin", { replace: true });
+    })();
   }, [user, loading, navigate]);
 
   const load = async () => {
@@ -104,7 +108,7 @@ export default function SuperAdminDashboard() {
     setBusy(false);
   };
 
-  useEffect(() => { if (user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL) load(); /* eslint-disable-next-line */ }, [user?.id]);
+  useEffect(() => { if (isAdminVerified) load(); /* eslint-disable-next-line */ }, [isAdminVerified]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -127,7 +131,7 @@ export default function SuperAdminDashboard() {
     const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
     return rows.filter((r) => {
       const created = r.created_at ? new Date(r.created_at).getTime() : 0;
-      return created >= cutoff && !r.subscription?.active && r.email !== SUPER_ADMIN_EMAIL;
+      return created >= cutoff && !r.subscription?.active;
     });
   }, [rows]);
 
@@ -293,7 +297,7 @@ export default function SuperAdminDashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium truncate">{r.full_name || r.business_name || r.email}</span>
-                        {r.email === SUPER_ADMIN_EMAIL && <Badge variant="outline" className="text-[10px] border-red-500/40 text-red-500">admin</Badge>}
+                        {r.id === user?.id && <Badge variant="outline" className="text-[10px] border-red-500/40 text-red-500">admin</Badge>}
                         {active ? (
                           <Badge className="bg-amber-500/15 text-amber-600 hover:bg-amber-500/15 border-0">
                             <Crown className="w-3 h-3 mr-1" /> {r.subscription?.subscription_tier ?? "Pro"}
