@@ -88,7 +88,6 @@ const Booking = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  console.log('Booking component loaded with bookingLink:', bookingLink);
 
   const form = useForm<z.infer<typeof bookingSchema>>({
     resolver: zodResolver(bookingSchema),
@@ -107,7 +106,6 @@ const Booking = () => {
     queryKey: ['business-profile', bookingLink],
     enabled: !!bookingLink,
     queryFn: async () => {
-      console.log('Fetching business profile for booking link:', bookingLink);
 
       if (!bookingLink) {
         const error: BookingError = {
@@ -115,14 +113,12 @@ const Booking = () => {
           message: 'No booking link provided',
           details: 'The URL is missing the booking link parameter'
         };
-        console.error('Booking error:', error);
         throw error;
       }
 
       const { data, error } = await (supabase as any)
         .rpc('get_public_profile_by_booking_link', { _booking_link: bookingLink });
 
-      console.log('Business profile RPC result:', { data, error });
 
       if (error) {
         const bookingError: BookingError = {
@@ -130,7 +126,6 @@ const Booking = () => {
           message: 'Failed to fetch business profile',
           details: error.message || 'Database query failed'
         };
-        console.error('RPC error:', bookingError);
         throw bookingError;
       }
 
@@ -142,14 +137,12 @@ const Booking = () => {
           message: 'Business profile not found',
           details: `No business found with booking link: ${bookingLink}`
         };
-        console.error('Profile not found:', error);
         throw error;
       }
 
       return profile as BusinessProfile;
     },
     retry: (failureCount, error: any) => {
-      console.log('Retry attempt:', failureCount, 'Error:', error);
       // Don't retry if it's a known error that won't resolve
       if (error?.code === 'PROFILE_NOT_FOUND' || error?.code === 'MISSING_BOOKING_LINK') {
         return false;
@@ -172,7 +165,6 @@ const Booking = () => {
         .eq('is_public', true);
 
       if (error) {
-        console.error('Error fetching stylists:', error);
         return [];
       }
       return data || [];
@@ -186,17 +178,14 @@ const Booking = () => {
     queryFn: async () => {
       if (!businessProfile?.id) return [];
 
-      console.log('Fetching services for business:', businessProfile.id);
       const { data, error } = await (supabase
         .from('services' as any)
         .select('*') as any)
         .eq('user_id', businessProfile.id)
         .order('name');
 
-      console.log('Services query result:', { data, error });
 
       if (error) {
-        console.error('Error fetching services:', error);
         const bookingError: BookingError = {
           code: 'SERVICES_FETCH_ERROR',
           message: 'Failed to load services',
@@ -211,7 +200,6 @@ const Booking = () => {
           message: 'No services available',
           details: 'This business has not set up any services yet'
         };
-        console.warn('No services found:', bookingError);
       }
 
       return data || [];
@@ -225,17 +213,14 @@ const Booking = () => {
     queryFn: async () => {
       if (!businessProfile?.id) return null;
 
-      console.log('Fetching agenda settings for business:', businessProfile.id);
       const { data, error } = await (supabase
         .from('agenda_settings' as any)
         .select('*') as any)
         .eq('user_id', businessProfile.id)
         .maybeSingle();
 
-      console.log('Agenda settings query result:', { data, error });
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching agenda settings:', error);
         return { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
       }
       return data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
@@ -261,7 +246,6 @@ const Booking = () => {
         _date: dateStr,
       });
       if (error) {
-        console.error('Error fetching booked slots:', error);
         return [];
       }
       return (data || []) as Appointment[];
@@ -278,7 +262,6 @@ const Booking = () => {
         _business_id: businessProfile.id,
       });
       if (error) {
-        console.error('Error fetching stylist services:', error);
         return [];
       }
       return data || [];
@@ -302,7 +285,6 @@ const Booking = () => {
 
   useEffect(() => {
     if (settings) {
-      console.log('Generating time slots with settings:', settings);
       const slots = generateTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
       setTimeSlots(slots);
     }
@@ -392,7 +374,6 @@ const Booking = () => {
 
       return true;
     } catch (error) {
-      console.error('Error checking time slot availability:', error);
       return false;
     }
   };
@@ -557,8 +538,6 @@ const Booking = () => {
 
     setIsLoading(true);
     try {
-      console.log('Creating booking with values:', values);
-      console.log('Validated services for booking:', selectedServicesList);
 
       const primaryService = selectedServicesList[0];
       if (!primaryService?.id) {
@@ -605,7 +584,6 @@ const Booking = () => {
       });
 
       if (rpcError || !rpcResult?.success) {
-        console.error('Booking RPC error:', rpcError, rpcResult);
         const error: BookingError = {
           code: rpcError?.code || 'BOOKING_RPC_ERROR',
           message: 'Failed to create appointment',
@@ -617,7 +595,6 @@ const Booking = () => {
 
       const newAppointment = { id: rpcResult.appointment_id };
 
-      console.log('Appointment created successfully:', newAppointment);
 
       // Confirmation email + SMS sent automatically by DB trigger on appointments insert
 
@@ -639,7 +616,6 @@ const Booking = () => {
       setSelectedTime("");
       return true; // Return true to advance to success step
     } catch (error: any) {
-      console.error('Error creating booking:', error);
 
       const displayError = bookingError || {
         code: 'UNKNOWN_ERROR',
@@ -673,7 +649,6 @@ const Booking = () => {
 
   // Show error state
   if (profileError || !businessProfile) {
-    console.error('Profile loading error or no business profile:', profileError, businessProfile);
 
     const error = profileError as any;
     const errorCode = error?.code || 'UNKNOWN_ERROR';
