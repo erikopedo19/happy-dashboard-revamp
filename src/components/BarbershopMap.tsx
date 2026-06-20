@@ -396,12 +396,15 @@ export function BarbershopMap({
       )}
 
       <div
-        className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative bg-muted"
+        className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative bg-gradient-to-br from-blue-50 to-rose-50 dark:from-slate-900 dark:to-slate-800"
         style={{ height }}
       >
         {error ? (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground p-4 text-center">
-            {error}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 gap-3 z-10">
+            <div className="h-12 w-12 rounded-full bg-rose-500/10 flex items-center justify-center">
+              <MapPin className="h-6 w-6 text-rose-500" />
+            </div>
+            <p className="text-sm font-medium text-foreground max-w-sm">{error}</p>
           </div>
         ) : !center ? (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
