@@ -220,10 +220,13 @@ export function BarbershopMap({
     if (mapRef.current) mapRef.current.setOptions({ styles: isDark ? DARK_STYLE : LIGHT_STYLE });
   }, [isDark]);
 
-  // Pan to center
+  // Pan to center + retrigger radar ping
   useEffect(() => {
     if (mapRef.current && center) {
       mapRef.current.panTo({ lat: center[0], lng: center[1] });
+      setRadarActive(true);
+      const t = setTimeout(() => setRadarActive(false), 3200);
+      return () => clearTimeout(t);
     }
   }, [center]);
 
