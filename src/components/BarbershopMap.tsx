@@ -57,6 +57,16 @@ const DARK_STYLE: google.maps.MapTypeStyle[] = [
 
 // Singleton loader for the Google Maps JS API
 let mapsPromise: Promise<typeof google> | null = null;
+let authFailed = false;
+const authFailureListeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  (window as any).gm_authFailure = () => {
+    authFailed = true;
+    authFailureListeners.forEach((cb) => {
+      try { cb(); } catch {}
+    });
+  };
+}
 function loadGoogleMaps(): Promise<typeof google> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
   if ((window as any).google?.maps) return Promise.resolve((window as any).google);
