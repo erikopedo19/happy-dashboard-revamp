@@ -268,7 +268,7 @@ export function BarbershopMap({
         map: mapRef.current!,
         position: { lat: b.latitude!, lng: b.longitude! },
         icon: {
-          url: pinSvg("#0A84FF"),
+          url: pinSvg(accentColor),
           scaledSize: new g.maps.Size(36, 46),
           anchor: new g.maps.Point(18, 46),
         },
