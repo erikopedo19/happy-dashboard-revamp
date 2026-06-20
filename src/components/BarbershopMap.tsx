@@ -146,6 +146,7 @@ export function BarbershopMap({
   });
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
+  const [radarActive, setRadarActive] = useState(true);
 
   function persist(c: [number, number]) {
     try {
