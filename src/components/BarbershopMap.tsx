@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LocateFixed, Search, MapPin } from "lucide-react";
+import { LocateFixed, Search, MapPin, Loader2 } from "lucide-react";
 
 interface Barbershop {
   id: string;
@@ -21,6 +21,10 @@ interface BarbershopMapProps {
   onBarbershopClick?: (barbershop: Barbershop) => void;
   onLocationPick?: (location: { lat: number; lng: number }) => void;
   pickMode?: boolean;
+  /** Hex color for barbershop pins. Defaults to rose `#e11d48`. */
+  accentColor?: string;
+  /** Hide the built-in search bar (e.g. when the parent provides its own). */
+  hideSearch?: boolean;
 }
 
 const STORAGE_KEY = "barbershop-map-location";
