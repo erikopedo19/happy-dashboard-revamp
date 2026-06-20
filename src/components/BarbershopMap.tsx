@@ -57,6 +57,16 @@ const DARK_STYLE: google.maps.MapTypeStyle[] = [
 
 // Singleton loader for the Google Maps JS API
 let mapsPromise: Promise<typeof google> | null = null;
+let authFailed = false;
+const authFailureListeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  (window as any).gm_authFailure = () => {
+    authFailed = true;
+    authFailureListeners.forEach((cb) => {
+      try { cb(); } catch {}
+    });
+  };
+}
 function loadGoogleMaps(): Promise<typeof google> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
   if ((window as any).google?.maps) return Promise.resolve((window as any).google);
@@ -166,9 +176,16 @@ export function BarbershopMap({
   useEffect(() => {
     if (!containerRef.current || !center || mapRef.current) return;
     let cancelled = false;
+    const onAuthFail = () =>
+      setError(
+        "Google Maps couldn't authorize this domain. The map key is restricted — open this app on its lovable.app preview URL or add a custom Google Maps key for your custom domain.",
+      );
+    if (authFailed) onAuthFail();
+    authFailureListeners.add(onAuthFail);
     loadGoogleMaps()
       .then((g) => {
         if (cancelled || !containerRef.current) return;
+        if (authFailed) return; // gm_authFailure already fired
         const map = new g.maps.Map(containerRef.current, {
           center: { lat: center[0], lng: center[1] },
           zoom: 13,
@@ -186,6 +203,7 @@ export function BarbershopMap({
       .catch((e) => setError(e.message || "Map failed to load"));
     return () => {
       cancelled = true;
+      authFailureListeners.delete(onAuthFail);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center !== null]);
@@ -378,12 +396,15 @@ export function BarbershopMap({
       )}
 
       <div
-        className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative bg-muted"
+        className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative bg-gradient-to-br from-blue-50 to-rose-50 dark:from-slate-900 dark:to-slate-800"
         style={{ height }}
       >
         {error ? (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground p-4 text-center">
-            {error}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 gap-3 z-10">
+            <div className="h-12 w-12 rounded-full bg-rose-500/10 flex items-center justify-center">
+              <MapPin className="h-6 w-6 text-rose-500" />
+            </div>
+            <p className="text-sm font-medium text-foreground max-w-sm">{error}</p>
           </div>
         ) : !center ? (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
