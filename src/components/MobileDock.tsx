@@ -1,8 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import type { ComponentType } from 'react';
-import { motion } from 'framer-motion';
 import { LayoutDashboard, Calendar, BarChart3, Scissors, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,27 +11,24 @@ import {
 
 interface NavItem {
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }>;
   path: string;
-  accent: string;
 }
 
-const ACTIVE_GRADIENT = 'from-[#d60052] to-rose-500';
-
 const mainItems: NavItem[] = [
-  { label: 'Admin', icon: LayoutDashboard, path: '/admin', accent: ACTIVE_GRADIENT },
-  { label: 'Agenda', icon: Calendar, path: '/agenda', accent: ACTIVE_GRADIENT },
-  { label: 'Reports', icon: BarChart3, path: '/reports', accent: ACTIVE_GRADIENT },
-  { label: 'Services', icon: Scissors, path: '/services', accent: ACTIVE_GRADIENT },
-  { label: 'Settings', icon: Settings, path: '/settings', accent: ACTIVE_GRADIENT },
+  { label: 'Admin', icon: LayoutDashboard, path: '/admin' },
+  { label: 'Agenda', icon: Calendar, path: '/agenda' },
+  { label: 'Reports', icon: BarChart3, path: '/reports' },
+  { label: 'Services', icon: Scissors, path: '/services' },
+  { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 const moreItems: NavItem[] = [
-  { label: 'Customers', icon: Users, path: '/customers', accent: ACTIVE_GRADIENT },
-  { label: 'Booking', icon: Globe, path: '/booking-page', accent: ACTIVE_GRADIENT },
-  { label: 'Stylists', icon: UserCheck, path: '/stylists', accent: ACTIVE_GRADIENT },
-  { label: 'Teams', icon: Briefcase, path: '/teams', accent: ACTIVE_GRADIENT },
-  { label: 'Products', icon: Package, path: '/products', accent: ACTIVE_GRADIENT },
+  { label: 'Customers', icon: Users, path: '/customers' },
+  { label: 'Booking', icon: Globe, path: '/booking-page' },
+  { label: 'Stylists', icon: UserCheck, path: '/stylists' },
+  { label: 'Teams', icon: Briefcase, path: '/teams' },
+  { label: 'Products', icon: Package, path: '/products' },
 ];
 
 const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<typeof useLocation> }) => {
@@ -40,32 +36,31 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
   const isActive =
     location.pathname === item.path ||
     (item.path !== '/admin' && location.pathname.startsWith(item.path + '/'));
-
   return (
     <Link
       to={item.path}
       className={cn(
-        'relative flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 transition-all duration-300 active:scale-95',
-        isActive ? 'text-white' : 'text-muted-foreground hover:text-rose-500 dark:hover:text-rose-300'
+        'relative flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-1.5 transition-transform duration-150 active:scale-95',
+        isActive
+          ? 'text-[#e11d48]'
+          : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]'
       )}
     >
       {isActive && (
-        <motion.div
-          layoutId="dock-active-pill"
-          className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18)]', item.accent)}
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        <motion.span
+          layoutId="admin-dock-active"
+          className="absolute inset-x-1 top-1 h-8 rounded-2xl bg-rose-50 dark:bg-rose-500/10"
+          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         />
       )}
-      <Icon className={cn('relative z-10 h-5 w-5 transition-transform duration-300', isActive && 'scale-105')} />
-      <span className={cn('relative z-10 text-[9px] font-medium tracking-[-0.03em]', isActive && 'font-semibold')}>
+      <Icon className={cn('relative h-5 w-5 transition-transform', isActive && 'scale-110')} />
+      <span className={cn('relative text-[10px] font-medium', isActive && 'font-semibold')}>
         {item.label}
       </span>
     </Link>
   );
 };
 
-// A single PersistentDock at the App root renders the actual dock.
-// Inline `<MobileDock />` usages render nothing to prevent stacked docks.
 export const MobileDock = () => null;
 
 export const MobileDockInner = () => {
@@ -73,9 +68,9 @@ export const MobileDockInner = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pointer-events-none">
-      <div className="relative mx-auto max-w-lg rounded-[28px] border border-white/10 bg-[#18171c]/95 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl pointer-events-auto">
-        <div className="grid grid-cols-6 items-center gap-1 px-2 py-2">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-3 pb-[max(env(safe-area-inset-bottom),0.8rem)]">
+      <div className="pointer-events-auto relative mx-auto max-w-[34rem] rounded-[30px] border border-black/5 bg-white/88 shadow-[0_20px_50px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/92">
+        <div className="grid grid-cols-6 items-center px-2 py-2">
           {mainItems.map((item) => (
             <DockLink key={item.path} item={item} location={location} />
           ))}
@@ -85,13 +80,13 @@ export const MobileDockInner = () => {
               <button
                 type="button"
                 aria-label="More"
-                className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-muted-foreground transition-all hover:bg-rose-500/10 hover:text-rose-300 active:scale-95"
+                className="flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-2 text-[#8E8E93] transition-transform active:scale-95 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
               >
                 <MoreHorizontal className="h-5 w-5" />
-                <span className="text-[9px] font-medium tracking-[-0.03em]">More</span>
+                <span className="text-[10px] font-medium">More</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="mb-2 w-52 rounded-2xl border-white/10 bg-[#18171c]/95 p-2 shadow-xl backdrop-blur-xl">
+            <DropdownMenuContent align="end" className="w-48 mb-2">
               {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive =
@@ -101,14 +96,9 @@ export const MobileDockInner = () => {
                   <DropdownMenuItem
                     key={item.path}
                     onSelect={() => navigate(item.path)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-xl',
-                      isActive && 'bg-rose-500/10 text-rose-300'
-                    )}
+                    className={cn('flex items-center gap-2', isActive && 'bg-accent text-accent-foreground')}
                   >
-                    <span className={cn('flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br text-white', item.accent)}>
-                      <Icon className="h-4 w-4" />
-                    </span>
+                    <Icon className={cn('h-4 w-4', isActive && 'text-[#e11d48]')} />
                     <span className="text-sm">{item.label}</span>
                   </DropdownMenuItem>
                 );
@@ -120,4 +110,3 @@ export const MobileDockInner = () => {
     </div>
   );
 };
-
