@@ -379,50 +379,91 @@ export function BarbershopMap({
   }
 
   return (
-    <div className="w-full space-y-2">
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-          <Input
-            placeholder="Search a city or address…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button type="submit" disabled={searching || !ready}>
-          {searching ? "…" : "Search"}
-        </Button>
-        <Button type="button" variant="outline" onClick={locateMe} title="Use my location">
-          <LocateFixed className="h-4 w-4" />
-        </Button>
-      </form>
+    <div
+      className="w-full rounded-[28px] overflow-hidden relative isolate shadow-[0_24px_60px_-30px_rgba(225,29,72,0.45)] ring-1 ring-black/5 dark:ring-white/10 bg-gradient-to-br from-sky-50 via-white to-rose-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
+      style={{ height }}
+    >
+      {/* Map canvas */}
+      <div ref={containerRef} className="absolute inset-0" />
 
-      {pickMode && (
-        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-medium text-rose-600 dark:text-rose-300 flex items-center gap-2">
-          <MapPin className="h-3.5 w-3.5" />
-          Search your city, then tap the exact spot of your barbershop to drop a pin.
+      {/* Error / loading overlays */}
+      {error ? (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-6 gap-3 bg-gradient-to-br from-white/95 to-rose-50/95 dark:from-slate-900/95 dark:to-slate-950/95 backdrop-blur-md">
+          <div className="h-14 w-14 rounded-full bg-rose-500/15 flex items-center justify-center ring-4 ring-rose-500/10">
+            <MapPin className="h-7 w-7 text-rose-500" />
+          </div>
+          <p className="text-sm font-medium text-foreground max-w-sm leading-relaxed">{error}</p>
+        </div>
+      ) : !center ? (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3">
+          <div className="relative h-16 w-16">
+            <span className="radar-ring" />
+            <span className="radar-ring delay-1" />
+            <span className="radar-dot" />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Locating you…</p>
+        </div>
+      ) : null}
+
+      {/* Radar overlay at the center of the map (where the user marker sits when centered) */}
+      {ready && !error && (
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ${
+            radarActive || searching ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="relative h-[180px] w-[180px]">
+            <span className="radar-ring" />
+            <span className="radar-ring delay-1" />
+            <span className="radar-ring delay-2" />
+            {searching && <span className="radar-sweep" />}
+          </div>
         </div>
       )}
 
-      <div
-        className="w-full rounded-2xl overflow-hidden border border-border shadow-sm relative bg-gradient-to-br from-blue-50 to-rose-50 dark:from-slate-900 dark:to-slate-800"
-        style={{ height }}
+      {/* Floating glass search bar (iOS) */}
+      {!hideSearch && (
+        <form
+          onSubmit={handleSearch}
+          className="absolute left-3 right-3 top-3 z-20 flex items-center gap-2 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.25)] px-2 py-1.5"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rose-500/80" />
+            <Input
+              placeholder="Search a city or address"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-10 rounded-xl border-0 bg-transparent focus-visible:ring-0 text-sm placeholder:text-muted-foreground/70"
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={searching || !ready}
+            className="h-10 rounded-xl px-4 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-500 hover:to-rose-700 text-white shadow-md shadow-rose-500/30 border-0"
+          >
+            {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Go"}
+          </Button>
+        </form>
+      )}
+
+      {/* Floating locate-me button (iOS) */}
+      <button
+        type="button"
+        onClick={locateMe}
+        title="Use my location"
+        className="absolute bottom-4 right-4 z-20 h-12 w-12 rounded-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10 shadow-[0_8px_20px_-8px_rgba(225,29,72,0.5)] flex items-center justify-center text-rose-500 hover:scale-95 active:scale-90 transition-transform"
       >
-        {error ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 gap-3 z-10">
-            <div className="h-12 w-12 rounded-full bg-rose-500/10 flex items-center justify-center">
-              <MapPin className="h-6 w-6 text-rose-500" />
-            </div>
-            <p className="text-sm font-medium text-foreground max-w-sm">{error}</p>
-          </div>
-        ) : !center ? (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-            Loading map…
-          </div>
-        ) : null}
-        <div ref={containerRef} className="absolute inset-0" />
-      </div>
+        <LocateFixed className="h-5 w-5" />
+      </button>
+
+      {/* Pick-mode hint pill */}
+      {pickMode && (
+        <div className="absolute left-3 right-3 bottom-4 z-20 mr-16 rounded-2xl bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl ring-1 ring-rose-500/30 px-3 py-2 text-xs font-medium text-rose-600 dark:text-rose-300 flex items-center gap-2 shadow-md">
+          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+          Tap the map to drop your barbershop pin.
+        </div>
+      )}
     </div>
   );
 }
