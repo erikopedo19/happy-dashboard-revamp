@@ -219,17 +219,33 @@ const FindBarber = () => {
 
             {activeTab === "map" && (
               <div className="space-y-4">
-                <div className="overflow-hidden rounded-3xl border border-black/5 dark:border-white/5 bg-white dark:bg-[#1C1C1E]">
-                  <BarbershopMap
-                    barbershops={[]}
-                    userLocation={userLocation || undefined}
-                    height="460px"
-                  />
+                <div className="flex items-center justify-between px-1">
+                  <div>
+                    <h2 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Nearby</h2>
+                    <p className="text-[11px] text-[#8E8E93]">Live radar of barbers around you</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-full bg-rose-500/10 px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-300">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-500" />
+                    </span>
+                    {(barbers ?? []).length} live
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 border border-black/5 dark:border-white/5">
-                  <p className="text-sm text-[#8E8E93]">
-                    Locations will appear here once barbers add their address.
-                  </p>
+                <BarbershopMap
+                  barbershops={[]}
+                  userLocation={userLocation || undefined}
+                  height="520px"
+                  accentColor="#e11d48"
+                />
+                <div className="rounded-2xl bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl p-4 ring-1 ring-black/5 dark:ring-white/5 flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-2xl bg-rose-500/10 flex items-center justify-center flex-shrink-0">
+                    <MapIcon className="h-4 w-4 text-rose-500" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">More pins coming soon</p>
+                    <p className="text-[11px] text-[#8E8E93] mt-0.5">Barbers will appear here as they add their shop address in Settings.</p>
+                  </div>
                 </div>
               </div>
             )}
