@@ -176,9 +176,16 @@ export function BarbershopMap({
   useEffect(() => {
     if (!containerRef.current || !center || mapRef.current) return;
     let cancelled = false;
+    const onAuthFail = () =>
+      setError(
+        "Google Maps couldn't authorize this domain. The map key is restricted — open this app on its lovable.app preview URL or add a custom Google Maps key for your custom domain.",
+      );
+    if (authFailed) onAuthFail();
+    authFailureListeners.add(onAuthFail);
     loadGoogleMaps()
       .then((g) => {
         if (cancelled || !containerRef.current) return;
+        if (authFailed) return; // gm_authFailure already fired
         const map = new g.maps.Map(containerRef.current, {
           center: { lat: center[0], lng: center[1] },
           zoom: 13,
@@ -196,6 +203,7 @@ export function BarbershopMap({
       .catch((e) => setError(e.message || "Map failed to load"));
     return () => {
       cancelled = true;
+      authFailureListeners.delete(onAuthFail);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center !== null]);
