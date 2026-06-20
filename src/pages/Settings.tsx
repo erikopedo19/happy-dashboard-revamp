@@ -99,6 +99,9 @@ const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } |
   return null;
 };
 
+const buildGoogleMapsUrl = (lat: number, lng: number) =>
+  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
 const defaultAgendaSettings: AgendaSettingsRecord = {
   user_id: "",
   service_duration: 30,
@@ -307,7 +310,7 @@ const Settings = () => {
         address: [brandForm.location.trim(), brandForm.city.trim()].filter(Boolean).join(", ") || null,
         latitude: lat ?? null,
         longitude: lng ?? null,
-        google_maps_url: mapsUrl || null,
+        google_maps_url: mapsUrl || (lat != null && lng != null ? buildGoogleMapsUrl(lat, lng) : null),
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
         accepts_waitlist: brandForm.accepts_waitlist ?? false,
@@ -944,8 +947,17 @@ const Settings = () => {
                               }] : []}
                               height="300px"
                               pickMode
+                              initialCenter={brandForm.latitude && brandForm.longitude ? {
+                                lat: brandForm.latitude,
+                                lng: brandForm.longitude,
+                              } : undefined}
                               onLocationPick={({ lat, lng }) =>
-                                setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+                                setBrandForm((prev) => ({
+                                  ...prev,
+                                  latitude: lat,
+                                  longitude: lng,
+                                  google_maps_url: prev.google_maps_url || buildGoogleMapsUrl(lat, lng),
+                                }))
                               }
                             />
                             <div className="grid grid-cols-2 gap-4 mt-3">
