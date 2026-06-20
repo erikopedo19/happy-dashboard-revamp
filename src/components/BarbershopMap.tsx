@@ -119,6 +119,8 @@ export function BarbershopMap({
   onBarbershopClick,
   onLocationPick,
   pickMode = false,
+  accentColor = "#e11d48",
+  hideSearch = false,
 }: BarbershopMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
