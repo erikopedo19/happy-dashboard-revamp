@@ -24,6 +24,8 @@ interface BarbershopMapProps {
   showControls?: boolean;
   pickMode?: boolean;
   onLocationPick?: (coords: { lat: number; lng: number }) => void;
+  accentColor?: string;
+  hideSearch?: boolean;
 }
 
 const STORAGE_KEY = "barbershop-map-location";
