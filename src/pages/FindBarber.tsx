@@ -57,11 +57,33 @@ const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const FindBarber = () => {
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TabKey) || "explore";
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<TabKey>("explore");
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapSearch, setMapSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<"any" | "1" | "5" | "10">("any");
+  const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as TabKey | null;
+    if (tab && tab !== activeTab) setActiveTab(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const changeTab = (key: TabKey) => {
+    setActiveTab(key);
+    if (key === "explore") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", key);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("favoriteBarbers");
