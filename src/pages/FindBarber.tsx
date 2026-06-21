@@ -19,12 +19,17 @@ import {
   ShoppingBag,
   Sparkles,
   BellRing,
+  SlidersHorizontal,
+  LocateFixed,
+  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface BarberProfile {
