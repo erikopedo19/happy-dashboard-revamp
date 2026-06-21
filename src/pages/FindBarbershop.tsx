@@ -354,12 +354,14 @@ const FindBarbershop = () => {
           ) : (
             <div className="space-y-3">
               {shops.map((shop, index) => (
-                <ShopCard
+                <BarberCard
                   key={shop.id}
-                  shop={shop}
+                  barber={shop}
                   index={index}
-                  selected={selectedId === shop.id}
-                  onSelect={() => setSelectedId(shop.id)}
+                  isFavorite={false}
+                  isExpanded={selectedId === shop.id}
+                  onToggleFavorite={() => {}}
+                  onExpand={() => setSelectedId(selectedId === shop.id ? null : shop.id)}
                   userLocation={userLocation}
                 />
               ))}
