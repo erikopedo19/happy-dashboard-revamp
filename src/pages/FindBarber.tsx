@@ -201,7 +201,7 @@ const FindBarber = () => {
               return (
                 <button
                   key={t.key}
-                  onClick={() => setActiveTab(t.key)}
+                  onClick={() => changeTab(t.key)}
                   className="relative h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
                   style={{ color: isActive ? t.activeColor : "#8E8E93" }}
                 >
