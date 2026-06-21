@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Calendar, Heart, User } from 'lucide-react';
+import { Search, Calendar, Heart, User, Map as MapIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { label: 'Explore', icon: Search, path: '/find-barber' },
+  { label: 'Map', icon: MapIcon, path: '/find-barber?tab=map' },
   { label: 'Bookings', icon: Calendar, path: '/my-bookings' },
   { label: 'Favorites', icon: Heart, path: '/favorites' },
   { label: 'Profile', icon: User, path: '/me' },
