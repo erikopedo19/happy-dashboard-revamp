@@ -500,6 +500,7 @@ function BarberCard({
   isExpanded,
   onToggleFavorite,
   onExpand,
+  userLocation,
 }: {
   barber: Shop & { distance?: number };
   index: number;
@@ -507,6 +508,7 @@ function BarberCard({
   isExpanded: boolean;
   onToggleFavorite: (id: string) => void;
   onExpand: (id: string) => void;
+  userLocation?: { lat: number; lng: number } | null;
 }) {
   const accent = barber.kind === "solo" ? barber.brand_color || "#007AFF" : barber.color || "#FF2D55";
   const rating = barber.kind === "solo" ? barber.rating : 5;
