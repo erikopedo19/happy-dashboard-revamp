@@ -281,7 +281,7 @@ const FindBarber = () => {
               <FavoritesList
                 items={favoriteBarbers}
                 onToggleFavorite={toggleFavorite}
-                onExplore={() => setActiveTab("explore")}
+                onExplore={() => changeTab("explore")}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
               />
