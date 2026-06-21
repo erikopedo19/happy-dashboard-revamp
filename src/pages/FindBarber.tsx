@@ -153,6 +153,24 @@ const FindBarber = () => {
     return <Navigate to="/auth" replace state={{ from: "/find-barber" }} />;
   }
 
+  if (activeTab === "map") {
+    return (
+      <FullScreenMap
+        barbers={barbers ?? []}
+        userLocation={userLocation}
+        mapSearch={mapSearch}
+        setMapSearch={setMapSearch}
+        filtersOpen={filtersOpen}
+        setFiltersOpen={setFiltersOpen}
+        maxDistance={maxDistance}
+        setMaxDistance={setMaxDistance}
+        minRating={minRating}
+        setMinRating={setMinRating}
+        onBack={() => changeTab("explore")}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
       {/* Header */}
