@@ -19,12 +19,17 @@ import {
   ShoppingBag,
   Sparkles,
   BellRing,
+  SlidersHorizontal,
+  LocateFixed,
+  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface BarberProfile {
@@ -52,11 +57,33 @@ const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const FindBarber = () => {
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TabKey) || "explore";
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<TabKey>("explore");
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapSearch, setMapSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<"any" | "1" | "5" | "10">("any");
+  const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as TabKey | null;
+    if (tab && tab !== activeTab) setActiveTab(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const changeTab = (key: TabKey) => {
+    setActiveTab(key);
+    if (key === "explore") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", key);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("favoriteBarbers");
@@ -126,6 +153,24 @@ const FindBarber = () => {
     return <Navigate to="/auth" replace state={{ from: "/find-barber" }} />;
   }
 
+  if (activeTab === "map") {
+    return (
+      <FullScreenMap
+        barbers={barbers ?? []}
+        userLocation={userLocation}
+        mapSearch={mapSearch}
+        setMapSearch={setMapSearch}
+        filtersOpen={filtersOpen}
+        setFiltersOpen={setFiltersOpen}
+        maxDistance={maxDistance}
+        setMaxDistance={setMaxDistance}
+        minRating={minRating}
+        setMinRating={setMinRating}
+        onBack={() => changeTab("explore")}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
       {/* Header */}
@@ -174,7 +219,7 @@ const FindBarber = () => {
               return (
                 <button
                   key={t.key}
-                  onClick={() => setActiveTab(t.key)}
+                  onClick={() => changeTab(t.key)}
                   className="relative h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
                   style={{ color: isActive ? t.activeColor : "#8E8E93" }}
                 >
@@ -217,44 +262,11 @@ const FindBarber = () => {
               />
             )}
 
-            {activeTab === "map" && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <div>
-                    <h2 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Nearby</h2>
-                    <p className="text-[11px] text-[#8E8E93]">Live radar of barbers around you</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 rounded-full bg-rose-500/10 px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-300">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-500" />
-                    </span>
-                    {(barbers ?? []).length} live
-                  </div>
-                </div>
-                <BarbershopMap
-                  barbershops={[]}
-                  userLocation={userLocation || undefined}
-                  height="520px"
-                  accentColor="#e11d48"
-                />
-                <div className="rounded-2xl bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl p-4 ring-1 ring-black/5 dark:ring-white/5 flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-2xl bg-rose-500/10 flex items-center justify-center flex-shrink-0">
-                    <MapIcon className="h-4 w-4 text-rose-500" />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">More pins coming soon</p>
-                    <p className="text-[11px] text-[#8E8E93] mt-0.5">Barbers will appear here as they add their shop address in Settings.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {activeTab === "favorites" && (
               <FavoritesList
                 items={favoriteBarbers}
                 onToggleFavorite={toggleFavorite}
-                onExplore={() => setActiveTab("explore")}
+                onExplore={() => changeTab("explore")}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
               />
@@ -558,6 +570,202 @@ function EmptyState({
       <p className="text-sm text-[#8E8E93] mt-1">{subtitle}</p>
       {action && <div className="mt-5">{action}</div>}
     </motion.div>
+  );
+}
+
+function FullScreenMap({
+  barbers,
+  userLocation,
+  mapSearch,
+  setMapSearch,
+  filtersOpen,
+  setFiltersOpen,
+  maxDistance,
+  setMaxDistance,
+  minRating,
+  setMinRating,
+  onBack,
+}: {
+  barbers: BarberProfile[];
+  userLocation: { lat: number; lng: number } | null;
+  mapSearch: string;
+  setMapSearch: (v: string) => void;
+  filtersOpen: boolean;
+  setFiltersOpen: (v: boolean) => void;
+  maxDistance: "any" | "1" | "5" | "10";
+  setMaxDistance: (v: "any" | "1" | "5" | "10") => void;
+  minRating: "any" | "3" | "4" | "4.5";
+  setMinRating: (v: "any" | "3" | "4" | "4.5") => void;
+  onBack: () => void;
+}) {
+  const activeFilters =
+    Number(maxDistance !== "any") + Number(minRating !== "any");
+
+  return (
+    <div className="fixed inset-0 z-40 bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      {/* Full-bleed map */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
+          <BarbershopMap
+            barbershops={[]}
+            userLocation={userLocation || undefined}
+            height="100%"
+            accentColor="#e11d48"
+            hideSearch
+            showControls={false}
+          />
+        </div>
+      </div>
+
+      {/* Top floating search + filters */}
+      <div className="absolute left-0 right-0 top-0 z-20 pt-[max(env(safe-area-inset-top),0.75rem)]">
+        <div className="mx-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Close map"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/5 bg-white/90 text-[#1C1C1E] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl transition-transform active:scale-95 dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#F2F2F7]"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8E8E93]" />
+            <Input
+              type="text"
+              value={mapSearch}
+              onChange={(e) => setMapSearch(e.target.value)}
+              placeholder="Search city, area or barber"
+              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-rose-500 dark:border-white/10 dark:bg-[#1C1C1E]/90"
+            />
+          </div>
+
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Filters"
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/5 bg-white/90 text-[#1C1C1E] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl transition-transform active:scale-95 dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#F2F2F7]"
+              >
+                <SlidersHorizontal className="h-5 w-5" />
+                {activeFilters > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white shadow">
+                    {activeFilters}
+                  </span>
+                )}
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-[28px] border-0 bg-white px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-3 dark:bg-[#1C1C1E]">
+              <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-black/10 dark:bg-white/15" />
+              <SheetHeader className="text-left">
+                <SheetTitle className="text-[18px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  Filters
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="mt-5 space-y-5">
+                <div>
+                  <Label className="text-[12px] font-semibold uppercase tracking-wide text-[#8E8E93]">Distance</Label>
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {(["any", "1", "5", "10"] as const).map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setMaxDistance(d)}
+                        className={cn(
+                          "h-10 rounded-full text-[13px] font-medium transition-colors",
+                          maxDistance === d
+                            ? "bg-rose-500 text-white shadow-sm"
+                            : "bg-[#F2F2F7] text-[#1C1C1E] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
+                        )}
+                      >
+                        {d === "any" ? "Any" : `${d} mi`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-[12px] font-semibold uppercase tracking-wide text-[#8E8E93]">Minimum rating</Label>
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {(["any", "3", "4", "4.5"] as const).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setMinRating(r)}
+                        className={cn(
+                          "h-10 rounded-full text-[13px] font-medium transition-colors",
+                          minRating === r
+                            ? "bg-rose-500 text-white shadow-sm"
+                            : "bg-[#F2F2F7] text-[#1C1C1E] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
+                        )}
+                      >
+                        {r === "any" ? "Any" : `${r}★`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="h-12 flex-1 rounded-full border-black/10 dark:border-white/10"
+                    onClick={() => {
+                      setMaxDistance("any");
+                      setMinRating("any");
+                    }}
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    className="h-12 flex-1 rounded-full bg-rose-500 text-white hover:bg-rose-600"
+                    onClick={() => setFiltersOpen(false)}
+                  >
+                    Show results
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="mx-3 mt-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-rose-600 shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-rose-300">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-500" />
+            </span>
+            {barbers.length} live nearby
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom info card above dock */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
+        <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/95">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-500/10">
+              <MapIcon className="h-5 w-5 text-rose-500" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">More pins coming soon</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-[#8E8E93]">
+                Barbers appear as they add their shop address in Settings.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="shrink-0 rounded-full bg-rose-500 px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+            >
+              Browse
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ClientMobileDock />
+    </div>
   );
 }
 

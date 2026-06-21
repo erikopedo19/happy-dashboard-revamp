@@ -24,6 +24,8 @@ interface BarbershopMapProps {
   showControls?: boolean;
   pickMode?: boolean;
   onLocationPick?: (coords: { lat: number; lng: number }) => void;
+  accentColor?: string;
+  hideSearch?: boolean;
 }
 
 const STORAGE_KEY = "barbershop-map-location";
@@ -47,6 +49,8 @@ export function BarbershopMap({
   showControls = true,
   pickMode = false,
   onLocationPick,
+  accentColor,
+  hideSearch = false,
 }: BarbershopMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -256,7 +260,7 @@ export function BarbershopMap({
 
   return (
     <div className="w-full">
-      {showControls && (
+      {showControls && !hideSearch && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
