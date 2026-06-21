@@ -260,7 +260,7 @@ export function BarbershopMap({
 
   return (
     <div className="w-full">
-      {showControls && (
+      {showControls && !hideSearch && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
