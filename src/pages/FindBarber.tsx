@@ -245,7 +245,7 @@ const FindBarber = () => {
       </div>
 
 
-      <div className="max-w-5xl mx-auto px-4 py-5">
+      <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
