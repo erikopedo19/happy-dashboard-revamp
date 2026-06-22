@@ -48,9 +48,9 @@ interface BarberProfile {
 type TabKey = "explore" | "map" | "favorites";
 
 const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
-  { key: "explore", label: "Explore", icon: Search, activeColor: "#007AFF" },
-  { key: "map", label: "Map", icon: MapIcon, activeColor: "#007AFF" },
-  { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#FF2D55" },
+  { key: "explore", label: "Explore", icon: Search, activeColor: "#e11d48" },
+  { key: "map", label: "Map", icon: MapIcon, activeColor: "#e11d48" },
+  { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#e11d48" },
 ];
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
