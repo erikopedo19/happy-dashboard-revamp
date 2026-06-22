@@ -48,9 +48,9 @@ interface BarberProfile {
 type TabKey = "explore" | "map" | "favorites";
 
 const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
-  { key: "explore", label: "Explore", icon: Search, activeColor: "#007AFF" },
-  { key: "map", label: "Map", icon: MapIcon, activeColor: "#007AFF" },
-  { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#FF2D55" },
+  { key: "explore", label: "Explore", icon: Search, activeColor: "#e11d48" },
+  { key: "map", label: "Map", icon: MapIcon, activeColor: "#e11d48" },
+  { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#e11d48" },
 ];
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
@@ -172,76 +172,80 @@ const FindBarber = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
+    <div className="relative min-h-screen bg-[#FAF7F5] dark:bg-[#0c0c0c] pb-28 overflow-hidden">
+      {/* Decorative ambient blobs */}
+      <div aria-hidden className="pointer-events-none absolute -top-32 -right-24 h-72 w-72 rounded-full bg-rose-300/40 blur-3xl dark:bg-rose-500/10" />
+      <div aria-hidden className="pointer-events-none absolute top-40 -left-20 h-56 w-56 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-500/5" />
+
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5">
-        <div className="max-w-5xl mx-auto px-4 pt-5 pb-3">
-          <div className="flex items-center justify-between mb-4">
+      <div className="relative z-10">
+        <div className="max-w-5xl mx-auto px-5 pt-7 pb-2">
+          <div className="flex items-start justify-between">
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={spring}
-              className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shadow-md shadow-blue-500/30">
-                <Scissors className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-[22px] leading-tight font-bold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">
-                  Cutzio
-                </h1>
-                <p className="text-[11px] text-[#8E8E93]">Find your barber</p>
-              </div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-rose-500/80 font-semibold mb-1">Cutzio · Discover</p>
+              <h1 className="font-serif text-[40px] sm:text-[48px] leading-[0.95] tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">
+                Find your<br/>
+                <span className="italic text-rose-500">barber.</span>
+              </h1>
             </motion.div>
             <Link to="/settings">
-              <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:scale-95 transition-transform">
-                <User className="w-5 h-5 text-[#007AFF]" />
+              <Button variant="ghost" size="icon" className="rounded-full w-11 h-11 bg-white/80 dark:bg-[#2C2C2E]/80 backdrop-blur shadow-sm hover:scale-95 transition-transform">
+                <User className="w-5 h-5 text-rose-500" />
               </Button>
             </Link>
           </div>
+        </div>
 
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
-            <Input
-              type="text"
-              placeholder="Search barbers"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-11 rounded-2xl border-transparent bg-[#E9E9EE] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] focus-visible:ring-2 focus-visible:ring-[#007AFF]"
-            />
-          </div>
+        <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#FAF7F5]/70 dark:bg-[#0c0c0c]/70">
+          <div className="max-w-5xl mx-auto px-5 pt-3 pb-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
+              <Input
+                type="text"
+                placeholder="Search barbers, styles, vibes"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-11 h-12 rounded-full border-transparent bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-[0_4px_20px_rgba(15,23,42,0.06)] focus-visible:ring-2 focus-visible:ring-rose-500"
+              />
+            </div>
 
-          {/* Segmented Tabs */}
-          <div className="mt-4 relative grid grid-cols-3 gap-1 p-1 bg-[#E9E9EE] dark:bg-[#2C2C2E] rounded-2xl">
-            {TABS.map((t) => {
-              const Icon = t.icon;
-              const isActive = activeTab === t.key;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => changeTab(t.key)}
-                  className="relative h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
-                  style={{ color: isActive ? t.activeColor : "#8E8E93" }}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="tab-pill"
-                      transition={spring}
-                      className="absolute inset-0 bg-white dark:bg-[#1C1C1E] rounded-xl shadow-sm"
-                    />
-                  )}
-                  <span className="relative flex items-center gap-1.5">
-                    <Icon className="w-3.5 h-3.5" />
-                    {t.label}
-                  </span>
-                </button>
-              );
-            })}
+            {/* Segmented Tabs */}
+            <div className="mt-3 relative grid grid-cols-3 gap-1 p-1 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur rounded-full border border-black/5 dark:border-white/5">
+              {TABS.map((t) => {
+                const Icon = t.icon;
+                const isActive = activeTab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => changeTab(t.key)}
+                    className="relative h-9 rounded-full flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
+                    style={{ color: isActive ? "#fff" : "#8E8E93" }}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="tab-pill"
+                        transition={spring}
+                        className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-[0_6px_18px_rgba(225,29,72,0.35)]"
+                      />
+                    )}
+                    <span className="relative flex items-center gap-1.5">
+                      <Icon className="w-3.5 h-3.5" />
+                      {t.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-5">
+
+      <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
