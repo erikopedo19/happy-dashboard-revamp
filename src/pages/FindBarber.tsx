@@ -311,9 +311,10 @@ function BarberCard({
   onToggleFavorite: (id: string) => void;
   onExpand: (id: string) => void;
 }) {
-  const accent = barber.brand_color || "#007AFF";
+  const accent = barber.brand_color || "#e11d48";
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
+  const initial = (barber.brandName || "B").trim().charAt(0).toUpperCase();
 
   return (
     <motion.div
@@ -324,90 +325,78 @@ function BarberCard({
       animate="show"
       transition={spring}
       className={cn(
-        "rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-sm",
-        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-lg"
+        "group relative rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-[0_4px_24px_rgba(15,23,42,0.06)]",
+        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)]"
       )}
     >
-      {/* Banner area – appears when expanded */}
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            key="banner"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 160, opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={spring}
-            className="relative w-full overflow-hidden"
-            style={{
-              background: barber.banner_url
-                ? `url(${barber.banner_url}) center/cover`
-                : `linear-gradient(135deg, ${accent}, ${accent}88)`,
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <button
-        onClick={() => onExpand(barber.id)}
-        className="w-full text-left"
+      {/* Gradient header strip */}
+      <div
+        className="relative h-24"
+        style={{
+          background: barber.banner_url
+            ? `url(${barber.banner_url}) center/cover`
+            : `linear-gradient(135deg, ${accent}, ${accent}55 60%, #fff0)`,
+        }}
       >
-        <div className={cn("p-4 flex items-start gap-3", isExpanded && "-mt-8 relative")}>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-[#1C1C1E]" />
+
+        {/* Favorite — large 44x44 tap target */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(barber.id);
+          }}
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          className="absolute top-2.5 right-2.5 w-11 h-11 rounded-full bg-white/90 dark:bg-[#1C1C1E]/85 backdrop-blur flex items-center justify-center shadow-sm active:scale-90 transition-transform"
+        >
+          <Heart
+            className={cn(
+              "w-5 h-5 transition-colors",
+              isFavorite ? "fill-rose-500 text-rose-500" : "text-[#8E8E93]"
+            )}
+          />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="px-4 -mt-10 relative">
+        <div className="flex items-end gap-3">
           {barber.avatar_url ? (
             <img
               src={barber.avatar_url}
               alt={barber.brandName}
-              className={cn(
-                "rounded-2xl object-cover shrink-0 border-2 border-white dark:border-[#1C1C1E]",
-                isExpanded ? "w-16 h-16" : "w-14 h-14"
-              )}
+              className="w-[68px] h-[68px] rounded-[22px] object-cover border-[3px] border-white dark:border-[#1C1C1E] shadow-md shrink-0"
             />
           ) : (
             <div
-              className={cn(
-                "rounded-2xl flex items-center justify-center shrink-0 border-2 border-white dark:border-[#1C1C1E]",
-                isExpanded ? "w-16 h-16" : "w-14 h-14"
-              )}
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+              className="w-[68px] h-[68px] rounded-[22px] flex items-center justify-center text-white font-serif text-3xl border-[3px] border-white dark:border-[#1C1C1E] shadow-md shrink-0"
+              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
             >
-              <Scissors className={cn("text-white", isExpanded ? "w-8 h-8" : "w-7 h-7")} />
+              {initial}
             </div>
           )}
-          <div className="flex-1 min-w-0 pt-1">
-            <h3 className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-              {barber.brandName}
-            </h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <Star className="w-3.5 h-3.5 fill-[#FFB800] text-[#FFB800]" />
-              <span className="text-[12px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">
+          <div className="min-w-0 flex-1 pb-1">
+            <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 mb-1">
+              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 tabular-nums">
                 {Number(rating).toFixed(1)}
               </span>
-              <span className="text-[12px] text-[#8E8E93]">({reviews})</span>
+              <span className="text-[10px] text-amber-700/70 dark:text-amber-300/70">· {reviews}</span>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(barber.id);
-              }}
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors active:scale-90"
-            >
-              <Heart
-                className={cn(
-                  "w-5 h-5 transition-colors",
-                  isFavorite ? "fill-[#FF2D55] text-[#FF2D55]" : "text-[#8E8E93]"
-                )}
-              />
-            </button>
-            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={spring}>
-              <ChevronDown className="w-4 h-4 text-[#8E8E93]" />
-            </motion.div>
-          </div>
         </div>
-      </button>
 
+        <h3 className="mt-2 font-serif text-[22px] leading-tight tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+          {barber.brandName}
+        </h3>
+        {barber.description && !isExpanded && (
+          <p className="mt-1 text-[12.5px] text-[#8E8E93] line-clamp-2 leading-relaxed">
+            {barber.description}
+          </p>
+        )}
+      </div>
+
+      {/* Expanded details */}
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
@@ -416,33 +405,50 @@ function BarberCard({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25 }}
-            className="px-4 pb-4"
+            className="px-4 pt-3"
           >
-            <BarberExpandedDetails barberId={barber.id} fallbackDescription={barber.description} accent={accent} rating={rating} reviews={reviews} />
+            <BarberExpandedDetails
+              barberId={barber.id}
+              fallbackDescription={barber.description}
+              accent={accent}
+              rating={rating}
+              reviews={reviews}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="px-4 pb-4">
+      {/* Action row — generous 48px tap targets */}
+      <div className="p-3 pt-3 flex gap-2">
+        <button
+          onClick={() => onExpand(barber.id)}
+          className="flex-1 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
+        >
+          {isExpanded ? "Less" : "Details"}
+          <motion.span animate={{ rotate: isExpanded ? 180 : 0 }} transition={spring} className="inline-flex">
+            <ChevronDown className="w-4 h-4" />
+          </motion.span>
+        </button>
         {barber.booking_link ? (
-          <Link to={`/book/${barber.booking_link}`} className="block">
+          <Link to={`/book/${barber.booking_link}`} className="flex-[1.4]">
             <Button
-              className="w-full h-11 rounded-2xl text-white font-semibold border-0 hover:opacity-90 transition-opacity"
-              style={{ background: accent }}
+              className="w-full h-12 rounded-2xl text-white font-semibold border-0 shadow-[0_8px_20px_rgba(225,29,72,0.28)] active:scale-[0.97] transition-transform"
+              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              Book Now
+              <Calendar className="w-4 h-4 mr-1.5" />
+              Book
             </Button>
           </Link>
         ) : (
-          <Button disabled className="w-full h-11 rounded-2xl bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
-            Booking unavailable
+          <Button disabled className="flex-[1.4] h-12 rounded-2xl bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
+            Unavailable
           </Button>
         )}
       </div>
     </motion.div>
   );
 }
+
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
