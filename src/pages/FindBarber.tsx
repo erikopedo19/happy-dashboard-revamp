@@ -315,6 +315,8 @@ function BarberCard({
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
   const initial = (barber.brandName || "B").trim().charAt(0).toUpperCase();
+  const [bookOpen, setBookOpen] = useState(false);
+
 
   return (
     <motion.div
