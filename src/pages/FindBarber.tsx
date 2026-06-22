@@ -28,6 +28,7 @@ import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { QuickBookSheet } from "@/components/QuickBookSheet";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
