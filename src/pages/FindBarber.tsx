@@ -432,24 +432,32 @@ function BarberCard({
           </motion.span>
         </button>
         {barber.booking_link ? (
-          <Link to={`/book/${barber.booking_link}`} className="flex-[1.4]">
-            <Button
-              className="w-full h-12 rounded-2xl text-white font-semibold border-0 shadow-[0_8px_20px_rgba(225,29,72,0.28)] active:scale-[0.97] transition-transform"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
-            >
-              <Calendar className="w-4 h-4 mr-1.5" />
-              Book
-            </Button>
-          </Link>
+          <Button
+            onClick={() => setBookOpen(true)}
+            className="flex-[1.4] w-full h-12 rounded-2xl text-white font-semibold border-0 shadow-[0_8px_20px_rgba(225,29,72,0.28)] active:scale-[0.97] transition-transform"
+            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
+          >
+            <Calendar className="w-4 h-4 mr-1.5" />
+            Book
+          </Button>
         ) : (
           <Button disabled className="flex-[1.4] h-12 rounded-2xl bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
             Unavailable
           </Button>
         )}
       </div>
+      <QuickBookSheet
+        open={bookOpen}
+        onOpenChange={setBookOpen}
+        barberId={barber.id}
+        barberName={barber.brandName}
+        bookingLink={barber.booking_link}
+        accentColor={accent}
+      />
     </motion.div>
   );
 }
+
 
 
 function Stat({ label, value }: { label: string; value: string }) {
