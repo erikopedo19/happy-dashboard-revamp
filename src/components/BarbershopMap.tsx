@@ -259,7 +259,7 @@ export function BarbershopMap({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full flex flex-col" style={{ minHeight: height }}>
       {showControls && !hideSearch && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
