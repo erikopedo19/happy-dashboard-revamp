@@ -53,10 +53,12 @@ html, body, #root {
     --chart-5: 346 60% 70%;
 
     --gradient-brand: linear-gradient(135deg, #050506 0%, #111317 48%, #1d2027 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 62%));
-    --gradient-sky: linear-gradient(135deg, hsl(222 50% 35%), hsl(222 60% 50%));
-    --shadow-rose: 0 10px 40px -10px hsl(217 91% 60% / 0.24);
+    --shadow-rose: 0 10px 40px -10px hsl(346 84% 60% / 0.35);
+    --shadow-purple: 0 10px 40px -10px hsl(280 84% 60% / 0.35);
     --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
+
+    --rose: 346 84% 60%;
+    --purple: 280 84% 62%;
 
     --glass-background: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.08);
@@ -735,9 +737,8 @@ html, body, #root {
   opacity: 0.9;
   transition: opacity 0.2s ease, transform 0.1s ease;
   padding: 2px;
-  background: black;
+  background: hsl(var(--primary));
   border-radius: 16px;
-  background: linear-gradient(to top, #be123c, #fb7185);
   border: none;
   outline: none;
 }
@@ -755,10 +756,9 @@ html, body, #root {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: #e11d48;
+  background: hsl(var(--primary));
   color: white;
   border-radius: 14px;
-  background: linear-gradient(to top, #db2777, #f43f5e);
   font-weight: 500;
   font-size: 0.875rem;
   white-space: nowrap;
@@ -805,4 +805,97 @@ html, body, #root {
   background-size: 140% 140%, 130% 130%, 120% 120%;
   animation: ambient-drift 28s ease-in-out infinite, ambient-hue 40s linear infinite;
   will-change: filter, background-position;
+}
+
+/* iOS minimal solid utilities — no gradients */
+.bg-aurora {
+  background: hsl(var(--primary));
+}
+.bg-rose-purple {
+  background: hsl(var(--primary));
+}
+.text-aurora {
+  color: hsl(var(--primary));
+}
+.shadow-aurora {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.bg-aurora-soft {
+  background: transparent;
+}
+@keyframes aurora-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.bg-aurora-animated {
+  background: hsl(var(--primary));
+  background-size: auto;
+  animation: none;
+}
+
+/* Override tailwind bg-gradient-rose to solid iOS primary */
+.bg-gradient-rose {
+  background: hsl(var(--primary)) !important;
+}
+
+/* ───── iOS Map · Radar pulse animations ───── */
+@keyframes radar-ping {
+  0%   { transform: scale(0.4); opacity: 0.9; }
+  80%  { opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes radar-sweep {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes radar-dot-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.45); }
+  50%      { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(225, 29, 72, 0); }
+}
+@keyframes pin-bounce {
+  0%   { transform: translate(-50%, -100%) scale(0.6); opacity: 0; }
+  60%  { transform: translate(-50%, -108%) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+}
+@keyframes pin-float {
+  0%, 100% { transform: translate(-50%, -100%) translateY(0); }
+  50%      { transform: translate(-50%, -100%) translateY(-3px); }
+}
+
+.radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(225, 29, 72, 0.55);
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.18) 0%, transparent 70%);
+  animation: radar-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.radar-ring.delay-1 { animation-delay: 0.8s; }
+.radar-ring.delay-2 { animation-delay: 1.6s; }
+
+.radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    transparent 300deg,
+    rgba(225, 29, 72, 0.55) 355deg,
+    rgba(244, 63, 94, 0.85) 360deg);
+  mask: radial-gradient(circle, transparent 6px, black 7px);
+  -webkit-mask: radial-gradient(circle, transparent 6px, black 7px);
+  animation: radar-sweep 2.6s linear infinite;
+}
+
+.radar-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  border: 2.5px solid #fff;
+  animation: radar-dot-pulse 1.6s ease-in-out infinite;
 }

@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Lock, Mail, ArrowRight, Shield } from "lucide-react";
 
-const SUPER_ADMIN_EMAIL = "erikballiu19@gmail.com";
-
 const SuperAdminLogin: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,11 +14,6 @@ const SuperAdminLogin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (email.trim().toLowerCase() !== SUPER_ADMIN_EMAIL) {
-      toast.error("Access denied. Only the super admin can log in here.");
-      return;
-    }
-
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -29,11 +22,21 @@ const SuperAdminLogin: React.FC = () => {
       });
 
       if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Welcome back, Super Admin!");
-        navigate("/superadmin/dashboard");
+        toast.error("Invalid credentials");
+        setLoading(false);
+        return;
       }
+
+      const { data: isAdmin } = await (supabase as any).rpc("is_super_admin");
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        toast.error("Access denied.");
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Welcome back");
+      navigate("/superadmin/dashboard");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
     } finally {

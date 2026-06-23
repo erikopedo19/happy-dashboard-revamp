@@ -141,42 +141,81 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const {
-      userId, customerEmail, customerName, customerPhone, businessName, serviceName,
-      appointmentDate, appointmentTime, price, notes, bookingId,
-      accentColor, manageUrl, cancelToken,
-    } = body;
+    const { cancelToken, accentColor } = body as { cancelToken?: string; accentColor?: string };
 
-    if (!businessName || !serviceName) {
-      return new Response(JSON.stringify({ success: false, error: "Missing required fields" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
+    if (!cancelToken) {
+      return new Response(JSON.stringify({ success: false, error: "cancelToken required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
     }
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(JSON.stringify({ success: false, error: "Server misconfigured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 });
+    }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Authenticate the caller by validating the cancel token against the database.
+    // Use the DB row as the source of truth for all email/SMS fields — never trust caller input.
+    const { data: apptRow, error: apptErr } = await supabase
+      .from("appointments")
+      .select("id, user_id, appointment_date, appointment_time, price, notes, customer_id, service_id, created_at")
+      .eq("cancel_token", cancelToken)
+      .maybeSingle();
+
+    if (apptErr || !apptRow) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid token" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+    }
+
+    // Only allow sending for freshly-created bookings (the trigger fires immediately).
+    const createdMs = new Date(apptRow.created_at as string).getTime();
+    if (Date.now() - createdMs > 15 * 60 * 1000) {
+      return new Response(JSON.stringify({ success: false, error: "Token expired" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+    }
+
+    const [{ data: customer }, { data: service }, { data: profile }] = await Promise.all([
+      supabase.from("customers").select("name, email, phone").eq("id", apptRow.customer_id).maybeSingle(),
+      supabase.from("services").select("name, price").eq("id", apptRow.service_id).maybeSingle(),
+      supabase.from("profiles").select("business_name, full_name, brand_color, sender_email, sender_name").eq("id", apptRow.user_id).maybeSingle(),
+    ]);
+
+    const userId = apptRow.user_id;
+    const customerEmail = customer?.email ?? null;
+    const customerName = customer?.name ?? "there";
+    const customerPhone = customer?.phone ?? null;
+    const businessName = profile?.business_name || profile?.full_name || "Cutzioo";
+    const serviceName = service?.name || "Service";
+    const price = apptRow.price ?? service?.price ?? null;
+    const notes = apptRow.notes ?? null;
+    const bookingId = String(apptRow.id).slice(0, 8);
+    const appointmentDate = new Date(apptRow.appointment_date as string).toLocaleDateString("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric"
+    });
+    const appointmentTime = String(apptRow.appointment_time).slice(0, 5);
 
     let template: any = null;
-    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const { data } = await supabase.from("message_templates").select("*").eq("user_id", userId).maybeSingle();
-      template = data;
-    }
+    const { data: tplData } = await supabase.from("message_templates").select("*").eq("user_id", userId).maybeSingle();
+    template = tplData;
 
     if (template?.enabled === false) {
       return new Response(JSON.stringify({ success: true, skipped: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const accent = template?.accent_color || accentColor || "#e0c4a8";
-    const finalManageUrl = manageUrl || (cancelToken ? `${APP_URL}/manage/${cancelToken}` : null);
+    const accent = template?.accent_color || accentColor || profile?.brand_color || "#e0c4a8";
+    const finalManageUrl = `${APP_URL}/manage/${cancelToken}`;
 
-    const vars = { customerName: customerName || "there", customerEmail, customerPhone, businessName, serviceName, appointmentDate, appointmentTime, price };
+    const vars = { customerName, customerEmail, customerPhone, businessName, serviceName, appointmentDate, appointmentTime, price };
 
     const subject = render(template?.email_subject || "Your booking at {{businessName}} is confirmed", vars);
     const smsText = render(
       template?.sms_body || "{{businessName}}: {{serviceName}} on {{appointmentDate}} at {{appointmentTime}} confirmed.",
       vars
-    ) + (finalManageUrl ? ` Manage: ${finalManageUrl}` : "");
+    ) + ` Manage: ${finalManageUrl}`;
 
     const html = buildHtml({
-      businessName, customerName: customerName || "there", serviceName,
+      businessName, customerName, serviceName,
       appointmentDate, appointmentTime, price, notes,
       manageUrl: finalManageUrl, accent, bookingId,
     });

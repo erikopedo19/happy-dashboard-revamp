@@ -1,76 +1,80 @@
-
 import React from 'react';
-import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { GuestBanner } from '@/components/GuestBanner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+/**
+ * Guests are allowed to browse all pages. They will only be prompted to sign in
+ * when they perform an action that requires the database (handled at action
+ * sites via `useRequireAuth`). Logged-in users without a role still get sent
+ * to /choose-role.
+ */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const [isCheckingRole, setIsCheckingRole] = React.useState(true);
   const [hasRole, setHasRole] = React.useState(false);
-  const location = window.location;
 
   React.useEffect(() => {
-    const checkRole = async () => {
+    let cancelled = false;
+    const check = async () => {
       if (!user) {
         setIsCheckingRole(false);
         return;
       }
-
-      // Check metadata first (faster, available on user object)
       if (user.user_metadata?.role) {
-        setHasRole(true);
-        setIsCheckingRole(false);
+        if (!cancelled) {
+          setHasRole(true);
+          setIsCheckingRole(false);
+        }
         return;
       }
-
       try {
-        // Fallback to database check
         const { supabase } = await import('@/integrations/supabase/client');
-
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('role' as any)
           .eq('id', user.id)
           .single();
-
-        if ((data as any)?.role) {
-          setHasRole(true);
-        }
-      } catch (error) {
-        console.error('Error checking role:', error);
+        if (!cancelled && (data as any)?.role) setHasRole(true);
+      } catch (e) {
+        console.error('role check failed', e);
       } finally {
-        setIsCheckingRole(false);
+        if (!cancelled) setIsCheckingRole(false);
       }
     };
-
-    checkRole();
+    check();
+    return () => { cancelled = true; };
   }, [user]);
 
-  if (loading || isCheckingRole) {
+  // Zero loading screens — render children optimistically while auth resolves.
+  if (loading || (user && isCheckingRole)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <GuestBanner />
+        {children}
+      </>
     );
   }
 
+  // Guests: render the page in read-only browse mode with a sign-in banner.
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return (
+      <>
+        <GuestBanner />
+        {children}
+      </>
+    );
   }
 
-  // If user has no role and is not already on the choose-role page, redirect them
-  if (!hasRole && location.pathname !== '/choose-role') {
-    return <Navigate to="/choose-role" replace />;
-  }
-
-  // If user has a role and tries to access choose-role, redirect to dashboard (optional but good UX)
-  if (hasRole && location.pathname === '/choose-role') {
-    return <Navigate to="/admin" replace />;
+  // Authenticated but no role yet → finish onboarding.
+  if (!hasRole && window.location.pathname !== '/choose-role') {
+    // soft redirect via window to avoid pulling in extra deps
+    window.location.replace('/choose-role');
+    return null;
   }
 
   return <>{children}</>;

@@ -115,7 +115,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signInWithGoogle = async () => {
-    const redirectTo = `${window.location.origin}/`;
+    // Preserve the ?next= param across the OAuth round-trip by sending the
+    // user back to /auth, where LoginForm's effect will forward them to `next`.
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next") || "/";
+    const redirectTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
