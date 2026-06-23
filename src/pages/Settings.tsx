@@ -903,31 +903,6 @@ const Settings = () => {
                             </div>
                           </div>
 
-                          <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                              Google Maps link
-                            </Label>
-                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-2">
-                              Paste a Google Maps share link — coordinates auto-fill on save.
-                            </p>
-                            <Input
-                              value={brandForm.google_maps_url || ""}
-                              onChange={(e) => {
-                                const url = e.target.value;
-                                setBrandForm((prev) => {
-                                  const parsed = extractLatLngFromGoogleUrl(url);
-                                  return {
-                                    ...prev,
-                                    google_maps_url: url,
-                                    latitude: parsed?.lat ?? prev.latitude,
-                                    longitude: parsed?.lng ?? prev.longitude,
-                                  };
-                                });
-                              }}
-                              placeholder="https://maps.google.com/?q=40.7128,-74.0060"
-                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                            />
-                          </div>
 
                           <div>
                             <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
