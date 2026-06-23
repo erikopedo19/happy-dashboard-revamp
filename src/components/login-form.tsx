@@ -5,11 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-/**
- * Simple, modern auth screen.
- * Single column, soft surfaces, no role pickers, no clutter.
- */
 export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -17,7 +17,7 @@ export function LoginForm() {
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
 
   const { toast } = useToast();
-  const { user, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, resetPassword } = useAuth();
 
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [loading, setLoading] = useState(false);
@@ -85,30 +85,19 @@ export function LoginForm() {
     else toast({ title: "Reset email sent", description: "Check your inbox." });
   };
 
-  const onGoogle = async () => {
-    setLoading(true);
-    const { error } = await signInWithGoogle();
-    setLoading(false);
-    if (error) toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
-  };
-
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0b] text-white flex flex-col">
-      {/* Top bar */}
+    <div className="min-h-screen w-full bg-background flex flex-col">
       <header className="px-6 py-5 flex items-center justify-between">
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
         >
-          <img src="/logo.svg" alt="Cutzio" className="h-6 w-6 brightness-0 invert" />
-          <span className="font-semibold">Cutzio</span>
+          <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-6 w-6 rounded-md" />
+          <span className="font-semibold">Cutzioo</span>
         </button>
-        <button
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="text-xs text-white/60 hover:text-white transition"
-        >
-          {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
-        </button>
+        <Button variant="ghost" size="sm" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
+          {mode === "signin" ? "Sign up" : "Sign in"}
+        </Button>
       </header>
 
       <main className="flex-1 flex items-center justify-center px-6 pb-16">
@@ -116,155 +105,113 @@ export function LoginForm() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[380px]"
+          className="w-full max-w-sm"
         >
-          <div className="mb-8 text-center">
-            <div className="flex justify-center mb-5">
-              <img
-                src="/cutzioo-logo.webp"
-                alt="Cutzio"
-                className="h-16 w-16 rounded-2xl object-contain"
-              />
-            </div>
-            <h1 className="text-[28px] font-semibold tracking-tight">
-              {mode === "signin" ? "Welcome back" : "Create your account"}
-            </h1>
-            <p className="mt-2 text-sm text-white/50">
-              {mode === "signin"
-                ? "Sign in to continue."
-                : "It only takes a few seconds."}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onGoogle}
-            disabled={loading}
-            className="w-full h-12 rounded-2xl bg-white text-black font-medium text-sm flex items-center justify-center gap-2.5 hover:bg-white/90 transition active:scale-[0.99] disabled:opacity-60"
-          >
-            <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
-              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
-              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.3 7 29.4 5 24 5 16.3 5 9.6 9.1 6.3 14.7z"/>
-              <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 35 26.8 36 24 36c-5.3 0-9.7-3.1-11.3-7.9l-6.5 5C9.5 39.7 16.2 44 24 44z"/>
-              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3C40.7 36.2 44 30.6 44 24c0-1.2-.1-2.3-.4-3.5z"/>
-            </svg>
-            Continue with Google
-          </button>
-
-          <div className="my-5 flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-[10px] uppercase tracking-[0.18em] text-white/35">or</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
-
-          <form onSubmit={submit} className="space-y-3">
-            {mode === "signup" && (
-              <Field
-                icon={<UserIcon className="h-4 w-4" />}
-                placeholder="Full name"
-                value={fullName}
-                onChange={setFullName}
-                type="text"
-                autoComplete="name"
-              />
-            )}
-            <Field
-              icon={<Mail className="h-4 w-4" />}
-              placeholder="Email"
-              value={email}
-              onChange={setEmail}
-              type="email"
-              autoComplete="email"
-            />
-            <div className="relative">
-              <Field
-                icon={<Lock className="h-4 w-4" />}
-                placeholder="Password"
-                value={password}
-                onChange={setPassword}
-                type={showPwd ? "text" : "password"}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwd((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition"
-                tabIndex={-1}
-              >
-                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-
-            {mode === "signin" && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={onForgot}
-                  disabled={resetting}
-                  className="text-xs text-white/55 hover:text-white transition"
-                >
-                  {resetting ? "Sending..." : "Forgot password?"}
-                </button>
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-2">
+                <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-14 w-14 rounded-xl" />
               </div>
-            )}
+              <CardTitle className="text-2xl">
+                {mode === "signin" ? "Welcome back" : "Create your account"}
+              </CardTitle>
+              <CardDescription>
+                {mode === "signin" ? "Sign in to continue." : "It only takes a few seconds."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={submit} className="space-y-4">
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full name</Label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="name"
+                        placeholder="Full name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        autoComplete="name"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                      className="pl-9"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    {mode === "signin" && (
+                      <button
+                        type="button"
+                        onClick={onForgot}
+                        disabled={resetting}
+                        className="text-xs text-muted-foreground hover:text-foreground transition"
+                      >
+                        {resetting ? "Sending..." : "Forgot password?"}
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPwd ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                      className="pl-9 pr-9"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPwd((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                      tabIndex={-1}
+                    >
+                      {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-            <button
-              type="submit"
-              disabled={loading || !canSubmit}
-              className={cn(
-                "mt-2 w-full h-12 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition active:scale-[0.99]",
-                "bg-white text-black hover:bg-white/90 disabled:bg-white/20 disabled:text-white/40"
-              )}
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  {mode === "signin" ? "Sign in" : "Create account"}
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          </form>
+                <Button type="submit" className="w-full" disabled={loading || !canSubmit}>
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      {mode === "signin" ? "Sign in" : "Create account"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
 
-          <p className="mt-8 text-center text-[11px] text-white/35 leading-relaxed">
-            By continuing you agree to our{" "}
-            <a className="underline-offset-2 hover:underline" href="#">Terms</a> and{" "}
-            <a className="underline-offset-2 hover:underline" href="#">Privacy Policy</a>.
-          </p>
+              <p className="mt-6 text-center text-xs text-muted-foreground leading-relaxed">
+                By continuing you agree to our{" "}
+                <a className="underline-offset-2 hover:underline" href="#">Terms</a> and{" "}
+                <a className="underline-offset-2 hover:underline" href="#">Privacy Policy</a>.
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
       </main>
-    </div>
-  );
-}
-
-function Field({
-  icon,
-  placeholder,
-  value,
-  onChange,
-  type,
-  autoComplete,
-}: {
-  icon: React.ReactNode;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  type: string;
-  autoComplete?: string;
-}) {
-  return (
-    <div className="relative">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">{icon}</span>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        required
-        className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 pl-11 pr-4 text-sm text-white placeholder:text-white/35 outline-none transition focus:bg-white/[0.06] focus:border-white/25"
-      />
     </div>
   );
 }
