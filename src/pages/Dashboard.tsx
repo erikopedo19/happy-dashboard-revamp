@@ -497,7 +497,7 @@ function MobileDashboard() {
                     onClick={() => navigate("/agenda")}
                     className="bg-white/[0.04] backdrop-blur-2xl p-4 rounded-3xl border border-white/10 flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
                   >
-                    <div className={`w-12 h-12 rounded-2xl bg-[#0b0b0d] flex items-center justify-center border border-white/5 text-[11px] font-bold text-white/85 ${numClass}`}>
+                    <div className={`w-12 h-12 rounded-2xl bg-white/[0.06] backdrop-blur-xl flex items-center justify-center border border-white/10 text-[11px] font-bold text-white/85 ${numClass}`}>
                       {(a.appointment_time || "").slice(0, 5) || "--:--"}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -567,8 +567,8 @@ function KPI({ label, value, accent, numClass }: { label: string; value: string 
         duration: 2.2,
         ease: "easeInOut",
       }}
-      className={`bg-[#141417] p-3.5 rounded-2xl border transition-all ${
-        isPendingActive ? "border-rose-500/25" : "border-white/[0.04]"
+      className={`bg-white/[0.04] backdrop-blur-2xl p-3.5 rounded-2xl border transition-all ${
+        isPendingActive ? "border-rose-500/25" : "border-white/10"
       }`}
     >
       <div className="flex items-center justify-between mb-1.5">
