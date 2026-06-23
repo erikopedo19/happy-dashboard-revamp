@@ -179,8 +179,8 @@ function MobileDashboard() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="h-10 w-10 rounded-full bg-[#141417] border border-white/5 text-white/70 hover:bg-[#1a1a1e]" />
-          <div className="w-10 h-10 rounded-full bg-[#141417] border border-white/5 flex items-center justify-center">
+          <SidebarTrigger className="h-10 w-10 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/70 hover:bg-[#1a1a1e]" />
+          <div className="w-10 h-10 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/10 flex items-center justify-center">
             <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#0A84FF] to-[#5ac8fa]" />
           </div>
         </div>
@@ -191,7 +191,7 @@ function MobileDashboard() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 240, damping: 26 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#141417] via-[#141417] to-[#0f0f12] border border-white/[0.04] p-5"
+          className="relative overflow-hidden rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-5"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -241,7 +241,7 @@ function MobileDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.07, type: "spring", stiffness: 260, damping: 26 }}
-          className="rounded-3xl bg-[#141417] border border-white/[0.04] p-5 flex items-center justify-between gap-5"
+          className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-5 flex items-center justify-between gap-5"
         >
           <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
@@ -306,7 +306,7 @@ function MobileDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}
-          className="rounded-3xl bg-[#141417] border border-white/[0.04] p-5"
+          className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-5"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -365,7 +365,7 @@ function MobileDashboard() {
                   className={
                     d.isToday
                       ? `w-10 h-10 rounded-2xl bg-white text-[#0b0b0d] flex items-center justify-center text-sm font-bold shadow-lg shadow-white/10 ${numClass}`
-                      : `w-10 h-10 rounded-2xl bg-[#141417] border border-white/5 flex items-center justify-center text-white/70 text-sm font-bold ${numClass}`
+                      : `w-10 h-10 rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/70 text-sm font-bold ${numClass}`
                   }
                 >
                   {d.date}
@@ -387,7 +387,7 @@ function MobileDashboard() {
             className="space-y-3"
           >
             <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Top Services</h3>
-            <div className="rounded-3xl bg-[#141417] border border-white/[0.04] p-4 space-y-3">
+            <div className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4 space-y-3">
               {topServices.map((s, i) => (
                 <div key={s.name} className="space-y-1.5">
                   <div className="flex justify-between items-center">
@@ -415,7 +415,7 @@ function MobileDashboard() {
           transition={{ delay: 0.12 }}
           className="grid grid-cols-5 gap-3"
         >
-          <div className="col-span-3 rounded-3xl bg-[#141417] border border-white/[0.04] p-4">
+          <div className="col-span-3 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Hourly Demand</p>
@@ -442,7 +442,7 @@ function MobileDashboard() {
             </div>
           </div>
 
-          <div className="col-span-2 rounded-3xl bg-[#141417] border border-white/[0.04] p-4">
+          <div className="col-span-2 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4">
             <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Status Mix</p>
             {statusMix.length > 0 ? (
               <div className="h-24 mt-1">
@@ -469,7 +469,7 @@ function MobileDashboard() {
         <section className="space-y-4">
           <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Today's Appointments</h3>
           {todays.length === 0 ? (
-            <div className="bg-[#141417] p-6 rounded-3xl border border-white/[0.03] text-center text-sm text-white/40">
+            <div className="bg-white/[0.04] backdrop-blur-2xl p-6 rounded-3xl border border-white/10 text-center text-sm text-white/40">
               Nothing scheduled today.
             </div>
           ) : (
@@ -483,7 +483,7 @@ function MobileDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, type: "spring", stiffness: 360, damping: 26 }}
                     onClick={() => navigate("/agenda")}
-                    className="bg-[#141417] p-4 rounded-3xl border border-white/[0.03] flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
+                    className="bg-white/[0.04] backdrop-blur-2xl p-4 rounded-3xl border border-white/10 flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
                   >
                     <div className={`w-12 h-12 rounded-2xl bg-[#0b0b0d] flex items-center justify-center border border-white/5 text-[11px] font-bold text-white/85 ${numClass}`}>
                       {(a.appointment_time || "").slice(0, 5) || "--:--"}
@@ -518,7 +518,7 @@ function MobileDashboard() {
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/services")}
-              className="h-14 bg-[#141417] border border-white/5 rounded-3xl font-['Sora'] font-bold text-white text-[13px]"
+              className="h-14 bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl font-['Sora'] font-bold text-white text-[13px]"
             >
               Edit Services
             </motion.button>
