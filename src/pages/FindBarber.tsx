@@ -174,76 +174,86 @@ const FindBarber = () => {
 
   return (
     <div className="relative min-h-screen bg-[#FAF7F5] dark:bg-[#0c0c0c] pb-28 overflow-hidden">
-      {/* Decorative ambient blobs */}
-      <div aria-hidden className="pointer-events-none absolute -top-32 -right-24 h-72 w-72 rounded-full bg-rose-300/40 blur-3xl dark:bg-rose-500/10" />
-      <div aria-hidden className="pointer-events-none absolute top-40 -left-20 h-56 w-56 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-500/5" />
+      {/* Animated ambient liquid-glass blobs */}
+      <motion.div
+        aria-hidden
+        animate={{ x: [0, 30, -10, 0], y: [0, -20, 10, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-rose-300/50 blur-3xl dark:bg-rose-500/15"
+      />
+      <motion.div
+        aria-hidden
+        animate={{ x: [0, -20, 20, 0], y: [0, 30, -10, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute top-60 -left-24 h-64 w-64 rounded-full bg-amber-200/50 blur-3xl dark:bg-amber-500/10"
+      />
+      <motion.div
+        aria-hidden
+        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute top-1/3 right-1/4 h-48 w-48 rounded-full bg-pink-200/40 blur-3xl dark:bg-pink-500/10"
+      />
 
-      {/* Header */}
-      <div className="relative z-10">
-        <div className="max-w-5xl mx-auto px-5 pt-7 pb-2">
-          <div className="flex items-start justify-between">
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
+      {/* Sticky glass header */}
+      <div className="sticky top-0 z-30 backdrop-blur-2xl bg-[#FAF7F5]/60 dark:bg-[#0c0c0c]/50 border-b border-white/40 dark:border-white/[0.03]">
+        <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
+          <div className="flex items-center justify-between mb-3">
+            <motion.h1
+              initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={spring}
+              className="font-serif text-[26px] leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]"
             >
-              <p className="text-[11px] uppercase tracking-[0.22em] text-rose-500/80 font-semibold mb-1">Cutzio · Discover</p>
-              <h1 className="font-serif text-[40px] sm:text-[48px] leading-[0.95] tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">
-                Find your<br/>
-                <span className="italic text-rose-500">barber.</span>
-              </h1>
-            </motion.div>
+              Discover<span className="italic text-rose-500">.</span>
+            </motion.h1>
             <Link to="/settings">
-              <Button variant="ghost" size="icon" className="rounded-full w-11 h-11 bg-white/80 dark:bg-[#2C2C2E]/80 backdrop-blur shadow-sm hover:scale-95 transition-transform">
-                <User className="w-5 h-5 text-rose-500" />
+              <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm hover:scale-95 transition-transform">
+                <User className="w-4 h-4 text-rose-500" />
               </Button>
             </Link>
           </div>
-        </div>
 
-        <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#FAF7F5]/70 dark:bg-[#0c0c0c]/70">
-          <div className="max-w-5xl mx-auto px-5 pt-3 pb-3">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
-              <Input
-                type="text"
-                placeholder="Search barbers, styles, vibes"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 h-12 rounded-full border-transparent bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-[0_4px_20px_rgba(15,23,42,0.06)] focus-visible:ring-2 focus-visible:ring-rose-500"
-              />
-            </div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
+            <Input
+              type="text"
+              placeholder="Search barbers, styles, vibes"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-11 h-11 rounded-full border border-white/60 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl text-[#1C1C1E] dark:text-[#F2F2F7] shadow-[0_4px_20px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-rose-500"
+            />
+          </div>
 
-            {/* Segmented Tabs */}
-            <div className="mt-3 relative grid grid-cols-3 gap-1 p-1 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur rounded-full border border-black/5 dark:border-white/5">
-              {TABS.map((t) => {
-                const Icon = t.icon;
-                const isActive = activeTab === t.key;
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => changeTab(t.key)}
-                    className="relative h-9 rounded-full flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
-                    style={{ color: isActive ? "#fff" : "#8E8E93" }}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="tab-pill"
-                        transition={spring}
-                        className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-[0_6px_18px_rgba(225,29,72,0.35)]"
-                      />
-                    )}
-                    <span className="relative flex items-center gap-1.5">
-                      <Icon className="w-3.5 h-3.5" />
-                      {t.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Segmented Tabs */}
+          <div className="mt-2.5 relative grid grid-cols-3 gap-1 p-1 bg-white/60 dark:bg-white/[0.04] backdrop-blur-xl rounded-full border border-white/60 dark:border-white/10">
+            {TABS.map((t) => {
+              const Icon = t.icon;
+              const isActive = activeTab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => changeTab(t.key)}
+                  className="relative h-8 rounded-full flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
+                  style={{ color: isActive ? "#fff" : "#8E8E93" }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="tab-pill"
+                      transition={spring}
+                      className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-[0_6px_18px_rgba(225,29,72,0.35)]"
+                    />
+                  )}
+                  <span className="relative flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5" />
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
+
 
 
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
@@ -328,7 +338,7 @@ function BarberCard({
       animate="show"
       transition={spring}
       className={cn(
-        "group relative rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden shadow-[0_4px_24px_rgba(15,23,42,0.06)]",
+        "group relative rounded-[28px] bg-white/70 dark:bg-white/[0.04] backdrop-blur-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.06)]",
         isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)]"
       )}
     >

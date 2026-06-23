@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays, isSameDay } from "date-fns";
@@ -74,6 +74,8 @@ export function QuickBookSheet({
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [confirmedTime, setConfirmedTime] = useState<{ date: Date; time: string } | null>(null);
+  // Hard re-entry lock — guards against double-tap firing two RPCs before React re-renders the disabled state.
+  const submitLockRef = useRef(false);
 
   // Reset on open
   useEffect(() => {
@@ -82,6 +84,7 @@ export function QuickBookSheet({
       setTime("");
       setDate(new Date());
       setConfirmedTime(null);
+      submitLockRef.current = false;
     }
   }, [open]);
 
@@ -190,6 +193,9 @@ export function QuickBookSheet({
 
   const handleConfirm = async () => {
     if (!selectedService || !canConfirm) return;
+    // Synchronous re-entry guard — beats React state in a rapid double-tap race.
+    if (submitLockRef.current || submitting) return;
+    submitLockRef.current = true;
     setSubmitting(true);
     try {
       const { data, error } = await (supabase as any).rpc("create_public_booking", {
@@ -209,6 +215,8 @@ export function QuickBookSheet({
       setStep("success");
       qc.invalidateQueries({ queryKey: ["quickbook-booked"] });
     } catch (e: any) {
+      // Release lock so the user can retry after a failure (e.g. slot taken).
+      submitLockRef.current = false;
       toast({
         title: "Booking failed",
         description: e?.message || "Please try a different time",
