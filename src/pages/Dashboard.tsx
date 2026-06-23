@@ -23,18 +23,30 @@ const Dashboard = () => {
       <div className="h-screen flex w-full bg-[#0b0b0d] overflow-hidden font-['Manrope']">
         <AppSidebar />
         <main className="relative flex-1 bg-[#0b0b0d] text-white flex flex-col overflow-hidden">
-          {/* Vibrant ambient gradient glow — slowly cycles colors */}
-          <div
+          {/* Liquid-glass ambient blobs — slowly drift behind translucent cards */}
+          <motion.div
             aria-hidden
-            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-56 z-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(60% 100% at 15% 0%, rgba(99,102,241,0.40) 0%, rgba(99,102,241,0) 60%), radial-gradient(55% 100% at 85% 0%, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0) 65%), radial-gradient(45% 90% at 50% 0%, rgba(168,85,247,0.24) 0%, rgba(10,2,3,0) 70%)",
-              maskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
-            }}
+            animate={{ x: [0, 60, -20, 0], y: [0, 40, -10, 0] }}
+            transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute -top-32 -left-20 h-[28rem] w-[28rem] rounded-full bg-indigo-500/30 blur-[120px] z-0"
+          />
+          <motion.div
+            aria-hidden
+            animate={{ x: [0, -40, 30, 0], y: [0, -30, 20, 0] }}
+            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute top-1/4 -right-24 h-[24rem] w-[24rem] rounded-full bg-cyan-400/25 blur-[120px] z-0"
+          />
+          <motion.div
+            aria-hidden
+            animate={{ scale: [1, 1.2, 1], opacity: [0.35, 0.55, 0.35] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute bottom-10 left-1/3 h-[22rem] w-[22rem] rounded-full bg-fuchsia-500/25 blur-[120px] z-0"
+          />
+          <motion.div
+            aria-hidden
+            animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.5, 0.25] }}
+            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 h-[18rem] w-[18rem] rounded-full bg-rose-500/20 blur-[100px] z-0"
           />
 
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
