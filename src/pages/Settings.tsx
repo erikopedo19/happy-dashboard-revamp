@@ -45,6 +45,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
+import { MobileSettings } from "@/components/settings/MobileSettings";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
