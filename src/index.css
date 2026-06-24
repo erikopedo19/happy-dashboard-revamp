@@ -900,3 +900,10 @@ html, body, #root {
   border: 2.5px solid #fff;
   animation: radar-dot-pulse 1.6s ease-in-out infinite;
 }
+
+/* Cal Sans display font utility */
+.font-cal {
+  font-family: 'Cal Sans', 'Sora', var(--font-apple);
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
