@@ -45,6 +45,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
+import { MobileSettings } from "@/components/settings/MobileSettings";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -402,9 +403,35 @@ const Settings = () => {
     },
   ] as const;
 
+  if (isMobile) {
+    return (
+      <MobileSettings
+        user={user}
+        theme={theme}
+        setTheme={setTheme}
+        profileForm={profileForm}
+        setProfileForm={setProfileForm}
+        brandForm={brandForm}
+        setBrandForm={setBrandForm}
+        agendaForm={agendaForm}
+        setAgendaForm={setAgendaForm}
+        toggleWorkingDay={toggleWorkingDay}
+        notificationPrefs={notificationPrefs}
+        setNotificationPrefs={setNotificationPrefs}
+        notifications={notifications}
+        hasValidHours={hasValidHours}
+        saveMutation={saveMutation}
+        updateDarkModeMutation={updateDarkModeMutation}
+        isLoading={isLoading}
+        navigate={navigate}
+      />
+    );
+  }
+
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden relative">
+
         {/* Ambient aurora backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-aurora-soft opacity-90 dark:opacity-60" />
         <AppSidebar />
