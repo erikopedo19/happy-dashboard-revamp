@@ -110,12 +110,14 @@ const iOS = {
   indigo: "#5E5CE6",
   orange: "#FF9F0A",
   pink: "#FF375F",
+  rose: "#FF2D6F",
+  rosesoft: "#FF6B95",
   yellow: "#FFD60A",
   grey: "#8E8E93",
   card: "#1C1C1E",
 };
 
-const AVATAR_TINTS = [iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.pink, iOS.yellow];
+const AVATAR_TINTS = [iOS.rose, iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.yellow];
 
 const RANGES: { value: RangeValue; label: string; short: string }[] = [
   { value: "today", label: "Today", short: "1D" },
