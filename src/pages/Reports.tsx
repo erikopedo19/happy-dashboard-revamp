@@ -501,14 +501,14 @@ const Reports = () => {
                   label="Bookings"
                   value={numberFormat.format(analytics.totalAppointments)}
                   hint={`${analytics.completionRate}% done`}
-                  tint={iOS.blue}
+                  tint={iOS.rose}
                 />
                 <KpiTile index={1} loading={isLoading}
                   icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
-                  tint={iOS.indigo}
+                  tint={iOS.blue}
                 />
                 <KpiTile index={2} loading={isLoading}
                   icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
@@ -522,7 +522,7 @@ const Reports = () => {
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   hint={`${analytics.completedAppointments} done`}
-                  tint={iOS.orange}
+                  tint={iOS.indigo}
                 />
               </section>
 
