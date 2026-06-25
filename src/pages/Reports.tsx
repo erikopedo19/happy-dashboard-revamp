@@ -402,11 +402,22 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="rounded-[32px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
-                  <CardContent className="p-6 md:p-8">
+                <Card className="relative rounded-[32px] border-0 bg-gradient-to-br from-[#1C1C1E]/95 to-[#141416]/95 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                  {/* rose glow halo */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -top-24 -left-16 w-[320px] h-[320px] rounded-full opacity-60"
+                    style={{ background: "radial-gradient(circle, rgba(255,45,111,0.35) 0%, transparent 65%)" }}
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -bottom-32 -right-10 w-[360px] h-[360px] rounded-full opacity-50"
+                    style={{ background: "radial-gradient(circle, rgba(10,132,255,0.28) 0%, transparent 65%)" }}
+                  />
+                  <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8E8E93]">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF6B95]">
                           Total revenue
                         </p>
                         <AnimatePresence mode="wait">
@@ -417,6 +428,7 @@ const Reports = () => {
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
                             className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums"
+                            style={{ textShadow: "0 0 40px rgba(255,45,111,0.25)" }}
                           >
                             {isLoading ? "—" : currency.format(analytics.totalRevenue)}
                           </motion.p>
@@ -440,13 +452,9 @@ const Reports = () => {
                           <span className="text-xs text-[#8E8E93]">vs prior period</span>
                         </div>
                       </div>
-                      <motion.div
-                        className="w-12 h-12 rounded-[18px] bg-[#0A84FF]/12 flex items-center justify-center shrink-0 border border-[#0A84FF]/20"
-                        animate={{ rotate: [0, -4, 4, 0] }}
-                        transition={{ duration: 4, repeat: Infinity, repeatDelay: 3 }}
-                      >
-                        <DollarSign className="w-5 h-5 text-[#0A84FF]" strokeWidth={2.3} />
-                      </motion.div>
+
+                      {/* iOS radial gauge — completion rate */}
+                      <CompletionGauge value={analytics.completionRate} />
                     </div>
 
                     <ChartContainer
@@ -456,8 +464,13 @@ const Reports = () => {
                       <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 0, bottom: 0, left: 0 }}>
                         <defs>
                           <linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={iOS.blue} stopOpacity={0.45} />
+                            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.5} />
+                            <stop offset="60%" stopColor={iOS.blue} stopOpacity={0.18} />
                             <stop offset="100%" stopColor={iOS.blue} stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="strokeRev" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor={iOS.rose} />
+                            <stop offset="100%" stopColor={iOS.blue} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
@@ -470,7 +483,7 @@ const Reports = () => {
                         <Area
                           type="monotone"
                           dataKey="revenue"
-                          stroke={iOS.blue}
+                          stroke="url(#strokeRev)"
                           strokeWidth={2.8}
                           fill="url(#fillRev)"
                           animationDuration={1200}
