@@ -320,13 +320,13 @@ const Reports = () => {
         <AppSidebar />
 
         <main className="relative flex-1 flex flex-col overflow-hidden">
-          {/* Ambient glow */}
+          {/* Ambient rose + blue glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-10 h-96 z-0"
+            className="pointer-events-none absolute inset-x-0 -top-10 h-[460px] z-0"
             style={{
               backgroundImage:
-                "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(10,132,255,0.18) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 0%, rgba(94,92,230,0.14) 0%, transparent 50%)",
+                "radial-gradient(ellipse 70% 50% at 25% -10%, rgba(255,45,111,0.28) 0%, transparent 55%), radial-gradient(ellipse 70% 45% at 85% 0%, rgba(10,132,255,0.22) 0%, transparent 55%), radial-gradient(ellipse 50% 40% at 50% 30%, rgba(255,107,149,0.10) 0%, transparent 60%)",
             }}
           />
 
