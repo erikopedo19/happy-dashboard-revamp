@@ -394,7 +394,15 @@ const Reports = () => {
           </div>
 
           <div className="relative z-10 flex-1 overflow-auto">
-            <div className="w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto">
+            {isMobile && (
+              <MobileReportsView
+                analytics={analytics}
+                isLoading={isLoading}
+                topCustomers={topCustomers}
+                reviews={reviewsData || []}
+              />
+            )}
+            <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
 
               {/* Hero revenue card */}
               <motion.section
