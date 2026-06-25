@@ -40,12 +40,15 @@ import {
   Crown,
   DollarSign,
   Download,
+  Lock,
   Scissors,
   Sparkles,
   Star,
   Users,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
 
 type RangeValue =
   | "today"
