@@ -40,12 +40,15 @@ import {
   Crown,
   DollarSign,
   Download,
+  Lock,
   Scissors,
   Sparkles,
   Star,
   Users,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
 
 type RangeValue =
   | "today"
@@ -107,12 +110,14 @@ const iOS = {
   indigo: "#5E5CE6",
   orange: "#FF9F0A",
   pink: "#FF375F",
+  rose: "#FF2D6F",
+  rosesoft: "#FF6B95",
   yellow: "#FFD60A",
   grey: "#8E8E93",
   card: "#1C1C1E",
 };
 
-const AVATAR_TINTS = [iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.pink, iOS.yellow];
+const AVATAR_TINTS = [iOS.rose, iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.yellow];
 
 const RANGES: { value: RangeValue; label: string; short: string }[] = [
   { value: "today", label: "Today", short: "1D" },
@@ -315,13 +320,13 @@ const Reports = () => {
         <AppSidebar />
 
         <main className="relative flex-1 flex flex-col overflow-hidden">
-          {/* Ambient glow */}
+          {/* Ambient rose + blue glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-10 h-96 z-0"
+            className="pointer-events-none absolute inset-x-0 -top-10 h-[460px] z-0"
             style={{
               backgroundImage:
-                "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(10,132,255,0.18) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 0%, rgba(94,92,230,0.14) 0%, transparent 50%)",
+                "radial-gradient(ellipse 70% 50% at 25% -10%, rgba(255,45,111,0.28) 0%, transparent 55%), radial-gradient(ellipse 70% 45% at 85% 0%, rgba(10,132,255,0.22) 0%, transparent 55%), radial-gradient(ellipse 50% 40% at 50% 30%, rgba(255,107,149,0.10) 0%, transparent 60%)",
             }}
           />
 
@@ -397,11 +402,22 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="rounded-[32px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
-                  <CardContent className="p-6 md:p-8">
+                <Card className="relative rounded-[32px] border-0 bg-gradient-to-br from-[#1C1C1E]/95 to-[#141416]/95 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                  {/* rose glow halo */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -top-24 -left-16 w-[320px] h-[320px] rounded-full opacity-60"
+                    style={{ background: "radial-gradient(circle, rgba(255,45,111,0.35) 0%, transparent 65%)" }}
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -bottom-32 -right-10 w-[360px] h-[360px] rounded-full opacity-50"
+                    style={{ background: "radial-gradient(circle, rgba(10,132,255,0.28) 0%, transparent 65%)" }}
+                  />
+                  <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8E8E93]">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF6B95]">
                           Total revenue
                         </p>
                         <AnimatePresence mode="wait">
@@ -412,6 +428,7 @@ const Reports = () => {
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
                             className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums"
+                            style={{ textShadow: "0 0 40px rgba(255,45,111,0.25)" }}
                           >
                             {isLoading ? "—" : currency.format(analytics.totalRevenue)}
                           </motion.p>
@@ -435,13 +452,9 @@ const Reports = () => {
                           <span className="text-xs text-[#8E8E93]">vs prior period</span>
                         </div>
                       </div>
-                      <motion.div
-                        className="w-12 h-12 rounded-[18px] bg-[#0A84FF]/12 flex items-center justify-center shrink-0 border border-[#0A84FF]/20"
-                        animate={{ rotate: [0, -4, 4, 0] }}
-                        transition={{ duration: 4, repeat: Infinity, repeatDelay: 3 }}
-                      >
-                        <DollarSign className="w-5 h-5 text-[#0A84FF]" strokeWidth={2.3} />
-                      </motion.div>
+
+                      {/* iOS radial gauge — completion rate */}
+                      <CompletionGauge value={analytics.completionRate} />
                     </div>
 
                     <ChartContainer
@@ -451,8 +464,13 @@ const Reports = () => {
                       <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 0, bottom: 0, left: 0 }}>
                         <defs>
                           <linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={iOS.blue} stopOpacity={0.45} />
+                            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.5} />
+                            <stop offset="60%" stopColor={iOS.blue} stopOpacity={0.18} />
                             <stop offset="100%" stopColor={iOS.blue} stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="strokeRev" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor={iOS.rose} />
+                            <stop offset="100%" stopColor={iOS.blue} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
@@ -465,7 +483,7 @@ const Reports = () => {
                         <Area
                           type="monotone"
                           dataKey="revenue"
-                          stroke={iOS.blue}
+                          stroke="url(#strokeRev)"
                           strokeWidth={2.8}
                           fill="url(#fillRev)"
                           animationDuration={1200}
@@ -483,14 +501,14 @@ const Reports = () => {
                   label="Bookings"
                   value={numberFormat.format(analytics.totalAppointments)}
                   hint={`${analytics.completionRate}% done`}
-                  tint={iOS.blue}
+                  tint={iOS.rose}
                 />
                 <KpiTile index={1} loading={isLoading}
                   icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
-                  tint={iOS.indigo}
+                  tint={iOS.blue}
                 />
                 <KpiTile index={2} loading={isLoading}
                   icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
@@ -504,7 +522,7 @@ const Reports = () => {
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   hint={`${analytics.completedAppointments} done`}
-                  tint={iOS.orange}
+                  tint={iOS.indigo}
                 />
               </section>
 
@@ -620,7 +638,7 @@ const Reports = () => {
                           </div>
                           <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-[#0A84FF]"
+                              className="h-full rounded-full bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -690,6 +708,7 @@ const Reports = () => {
             </div>
           </div>
           <MobileDock />
+          {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
     </SidebarProvider>
@@ -926,6 +945,147 @@ function EmptyMini() {
       </div>
       <p className="text-xs text-[#8E8E93] mt-3.5">No data in this range yet</p>
     </motion.div>
+  );
+}
+
+function CompletionGauge({ value }: { value: number }) {
+  // iOS-style semicircular arc with glowing rose ticks
+  const TICKS = 22;
+  const filled = Math.round((value / 100) * TICKS);
+  return (
+    <div className="relative w-[148px] h-[92px] shrink-0">
+      <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#FF2D6F" />
+            <stop offset="100%" stopColor="#0A84FF" />
+          </linearGradient>
+          <filter id="gaugeGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+        {Array.from({ length: TICKS }).map((_, i) => {
+          const angle = Math.PI - (i / (TICKS - 1)) * Math.PI;
+          const r1 = 78, r2 = 92, cx = 100, cy = 100;
+          const x1 = cx + Math.cos(angle) * r1;
+          const y1 = cy - Math.sin(angle) * r1;
+          const x2 = cx + Math.cos(angle) * r2;
+          const y2 = cy - Math.sin(angle) * r2;
+          const active = i < filled;
+          return (
+            <motion.line
+              key={i}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={active ? "url(#gaugeGrad)" : "rgba(255,255,255,0.10)"}
+              strokeWidth={4}
+              strokeLinecap="round"
+              filter={active ? "url(#gaugeGlow)" : undefined}
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 + i * 0.025, type: "spring", stiffness: 320, damping: 22 }}
+              style={{ transformOrigin: `${cx}px ${cy}px` }}
+            />
+          );
+        })}
+        {/* glowing pill at center */}
+        <motion.ellipse
+          cx="100" cy="100" rx="13" ry="6"
+          fill="url(#gaugeGrad)"
+          filter="url(#gaugeGlow)"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
+        <span className="text-[22px] font-bold text-white tabular-nums leading-none tracking-tight">
+          {value}%
+        </span>
+        <span className="text-[9px] uppercase tracking-[0.18em] text-[#FF6B95] mt-1 font-semibold">done</span>
+      </div>
+    </div>
+  );
+}
+
+function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
+  const [show, setShow] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  React.useEffect(() => {
+    if (sessionStorage.getItem("reports-login-nudge-dismissed")) return;
+    const t = setTimeout(() => setShow(true), delaySec * 1000);
+    return () => clearTimeout(t);
+  }, [delaySec]);
+  const close = () => {
+    setDismissed(true);
+    setShow(false);
+    sessionStorage.setItem("reports-login-nudge-dismissed", "1");
+  };
+  if (dismissed) return null;
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: 120, opacity: 0, scale: 0.94 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 80, opacity: 0, scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 360, damping: 30 }}
+          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
+        >
+          <div className="relative overflow-hidden rounded-[26px] border border-white/[0.08] bg-[#1C1C1E]/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(255,45,111,0.25)] p-4">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full opacity-70"
+              style={{ background: "radial-gradient(circle, rgba(255,45,111,0.35) 0%, transparent 65%)" }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full opacity-60"
+              style={{ background: "radial-gradient(circle, rgba(10,132,255,0.30) 0%, transparent 65%)" }}
+            />
+            <div className="relative flex items-center gap-3.5">
+              <motion.div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Lock className="w-5 h-5 text-white" strokeWidth={2.4} />
+              </motion.div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold text-white leading-tight">
+                  Save your insights
+                </p>
+                <p className="text-[12px] text-[#8E8E93] mt-0.5">
+                  Sign in to unlock live tracking, exports & alerts.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Dismiss"
+                className="w-8 h-8 rounded-full bg-white/[0.06] text-[#8E8E93] flex items-center justify-center hover:bg-white/[0.12] transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" strokeWidth={2.4} />
+              </button>
+            </div>
+            <div className="relative mt-3.5 flex items-center gap-2.5">
+              <Link
+                to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
+                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#FF2D6F] to-[#FF6B95] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/auth?signup=1"
+                className="flex-1 h-11 rounded-2xl bg-white/[0.08] text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
+              >
+                Create account
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
