@@ -1097,4 +1097,321 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
   );
 }
 
+function MobileReportsView({
+  analytics,
+  isLoading,
+  topCustomers,
+  reviews,
+}: {
+  analytics: any;
+  isLoading: boolean;
+  topCustomers: TopCustomerRow[];
+  reviews: ReviewRow[];
+}) {
+  const top = analytics.serviceBreakdown?.[0];
+  const completedShare = analytics.completionRate || 0;
+  const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+
+  return (
+    <div className="px-4 pt-2 pb-32 space-y-4">
+      {/* Brand row */}
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={springSoft}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[20px] font-bold tracking-tight text-white">Cutzio</span>
+            <span className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF] bg-clip-text text-transparent">Pulse</span>
+          </div>
+          <p className="text-[12px] text-[#8E8E93] mt-0.5">{today}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <motion.div
+            whileTap={{ scale: 0.94 }}
+            className="h-9 px-3 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center gap-1.5 text-[13px] font-semibold text-white"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#FF6B95]" strokeWidth={2.4} />
+            <span className="tabular-nums">{analytics.totalAppointments}</span>
+          </motion.div>
+          <motion.div
+            whileTap={{ scale: 0.94 }}
+            className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center"
+          >
+            <CalendarDays className="w-4 h-4 text-white" strokeWidth={2.3} />
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Hero gauge card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 360, damping: 30 }}
+        className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#171719] to-[#0E0E10] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -left-16 w-[300px] h-[300px] rounded-full opacity-60"
+          style={{ background: "radial-gradient(circle, rgba(255,45,111,0.32) 0%, transparent 65%)" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-28 -right-10 w-[320px] h-[320px] rounded-full opacity-55"
+          style={{ background: "radial-gradient(circle, rgba(10,132,255,0.30) 0%, transparent 65%)" }}
+        />
+
+        <div className="relative px-5 pt-5 pb-6 flex flex-col items-center">
+          {/* Period pill */}
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, ...springSoft }}
+            className="h-7 px-3 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center text-[11px] font-semibold text-white/85"
+          >
+            This period · revenue
+          </motion.div>
+
+          <p className="mt-3 text-[12px] text-[#8E8E93]">Total earned</p>
+
+          {/* Big number — like the gauge centerpiece */}
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={analytics.totalRevenue}
+              initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
+              transition={{ duration: 0.45 }}
+              className="text-[44px] font-bold text-white tabular-nums tracking-[-0.035em] leading-none"
+              style={{ textShadow: "0 0 36px rgba(255,45,111,0.35)" }}
+            >
+              {isLoading ? "—" : currency.format(analytics.totalRevenue)}
+            </motion.h2>
+          </AnimatePresence>
+
+          {/* Semicircular gauge — rose→blue */}
+          <div className="mt-3">
+            <CompletionGauge value={completedShare} />
+          </div>
+
+          {/* Top service pill */}
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.5, ...springSoft }}
+            className="mt-2 h-11 pl-1.5 pr-4 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-2xl flex items-center gap-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
+              <Scissors className="w-4 h-4 text-white" strokeWidth={2.4} />
+            </div>
+            <div className="text-left">
+              <p className="text-[13px] font-semibold text-white leading-tight">
+                {top?.name || "No top service"}
+              </p>
+              <p className="text-[10px] text-[#8E8E93] -mt-0.5 tabular-nums">
+                {top ? `${top.bookings} bookings` : "—"}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Meta strip */}
+        <div className="relative border-t border-white/[0.06] px-5 py-4 flex items-center justify-between">
+          <div>
+            <p className="text-[12px] text-[#8E8E93]">
+              Trend: <span className="text-white font-semibold">{analytics.revenueDelta >= 0 ? "+" : ""}{analytics.revenueDelta}%</span>
+            </p>
+            <p className="text-[12px] text-[#8E8E93] mt-0.5">
+              Done <span className="text-white font-semibold tabular-nums">{analytics.completedAppointments}</span> of <span className="text-white font-semibold tabular-nums">{analytics.totalAppointments}</span>
+            </p>
+          </div>
+          <div
+            className={cn(
+              "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold",
+              analytics.revenueDelta >= 0
+                ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/25"
+                : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/25"
+            )}
+          >
+            {analytics.revenueDelta >= 0 ? (
+              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.4} />
+            ) : (
+              <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.4} />
+            )}
+            {Math.abs(analytics.revenueDelta)}%
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Two side-by-side stat cards (rose + blue) */}
+      <div className="grid grid-cols-2 gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, ...springSoft }}
+          whileTap={{ scale: 0.97 }}
+          className="relative overflow-hidden rounded-[22px] p-4 border bg-[#1A0E14] border-[#FF2D6F]/25"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(255,45,111,0.25) 0%, transparent 65%)" }}
+          />
+          <div className="relative flex items-center gap-1.5">
+            <span className="h-5 px-2 rounded-full bg-[#FF2D6F]/15 border border-[#FF2D6F]/30 text-[9px] font-bold uppercase tracking-wider text-[#FF6B95]">
+              Avg ticket
+            </span>
+            <span className="text-[10px] text-[#8E8E93]">period</span>
+          </div>
+          <p className="relative mt-3 text-[24px] font-bold text-white tabular-nums tracking-tight leading-none">
+            {currency.format(analytics.averageTicket || 0)}
+          </p>
+          <p className="relative text-[11px] text-[#8E8E93] mt-1">
+            {analytics.totalCustomers} clients
+          </p>
+          <div className="relative mt-3 h-7 rounded-full bg-[#FF2D6F]/12 border border-[#FF2D6F]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#FF6B95]">
+            <Star className="w-3 h-3 fill-current" />
+            {avgRating > 0 ? avgRating.toFixed(1) : "—"} rating
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, ...springSoft }}
+          whileTap={{ scale: 0.97 }}
+          className="relative overflow-hidden rounded-[22px] p-4 border bg-[#0D1422] border-[#0A84FF]/25"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(10,132,255,0.28) 0%, transparent 65%)" }}
+          />
+          <div className="relative flex items-center gap-1.5">
+            <span className="h-5 px-2 rounded-full bg-[#0A84FF]/15 border border-[#0A84FF]/30 text-[9px] font-bold uppercase tracking-wider text-[#5AC8FF]">
+              Upcoming
+            </span>
+            <span className="text-[10px] text-[#8E8E93]">queue</span>
+          </div>
+          <p className="relative mt-3 text-[24px] font-bold text-white tabular-nums tracking-tight leading-none">
+            {analytics.scheduledAppointments}
+          </p>
+          <p className="relative text-[11px] text-[#8E8E93] mt-1">
+            {analytics.cancelledAppointments} cancelled
+          </p>
+          <div className="relative mt-3 h-7 rounded-full bg-[#0A84FF]/12 border border-[#0A84FF]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#5AC8FF]">
+            <Users className="w-3 h-3" strokeWidth={2.4} />
+            {analytics.activeStylists} stylists
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Quick Access */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.28, ...springSoft }}
+        className="pt-1"
+      >
+        <div className="flex items-center justify-between px-1 mb-3">
+          <h3 className="text-[17px] font-bold text-white tracking-tight">Quick Access</h3>
+          <span className="text-[12px] text-[#8E8E93]">Top services</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {(analytics.serviceBreakdown?.slice(0, 4) || []).map((s: any, i: number) => {
+            const tints = [
+              { bg: "#1A0E14", ring: "rgba(255,45,111,0.35)", text: "#FF6B95", icon: "#FF2D6F" },
+              { bg: "#0D1422", ring: "rgba(10,132,255,0.35)", text: "#5AC8FF", icon: "#0A84FF" },
+              { bg: "#14101F", ring: "rgba(94,92,230,0.35)", text: "#9B99FF", icon: "#5E5CE6" },
+              { bg: "#1A1208", ring: "rgba(255,159,10,0.35)", text: "#FFC76B", icon: "#FF9F0A" },
+            ][i % 4];
+            return (
+              <motion.div
+                key={s.name}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + i * 0.05, ...springSoft }}
+                whileTap={{ scale: 0.96 }}
+                className="relative overflow-hidden rounded-[20px] p-3.5 border border-white/[0.06]"
+                style={{ background: tints.bg }}
+              >
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -top-8 -right-6 w-24 h-24 rounded-full"
+                  style={{ background: `radial-gradient(circle, ${tints.ring} 0%, transparent 65%)` }}
+                />
+                <div
+                  className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: `${tints.icon}22`, color: tints.icon }}
+                >
+                  <Scissors className="w-4 h-4" strokeWidth={2.4} />
+                </div>
+                <p className="relative mt-2.5 text-[13px] font-semibold text-white truncate">{s.name}</p>
+                <div className="relative flex items-center justify-between mt-1">
+                  <span className="text-[11px] text-[#8E8E93] tabular-nums">{s.bookings} bk</span>
+                  <span className="text-[11px] font-semibold tabular-nums" style={{ color: tints.text }}>
+                    {currency.format(s.revenue)}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+          {(!analytics.serviceBreakdown || analytics.serviceBreakdown.length === 0) && (
+            <div className="col-span-2 rounded-[20px] bg-white/[0.04] p-8 text-center">
+              <p className="text-[12px] text-[#8E8E93]">No services booked yet</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Top customers preview */}
+      {topCustomers.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, ...springSoft }}
+          className="pt-2"
+        >
+          <div className="flex items-center justify-between px-1 mb-3">
+            <h3 className="text-[17px] font-bold text-white tracking-tight">Best customers</h3>
+            <span className="text-[12px] text-[#8E8E93]">By spend</span>
+          </div>
+          <div className="rounded-[22px] bg-[#1C1C1E]/85 border border-white/[0.06] overflow-hidden divide-y divide-white/[0.06]">
+            {topCustomers.slice(0, 4).map((c, i) => {
+              const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
+              return (
+                <motion.div
+                  key={c.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.05, ...springSoft }}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
+                  <Avatar className="h-9 w-9 rounded-[12px]">
+                    <AvatarFallback
+                      className="rounded-[12px] text-[11px] font-bold"
+                      style={{ backgroundColor: `${tint}28`, color: tint }}
+                    >
+                      {c.initials || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-semibold text-white truncate">{c.name}</p>
+                    <p className="text-[11px] text-[#8E8E93]">{c.bookings} visit{c.bookings !== 1 ? "s" : ""}</p>
+                  </div>
+                  <p className="text-[14px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
 export default Reports;
