@@ -708,6 +708,7 @@ const Reports = () => {
             </div>
           </div>
           <MobileDock />
+          {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
     </SidebarProvider>
