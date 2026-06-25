@@ -638,7 +638,7 @@ const Reports = () => {
                           </div>
                           <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-[#0A84FF]"
+                              className="h-full rounded-full bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
