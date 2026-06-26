@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGlimm } from "glimm/react";
 
 /**
@@ -43,6 +43,17 @@ export function GlimmIntercept() {
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
   }, [navigate, sweep]);
+
+  // Fallback: play a sweep on any programmatic route change so navigations
+  // triggered by code (navigate(), <Navigate>, redirects) also feel animated.
+  const location = useLocation();
+  const lastPath = useRef(location.pathname + location.search);
+  useEffect(() => {
+    const current = location.pathname + location.search;
+    if (current === lastPath.current) return;
+    lastPath.current = current;
+    sweep(() => {}, { sweepMs: 850, outroMs: 500 });
+  }, [location.pathname, location.search, sweep]);
 
   return null;
 }
