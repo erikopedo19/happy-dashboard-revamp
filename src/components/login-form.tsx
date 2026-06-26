@@ -28,14 +28,14 @@ export function LoginForm() {
   useEffect(() => {
     if (user) {
       const role = user.user_metadata?.role;
+      // Default everyone to barber dashboard; the dashboard offers a
+      // "looking to book instead?" prompt to switch to the client side.
       const dest =
         next && next !== "/"
           ? next
           : role === "client"
           ? "/find-barber"
-          : role === "barber"
-          ? "/admin"
-          : "/choose-role";
+          : "/admin";
       navigate(dest, { replace: true });
     }
   }, [user, navigate, next]);
