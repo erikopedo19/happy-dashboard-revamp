@@ -53,6 +53,7 @@ const Dashboard = () => {
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
             {isMobile ? <MobileDashboard /> : <DashboardContent />}
             {isMobile && <MobileDock />}
+            <FindBarberPrompt />
           </div>
         </main>
       </div>
