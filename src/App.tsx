@@ -2,6 +2,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GlimmProvider } from "glimm/react";
+import { GlimmIntercept } from "./components/GlimmIntercept";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
@@ -181,10 +183,13 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <AnimatedRoutes />
-            <NotificationBell />
-            <PremiumGiftPopup />
-            <PersistentDock />
+            <GlimmProvider palette="prism">
+              <GlimmIntercept />
+              <AnimatedRoutes />
+              <NotificationBell />
+              <PremiumGiftPopup />
+              <PersistentDock />
+            </GlimmProvider>
           </BrowserRouter>
         </div>
       </AuthProvider>
