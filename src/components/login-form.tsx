@@ -57,7 +57,7 @@ export function LoginForm() {
           return;
         }
       } else {
-        const { error } = await signUp(email.trim(), password, fullName.trim(), "client");
+        const { error } = await signUp(email.trim(), password, fullName.trim(), "barber");
         if (error) {
           toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
           return;
