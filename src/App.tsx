@@ -183,10 +183,13 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <AnimatedRoutes />
-            <NotificationBell />
-            <PremiumGiftPopup />
-            <PersistentDock />
+            <GlimmProvider palette="prism">
+              <GlimmIntercept />
+              <AnimatedRoutes />
+              <NotificationBell />
+              <PremiumGiftPopup />
+              <PersistentDock />
+            </GlimmProvider>
           </BrowserRouter>
         </div>
       </AuthProvider>
