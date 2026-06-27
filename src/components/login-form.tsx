@@ -124,26 +124,29 @@ export function LoginForm() {
               {/* Mode segmented control */}
               <div className="mb-7 flex justify-center">
                 <div className="relative inline-flex rounded-full bg-black/[0.05] dark:bg-white/[0.06] p-1 text-[13px] font-medium">
-                  {(["signin", "signup"] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => switchMode(m)}
-                      className={`relative z-10 rounded-full px-5 py-1.5 transition ${
-                        mode === m ? "text-white" : "text-foreground/60 hover:text-foreground"
-                      }`}
-                    >
-                      {mode === m && (
-                        <motion.span
-                          layoutId="auth-pill"
-                          transition={{ type: "spring", stiffness: 500, damping: 38 }}
-                          className="absolute inset-0 -z-10 rounded-full bg-[#0a0a0c] dark:bg-white/95 dark:[&+*]:text-black"
-                        />
-                      )}
-                      <span className={mode === m ? "dark:text-black" : ""}>
+                  {(["signin", "signup"] as const).map((m) => {
+                    const active = mode === m;
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => switchMode(m)}
+                        className={`relative z-10 rounded-full px-5 py-1.5 transition ${
+                          active
+                            ? "text-white dark:text-black"
+                            : "text-foreground/60 hover:text-foreground"
+                        }`}
+                      >
+                        {active && (
+                          <motion.span
+                            layoutId="auth-pill"
+                            transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                            className="absolute inset-0 -z-10 rounded-full bg-[#0a0a0c] dark:bg-white"
+                          />
+                        )}
                         {m === "signin" ? "Sign in" : "Sign up"}
-                      </span>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
