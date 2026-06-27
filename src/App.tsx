@@ -176,7 +176,7 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <GlimmProvider palette="prism">
+            <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
               <GlimmIntercept />
               <AnimatedRoutes />
               <NotificationBell />
