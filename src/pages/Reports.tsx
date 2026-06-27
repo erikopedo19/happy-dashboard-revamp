@@ -410,7 +410,7 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[32px] border-0 bg-gradient-to-br from-[#1C1C1E]/95 to-[#141416]/95 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                <Card className="relative rounded-[32px] border-0 bg-[#141418] backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
                   {/* rose glow halo */}
                   <div
                     aria-hidden
@@ -646,7 +646,7 @@ const Reports = () => {
                           </div>
                           <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF]"
+                              className="h-full rounded-full bg-[#0A84FF]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -1053,7 +1053,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             />
             <div className="relative flex items-center gap-3.5">
               <motion.div
-                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-[#FF2D6F] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -1079,7 +1079,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             <div className="relative mt-3.5 flex items-center gap-2.5">
               <Link
                 to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#FF2D6F] to-[#FF6B95] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-2xl bg-[#FF2D6F] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
               >
                 Sign in
               </Link>
@@ -1125,7 +1125,7 @@ function MobileReportsView({
         <div>
           <div className="flex items-center gap-1.5">
             <span className="text-[20px] font-bold tracking-tight text-white">Cutzio</span>
-            <span className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF] bg-clip-text text-transparent">Pulse</span>
+            <span className="text-[20px] font-bold tracking-tight bg-[#0A84FF] bg-clip-text text-transparent">Pulse</span>
           </div>
           <p className="text-[12px] text-[#8E8E93] mt-0.5">{today}</p>
         </div>
@@ -1151,7 +1151,7 @@ function MobileReportsView({
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 360, damping: 30 }}
-        className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#171719] to-[#0E0E10] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        className="relative overflow-hidden rounded-[28px] bg-[#141418] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
       >
         <div
           aria-hidden
@@ -1204,7 +1204,7 @@ function MobileReportsView({
             transition={{ delay: 0.5, ...springSoft }}
             className="mt-2 h-11 pl-1.5 pr-4 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-2xl flex items-center gap-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
+            <div className="w-8 h-8 rounded-full bg-[#FF2D6F] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
               <Scissors className="w-4 h-4 text-white" strokeWidth={2.4} />
             </div>
             <div className="text-left">
