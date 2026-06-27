@@ -1,10 +1,13 @@
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { GlimmProvider } from "glimm/react";
+import { accentChain } from "glimm";
 import { GlimmIntercept } from "./components/GlimmIntercept";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+// Custom blue → rose → purple sweep palette
+const SWEEP_PALETTE = accentChain(["#2E70FF", "#FF3D7F", "#D33CFF"]);
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
 import { ThemeProvider } from "next-themes";
