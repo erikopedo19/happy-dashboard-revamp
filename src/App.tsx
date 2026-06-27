@@ -109,7 +109,6 @@ function AnimatedRoutes() {
     return <Microsite />;
   }
   return (
-  return (
     <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
       <Route path="/onboarding" element={<Onboarding />} />
