@@ -776,3 +776,25 @@ function titleFor(p: Panel): string {
       return "";
   }
 }
+
+function ModeRow() {
+  const { role, setRole, switching } = useRoleSwitch();
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 h-9 w-9 rounded-2xl bg-white/5 flex items-center justify-center text-white/80">
+          <Search className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-[15px] font-medium text-white">Client mode</p>
+          <p className="text-xs text-white/55">Switch between barber dashboard and finding a barber</p>
+        </div>
+      </div>
+      <Switch
+        checked={role === "client"}
+        disabled={switching}
+        onCheckedChange={(v) => setRole(v ? "client" : "barber")}
+      />
+    </div>
+  );
+}
