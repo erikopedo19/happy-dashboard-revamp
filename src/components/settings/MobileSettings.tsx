@@ -35,6 +35,7 @@ import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { MobileDock } from "@/components/MobileDock";
+import { useRoleSwitch } from "@/hooks/use-role-switch";
 
 const weekDays = [
   { value: 1, label: "Mon", full: "Monday" },
@@ -397,6 +398,7 @@ export function MobileSettings(props: any) {
                       updateDarkModeMutation.mutate(v);
                     }}
                   />
+                  <ModeRow />
                 </ListCard>
               </PanelStack>
             )}
