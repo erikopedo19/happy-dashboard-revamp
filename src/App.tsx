@@ -1,8 +1,13 @@
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { GlimmProvider } from "glimm/react";
+import { accentChain } from "glimm";
+import { GlimmIntercept } from "./components/GlimmIntercept";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+// Custom blue → rose → purple sweep palette
+const SWEEP_PALETTE = accentChain(["#2E70FF", "#FF3D7F", "#D33CFF"]);
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
 import { ThemeProvider } from "next-themes";
@@ -104,53 +109,43 @@ function AnimatedRoutes() {
     return <Microsite />;
   }
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -4 }}
-        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <Routes location={location}>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/book/:bookingLink" element={<Booking />} />
-          <Route path="/manage/:token" element={<ManageBooking />} />
-          <Route path="/review/:token" element={<ReviewPage />} />
-          <Route path="/waitlist/claim/:token" element={<WaitlistClaim />} />
-          <Route path="/bookingforms" element={<BookingForms />} />
-          <Route path="/find-barber" element={<FindBarber />} />
-          <Route path="/find-barbershop" element={<FindBarbershop />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/me" element={<Me />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/" element={<LandingRoute />} />
-          <Route path="/app" element={<LandingRoute />} />
-          <Route path="/superadmin" element={<SuperAdminLogin />} />
-          <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-          <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-          <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
-          <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
-          <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
-          <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
-          <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
-          <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-          <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
-          <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
-          <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-          <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
-          <Route path="/site/:slug" element={<Microsite />} />
-          <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+    <Routes location={location}>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/book/:bookingLink" element={<Booking />} />
+      <Route path="/manage/:token" element={<ManageBooking />} />
+      <Route path="/review/:token" element={<ReviewPage />} />
+      <Route path="/waitlist/claim/:token" element={<WaitlistClaim />} />
+      <Route path="/bookingforms" element={<BookingForms />} />
+      <Route path="/find-barber" element={<FindBarber />} />
+      <Route path="/find-barbershop" element={<FindBarbershop />} />
+      <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/me" element={<Me />} />
+      <Route path="/favorites" element={<Favorites />} />
+      <Route path="/" element={<LandingRoute />} />
+      <Route path="/app" element={<LandingRoute />} />
+      <Route path="/superadmin" element={<SuperAdminLogin />} />
+      <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+      <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+      <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
+      <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+      <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
+      <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
+      <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
+      <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+      <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+      <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
+      <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+      <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
+      <Route path="/site/:slug" element={<Microsite />} />
+      <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
@@ -181,10 +176,13 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <AnimatedRoutes />
-            <NotificationBell />
-            <PremiumGiftPopup />
-            <PersistentDock />
+            <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
+              <GlimmIntercept />
+              <AnimatedRoutes />
+              <NotificationBell />
+              <PremiumGiftPopup />
+              <PersistentDock />
+            </GlimmProvider>
           </BrowserRouter>
         </div>
       </AuthProvider>

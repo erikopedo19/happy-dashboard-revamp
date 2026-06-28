@@ -46,6 +46,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { MobileSettings } from "@/components/settings/MobileSettings";
+import { useRoleSwitch } from "@/hooks/use-role-switch";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -158,6 +159,7 @@ const Settings = () => {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
+  const { role, setRole, switching: switchingRole } = useRoleSwitch();
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings-page-data", user?.id],
@@ -660,6 +662,18 @@ const Settings = () => {
                                     setTheme(checked ? 'dark' : 'light');
                                     updateDarkModeMutation.mutate(checked);
                                   }}
+                                />
+                              </div>
+                              <Separator />
+                              <div className="flex items-center justify-between py-2">
+                                <div>
+                                  <p className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">Client mode</p>
+                                  <p className="text-sm text-[#8E8E93] dark:text-gray-500">Switch between barber dashboard and finding a barber</p>
+                                </div>
+                                <Switch
+                                  checked={role === 'client'}
+                                  disabled={switchingRole}
+                                  onCheckedChange={(checked) => setRole(checked ? 'client' : 'barber')}
                                 />
                               </div>
                             </CardContent>

@@ -320,13 +320,13 @@ const Reports = () => {
         <AppSidebar />
 
         <main className="relative flex-1 flex flex-col overflow-hidden">
-          {/* Ambient rose + blue glow */}
+          {/* Ambient glow */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 -top-10 h-[460px] z-0"
             style={{
               backgroundImage:
-                "radial-gradient(ellipse 70% 50% at 25% -10%, rgba(255,45,111,0.28) 0%, transparent 55%), radial-gradient(ellipse 70% 45% at 85% 0%, rgba(10,132,255,0.22) 0%, transparent 55%), radial-gradient(ellipse 50% 40% at 50% 30%, rgba(255,107,149,0.10) 0%, transparent 60%)",
+                "radial-gradient(ellipse 70% 50% at 25% -10%, rgba(255,45,111,0.15) 0%, transparent 55%), radial-gradient(ellipse 70% 45% at 85% 0%, rgba(10,132,255,0.12) 0%, transparent 55%)",
             }}
           />
 
@@ -410,18 +410,7 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[24px] border-0 bg-gradient-to-br from-[#1C1C1E]/95 to-[#141416]/95 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
-                  {/* rose glow halo */}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -top-24 -left-16 w-[320px] h-[320px] rounded-full opacity-60"
-                    style={{ background: "radial-gradient(circle, rgba(255,45,111,0.35) 0%, transparent 65%)" }}
-                  />
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -bottom-32 -right-10 w-[360px] h-[360px] rounded-full opacity-50"
-                    style={{ background: "radial-gradient(circle, rgba(10,132,255,0.28) 0%, transparent 65%)" }}
-                  />
+                <Card className="relative rounded-[24px] border-0 bg-[#141418] backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
                   <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
@@ -469,32 +458,40 @@ const Reports = () => {
                       config={revenueChartConfig}
                       className="h-[220px] md:h-[300px] w-full aspect-auto mt-6"
                     >
-                      <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 0, bottom: 0, left: 0 }}>
-                        <defs>
-                          <linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.5} />
-                            <stop offset="60%" stopColor={iOS.blue} stopOpacity={0.18} />
-                            <stop offset="100%" stopColor={iOS.blue} stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="strokeRev" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor={iOS.rose} />
-                            <stop offset="100%" stopColor={iOS.blue} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
-                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }} interval="preserveStartEnd" />
-                        <YAxis hide />
+                      <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }}
+                          interval="preserveStartEnd"
+                          dy={6}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          width={42}
+                          tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }}
+                          tickFormatter={(v) => {
+                            const n = Number(v);
+                            if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+                            return String(n);
+                          }}
+                        />
                         <ChartTooltip
-                          cursor={{ stroke: "rgba(255,255,255,0.12)", strokeDasharray: "4 4" }}
+                          cursor={{ stroke: "rgba(255,255,255,0.18)", strokeDasharray: "3 4" }}
                           content={<ChartTooltipContent formatter={(value) => [currency.format(Number(value)), "Revenue"]} />}
                         />
                         <Area
                           type="monotone"
                           dataKey="revenue"
-                          stroke="url(#strokeRev)"
-                          strokeWidth={2.8}
-                          fill="url(#fillRev)"
-                          animationDuration={1200}
+                          stroke={iOS.blue}
+                          strokeWidth={2.4}
+                          fill="none"
+                          dot={false}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: "#0b0b0d", fill: iOS.blue }}
+                          animationDuration={900}
                         />
                       </AreaChart>
                     </ChartContainer>
@@ -646,7 +643,7 @@ const Reports = () => {
                           </div>
                           <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
                             <motion.div
-                              className="h-full rounded-[10px] bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF]"
+                              className="h-full rounded-[10px] bg-[#0A84FF]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -963,16 +960,6 @@ function CompletionGauge({ value }: { value: number }) {
   return (
     <div className="relative w-[148px] h-[92px] shrink-0">
       <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
-        <defs>
-          <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#FF2D6F" />
-            <stop offset="100%" stopColor="#0A84FF" />
-          </linearGradient>
-          <filter id="gaugeGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="b" />
-            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
         {Array.from({ length: TICKS }).map((_, i) => {
           const angle = Math.PI - (i / (TICKS - 1)) * Math.PI;
           const r1 = 78, r2 = 92, cx = 100, cy = 100;
@@ -985,10 +972,9 @@ function CompletionGauge({ value }: { value: number }) {
             <motion.line
               key={i}
               x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke={active ? "url(#gaugeGrad)" : "rgba(255,255,255,0.10)"}
+              stroke={active ? iOS.blue : "rgba(255,255,255,0.10)"}
               strokeWidth={4}
               strokeLinecap="round"
-              filter={active ? "url(#gaugeGlow)" : undefined}
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 + i * 0.025, type: "spring", stiffness: 320, damping: 22 }}
@@ -996,11 +982,10 @@ function CompletionGauge({ value }: { value: number }) {
             />
           );
         })}
-        {/* glowing pill at center */}
+        {/* pill at center */}
         <motion.ellipse
           cx="100" cy="100" rx="13" ry="6"
-          fill="url(#gaugeGrad)"
-          filter="url(#gaugeGlow)"
+          fill={iOS.blue}
           initial={{ opacity: 0 }}
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -1053,7 +1038,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             />
             <div className="relative flex items-center gap-3.5">
               <motion.div
-                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF2D6F] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -1079,7 +1064,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             <div className="relative mt-3.5 flex items-center gap-2.5">
               <Link
                 to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-[12px] bg-gradient-to-r from-[#FF2D6F] to-[#FF6B95] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-[#FF2D6F] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
               >
                 Sign in
               </Link>
@@ -1125,7 +1110,7 @@ function MobileReportsView({
         <div>
           <div className="flex items-center gap-1.5">
             <span className="text-[20px] font-bold tracking-tight text-white">Cutzio</span>
-            <span className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF] bg-clip-text text-transparent">Pulse</span>
+            <span className="text-[20px] font-bold tracking-tight bg-[#0A84FF] bg-clip-text text-transparent">Pulse</span>
           </div>
           <p className="text-[12px] text-[#8E8E93] mt-0.5">{today}</p>
         </div>
@@ -1151,7 +1136,7 @@ function MobileReportsView({
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 360, damping: 30 }}
-        className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#171719] to-[#0E0E10] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        className="relative overflow-hidden rounded-[28px] bg-[#141418] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
       >
         <div
           aria-hidden
@@ -1204,7 +1189,7 @@ function MobileReportsView({
             transition={{ delay: 0.5, ...springSoft }}
             className="mt-2 h-11 pl-1.5 pr-4 rounded-[12px] bg-white/[0.06] border border-white/[0.08] backdrop-blur-2xl flex items-center gap-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
           >
-            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
+            <div className="w-8 h-8 rounded-[10px] bg-[#FF2D6F] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
               <Scissors className="w-4 h-4 text-white" strokeWidth={2.4} />
             </div>
             <div className="text-left">
