@@ -469,32 +469,41 @@ const Reports = () => {
                       config={revenueChartConfig}
                       className="h-[220px] md:h-[300px] w-full aspect-auto mt-6"
                     >
-                      <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 0, bottom: 0, left: 0 }}>
-                        <defs>
-                          <linearGradient id="fillRev" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.5} />
-                            <stop offset="60%" stopColor={iOS.blue} stopOpacity={0.18} />
-                            <stop offset="100%" stopColor={iOS.blue} stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="strokeRev" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor={iOS.rose} />
-                            <stop offset="100%" stopColor={iOS.blue} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
-                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }} interval="preserveStartEnd" />
-                        <YAxis hide />
+                      <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }}
+                          interval="preserveStartEnd"
+                          dy={6}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          width={42}
+                          tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }}
+                          tickFormatter={(v) => {
+                            const n = Number(v);
+                            if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+                            return String(n);
+                          }}
+                        />
                         <ChartTooltip
-                          cursor={{ stroke: "rgba(255,255,255,0.12)", strokeDasharray: "4 4" }}
+                          cursor={{ stroke: "rgba(255,255,255,0.18)", strokeDasharray: "3 4" }}
                           content={<ChartTooltipContent formatter={(value) => [currency.format(Number(value)), "Revenue"]} />}
                         />
                         <Area
                           type="monotone"
                           dataKey="revenue"
-                          stroke="url(#strokeRev)"
-                          strokeWidth={2.8}
-                          fill="url(#fillRev)"
-                          animationDuration={1200}
+                          stroke={iOS.blue}
+                          strokeWidth={2.4}
+                          fill={iOS.blue}
+                          fillOpacity={0.08}
+                          dot={false}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: "#0b0b0d", fill: iOS.blue }}
+                          animationDuration={900}
                         />
                       </AreaChart>
                     </ChartContainer>
