@@ -46,6 +46,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { MobileSettings } from "@/components/settings/MobileSettings";
+import { useRoleSwitch } from "@/hooks/use-role-switch";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -158,6 +159,7 @@ const Settings = () => {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
+  const { role, setRole, switching: switchingRole } = useRoleSwitch();
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings-page-data", user?.id],
