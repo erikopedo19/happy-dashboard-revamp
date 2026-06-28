@@ -664,6 +664,18 @@ const Settings = () => {
                                   }}
                                 />
                               </div>
+                              <Separator />
+                              <div className="flex items-center justify-between py-2">
+                                <div>
+                                  <p className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">Client mode</p>
+                                  <p className="text-sm text-[#8E8E93] dark:text-gray-500">Switch between barber dashboard and finding a barber</p>
+                                </div>
+                                <Switch
+                                  checked={role === 'client'}
+                                  disabled={switchingRole}
+                                  onCheckedChange={(checked) => setRole(checked ? 'client' : 'barber')}
+                                />
+                              </div>
                             </CardContent>
                           </Card>
 
