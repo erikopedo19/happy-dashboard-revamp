@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDock } from "@/components/MobileDock";
-import { FindBarberPrompt } from "@/components/FindBarberPrompt";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -53,7 +53,7 @@ const Dashboard = () => {
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
             {isMobile ? <MobileDashboard /> : <DashboardContent />}
             {isMobile && <MobileDock />}
-            <FindBarberPrompt />
+            
           </div>
         </main>
       </div>
