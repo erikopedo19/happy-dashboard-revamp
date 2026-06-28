@@ -357,7 +357,7 @@ const Reports = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springSoft}
                 whileTap={{ scale: 0.94 }}
-                className="shrink-0 inline-flex items-center gap-2 rounded-full h-10 px-4 bg-white/[0.08] text-white text-[13px] font-semibold backdrop-blur-2xl border border-white/[0.08] active:bg-white/[0.14] transition-colors"
+                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-white/[0.08] text-white text-[13px] font-semibold backdrop-blur-2xl border border-white/[0.08] active:bg-white/[0.14] transition-colors"
               >
                 <Download className="h-4 w-4" strokeWidth={2.3} />
                 {!isMobile && "Export"}
@@ -366,7 +366,7 @@ const Reports = () => {
 
             {/* iOS segmented control */}
             <div className="px-4 md:px-8 pb-4">
-              <div className="inline-flex w-full md:w-auto p-1 rounded-[14px] bg-white/[0.06] backdrop-blur-2xl gap-0.5 overflow-x-auto scrollbar-none">
+              <div className="inline-flex w-full md:w-auto p-1 rounded-[12px] bg-white/[0.06] backdrop-blur-2xl gap-0.5 overflow-x-auto scrollbar-none">
                 {RANGES.map((r) => {
                   const active = dateRange === r.value;
                   return (
@@ -381,7 +381,7 @@ const Reports = () => {
                       {active && (
                         <motion.span
                           layoutId="activeRangePill"
-                          className="absolute inset-0 rounded-[11px] bg-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                          className="absolute inset-0 rounded-[10px] bg-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
                           transition={{ type: "spring", stiffness: 450, damping: 30 }}
                         />
                       )}
@@ -410,7 +410,7 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[32px] border-0 bg-gradient-to-br from-[#1C1C1E]/95 to-[#141416]/95 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                <Card className="relative rounded-[24px] border-0 bg-gradient-to-br from-[#1C1C1E]/95 to-[#141416]/95 backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
                   {/* rose glow halo */}
                   <div
                     aria-hidden
@@ -444,7 +444,7 @@ const Reports = () => {
                         <div className="mt-4 flex items-center gap-2.5">
                           <div
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold",
+                              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
                               analytics.revenueDelta >= 0
                                 ? "bg-[#30D158]/12 text-[#30D158] border border-[#30D158]/20"
                                 : "bg-[#FF375F]/12 text-[#FF375F] border border-[#FF375F]/20"
@@ -634,7 +634,7 @@ const Reports = () => {
                         >
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-7 h-7 rounded-xl bg-white/[0.08] text-[11px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0 tabular-nums">
+                              <span className="w-7 h-7 rounded-[10px] bg-white/[0.08] text-[11px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0 tabular-nums">
                                 {idx + 1}
                               </span>
                               <span className="font-medium text-white truncate">{s.name}</span>
@@ -644,9 +644,9 @@ const Reports = () => {
                               <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
                             </div>
                           </div>
-                          <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                          <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF]"
+                              className="h-full rounded-[10px] bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -664,7 +664,7 @@ const Reports = () => {
                 {analytics.stylistPerformance.length === 0 ? (
                   <EmptyMini />
                 ) : (
-                  <div className="rounded-2xl bg-white/[0.04] overflow-hidden divide-y divide-white/[0.06]">
+                  <div className="rounded-[16px] bg-white/[0.04] overflow-hidden divide-y divide-white/[0.06]">
                     {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
                       <motion.div
                         key={stylist.id}
@@ -732,7 +732,7 @@ function SectionCard({ title, subtitle, children, delay = 0 }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", stiffness: 380, damping: 30 }}
     >
-      <Card className="rounded-[26px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+      <Card className="rounded-[20px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <CardContent className="p-5 md:p-6">
           <div className="mb-5">
             <h3 className="text-base font-semibold text-white tracking-tight">{title}</h3>
@@ -757,10 +757,10 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
       whileTap={{ scale: 0.96 }}
       whileHover={{ y: -2 }}
     >
-      <Card className="rounded-[22px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+      <Card className="rounded-[16px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
         <CardContent className="p-4">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+            className="w-9 h-9 rounded-[12px] flex items-center justify-center mb-3"
             style={{ backgroundColor: `${tint}18`, color: tint }}
           >
             {icon}
@@ -808,9 +808,9 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                 whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
                 className="flex items-center gap-3.5 px-4 py-3.5"
               >
-                <Avatar className="h-10 w-10 rounded-[14px]">
+                <Avatar className="h-10 w-10 rounded-[12px]">
                   <AvatarFallback
-                    className="rounded-[14px] text-xs font-bold"
+                    className="rounded-[12px] text-xs font-bold"
                     style={{ backgroundColor: `${tint}28`, color: tint }}
                   >
                     {c.initials || "?"}
@@ -832,9 +832,9 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                 </div>
                 <div className="text-right shrink-0 min-w-[75px]">
                   <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
-                  <div className="w-full h-1.5 rounded-full bg-white/[0.06] mt-1.5 overflow-hidden">
+                  <div className="w-full h-1.5 rounded-[10px] bg-white/[0.06] mt-1.5 overflow-hidden">
                     <motion.div
-                      className="h-full rounded-full"
+                      className="h-full rounded-[10px]"
                       style={{ backgroundColor: tint }}
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}
@@ -895,9 +895,9 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                   className="flex items-center gap-2.5"
                 >
                   <span className="text-[11px] text-[#8E8E93] w-3 shrink-0 tabular-nums">{star}</span>
-                  <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                  <div className="flex-1 h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
                     <motion.div
-                      className="h-full rounded-full bg-[#FFD60A]"
+                      className="h-full rounded-[10px] bg-[#FFD60A]"
                       initial={{ width: 0 }}
                       animate={{ width: `${(count / maxCount) * 100}%` }}
                       transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -917,7 +917,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.045 * i, ...springSoft }}
-                className="rounded-2xl bg-white/[0.04] p-4 space-y-2"
+                className="rounded-[16px] bg-white/[0.04] p-4 space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-0.5">
@@ -946,7 +946,7 @@ function EmptyMini() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springSoft}
-      className="rounded-2xl bg-white/[0.04] p-10 text-center"
+      className="rounded-[16px] bg-white/[0.04] p-10 text-center"
     >
       <div className="w-11 h-11 rounded-[14px] bg-white/[0.06] mx-auto flex items-center justify-center">
         <Sparkles className="w-4 h-4 text-[#8E8E93]" strokeWidth={2.3} />
@@ -1053,7 +1053,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             />
             <div className="relative flex items-center gap-3.5">
               <motion.div
-                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -1071,7 +1071,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
                 type="button"
                 onClick={close}
                 aria-label="Dismiss"
-                className="w-8 h-8 rounded-full bg-white/[0.06] text-[#8E8E93] flex items-center justify-center hover:bg-white/[0.12] transition-colors shrink-0"
+                className="w-8 h-8 rounded-[12px] bg-white/[0.06] text-[#8E8E93] flex items-center justify-center hover:bg-white/[0.12] transition-colors shrink-0"
               >
                 <X className="w-4 h-4" strokeWidth={2.4} />
               </button>
@@ -1079,13 +1079,13 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             <div className="relative mt-3.5 flex items-center gap-2.5">
               <Link
                 to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#FF2D6F] to-[#FF6B95] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-gradient-to-r from-[#FF2D6F] to-[#FF6B95] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
               >
                 Sign in
               </Link>
               <Link
                 to="/auth?signup=1"
-                className="flex-1 h-11 rounded-2xl bg-white/[0.08] text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-white/[0.08] text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
               >
                 Create account
               </Link>
@@ -1132,14 +1132,14 @@ function MobileReportsView({
         <div className="flex items-center gap-2">
           <motion.div
             whileTap={{ scale: 0.94 }}
-            className="h-9 px-3 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center gap-1.5 text-[13px] font-semibold text-white"
+            className="h-9 px-3 rounded-[12px] bg-white/[0.06] border border-white/[0.08] flex items-center gap-1.5 text-[13px] font-semibold text-white"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#FF6B95]" strokeWidth={2.4} />
             <span className="tabular-nums">{analytics.totalAppointments}</span>
           </motion.div>
           <motion.div
             whileTap={{ scale: 0.94 }}
-            className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center"
+            className="h-9 w-9 rounded-[12px] bg-white/[0.06] border border-white/[0.08] flex items-center justify-center"
           >
             <CalendarDays className="w-4 h-4 text-white" strokeWidth={2.3} />
           </motion.div>
@@ -1170,7 +1170,7 @@ function MobileReportsView({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, ...springSoft }}
-            className="h-7 px-3 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center text-[11px] font-semibold text-white/85"
+            className="h-7 px-3 rounded-[12px] bg-white/[0.06] border border-white/[0.08] flex items-center text-[11px] font-semibold text-white/85"
           >
             This period · revenue
           </motion.div>
@@ -1202,9 +1202,9 @@ function MobileReportsView({
             initial={{ opacity: 0, y: 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.5, ...springSoft }}
-            className="mt-2 h-11 pl-1.5 pr-4 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-2xl flex items-center gap-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
+            className="mt-2 h-11 pl-1.5 pr-4 rounded-[12px] bg-white/[0.06] border border-white/[0.08] backdrop-blur-2xl flex items-center gap-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
+            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
               <Scissors className="w-4 h-4 text-white" strokeWidth={2.4} />
             </div>
             <div className="text-left">
@@ -1230,7 +1230,7 @@ function MobileReportsView({
           </div>
           <div
             className={cn(
-              "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold",
+              "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
               analytics.revenueDelta >= 0
                 ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/25"
                 : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/25"
@@ -1253,7 +1253,7 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="relative overflow-hidden rounded-[22px] p-4 border bg-[#1A0E14] border-[#FF2D6F]/25"
+          className="relative overflow-hidden rounded-[16px] p-4 border bg-[#1A0E14] border-[#FF2D6F]/25"
         >
           <div
             aria-hidden
@@ -1261,7 +1261,7 @@ function MobileReportsView({
             style={{ background: "radial-gradient(circle, rgba(255,45,111,0.25) 0%, transparent 65%)" }}
           />
           <div className="relative flex items-center gap-1.5">
-            <span className="h-5 px-2 rounded-full bg-[#FF2D6F]/15 border border-[#FF2D6F]/30 text-[9px] font-bold uppercase tracking-wider text-[#FF6B95]">
+            <span className="h-5 px-2 rounded-[10px] bg-[#FF2D6F]/15 border border-[#FF2D6F]/30 text-[9px] font-bold uppercase tracking-wider text-[#FF6B95]">
               Avg ticket
             </span>
             <span className="text-[10px] text-[#8E8E93]">period</span>
@@ -1272,7 +1272,7 @@ function MobileReportsView({
           <p className="relative text-[11px] text-[#8E8E93] mt-1">
             {analytics.totalCustomers} clients
           </p>
-          <div className="relative mt-3 h-7 rounded-full bg-[#FF2D6F]/12 border border-[#FF2D6F]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#FF6B95]">
+          <div className="relative mt-3 h-7 rounded-[12px] bg-[#FF2D6F]/12 border border-[#FF2D6F]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#FF6B95]">
             <Star className="w-3 h-3 fill-current" />
             {avgRating > 0 ? avgRating.toFixed(1) : "—"} rating
           </div>
@@ -1283,7 +1283,7 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="relative overflow-hidden rounded-[22px] p-4 border bg-[#0D1422] border-[#0A84FF]/25"
+          className="relative overflow-hidden rounded-[16px] p-4 border bg-[#0D1422] border-[#0A84FF]/25"
         >
           <div
             aria-hidden
@@ -1291,7 +1291,7 @@ function MobileReportsView({
             style={{ background: "radial-gradient(circle, rgba(10,132,255,0.28) 0%, transparent 65%)" }}
           />
           <div className="relative flex items-center gap-1.5">
-            <span className="h-5 px-2 rounded-full bg-[#0A84FF]/15 border border-[#0A84FF]/30 text-[9px] font-bold uppercase tracking-wider text-[#5AC8FF]">
+            <span className="h-5 px-2 rounded-[10px] bg-[#0A84FF]/15 border border-[#0A84FF]/30 text-[9px] font-bold uppercase tracking-wider text-[#5AC8FF]">
               Upcoming
             </span>
             <span className="text-[10px] text-[#8E8E93]">queue</span>
@@ -1302,7 +1302,7 @@ function MobileReportsView({
           <p className="relative text-[11px] text-[#8E8E93] mt-1">
             {analytics.cancelledAppointments} cancelled
           </p>
-          <div className="relative mt-3 h-7 rounded-full bg-[#0A84FF]/12 border border-[#0A84FF]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#5AC8FF]">
+          <div className="relative mt-3 h-7 rounded-[12px] bg-[#0A84FF]/12 border border-[#0A84FF]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#5AC8FF]">
             <Users className="w-3 h-3" strokeWidth={2.4} />
             {analytics.activeStylists} stylists
           </div>
@@ -1336,7 +1336,7 @@ function MobileReportsView({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + i * 0.05, ...springSoft }}
                 whileTap={{ scale: 0.96 }}
-                className="relative overflow-hidden rounded-[20px] p-3.5 border border-white/[0.06]"
+                className="relative overflow-hidden rounded-[14px] p-3.5 border border-white/[0.06]"
                 style={{ background: tints.bg }}
               >
                 <div
@@ -1345,7 +1345,7 @@ function MobileReportsView({
                   style={{ background: `radial-gradient(circle, ${tints.ring} 0%, transparent 65%)` }}
                 />
                 <div
-                  className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+                  className="relative w-9 h-9 rounded-[12px] flex items-center justify-center"
                   style={{ background: `${tints.icon}22`, color: tints.icon }}
                 >
                   <Scissors className="w-4 h-4" strokeWidth={2.4} />
@@ -1380,7 +1380,7 @@ function MobileReportsView({
             <h3 className="text-[17px] font-bold text-white tracking-tight">Best customers</h3>
             <span className="text-[12px] text-[#8E8E93]">By spend</span>
           </div>
-          <div className="rounded-[22px] bg-[#1C1C1E]/85 border border-white/[0.06] overflow-hidden divide-y divide-white/[0.06]">
+          <div className="rounded-[16px] bg-[#1C1C1E]/85 border border-white/[0.06] overflow-hidden divide-y divide-white/[0.06]">
             {topCustomers.slice(0, 4).map((c, i) => {
               const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
               return (
@@ -1391,9 +1391,9 @@ function MobileReportsView({
                   transition={{ delay: 0.4 + i * 0.05, ...springSoft }}
                   className="flex items-center gap-3 px-4 py-3"
                 >
-                  <Avatar className="h-9 w-9 rounded-[12px]">
+                  <Avatar className="h-9 w-9 rounded-[10px]">
                     <AvatarFallback
-                      className="rounded-[12px] text-[11px] font-bold"
+                      className="rounded-[10px] text-[11px] font-bold"
                       style={{ backgroundColor: `${tint}28`, color: tint }}
                     >
                       {c.initials || "?"}
