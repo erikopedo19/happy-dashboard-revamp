@@ -53,6 +53,7 @@ import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import Microsite from "./pages/Microsite";
 import MicrositeEditor from "./pages/MicrositeEditor";
+import ChooseMode from "./pages/ChooseMode";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,6 +112,7 @@ function AnimatedRoutes() {
   return (
     <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/choose-mode" element={<ChooseMode />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/book/:bookingLink" element={<Booking />} />
       <Route path="/manage/:token" element={<ManageBooking />} />
