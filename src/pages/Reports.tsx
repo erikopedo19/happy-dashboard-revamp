@@ -817,9 +817,9 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
                     {i === 0 && (
-                      <Badge className="h-4 px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black hover:bg-[#FFD60A]">
+                      <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
                         VIP
-                      </Badge>
+                      </span>
                     )}
                   </div>
                   <p className="text-[11px] text-[#8E8E93] mt-0.5">
@@ -1099,8 +1099,8 @@ function MobileReportsView({
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 
   return (
-    <div className="px-4 pt-2 pb-32 space-y-4">
-      {/* Brand row */}
+    <div className="px-4 pt-3 pb-32 space-y-4">
+      {/* iOS-style header */}
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1108,159 +1108,82 @@ function MobileReportsView({
         className="flex items-center justify-between"
       >
         <div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[20px] font-bold tracking-tight text-white">Cutzio</span>
-            <span className="text-[20px] font-bold tracking-tight bg-[#0A84FF] bg-clip-text text-transparent">Pulse</span>
-          </div>
-          <p className="text-[12px] text-[#8E8E93] mt-0.5">{today}</p>
+          <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
+          <p className="text-[13px] text-[#8E8E93] mt-0.5">{today}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <motion.div
-            whileTap={{ scale: 0.94 }}
-            className="h-9 px-3 rounded-[12px] bg-white/[0.06] border border-white/[0.08] flex items-center gap-1.5 text-[13px] font-semibold text-white"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#FF6B95]" strokeWidth={2.4} />
-            <span className="tabular-nums">{analytics.totalAppointments}</span>
-          </motion.div>
-          <motion.div
-            whileTap={{ scale: 0.94 }}
-            className="h-9 w-9 rounded-[12px] bg-white/[0.06] border border-white/[0.08] flex items-center justify-center"
-          >
-            <CalendarDays className="w-4 h-4 text-white" strokeWidth={2.3} />
-          </motion.div>
-        </div>
+        <motion.div
+          whileTap={{ scale: 0.94 }}
+          className="h-10 w-10 rounded-[12px] bg-white/[0.08] border border-white/[0.08] flex items-center justify-center"
+        >
+          <CalendarDays className="w-5 h-5 text-white" strokeWidth={2.3} />
+        </motion.div>
       </motion.div>
 
-      {/* Hero gauge card */}
+      {/* Hero revenue card */}
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 360, damping: 30 }}
-        className="relative overflow-hidden rounded-[28px] bg-[#141418] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        className="relative overflow-hidden rounded-[20px] bg-[#141418] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 -left-16 w-[300px] h-[300px] rounded-full opacity-60"
-          style={{ background: "radial-gradient(circle, rgba(255,45,111,0.32) 0%, transparent 65%)" }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-28 -right-10 w-[320px] h-[320px] rounded-full opacity-55"
-          style={{ background: "radial-gradient(circle, rgba(10,132,255,0.30) 0%, transparent 65%)" }}
-        />
-
         <div className="relative px-5 pt-5 pb-6 flex flex-col items-center">
-          {/* Period pill */}
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, ...springSoft }}
-            className="h-7 px-3 rounded-[12px] bg-white/[0.06] border border-white/[0.08] flex items-center text-[11px] font-semibold text-white/85"
-          >
-            This period · revenue
-          </motion.div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF6B95]">Total revenue</p>
 
-          <p className="mt-3 text-[12px] text-[#8E8E93]">Total earned</p>
-
-          {/* Big number — like the gauge centerpiece */}
           <AnimatePresence mode="wait">
             <motion.h2
               key={analytics.totalRevenue}
-              initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.45 }}
-              className="text-[44px] font-bold text-white tabular-nums tracking-[-0.035em] leading-none"
-              style={{ textShadow: "0 0 36px rgba(255,45,111,0.35)" }}
+              className="text-[48px] font-bold text-white tabular-nums tracking-[-0.035em] leading-none mt-2"
             >
               {isLoading ? "—" : currency.format(analytics.totalRevenue)}
             </motion.h2>
           </AnimatePresence>
 
-          {/* Semicircular gauge — rose→blue */}
-          <div className="mt-3">
+          <div className="mt-4 flex items-center gap-2.5">
+            <div
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
+                analytics.revenueDelta >= 0
+                  ? "bg-[#30D158]/12 text-[#30D158] border border-[#30D158]/20"
+                  : "bg-[#FF375F]/12 text-[#FF375F] border border-[#FF375F]/20"
+              )}
+            >
+              {analytics.revenueDelta >= 0 ? (
+                <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+              ) : (
+                <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+              )}
+              {Math.abs(analytics.revenueDelta)}%
+            </div>
+            <span className="text-xs text-[#8E8E93]">vs prior</span>
+          </div>
+
+          <div className="mt-4">
             <CompletionGauge value={completedShare} />
-          </div>
-
-          {/* Top service pill */}
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.5, ...springSoft }}
-            className="mt-2 h-11 pl-1.5 pr-4 rounded-[12px] bg-white/[0.06] border border-white/[0.08] backdrop-blur-2xl flex items-center gap-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
-          >
-            <div className="w-8 h-8 rounded-[10px] bg-[#FF2D6F] flex items-center justify-center shadow-[0_4px_12px_rgba(255,45,111,0.4)]">
-              <Scissors className="w-4 h-4 text-white" strokeWidth={2.4} />
-            </div>
-            <div className="text-left">
-              <p className="text-[13px] font-semibold text-white leading-tight">
-                {top?.name || "No top service"}
-              </p>
-              <p className="text-[10px] text-[#8E8E93] -mt-0.5 tabular-nums">
-                {top ? `${top.bookings} bookings` : "—"}
-              </p>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Meta strip */}
-        <div className="relative border-t border-white/[0.06] px-5 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-[12px] text-[#8E8E93]">
-              Trend: <span className="text-white font-semibold">{analytics.revenueDelta >= 0 ? "+" : ""}{analytics.revenueDelta}%</span>
-            </p>
-            <p className="text-[12px] text-[#8E8E93] mt-0.5">
-              Done <span className="text-white font-semibold tabular-nums">{analytics.completedAppointments}</span> of <span className="text-white font-semibold tabular-nums">{analytics.totalAppointments}</span>
-            </p>
-          </div>
-          <div
-            className={cn(
-              "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
-              analytics.revenueDelta >= 0
-                ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/25"
-                : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/25"
-            )}
-          >
-            {analytics.revenueDelta >= 0 ? (
-              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.4} />
-            ) : (
-              <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.4} />
-            )}
-            {Math.abs(analytics.revenueDelta)}%
           </div>
         </div>
       </motion.div>
 
-      {/* Two side-by-side stat cards (rose + blue) */}
+      {/* KPI grid */}
       <div className="grid grid-cols-2 gap-3">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="relative overflow-hidden rounded-[16px] p-4 border bg-[#1A0E14] border-[#FF2D6F]/25"
+          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
         >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(255,45,111,0.25) 0%, transparent 65%)" }}
-          />
-          <div className="relative flex items-center gap-1.5">
-            <span className="h-5 px-2 rounded-[10px] bg-[#FF2D6F]/15 border border-[#FF2D6F]/30 text-[9px] font-bold uppercase tracking-wider text-[#FF6B95]">
-              Avg ticket
-            </span>
-            <span className="text-[10px] text-[#8E8E93]">period</span>
+          <div className="w-9 h-9 rounded-[12px] bg-[#FF2D6F]/20 flex items-center justify-center mb-3">
+            <CalendarDays className="w-4 h-4 text-[#FF6B95]" strokeWidth={2.3} />
           </div>
-          <p className="relative mt-3 text-[24px] font-bold text-white tabular-nums tracking-tight leading-none">
-            {currency.format(analytics.averageTicket || 0)}
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Bookings</p>
+          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
+            {numberFormat.format(analytics.totalAppointments)}
           </p>
-          <p className="relative text-[11px] text-[#8E8E93] mt-1">
-            {analytics.totalCustomers} clients
-          </p>
-          <div className="relative mt-3 h-7 rounded-[12px] bg-[#FF2D6F]/12 border border-[#FF2D6F]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#FF6B95]">
-            <Star className="w-3 h-3 fill-current" />
-            {avgRating > 0 ? avgRating.toFixed(1) : "—"} rating
-          </div>
+          <p className="text-[11px] text-[#8E8E93] mt-1">{analytics.completionRate}% done</p>
         </motion.div>
 
         <motion.div
@@ -1268,104 +1191,117 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="relative overflow-hidden rounded-[16px] p-4 border bg-[#0D1422] border-[#0A84FF]/25"
+          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
         >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(10,132,255,0.28) 0%, transparent 65%)" }}
-          />
-          <div className="relative flex items-center gap-1.5">
-            <span className="h-5 px-2 rounded-[10px] bg-[#0A84FF]/15 border border-[#0A84FF]/30 text-[9px] font-bold uppercase tracking-wider text-[#5AC8FF]">
-              Upcoming
-            </span>
-            <span className="text-[10px] text-[#8E8E93]">queue</span>
+          <div className="w-9 h-9 rounded-[12px] bg-[#0A84FF]/20 flex items-center justify-center mb-3">
+            <Users className="w-4 h-4 text-[#5AC8FF]" strokeWidth={2.3} />
           </div>
-          <p className="relative mt-3 text-[24px] font-bold text-white tabular-nums tracking-tight leading-none">
-            {analytics.scheduledAppointments}
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Clients</p>
+          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
+            {numberFormat.format(analytics.totalCustomers)}
           </p>
-          <p className="relative text-[11px] text-[#8E8E93] mt-1">
-            {analytics.cancelledAppointments} cancelled
-          </p>
-          <div className="relative mt-3 h-7 rounded-[12px] bg-[#0A84FF]/12 border border-[#0A84FF]/25 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#5AC8FF]">
-            <Users className="w-3 h-3" strokeWidth={2.4} />
-            {analytics.activeStylists} stylists
+          <p className="text-[11px] text-[#8E8E93] mt-1">{analytics.activeStylists} stylists</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, ...springSoft }}
+          whileTap={{ scale: 0.97 }}
+          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
+        >
+          <div className="w-9 h-9 rounded-[12px] bg-[#30D158]/20 flex items-center justify-center mb-3">
+            <DollarSign className="w-4 h-4 text-[#30D158]" strokeWidth={2.3} />
           </div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Avg ticket</p>
+          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
+            {currency.format(analytics.averageTicket || 0)}
+          </p>
+          <p className="text-[11px] text-[#8E8E93] mt-1">Per booking</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, ...springSoft }}
+          whileTap={{ scale: 0.97 }}
+          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
+        >
+          <div className="w-9 h-9 rounded-[12px] bg-[#5E5CE6]/20 flex items-center justify-center mb-3">
+            <Scissors className="w-4 h-4 text-[#9B99FF]" strokeWidth={2.3} />
+          </div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Services</p>
+          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
+            {numberFormat.format(analytics.activeServices)}
+          </p>
+          <p className="text-[11px] text-[#8E8E93] mt-1">{analytics.completedAppointments} done</p>
         </motion.div>
       </div>
 
-      {/* Quick Access */}
+      {/* Top services */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.28, ...springSoft }}
-        className="pt-1"
+        className="rounded-[20px] bg-[#1C1C1E]/90 border border-white/[0.06] overflow-hidden"
       >
-        <div className="flex items-center justify-between px-1 mb-3">
-          <h3 className="text-[17px] font-bold text-white tracking-tight">Quick Access</h3>
-          <span className="text-[12px] text-[#8E8E93]">Top services</span>
+        <div className="px-5 pt-5 pb-2">
+          <h3 className="text-[17px] font-bold text-white tracking-tight">Top services</h3>
+          <p className="text-[12px] text-[#8E8E93] mt-1">Most booked this period</p>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
+        <div className="divide-y divide-white/[0.06]">
           {(analytics.serviceBreakdown?.slice(0, 4) || []).map((s: any, i: number) => {
-            const tints = [
-              { bg: "#1A0E14", ring: "rgba(255,45,111,0.35)", text: "#FF6B95", icon: "#FF2D6F" },
-              { bg: "#0D1422", ring: "rgba(10,132,255,0.35)", text: "#5AC8FF", icon: "#0A84FF" },
-              { bg: "#14101F", ring: "rgba(94,92,230,0.35)", text: "#9B99FF", icon: "#5E5CE6" },
-              { bg: "#1A1208", ring: "rgba(255,159,10,0.35)", text: "#FFC76B", icon: "#FF9F0A" },
-            ][i % 4];
+            const max = analytics.serviceBreakdown[0]?.bookings || 1;
+            const pct = (s.bookings / max) * 100;
             return (
               <motion.div
                 key={s.name}
-                initial={{ opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + i * 0.05, ...springSoft }}
-                whileTap={{ scale: 0.96 }}
-                className="relative overflow-hidden rounded-[14px] p-3.5 border border-white/[0.06]"
-                style={{ background: tints.bg }}
+                className="px-5 py-4"
               >
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -top-8 -right-6 w-24 h-24 rounded-full"
-                  style={{ background: `radial-gradient(circle, ${tints.ring} 0%, transparent 65%)` }}
-                />
-                <div
-                  className="relative w-9 h-9 rounded-[12px] flex items-center justify-center"
-                  style={{ background: `${tints.icon}22`, color: tints.icon }}
-                >
-                  <Scissors className="w-4 h-4" strokeWidth={2.4} />
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-[10px] bg-white/[0.08] text-[11px] font-semibold text-[#8E8E93] flex items-center justify-center tabular-nums">
+                      {i + 1}
+                    </span>
+                    <span className="font-medium text-white">{s.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
                 </div>
-                <p className="relative mt-2.5 text-[13px] font-semibold text-white truncate">{s.name}</p>
-                <div className="relative flex items-center justify-between mt-1">
-                  <span className="text-[11px] text-[#8E8E93] tabular-nums">{s.bookings} bk</span>
-                  <span className="text-[11px] font-semibold tabular-nums" style={{ color: tints.text }}>
-                    {currency.format(s.revenue)}
-                  </span>
+                <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-[10px] bg-[#0A84FF]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ delay: 0.3 + i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  />
                 </div>
               </motion.div>
             );
           })}
           {(!analytics.serviceBreakdown || analytics.serviceBreakdown.length === 0) && (
-            <div className="col-span-2 rounded-[20px] bg-white/[0.04] p-8 text-center">
+            <div className="px-5 py-8 text-center">
               <p className="text-[12px] text-[#8E8E93]">No services booked yet</p>
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* Top customers preview */}
+      {/* Top customers */}
       {topCustomers.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38, ...springSoft }}
-          className="pt-2"
+          className="rounded-[20px] bg-[#1C1C1E]/90 border border-white/[0.06] overflow-hidden"
         >
-          <div className="flex items-center justify-between px-1 mb-3">
+          <div className="px-5 pt-5 pb-2">
             <h3 className="text-[17px] font-bold text-white tracking-tight">Best customers</h3>
-            <span className="text-[12px] text-[#8E8E93]">By spend</span>
+            <p className="text-[12px] text-[#8E8E93] mt-1">Ranked by spend this period</p>
           </div>
-          <div className="rounded-[16px] bg-[#1C1C1E]/85 border border-white/[0.06] overflow-hidden divide-y divide-white/[0.06]">
+          <div className="divide-y divide-white/[0.06]">
             {topCustomers.slice(0, 4).map((c, i) => {
               const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
               return (
@@ -1374,21 +1310,33 @@ function MobileReportsView({
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 + i * 0.05, ...springSoft }}
-                  className="flex items-center gap-3 px-4 py-3"
+                  whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                  className="flex items-center gap-3.5 px-5 py-4"
                 >
-                  <Avatar className="h-9 w-9 rounded-[10px]">
+                  <Avatar className="h-10 w-10 rounded-[12px]">
                     <AvatarFallback
-                      className="rounded-[10px] text-[11px] font-bold"
+                      className="rounded-[12px] text-xs font-bold"
                       style={{ backgroundColor: `${tint}28`, color: tint }}
                     >
                       {c.initials || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-semibold text-white truncate">{c.name}</p>
-                    <p className="text-[11px] text-[#8E8E93]">{c.bookings} visit{c.bookings !== 1 ? "s" : ""}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
+                      {i === 0 && (
+                        <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
+                          VIP
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#8E8E93] mt-0.5">
+                      {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
+                    </p>
                   </div>
-                  <p className="text-[14px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
+                  <div className="text-right shrink-0">
+                    <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
+                  </div>
                 </motion.div>
               );
             })}
