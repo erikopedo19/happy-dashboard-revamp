@@ -477,7 +477,7 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white/90 dark:bg-[#1C1C1E]/90 border border-white/60 dark:border-white/5 p-1 h-auto shadow-sm">
+                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/10 p-1 h-auto shadow-sm">
                       {[
                         { v: "general", icon: Settings2, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
