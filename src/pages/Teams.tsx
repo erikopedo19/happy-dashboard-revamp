@@ -674,7 +674,6 @@ const Teams = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <MobileDock />
     </SidebarProvider>
   );
 };

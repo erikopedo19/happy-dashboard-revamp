@@ -303,7 +303,6 @@ const Customers = () => {
               </Table>
             </Card>
           </div>
-          <MobileDock />
         </main>
       </div>
 

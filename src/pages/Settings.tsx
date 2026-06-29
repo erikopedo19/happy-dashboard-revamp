@@ -439,7 +439,7 @@ const Settings = () => {
         <AppSidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden relative">
-          <div className="sticky top-0 z-20 border-b border-white/40 dark:border-white/5 bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-2xl">
+          <div className="sticky top-0 z-20 border-b border-white/40 dark:border-white/5 bg-white/90 dark:bg-[#1C1C1E]/90">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
@@ -477,7 +477,7 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border border-white/60 dark:border-white/5 p-1 h-auto shadow-sm">
+                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white/90 dark:bg-[#1C1C1E]/90 border border-white/60 dark:border-white/5 p-1 h-auto shadow-sm">
                       {[
                         { v: "general", icon: Settings2, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
@@ -1140,7 +1140,6 @@ const Settings = () => {
               </div>
             </div>
           </div>
-          <MobileDock />
         </main>
       </div>
     </SidebarProvider>

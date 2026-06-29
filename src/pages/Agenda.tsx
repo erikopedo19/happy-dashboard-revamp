@@ -318,7 +318,6 @@ const Agenda = () => {
               onViewModeChange={setViewMode}
               showViewModeToggle={false}
             />
-            <MobileDock />
           </main>
         </div>
 

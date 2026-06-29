@@ -331,7 +331,7 @@ const Reports = () => {
           />
 
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-black/75 backdrop-blur-3xl border-b border-white/[0.06]">
+          <div className="sticky top-0 z-20 bg-black/90 border-b border-white/[0.06]">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
@@ -357,7 +357,7 @@ const Reports = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springSoft}
                 whileTap={{ scale: 0.94 }}
-                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-white/[0.08] text-white text-[13px] font-semibold backdrop-blur-2xl border border-white/[0.08] active:bg-white/[0.14] transition-colors"
+                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-white/[0.08] text-white text-[13px] font-semibold border border-white/[0.08] active:bg-white/[0.14] transition-colors"
               >
                 <Download className="h-4 w-4" strokeWidth={2.3} />
                 {!isMobile && "Export"}
@@ -366,7 +366,7 @@ const Reports = () => {
 
             {/* iOS segmented control */}
             <div className="px-4 md:px-8 pb-4">
-              <div className="inline-flex w-full md:w-auto p-1 rounded-[12px] bg-white/[0.06] backdrop-blur-2xl gap-0.5 overflow-x-auto scrollbar-none">
+              <div className="inline-flex w-full md:w-auto p-1 rounded-[12px] bg-white/[0.06] gap-0.5 overflow-x-auto scrollbar-none">
                 {RANGES.map((r) => {
                   const active = dateRange === r.value;
                   return (
@@ -410,7 +410,7 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[24px] border-0 bg-[#141418] backdrop-blur-3xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                <Card className="relative rounded-[24px] border-0 bg-[#141418] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
                   <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
@@ -712,7 +712,6 @@ const Reports = () => {
               <ReviewsSection reviews={reviewsData || []} />
             </div>
           </div>
-          <MobileDock />
           {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
@@ -729,7 +728,7 @@ function SectionCard({ title, subtitle, children, delay = 0 }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", stiffness: 380, damping: 30 }}
     >
-      <Card className="rounded-[20px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+      <Card className="rounded-[20px] border-0 bg-[#1C1C1E]/90 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <CardContent className="p-5 md:p-6">
           <div className="mb-5">
             <h3 className="text-base font-semibold text-white tracking-tight">{title}</h3>
@@ -754,7 +753,7 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
       whileTap={{ scale: 0.96 }}
       whileHover={{ y: -2 }}
     >
-      <Card className="rounded-[16px] border-0 bg-[#1C1C1E]/90 backdrop-blur-3xl h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+      <Card className="rounded-[16px] border-0 bg-[#1C1C1E]/90 h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
         <CardContent className="p-4">
           <div
             className="w-9 h-9 rounded-[12px] flex items-center justify-center mb-3"
@@ -1025,7 +1024,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
           transition={{ type: "spring", stiffness: 360, damping: 30 }}
           className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
         >
-          <div className="relative overflow-hidden rounded-[26px] border border-white/[0.08] bg-[#1C1C1E]/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(255,45,111,0.25)] p-4">
+          <div className="relative overflow-hidden rounded-[26px] border border-white/[0.08] bg-[#1C1C1E]/95 shadow-[0_20px_60px_rgba(0,0,0,0.3)] p-4">
             <div
               aria-hidden
               className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full opacity-70"

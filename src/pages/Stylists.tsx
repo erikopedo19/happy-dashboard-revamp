@@ -330,7 +330,6 @@ const Stylists = () => {
               )}
             </div>
           </div>
-          <MobileDock />
         </main>
       </div>
 
