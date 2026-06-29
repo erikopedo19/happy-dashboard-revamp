@@ -477,7 +477,7 @@ const Settings = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/10 p-1 h-auto shadow-sm">
+                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
                       {[
                         { v: "general", icon: Settings2, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
@@ -489,9 +489,9 @@ const Settings = () => {
                           key={v}
                           value={v}
                           className={cn(
-                            "relative flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm font-medium transition-all duration-300",
-                            "data-[state=active]:bg-aurora-animated data-[state=active]:text-white data-[state=active]:shadow-aurora",
-                            "data-[state=inactive]:text-[#1C1C1E] dark:data-[state=inactive]:text-[#F2F2F7]/70 data-[state=inactive]:hover:bg-[#F2F2F7] dark:data-[state=inactive]:hover:bg-[#2C2C2E]/60"
+                            "relative flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-[10px] px-1 md:px-3 py-2 text-[10px] md:text-sm font-medium transition-all duration-300",
+                            "data-[state=active]:bg-[#0A84FF] data-[state=active]:text-white",
+                            "data-[state=inactive]:text-[#8E8E93] data-[state=inactive]:hover:bg-white/[0.05]"
                           )}
                         >
                           <Icon className="w-4 h-4" />{label}
