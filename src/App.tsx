@@ -112,6 +112,7 @@ function AnimatedRoutes() {
   return (
     <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/choose-mode" element={<ChooseMode />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/book/:bookingLink" element={<Booking />} />
       <Route path="/manage/:token" element={<ManageBooking />} />
