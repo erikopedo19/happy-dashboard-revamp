@@ -26,6 +26,7 @@ export function useRoleSwitch() {
           .update({ role: next, updated_at: new Date().toISOString() })
           .eq("id", user.id);
       } catch {}
+      try { localStorage.setItem("cutzio:mode-choice", next); } catch {}
       toast({ title: next === "client" ? "Switched to client mode" : "Switched to barber mode" });
       navigate(next === "client" ? "/find-barber" : "/admin", { replace: true });
     } catch (e: any) {

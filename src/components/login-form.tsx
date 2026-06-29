@@ -27,13 +27,22 @@ export function LoginForm() {
 
   useEffect(() => {
     if (user) {
-      const role = user.user_metadata?.role;
-      const dest =
-        next && next !== "/"
-          ? next
-          : role === "client"
-          ? "/find-barber"
-          : "/admin";
+      let remembered: string | null = null;
+      try { remembered = localStorage.getItem("cutzio:mode-choice"); } catch {}
+      let dest: string;
+      if (remembered === "client" || remembered === "barber") {
+        dest =
+          next && next !== "/"
+            ? next
+            : remembered === "client"
+            ? "/find-barber"
+            : "/admin";
+      } else {
+        const params = new URLSearchParams();
+        if (next && next !== "/") params.set("next", next);
+        const qs = params.toString();
+        dest = `/choose-mode${qs ? `?${qs}` : ""}`;
+      }
       triggerGlimm({ sweepMs: 800, outroMs: 420 });
       setTimeout(() => navigate(dest, { replace: true }), 320);
     }
