@@ -2,8 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './debug-env'; // Debug env vars
 import App from './App.tsx';
-import 'geist/font/sans';
-import 'geist/font/mono';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 import './index.css';
 
 createRoot(document.getElementById("root")!).render(<App />);
