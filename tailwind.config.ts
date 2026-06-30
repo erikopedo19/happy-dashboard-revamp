@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				geist: ['"Geist Variable"', 'Geist', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Inter', 'sans-serif'],
+				'geist-mono': ['"Geist Mono Variable"', 'Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
