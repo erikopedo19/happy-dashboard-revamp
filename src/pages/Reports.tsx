@@ -316,22 +316,13 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full overflow-hidden bg-black">
+      <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
 
         <main className="relative flex-1 flex flex-col overflow-hidden">
-          {/* Ambient glow */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-10 h-[460px] z-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(ellipse 70% 50% at 25% -10%, rgba(255,45,111,0.15) 0%, transparent 55%), radial-gradient(ellipse 70% 45% at 85% 0%, rgba(10,132,255,0.12) 0%, transparent 55%)",
-            }}
-          />
 
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-black/90 border-b border-white/[0.06]">
+          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 border-b border-white/[0.08]">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
@@ -410,7 +401,7 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[24px] border-0 bg-[#141418] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                <Card className="relative rounded-[24px] border-0 bg-[#15151A] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
                   <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
@@ -424,7 +415,7 @@ const Reports = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums"
+                            className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
                             style={{ textShadow: "0 0 40px rgba(255,45,111,0.25)" }}
                           >
                             {isLoading ? "—" : currency.format(analytics.totalRevenue)}
@@ -486,11 +477,12 @@ const Reports = () => {
                         <Area
                           type="monotone"
                           dataKey="revenue"
-                          stroke={iOS.blue}
+                          stroke={iOS.rose}
                           strokeWidth={2.4}
-                          fill="none"
+                          fill={iOS.rose}
+                          fillOpacity={0.08}
                           dot={false}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: "#0b0b0d", fill: iOS.blue }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: "#0A0A0C", fill: iOS.rose }}
                           animationDuration={900}
                         />
                       </AreaChart>
@@ -643,7 +635,7 @@ const Reports = () => {
                           </div>
                           <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
                             <motion.div
-                              className="h-full rounded-[10px] bg-[#0A84FF]"
+                              className="h-full rounded-[10px] bg-[#FF375F]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -728,7 +720,7 @@ function SectionCard({ title, subtitle, children, delay = 0 }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", stiffness: 380, damping: 30 }}
     >
-      <Card className="rounded-[20px] border-0 bg-[#1C1C1E]/90 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+      <Card className="rounded-[20px] border-0 bg-[#15151A] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <CardContent className="p-5 md:p-6">
           <div className="mb-5">
             <h3 className="text-base font-semibold text-white tracking-tight">{title}</h3>
@@ -753,7 +745,7 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
       whileTap={{ scale: 0.96 }}
       whileHover={{ y: -2 }}
     >
-      <Card className="rounded-[16px] border-0 bg-[#1C1C1E]/90 h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+      <Card className="rounded-[16px] border-0 bg-[#15151A] h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
         <CardContent className="p-4">
           <div
             className="w-9 h-9 rounded-[12px] flex items-center justify-center mb-3"
@@ -971,7 +963,7 @@ function CompletionGauge({ value }: { value: number }) {
             <motion.line
               key={i}
               x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke={active ? iOS.blue : "rgba(255,255,255,0.10)"}
+              stroke={active ? iOS.rose : "rgba(255,255,255,0.10)"}
               strokeWidth={4}
               strokeLinecap="round"
               initial={{ opacity: 0, scale: 0.6 }}
@@ -984,7 +976,7 @@ function CompletionGauge({ value }: { value: number }) {
         {/* pill at center */}
         <motion.ellipse
           cx="100" cy="100" rx="13" ry="6"
-          fill={iOS.blue}
+          fill={iOS.rose}
           initial={{ opacity: 0 }}
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -1123,7 +1115,7 @@ function MobileReportsView({
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 360, damping: 30 }}
-        className="relative overflow-hidden rounded-[20px] bg-[#141418] border border-white/[0.06] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        className="relative overflow-hidden rounded-[20px] bg-[#15151A] border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
       >
         <div className="relative px-5 pt-5 pb-6 flex flex-col items-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF6B95]">Total revenue</p>
@@ -1135,7 +1127,7 @@ function MobileReportsView({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.45 }}
-              className="text-[48px] font-bold text-white tabular-nums tracking-[-0.035em] leading-none mt-2"
+              className="text-[48px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.035em] leading-none mt-2"
             >
               {isLoading ? "—" : currency.format(analytics.totalRevenue)}
             </motion.h2>
@@ -1173,7 +1165,7 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
+          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
         >
           <div className="w-9 h-9 rounded-[12px] bg-[#FF2D6F]/20 flex items-center justify-center mb-3">
             <CalendarDays className="w-4 h-4 text-[#FF6B95]" strokeWidth={2.3} />
@@ -1190,9 +1182,9 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
+          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
         >
-          <div className="w-9 h-9 rounded-[12px] bg-[#0A84FF]/20 flex items-center justify-center mb-3">
+          <div className="w-9 h-9 rounded-[12px] bg-[#FF375F]/20 flex items-center justify-center mb-3">
             <Users className="w-4 h-4 text-[#5AC8FF]" strokeWidth={2.3} />
           </div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Clients</p>
@@ -1207,7 +1199,7 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
+          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
         >
           <div className="w-9 h-9 rounded-[12px] bg-[#30D158]/20 flex items-center justify-center mb-3">
             <DollarSign className="w-4 h-4 text-[#30D158]" strokeWidth={2.3} />
@@ -1224,7 +1216,7 @@ function MobileReportsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, ...springSoft }}
           whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#1C1C1E]/90 border border-white/[0.06] p-4"
+          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
         >
           <div className="w-9 h-9 rounded-[12px] bg-[#5E5CE6]/20 flex items-center justify-center mb-3">
             <Scissors className="w-4 h-4 text-[#9B99FF]" strokeWidth={2.3} />
@@ -1242,7 +1234,7 @@ function MobileReportsView({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.28, ...springSoft }}
-        className="rounded-[20px] bg-[#1C1C1E]/90 border border-white/[0.06] overflow-hidden"
+        className="rounded-[20px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
       >
         <div className="px-5 pt-5 pb-2">
           <h3 className="text-[17px] font-bold text-white tracking-tight">Top services</h3>
@@ -1271,7 +1263,7 @@ function MobileReportsView({
                 </div>
                 <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
                   <motion.div
-                    className="h-full rounded-[10px] bg-[#0A84FF]"
+                    className="h-full rounded-[10px] bg-[#FF375F]"
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{ delay: 0.3 + i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -1294,7 +1286,7 @@ function MobileReportsView({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38, ...springSoft }}
-          className="rounded-[20px] bg-[#1C1C1E]/90 border border-white/[0.06] overflow-hidden"
+          className="rounded-[20px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
         >
           <div className="px-5 pt-5 pb-2">
             <h3 className="text-[17px] font-bold text-white tracking-tight">Best customers</h3>
