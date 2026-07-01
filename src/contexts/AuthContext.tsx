@@ -40,12 +40,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const maybeSendWelcome = async (uid: string) => {
+      const key = `cutzio:welcome-sent:${uid}`;
+      if (localStorage.getItem(key)) return;
+      try {
+        await supabase.functions.invoke("send-welcome-premium");
+        localStorage.setItem(key, "1");
+        window.dispatchEvent(new Event("premium:refresh"));
+      } catch (e) {
+        console.warn("welcome email invoke failed", e);
+      }
+    };
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        setTimeout(() => maybeSendWelcome(session.user.id), 0);
+      }
     });
 
     supabase.auth.getSession().then(({ data, error }) => {
@@ -55,6 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSession(data?.session ?? null);
       setUser(data?.session?.user ?? null);
       setLoading(false);
+      if (data?.session?.user) {
+        setTimeout(() => maybeSendWelcome(data.session!.user.id), 0);
+      }
     });
 
     return () => subscription.unsubscribe();
