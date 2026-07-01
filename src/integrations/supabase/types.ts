@@ -659,6 +659,7 @@ export type Database = {
           timezone: string | null
           updated_at: string
           website: string | null
+          welcome_email_sent: boolean
           years_experience: number | null
         }
         Insert: {
@@ -691,6 +692,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          welcome_email_sent?: boolean
           years_experience?: number | null
         }
         Update: {
@@ -723,6 +725,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          welcome_email_sent?: boolean
           years_experience?: number | null
         }
         Relationships: []
