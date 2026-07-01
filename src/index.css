@@ -4,13 +4,12 @@
 
 /* Apple SF Pro system font stack — applied globally */
 :root {
-  --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'SF Pro', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
 }
-html, body, #root {
-  font-family: var(--font-apple);
+html, body, #root, button, input, textarea, select {
+  font-family: var(--font-apple) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'ss01', 'cv11';
   letter-spacing: -0.01em;
 }
 
@@ -912,10 +911,10 @@ html, body, #root {
    Mobile: replace Liquid Glass with solid rounded dark surfaces
    ============================================================ */
 @media (max-width: 767px) {
-  .liquid-glass,
-  .liquid-glass-agenda,
-  .glass-card,
-  .glass-surface {
+  .liquid-glass:not(.mobile-dock),
+  .liquid-glass-agenda:not(.mobile-dock),
+  .glass-card:not(.mobile-dock),
+  .glass-surface:not(.mobile-dock) {
     background: #15151A !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -923,18 +922,31 @@ html, body, #root {
     border-radius: 20px !important;
     box-shadow: none !important;
   }
-  .liquid-glass::before,
-  .liquid-glass::after {
+  .liquid-glass:not(.mobile-dock)::before,
+  .liquid-glass:not(.mobile-dock)::after {
     display: none !important;
   }
-  /* neutralize backdrop-blur utilities on phone */
-  [class*="backdrop-blur"] {
+  /* neutralize backdrop-blur utilities on phone, except the dock */
+  [class*="backdrop-blur"]:not(.mobile-dock) {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
-  /* translucent white overlays -> solid dark card */
-  .bg-white\/5, .bg-white\/10, .bg-white\/\[0\.03\], .bg-white\/\[0\.04\],
-  .bg-white\/\[0\.05\], .bg-white\/\[0\.06\], .bg-white\/\[0\.08\] {
+  /* translucent white overlays -> solid dark card, except the dock */
+  .bg-white\/5:not(.mobile-dock), .bg-white\/10:not(.mobile-dock),
+  .bg-white\/\[0\.03\]:not(.mobile-dock), .bg-white\/\[0\.04\]:not(.mobile-dock),
+  .bg-white\/\[0\.05\]:not(.mobile-dock), .bg-white\/\[0\.06\]:not(.mobile-dock),
+  .bg-white\/\[0\.08\]:not(.mobile-dock) {
     background-color: #15151A !important;
+  }
+
+  /* Frosted, high-contrast mobile dock */
+  .mobile-dock {
+    background: rgba(18, 18, 22, 0.68) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(28px) !important;
+    backdrop-filter: saturate(180%) blur(28px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow:
+      0 14px 44px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
   }
 }
