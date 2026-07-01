@@ -432,7 +432,7 @@ const Settings = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden relative">
+      <div className="h-screen flex w-full bg-[#0c0c0c] text-[#F2F2F7] overflow-hidden relative">
 
         {/* Ambient aurora backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-aurora-soft opacity-90 dark:opacity-60" />
