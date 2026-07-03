@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Search, Edit, Trash2, UserCheck, MoreHorizontal, X, Star, Calendar, Clock, Briefcase } from "lucide-react";
+import { Plus, Search, Edit, Trash2, UserCheck, X, Star, Clock, Briefcase, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Stylist {
@@ -49,6 +49,8 @@ const Stylists = () => {
     status: "available"
   });
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; stylist: Stylist } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Stylist | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Fetch stylists
   const { data: stylists = [], isLoading } = useQuery<Stylist[]>({
@@ -146,11 +148,17 @@ const Stylists = () => {
       const { error } = await (supabase as any).from("stylists").delete().eq("id", stylistId);
       if (error) throw error;
     },
+    onMutate: (stylistId: string) => {
+      setDeletingId(stylistId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stylists"] });
-      toast({ title: "Stylist deleted successfully" });
+      setDeleteTarget(null);
+      setDeletingId(null);
+      toast({ title: "Stylist removed" });
     },
     onError: (error: any) => {
+      setDeletingId(null);
       const errorMessage = error?.message || "Failed to delete stylist";
       toast({ 
         title: "Failed to delete stylist", 
@@ -182,9 +190,11 @@ const Stylists = () => {
   };
 
   const handleDeleteClick = (stylist: Stylist) => {
-    if (confirm(`Are you sure you want to delete ${stylist.name}?`)) {
-      deleteStylistMutation.mutate(stylist.id);
-    }
+    setDeleteTarget(stylist);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) deleteStylistMutation.mutate(deleteTarget.id);
   };
 
   const filteredStylists = stylists.filter(stylist => 
@@ -262,7 +272,12 @@ const Stylists = () => {
                   ))}
                 </div>
               ) : filteredStylists.length === 0 ? (
-                <div className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-dashed border-black/10 dark:border-white/10 p-10 text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                  className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-dashed border-black/10 dark:border-white/10 p-10 text-center"
+                >
                   <div className="w-14 h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] mx-auto flex items-center justify-center mb-3">
                     <UserCheck className="h-6 w-6 text-[#8E8E93]" />
                   </div>
@@ -271,22 +286,39 @@ const Stylists = () => {
                   <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
                     <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                   </Button>
-                </div>
+                </motion.div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <motion.div
+                  layout
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+                >
+                  <AnimatePresence mode="popLayout">
                   {filteredStylists.map((stylist, index) => {
                     const initials = stylist.name
                       .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
+                    const isBeingDeleted = deletingId === stylist.id;
                     return (
                       <motion.div
                         key={stylist.id}
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05, type: "spring", stiffness: 380, damping: 30 }}
-                        whileTap={{ scale: 0.98 }}
+                        layout
+                        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                        animate={isBeingDeleted
+                          ? { opacity: 0.4, scale: 0.93, filter: "blur(2px)" }
+                          : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+                        }
+                        exit={{ opacity: 0, scale: 0.88, y: -8, filter: "blur(4px)", transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }}
+                        transition={{ delay: isBeingDeleted ? 0 : index * 0.05, type: "spring", stiffness: 380, damping: 30 }}
+                        whileTap={{ scale: isBeingDeleted ? 1 : 0.98 }}
                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, stylist }); }}
-                        className="group relative rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-5"
+                        className="group relative rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow p-5"
                       >
+                        {/* Deleting overlay */}
+                        {isBeingDeleted && (
+                          <div className="absolute inset-0 rounded-3xl flex items-center justify-center bg-white/60 dark:bg-[#1C1C1E]/60 z-10">
+                            <Loader2 className="w-5 h-5 text-rose-500 animate-spin" />
+                          </div>
+                        )}
+
                         <div className="flex items-start gap-3.5">
                           <div className="relative">
                             <Avatar className="h-14 w-14 ring-2 ring-white dark:ring-[#1C1C1E] shadow-sm">
@@ -306,13 +338,21 @@ const Stylists = () => {
                               <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition">
-                            <button onClick={() => handleEditClick(stylist)} className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]">
+                          <div className="flex flex-col gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                            <motion.button
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleEditClick(stylist)}
+                              className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] transition-colors"
+                            >
                               <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                            </button>
-                            <button onClick={() => handleDeleteClick(stylist)} className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100">
-                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                            </button>
+                            </motion.button>
+                            <motion.button
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleDeleteClick(stylist)}
+                              className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                            </motion.button>
                           </div>
                         </div>
 
@@ -331,7 +371,8 @@ const Stylists = () => {
                       </motion.div>
                     );
                   })}
-                </div>
+                  </AnimatePresence>
+                </motion.div>
               )}
             </div>
           </div>
@@ -452,6 +493,92 @@ const Stylists = () => {
         </>
       )}
 
+      {/* ── Delete confirmation sheet ── */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="delete-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm"
+              onClick={() => !deleteStylistMutation.isPending && setDeleteTarget(null)}
+            />
+            {/* Sheet */}
+            <motion.div
+              key="delete-sheet"
+              initial={{ opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 32, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              className="fixed z-[121] left-1/2 bottom-6 sm:bottom-auto sm:top-1/2 -translate-x-1/2 sm:-translate-y-1/2 w-[calc(100%-2rem)] max-w-sm"
+            >
+              <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.28)] overflow-hidden">
+                {/* Destructive header */}
+                <div className="bg-rose-50 dark:bg-rose-950/40 px-6 pt-6 pb-5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-rose-500" strokeWidth={2.3} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-rose-500">Remove stylist</p>
+                    <p className="text-[17px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">{deleteTarget.name}</p>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-4">
+                  {/* Stylist mini-card */}
+                  <div className="flex items-center gap-3 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] px-4 py-3 mb-4">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={deleteTarget.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs font-semibold bg-white dark:bg-[#3A3A3C]">
+                        {deleteTarget.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{deleteTarget.name}</p>
+                      <p className="text-[12px] text-[#8E8E93] truncate">{deleteTarget.title || "Stylist"}</p>
+                    </div>
+                    <span className={cn("ml-auto w-2 h-2 rounded-full shrink-0", statusDot(deleteTarget.status))} />
+                  </div>
+                  <p className="text-[13px] text-[#8E8E93] leading-relaxed">
+                    This will permanently remove this stylist and unassign them from future bookings.
+                    Past appointments will not be affected.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="px-6 pb-6 flex flex-col gap-2">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={confirmDelete}
+                    disabled={deleteStylistMutation.isPending}
+                    className="w-full h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-semibold text-[15px] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    {deleteStylistMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Removing…</>
+                    ) : (
+                      <><Trash2 className="w-4 h-4" strokeWidth={2.3} /> Remove {deleteTarget.name.split(" ")[0]}</>
+                    )}
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setDeleteTarget(null)}
+                    disabled={deleteStylistMutation.isPending}
+                    className="w-full h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[15px] transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Create Stylist Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[24px] p-0 border-0 bg-white dark:bg-[#1C1C1E] shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-4">
@@ -508,8 +635,8 @@ const Stylists = () => {
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-[12px] h-12 flex-1">
               Cancel
             </Button>
-            <Button onClick={handleCreateStylist} disabled={!formData.name} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
-              Add Stylist
+            <Button onClick={handleCreateStylist} disabled={!formData.name || createStylistMutation.isPending} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
+              {createStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding…</> : "Add Stylist"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -569,8 +696,8 @@ const Stylists = () => {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-[12px] h-12 flex-1">
               Cancel
             </Button>
-            <Button onClick={handleUpdateStylist} disabled={!formData.name} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
-              Update Stylist
+            <Button onClick={handleUpdateStylist} disabled={!formData.name || updateStylistMutation.isPending} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
+              {updateStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : "Update Stylist"}
             </Button>
           </DialogFooter>
         </DialogContent>

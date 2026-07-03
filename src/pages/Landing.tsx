@@ -1,5 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  motion,
+  useInView,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  animate,
+} from "framer-motion";
 import {
   Calendar,
   Scissors,
@@ -12,7 +21,22 @@ import {
   Star,
   Clock,
   Zap,
+  QrCode,
+  Bell,
+  Globe,
+  CreditCard,
+  MessageSquare,
+  ShieldCheck,
+  CalendarCheck,
+  Link2,
+  TrendingUp,
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +87,84 @@ const features = [
     className: "",
     accent: "from-rose-500/20 to-rose-600/5",
   },
+  {
+    icon: QrCode,
+    title: "QR Flyers",
+    desc: "Print a scannable code for mirrors and counters. Walk-ins book instantly.",
+    className: "",
+    accent: "from-cyan-500/20 to-cyan-600/5",
+  },
+  {
+    icon: Globe,
+    title: "Branded Microsite",
+    desc: "Your own mini-website with services, gallery and reviews built in.",
+    className: "md:col-span-2",
+    accent: "from-fuchsia-500/20 to-fuchsia-600/5",
+  },
+  {
+    icon: MessageSquare,
+    title: "Reviews Engine",
+    desc: "Automatic review requests after every visit. Build your reputation on autopilot.",
+    className: "md:col-span-2",
+    accent: "from-yellow-500/20 to-yellow-600/5",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Waitlist Recovery",
+    desc: "Cancellation? The next client in line claims the slot automatically.",
+    className: "",
+    accent: "from-teal-500/20 to-teal-600/5",
+  },
+];
+
+const howItWorks = [
+  {
+    icon: Link2,
+    step: "01",
+    title: "Claim your link",
+    desc: "Pick a custom slug like cutzioo.com/book/your-shop in under a minute.",
+  },
+  {
+    icon: Scissors,
+    step: "02",
+    title: "Build your menu",
+    desc: "Add services, prices and durations. Set your hours and team.",
+  },
+  {
+    icon: CalendarCheck,
+    step: "03",
+    title: "Share & get booked",
+    desc: "Drop the link in your bio. Clients book 24/7 — synced to your agenda.",
+  },
+  {
+    icon: TrendingUp,
+    step: "04",
+    title: "Watch it grow",
+    desc: "Reminders cut no-shows, reviews roll in, and analytics show what works.",
+  },
+];
+
+const faqs = [
+  {
+    q: "Is Cutzioo really free to start?",
+    a: "Yes. The Starter plan is free forever — 1 stylist, a booking page and up to 50 bookings per month. No credit card required.",
+  },
+  {
+    q: "Can my clients book without creating an account?",
+    a: "Absolutely. Clients book in seconds with just a name — phone and notes are optional fields you control.",
+  },
+  {
+    q: "Does it work for teams and multi-chair shops?",
+    a: "Yes. Pro supports unlimited stylists, per-stylist schedules and services, and team performance analytics.",
+  },
+  {
+    q: "What happens when someone cancels?",
+    a: "Your waitlist kicks in automatically. The next client gets a claim link and the slot fills itself — no texting required.",
+  },
+  {
+    q: "Can I use my own branding?",
+    a: "Pro lets you customize colors, logo, email themes and even publish a branded microsite on your own subdomain.",
+  },
 ];
 
 const plans = [
@@ -105,8 +207,69 @@ const fadeUp = {
   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
 };
 
+function CountUpValue({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const numeric = parseFloat(value.replace(/[^0-9.]/g, ""));
+  const prefix = value.match(/^[^0-9]*/)?.[0] ?? "";
+  const suffix = value.match(/[^0-9.]*$/)?.[0] ?? "";
+  const decimals = value.includes(".") ? 1 : 0;
+  const [display, setDisplay] = useState("0");
+
+  useEffect(() => {
+    if (!inView || isNaN(numeric)) return;
+    const controls = animate(0, numeric, {
+      duration: 1.4,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => setDisplay(v.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",")),
+    });
+    return () => controls.stop();
+  }, [inView, numeric, decimals]);
+
+  if (isNaN(numeric)) return <span>{value}</span>;
+  return (
+    <span ref={ref} className="tabular-nums">
+      {prefix}{display}{suffix}
+    </span>
+  );
+}
+
+function FloatingCard({
+  className,
+  delay = 0,
+  children,
+}: {
+  className?: string;
+  delay?: number;
+  children: ReactNode;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, type: "spring", stiffness: 260, damping: 22 }}
+      className={cn("absolute z-10 hidden lg:block", className)}
+    >
+      <motion.div
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay }}
+        className="rounded-2xl border border-white/[0.1] bg-[#1C1C1E]/90 backdrop-blur-xl px-4 py-3 shadow-[0_16px_48px_rgba(0,0,0,0.45)]"
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function Landing() {
   const navigate = useNavigate();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const mockupY = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const mockupScale = useTransform(scrollYProgress, [0, 1], [1, 0.96]);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -142,8 +305,10 @@ export default function Landing() {
           <nav className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 text-sm">
             {[
               { href: "#features", label: "Features" },
+              { href: "#how-it-works", label: "How it works" },
               { href: "#pricing", label: "Pricing" },
               { href: "#reviews", label: "Reviews" },
+              { href: "#faq", label: "FAQ" },
             ].map((item) => (
               <a
                 key={item.href}
@@ -166,7 +331,7 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-16 pb-24 md:pt-24 md:pb-32">
+      <section ref={heroRef} className="px-6 pt-16 pb-24 md:pt-24 md:pb-32">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
@@ -180,7 +345,10 @@ export default function Landing() {
 
             <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold tracking-tight leading-[1.08]">
               Run your chair like a{" "}
-              <span className="bg-gradient-to-r from-primary via-blue-300 to-primary bg-clip-text text-transparent">
+              <span
+                className="bg-gradient-to-r from-primary via-rose-400 to-violet-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-x_5s_ease_infinite]"
+                style={{ backgroundSize: "200% auto" }}
+              >
                 premium app
               </span>
             </h1>
@@ -225,9 +393,46 @@ export default function Landing() {
             initial={{ opacity: 0, y: 32, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            style={{ y: mockupY, scale: mockupScale }}
             className="relative"
           >
             <div className="absolute -inset-4 rounded-[2rem] bg-primary/10 blur-2xl" />
+
+            <FloatingCard className="-top-8 -left-10" delay={0.6}>
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold">New booking</p>
+                  <p className="text-[10px] text-muted-foreground">James M. · Fade + Beard</p>
+                </div>
+              </div>
+            </FloatingCard>
+
+            <FloatingCard className="-bottom-6 -right-8" delay={0.85}>
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-yellow-500/15 flex items-center justify-center">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold">5-star review</p>
+                  <p className="text-[10px] text-muted-foreground">"Best cut in town"</p>
+                </div>
+              </div>
+            </FloatingCard>
+
+            <FloatingCard className="top-1/3 -right-14" delay={1.1}>
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-blue-500/15 flex items-center justify-center">
+                  <CreditCard className="h-4 w-4 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold">+$45.00</p>
+                  <p className="text-[10px] text-muted-foreground">Paid via booking</p>
+                </div>
+              </div>
+            </FloatingCard>
             <Card className="relative border-white/[0.08] bg-card/80 backdrop-blur-xl shadow-2xl overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
                 <div className="flex gap-1.5">
@@ -291,7 +496,9 @@ export default function Landing() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
                 {stats.map((s) => (
                   <div key={s.label} className="text-center">
-                    <p className="text-2xl md:text-3xl font-bold tracking-tight tabular-nums">{s.value}</p>
+                    <p className="text-2xl md:text-3xl font-bold tracking-tight tabular-nums">
+                      <CountUpValue value={s.value} />
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">{s.label}</p>
                   </div>
                 ))}
@@ -322,10 +529,10 @@ export default function Landing() {
                 transition={{ duration: 0.5, delay: i * 0.06 }}
                 className={f.className}
               >
-                <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-white/[0.12] transition-all duration-300 group">
+                <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-white/[0.14] hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.35)] transition-all duration-300 group">
                   <CardHeader>
                     <div className={cn(
-                      "h-11 w-11 rounded-2xl bg-gradient-to-br flex items-center justify-center text-primary mb-1 border border-white/[0.06]",
+                      "h-11 w-11 rounded-2xl bg-gradient-to-br flex items-center justify-center text-primary mb-1 border border-white/[0.06] group-hover:scale-110 transition-transform duration-300",
                       f.accent
                     )}>
                       <f.icon className="h-5 w-5" />
@@ -334,6 +541,48 @@ export default function Landing() {
                     <CardDescription className="text-sm leading-relaxed">{f.desc}</CardDescription>
                   </CardHeader>
                 </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="px-6 py-20 md:py-28">
+        <div className="mx-auto max-w-6xl">
+          <motion.div {...fadeUp} className="text-center mb-14">
+            <Badge variant="outline" className="mb-4 rounded-full border-white/10">How it works</Badge>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Live in 4 steps</h2>
+            <p className="mt-4 text-muted-foreground text-lg">From zero to fully booked — no tech skills needed.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {howItWorks.map((s, i) => (
+              <motion.div
+                key={s.step}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="relative"
+              >
+                <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:border-primary/30 transition-colors duration-300">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="h-11 w-11 rounded-2xl bg-primary/10 border border-primary/15 flex items-center justify-center">
+                        <s.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-4xl font-bold text-white/[0.07] tracking-tight tabular-nums select-none">
+                        {s.step}
+                      </span>
+                    </div>
+                    <p className="font-semibold text-base">{s.title}</p>
+                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{s.desc}</p>
+                  </CardContent>
+                </Card>
+                {i < howItWorks.length - 1 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-3 w-4 h-px bg-gradient-to-r from-white/20 to-transparent z-10" />
+                )}
               </motion.div>
             ))}
           </div>
@@ -451,6 +700,35 @@ export default function Landing() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="px-6 py-20 md:py-28">
+        <div className="mx-auto max-w-3xl">
+          <motion.div {...fadeUp} className="text-center mb-12">
+            <Badge variant="outline" className="mb-4 rounded-full border-white/10">FAQ</Badge>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Questions, answered</h2>
+          </motion.div>
+
+          <motion.div {...fadeUp}>
+            <Accordion type="single" collapsible className="space-y-3">
+              {faqs.map((f, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="rounded-2xl border border-white/[0.08] bg-card/60 backdrop-blur-sm px-5 data-[state=open]:border-primary/25 transition-colors"
+                >
+                  <AccordionTrigger className="text-left text-[15px] font-semibold hover:no-underline py-5">
+                    {f.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5">
+                    {f.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
         </div>
       </section>
 

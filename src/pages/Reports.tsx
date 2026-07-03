@@ -37,13 +37,17 @@ import {
   ArrowUpRight,
   CalendarDays,
   ChevronRight,
+  Clock,
   Crown,
   DollarSign,
   Download,
+  Flame,
+  Lightbulb,
   Lock,
   Scissors,
   Sparkles,
   Star,
+  TrendingUp,
   Users,
   X,
 } from "lucide-react";
@@ -267,16 +271,25 @@ const Reports = () => {
       count: appointments.filter(a => new Date(`${a.appointment_date}T00:00:00`).getDay() === dow).length,
     }));
 
+    const hourlyDemand = Array.from({ length: 13 }, (_, i) => i + 8).map(hour => ({
+      hour: hour <= 12 ? `${hour}${hour === 12 ? "pm" : "am"}` : `${hour - 12}pm`,
+      count: appointments.filter(a => parseInt((a.appointment_time || "0").split(":")[0], 10) === hour).length,
+    }));
+    const peakHour = hourlyDemand.reduce((best, h) => (h.count > best.count ? h : best), hourlyDemand[0]);
+
     const half = Math.floor(revenueTrend.length / 2);
     const firstHalf = revenueTrend.slice(0, half).reduce((s, r) => s + r.revenue, 0);
     const secondHalf = revenueTrend.slice(half).reduce((s, r) => s + r.revenue, 0);
     const revenueDelta = firstHalf > 0 ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100) : 0;
+
+    const busiestDay = dayOfWeekDemand.reduce((best, d) => (d.count > best.count ? d : best), dayOfWeekDemand[0]);
 
     return {
       totalRevenue, totalAppointments: appointments.length, totalCustomers,
       averageTicket, completionRate, completedAppointments: completed,
       scheduledAppointments: scheduled, cancelledAppointments: cancelled,
       revenueTrend, serviceBreakdown, stylistPerformance, statusBreakdown, dayOfWeekDemand,
+      hourlyDemand, peakHour, busiestDay,
       activeServices: services.length, activeStylists: stylists.length, revenueDelta,
     };
   }, [data]);
@@ -491,6 +504,37 @@ const Reports = () => {
                 </Card>
               </motion.section>
 
+              {/* Smart insights */}
+              {analytics.totalAppointments > 0 && (
+                <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <InsightCard
+                    index={0}
+                    icon={<Flame className="w-4 h-4" strokeWidth={2.3} />}
+                    tint={iOS.orange}
+                    title="Busiest day"
+                    text={`${analytics.busiestDay?.day ?? "—"} is your hottest day with ${analytics.busiestDay?.count ?? 0} bookings. Consider premium pricing.`}
+                  />
+                  <InsightCard
+                    index={1}
+                    icon={<Clock className="w-4 h-4" strokeWidth={2.3} />}
+                    tint={iOS.blue}
+                    title="Peak hour"
+                    text={`Most clients book around ${analytics.peakHour?.hour ?? "—"}. Keep your best stylists on that slot.`}
+                  />
+                  <InsightCard
+                    index={2}
+                    icon={<TrendingUp className="w-4 h-4" strokeWidth={2.3} />}
+                    tint={analytics.revenueDelta >= 0 ? iOS.green : iOS.pink}
+                    title={analytics.revenueDelta >= 0 ? "Trending up" : "Trending down"}
+                    text={
+                      analytics.revenueDelta >= 0
+                        ? `Revenue is up ${analytics.revenueDelta}% vs the first half of this period. Keep it rolling.`
+                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}% — try a reminder blast or promo on slow days.`
+                    }
+                  />
+                </section>
+              )}
+
               {/* KPI grid */}
               <section className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                 <KpiTile index={0} loading={isLoading}
@@ -603,6 +647,33 @@ const Reports = () => {
                   )}
                 </SectionCard>
               </section>
+
+              {/* Peak hours */}
+              <SectionCard title="Peak hours" subtitle="When your chair fills up" delay={0.12}>
+                {analytics.hourlyDemand.every((h) => h.count === 0) ? (
+                  <EmptyMini />
+                ) : (
+                  <ChartContainer
+                    config={{ count: { label: "Bookings", color: iOS.blue } }}
+                    className="h-[170px] w-full aspect-auto"
+                  >
+                    <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="28%">
+                      <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
+                      <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }} interval={1} />
+                      <YAxis hide />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="count" radius={[10, 10, 10, 10]} animationDuration={1000}>
+                        {analytics.hourlyDemand.map((entry, i) => {
+                          const max = Math.max(...analytics.hourlyDemand.map((h) => h.count), 1);
+                          const isPeak = entry.hour === analytics.peakHour?.hour && entry.count > 0;
+                          const opacity = 0.3 + (entry.count / max) * 0.7;
+                          return <Cell key={i} fill={isPeak ? iOS.rose : `rgba(10,132,255,${opacity})`} />;
+                        })}
+                      </Bar>
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </SectionCard>
 
               {/* Top services */}
               <SectionCard title="Top services" subtitle="Most booked in this period" delay={0.15}>
@@ -925,6 +996,40 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
         </div>
       )}
     </SectionCard>
+  );
+}
+
+function InsightCard({ icon, tint, title, text, index = 0 }: {
+  icon: React.ReactNode; tint: string; title: string; text: string; index?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: 0.08 * index, ...springSoft }}
+      whileHover={{ y: -2 }}
+      className="relative overflow-hidden rounded-[18px] bg-[#15151A] border border-white/[0.08] p-5"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-30 blur-2xl"
+        style={{ background: `radial-gradient(circle, ${tint}55 0%, transparent 70%)` }}
+      />
+      <div className="relative flex items-center gap-2.5 mb-2.5">
+        <div
+          className="w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${tint}20`, color: tint }}
+        >
+          {icon}
+        </div>
+        <div className="inline-flex items-center gap-1.5">
+          <Lightbulb className="w-3 h-3 text-[#8E8E93]" strokeWidth={2.3} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Insight</span>
+        </div>
+      </div>
+      <p className="relative text-[15px] font-bold text-white tracking-tight">{title}</p>
+      <p className="relative text-[12px] text-[#8E8E93] mt-1 leading-relaxed">{text}</p>
+    </motion.div>
   );
 }
 
