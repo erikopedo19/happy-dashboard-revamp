@@ -301,7 +301,7 @@ const Stylists = () => {
                               <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
+                          <div className="flex flex-col gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition">
                             <button onClick={() => handleEditClick(stylist)} className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]">
                               <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
                             </button>
@@ -449,19 +449,20 @@ const Stylists = () => {
 
       {/* Create Stylist Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Add New Stylist</DialogTitle>
             <DialogDescription>Add a new stylist to your salon team</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Stylist Name</Label>
+              <Label htmlFor="name">Stylist Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., John Smith"
+                className="rounded-[12px]"
               />
             </div>
             <div>
@@ -471,6 +472,7 @@ const Stylists = () => {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Senior Stylist"
+                className="rounded-[12px]"
               />
             </div>
             <div>
@@ -480,12 +482,13 @@ const Stylists = () => {
                 value={formData.specialties}
                 onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                 placeholder="e.g., Coloring, Cutting, Styling (comma separated)"
+                className="rounded-[12px]"
               />
             </div>
             <div>
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-[12px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -497,10 +500,10 @@ const Stylists = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-[12px]">
               Cancel
             </Button>
-            <Button onClick={handleCreateStylist} disabled={!formData.name}>
+            <Button onClick={handleCreateStylist} disabled={!formData.name} className="rounded-[12px]">
               Add Stylist
             </Button>
           </DialogFooter>
@@ -509,18 +512,19 @@ const Stylists = () => {
 
       {/* Edit Stylist Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Stylist</DialogTitle>
             <DialogDescription>Update stylist information</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-name">Stylist Name</Label>
+              <Label htmlFor="edit-name">Stylist Name *</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="rounded-[12px]"
               />
             </div>
             <div>
@@ -529,6 +533,7 @@ const Stylists = () => {
                 id="edit-title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="rounded-[12px]"
               />
             </div>
             <div>
@@ -538,12 +543,13 @@ const Stylists = () => {
                 value={formData.specialties}
                 onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                 placeholder="Comma separated list"
+                className="rounded-[12px]"
               />
             </div>
             <div>
               <Label htmlFor="edit-status">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-[12px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -555,10 +561,10 @@ const Stylists = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-[12px]">
               Cancel
             </Button>
-            <Button onClick={handleUpdateStylist} disabled={!formData.name}>
+            <Button onClick={handleUpdateStylist} disabled={!formData.name} className="rounded-[12px]">
               Update Stylist
             </Button>
           </DialogFooter>

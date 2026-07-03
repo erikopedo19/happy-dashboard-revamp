@@ -48,6 +48,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [serviceId, setServiceId] = useState("");
+  const [stylistId, setStylistId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
@@ -81,6 +82,23 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   });
 
   const services = providedServices ?? fetchedServices;
+
+  // Fetch stylists
+  const { data: stylists = [] } = useQuery<any[]>({
+    queryKey: ['stylists', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from('stylists')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   // Fetch user profile for business info
   const { data: profile } = useQuery<any>({
@@ -193,6 +211,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       });
       return;
     }
+    if (!stylistId) {
+      toast({
+        title: "Select a stylist",
+        description: "Please choose a stylist before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!selectedTimeSlot) {
       toast({
         title: "Select a time",
@@ -227,10 +253,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !selectedService || !selectedTimeSlot || !customerName) {
+    if (!user || !selectedService || !selectedTimeSlot || !customerName || !stylistId) {
       toast({
         title: "Missing information",
-        description: "Please complete the service, time, and customer details before booking.",
+        description: "Please complete the service, stylist, time, and customer details before booking.",
         variant: "destructive",
       });
       return;
@@ -324,6 +350,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         .insert({
           customer_id: customerId,
           service_id: validSelectedService.id,
+          stylist_id: stylistId,
           appointment_date: format(selectedDateObj, 'yyyy-MM-dd'),
           appointment_time: normalizedSelectedTime,
           price: validSelectedService.price,
@@ -381,6 +408,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     setCustomerEmail("");
     setNotes("");
     setServiceId("");
+    setStylistId("");
     setCurrentMonth(new Date(selectedDate));
     onClose();
   };
@@ -571,6 +599,44 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                           <p className="font-bold text-white">${service.price}</p>
                         </button>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stylist Selection */}
+                {selectedService && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-400 mb-3">Select Stylist *</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {stylists.length === 0 ? (
+                        <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-center">
+                          <p className="text-sm text-rose-400">No stylists available. Please add a stylist first.</p>
+                        </div>
+                      ) : (
+                        stylists.map((stylist: any) => (
+                          <button
+                            key={stylist.id}
+                            onClick={() => setStylistId(stylist.id)}
+                            className={cn(
+                              "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                              stylistId === stylist.id
+                                ? "border-[#0A84FF] bg-white/[0.06]"
+                                : "border-white/[0.06] hover:border-gray-600"
+                            )}
+                          >
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm">
+                              {stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-white">{stylist.name}</p>
+                              <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
+                            </div>
+                            {stylistId === stylist.id && (
+                              <Check className="w-5 h-5 text-[#0A84FF]" />
+                            )}
+                          </button>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
