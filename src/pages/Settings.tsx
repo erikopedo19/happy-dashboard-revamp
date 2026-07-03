@@ -24,7 +24,6 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RoseGradientButton } from "@/components/RoseGradientButton";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -432,10 +431,7 @@ const Settings = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0c0c0c] text-[#F2F2F7] overflow-hidden relative">
-
-        {/* Ambient aurora backdrop */}
-        <div className="pointer-events-none absolute inset-0 bg-aurora-soft opacity-90 dark:opacity-60" />
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] text-[#1C1C1E] dark:text-[#F2F2F7] overflow-hidden relative">
         <AppSidebar />
 
         <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -447,7 +443,7 @@ const Settings = () => {
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-[17px] md:text-2xl font-semibold text-aurora truncate"
+                  className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate"
                 >
                   Settings
                 </motion.h1>
@@ -459,7 +455,7 @@ const Settings = () => {
                   size="sm"
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending || isLoading}
-                  className="rounded-full h-9 px-5 bg-aurora-animated text-white font-semibold border-0 shadow-aurora hover:opacity-95"
+                  className="rounded-full h-9 px-5 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
                 >
                   {saveMutation.isPending ? (
                     <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
@@ -1016,20 +1012,16 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <Card className="rounded-3xl border-white/60 dark:border-white/5 shadow-aurora bg-white dark:bg-[#1C1C1E] overflow-hidden">
-                    <div className="bg-aurora-animated p-6 text-white relative overflow-hidden">
-                      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-3xl" />
-                      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
-                      <div className="relative">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Sparkles className="w-4 h-4 text-white/90" />
-                          <span className="text-sm font-medium text-white/90">Live agenda preview</span>
-                        </div>
-                        <h3 className="text-xl font-semibold">Your saved schedule</h3>
-                        <p className="text-sm text-white/80 mt-1">
-                          These values are used by the agenda and booking availability.
-                        </p>
+                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm">
+                    <div className="bg-[#1C1C1E] dark:bg-[#2C2C2E] p-6 text-white">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calendar className="w-4 h-4 text-[#F2F2F7]/80" />
+                        <span className="text-sm font-medium text-[#F2F2F7]/80">Live agenda preview</span>
                       </div>
+                      <h3 className="text-xl font-semibold text-white">Your saved schedule</h3>
+                      <p className="text-sm text-[#F2F2F7]/70 mt-1">
+                        These values are used by the agenda and booking availability.
+                      </p>
                     </div>
 
                     <CardContent className="p-6 space-y-5">

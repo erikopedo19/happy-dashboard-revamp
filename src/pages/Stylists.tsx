@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -273,12 +274,16 @@ const Stylists = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {filteredStylists.map((stylist) => {
+                  {filteredStylists.map((stylist, index) => {
                     const initials = stylist.name
                       .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
                     return (
-                      <div
+                      <motion.div
                         key={stylist.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05, type: "spring", stiffness: 380, damping: 30 }}
+                        whileTap={{ scale: 0.98 }}
                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, stylist }); }}
                         className="group relative rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-5"
                       >
@@ -323,7 +328,7 @@ const Stylists = () => {
                             )}
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -449,46 +454,46 @@ const Stylists = () => {
 
       {/* Create Stylist Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add New Stylist</DialogTitle>
-            <DialogDescription>Add a new stylist to your salon team</DialogDescription>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[24px] p-0 border-0 bg-white dark:bg-[#1C1C1E] shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-4">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-lg">Add New Stylist</DialogTitle>
+            <DialogDescription className="text-[#8E8E93]">Add a new stylist to your salon team</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 px-6">
             <div>
-              <Label htmlFor="name">Stylist Name *</Label>
+              <Label htmlFor="name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., John Smith"
-                className="rounded-[12px]"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="title">Title/Position</Label>
+              <Label htmlFor="title" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Title/Position</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Senior Stylist"
-                className="rounded-[12px]"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="specialties">Specialties</Label>
+              <Label htmlFor="specialties" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Specialties</Label>
               <Input
                 id="specialties"
                 value={formData.specialties}
                 onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                 placeholder="e.g., Coloring, Cutting, Styling (comma separated)"
-                className="rounded-[12px]"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger className="rounded-[12px]">
+                <SelectTrigger className="rounded-[12px] h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -499,11 +504,11 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-[12px]">
+          <DialogFooter className="px-6 pb-6 pt-2 gap-2">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-[12px] h-12 flex-1">
               Cancel
             </Button>
-            <Button onClick={handleCreateStylist} disabled={!formData.name} className="rounded-[12px]">
+            <Button onClick={handleCreateStylist} disabled={!formData.name} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
               Add Stylist
             </Button>
           </DialogFooter>
@@ -512,44 +517,44 @@ const Stylists = () => {
 
       {/* Edit Stylist Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Stylist</DialogTitle>
-            <DialogDescription>Update stylist information</DialogDescription>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[24px] p-0 border-0 bg-white dark:bg-[#1C1C1E] shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-4">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-lg">Edit Stylist</DialogTitle>
+            <DialogDescription className="text-[#8E8E93]">Update stylist information</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 px-6">
             <div>
-              <Label htmlFor="edit-name">Stylist Name *</Label>
+              <Label htmlFor="edit-name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="rounded-[12px]"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="edit-title">Title/Position</Label>
+              <Label htmlFor="edit-title" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Title/Position</Label>
               <Input
                 id="edit-title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="rounded-[12px]"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="edit-specialties">Specialties</Label>
+              <Label htmlFor="edit-specialties" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Specialties</Label>
               <Input
                 id="edit-specialties"
                 value={formData.specialties}
                 onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                 placeholder="Comma separated list"
-                className="rounded-[12px]"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="edit-status">Status</Label>
+              <Label htmlFor="edit-status" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger className="rounded-[12px]">
+                <SelectTrigger className="rounded-[12px] h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -560,11 +565,11 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-[12px]">
+          <DialogFooter className="px-6 pb-6 pt-2 gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-[12px] h-12 flex-1">
               Cancel
             </Button>
-            <Button onClick={handleUpdateStylist} disabled={!formData.name} className="rounded-[12px]">
+            <Button onClick={handleUpdateStylist} disabled={!formData.name} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
               Update Stylist
             </Button>
           </DialogFooter>

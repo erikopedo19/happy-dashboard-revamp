@@ -85,21 +85,21 @@ export function MessageTemplates() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-card border-border rounded-2xl">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
+    <div className="space-y-5">
+      <Card className="rounded-[20px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-[12px] bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center">
+                <Mail className="h-5 w-5 text-[#0A84FF]" />
               </div>
               <div>
-                <CardTitle className="text-foreground">Confirmation messages</CardTitle>
-                <CardDescription>Customize the email and SMS sent on every new booking.</CardDescription>
+                <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-base">Confirmation messages</CardTitle>
+                <CardDescription className="text-[#8E8E93] text-xs">Email sent on every new booking.</CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Label htmlFor="enabled" className="text-sm text-muted-foreground">Send</Label>
+              <Label htmlFor="enabled" className="text-sm text-[#8E8E93]">Send</Label>
               <Switch
                 id="enabled"
                 checked={form.enabled}
@@ -108,41 +108,22 @@ export function MessageTemplates() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-xs text-muted-foreground">Available placeholders:</p>
-          <div className="flex flex-wrap gap-2">
-            {PLACEHOLDERS.map((p) => (
-              <Badge key={p} variant="outline" className="rounded-full border-border bg-secondary text-xs font-mono">
-                {p}
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card border-border rounded-2xl">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base text-foreground">Email</CardTitle>
-          </div>
-        </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-sm text-muted-foreground mb-2 block">Subject</Label>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] mb-2 block">Email subject</Label>
             <Input
               value={form.email_subject}
               onChange={(e) => setForm({ ...form, email_subject: e.target.value })}
-              className="rounded-xl bg-background border-border h-11"
+              className="rounded-[12px] bg-[#F2F2F7] dark:bg-[#2C2C2E] border-0 h-12"
             />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm text-muted-foreground">Body</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93]">Email body</Label>
               <div className="flex gap-1">
                 {["{{customerName}}", "{{serviceName}}", "{{appointmentDate}}"].map((p) => (
                   <Button key={p} type="button" size="sm" variant="ghost"
-                    className="h-7 text-xs font-mono text-muted-foreground hover:text-foreground"
+                    className="h-7 text-xs font-mono text-[#8E8E93] hover:text-[#0A84FF]"
                     onClick={() => insert(p, "email_body")}>+ {p.replace(/[{}]/g, "")}</Button>
                 ))}
               </div>
@@ -150,56 +131,47 @@ export function MessageTemplates() {
             <Textarea
               value={form.email_body}
               onChange={(e) => setForm({ ...form, email_body: e.target.value })}
-              rows={9}
-              className="rounded-xl bg-background border-border font-mono text-sm"
+              rows={6}
+              className="rounded-[12px] bg-[#F2F2F7] dark:bg-[#2C2C2E] border-0 font-mono text-sm"
             />
           </div>
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] mb-2 block">SMS message</Label>
+            <Textarea
+              value={form.sms_body}
+              onChange={(e) => setForm({ ...form, sms_body: e.target.value })}
+              rows={3}
+              maxLength={320}
+              className="rounded-[12px] bg-[#F2F2F7] dark:bg-[#2C2C2E] border-0 font-mono text-sm"
+            />
+            <p className="text-xs text-[#8E8E93] mt-2">{form.sms_body.length}/320 characters</p>
+          </div>
           <div className="flex items-center gap-3">
-            <Label className="text-sm text-muted-foreground">Accent color</Label>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93]">Accent color</Label>
             <input
               type="color"
               value={form.accent_color}
               onChange={(e) => setForm({ ...form, accent_color: e.target.value })}
-              className="h-10 w-14 rounded-lg border border-border bg-transparent cursor-pointer"
+              className="h-10 w-14 rounded-[10px] border-0 bg-transparent cursor-pointer"
             />
             <Input
               value={form.accent_color}
               onChange={(e) => setForm({ ...form, accent_color: e.target.value })}
-              className="w-32 rounded-xl bg-background border-border h-10"
+              className="w-32 rounded-[12px] bg-[#F2F2F7] dark:bg-[#2C2C2E] border-0 h-10"
             />
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card border-border rounded-2xl">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base text-foreground">SMS</CardTitle>
+          <div className="flex justify-end pt-2">
+            <Button
+              onClick={() => save.mutate()}
+              disabled={save.isPending}
+              className="rounded-[12px] bg-[#0A84FF] hover:bg-[#0066d6] text-white gap-2 h-12"
+            >
+              {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save templates
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Textarea
-            value={form.sms_body}
-            onChange={(e) => setForm({ ...form, sms_body: e.target.value })}
-            rows={4}
-            maxLength={320}
-            className="rounded-xl bg-background border-border font-mono text-sm"
-          />
-          <p className="text-xs text-muted-foreground">{form.sms_body.length}/320 characters · Brevo SMS credits required.</p>
         </CardContent>
       </Card>
-
-      <div className="flex justify-end">
-        <Button
-          onClick={() => save.mutate()}
-          disabled={save.isPending}
-          className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-        >
-          {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Save templates
-        </Button>
-      </div>
     </div>
   );
 }
