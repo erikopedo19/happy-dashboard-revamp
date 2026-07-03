@@ -570,8 +570,69 @@ const Settings = () => {
 
                         <CardContent className="space-y-6">
                           <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-3 block">
-                              Slot duration
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Working days
+                            </Label>
+                            <div className="flex flex-wrap gap-2">
+                              {weekDays.map((day) => {
+                                const active = agendaForm.working_days.includes(day.value);
+
+                                return (
+                                  <button
+                                    key={day.value}
+                                    type="button"
+                                    onClick={() => toggleWorkingDay(day.value)}
+                                    className={cn(
+                                      "min-w-[4.25rem] flex-1 rounded-[12px] border px-3 py-3 text-center transition-all",
+                                      active
+                                        ? "border-[#0A84FF] bg-[#0A84FF] text-white shadow-sm"
+                                        : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
+                                    )}
+                                  >
+                                    <span className="text-sm font-semibold">{day.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Working hours
+                            </Label>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <Input
+                                  type="time"
+                                  value={agendaForm.start_hour}
+                                  onChange={(e) =>
+                                    setAgendaForm((prev) => ({ ...prev, start_hour: e.target.value }))
+                                  }
+                                  className="h-14 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-center text-lg font-medium"
+                                />
+                                <p className="text-[11px] text-[#8E8E93] text-center mt-1.5">Opens</p>
+                              </div>
+                              <span className="text-[#8E8E93] font-medium">to</span>
+                              <div className="flex-1">
+                                <Input
+                                  type="time"
+                                  value={agendaForm.end_hour}
+                                  onChange={(e) =>
+                                    setAgendaForm((prev) => ({ ...prev, end_hour: e.target.value }))
+                                  }
+                                  className="h-14 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-center text-lg font-medium"
+                                />
+                                <p className="text-[11px] text-[#8E8E93] text-center mt-1.5">Closes</p>
+                              </div>
+                            </div>
+                            {!hasValidHours && (
+                              <p className="text-xs text-red-500 mt-2 text-center">Closing time must be later than opening time.</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Appointment slot
                             </Label>
                             <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                               {serviceDurationOptions.map((duration) => (
@@ -582,9 +643,9 @@ const Settings = () => {
                                     setAgendaForm((prev) => ({ ...prev, service_duration: duration }))
                                   }
                                   className={cn(
-                                    "h-11 rounded-2xl border text-sm font-medium transition-all",
+                                    "h-12 rounded-[12px] border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                      ? "bg-[#0A84FF] text-white border-[#0A84FF] shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >
@@ -593,41 +654,6 @@ const Settings = () => {
                               ))}
                             </div>
                           </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                                Opens at
-                              </Label>
-                              <Input
-                                type="time"
-                                value={agendaForm.start_hour}
-                                onChange={(e) =>
-                                  setAgendaForm((prev) => ({ ...prev, start_hour: e.target.value }))
-                                }
-                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                                Closes at
-                              </Label>
-                              <Input
-                                type="time"
-                                value={agendaForm.end_hour}
-                                onChange={(e) =>
-                                  setAgendaForm((prev) => ({ ...prev, end_hour: e.target.value }))
-                                }
-                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                              />
-                            </div>
-                          </div>
-
-                          {!hasValidHours && (
-                            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                              Closing time must be later than opening time.
-                            </div>
-                          )}
 
                           <Separator />
 

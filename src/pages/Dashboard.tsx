@@ -3,6 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDock } from "@/components/MobileDock";
+import { OnboardingSetup } from "@/components/OnboardingSetup";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,13 +20,38 @@ const db = supabase as any;
 
 const Dashboard = () => {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await db
+        .from("profiles")
+        .select("id, onboarding_completed")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const showOnboarding = profile && profile.onboarding_completed === false;
+
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full bg-[#0A0A0C] overflow-hidden font-geist">
         <AppSidebar />
         <main className="relative flex-1 bg-[#0A0A0C] text-white flex flex-col overflow-hidden">
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
-            {isMobile ? <MobileDashboard /> : <DashboardContent />}
+            {showOnboarding ? (
+              <OnboardingSetup onComplete={() => {}} />
+            ) : isMobile ? (
+              <MobileDashboard />
+            ) : (
+              <DashboardContent />
+            )}
           </div>
         </main>
       </div>
