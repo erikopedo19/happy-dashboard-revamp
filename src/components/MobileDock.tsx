@@ -79,11 +79,12 @@ export const MobileDockInner = () => {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                aria-label="More"
+                aria-label="More Options"
                 className="flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-2 text-[#8E8E93] transition-transform active:scale-95 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
               >
                 <MoreHorizontal className="h-5 w-5" />
-                <span className="text-[10px] font-medium">More</span>
+                <span className="text-[10px] font-medium">More Options</span>
+
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 mb-2">
