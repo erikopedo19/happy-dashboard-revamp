@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { Seo } from "@/components/Seo";
 
 type SoloShop = {
   kind: "solo";
@@ -152,6 +153,11 @@ const FindBarbershop = () => {
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-32">
+      <Seo
+        title="Find Barbershops Near You — Cutzioo"
+        description="Browse nearby barbershops by location, rating, and shop type. Book your next haircut in seconds with Cutzioo."
+        path="/find-barbershop"
+      />
       <div className="sticky top-0 z-40 border-b border-black/5 bg-white/85 backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/85">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:py-5">
           <div className="flex flex-col gap-4">
