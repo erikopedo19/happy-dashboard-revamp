@@ -119,6 +119,17 @@ const iOS = {
   yellow: "#FFD60A",
   grey: "#8E8E93",
   card: "#1C1C1E",
+  cardDark: "#000000",
+  surface: "#2C2C2E",
+  surfaceDark: "#1C1C1E",
+  glass: "rgba(255, 255, 255, 0.05)",
+  glassBorder: "rgba(255, 255, 255, 0.1)",
+  textPrimary: "#FFFFFF",
+  textSecondary: "#98989F",
+  accent: "#007AFF",
+  success: "#34C759",
+  warning: "#FF9500",
+  error: "#FF3B30",
 };
 
 const AVATAR_TINTS = [iOS.rose, iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.yellow];
@@ -787,19 +798,21 @@ function SectionCard({ title, subtitle, children, delay = 0 }: {
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: "spring", stiffness: 380, damping: 30 }}
+      transition={{ delay, type: "spring", stiffness: 400, damping: 28 }}
     >
-      <Card className="rounded-[20px] border-0 bg-[#15151A] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-        <CardContent className="p-5 md:p-6">
-          <div className="mb-5">
-            <h3 className="text-base font-semibold text-white tracking-tight">{title}</h3>
-            {subtitle && <p className="text-xs text-[#8E8E93] mt-1">{subtitle}</p>}
+      <div className="relative">
+        {/* Glassmorphic background */}
+        <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-[iOS.surfaceDark] to-[iOS.cardDark] border border-[iOS.glassBorder] backdrop-blur-xl shadow-[0_24px_48px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.05)]" />
+        <div className="relative p-6 md:p-8">
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-[iOS.textPrimary] tracking-tight">{title}</h3>
+            {subtitle && <p className="text-sm text-[iOS.textSecondary] mt-2">{subtitle}</p>}
           </div>
           {children}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -810,40 +823,55 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.07, type: "spring", stiffness: 400, damping: 28 }}
-      whileTap={{ scale: 0.96 }}
-      whileHover={{ y: -2 }}
+      transition={{ delay: index * 0.08, type: "spring", stiffness: 420, damping: 30 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative"
     >
-      <Card className="rounded-[16px] border-0 bg-[#15151A] h-full shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
-        <CardContent className="p-4">
-          <div
-            className="w-9 h-9 rounded-[12px] flex items-center justify-center mb-3"
-            style={{ backgroundColor: `${tint}18`, color: tint }}
+      {/* Glassmorphic background */}
+      <div className="absolute inset-0 rounded-[24px] bg-gradient-to-br from-[iOS.glass] to-[iOS.surfaceDark] border border-[iOS.glassBorder] backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.03)]" />
+      <div className="relative p-6 h-full">
+        <div className="flex items-start justify-between mb-4">
+          <div 
+            className="w-12 h-12 rounded-[16px] flex items-center justify-center"
+            style={{ 
+              background: `linear-gradient(135deg, ${tint}20, ${tint}10)`,
+              color: tint,
+              boxShadow: `0 4px 16px ${tint}30`
+            }}
           >
             {icon}
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">{label}</p>
-          {loading ? (
-            <Skeleton className="h-7 w-20 mt-1 bg-white/10" />
-          ) : (
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={value}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25 }}
-                className="text-xl md:text-2xl font-bold text-white mt-1 tabular-nums tracking-tight"
-              >
+          <motion.div
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="opacity-60"
+          >
+            <Activity className="w-5 h-5 text-[iOS.textSecondary]" />
+          </motion.div>
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[iOS.textSecondary] mb-2">{label}</p>
+        {loading ? (
+          <div className="h-8 w-24 bg-[iOS.glass] rounded-[12px] animate-pulse" />
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={value}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
+            >
+              <p className="text-2xl md:text-3xl font-bold text-[iOS.textPrimary] tabular-nums tracking-tight">
                 {value}
-              </motion.p>
-            </AnimatePresence>
-          )}
-          <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
-        </CardContent>
-      </Card>
+              </p>
+              <p className="text-xs text-[iOS.textSecondary] mt-1">{hint}</p>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
     </motion.div>
   );
 }
