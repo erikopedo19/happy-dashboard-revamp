@@ -17,6 +17,8 @@ import {
   Scissors,
   Moon,
   Sun,
+  Search,
+  ArrowRight,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -607,6 +609,50 @@ const Settings = () => {
                           </div>
                         </CardContent>
                       </Card>
+
+                      {/* Find Barber action card */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                      >
+                        <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
+                          <CardHeader>
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                                <Search className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Find a barber</CardTitle>
+                                <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                                  Switch to client mode and discover barbers near you.
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <Button
+                              type="button"
+                              disabled={switchingRole}
+                              onClick={() => setRole(role === "client" ? "barber" : "client")}
+                              className={cn(
+                                "w-full h-12 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] disabled:opacity-60",
+                                role === "client"
+                                  ? "bg-[#1C1C1E] hover:bg-[#000000] text-white shadow-black/20"
+                                  : "bg-[#9f1239] hover:bg-[#881337] text-white shadow-rose-900/20"
+                              )}
+                            >
+                              {switchingRole ? (
+                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              ) : (
+                                <>{role === "client" ? <Scissors className="w-5 h-5 mr-2" /> : <Search className="w-5 h-5 mr-2" />}</>
+                              )}
+                              {role === "client" ? "Switch to barber mode" : "Switch to client & find barber"}
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
 
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
