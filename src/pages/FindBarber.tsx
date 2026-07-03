@@ -32,6 +32,7 @@ import { QuickBookSheet } from "@/components/QuickBookSheet";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { Seo } from "@/components/Seo";
 
 interface BarberProfile {
   id: string;
@@ -174,6 +175,11 @@ const FindBarber = () => {
 
   return (
     <div className="relative min-h-screen bg-[#FAF7F5] dark:bg-[#0c0c0c] pb-28 overflow-hidden">
+      <Seo
+        title="Cutzio — Find Your Next Barber"
+        description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
+        path="/find-barber"
+      />
       {/* Animated ambient liquid-glass blobs */}
       <motion.div
         aria-hidden
@@ -204,7 +210,7 @@ const FindBarber = () => {
               transition={spring}
               className="font-serif text-[26px] leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]"
             >
-              Discover<span className="italic text-rose-500">.</span>
+              Cutzio — Find Your Next Barber<span className="italic text-rose-500">.</span>
             </motion.h1>
             <Link to="/settings">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm hover:scale-95 transition-transform">

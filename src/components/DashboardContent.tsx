@@ -18,13 +18,13 @@ import { motion } from "framer-motion";
 const db = supabase as any;
 
 // Noir Rose palette
-const BG = "#0b0b0d";
-const SURFACE = "#141417";
-const SURFACE_2 = "#0f0306";
-const BORDER = "rgba(255,255,255,0.05)";
-const ROSE = "#e11d48";
-const ROSE_SOFT = "#f43f5e";
-const BLUE = "#3b82f6";
+const BG = "#0A0A0C";
+const SURFACE = "#15151A";
+const SURFACE_2 = "#22222A";
+const BORDER = "rgba(255,255,255,0.08)";
+const ROSE = "#FF375F";
+const ROSE_SOFT = "#FF6B95";
+const BLUE = "#0A84FF";
 const TEXT_DIM = "rgba(255,255,255,0.45)";
 
 const tooltipStyle = {
@@ -183,7 +183,7 @@ export function DashboardContent() {
   }, [appointments]);
 
   return (
-    <div className="h-full overflow-auto bg-transparent text-white font-['Manrope']">
+    <div className="h-full overflow-auto bg-transparent text-white font-geist">
       <div className="px-4 sm:px-6 lg:px-10 py-6 sm:py-10 pb-32 sm:pb-10 max-w-[1500px] mx-auto space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex items-end justify-between gap-3">
@@ -191,13 +191,13 @@ export function DashboardContent() {
             <p className="text-[10px] sm:text-xs uppercase tracking-[0.18em] font-semibold text-white/40 truncate">
               {format(new Date(), 'EEEE, MMMM d')}
             </p>
-            <h1 className="text-[26px] sm:text-[34px] font-bold tracking-tight text-white mt-1 leading-none font-['Sora']">
+            <h1 className="text-[26px] sm:text-[34px] font-bold tracking-tight text-white mt-1 leading-none font-geist-mono">
               Dashboard
             </h1>
           </div>
           <Button
             onClick={() => navigate('/agenda')}
-            className="h-10 rounded-full bg-[#e11d48] hover:bg-[#e11d48]/90 text-white shadow-lg shadow-[#e11d48]/20 px-4 sm:px-5 font-semibold text-sm shrink-0"
+            className="h-10 rounded-full bg-[#FF375F] hover:bg-[#FF375F]/90 text-white shadow-lg shadow-[#FF375F]/20 px-4 sm:px-5 font-semibold text-sm shrink-0"
           >
             <Plus className="h-4 w-4 sm:mr-1.5" strokeWidth={2.5} />
             <span className="hidden sm:inline">New booking</span>
@@ -227,7 +227,7 @@ export function DashboardContent() {
               <div>
                 <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Last 30 days</p>
                 <div className="flex items-baseline gap-3 mt-1.5">
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-['Sora']">
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-geist-mono">
                     €{stats.last30Revenue.toFixed(0)}
                   </h2>
                   <DeltaPill value={stats.revenueTrend} />
@@ -237,12 +237,7 @@ export function DashboardContent() {
             </div>
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart data={stats.days30} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="rev30" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={ROSE} stopOpacity={0.45} />
-                    <stop offset="100%" stopColor={ROSE} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+                
                 <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis dataKey="day" stroke={TEXT_DIM} fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke={TEXT_DIM} fontSize={11} tickLine={false} axisLine={false} />
@@ -252,7 +247,7 @@ export function DashboardContent() {
                   labelFormatter={(_, p: any) => p?.[0]?.payload?.date || ''}
                   formatter={(v: any, name: any) => name === 'revenue' ? [`€${Number(v).toFixed(0)}`, 'Revenue'] : [v, 'Bookings']}
                 />
-                <Area type="monotone" dataKey="revenue" stroke={ROSE} strokeWidth={2.5} fill="url(#rev30)" />
+                <Area type="monotone" dataKey="revenue" stroke={ROSE} strokeWidth={2.5} fill="#FF375F" fillOpacity={0.08} />
                 <Line type="monotone" dataKey="bookings" stroke={BLUE} strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -266,7 +261,7 @@ export function DashboardContent() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Hourly demand</p>
-                  <h2 className="text-base font-semibold text-white mt-1">Busiest hour · <span className="text-[#e11d48]">{stats.busiestHour}</span></h2>
+                  <h2 className="text-base font-semibold text-white mt-1">Busiest hour · <span className="text-[#FF375F]">{stats.busiestHour}</span></h2>
                 </div>
                 <Clock className="h-4 w-4 text-white/40" />
               </div>
@@ -275,7 +270,7 @@ export function DashboardContent() {
                   <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="hour" stroke={TEXT_DIM} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}h`} />
                   <YAxis stroke={TEXT_DIM} fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: 'rgba(225,29,72,0.08)' }} contentStyle={tooltipStyle} formatter={(v: any) => [v, 'Bookings']} labelFormatter={(v) => `${v}:00`} />
+                  <Tooltip cursor={{ fill: 'rgba(255,55,95,0.08)' }} contentStyle={tooltipStyle} formatter={(v: any) => [v, 'Bookings']} labelFormatter={(v) => `${v}:00`} />
                   <Bar dataKey="count" fill={ROSE} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -305,7 +300,7 @@ export function DashboardContent() {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-2xl font-bold text-white font-['Sora']">{appointments.length}</span>
+                      <span className="text-2xl font-bold text-white font-geist-mono">{appointments.length}</span>
                       <span className="text-[10px] uppercase tracking-wider text-white/40">Total</span>
                     </div>
                   </div>
@@ -332,7 +327,7 @@ export function DashboardContent() {
             <div className="p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Week ahead</p>
-                <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#e11d48] hover:underline uppercase tracking-wider">
+                <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#FF375F] hover:underline uppercase tracking-wider">
                   Open agenda
                 </button>
               </div>
@@ -347,14 +342,14 @@ export function DashboardContent() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                       className={`rounded-2xl p-3 text-center ${
-                        d.isToday ? 'bg-[#e11d48] text-white shadow-lg shadow-[#e11d48]/20' : 'bg-[#0f0306] border border-white/5'
+                        d.isToday ? 'bg-[#FF375F] text-white shadow-lg shadow-[#FF375F]/20' : 'bg-[#22222A] border border-white/[0.08]'
                       }`}
-                      style={!d.isToday && d.count > 0 ? { background: `rgba(225,29,72,${0.05 + intensity * 0.18})` } : {}}
+                      style={!d.isToday && d.count > 0 ? { background: `rgba(255,55,95,${0.05 + intensity * 0.18})` } : {}}
                     >
                       <p className={`text-[10px] uppercase tracking-wider font-bold ${d.isToday ? 'text-white/80' : 'text-white/40'}`}>
                         {d.label}
                       </p>
-                      <p className={`text-xl sm:text-2xl font-bold tracking-tight mt-1 font-['Sora'] ${d.isToday ? 'text-white' : 'text-white'}`}>{d.count}</p>
+                      <p className={`text-xl sm:text-2xl font-bold tracking-tight mt-1 font-geist-mono ${d.isToday ? 'text-white' : 'text-white'}`}>{d.count}</p>
                     </motion.div>
                   );
                 })}
@@ -369,7 +364,7 @@ export function DashboardContent() {
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Upcoming</p>
                   <h2 className="text-base font-semibold text-white mt-1">{upcoming.length} scheduled</h2>
                 </div>
-                <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#e11d48] hover:underline uppercase tracking-wider">
+                <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#FF375F] hover:underline uppercase tracking-wider">
                   See all
                 </button>
               </div>
@@ -384,11 +379,11 @@ export function DashboardContent() {
                     <li
                       key={a.id}
                       className={`flex items-center gap-3 px-2 py-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer ${
-                        idx !== upcoming.length - 1 ? 'border-b border-white/5' : ''
+                        idx !== upcoming.length - 1 ? 'border-b border-white/[0.08]' : ''
                       }`}
                       onClick={() => navigate('/agenda')}
                     >
-                      <div className="h-9 w-9 rounded-2xl bg-[#0f0306] border border-white/5 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="h-9 w-9 rounded-[14px] bg-[#22222A] border border-white/[0.08] text-white flex items-center justify-center text-xs font-bold shrink-0">
                         {(a.customer?.name || 'W')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -444,7 +439,7 @@ export function DashboardContent() {
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
                             transition={{ delay: i * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                            className="h-full rounded-full bg-gradient-to-r from-[#e11d48] to-[#f43f5e]"
+                            className="h-full rounded-full bg-[#FF375F]"
                           />
                         </div>
                       </li>
@@ -472,10 +467,10 @@ export function DashboardContent() {
                     <li
                       key={i}
                       className={`flex items-center gap-3 px-2 py-2.5 ${
-                        i !== stats.topCustomers.length - 1 ? 'border-b border-white/5' : ''
+                        i !== stats.topCustomers.length - 1 ? 'border-b border-white/[0.08]' : ''
                       }`}
                     >
-                      <div className="h-9 w-9 rounded-2xl bg-[#0f0306] border border-white/5 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="h-9 w-9 rounded-[14px] bg-[#22222A] border border-white/[0.08] text-white flex items-center justify-center text-xs font-bold shrink-0">
                         {c.name[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -499,7 +494,7 @@ export function DashboardContent() {
 
 function Surface({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-[#141417] rounded-3xl border border-white/[0.04] shadow-[0_1px_2px_rgba(0,0,0,0.4)] ${className}`}>
+    <div className={`bg-[#15151A] rounded-[24px] border border-white/[0.08] shadow-[0_1px_2px_rgba(0,0,0,0.4)] ${className}`}>
       {children}
     </div>
   );
@@ -508,22 +503,22 @@ function Surface({ children, className = "" }: { children: React.ReactNode; clas
 function Legend() {
   return (
     <div className="flex items-center gap-4 text-[11px]">
-      <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#e11d48]" /> Revenue</span>
-      <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#3b82f6]" /> Bookings</span>
+      <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#FF375F]" /> Revenue</span>
+      <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#0A84FF]" /> Bookings</span>
     </div>
   );
 }
 
 function MiniStat({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone?: 'rose' | 'blue' }) {
-  const iconTone = tone === 'rose' ? 'text-[#f43f5e] bg-white/5' : tone === 'blue' ? 'text-[#3b82f6] bg-[#3b82f6]/10' : 'text-white/70 bg-white/5';
+  const iconTone = tone === 'rose' ? 'text-[#FF375F] bg-white/5' : tone === 'blue' ? 'text-[#0A84FF] bg-[#0A84FF]/10' : 'text-white/70 bg-white/5';
   return (
-    <div className="bg-[#141417] rounded-3xl border border-white/[0.04] px-4 py-3.5 flex items-center gap-3">
+    <div className="bg-[#15151A] rounded-[24px] border border-white/[0.08] px-4 py-3.5 flex items-center gap-3">
       <div className={`h-9 w-9 rounded-2xl flex items-center justify-center shrink-0 ${iconTone}`}>
         <Icon className="h-4 w-4" strokeWidth={2.2} />
       </div>
       <div className="min-w-0">
         <p className="text-[10px] uppercase tracking-wider font-semibold text-white/40 truncate">{label}</p>
-        <p className="text-base font-bold text-white tabular-nums font-['Sora']">{value}</p>
+        <p className="text-base font-bold text-white tabular-nums font-geist-mono">{value}</p>
       </div>
     </div>
   );
@@ -535,7 +530,7 @@ function DeltaPill({ value }: { value: number }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-        positive ? 'text-emerald-300 bg-emerald-500/10' : 'text-[#f43f5e] bg-white/5'
+        positive ? 'text-emerald-300 bg-emerald-500/10' : 'text-[#FF375F] bg-white/5'
       }`}
     >
       {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -590,7 +585,7 @@ function Kpi({
           : { delay: index * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }
       }
       whileHover={{ scale: 1.015, transition: { duration: 0.15 } }}
-      className={`bg-[#141417] rounded-3xl border p-5 cursor-default transition-all ${
+      className={`bg-[#15151A] rounded-3xl border p-5 cursor-default transition-all ${
         isPendingActive ? "border-rose-500/25" : "border-white/[0.04]"
       }`}
     >
@@ -598,9 +593,9 @@ function Kpi({
         <div
           className={`h-10 w-10 rounded-2xl flex items-center justify-center relative ${
             isPendingActive
-              ? "bg-[#e11d48]/15 text-[#f43f5e] border border-[#e11d48]/30"
+              ? "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/30"
               : accent
-              ? 'bg-[#e11d48] text-white shadow-lg shadow-[#e11d48]/25'
+              ? 'bg-[#FF375F] text-white shadow-lg shadow-[#FF375F]/20'
               : 'bg-white/5 text-white/70'
           }`}
         >
@@ -615,7 +610,7 @@ function Kpi({
         {!hideDelta && !isCount && <DeltaPill value={delta} />}
       </div>
       <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40 truncate">{title}</p>
-      <p className="text-[24px] sm:text-[30px] font-bold tracking-tight text-white mt-1 leading-none font-['Sora']">
+      <p className="text-[24px] sm:text-[30px] font-bold tracking-tight text-white mt-1 leading-none font-geist-mono">
         {value}
       </p>
       <p className="text-[11px] sm:text-xs text-white/40 mt-2 truncate">{sub}</p>
@@ -636,7 +631,7 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
             <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Activity rings</p>
             <h2 className="text-base font-semibold text-white mt-1">Daily targets</h2>
           </div>
-          <Activity className="h-4 w-4 text-[#e11d48]" />
+          <Activity className="h-4 w-4 text-[#FF375F]" />
         </div>
 
         <div className="flex items-center justify-between gap-4 my-auto py-1">
@@ -644,10 +639,10 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
           <div className="relative w-[116px] h-[116px] flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
               {/* Outer Ring: Revenue */}
-              <circle cx="60" cy="60" r="50" stroke="rgba(225,29,72,0.1)" strokeWidth="9" fill="transparent" />
+              <circle cx="60" cy="60" r="50" stroke="rgba(255,55,95,0.1)" strokeWidth="9" fill="transparent" />
               <motion.circle
                 cx="60" cy="60" r="50"
-                stroke="#e11d48" strokeWidth="9" fill="transparent"
+                stroke="#FF375F" strokeWidth="9" fill="transparent"
                 strokeDasharray={2 * Math.PI * 50}
                 initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 50 * (1 - revenuePct / 100) }}
@@ -656,10 +651,10 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
               />
 
               {/* Middle Ring: Capacity */}
-              <circle cx="60" cy="60" r="39" stroke="rgba(59,130,246,0.1)" strokeWidth="9" fill="transparent" />
+              <circle cx="60" cy="60" r="39" stroke="rgba(10,132,255,0.10)" strokeWidth="9" fill="transparent" />
               <motion.circle
                 cx="60" cy="60" r="39"
-                stroke="#3b82f6" strokeWidth="9" fill="transparent"
+                stroke="#0A84FF" strokeWidth="9" fill="transparent"
                 strokeDasharray={2 * Math.PI * 39}
                 initial={{ strokeDashoffset: 2 * Math.PI * 39 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 39 * (1 - capacityPct / 100) }}
@@ -668,10 +663,10 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
               />
 
               {/* Inner Ring: Completion */}
-              <circle cx="60" cy="60" r="28" stroke="rgba(34,197,94,0.1)" strokeWidth="9" fill="transparent" />
+              <circle cx="60" cy="60" r="28" stroke="rgba(48,209,88,0.10)" strokeWidth="9" fill="transparent" />
               <motion.circle
                 cx="60" cy="60" r="28"
-                stroke="#22c55e" strokeWidth="9" fill="transparent"
+                stroke="#30D158" strokeWidth="9" fill="transparent"
                 strokeDasharray={2 * Math.PI * 28}
                 initial={{ strokeDashoffset: 2 * Math.PI * 28 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 28 * (1 - completionRate / 100) }}
@@ -680,7 +675,7 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-9 w-9 rounded-full bg-[#0f0306] flex items-center justify-center border border-white/5">
+              <div className="h-9 w-9 rounded-full bg-[#22222A] flex items-center justify-center border border-white/[0.08]">
                 <TrendingUp className="h-4 w-4 text-white" />
               </div>
             </div>
@@ -691,20 +686,20 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
             <div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className="flex items-center gap-1 text-white/70 truncate">
-                  <span className="h-2 w-2 rounded-full bg-[#e11d48]" />
+                  <span className="h-2 w-2 rounded-full bg-[#FF375F]" />
                   Revenue
                 </span>
-                <span className="text-white font-['Sora']">{revenuePct}%</span>
+                <span className="text-white font-geist-mono">{revenuePct}%</span>
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className="flex items-center gap-1 text-white/70 truncate">
-                  <span className="h-2 w-2 rounded-full bg-[#3b82f6]" />
+                  <span className="h-2 w-2 rounded-full bg-[#0A84FF]" />
                   Capacity
                 </span>
-                <span className="text-white font-['Sora']">{capacityPct}%</span>
+                <span className="text-white font-geist-mono">{capacityPct}%</span>
               </div>
             </div>
 
@@ -714,7 +709,7 @@ function IosActivityRings({ stats, appointments }: { stats: any; appointments: a
                   <span className="h-2 w-2 rounded-full bg-[#22c55e]" />
                   Completion
                 </span>
-                <span className="text-white font-['Sora']">{completionRate}%</span>
+                <span className="text-white font-geist-mono">{completionRate}%</span>
               </div>
             </div>
           </div>

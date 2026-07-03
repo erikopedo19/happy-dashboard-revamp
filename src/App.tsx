@@ -172,7 +172,7 @@ function App() {
               <div className="splash-screen">
                 <div className="splash-stage">
                   <div className="splash-ring" />
-                  <img src={logoSrc} alt="Logo" className="splash-logo" />
+                  <img src={logoSrc} alt="Cutzioo Barber Booking Logo" className="splash-logo" />
                   <span className="splash-label">Loading</span>
                 </div>
               </div>

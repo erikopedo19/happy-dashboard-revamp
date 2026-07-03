@@ -21,35 +21,9 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0b0b0d] overflow-hidden font-['Manrope']">
+      <div className="h-screen flex w-full bg-[#0A0A0C] overflow-hidden font-geist">
         <AppSidebar />
-        <main className="relative flex-1 bg-[#0b0b0d] text-white flex flex-col overflow-hidden">
-          {/* Liquid-glass ambient blobs — slowly drift behind translucent cards */}
-          <motion.div
-            aria-hidden
-            animate={{ x: [0, 60, -20, 0], y: [0, 40, -10, 0] }}
-            transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-none absolute -top-32 -left-20 h-[28rem] w-[28rem] rounded-full bg-indigo-500/30 blur-[120px] z-0"
-          />
-          <motion.div
-            aria-hidden
-            animate={{ x: [0, -40, 30, 0], y: [0, -30, 20, 0] }}
-            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-none absolute top-1/4 -right-24 h-[24rem] w-[24rem] rounded-full bg-cyan-400/25 blur-[120px] z-0"
-          />
-          <motion.div
-            aria-hidden
-            animate={{ scale: [1, 1.2, 1], opacity: [0.35, 0.55, 0.35] }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-none absolute bottom-10 left-1/3 h-[22rem] w-[22rem] rounded-full bg-fuchsia-500/25 blur-[120px] z-0"
-          />
-          <motion.div
-            aria-hidden
-            animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.5, 0.25] }}
-            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 h-[18rem] w-[18rem] rounded-full bg-rose-500/20 blur-[100px] z-0"
-          />
-
+        <main className="relative flex-1 bg-[#0A0A0C] text-white flex flex-col overflow-hidden">
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
             {isMobile ? <MobileDashboard /> : <DashboardContent />}
           </div>
@@ -167,12 +141,12 @@ function MobileDashboard() {
 
   const statusChipFor = (a: any) => {
     if (a.status === "completed") return { label: "Done", cls: "bg-white/5 text-white/45" };
-    if (a.status === "in_progress") return { label: "Active", cls: "bg-[#3b82f6]/15 text-[#60a5fa]" };
+    if (a.status === "in_progress") return { label: "Active", cls: "bg-[#0A84FF]/15 text-[#60a5fa]" };
     if (a.status === "scheduled") return { label: "New", cls: "bg-white/10 text-white" };
     return { label: "Later", cls: "bg-white/5 text-white/40" };
   };
 
-  const numClass = "font-['Sora'] tabular-nums tracking-tight";
+  const numClass = "font-geist tabular-nums tracking-tight";
 
   return (
     <>
@@ -186,14 +160,14 @@ function MobileDashboard() {
           <p className="text-white/40 text-[13px] font-medium">
             {format(new Date(), "EEEE, MMM d")}
           </p>
-          <h1 className="text-2xl font-bold font-['Sora'] text-white tracking-tight">
+          <h1 className="text-2xl font-bold font-geist text-white tracking-tight">
             Cutzio Admin
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="h-10 w-10 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/70 hover:bg-[#1a1a1e]" />
-          <div className="w-10 h-10 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/10 flex items-center justify-center">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#0A84FF] to-[#5ac8fa]" />
+          <SidebarTrigger className="h-10 w-10 rounded-full bg-[#22222A] border border-white/[0.08] text-white/70 hover:bg-[#1a1a1e]" />
+          <div className="w-10 h-10 rounded-full bg-[#22222A] border border-white/[0.08] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-[#FF375F]" />
           </div>
         </div>
       </motion.header>
@@ -203,7 +177,7 @@ function MobileDashboard() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 240, damping: 26 }}
-          className="relative overflow-hidden rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-5"
+          className="relative overflow-hidden rounded-[24px] bg-[#15151A] border border-white/[0.08] p-5"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -213,7 +187,7 @@ function MobileDashboard() {
               </p>
               <p className="text-white/45 text-xs mt-2">{last30.length} bookings · last 30d</p>
             </div>
-            <div className="px-2.5 py-1 rounded-full bg-[#3b82f6]/15 text-[#60a5fa] text-[10px] font-bold uppercase tracking-wider">
+            <div className="px-2.5 py-1 rounded-full bg-[#FF375F]/12 text-[#FF375F] text-[10px] font-bold uppercase tracking-wider">
               Live
             </div>
           </div>
@@ -222,8 +196,8 @@ function MobileDashboard() {
               <AreaChart data={spark} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
                 <defs>
                   <linearGradient id="mobRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.55} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#FF375F" stopOpacity={0.18} />
+                    <stop offset="100%" stopColor="#FF375F" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <Tooltip
@@ -231,7 +205,7 @@ function MobileDashboard() {
                   formatter={(v: number) => [`€${v}`, "Revenue"]}
                   labelFormatter={(l) => `Day ${l}`}
                 />
-                <Area type="monotone" dataKey="rev" stroke="#60a5fa" strokeWidth={2} fill="url(#mobRev)" />
+                <Area type="monotone" dataKey="rev" stroke="#FF375F" strokeWidth={2} fill="url(#mobRev)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -245,7 +219,7 @@ function MobileDashboard() {
         >
           <KPI label="Pending" value={pending} accent="text-white" numClass={numClass} />
           <KPI label="Avg Ticket" value={`€${avgTicket}`} accent="text-white" numClass={numClass} />
-          <KPI label="Complete" value={`${completionRate}%`} accent="text-[#60a5fa]" numClass={numClass} />
+          <KPI label="Complete" value={`${completionRate}%`} accent="text-[#FF375F]" numClass={numClass} />
         </motion.div>
 
         {/* iOS Concentric Targets Activity Rings Widget - Mobile */}
@@ -253,15 +227,15 @@ function MobileDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.07, type: "spring", stiffness: 260, damping: 26 }}
-          className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-5 flex items-center justify-between gap-5"
+          className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-5 flex items-center justify-between gap-5"
         >
           <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
               {/* Outer: Revenue */}
-              <circle cx="60" cy="60" r="50" stroke="rgba(225,29,72,0.1)" strokeWidth="10" fill="transparent" />
+              <circle cx="60" cy="60" r="50" stroke="rgba(255,55,95,0.10)" strokeWidth="10" fill="transparent" />
               <motion.circle
                 cx="60" cy="60" r="50"
-                stroke="#e11d48" strokeWidth="10" fill="transparent"
+                stroke="#FF375F" strokeWidth="10" fill="transparent"
                 strokeDasharray={2 * Math.PI * 50}
                 initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 50 * (1 - (Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45) / 100) }}
@@ -269,10 +243,10 @@ function MobileDashboard() {
                 strokeLinecap="round"
               />
               {/* Middle: Capacity */}
-              <circle cx="60" cy="60" r="39" stroke="rgba(59,130,246,0.1)" strokeWidth="10" fill="transparent" />
+              <circle cx="60" cy="60" r="39" stroke="rgba(10,132,255,0.10)" strokeWidth="10" fill="transparent" />
               <motion.circle
                 cx="60" cy="60" r="39"
-                stroke="#3b82f6" strokeWidth="10" fill="transparent"
+                stroke="#0A84FF" strokeWidth="10" fill="transparent"
                 strokeDasharray={2 * Math.PI * 39}
                 initial={{ strokeDashoffset: 2 * Math.PI * 39 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 39 * (1 - (Math.min(100, Math.round((todays.length / 12) * 100)) || 35) / 100) }}
@@ -280,10 +254,10 @@ function MobileDashboard() {
                 strokeLinecap="round"
               />
               {/* Inner: Completion */}
-              <circle cx="60" cy="60" r="28" stroke="rgba(34,197,94,0.1)" strokeWidth="10" fill="transparent" />
+              <circle cx="60" cy="60" r="28" stroke="rgba(48,209,88,0.10)" strokeWidth="10" fill="transparent" />
               <motion.circle
                 cx="60" cy="60" r="28"
-                stroke="#22c55e" strokeWidth="10" fill="transparent"
+                stroke="#30D158" strokeWidth="10" fill="transparent"
                 strokeDasharray={2 * Math.PI * 28}
                 initial={{ strokeDashoffset: 2 * Math.PI * 28 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 28 * (1 - (completionRate || 0) / 100) }}
@@ -299,16 +273,16 @@ function MobileDashboard() {
           <div className="flex-1 space-y-2 min-w-0">
             <p className="text-white/40 text-[9px] uppercase tracking-widest font-bold">Daily Activity</p>
             <div className="flex items-center justify-between text-xs font-semibold text-white/80">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#e11d48]" /> Rev Target</span>
-              <span className="tabular-nums font-['Sora']">{Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45}%</span>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#FF375F]" /> Rev Target</span>
+              <span className="tabular-nums font-geist">{Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45}%</span>
             </div>
             <div className="flex items-center justify-between text-xs font-semibold text-white/80">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" /> Capacity</span>
-              <span className="tabular-nums font-['Sora']">{Math.min(100, Math.round((todays.length / 12) * 100)) || 35}%</span>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#0A84FF]" /> Capacity</span>
+              <span className="tabular-nums font-geist">{Math.min(100, Math.round((todays.length / 12) * 100)) || 35}%</span>
             </div>
             <div className="flex items-center justify-between text-xs font-semibold text-white/80">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" /> Completed</span>
-              <span className="tabular-nums font-['Sora']">{completionRate}%</span>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#30D158]" /> Completed</span>
+              <span className="tabular-nums font-geist">{completionRate}%</span>
             </div>
           </div>
         </motion.section>
@@ -318,7 +292,7 @@ function MobileDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}
-          className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-5"
+          className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-5"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -329,7 +303,7 @@ function MobileDashboard() {
             </div>
             <div
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                revenueDelta >= 0 ? "bg-[#22c55e]/15 text-[#4ade80]" : "bg-[#ef4444]/15 text-[#f87171]"
+                revenueDelta >= 0 ? "bg-[#30D158]/15 text-[#4ade80]" : "bg-[#ef4444]/15 text-[#f87171]"
               }`}
             >
               {revenueDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -354,7 +328,7 @@ function MobileDashboard() {
 
         <section className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Week Schedule</h3>
+            <h3 className="font-geist text-[15px] font-semibold text-white">Week Schedule</h3>
             <button
               onClick={() => navigate("/agenda")}
               className="text-white/60 text-xs font-bold uppercase tracking-wider active:opacity-60 hover:text-white transition"
@@ -377,7 +351,7 @@ function MobileDashboard() {
                   className={
                     d.isToday
                       ? `w-10 h-10 rounded-2xl bg-white text-[#0b0b0d] flex items-center justify-center text-sm font-bold shadow-lg shadow-white/10 ${numClass}`
-                      : `w-10 h-10 rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/70 text-sm font-bold ${numClass}`
+                      : `w-10 h-10 rounded-2xl bg-[#22222A] border border-white/[0.08] flex items-center justify-center text-white/70 text-sm font-bold ${numClass}`
                   }
                 >
                   {d.date}
@@ -398,8 +372,8 @@ function MobileDashboard() {
             transition={{ delay: 0.1 }}
             className="space-y-3"
           >
-            <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Top Services</h3>
-            <div className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4 space-y-3">
+            <h3 className="font-geist text-[15px] font-semibold text-white">Top Services</h3>
+            <div className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4 space-y-3">
               {topServices.map((s, i) => (
                 <div key={s.name} className="space-y-1.5">
                   <div className="flex justify-between items-center">
@@ -411,7 +385,7 @@ function MobileDashboard() {
                       initial={{ width: 0 }}
                       animate={{ width: `${(s.revenue / topServiceMax) * 100}%` }}
                       transition={{ delay: 0.15 + i * 0.06, duration: 0.6, ease: "easeOut" }}
-                      className="h-full rounded-full bg-gradient-to-r from-[#60a5fa] to-[#3b82f6]"
+                      className="h-full rounded-full bg-[#FF375F]"
                     />
                   </div>
                 </div>
@@ -427,7 +401,7 @@ function MobileDashboard() {
           transition={{ delay: 0.12 }}
           className="grid grid-cols-5 gap-3"
         >
-          <div className="col-span-3 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4">
+          <div className="col-span-3 rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Hourly Demand</p>
@@ -446,7 +420,7 @@ function MobileDashboard() {
                   />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {hourly.map((b, idx) => (
-                      <Cell key={idx} fill={b.h === peakHour?.h ? "#60a5fa" : "rgba(255,255,255,0.18)"} />
+                      <Cell key={idx} fill={b.h === peakHour?.h ? "#FF375F" : "rgba(255,255,255,0.16)"} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -454,7 +428,7 @@ function MobileDashboard() {
             </div>
           </div>
 
-          <div className="col-span-2 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4">
+          <div className="col-span-2 rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4">
             <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Status Mix</p>
             {statusMix.length > 0 ? (
               <div className="h-24 mt-1">
@@ -479,9 +453,9 @@ function MobileDashboard() {
 
 
         <section className="space-y-4">
-          <h3 className="font-['Sora'] text-[15px] font-semibold text-white">Today's Appointments</h3>
+          <h3 className="font-geist text-[15px] font-semibold text-white">Today's Appointments</h3>
           {todays.length === 0 ? (
-            <div className="bg-white/[0.04] backdrop-blur-2xl p-6 rounded-3xl border border-white/10 text-center text-sm text-white/40">
+            <div className="bg-[#15151A] p-6 rounded-3xl border border-white/10 text-center text-sm text-white/40">
               Nothing scheduled today.
             </div>
           ) : (
@@ -495,9 +469,9 @@ function MobileDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, type: "spring", stiffness: 360, damping: 26 }}
                     onClick={() => navigate("/agenda")}
-                    className="bg-white/[0.04] backdrop-blur-2xl p-4 rounded-3xl border border-white/10 flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
+                    className="bg-[#15151A] p-4 rounded-3xl border border-white/10 flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
                   >
-                    <div className={`w-12 h-12 rounded-2xl bg-white/[0.06] backdrop-blur-xl flex items-center justify-center border border-white/10 text-[11px] font-bold text-white/85 ${numClass}`}>
+                    <div className={`w-12 h-12 rounded-2xl bg-[#22222A] flex items-center justify-center border border-white/10 text-[11px] font-bold text-white/85 ${numClass}`}>
                       {(a.appointment_time || "").slice(0, 5) || "--:--"}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -523,14 +497,14 @@ function MobileDashboard() {
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/agenda")}
-              className="h-14 bg-white text-[#0b0b0d] rounded-3xl font-['Sora'] font-bold text-[13px] shadow-lg shadow-white/5"
+              className="h-14 bg-white text-[#0b0b0d] rounded-3xl font-geist font-bold text-[13px] shadow-lg shadow-white/5"
             >
               New Booking
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/services")}
-              className="h-14 bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl font-['Sora'] font-bold text-white text-[13px]"
+              className="h-14 bg-[#22222A] border border-white/[0.08] rounded-3xl font-geist font-bold text-white text-[13px]"
             >
               Edit Services
             </motion.button>
@@ -567,7 +541,7 @@ function KPI({ label, value, accent, numClass }: { label: string; value: string 
         duration: 2.2,
         ease: "easeInOut",
       }}
-      className={`bg-white/[0.04] backdrop-blur-2xl p-3.5 rounded-2xl border transition-all ${
+      className={`bg-[#15151A] p-3.5 rounded-2xl border transition-all ${
         isPendingActive ? "border-rose-500/25" : "border-white/10"
       }`}
     >

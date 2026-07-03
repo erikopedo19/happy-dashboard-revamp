@@ -69,7 +69,7 @@ export const MobileDockInner = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-3 pb-[max(env(safe-area-inset-bottom),0.8rem)]">
-      <div className="pointer-events-auto relative mx-auto max-w-[34rem] rounded-[30px] border border-black/5 bg-white/88 shadow-[0_20px_50px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/92">
+      <div className="mobile-dock pointer-events-auto relative mx-auto max-w-[34rem] rounded-[30px] backdrop-blur-2xl">
         <div className="grid grid-cols-6 items-center px-2 py-2">
           {mainItems.map((item) => (
             <DockLink key={item.path} item={item} location={location} />
@@ -79,11 +79,12 @@ export const MobileDockInner = () => {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                aria-label="More"
+                aria-label="More Options"
                 className="flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-2 text-[#8E8E93] transition-transform active:scale-95 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
               >
                 <MoreHorizontal className="h-5 w-5" />
-                <span className="text-[10px] font-medium">More</span>
+                <span className="text-[10px] font-medium">More Options</span>
+
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 mb-2">
