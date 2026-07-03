@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Seo } from "@/components/Seo";
 
 const features = [
   {
@@ -109,6 +110,17 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+      <Seo
+        title="Cutzioo — Barbershop Booking & Management for Modern Barbers"
+        description="Run your chair like a premium app. Publish a booking page, manage your agenda, and grow your barbershop with Cutzioo."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Cutzioo",
+          url: "https://cutzioo.com/",
+        }}
+      />
       {/* Background */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div
