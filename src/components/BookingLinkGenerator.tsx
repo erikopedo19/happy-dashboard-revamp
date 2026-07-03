@@ -253,9 +253,9 @@ const BookingLinkGenerator = () => {
       {/* Slug Input */}
       <div className="space-y-2">
         <Label htmlFor="slug" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Link Slug</Label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex-1 flex items-center bg-gray-50 dark:bg-zinc-900/60 rounded-[12px] px-3 border border-gray-200 dark:border-zinc-800 focus-within:border-[#e11d48] dark:focus-within:border-[#e11d48] focus-within:ring-1 focus-within:ring-[#e11d48]/20 transition-all">
-            <span className="text-sm text-gray-400 font-mono hidden sm:inline-block border-r border-gray-200 dark:border-zinc-800 pr-2.5 mr-2.5 select-none">
+            <span className="text-sm text-gray-400 font-mono border-r border-gray-200 dark:border-zinc-800 pr-2.5 mr-2.5 select-none">
               /book/
             </span>
             <input
@@ -277,7 +277,7 @@ const BookingLinkGenerator = () => {
                 accentColor === (profile?.brand_color ?? "#e11d48")
               )
             }
-            className="bg-[#e11d48] hover:bg-[#be123c] text-white h-11 px-5 rounded-[12px] font-semibold flex items-center gap-2 shadow-sm transition-all"
+            className="bg-[#e11d48] hover:bg-[#be123c] text-white h-11 px-5 rounded-[12px] font-semibold flex items-center justify-center gap-2 shadow-sm transition-all w-full sm:w-auto"
           >
             {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>Save</span>
@@ -322,7 +322,7 @@ const BookingLinkGenerator = () => {
 
       {/* Color & Theme */}
       <div className="space-y-4 pt-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Accent Branding</Label>
             <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-2.5 rounded-[12px]">
@@ -381,7 +381,7 @@ const BookingLinkGenerator = () => {
               onClick={copyToClipboard}
             >
               <Copy className="w-4 h-4" />
-              Copy Link
+              Copy
             </Button>
             <Button
               variant="outline"
