@@ -1,0 +1,11 @@
+# Cutzioo
+
+> Cutzioo is a modern barbershop booking and management platform for barbers, stylists, and their clients — publish a booking page, manage appointments, and grow your business.
+
+## Pages
+
+- [Home](/): Overview of Cutzioo for barbers and clients.
+- [Find a Barber](/find-barber): Discover independent barbers and stylists near you.
+- [Find a Barbershop](/find-barbershop): Browse local barbershops accepting online bookings.
+- [Booking Forms Directory](/bookingforms): Public directory of businesses accepting bookings on Cutzioo.
+- [Sign in / Create account](/auth): Sign in or create a Cutzioo account.

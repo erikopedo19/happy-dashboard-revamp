@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Seo } from "@/components/Seo";
 
 const features = [
   {
@@ -109,6 +110,17 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+      <Seo
+        title="Cutzioo — Barbershop Booking & Management for Modern Barbers"
+        description="Run your chair like a premium app. Publish a booking page, manage your agenda, and grow your barbershop with Cutzioo."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Cutzioo",
+          url: "https://cutzioo.com/",
+        }}
+      />
       {/* Background */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div
@@ -124,7 +136,7 @@ export default function Landing() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/70 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-8 w-8 rounded-lg" />
+            <img src="/cutzioo-logo.webp" alt="Cutzioo Booking" className="h-8 w-8 rounded-lg" />
             <span className="font-semibold text-lg tracking-tight">Cutzioo</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 text-sm">
@@ -468,7 +480,7 @@ export default function Landing() {
       <footer className="border-t border-white/[0.06] px-6 py-10">
         <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2.5">
-            <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-6 w-6 rounded-md" />
+            <img src="/cutzioo-logo.webp" alt="Cutzioo Booking" className="h-6 w-6 rounded-md" />
             <span>© {new Date().getFullYear()} Cutzioo. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-6">

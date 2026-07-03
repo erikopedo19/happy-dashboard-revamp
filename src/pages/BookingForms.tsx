@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ExternalLink, User, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Seo } from "@/components/Seo";
 
 const BookingForms = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -64,6 +65,11 @@ const BookingForms = () => {
 
   return (
     <div className="min-h-screen bg-secondary/40">
+      <Seo
+        title="Booking Forms Directory — Cutzioo"
+        description="Browse every business accepting appointments through Cutzioo and book with your favourite in seconds."
+        path="/bookingforms"
+      />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">

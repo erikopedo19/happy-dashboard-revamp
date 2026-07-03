@@ -154,7 +154,7 @@ export default function ReviewPage() {
           )}
           <div className="pt-6">
             <p className="text-xs text-white/50 uppercase tracking-wide">Leave a review for</p>
-            <h1 className="text-xl font-bold leading-tight">{booking.business.name}</h1>
+            <h1 className="text-xl font-bold leading-tight">{booking.business.name} — Leave a Review</h1>
           </div>
         </div>
 

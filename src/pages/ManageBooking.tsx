@@ -155,7 +155,7 @@ export default function ManageBooking() {
             </div>
           )}
           <div className="pt-8">
-            <h1 className="text-2xl font-bold leading-tight">{booking.business.name}</h1>
+            <h1 className="text-2xl font-bold leading-tight">{booking.business.name} — Manage Your Appointment</h1>
             <p className="text-white/50 text-sm">Booking management</p>
           </div>
         </div>
