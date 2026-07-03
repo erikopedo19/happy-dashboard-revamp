@@ -31,25 +31,33 @@ export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
   const [startHour, setStartHour] = useState("08:00");
   const [endHour, setEndHour] = useState("18:00");
   const [isSaving, setIsSaving] = useState(false);
-
-  const toggleDay = (day: number) => {
-    setWorkingDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
-    );
-  };
-
   const hasValidHours = startHour < endHour;
 
-  const handleSave = async () => {
+  const toggleDay = (day: number) => {
+    const nextDays = workingDays.includes(day)
+      ? workingDays.filter((d) => d !== day)
+      : [...workingDays, day].sort();
+    setWorkingDays(nextDays);
+    if (step === "hours" && hasValidHours) {
+      saveSetup(nextDays, startHour, endHour);
+    }
+  };
+
+  const handleTimeChange = (field: "start" | "end", value: string) => {
+    const nextStart = field === "start" ? value : startHour;
+    const nextEnd = field === "end" ? value : endHour;
+    if (field === "start") setStartHour(value);
+    else setEndHour(value);
+
+    if (step === "hours" && nextStart < nextEnd && workingDays.length > 0) {
+      saveSetup(workingDays, nextStart, nextEnd);
+    }
+  };
+
+  const saveSetup = async (days: number[], start: string, end: string) => {
     if (!user) return;
-    if (workingDays.length === 0) {
-      toast({ title: "Select working days", variant: "destructive" });
-      return;
-    }
-    if (!hasValidHours) {
-      toast({ title: "Closing time must be later", variant: "destructive" });
-      return;
-    }
+    if (days.length === 0 || start >= end) return;
+    if (isSaving) return;
 
     setIsSaving(true);
     try {
@@ -58,9 +66,9 @@ export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
         .upsert(
           {
             user_id: user.id,
-            working_days: workingDays,
-            start_hour: startHour,
-            end_hour: endHour,
+            working_days: days,
+            start_hour: start,
+            end_hour: end,
             service_duration: 30,
           },
           { onConflict: "user_id" }
@@ -77,7 +85,7 @@ export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
 
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       queryClient.invalidateQueries({ queryKey: ["agenda-settings", user.id] });
-      toast({ title: "Setup complete" });
+      toast({ title: "Saved automatically" });
       onComplete();
     } catch (error: any) {
       toast({
@@ -151,7 +159,7 @@ export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
                     <input
                       type="time"
                       value={startHour}
-                      onChange={(e) => setStartHour(e.target.value)}
+                      onChange={(e) => handleTimeChange("start", e.target.value)}
                       className="w-full h-[64px] rounded-[16px] border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-center text-2xl font-semibold outline-none focus:border-[#0A84FF]"
                     />
                     <p className="text-[11px] text-[#8E8E93] text-center mt-2">Opens</p>
@@ -161,7 +169,7 @@ export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
                     <input
                       type="time"
                       value={endHour}
-                      onChange={(e) => setEndHour(e.target.value)}
+                      onChange={(e) => handleTimeChange("end", e.target.value)}
                       className="w-full h-[64px] rounded-[16px] border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-center text-2xl font-semibold outline-none focus:border-[#0A84FF]"
                     />
                     <p className="text-[11px] text-[#8E8E93] text-center mt-2">Closes</p>
@@ -196,7 +204,7 @@ export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
                 Back
               </Button>
               <Button
-                onClick={handleSave}
+                onClick={() => saveSetup(workingDays, startHour, endHour)}
                 disabled={isSaving || !hasValidHours}
                 className="flex-1 h-14 rounded-[14px] bg-[#0A84FF] hover:bg-[#0066d6] text-white font-semibold"
               >

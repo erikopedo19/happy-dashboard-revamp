@@ -174,7 +174,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist, onboarding_completed")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -193,6 +193,61 @@ const Settings = () => {
       };
     },
   });
+
+  // Auto-save agenda settings when hours/days/duration change
+  const autoSaveAgenda = useMutation({
+    mutationFn: async (agenda: AgendaSettingsRecord) => {
+      if (!user) throw new Error("User not found");
+      if (agenda.start_hour >= agenda.end_hour) throw new Error("Invalid hours");
+      if (agenda.working_days.length === 0) throw new Error("No working days");
+
+      const { error } = await (supabase as any)
+        .from("agenda_settings")
+        .upsert(
+          {
+            user_id: user.id,
+            service_duration: agenda.service_duration,
+            start_hour: agenda.start_hour,
+            end_hour: agenda.end_hour,
+            working_days: agenda.working_days,
+          },
+          { onConflict: "user_id" }
+        );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings-page-data", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["agenda_settings", user?.id], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["public-agenda-settings"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false });
+      toast({ title: "Schedule saved" });
+    },
+    onError: () => {
+      // Silently fail to avoid spamming user during live editing
+    },
+  });
+
+  useEffect(() => {
+    if (!user || !data?.agenda || isLoading) return;
+    if (agendaForm.start_hour >= agendaForm.end_hour) return;
+    if (agendaForm.working_days.length === 0) return;
+
+    const timeout = setTimeout(() => {
+      const changed =
+        agendaForm.service_duration !== (data.agenda?.service_duration ?? 30) ||
+        agendaForm.start_hour !== normalizeTime(data.agenda?.start_hour, "08:00") ||
+        agendaForm.end_hour !== normalizeTime(data.agenda?.end_hour, "18:00") ||
+        JSON.stringify(agendaForm.working_days) !==
+          JSON.stringify(sortWorkingDays(data.agenda?.working_days ?? [1, 2, 3, 4, 5, 6]));
+
+      if (changed) {
+        autoSaveAgenda.mutate(agendaForm);
+      }
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [agendaForm, user, data, isLoading]);
 
   useEffect(() => {
     if (!user || !data) return;
