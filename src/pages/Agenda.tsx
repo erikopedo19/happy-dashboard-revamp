@@ -11,7 +11,8 @@ import {
   List,
   Plus,
   Filter,
-  DollarSign
+  DollarSign,
+  Settings
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -355,12 +356,66 @@ const Agenda = () => {
             <div className="lg:border lg:rounded-[20px] overflow-hidden flex flex-col bg-[#15151A] border-white/[0.08] h-full w-full">
               {/* Header */}
               <div className="border-b border-white/[0.08] bg-[#15151A] px-4 md:px-6 py-3">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <SidebarTrigger className="lg:hidden text-white" />
+                    <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handlePreviousWeek}
+                        className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleToday}
+                        className="h-8 px-3 rounded-lg hover:bg-[#15151A] text-xs font-medium text-white/70 hover:text-white"
+                      >
+                        Today
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleNextWeek}
+                        className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
+                        <button
+                          onClick={() => setViewMode('week')}
+                          className={cn(
+                            "flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all",
+                            viewMode === 'week'
+                              ? 'bg-[#FF375F] text-white shadow-sm'
+                              : 'text-white/50 hover:text-white'
+                          )}
+                          title="Weeks"
+                        >
+                          <LayoutGrid className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode('day')}
+                          className={cn(
+                            "flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all",
+                            viewMode === 'day'
+                              ? 'bg-[#FF375F] text-white shadow-sm'
+                              : 'text-white/50 hover:text-white'
+                          )}
+                          title="Grid"
+                        >
+                          <List className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                     <div className="min-w-0">
                       <h1 className="text-base md:text-lg font-semibold text-white truncate">
-                        {format(currentWeek, 'MMMM yyyy')}
+                        {format(startOfWeek(currentWeek, { weekStartsOn: 1 }), 'MMM d')} - {format(endOfWeek(currentWeek, { weekStartsOn: 1 }), 'MMM d yyyy')}
                       </h1>
                       <p className="hidden md:block text-xs text-white/50">
                         Week {format(currentWeek, 'w')} · {weeklyStats.total} appointments
@@ -368,81 +423,36 @@ const Agenda = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <div className="hidden md:block relative max-w-[260px]">
+                    <div className="relative flex-1 md:flex-none md:max-w-[260px]">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
                       <Input
-                        placeholder="Search appointments..."
+                        placeholder="Search in calendar..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF375F]/30"
+                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF375F]/30 w-full"
                       />
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-xl text-white/70 hover:text-white hover:bg-[#22222A]"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
                     <Button
                       onClick={() => setIsAppointmentFormOpen(true)}
                       className="h-9 rounded-xl bg-[#FF375F] hover:bg-[#FF375F]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
                     >
                       <Plus className="h-4 w-4 md:mr-1.5" />
-                      <span className="hidden md:inline">New appointment</span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div className="border-b border-white/[0.08] bg-[#15151A] px-4 md:px-6 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
-                      <button
-                        onClick={() => setViewMode('week')}
-                        className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
-                          viewMode === 'week'
-                            ? 'bg-[#FF375F] text-white shadow-sm'
-                            : 'text-white/50 hover:text-white'
-                        )}
-                      >
-                        <LayoutGrid className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Weeks</span>
-                      </button>
-                      <button
-                        onClick={() => setViewMode('day')}
-                        className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
-                          viewMode === 'day'
-                            ? 'bg-[#FF375F] text-white shadow-sm'
-                            : 'text-white/50 hover:text-white'
-                        )}
-                      >
-                        <List className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Grid</span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handlePreviousWeek}
-                      className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
+                      <span className="hidden md:inline">New</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleToday}
-                      className="h-8 px-3 rounded-lg hover:bg-[#15151A] text-xs font-medium text-white/70 hover:text-white"
+                      className="h-9 rounded-xl text-white/70 hover:text-white hover:bg-[#22222A] px-3"
                     >
-                      Today
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleNextWeek}
-                      className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
-                    >
-                      <ChevronRight className="h-4 w-4" />
+                      <Filter className="h-4 w-4 md:mr-1.5" />
+                      <span className="hidden md:inline">Filter</span>
                     </Button>
                   </div>
                 </div>

@@ -452,18 +452,20 @@ const Reports = () => {
               </motion.button>
             </div>
 
-            {/* Apple-style segmented date range */}
-            <div className="px-4 md:px-8 pb-4">
-              <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
-                <TabsList className="w-full md:w-auto bg-[#15151A]">
-                  {RANGES.map((r) => (
-                    <TabsTrigger key={r.value} value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
-                      <span className="relative">{isMobile ? r.short : r.label}</span>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
+            {/* Apple-style segmented date range (desktop only; mobile view has its own) */}
+            {!isMobile && (
+              <div className="px-4 md:px-8 pb-4">
+                <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
+                  <TabsList className="w-full md:w-auto bg-[#15151A]">
+                    {RANGES.map((r) => (
+                      <TabsTrigger key={r.value} value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
+                        <span className="relative">{r.label}</span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
           </div>
 
           <div className="relative z-10 flex-1 overflow-auto">
