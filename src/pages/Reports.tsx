@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -16,6 +16,10 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  ExpandableActionBar,
+  type ExpandableActionBarItem,
+} from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +49,7 @@ import {
   Flame,
   Lightbulb,
   Lock,
+  PieChart as PieChartIcon,
   Scissors,
   Sparkles,
   Star,
@@ -339,28 +344,97 @@ const Reports = () => {
     toast({ title: "Export ready", description: "Your analytics CSV has been downloaded." });
   };
 
+  const revenueRef = useRef<HTMLDivElement>(null);
+  const insightsRef = useRef<HTMLDivElement>(null);
+  const kpisRef = useRef<HTMLDivElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
+  const peakRef = useRef<HTMLDivElement>(null);
+  const servicesRef = useRef<HTMLDivElement>(null);
+  const stylistsRef = useRef<HTMLDivElement>(null);
+  const customersRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
+
+  const sectionRefs = {
+    revenue: revenueRef,
+    insights: insightsRef,
+    kpis: kpisRef,
+    status: statusRef,
+    peak: peakRef,
+    services: servicesRef,
+    stylists: stylistsRef,
+    customers: customersRef,
+    reviews: reviewsRef,
+  };
+
+  const [activeSection, setActiveSection] = useState("revenue");
+
+  const scrollTo = (id: string) => {
+    const ref = sectionRefs[id as keyof typeof sectionRefs];
+    if (ref?.current) {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const actionItems: ExpandableActionBarItem[] = useMemo(
+    () => [
+      { id: "revenue", label: "Revenue", icon: <TrendingUp className="h-4 w-4" />, onClick: () => scrollTo("revenue") },
+      { id: "insights", label: "Insights", icon: <Lightbulb className="h-4 w-4" />, onClick: () => scrollTo("insights") },
+      { id: "kpis", label: "KPIs", icon: <Activity className="h-4 w-4" />, onClick: () => scrollTo("kpis") },
+      { id: "status", label: "Status", icon: <PieChartIcon className="h-4 w-4" />, onClick: () => scrollTo("status") },
+      { id: "peak", label: "Peak hours", icon: <Clock className="h-4 w-4" />, onClick: () => scrollTo("peak") },
+      { id: "services", label: "Services", icon: <Scissors className="h-4 w-4" />, onClick: () => scrollTo("services") },
+      { id: "stylists", label: "Stylists", icon: <Crown className="h-4 w-4" />, onClick: () => scrollTo("stylists") },
+      { id: "customers", label: "Customers", icon: <Users className="h-4 w-4" />, onClick: () => scrollTo("customers") },
+      { id: "reviews", label: "Reviews", icon: <Star className="h-4 w-4" />, onClick: () => scrollTo("reviews") },
+      { id: "export", label: "Export", icon: <Download className="h-4 w-4" />, onClick: handleExport },
+    ],
+    [handleExport],
+  );
+
+  useEffect(() => {
+    if (isMobile) return;
+    const container = document.querySelector("main > div.relative.z-10.flex-1.overflow-auto");
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { root: container, threshold: 0.4 },
+    );
+
+    Object.values(sectionRefs).forEach((ref) => {
+      if (ref.current) observer.observe(ref.current);
+    });
+
+    return () => observer.disconnect();
+  }, [isMobile]);
+
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
+      <div className="h-screen flex w-full overflow-hidden bg-background font-sans">
         <AppSidebar />
 
         <main className="relative flex-1 flex flex-col overflow-hidden">
-
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 border-b border-white/[0.08]">
+          <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-border">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <SidebarTrigger className="lg:hidden text-white" />
+                <SidebarTrigger className="lg:hidden text-foreground" />
                 <motion.div
                   className="min-w-0"
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={springSoft}
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                     Analytics
                   </p>
-                  <h1 className="text-[34px] md:text-[40px] font-bold text-white tracking-[-0.03em] leading-none">
+                  <h1 className="text-[34px] md:text-[40px] font-bold text-foreground tracking-[-0.03em] leading-none">
                     Reports
                   </h1>
                 </motion.div>
@@ -373,7 +447,7 @@ const Reports = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springSoft}
                 whileTap={{ scale: 0.94 }}
-                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-white/[0.08] text-white text-[13px] font-semibold border border-white/[0.08] active:bg-white/[0.14] transition-colors"
+                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-card text-foreground text-[13px] font-semibold border border-border hover:bg-accent transition-colors"
               >
                 <Download className="h-4 w-4" strokeWidth={2.3} />
                 {!isMobile && "Export"}
@@ -382,7 +456,7 @@ const Reports = () => {
 
             {/* iOS segmented control */}
             <div className="px-4 md:px-8 pb-4">
-              <div className="inline-flex w-full md:w-auto p-1 rounded-[12px] bg-white/[0.06] gap-0.5 overflow-x-auto scrollbar-none">
+              <div className="inline-flex w-full md:w-auto p-1 rounded-[12px] bg-muted gap-0.5 overflow-x-auto scrollbar-none">
                 {RANGES.map((r) => {
                   const active = dateRange === r.value;
                   return (
@@ -391,13 +465,13 @@ const Reports = () => {
                       onClick={() => setDateRange(r.value)}
                       className={cn(
                         "relative shrink-0 flex-1 md:flex-none h-9 px-4 rounded-[11px] text-[13px] font-medium transition-colors",
-                        active ? "text-white" : "text-[#8E8E93] hover:text-white/80"
+                        active ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"
                       )}
                     >
                       {active && (
                         <motion.span
                           layoutId="activeRangePill"
-                          className="absolute inset-0 rounded-[10px] bg-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                          className="absolute inset-0 rounded-[10px] bg-card shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]"
                           transition={{ type: "spring", stiffness: 450, damping: 30 }}
                         />
                       )}
@@ -421,16 +495,18 @@ const Reports = () => {
             <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
 
               {/* Hero revenue card */}
-              <motion.section
+              <motion.div
+                id="revenue"
+                ref={sectionRefs.revenue}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[24px] border-0 bg-[#15151A] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+                <Card className="relative rounded-[24px] border border-border bg-card overflow-hidden shadow-2xl">
                   <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF6B95]">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                           Total revenue
                         </p>
                         <AnimatePresence mode="wait">
@@ -440,8 +516,8 @@ const Reports = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
-                            style={{ textShadow: "0 0 40px rgba(255,45,111,0.25)" }}
+                            className="text-[44px] md:text-[60px] font-bold text-foreground mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
+                            style={{ textShadow: "0 0 40px hsl(var(--primary)/0.25)" }}
                           >
                             {isLoading ? "—" : currency.format(analytics.totalRevenue)}
                           </motion.p>
@@ -449,10 +525,10 @@ const Reports = () => {
                         <div className="mt-4 flex items-center gap-2.5">
                           <div
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
+                              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold border",
                               analytics.revenueDelta >= 0
-                                ? "bg-[#30D158]/12 text-[#30D158] border border-[#30D158]/20"
-                                : "bg-[#FF375F]/12 text-[#FF375F] border border-[#FF375F]/20"
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                             )}
                           >
                             {analytics.revenueDelta >= 0 ? (
@@ -462,7 +538,7 @@ const Reports = () => {
                             )}
                             {Math.abs(analytics.revenueDelta)}%
                           </div>
-                          <span className="text-xs text-[#8E8E93]">vs prior period</span>
+                          <span className="text-xs text-muted-foreground">vs prior period</span>
                         </div>
                       </div>
 
@@ -475,12 +551,12 @@ const Reports = () => {
                       className="h-[220px] md:h-[300px] w-full aspect-auto mt-6"
                     >
                       <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
-                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.05)" />
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="label"
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }}
                           interval="preserveStartEnd"
                           dy={6}
                         />
@@ -488,7 +564,7 @@ const Reports = () => {
                           tickLine={false}
                           axisLine={false}
                           width={42}
-                          tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }}
                           tickFormatter={(v) => {
                             const n = Number(v);
                             if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
@@ -496,7 +572,7 @@ const Reports = () => {
                           }}
                         />
                         <ChartTooltip
-                          cursor={{ stroke: "rgba(255,255,255,0.18)", strokeDasharray: "3 4" }}
+                          cursor={{ stroke: "hsl(var(--muted-foreground))", strokeDasharray: "3 4" }}
                           content={<ChartTooltipContent formatter={(value) => [currency.format(Number(value)), "Revenue"]} />}
                         />
                         <Area
@@ -507,18 +583,18 @@ const Reports = () => {
                           fill={iOS.rose}
                           fillOpacity={0.08}
                           dot={false}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: "#0A0A0C", fill: iOS.rose }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))", fill: iOS.rose }}
                           animationDuration={900}
                         />
                       </AreaChart>
                     </ChartContainer>
                   </CardContent>
                 </Card>
-              </motion.section>
+              </motion.div>
 
               {/* Smart insights */}
               {analytics.totalAppointments > 0 && (
-                <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div id="insights" ref={sectionRefs.insights} className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <InsightCard
                     index={0}
                     icon={<Flame className="w-4 h-4" strokeWidth={2.3} />}
@@ -544,11 +620,11 @@ const Reports = () => {
                         : `Revenue dipped ${Math.abs(analytics.revenueDelta)}% — try a reminder blast or promo on slow days.`
                     }
                   />
-                </section>
+                </div>
               )}
 
               {/* KPI grid */}
-              <section className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              <div id="kpis" ref={sectionRefs.kpis} className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                 <KpiTile index={0} loading={isLoading}
                   icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
                   label="Bookings"
@@ -577,10 +653,10 @@ const Reports = () => {
                   hint={`${analytics.completedAppointments} done`}
                   tint={iOS.indigo}
                 />
-              </section>
+              </div>
 
               {/* Status + busiest days */}
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+              <div id="status" ref={sectionRefs.status} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                 <SectionCard title="Booking status" subtitle="Distribution this period" delay={0.05}>
                   {analytics.statusBreakdown.length === 0 ? (
                     <EmptyMini />
@@ -607,10 +683,10 @@ const Reports = () => {
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-[28px] font-bold text-white tracking-tight tabular-nums">
+                          <span className="text-[28px] font-bold text-foreground tracking-tight tabular-nums">
                             {analytics.completionRate}%
                           </span>
-                          <span className="text-[9px] text-[#8E8E93] uppercase tracking-[0.14em] mt-1">done</span>
+                          <span className="text-[9px] text-muted-foreground uppercase tracking-[0.14em] mt-1">done</span>
                         </div>
                       </div>
                       <div className="flex-1 space-y-3">
@@ -624,9 +700,9 @@ const Reports = () => {
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill }} />
-                              <span className="text-sm text-white truncate">{s.name}</span>
+                              <span className="text-sm text-foreground truncate">{s.name}</span>
                             </div>
-                            <span className="text-sm font-semibold text-white tabular-nums">{s.value}</span>
+                            <span className="text-sm font-semibold text-foreground tabular-nums">{s.value}</span>
                           </motion.div>
                         ))}
                       </div>
@@ -643,8 +719,8 @@ const Reports = () => {
                       className="h-[170px] w-full aspect-auto"
                     >
                       <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="24%">
-                        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
-                        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#8E8E93", fontWeight: 500 }} />
+                        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} />
                         <YAxis hide />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="count" radius={[10, 10, 10, 10]} animationDuration={1000}>
@@ -658,10 +734,10 @@ const Reports = () => {
                     </ChartContainer>
                   )}
                 </SectionCard>
-              </section>
+              </div>
 
               {/* Peak hours */}
-              <SectionCard title="Peak hours" subtitle="When your chair fills up" delay={0.12}>
+              <SectionCard id="peak" forwardRef={sectionRefs.peak} title="Peak hours" subtitle="When your chair fills up" delay={0.12}>
                 {analytics.hourlyDemand.every((h) => h.count === 0) ? (
                   <EmptyMini />
                 ) : (
@@ -670,8 +746,8 @@ const Reports = () => {
                     className="h-[170px] w-full aspect-auto"
                   >
                     <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="28%">
-                      <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.04)" />
-                      <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93", fontWeight: 500 }} interval={1} />
+                      <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} interval={1} />
                       <YAxis hide />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="count" radius={[10, 10, 10, 10]} animationDuration={1000}>
@@ -688,7 +764,7 @@ const Reports = () => {
               </SectionCard>
 
               {/* Top services */}
-              <SectionCard title="Top services" subtitle="Most booked in this period" delay={0.15}>
+              <SectionCard id="services" forwardRef={sectionRefs.services} title="Top services" subtitle="Most booked in this period" delay={0.15}>
                 {analytics.serviceBreakdown.length === 0 ? (
                   <EmptyMini />
                 ) : (
@@ -706,19 +782,19 @@ const Reports = () => {
                         >
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-7 h-7 rounded-[10px] bg-white/[0.08] text-[11px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0 tabular-nums">
+                              <span className="w-7 h-7 rounded-[10px] bg-muted text-[11px] font-semibold text-muted-foreground flex items-center justify-center tabular-nums">
                                 {idx + 1}
                               </span>
-                              <span className="font-medium text-white truncate">{s.name}</span>
+                              <span className="font-medium text-foreground truncate">{s.name}</span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-xs text-[#8E8E93] tabular-nums">{currency.format(s.revenue)}</span>
-                              <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
+                              <span className="text-xs text-muted-foreground tabular-nums">{currency.format(s.revenue)}</span>
+                              <span className="text-sm font-semibold text-foreground tabular-nums">{s.bookings}</span>
                             </div>
                           </div>
-                          <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
+                          <div className="h-2 rounded-[10px] bg-muted overflow-hidden">
                             <motion.div
-                              className="h-full rounded-[10px] bg-[#FF375F]"
+                              className="h-full rounded-[10px] bg-primary"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -732,18 +808,18 @@ const Reports = () => {
               </SectionCard>
 
               {/* Stylist leaderboard */}
-              <SectionCard title="Stylist leaderboard" subtitle="Ranked by revenue & satisfaction" delay={0.2}>
+              <SectionCard id="stylists" forwardRef={sectionRefs.stylists} title="Stylist leaderboard" subtitle="Ranked by revenue & satisfaction" delay={0.2}>
                 {analytics.stylistPerformance.length === 0 ? (
                   <EmptyMini />
                 ) : (
-                  <div className="rounded-[16px] bg-white/[0.04] overflow-hidden divide-y divide-white/[0.06]">
+                  <div className="rounded-[16px] bg-muted/50 overflow-hidden divide-y divide-border">
                     {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
                       <motion.div
                         key={stylist.id}
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 * index, ...springSoft }}
-                        whileTap={{ scale: 0.98, backgroundColor: "rgba(255,255,255,0.06)" }}
+                        whileTap={{ scale: 0.98, backgroundColor: "hsl(var(--accent))" }}
                         className="flex items-center gap-3.5 px-4 py-3.5 transition-colors"
                       >
                         <div
@@ -752,17 +828,17 @@ const Reports = () => {
                             index === 0
                               ? "bg-[#FFD60A] text-black shadow-[0_2px_8px_rgba(255,214,10,0.3)]"
                               : index === 1
-                              ? "bg-white/[0.20] text-white"
+                              ? "bg-secondary text-secondary-foreground"
                               : index === 2
-                              ? "bg-[#FF9F0A]/25 text-[#FF9F0A]"
-                              : "bg-white/[0.08] text-[#8E8E93]"
+                              ? "bg-orange-500/25 text-orange-400"
+                              : "bg-muted text-muted-foreground"
                           )}
                         >
                           {index === 0 ? <Crown className="w-4 h-4" strokeWidth={2.3} /> : index + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-[15px] text-white truncate">{stylist.name}</p>
-                          <div className="flex items-center gap-2 text-[11px] text-[#8E8E93] mt-0.5">
+                          <p className="font-semibold text-[15px] text-foreground truncate">{stylist.name}</p>
+                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
                             <span>{stylist.bookings} bookings</span>
                             <span>·</span>
                             <span className="flex items-center gap-0.5">
@@ -772,21 +848,44 @@ const Reports = () => {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-[15px] font-semibold text-white tabular-nums">
+                          <p className="text-[15px] font-semibold text-foreground tabular-nums">
                             {currency.format(stylist.revenue)}
                           </p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-[#48484A] shrink-0" strokeWidth={2.3} />
+                        <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" strokeWidth={2.3} />
                       </motion.div>
                     ))}
                   </div>
                 )}
               </SectionCard>
 
-              <TopCustomersSection customers={topCustomers} />
-              <ReviewsSection reviews={reviewsData || []} />
+              <TopCustomersSection id="customers" forwardRef={sectionRefs.customers} customers={topCustomers} />
+              <ReviewsSection id="reviews" forwardRef={sectionRefs.reviews} reviews={reviewsData || []} />
             </div>
           </div>
+
+          {/* Floating expandable action bar — PC only */}
+          {!isMobile && (
+            <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-50 flex justify-center">
+              <div className="pointer-events-auto">
+                <ExpandableActionBar
+                  items={actionItems}
+                  activeId={activeSection}
+                  onAction={(item) => {
+                    setActiveSection(item.id);
+                    item.onClick?.();
+                  }}
+                  classNames={{
+                    root: "drop-shadow-2xl",
+                    track: "bg-card/80 border-border/80 shadow-2xl backdrop-blur-2xl",
+                    item: "group data-[active=true]:text-foreground",
+                    activeItem: "text-foreground",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
@@ -794,25 +893,36 @@ const Reports = () => {
   );
 };
 
-function SectionCard({ title, subtitle, children, delay = 0 }: {
-  title: string; subtitle?: string; children: React.ReactNode; delay?: number;
+function SectionCard({
+  id,
+  forwardRef,
+  title,
+  subtitle,
+  children,
+  delay = 0,
+}: {
+  id?: string;
+  forwardRef?: React.Ref<HTMLDivElement>;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  delay?: number;
 }) {
   return (
     <motion.div
+      id={id}
+      ref={forwardRef}
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", stiffness: 400, damping: 28 }}
+      className="relative rounded-[28px] border border-border bg-card/80 backdrop-blur-xl shadow-2xl"
     >
-      <div className="relative">
-        {/* Glassmorphic background */}
-        <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-[iOS.surfaceDark] to-[iOS.cardDark] border border-[iOS.glassBorder] backdrop-blur-xl shadow-[0_24px_48px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.05)]" />
-        <div className="relative p-6 md:p-8">
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-[iOS.textPrimary] tracking-tight">{title}</h3>
-            {subtitle && <p className="text-sm text-[iOS.textSecondary] mt-2">{subtitle}</p>}
-          </div>
-          {children}
+      <div className="p-6 md:p-8">
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-foreground tracking-tight">{title}</h3>
+          {subtitle && <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>}
         </div>
+        {children}
       </div>
     </motion.div>
   );
@@ -829,15 +939,13 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
       transition={{ delay: index * 0.08, type: "spring", stiffness: 420, damping: 30 }}
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="relative"
+      className="relative rounded-[24px] border border-border bg-card/80 backdrop-blur-xl shadow-xl h-full"
     >
-      {/* Glassmorphic background */}
-      <div className="absolute inset-0 rounded-[24px] bg-gradient-to-br from-[iOS.glass] to-[iOS.surfaceDark] border border-[iOS.glassBorder] backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.03)]" />
-      <div className="relative p-6 h-full">
+      <div className="p-6 h-full">
         <div className="flex items-start justify-between mb-4">
-          <div 
+          <div
             className="w-12 h-12 rounded-[16px] flex items-center justify-center"
-            style={{ 
+            style={{
               background: `linear-gradient(135deg, ${tint}20, ${tint}10)`,
               color: tint,
               boxShadow: `0 4px 16px ${tint}30`
@@ -850,12 +958,12 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="opacity-60"
           >
-            <Activity className="w-5 h-5 text-[iOS.textSecondary]" />
+            <Activity className="w-5 h-5 text-muted-foreground" />
           </motion.div>
         </div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[iOS.textSecondary] mb-2">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-2">{label}</p>
         {loading ? (
-          <div className="h-8 w-24 bg-[iOS.glass] rounded-[12px] animate-pulse" />
+          <div className="h-8 w-24 bg-muted rounded-[12px] animate-pulse" />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
@@ -865,10 +973,10 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
             >
-              <p className="text-2xl md:text-3xl font-bold text-[iOS.textPrimary] tabular-nums tracking-tight">
+              <p className="text-2xl md:text-3xl font-bold text-foreground tabular-nums tracking-tight">
                 {value}
               </p>
-              <p className="text-xs text-[iOS.textSecondary] mt-1">{hint}</p>
+              <p className="text-xs text-muted-foreground mt-1">{hint}</p>
             </motion.div>
           </AnimatePresence>
         )}
@@ -877,13 +985,21 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
   );
 }
 
-function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
+function TopCustomersSection({
+  id,
+  forwardRef,
+  customers,
+}: {
+  id?: string;
+  forwardRef?: React.Ref<HTMLDivElement>;
+  customers: TopCustomerRow[];
+}) {
   return (
-    <SectionCard title="Best customers" subtitle="Ranked by spend this period" delay={0.25}>
+    <SectionCard id={id} forwardRef={forwardRef} title="Best customers" subtitle="Ranked by spend this period" delay={0.25}>
       {customers.length === 0 ? (
         <EmptyMini />
       ) : (
-        <div className="rounded-2xl bg-white/[0.04] overflow-hidden divide-y divide-white/[0.06]">
+        <div className="rounded-2xl bg-muted/50 overflow-hidden divide-y divide-border">
           {customers.map((c, i) => {
             const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
             const pct = Math.min(100, (c.revenue / (customers[0]?.revenue || 1)) * 100);
@@ -893,7 +1009,7 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.045 * i, ...springSoft }}
-                whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                whileTap={{ backgroundColor: "hsl(var(--accent))" }}
                 className="flex items-center gap-3.5 px-4 py-3.5"
               >
                 <Avatar className="h-10 w-10 rounded-[12px]">
@@ -906,21 +1022,21 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
+                    <p className="font-semibold text-[15px] text-foreground truncate">{c.name}</p>
                     {i === 0 && (
                       <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
                         VIP
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-[#8E8E93] mt-0.5">
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
                     {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
                     {c.lastVisit ? ` · ${formatDistanceToNow(new Date(c.lastVisit + "T00:00:00"), { addSuffix: true })}` : ""}
                   </p>
                 </div>
                 <div className="text-right shrink-0 min-w-[75px]">
-                  <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
-                  <div className="w-full h-1.5 rounded-[10px] bg-white/[0.06] mt-1.5 overflow-hidden">
+                  <p className="text-[15px] font-semibold text-foreground tabular-nums">{currency.format(c.revenue)}</p>
+                  <div className="w-full h-1.5 rounded-[10px] bg-muted mt-1.5 overflow-hidden">
                     <motion.div
                       className="h-full rounded-[10px]"
                       style={{ backgroundColor: tint }}
@@ -939,13 +1055,21 @@ function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
   );
 }
 
-function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
+function ReviewsSection({
+  id,
+  forwardRef,
+  reviews,
+}: {
+  id?: string;
+  forwardRef?: React.Ref<HTMLDivElement>;
+  reviews: ReviewRow[];
+}) {
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const distribution = [5, 4, 3, 2, 1].map(star => ({ star, count: reviews.filter(r => r.rating === star).length }));
   const maxCount = Math.max(...distribution.map(d => d.count), 1);
 
   return (
-    <SectionCard title="Customer reviews" subtitle={`${reviews.length} review${reviews.length !== 1 ? "s" : ""} total`} delay={0.3}>
+    <SectionCard id={id} forwardRef={forwardRef} title="Customer reviews" subtitle={`${reviews.length} review${reviews.length !== 1 ? "s" : ""} total`} delay={0.3}>
       {reviews.length === 0 ? (
         <EmptyMini />
       ) : (
@@ -957,7 +1081,7 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
               animate={{ scale: 1, opacity: 1 }}
               transition={springSoft}
             >
-              <p className="text-5xl font-bold text-white tabular-nums tracking-[-0.025em] leading-none">
+              <p className="text-5xl font-bold text-foreground tabular-nums tracking-[-0.025em] leading-none">
                 {avgRating.toFixed(1)}
               </p>
               <div className="flex justify-center gap-0.5 mt-2">
@@ -966,12 +1090,12 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                     key={s}
                     className={cn(
                       "w-4 h-4",
-                      s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/15"
+                      s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-muted-foreground/30"
                     )}
                   />
                 ))}
               </div>
-              <p className="text-[11px] text-[#8E8E93] mt-1.5">{reviews.length} reviews</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">{reviews.length} reviews</p>
             </motion.div>
             <div className="flex-1 space-y-2">
               {distribution.map(({ star, count }, i) => (
@@ -982,8 +1106,8 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                   transition={stagger(i)}
                   className="flex items-center gap-2.5"
                 >
-                  <span className="text-[11px] text-[#8E8E93] w-3 shrink-0 tabular-nums">{star}</span>
-                  <div className="flex-1 h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
+                  <span className="text-[11px] text-muted-foreground w-3 shrink-0 tabular-nums">{star}</span>
+                  <div className="flex-1 h-2 rounded-[10px] bg-muted overflow-hidden">
                     <motion.div
                       className="h-full rounded-[10px] bg-[#FFD60A]"
                       initial={{ width: 0 }}
@@ -991,34 +1115,34 @@ function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                       transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                     />
                   </div>
-                  <span className="text-[11px] text-[#8E8E93] w-4 text-right tabular-nums shrink-0">{count}</span>
+                  <span className="text-[11px] text-muted-foreground w-4 text-right tabular-nums shrink-0">{count}</span>
                 </motion.div>
               ))}
             </div>
           </div>
 
           <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#8E8E93]">Recent</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">Recent</p>
             {reviews.slice(0, 6).map((r, i) => (
               <motion.div
                 key={r.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.045 * i, ...springSoft }}
-                className="rounded-[16px] bg-white/[0.04] p-4 space-y-2"
+                className="rounded-[16px] bg-muted/50 p-4 space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} className={cn("w-3.5 h-3.5", s <= r.rating ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/15")} />
+                      <Star key={s} className={cn("w-3.5 h-3.5", s <= r.rating ? "fill-[#FFD60A] text-[#FFD60A]" : "text-muted-foreground/30")} />
                     ))}
                   </div>
-                  <span className="text-[10px] text-[#8E8E93]">
+                  <span className="text-[10px] text-muted-foreground">
                     {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                   </span>
                 </div>
-                {r.reviewer_name && <p className="text-sm font-semibold text-white">{r.reviewer_name}</p>}
-                {r.comment && <p className="text-sm text-white/75 leading-relaxed">&ldquo;{r.comment}&rdquo;</p>}
+                {r.reviewer_name && <p className="text-sm font-semibold text-foreground">{r.reviewer_name}</p>}
+                {r.comment && <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{r.comment}&rdquo;</p>}
               </motion.div>
             ))}
           </div>
@@ -1037,7 +1161,7 @@ function InsightCard({ icon, tint, title, text, index = 0 }: {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.08 * index, ...springSoft }}
       whileHover={{ y: -2 }}
-      className="relative overflow-hidden rounded-[18px] bg-[#15151A] border border-white/[0.08] p-5"
+      className="relative overflow-hidden rounded-[18px] bg-card border border-border p-5"
     >
       <div
         aria-hidden
@@ -1052,12 +1176,12 @@ function InsightCard({ icon, tint, title, text, index = 0 }: {
           {icon}
         </div>
         <div className="inline-flex items-center gap-1.5">
-          <Lightbulb className="w-3 h-3 text-[#8E8E93]" strokeWidth={2.3} />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Insight</span>
+          <Lightbulb className="w-3 h-3 text-muted-foreground" strokeWidth={2.3} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Insight</span>
         </div>
       </div>
-      <p className="relative text-[15px] font-bold text-white tracking-tight">{title}</p>
-      <p className="relative text-[12px] text-[#8E8E93] mt-1 leading-relaxed">{text}</p>
+      <p className="relative text-[15px] font-bold text-foreground tracking-tight">{title}</p>
+      <p className="relative text-[12px] text-muted-foreground mt-1 leading-relaxed">{text}</p>
     </motion.div>
   );
 }
@@ -1068,12 +1192,12 @@ function EmptyMini() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springSoft}
-      className="rounded-[16px] bg-white/[0.04] p-10 text-center"
+      className="rounded-[16px] bg-muted/50 p-10 text-center"
     >
-      <div className="w-11 h-11 rounded-[14px] bg-white/[0.06] mx-auto flex items-center justify-center">
-        <Sparkles className="w-4 h-4 text-[#8E8E93]" strokeWidth={2.3} />
+      <div className="w-11 h-11 rounded-[14px] bg-muted mx-auto flex items-center justify-center">
+        <Sparkles className="w-4 h-4 text-muted-foreground" strokeWidth={2.3} />
       </div>
-      <p className="text-xs text-[#8E8E93] mt-3.5">No data in this range yet</p>
+      <p className="text-xs text-muted-foreground mt-3.5">No data in this range yet</p>
     </motion.div>
   );
 }
@@ -1117,10 +1241,10 @@ function CompletionGauge({ value }: { value: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
-        <span className="text-[22px] font-bold text-white tabular-nums leading-none tracking-tight">
+        <span className="text-[22px] font-bold text-foreground tabular-nums leading-none tracking-tight">
           {value}%
         </span>
-        <span className="text-[9px] uppercase tracking-[0.18em] text-[#FF6B95] mt-1 font-semibold">done</span>
+        <span className="text-[9px] uppercase tracking-[0.18em] text-primary mt-1 font-semibold">done</span>
       </div>
     </div>
   );
@@ -1150,30 +1274,30 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
           transition={{ type: "spring", stiffness: 360, damping: 30 }}
           className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
         >
-          <div className="relative overflow-hidden rounded-[26px] border border-white/[0.08] bg-[#1C1C1E]/95 shadow-[0_20px_60px_rgba(0,0,0,0.3)] p-4">
+          <div className="relative overflow-hidden rounded-[26px] border border-border bg-card/95 shadow-2xl p-4">
             <div
               aria-hidden
               className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full opacity-70"
-              style={{ background: "radial-gradient(circle, rgba(255,45,111,0.35) 0%, transparent 65%)" }}
+              style={{ background: "radial-gradient(circle, hsl(var(--primary)/0.35) 0%, transparent 65%)" }}
             />
             <div
               aria-hidden
               className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full opacity-60"
-              style={{ background: "radial-gradient(circle, rgba(10,132,255,0.30) 0%, transparent 65%)" }}
+              style={{ background: "radial-gradient(circle, hsl(var(--primary)/0.30) 0%, transparent 65%)" }}
             />
             <div className="relative flex items-center gap-3.5">
               <motion.div
-                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF2D6F] shadow-[0_6px_20px_rgba(255,45,111,0.45)]"
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-primary shadow-[0_6px_20px_hsl(var(--primary)/0.45)]"
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Lock className="w-5 h-5 text-white" strokeWidth={2.4} />
+                <Lock className="w-5 h-5 text-primary-foreground" strokeWidth={2.4} />
               </motion.div>
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold text-white leading-tight">
+                <p className="text-[15px] font-semibold text-foreground leading-tight">
                   Save your insights
                 </p>
-                <p className="text-[12px] text-[#8E8E93] mt-0.5">
+                <p className="text-[12px] text-muted-foreground mt-0.5">
                   Sign in to unlock live tracking, exports & alerts.
                 </p>
               </div>
@@ -1181,7 +1305,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
                 type="button"
                 onClick={close}
                 aria-label="Dismiss"
-                className="w-8 h-8 rounded-[12px] bg-white/[0.06] text-[#8E8E93] flex items-center justify-center hover:bg-white/[0.12] transition-colors shrink-0"
+                className="w-8 h-8 rounded-[12px] bg-muted text-muted-foreground flex items-center justify-center hover:bg-accent transition-colors shrink-0"
               >
                 <X className="w-4 h-4" strokeWidth={2.4} />
               </button>
@@ -1189,13 +1313,13 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             <div className="relative mt-3.5 flex items-center gap-2.5">
               <Link
                 to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-[12px] bg-[#FF2D6F] text-white text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_rgba(255,45,111,0.35)] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-primary text-primary-foreground text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_hsl(var(--primary)/0.35)] active:scale-[0.98] transition-transform"
               >
                 Sign in
               </Link>
               <Link
                 to="/auth?signup=1"
-                className="flex-1 h-11 rounded-[12px] bg-white/[0.08] text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-muted text-foreground text-[14px] font-semibold flex items-center justify-center border border-border active:scale-[0.98] transition-transform"
               >
                 Create account
               </Link>

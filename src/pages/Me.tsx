@@ -6,11 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import {
   Loader2, Calendar, Heart, Star, Scissors, ChevronRight,
-  LogOut, Bell, Shield, Sparkles, Settings, BellRing,
+  LogOut, Bell, Shield, Sparkles, Settings, BellRing, Flame, Award, Zap,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 
 interface BookingRow {
   id: string;
@@ -144,27 +145,79 @@ const Me = () => {
           <StatCard icon={<Heart className="w-4 h-4 text-[#FF2D55]" />} label="Favorites" value={favoritesCount} />
         </motion.div>
 
-        {/* Best barber */}
+        {/* Streaks & Achievements */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 380, damping: 30 }}
-          className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4"
+          className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4 overflow-hidden"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FFB800] to-[#FF9500] flex items-center justify-center shrink-0">
-              <Star className="w-6 h-6 text-white fill-white" />
+          <Tabs defaultValue="streak" className="w-full">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[11px] uppercase tracking-wide text-[#8E8E93] font-semibold">Loyalty</p>
+              <TabsList className="bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+                <TabsTrigger value="streak" className="text-xs px-2.5 py-1">Streak</TabsTrigger>
+                <TabsTrigger value="badges" className="text-xs px-2.5 py-1">Badges</TabsTrigger>
+                <TabsTrigger value="stats" className="text-xs px-2.5 py-1">Stats</TabsTrigger>
+              </TabsList>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-wide text-[#8E8E93] font-semibold">Top barber</p>
-              <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                {stats.best?.name || "—"}
-              </p>
-              <p className="text-[12px] text-[#8E8E93]">
-                {stats.best ? `${stats.best.count} visit${stats.best.count > 1 ? "s" : ""}` : "Book to start your streak"}
-              </p>
-            </div>
-          </div>
+
+            <TabsContent value="streak" className="mt-0">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF9500] to-[#FF2D55] flex items-center justify-center shrink-0 shadow-lg shadow-[#FF2D55]/20"
+                >
+                  <Flame className="w-6 h-6 text-white fill-white" />
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {stats.best ? `${stats.best.count} visit streak` : "Start your streak"}
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {stats.best
+                      ? `Keep booking ${stats.best.name} to unlock rewards`
+                      : "Book your first appointment to begin"}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="badges" className="mt-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FFD60A] to-[#FFB800] flex items-center justify-center shrink-0">
+                  <Award className="w-6 h-6 text-black" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {stats.total >= 5 ? "Regular" : stats.total >= 1 ? "Rookie" : "No badges yet"}
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {stats.total >= 5
+                      ? "You're a loyal client — keep it up"
+                      : `${5 - stats.total} more booking${5 - stats.total !== 1 ? "s" : ""} to earn Regular`}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="stats" className="mt-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#34C759] to-[#30D158] flex items-center justify-center shrink-0">
+                  <Zap className="w-6 h-6 text-white fill-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {stats.total} lifetime bookings
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {stats.upcoming} upcoming · {stats.best?.name ?? "—"} is your favorite
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </motion.div>
 
         {/* Action list */}

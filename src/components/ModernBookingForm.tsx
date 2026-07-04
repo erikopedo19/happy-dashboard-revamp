@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star, Flame, Gift, Sparkles } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 
 interface Service {
   id: string;
@@ -380,6 +381,65 @@ const ModernBookingForm = ({
               </div>
               <h1 className={`text-xl font-semibold ${getTextClass()} mb-1`}>{businessProfile?.full_name || 'Book an Appointment'}</h1>
               <p className={`${getTextMutedClass()} text-sm`}>Select a service to continue</p>
+            </div>
+
+            {/* Streak / Loyalty card — iOS style */}
+            <div className={cn(`mb-6 rounded-2xl border p-4 ${getCardBgClass()} ${getBorderClass()} overflow-hidden`)}>
+              <Tabs defaultValue="streak">
+                <div className="flex items-center justify-between mb-3">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${getTextMutedClass()}`}>Loyalty</p>
+                  <TabsList className={cn(`rounded-full p-1 ${getCardBgClassSecondary()} ${getBorderClass()} border`)}>
+                    <TabsTrigger value="streak" className="text-xs px-3 py-1 rounded-full">Streak</TabsTrigger>
+                    <TabsTrigger value="perks" className="text-xs px-3 py-1 rounded-full">Perks</TabsTrigger>
+                    <TabsTrigger value="gift" className="text-xs px-3 py-1 rounded-full">Gift</TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="streak" className="mt-0">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor, boxShadow: `0 4px 14px ${accentColor}30` }}
+                    >
+                      <Flame className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm ${getTextClass()}`}>Start a booking streak</p>
+                      <p className={`text-xs ${getTextMutedClass()}`}>3 visits unlock 10% off your next appointment</p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="perks" className="mt-0">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor, boxShadow: `0 4px 14px ${accentColor}30` }}
+                    >
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm ${getTextClass()}`}>Member perks</p>
+                      <p className={`text-xs ${getTextMutedClass()}`}>Free upgrade after 5 completed bookings</p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="gift" className="mt-0">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor, boxShadow: `0 4px 14px ${accentColor}30` }}
+                    >
+                      <Gift className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm ${getTextClass()}`}>Refer a friend</p>
+                      <p className={`text-xs ${getTextMutedClass()}`}>They book, you both get a reward</p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Services List */}
