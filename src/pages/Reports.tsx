@@ -33,6 +33,7 @@ import {
   YAxis,
 } from "recharts";
 import {
+  Activity,
   ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
