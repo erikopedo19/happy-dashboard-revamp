@@ -1,21 +1,17 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ExpandableActionBar } from "@/components/ui/be-ui-expanable-action-bar";
 import { 
   Copy, 
   ExternalLink, 
   RefreshCw, 
   Share2, 
   Save, 
-  Check, 
   Mail, 
   QrCode, 
-  Download,
   Settings,
-  Sparkles,
   Link as LinkIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +29,6 @@ const BookingLinkGenerator = () => {
   const queryClient = useQueryClient();
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "christmas" | "summer">("default");
   const [accentColor, setAccentColor] = useState("#e11d48");
-  const [showQrCode, setShowQrCode] = useState(false);
 
   // Fetch user profile with booking link
   const { data: profile, refetch } = useQuery({
@@ -364,41 +359,22 @@ const BookingLinkGenerator = () => {
 
       {/* URL Preview & Actions */}
       {bookingUrl && (
-        <div className="space-y-4 pt-4">
-          <div className="bg-white dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800 rounded-[12px] px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between overflow-hidden shadow-sm">
-            <span className="truncate mr-3 select-all">{bookingUrl}</span>
-            <button 
-              onClick={copyToClipboard}
-              className="text-gray-400 hover:text-[#e11d48] transition-colors shrink-0"
-            >
-              <Copy className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 h-11 rounded-[12px] border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 font-semibold text-sm flex items-center justify-center gap-2"
-              onClick={copyToClipboard}
-            >
-              <Copy className="w-4 h-4" />
-              Copy
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 h-11 rounded-[12px] border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 font-semibold text-sm flex items-center justify-center gap-2"
-              onClick={shareLink}
-            >
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            <Button
-              variant="outline"
-              className="h-11 w-11 rounded-[12px] border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 flex items-center justify-center shrink-0"
-              onClick={openBookingPage}
-              title="Open booking page"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Button>
+        <div className="pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch gap-2">
+            <div className="flex-1 flex items-center gap-2 rounded-2xl bg-card border border-white/5 px-3 h-11 min-w-0">
+              <LinkIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-[13px] font-mono text-foreground truncate select-all">
+                {bookingUrl.replace(/^https?:\/\//, "")}
+              </span>
+            </div>
+            <ExpandableActionBar
+              items={[
+                { id: "copy", label: "Copy", icon: <Copy className="h-4 w-4" />, onClick: copyToClipboard },
+                { id: "share", label: "Share", icon: <Share2 className="h-4 w-4" />, onClick: shareLink },
+                { id: "open", label: "Open", icon: <ExternalLink className="h-4 w-4" />, onClick: openBookingPage },
+                { id: "qr", label: "QR", icon: <QrCode className="h-4 w-4" />, onClick: downloadQrCode },
+              ]}
+            />
           </div>
         </div>
       )}

@@ -2,7 +2,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
-import { MobileDock } from "@/components/MobileDock";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -220,18 +219,12 @@ function MobileDashboard() {
           <div className="h-20 -mx-1 mt-3">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={spark} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="mobRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FF375F" stopOpacity={0.18} />
-                    <stop offset="100%" stopColor="#FF375F" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
                 <Tooltip
                   contentStyle={{ background: "#141417", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, fontSize: 11 }}
                   formatter={(v: number) => [`€${v}`, "Revenue"]}
                   labelFormatter={(l) => `Day ${l}`}
                 />
-                <Area type="monotone" dataKey="rev" stroke="#FF375F" strokeWidth={2} fill="url(#mobRev)" />
+                <Area type="monotone" dataKey="rev" stroke="#FF375F" strokeWidth={2} fill="rgba(255,55,95,0.08)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

@@ -44,14 +44,14 @@ export const ClientMobileDockInner = () => {
               className={cn(
                 'relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1.5 py-2 transition-transform duration-150 active:scale-95',
                 isActive
-                  ? 'text-rose-600 dark:text-rose-400'
+                  ? 'text-[#FF375F]'
                   : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]'
               )}
             >
               {isActive && (
                 <motion.span
                   layoutId="client-dock-active"
-                  className="absolute inset-x-0.5 inset-y-0.5 rounded-2xl bg-rose-50 dark:bg-rose-500/15"
+                  className="absolute inset-x-0.5 inset-y-0.5 rounded-2xl bg-[#FF375F]/15"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}

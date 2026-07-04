@@ -1,13 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MobileDock } from "@/components/MobileDock";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChartContainer,
@@ -16,6 +13,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
 import {
   ExpandableActionBar,
   type ExpandableActionBarItem,
@@ -416,25 +414,25 @@ const Reports = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full overflow-hidden bg-background font-sans">
+      <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
 
-        <main className="relative flex-1 flex flex-col overflow-hidden">
+        <main className="relative flex-1 flex flex-col overflow-hidden bg-[#0A0A0C] text-white">
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-border">
+          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 backdrop-blur-xl border-b border-white/[0.08]">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <SidebarTrigger className="lg:hidden text-foreground" />
+                <SidebarTrigger className="lg:hidden text-white" />
                 <motion.div
                   className="min-w-0"
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={springSoft}
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
                     Analytics
                   </p>
-                  <h1 className="text-[34px] md:text-[40px] font-bold text-foreground tracking-[-0.03em] leading-none">
+                  <h1 className="text-[34px] md:text-[40px] font-bold text-white tracking-[-0.03em] leading-none">
                     Reports
                   </h1>
                 </motion.div>
@@ -447,39 +445,24 @@ const Reports = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springSoft}
                 whileTap={{ scale: 0.94 }}
-                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-card text-foreground text-[13px] font-semibold border border-border hover:bg-accent transition-colors"
+                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-[#15151A] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
               >
                 <Download className="h-4 w-4" strokeWidth={2.3} />
                 {!isMobile && "Export"}
               </motion.button>
             </div>
 
-            {/* iOS segmented control */}
+            {/* Apple-style segmented date range */}
             <div className="px-4 md:px-8 pb-4">
-              <div className="inline-flex w-full md:w-auto p-1 rounded-[12px] bg-muted gap-0.5 overflow-x-auto scrollbar-none">
-                {RANGES.map((r) => {
-                  const active = dateRange === r.value;
-                  return (
-                    <button
-                      key={r.value}
-                      onClick={() => setDateRange(r.value)}
-                      className={cn(
-                        "relative shrink-0 flex-1 md:flex-none h-9 px-4 rounded-[11px] text-[13px] font-medium transition-colors",
-                        active ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"
-                      )}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="activeRangePill"
-                          className="absolute inset-0 rounded-[10px] bg-card shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 30 }}
-                        />
-                      )}
+              <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
+                <TabsList className="w-full md:w-auto bg-[#15151A]">
+                  {RANGES.map((r) => (
+                    <TabsTrigger key={r.value} value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
                       <span className="relative">{isMobile ? r.short : r.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
           </div>
 
@@ -490,6 +473,9 @@ const Reports = () => {
                 isLoading={isLoading}
                 topCustomers={topCustomers}
                 reviews={reviewsData || []}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                onExport={handleExport}
               />
             )}
             <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
@@ -502,11 +488,11 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[24px] border border-border bg-card overflow-hidden shadow-2xl">
+                <Card className="relative rounded-[24px] border border-white/[0.08] bg-[#15151A] overflow-hidden">
                   <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">
                           Total revenue
                         </p>
                         <AnimatePresence mode="wait">
@@ -516,8 +502,8 @@ const Reports = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className="text-[44px] md:text-[60px] font-bold text-foreground mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
-                            style={{ textShadow: "0 0 40px hsl(var(--primary)/0.25)" }}
+                            className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
+                            style={{}}
                           >
                             {isLoading ? "—" : currency.format(analytics.totalRevenue)}
                           </motion.p>
@@ -528,7 +514,7 @@ const Reports = () => {
                               "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold border",
                               analytics.revenueDelta >= 0
                                 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                : "bg-[#FF375F]/10 text-[#FF375F] border-[#FF375F]/20"
                             )}
                           >
                             {analytics.revenueDelta >= 0 ? (
@@ -538,7 +524,7 @@ const Reports = () => {
                             )}
                             {Math.abs(analytics.revenueDelta)}%
                           </div>
-                          <span className="text-xs text-muted-foreground">vs prior period</span>
+                          <span className="text-xs text-white/50">vs prior period</span>
                         </div>
                       </div>
 
@@ -683,10 +669,10 @@ const Reports = () => {
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-[28px] font-bold text-foreground tracking-tight tabular-nums">
+                          <span className="text-[28px] font-bold text-white tracking-tight tabular-nums">
                             {analytics.completionRate}%
                           </span>
-                          <span className="text-[9px] text-muted-foreground uppercase tracking-[0.14em] mt-1">done</span>
+                          <span className="text-[9px] text-white/50 uppercase tracking-[0.14em] mt-1">done</span>
                         </div>
                       </div>
                       <div className="flex-1 space-y-3">
@@ -700,9 +686,9 @@ const Reports = () => {
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill }} />
-                              <span className="text-sm text-foreground truncate">{s.name}</span>
+                              <span className="text-sm text-white truncate">{s.name}</span>
                             </div>
-                            <span className="text-sm font-semibold text-foreground tabular-nums">{s.value}</span>
+                            <span className="text-sm font-semibold text-white tabular-nums">{s.value}</span>
                           </motion.div>
                         ))}
                       </div>
@@ -782,19 +768,19 @@ const Reports = () => {
                         >
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-7 h-7 rounded-[10px] bg-muted text-[11px] font-semibold text-muted-foreground flex items-center justify-center tabular-nums">
+                              <span className="w-7 h-7 rounded-[10px] bg-white/10 text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
                                 {idx + 1}
                               </span>
-                              <span className="font-medium text-foreground truncate">{s.name}</span>
+                              <span className="font-medium text-white truncate">{s.name}</span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-xs text-muted-foreground tabular-nums">{currency.format(s.revenue)}</span>
-                              <span className="text-sm font-semibold text-foreground tabular-nums">{s.bookings}</span>
+                              <span className="text-xs text-white/50 tabular-nums">{currency.format(s.revenue)}</span>
+                              <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
                             </div>
                           </div>
-                          <div className="h-2 rounded-[10px] bg-muted overflow-hidden">
+                          <div className="h-2 rounded-[10px] bg-white/10 overflow-hidden">
                             <motion.div
-                              className="h-full rounded-[10px] bg-primary"
+                              className="h-full rounded-[10px] bg-[#FF375F]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -812,33 +798,33 @@ const Reports = () => {
                 {analytics.stylistPerformance.length === 0 ? (
                   <EmptyMini />
                 ) : (
-                  <div className="rounded-[16px] bg-muted/50 overflow-hidden divide-y divide-border">
+                  <div className="rounded-[16px] bg-white/5 overflow-hidden divide-y divide-white/[0.06]">
                     {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
                       <motion.div
                         key={stylist.id}
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 * index, ...springSoft }}
-                        whileTap={{ scale: 0.98, backgroundColor: "hsl(var(--accent))" }}
+                        whileTap={{ scale: 0.98, backgroundColor: "rgba(255,255,255,0.1)" }}
                         className="flex items-center gap-3.5 px-4 py-3.5 transition-colors"
                       >
                         <div
                           className={cn(
                             "w-10 h-10 rounded-[14px] flex items-center justify-center font-bold text-sm shrink-0",
                             index === 0
-                              ? "bg-[#FFD60A] text-black shadow-[0_2px_8px_rgba(255,214,10,0.3)]"
+                              ? "bg-[#FFD60A] text-black"
                               : index === 1
-                              ? "bg-secondary text-secondary-foreground"
+                              ? "bg-[#22222A] text-white"
                               : index === 2
                               ? "bg-orange-500/25 text-orange-400"
-                              : "bg-muted text-muted-foreground"
+                              : "bg-white/10 text-white/50"
                           )}
                         >
                           {index === 0 ? <Crown className="w-4 h-4" strokeWidth={2.3} /> : index + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-[15px] text-foreground truncate">{stylist.name}</p>
-                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                          <p className="font-semibold text-[15px] text-white truncate">{stylist.name}</p>
+                          <div className="flex items-center gap-2 text-[11px] text-white/50 mt-0.5">
                             <span>{stylist.bookings} bookings</span>
                             <span>·</span>
                             <span className="flex items-center gap-0.5">
@@ -848,11 +834,11 @@ const Reports = () => {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-[15px] font-semibold text-foreground tabular-nums">
+                          <p className="text-[15px] font-semibold text-white tabular-nums">
                             {currency.format(stylist.revenue)}
                           </p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" strokeWidth={2.3} />
+                        <ChevronRight className="w-4 h-4 text-white/50 shrink-0" strokeWidth={2.3} />
                       </motion.div>
                     ))}
                   </div>
@@ -877,9 +863,9 @@ const Reports = () => {
                   }}
                   classNames={{
                     root: "drop-shadow-2xl",
-                    track: "bg-card/80 border-border/80 shadow-2xl backdrop-blur-2xl",
-                    item: "group data-[active=true]:text-foreground",
-                    activeItem: "text-foreground",
+                    track: "bg-[#15151A]/80 border-white/[0.08] shadow-2xl backdrop-blur-2xl",
+                    item: "group data-[active=true]:text-white",
+                    activeItem: "text-white",
                   }}
                 />
               </div>
@@ -902,10 +888,10 @@ function SectionCard({
   delay = 0,
 }: {
   id?: string;
-  forwardRef?: React.Ref<HTMLDivElement>;
+  forwardRef?: Ref<HTMLDivElement>;
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   delay?: number;
 }) {
   return (
@@ -915,12 +901,12 @@ function SectionCard({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", stiffness: 400, damping: 28 }}
-      className="relative rounded-[28px] border border-border bg-card/80 backdrop-blur-xl shadow-2xl"
+      className="relative rounded-[28px] border border-white/[0.08] bg-[#15151A]"
     >
       <div className="p-6 md:p-8">
         <div className="mb-6">
-          <h3 className="text-xl font-semibold text-foreground tracking-tight">{title}</h3>
-          {subtitle && <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>}
+          <h3 className="text-xl font-semibold text-white tracking-tight">{title}</h3>
+          {subtitle && <p className="text-sm text-white/50 mt-2">{subtitle}</p>}
         </div>
         {children}
       </div>
@@ -929,7 +915,7 @@ function SectionCard({
 }
 
 function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
-  icon: React.ReactNode; label: string; value: string; hint: string;
+  icon: ReactNode; label: string; value: string; hint: string;
   index?: number; tint: string; loading?: boolean;
 }) {
   return (
@@ -939,16 +925,15 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
       transition={{ delay: index * 0.08, type: "spring", stiffness: 420, damping: 30 }}
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="relative rounded-[24px] border border-border bg-card/80 backdrop-blur-xl shadow-xl h-full"
+      className="relative rounded-[24px] border border-white/[0.08] bg-[#15151A] h-full"
     >
       <div className="p-6 h-full">
         <div className="flex items-start justify-between mb-4">
           <div
             className="w-12 h-12 rounded-[16px] flex items-center justify-center"
             style={{
-              background: `linear-gradient(135deg, ${tint}20, ${tint}10)`,
+              backgroundColor: `${tint}15`,
               color: tint,
-              boxShadow: `0 4px 16px ${tint}30`
             }}
           >
             {icon}
@@ -958,12 +943,12 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="opacity-60"
           >
-            <Activity className="w-5 h-5 text-muted-foreground" />
+            <Activity className="w-5 h-5 text-white/50" />
           </motion.div>
         </div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-2">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50 mb-2">{label}</p>
         {loading ? (
-          <div className="h-8 w-24 bg-muted rounded-[12px] animate-pulse" />
+          <div className="h-8 w-24 bg-white/10 rounded-[12px] animate-pulse" />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
@@ -973,10 +958,10 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
             >
-              <p className="text-2xl md:text-3xl font-bold text-foreground tabular-nums tracking-tight">
+              <p className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
                 {value}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">{hint}</p>
+              <p className="text-xs text-white/50 mt-1">{hint}</p>
             </motion.div>
           </AnimatePresence>
         )}
@@ -991,7 +976,7 @@ function TopCustomersSection({
   customers,
 }: {
   id?: string;
-  forwardRef?: React.Ref<HTMLDivElement>;
+  forwardRef?: Ref<HTMLDivElement>;
   customers: TopCustomerRow[];
 }) {
   return (
@@ -999,7 +984,7 @@ function TopCustomersSection({
       {customers.length === 0 ? (
         <EmptyMini />
       ) : (
-        <div className="rounded-2xl bg-muted/50 overflow-hidden divide-y divide-border">
+        <div className="rounded-2xl bg-white/5 overflow-hidden divide-y divide-white/[0.06]">
           {customers.map((c, i) => {
             const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
             const pct = Math.min(100, (c.revenue / (customers[0]?.revenue || 1)) * 100);
@@ -1009,7 +994,7 @@ function TopCustomersSection({
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.045 * i, ...springSoft }}
-                whileTap={{ backgroundColor: "hsl(var(--accent))" }}
+                whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 className="flex items-center gap-3.5 px-4 py-3.5"
               >
                 <Avatar className="h-10 w-10 rounded-[12px]">
@@ -1022,21 +1007,21 @@ function TopCustomersSection({
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-[15px] text-foreground truncate">{c.name}</p>
+                    <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
                     {i === 0 && (
                       <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
                         VIP
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <p className="text-[11px] text-white/50 mt-0.5">
                     {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
                     {c.lastVisit ? ` · ${formatDistanceToNow(new Date(c.lastVisit + "T00:00:00"), { addSuffix: true })}` : ""}
                   </p>
                 </div>
                 <div className="text-right shrink-0 min-w-[75px]">
-                  <p className="text-[15px] font-semibold text-foreground tabular-nums">{currency.format(c.revenue)}</p>
-                  <div className="w-full h-1.5 rounded-[10px] bg-muted mt-1.5 overflow-hidden">
+                  <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
+                  <div className="w-full h-1.5 rounded-[10px] bg-white/10 mt-1.5 overflow-hidden">
                     <motion.div
                       className="h-full rounded-[10px]"
                       style={{ backgroundColor: tint }}
@@ -1061,7 +1046,7 @@ function ReviewsSection({
   reviews,
 }: {
   id?: string;
-  forwardRef?: React.Ref<HTMLDivElement>;
+  forwardRef?: Ref<HTMLDivElement>;
   reviews: ReviewRow[];
 }) {
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -1081,7 +1066,7 @@ function ReviewsSection({
               animate={{ scale: 1, opacity: 1 }}
               transition={springSoft}
             >
-              <p className="text-5xl font-bold text-foreground tabular-nums tracking-[-0.025em] leading-none">
+              <p className="text-5xl font-bold text-white tabular-nums tracking-[-0.025em] leading-none">
                 {avgRating.toFixed(1)}
               </p>
               <div className="flex justify-center gap-0.5 mt-2">
@@ -1090,12 +1075,12 @@ function ReviewsSection({
                     key={s}
                     className={cn(
                       "w-4 h-4",
-                      s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-muted-foreground/30"
+                      s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30"
                     )}
                   />
                 ))}
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1.5">{reviews.length} reviews</p>
+              <p className="text-[11px] text-white/50 mt-1.5">{reviews.length} reviews</p>
             </motion.div>
             <div className="flex-1 space-y-2">
               {distribution.map(({ star, count }, i) => (
@@ -1106,8 +1091,8 @@ function ReviewsSection({
                   transition={stagger(i)}
                   className="flex items-center gap-2.5"
                 >
-                  <span className="text-[11px] text-muted-foreground w-3 shrink-0 tabular-nums">{star}</span>
-                  <div className="flex-1 h-2 rounded-[10px] bg-muted overflow-hidden">
+                  <span className="text-[11px] text-white/50 w-3 shrink-0 tabular-nums">{star}</span>
+                  <div className="flex-1 h-2 rounded-[10px] bg-white/10 overflow-hidden">
                     <motion.div
                       className="h-full rounded-[10px] bg-[#FFD60A]"
                       initial={{ width: 0 }}
@@ -1115,34 +1100,34 @@ function ReviewsSection({
                       transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                     />
                   </div>
-                  <span className="text-[11px] text-muted-foreground w-4 text-right tabular-nums shrink-0">{count}</span>
+                  <span className="text-[11px] text-white/50 w-4 text-right tabular-nums shrink-0">{count}</span>
                 </motion.div>
               ))}
             </div>
           </div>
 
           <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">Recent</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-white/50">Recent</p>
             {reviews.slice(0, 6).map((r, i) => (
               <motion.div
                 key={r.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.045 * i, ...springSoft }}
-                className="rounded-[16px] bg-muted/50 p-4 space-y-2"
+                className="rounded-[16px] bg-white/5 p-4 space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} className={cn("w-3.5 h-3.5", s <= r.rating ? "fill-[#FFD60A] text-[#FFD60A]" : "text-muted-foreground/30")} />
+                      <Star key={s} className={cn("w-3.5 h-3.5", s <= r.rating ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30")} />
                     ))}
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[10px] text-white/50">
                     {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                   </span>
                 </div>
-                {r.reviewer_name && <p className="text-sm font-semibold text-foreground">{r.reviewer_name}</p>}
-                {r.comment && <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{r.comment}&rdquo;</p>}
+                {r.reviewer_name && <p className="text-sm font-semibold text-white">{r.reviewer_name}</p>}
+                {r.comment && <p className="text-sm text-white/50 leading-relaxed">&ldquo;{r.comment}&rdquo;</p>}
               </motion.div>
             ))}
           </div>
@@ -1153,7 +1138,7 @@ function ReviewsSection({
 }
 
 function InsightCard({ icon, tint, title, text, index = 0 }: {
-  icon: React.ReactNode; tint: string; title: string; text: string; index?: number;
+  icon: ReactNode; tint: string; title: string; text: string; index?: number;
 }) {
   return (
     <motion.div
@@ -1161,14 +1146,9 @@ function InsightCard({ icon, tint, title, text, index = 0 }: {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.08 * index, ...springSoft }}
       whileHover={{ y: -2 }}
-      className="relative overflow-hidden rounded-[18px] bg-card border border-border p-5"
+      className="relative rounded-[18px] bg-[#15151A] border border-white/[0.08] p-5"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-30 blur-2xl"
-        style={{ background: `radial-gradient(circle, ${tint}55 0%, transparent 70%)` }}
-      />
-      <div className="relative flex items-center gap-2.5 mb-2.5">
+      <div className="flex items-center gap-2.5 mb-2.5">
         <div
           className="w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0"
           style={{ backgroundColor: `${tint}20`, color: tint }}
@@ -1176,12 +1156,12 @@ function InsightCard({ icon, tint, title, text, index = 0 }: {
           {icon}
         </div>
         <div className="inline-flex items-center gap-1.5">
-          <Lightbulb className="w-3 h-3 text-muted-foreground" strokeWidth={2.3} />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Insight</span>
+          <Lightbulb className="w-3 h-3 text-white/50" strokeWidth={2.3} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Insight</span>
         </div>
       </div>
-      <p className="relative text-[15px] font-bold text-foreground tracking-tight">{title}</p>
-      <p className="relative text-[12px] text-muted-foreground mt-1 leading-relaxed">{text}</p>
+      <p className="relative text-[15px] font-bold text-white tracking-tight">{title}</p>
+      <p className="relative text-[12px] text-white/50 mt-1 leading-relaxed">{text}</p>
     </motion.div>
   );
 }
@@ -1192,12 +1172,12 @@ function EmptyMini() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springSoft}
-      className="rounded-[16px] bg-muted/50 p-10 text-center"
+      className="rounded-[16px] bg-white/5 p-10 text-center"
     >
-      <div className="w-11 h-11 rounded-[14px] bg-muted mx-auto flex items-center justify-center">
-        <Sparkles className="w-4 h-4 text-muted-foreground" strokeWidth={2.3} />
+      <div className="w-11 h-11 rounded-[14px] bg-white/10 mx-auto flex items-center justify-center">
+        <Sparkles className="w-4 h-4 text-white/50" strokeWidth={2.3} />
       </div>
-      <p className="text-xs text-muted-foreground mt-3.5">No data in this range yet</p>
+      <p className="text-xs text-white/50 mt-3.5">No data in this range yet</p>
     </motion.div>
   );
 }
@@ -1241,10 +1221,10 @@ function CompletionGauge({ value }: { value: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
-        <span className="text-[22px] font-bold text-foreground tabular-nums leading-none tracking-tight">
+        <span className="text-[22px] font-bold text-white tabular-nums leading-none tracking-tight">
           {value}%
         </span>
-        <span className="text-[9px] uppercase tracking-[0.18em] text-primary mt-1 font-semibold">done</span>
+        <span className="text-[9px] uppercase tracking-[0.18em] text-[#FF375F] mt-1 font-semibold">done</span>
       </div>
     </div>
   );
@@ -1253,7 +1233,7 @@ function CompletionGauge({ value }: { value: number }) {
 function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  React.useEffect(() => {
+  useEffect(() => {
     if (sessionStorage.getItem("reports-login-nudge-dismissed")) return;
     const t = setTimeout(() => setShow(true), delaySec * 1000);
     return () => clearTimeout(t);
@@ -1274,30 +1254,20 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
           transition={{ type: "spring", stiffness: 360, damping: 30 }}
           className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
         >
-          <div className="relative overflow-hidden rounded-[26px] border border-border bg-card/95 shadow-2xl p-4">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full opacity-70"
-              style={{ background: "radial-gradient(circle, hsl(var(--primary)/0.35) 0%, transparent 65%)" }}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full opacity-60"
-              style={{ background: "radial-gradient(circle, hsl(var(--primary)/0.30) 0%, transparent 65%)" }}
-            />
+          <div className="relative rounded-[26px] border border-white/[0.08] bg-[#15151A] p-4">
             <div className="relative flex items-center gap-3.5">
               <motion.div
-                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-primary shadow-[0_6px_20px_hsl(var(--primary)/0.45)]"
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF375F]"
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Lock className="w-5 h-5 text-primary-foreground" strokeWidth={2.4} />
+                <Lock className="w-5 h-5 text-white" strokeWidth={2.4} />
               </motion.div>
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold text-foreground leading-tight">
+                <p className="text-[15px] font-semibold text-white leading-tight">
                   Save your insights
                 </p>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
+                <p className="text-[12px] text-white/50 mt-0.5">
                   Sign in to unlock live tracking, exports & alerts.
                 </p>
               </div>
@@ -1305,7 +1275,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
                 type="button"
                 onClick={close}
                 aria-label="Dismiss"
-                className="w-8 h-8 rounded-[12px] bg-muted text-muted-foreground flex items-center justify-center hover:bg-accent transition-colors shrink-0"
+                className="w-8 h-8 rounded-[12px] bg-white/10 text-white/50 flex items-center justify-center hover:bg-[#22222A] transition-colors shrink-0"
               >
                 <X className="w-4 h-4" strokeWidth={2.4} />
               </button>
@@ -1313,13 +1283,13 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             <div className="relative mt-3.5 flex items-center gap-2.5">
               <Link
                 to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-[12px] bg-primary text-primary-foreground text-[14px] font-semibold flex items-center justify-center shadow-[0_6px_20px_hsl(var(--primary)/0.35)] active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-[#FF375F] text-white text-[14px] font-semibold flex items-center justify-center active:scale-[0.98] transition-transform"
               >
                 Sign in
               </Link>
               <Link
                 to="/auth?signup=1"
-                className="flex-1 h-11 rounded-[12px] bg-muted text-foreground text-[14px] font-semibold flex items-center justify-center border border-border active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-white/10 text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
               >
                 Create account
               </Link>
@@ -1336,11 +1306,17 @@ function MobileReportsView({
   isLoading,
   topCustomers,
   reviews,
+  dateRange,
+  setDateRange,
+  onExport,
 }: {
   analytics: any;
   isLoading: boolean;
   topCustomers: TopCustomerRow[];
   reviews: ReviewRow[];
+  dateRange: RangeValue;
+  setDateRange: (v: RangeValue) => void;
+  onExport: () => void;
 }) {
   const top = analytics.serviceBreakdown?.[0];
   const completedShare = analytics.completionRate || 0;
@@ -1358,25 +1334,37 @@ function MobileReportsView({
       >
         <div>
           <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
-          <p className="text-[13px] text-[#8E8E93] mt-0.5">{today}</p>
+          <p className="text-[13px] text-white/50 mt-0.5">{today}</p>
         </div>
         <motion.div
           whileTap={{ scale: 0.94 }}
-          className="h-10 w-10 rounded-[12px] bg-white/[0.08] border border-white/[0.08] flex items-center justify-center"
+          onClick={onExport}
+          className="h-10 w-10 rounded-[12px] bg-[#22222A] border border-white/[0.08] flex items-center justify-center"
         >
-          <CalendarDays className="w-5 h-5 text-white" strokeWidth={2.3} />
+          <Download className="w-5 h-5 text-white" strokeWidth={2.3} />
         </motion.div>
       </motion.div>
+
+      {/* Date range */}
+      <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
+        <TabsList className="w-full bg-[#15151A]">
+          {RANGES.map((r) => (
+            <TabsTrigger key={r.value} value={r.value} className="flex-1" indicatorClassName="bg-[#FF375F]">
+              <span className="relative">{r.short}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Hero revenue card */}
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 360, damping: 30 }}
-        className="relative overflow-hidden rounded-[20px] bg-[#15151A] border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        className="relative overflow-hidden rounded-[20px] bg-[#15151A] border border-white/[0.08]"
       >
         <div className="relative px-5 pt-5 pb-6 flex flex-col items-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF6B95]">Total revenue</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">Total revenue</p>
 
           <AnimatePresence mode="wait">
             <motion.h2
@@ -1396,8 +1384,8 @@ function MobileReportsView({
               className={cn(
                 "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
                 analytics.revenueDelta >= 0
-                  ? "bg-[#30D158]/12 text-[#30D158] border border-[#30D158]/20"
-                  : "bg-[#FF375F]/12 text-[#FF375F] border border-[#FF375F]/20"
+                  ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/20"
+                  : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/20"
               )}
             >
               {analytics.revenueDelta >= 0 ? (
@@ -1407,7 +1395,7 @@ function MobileReportsView({
               )}
               {Math.abs(analytics.revenueDelta)}%
             </div>
-            <span className="text-xs text-[#8E8E93]">vs prior</span>
+            <span className="text-xs text-white/50">vs prior</span>
           </div>
 
           <div className="mt-4">
@@ -1425,14 +1413,14 @@ function MobileReportsView({
           whileTap={{ scale: 0.97 }}
           className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
         >
-          <div className="w-9 h-9 rounded-[12px] bg-[#FF2D6F]/20 flex items-center justify-center mb-3">
-            <CalendarDays className="w-4 h-4 text-[#FF6B95]" strokeWidth={2.3} />
+          <div className="w-9 h-9 rounded-[12px] bg-[#FF375F]/15 flex items-center justify-center mb-3">
+            <CalendarDays className="w-4 h-4 text-[#FF375F]" strokeWidth={2.3} />
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Bookings</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Bookings</p>
           <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
             {numberFormat.format(analytics.totalAppointments)}
           </p>
-          <p className="text-[11px] text-[#8E8E93] mt-1">{analytics.completionRate}% done</p>
+          <p className="text-[11px] text-white/50 mt-1">{analytics.completionRate}% done</p>
         </motion.div>
 
         <motion.div
@@ -1445,11 +1433,11 @@ function MobileReportsView({
           <div className="w-9 h-9 rounded-[12px] bg-[#FF375F]/20 flex items-center justify-center mb-3">
             <Users className="w-4 h-4 text-[#5AC8FF]" strokeWidth={2.3} />
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Clients</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Clients</p>
           <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
             {numberFormat.format(analytics.totalCustomers)}
           </p>
-          <p className="text-[11px] text-[#8E8E93] mt-1">{analytics.activeStylists} stylists</p>
+          <p className="text-[11px] text-white/50 mt-1">{analytics.activeStylists} stylists</p>
         </motion.div>
 
         <motion.div
@@ -1462,11 +1450,11 @@ function MobileReportsView({
           <div className="w-9 h-9 rounded-[12px] bg-[#30D158]/20 flex items-center justify-center mb-3">
             <DollarSign className="w-4 h-4 text-[#30D158]" strokeWidth={2.3} />
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Avg ticket</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Avg ticket</p>
           <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
             {currency.format(analytics.averageTicket || 0)}
           </p>
-          <p className="text-[11px] text-[#8E8E93] mt-1">Per booking</p>
+          <p className="text-[11px] text-white/50 mt-1">Per booking</p>
         </motion.div>
 
         <motion.div
@@ -1479,11 +1467,11 @@ function MobileReportsView({
           <div className="w-9 h-9 rounded-[12px] bg-[#5E5CE6]/20 flex items-center justify-center mb-3">
             <Scissors className="w-4 h-4 text-[#9B99FF]" strokeWidth={2.3} />
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">Services</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Services</p>
           <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
             {numberFormat.format(analytics.activeServices)}
           </p>
-          <p className="text-[11px] text-[#8E8E93] mt-1">{analytics.completedAppointments} done</p>
+          <p className="text-[11px] text-white/50 mt-1">{analytics.completedAppointments} done</p>
         </motion.div>
       </div>
 
@@ -1496,7 +1484,7 @@ function MobileReportsView({
       >
         <div className="px-5 pt-5 pb-2">
           <h3 className="text-[17px] font-bold text-white tracking-tight">Top services</h3>
-          <p className="text-[12px] text-[#8E8E93] mt-1">Most booked this period</p>
+          <p className="text-[12px] text-white/50 mt-1">Most booked this period</p>
         </div>
         <div className="divide-y divide-white/[0.06]">
           {(analytics.serviceBreakdown?.slice(0, 4) || []).map((s: any, i: number) => {
@@ -1512,14 +1500,14 @@ function MobileReportsView({
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-[10px] bg-white/[0.08] text-[11px] font-semibold text-[#8E8E93] flex items-center justify-center tabular-nums">
+                    <span className="w-7 h-7 rounded-[10px] bg-white/[0.08] text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
                       {i + 1}
                     </span>
                     <span className="font-medium text-white">{s.name}</span>
                   </div>
                   <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
                 </div>
-                <div className="h-2 rounded-[10px] bg-white/[0.06] overflow-hidden">
+                <div className="h-2 rounded-[10px] bg-white/5 overflow-hidden">
                   <motion.div
                     className="h-full rounded-[10px] bg-[#FF375F]"
                     initial={{ width: 0 }}
@@ -1532,7 +1520,7 @@ function MobileReportsView({
           })}
           {(!analytics.serviceBreakdown || analytics.serviceBreakdown.length === 0) && (
             <div className="px-5 py-8 text-center">
-              <p className="text-[12px] text-[#8E8E93]">No services booked yet</p>
+              <p className="text-[12px] text-white/50">No services booked yet</p>
             </div>
           )}
         </div>
@@ -1548,7 +1536,7 @@ function MobileReportsView({
         >
           <div className="px-5 pt-5 pb-2">
             <h3 className="text-[17px] font-bold text-white tracking-tight">Best customers</h3>
-            <p className="text-[12px] text-[#8E8E93] mt-1">Ranked by spend this period</p>
+            <p className="text-[12px] text-white/50 mt-1">Ranked by spend this period</p>
           </div>
           <div className="divide-y divide-white/[0.06]">
             {topCustomers.slice(0, 4).map((c, i) => {
@@ -1579,7 +1567,7 @@ function MobileReportsView({
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-[#8E8E93] mt-0.5">
+                    <p className="text-[11px] text-white/50 mt-0.5">
                       {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
                     </p>
                   </div>

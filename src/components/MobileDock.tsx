@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Calendar, BarChart3, Scissors, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import type { ComponentType } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,7 @@ import {
 
 interface NavItem {
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   path: string;
 }
 
@@ -42,14 +43,14 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
       className={cn(
         'relative flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-1.5 transition-transform duration-150 active:scale-95',
         isActive
-          ? 'text-[#e11d48]'
+          ? 'text-[#FF375F]'
           : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]'
       )}
     >
       {isActive && (
         <motion.span
           layoutId="admin-dock-active"
-          className="absolute inset-x-1 top-1 h-8 rounded-2xl bg-rose-50 dark:bg-rose-500/10"
+          className="absolute inset-x-1 top-1 h-8 rounded-2xl bg-[#FF375F]/10"
           transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         />
       )}
@@ -97,9 +98,9 @@ export const MobileDockInner = () => {
                   <DropdownMenuItem
                     key={item.path}
                     onSelect={() => navigate(item.path)}
-                    className={cn('flex items-center gap-2', isActive && 'bg-accent text-accent-foreground')}
+                    className={cn('flex items-center gap-2', isActive && 'bg-[#FF375F]/10 text-white')}
                   >
-                    <Icon className={cn('h-4 w-4', isActive && 'text-[#e11d48]')} />
+                    <Icon className={cn('h-4 w-4', isActive && 'text-[#FF375F]')} />
                     <span className="text-sm">{item.label}</span>
                   </DropdownMenuItem>
                 );

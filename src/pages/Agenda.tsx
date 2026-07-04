@@ -1,8 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { motion } from "framer-motion";
+import { 
+  Calendar as CalendarIcon,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  LayoutGrid,
+  List,
+  Plus,
+  Filter,
+  DollarSign
+} from "lucide-react";
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MobileDock } from "@/components/MobileDock";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,27 +23,25 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppointmentForm } from "@/components/AppointmentForm";
 import { ModernAppointmentsCalendar } from "@/components/ModernAppointmentsCalendar";
 import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-// iOS-style icons - minimal and clean
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  ChevronLeft, 
-  ChevronRight, 
-  Search,
-  LayoutGrid,
-  List,
-  Plus,
-  Filter
-} from "lucide-react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+function StatPill({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string | number; tone?: 'rose' | 'green' | 'blue' }) {
+  const toneClass = tone === 'rose' ? 'bg-[#FF375F]/10 text-[#FF375F]' : tone === 'green' ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#0A84FF]/10 text-[#0A84FF]';
+  return (
+    <div className="flex items-center gap-3 bg-[#22222A] border border-white/[0.08] rounded-2xl p-3">
+      <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", toneClass)}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <div>
+        <p className="text-xs text-white/50">{label}</p>
+        <p className="text-lg font-semibold text-white">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 interface Service {
   id: string;
@@ -305,7 +316,7 @@ const Agenda = () => {
   if (isMobile) {
     return (
       <SidebarProvider defaultOpen={false}>
-        <div className="h-screen flex w-full overflow-hidden">
+        <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C]">
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
             <LiquidGlassAgenda
@@ -337,274 +348,230 @@ const Agenda = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-gray-50 dark:bg-gradient-to-br dark:from-[#0c0c0c] dark:via-[#1C1C1E] dark:to-[#0c0c0c] overflow-hidden">
+      <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {/* iOS-style Header */}
-          <div className="bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-gray-200 dark:border-[#2C2C2E] sticky top-0 z-20">
-            <div className="px-4 md:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              {/* Left: Title & Date */}
-              <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 lg:hidden" />
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Agenda</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    {format(currentWeek, 'MMMM yyyy')} • Week {format(currentWeek, 'w')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Center: Search - Hidden on mobile, shown on md+ */}
-              <div className="hidden md:block flex-1 max-w-sm mx-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  <Input
-                    placeholder="Search appointments..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 bg-gray-100/80 dark:bg-[#2C2C2E] border-0 focus:bg-white dark:focus:bg-[#3A3A3C] focus:ring-2 focus:ring-sky-500/20 rounded-xl text-sm dark:text-gray-100"
-                  />
-                </div>
-              </div>
-
-              {/* Right: View Toggle & Navigation */}
-              <div className="flex items-center gap-2">
-                {/* View Mode Tabs - iOS Style */}
-                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] border border-gray-200 dark:border-white/5 rounded-xl p-1">
-                  <button
-                    onClick={() => setViewMode('week')}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
-                      viewMode === 'week'
-                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/50 dark:border-white/5'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                    )}
-                  >
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Weeks</span>
-                  </button>
-                  <button
-                    onClick={() => setViewMode('day')}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
-                      viewMode === 'day'
-                        ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/50 dark:border-white/5'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                    )}
-                  >
-                    <List className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Grid</span>
-                  </button>
-                </div>
-
-                {/* Navigation */}
-                <div className="flex items-center bg-gray-100 dark:bg-[#2C2C2E] border border-gray-200 dark:border-white/5 rounded-xl p-1">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={handlePreviousWeek} 
-                    className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-[#3A3A3C] text-gray-600 dark:text-gray-400"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleToday}
-                    className="h-8 px-3 rounded-lg hover:bg-white dark:hover:bg-[#3A3A3C] text-xs font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Today
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={handleNextWeek} 
-                    className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-[#3A3A3C] text-gray-600 dark:text-gray-400"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Cards - iOS Style - Only show in Week view */}
-            {viewMode === 'week' && (
-            <div className="px-4 md:px-6 pb-3">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
-                      <CalendarIcon className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+        <main className="relative flex-1 flex flex-col overflow-hidden bg-[#0A0A0C] text-white">
+          <div className="h-full overflow-hidden lg:p-2 w-full">
+            <div className="lg:border lg:rounded-[20px] overflow-hidden flex flex-col bg-[#15151A] border-white/[0.08] h-full w-full">
+              {/* Header */}
+              <div className="border-b border-white/[0.08] bg-[#15151A] px-4 md:px-6 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <SidebarTrigger className="lg:hidden text-white" />
+                    <div className="min-w-0">
+                      <h1 className="text-base md:text-lg font-semibold text-white truncate">
+                        {format(currentWeek, 'MMMM yyyy')}
+                      </h1>
+                      <p className="hidden md:block text-xs text-white/50">
+                        Week {format(currentWeek, 'w')} · {weeklyStats.total} appointments
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Bookings</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{weeklyStats.total}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="hidden md:block relative max-w-[260px]">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+                      <Input
+                        placeholder="Search appointments..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF375F]/30"
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Completed</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{weeklyStats.completed}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                      <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{weeklyStats.pending}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">${weeklyStats.revenue}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-            )}
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 overflow-auto p-4 md:p-6 pb-20">
-            {viewMode === 'week' ? (
-              /* Week Overview Cards */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {weekCards.map((week, index) => {
-                  const colors = [
-                    { bg: 'from-sky-50 to-pink-50', accent: 'bg-sky-500', text: 'text-sky-600' },
-                    { bg: 'from-purple-50 to-pink-50', accent: 'bg-purple-500', text: 'text-purple-600' },
-                    { bg: 'from-green-50 to-emerald-50', accent: 'bg-green-500', text: 'text-green-600' },
-                    { bg: 'from-sky-50 to-pink-50', accent: 'bg-sky-500', text: 'text-sky-600' },
-                    { bg: 'from-sky-50 to-cyan-50', accent: 'bg-sky-500', text: 'text-sky-600' },
-                    { bg: 'from-cyan-50 to-teal-50', accent: 'bg-cyan-500', text: 'text-cyan-600' },
-                  ][index % 6];
-
-                  return (
-                    <Card
-                      key={week.weekOffset}
-                      onClick={() => {
-                        setCurrentWeek(week.weekStart);
-                        setViewMode('day');
-                      }}
-                      className={cn(
-                        "group cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-                        week.isCurrentWeek && "ring-2 ring-sky-500/20"
-                      )}
+                    <Button
+                      onClick={() => setIsAppointmentFormOpen(true)}
+                      className="h-9 rounded-xl bg-[#FF375F] hover:bg-[#FF375F]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
                     >
-                      <div className={"h-2 bg-sky-500"} />
-                      <CardContent className="p-5">
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-3xl font-bold text-gray-900">
-                                {format(week.weekStart, 'w')}
-                              </span>
-                              <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                Week
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {format(week.weekStart, 'MMM d')} - {format(week.weekEnd, 'MMM d')}
-                            </p>
-                          </div>
-                          {week.isCurrentWeek && (
-                            <Badge className="bg-sky-100 text-sky-700 border-0 font-medium">
-                              Current
-                            </Badge>
+                      <Plus className="h-4 w-4 md:mr-1.5" />
+                      <span className="hidden md:inline">New appointment</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="border-b border-white/[0.08] bg-[#15151A] px-4 md:px-6 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
+                      <button
+                        onClick={() => setViewMode('week')}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
+                          viewMode === 'week'
+                            ? 'bg-[#FF375F] text-white shadow-sm'
+                            : 'text-white/50 hover:text-white'
+                        )}
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Weeks</span>
+                      </button>
+                      <button
+                        onClick={() => setViewMode('day')}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
+                          viewMode === 'day'
+                            ? 'bg-[#FF375F] text-white shadow-sm'
+                            : 'text-white/50 hover:text-white'
+                        )}
+                      >
+                        <List className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Grid</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handlePreviousWeek}
+                      className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleToday}
+                      className="h-8 px-3 rounded-lg hover:bg-[#15151A] text-xs font-medium text-white/70 hover:text-white"
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleNextWeek}
+                      className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Cards */}
+              {viewMode === 'week' && (
+                <div className="px-4 md:px-6 py-3 border-b border-white/[0.08] bg-[#15151A]">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+                    <StatPill icon={CalendarIcon} label="Bookings" value={weeklyStats.total} tone="rose" />
+                    <StatPill icon={Clock} label="Completed" value={weeklyStats.completed} tone="green" />
+                    <StatPill icon={Filter} label="Pending" value={weeklyStats.pending} tone="blue" />
+                    <StatPill icon={DollarSign} label="Revenue" value={`$${weeklyStats.revenue}`} tone="rose" />
+                  </div>
+                </div>
+              )}
+
+              {/* Main Content */}
+              <div className="flex-1 overflow-auto p-4 md:p-6">
+                {viewMode === 'week' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {weekCards.map((week, index) => {
+                      const isCurrent = week.isCurrentWeek;
+                      return (
+                        <motion.div
+                          key={week.weekOffset}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05, duration: 0.35 }}
+                          onClick={() => {
+                            setCurrentWeek(week.weekStart);
+                            setViewMode('day');
+                          }}
+                          className={cn(
+                            "group cursor-pointer overflow-hidden rounded-3xl border border-white/[0.08] bg-[#15151A] transition-all duration-300 hover:border-white/[0.14]",
+                            isCurrent && "ring-1 ring-[#FF375F]/30"
                           )}
-                        </div>
-
-                        {/* Stats */}
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="bg-gray-50 rounded-xl p-3">
-                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Bookings</p>
-                            <p className="text-xl font-semibold text-gray-900 mt-0.5">{week.appointments.length}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-xl p-3">
-                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Revenue</p>
-                            <p className="text-xl font-semibold text-gray-900 mt-0.5">${week.revenue}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-xl p-3">
-                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Clients</p>
-                            <p className="text-xl font-semibold text-gray-900 mt-0.5">{week.customers}</p>
-                          </div>
-                        </div>
-
-                        {/* Mini appointments preview */}
-                        {week.appointments.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">
-                              Next 3 appointments
-                            </p>
-                            <div className="space-y-2">
-                              {week.appointments.slice(0, 3).map((apt) => (
-                                <div key={apt.id} className="flex items-center gap-2 text-sm">
-                                  <div 
-                                    className="w-2 h-2 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: apt.service.color || '#3b82f6' }}
-                                  />
-                                  <span className="truncate flex-1 text-gray-700">{apt.service.name}</span>
-                                  <span className="text-xs text-gray-400">{apt.appointment_time.slice(0, 5)}</span>
+                        >
+                          <div className="h-2 bg-[#FF375F]" />
+                          <div className="p-5">
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-3xl font-bold text-white">
+                                    {format(week.weekStart, 'w')}
+                                  </span>
+                                  <span className="text-xs font-medium text-white/40 uppercase tracking-wider">
+                                    Week
+                                  </span>
                                 </div>
-                              ))}
-                              {week.appointments.length > 3 && (
-                                <p className="text-xs text-gray-400 pl-4">
-                                  +{week.appointments.length - 3} more
+                                <p className="text-sm text-white/50 mt-1">
+                                  {format(week.weekStart, 'MMM d')} - {format(week.weekEnd, 'MMM d')}
                                 </p>
+                              </div>
+                              {isCurrent && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#FF375F]/10 text-[#FF375F] text-[10px] font-semibold uppercase tracking-wider">
+                                  Current
+                                </span>
                               )}
                             </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="bg-[#22222A] rounded-xl p-3">
+                                <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Bookings</p>
+                                <p className="text-xl font-semibold text-white mt-0.5">{week.appointments.length}</p>
+                              </div>
+                              <div className="bg-[#22222A] rounded-xl p-3">
+                                <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Revenue</p>
+                                <p className="text-xl font-semibold text-white mt-0.5">${week.revenue}</p>
+                              </div>
+                              <div className="bg-[#22222A] rounded-xl p-3">
+                                <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Clients</p>
+                                <p className="text-xl font-semibold text-white mt-0.5">{week.customers}</p>
+                              </div>
+                            </div>
+                            {week.appointments.length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-white/[0.08]">
+                                <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider mb-2">
+                                  Next 3 appointments
+                                </p>
+                                <div className="space-y-2">
+                                  {week.appointments.slice(0, 3).map((apt) => (
+                                    <div key={apt.id} className="flex items-center gap-2 text-sm">
+                                      <div
+                                        className="w-2 h-2 rounded-full flex-shrink-0"
+                                        style={{ backgroundColor: apt.service.color || '#FF375F' }}
+                                      />
+                                      <span className="truncate flex-1 text-white/70">{apt.service.name}</span>
+                                      <span className="text-xs text-white/40">{apt.appointment_time.slice(0, 5)}</span>
+                                    </div>
+                                  ))}
+                                  {week.appointments.length > 3 && (
+                                    <p className="text-xs text-white/40 pl-4">
+                                      +{week.appointments.length - 3} more
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <ModernAppointmentsCalendar
+                    appointments={filteredAppointments}
+                    onDateTimeClick={handleDateTimeClick}
+                    services={services}
+                    currentWeekExternal={currentWeek}
+                    onWeekChange={setCurrentWeek}
+                  />
+                )}
               </div>
-            ) : (
-              /* Day Grid View */
-              <ModernAppointmentsCalendar
-                appointments={filteredAppointments}
-                onDateTimeClick={handleDateTimeClick}
-                services={services}
-                currentWeekExternal={currentWeek}
-                onWeekChange={setCurrentWeek}
-              />
-            )}
+            </div>
           </div>
         </main>
-      </div>
 
-      {/* Appointment Form Dialog - Outside zoomed container for proper centering */}
-      {selectedTimeSlot && (
-        <AppointmentForm
-          isOpen={isAppointmentFormOpen}
-          onClose={handleCloseAppointmentForm}
-          selectedDate={selectedTimeSlot.date}
-          selectedTime={selectedTimeSlot.time}
-          services={services}
-          initialServiceId={selectedServiceId}
-        />
-      )}
+        {/* Appointment Form Dialog */}
+        {selectedTimeSlot && (
+          <AppointmentForm
+            isOpen={isAppointmentFormOpen}
+            onClose={handleCloseAppointmentForm}
+            selectedDate={selectedTimeSlot.date}
+            selectedTime={selectedTimeSlot.time}
+            services={services}
+            initialServiceId={selectedServiceId}
+          />
+        )}
+      </div>
     </SidebarProvider>
   );
 };
