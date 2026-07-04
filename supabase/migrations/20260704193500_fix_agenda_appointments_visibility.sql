@@ -99,6 +99,9 @@ GRANT SELECT ON public.stylists TO authenticated;
 --    customer, service and stylist data. This bypasses any RLS oddities on the
 --    related tables while still restricting rows to the calling user.
 -- -----------------------------------------------------------------------------
+-- Drop any previous definition so parameter names/order can change safely.
+DROP FUNCTION IF EXISTS public.get_user_appointments(date, date);
+
 CREATE OR REPLACE FUNCTION public.get_user_appointments(
   p_start_date date DEFAULT NULL,
   p_end_date date DEFAULT NULL
@@ -144,8 +147,7 @@ AS $$
         'stylist', CASE
           WHEN st.id IS NOT NULL THEN jsonb_build_object(
             'id', st.id,
-            'name', st.name,
-            'email', st.email
+            'name', st.name
           )
           ELSE NULL
         END

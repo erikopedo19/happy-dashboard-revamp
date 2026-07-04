@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { X, ChevronLeft, Clock, User, ArrowRight, Video, Globe, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { X, ChevronLeft, Clock, User, ArrowRight, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -297,6 +297,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             .insert({
               name: customerName,
               email: customerEmail,
+              phone: customerPhone || null,
               user_id: user.id,
             })
             .select()
@@ -311,6 +312,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           .from('customers')
           .insert({
             name: customerName,
+            phone: customerPhone || null,
             user_id: user.id,
           })
           .select()
@@ -432,7 +434,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(8.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Mobile sticky top bar with drag-handle + close */}
@@ -459,7 +461,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Left Panel - Service Info */}
           <div className={cn(
             "bg-[#0e0e10] flex flex-col",
-            isMobile ? "p-4 border-b border-white/[0.06]" : "w-[320px] p-8 border-r border-white/[0.06]"
+            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[320px] p-8 border-r border-white/[0.06]"
           )}>
             {/* Desktop close */}
             {!isMobile && (
@@ -499,14 +501,6 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 <div className="flex items-center gap-2 text-gray-300">
                   <Clock className="w-4 h-4 text-gray-500" />
                   <span>{selectedService.duration} min</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Video className="w-4 h-4 text-gray-500" />
-                  <span>Google Meet</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Globe className="w-4 h-4 text-gray-500" />
-                  <span>Europe/Bucharest</span>
                 </div>
               </div>
             )}
@@ -686,7 +680,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   Enter Your Details
                 </h3>
 
-                <form onSubmit={handleSubmit} className={cn("space-y-4 flex-1", isMobile && "pb-36") }>
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Full Name *
@@ -809,7 +803,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
               "bg-[#0e0e10]",
-              isMobile ? "p-4 pb-36" : "w-[280px] p-6 overflow-y-auto"
+              isMobile ? "p-4 pb-6" : "w-[280px] p-6 overflow-y-auto"
             )}>
             {!isMobile && step === "details" && (
               <div className="space-y-4">
@@ -863,7 +857,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     {format(selectedDateObj, 'EEE dd')}
                   </h4>
 
-                  <div className={cn("space-y-2 overflow-y-auto", isMobile ? "max-h-none" : "max-h-[400px]")}>
+                  <div className={cn("overflow-y-auto", isMobile ? "max-h-none grid grid-cols-2 gap-2" : "max-h-[400px] space-y-2")}>
                     {timeSlots.map((time) => {
                       const isBooked = bookedSlotsSet.has(time);
 
@@ -876,7 +870,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                           }}
                           disabled={isBooked}
                           className={cn(
-                            "w-full py-3 px-4 rounded-xl border font-medium transition-all text-center flex items-center justify-center gap-2",
+                            "py-3 px-2 rounded-xl border font-medium transition-all text-center flex items-center justify-center gap-1",
                             isBooked
                               ? "border-white/[0.06] text-gray-500 cursor-not-allowed opacity-60"
                               : selectedTimeSlot === time
@@ -884,7 +878,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                                 : "border-white/[0.06] hover:border-gray-600 text-white"
                           )}
                         >
-                          <span>{formatTime(time)}</span>
+                          <span className="text-sm">{formatTime(time)}</span>
                           {isBooked && <span className="text-[10px] uppercase tracking-wide">Booked</span>}
                         </button>
                       );
