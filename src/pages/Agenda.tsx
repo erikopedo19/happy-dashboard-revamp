@@ -78,6 +78,8 @@ const Agenda = () => {
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; time: string } | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'week' | 'day'>('day');
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
@@ -183,12 +185,16 @@ const Agenda = () => {
     [appointments, services]
   );
 
-  // Filter appointments by selected service and search
+  // Filter appointments by selected service, status, and search
   const filteredAppointments = useMemo(() => {
     let filtered = hydratedAppointments;
     
     if (selectedServiceId) {
       filtered = filtered.filter((apt) => apt.service?.id === selectedServiceId);
+    }
+
+    if (selectedStatus) {
+      filtered = filtered.filter((apt) => apt.status === selectedStatus);
     }
     
     if (searchQuery.trim()) {
@@ -200,7 +206,7 @@ const Agenda = () => {
     }
     
     return filtered;
-  }, [hydratedAppointments, selectedServiceId, searchQuery]);
+  }, [hydratedAppointments, selectedServiceId, selectedStatus, searchQuery]);
 
   // Weekly stats for progress cards
   const weeklyStats = useMemo(() => {
@@ -277,6 +283,25 @@ const Agenda = () => {
 
   const handleServiceSelect = (serviceId: string | null) => {
     setSelectedServiceId(serviceId);
+  };
+
+  const handleNewAppointment = () => {
+    const now = new Date();
+    const date = format(now, 'yyyy-MM-dd');
+    const hour = Math.min(18, Math.max(9, now.getHours()));
+    const time = `${hour.toString().padStart(2, '0')}:00`;
+    setSelectedServiceId(null);
+    setSelectedTimeSlot({ date, time });
+    setIsAppointmentFormOpen(true);
+  };
+
+  const handleToggleFilters = () => {
+    setShowFilters(prev => !prev);
+  };
+
+  const handleClearFilters = () => {
+    setSelectedServiceId(null);
+    setSelectedStatus(null);
   };
 
   const handlePreviousWeek = () => {
@@ -446,16 +471,22 @@ const Agenda = () => {
                       <Settings className="h-4 w-4" />
                     </Button>
                     <Button
-                      onClick={() => setIsAppointmentFormOpen(true)}
+                      onClick={handleNewAppointment}
                       className="h-9 rounded-xl bg-[#FF375F] hover:bg-[#FF375F]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
                     >
                       <Plus className="h-4 w-4 md:mr-1.5" />
                       <span className="hidden md:inline">New</span>
                     </Button>
                     <Button
-                      variant="ghost"
+                      onClick={handleToggleFilters}
+                      variant={showFilters ? "secondary" : "ghost"}
                       size="sm"
-                      className="h-9 rounded-xl text-white/70 hover:text-white hover:bg-[#22222A] px-3"
+                      className={cn(
+                        "h-9 rounded-xl px-3",
+                        showFilters
+                          ? "bg-[#FF375F]/15 text-[#FF375F] hover:bg-[#FF375F]/25"
+                          : "text-white/70 hover:text-white hover:bg-[#22222A]"
+                      )}
                     >
                       <Filter className="h-4 w-4 md:mr-1.5" />
                       <span className="hidden md:inline">Filter</span>
@@ -463,6 +494,66 @@ const Agenda = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Filter Panel */}
+              {showFilters && (
+                <div className="px-4 md:px-6 py-3 border-b border-white/[0.08] bg-[#15151A]">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Filters</p>
+                      {(selectedServiceId || selectedStatus) && (
+                        <button
+                          onClick={handleClearFilters}
+                          className="text-xs text-[#FF375F] hover:text-[#FF375F]/80 font-medium"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setSelectedServiceId(null)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                          !selectedServiceId ? "bg-[#FF375F] text-white" : "bg-white/[0.06] text-white/70 hover:bg-white/[0.10]"
+                        )}
+                      >
+                        All services
+                      </button>
+                      {services.map((service) => (
+                        <button
+                          key={service.id}
+                          onClick={() => setSelectedServiceId(service.id)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
+                            selectedServiceId === service.id
+                              ? "bg-[#FF375F] text-white border-[#FF375F]"
+                              : "bg-transparent text-white/70 border-white/[0.08] hover:border-white/[0.14]"
+                          )}
+                        >
+                          {service.name}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {['scheduled', 'completed', 'cancelled'].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setSelectedStatus(selectedStatus === status ? null : status)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors border",
+                            selectedStatus === status
+                              ? "bg-[#0A84FF] text-white border-[#0A84FF]"
+                              : "bg-transparent text-white/70 border-white/[0.08] hover:border-white/[0.14]"
+                          )}
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Progress Cards */}
               {viewMode === 'week' && (

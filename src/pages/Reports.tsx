@@ -424,7 +424,7 @@ const Reports = () => {
               <div className="flex items-center gap-2.5 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
                 <motion.div
-                  className="min-w-0"
+                  className="min-w-0 hidden md:block"
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={springSoft}
@@ -445,10 +445,10 @@ const Reports = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springSoft}
                 whileTap={{ scale: 0.94 }}
-                className="shrink-0 inline-flex items-center gap-2 rounded-[12px] h-10 px-4 bg-[#15151A] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
+                className="hidden md:inline-flex shrink-0 items-center gap-2 rounded-[12px] h-10 px-4 bg-[#15151A] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
               >
                 <Download className="h-4 w-4" strokeWidth={2.3} />
-                {!isMobile && "Export"}
+                Export
               </motion.button>
             </div>
 
