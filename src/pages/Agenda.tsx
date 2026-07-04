@@ -125,24 +125,17 @@ const Agenda = () => {
     enabled: !!user,
   });
 
-  // Fetch appointments for current range - with automatic refresh
+  // Fetch appointments for current range via SECURITY DEFINER RPC.
+  // This avoids RLS quirks on the joined customers/services tables.
   const { data: appointments = [] } = useQuery<Appointment[]>({
     queryKey: ['appointments', format(fetchStartDate, 'yyyy-MM-dd'), format(fetchEndDate, 'yyyy-MM-dd')],
     queryFn: async () => {
       if (!user) return [];
-      const result = await (supabase as any)
-        .from('appointments')
-        .select(`
-          *,
-          customer:customers(*),
-          service:services(*)
-        `)
-        .eq('user_id', user.id)
-        .gte('appointment_date', format(fetchStartDate, 'yyyy-MM-dd'))
-        .lte('appointment_date', format(fetchEndDate, 'yyyy-MM-dd'))
-        .order('appointment_date', { ascending: true })
-        .order('appointment_time', { ascending: true });
-      const { data, error } = result;
+      const { data, error } = await (supabase as any)
+        .rpc('get_user_appointments', {
+          p_start_date: format(fetchStartDate, 'yyyy-MM-dd'),
+          p_end_date: format(fetchEndDate, 'yyyy-MM-dd'),
+        });
 
       if (error) {
         console.error('Error fetching appointments:', error);
@@ -162,7 +155,20 @@ const Agenda = () => {
 
   const hydratedAppointments = useMemo(
     () => appointments
-      .filter((apt) => apt?.service && apt?.customer)
+      .filter((apt) => {
+        const hasService = !!apt?.service;
+        const hasCustomer = !!apt?.customer;
+        if (!hasService || !hasCustomer) {
+          console.warn('Agenda: filtering out appointment with missing customer/service', {
+            id: apt?.id,
+            appointment_date: apt?.appointment_date,
+            appointment_time: apt?.appointment_time,
+            hasService,
+            hasCustomer,
+          });
+        }
+        return hasService && hasCustomer;
+      })
       .map((apt) => {
         const additionalDuration = getAdditionalServiceNames(apt.notes).reduce((sum, serviceName) => {
           const matchedService = services.find((service) => service.name.toLowerCase() === serviceName.toLowerCase());

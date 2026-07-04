@@ -280,13 +280,7 @@ export const LiquidGlassAgenda = ({
   const shouldShowViewToggle = showViewModeToggle && appointments.length > 0;
 
   const weekSummary = useMemo(() => {
-    return weekDays
-      .filter((day) => {
-        const workingDays = agendaSettings?.working_days;
-        if (!workingDays || workingDays.length === 0) return true;
-        return workingDays.includes(day.getDay());
-      })
-      .map((day) => {
+    return weekDays.map((day) => {
         const items = appointments
           .filter((apt) => isSameDay(parseISO(apt.appointment_date), day))
           .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));

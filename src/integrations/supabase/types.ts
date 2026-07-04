@@ -1149,6 +1149,7 @@ export type Database = {
       expire_waitlist_offers: { Args: never; Returns: undefined }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
       get_appointment_by_token: { Args: { _token: string }; Returns: Json }
+      get_user_appointments: { Args: { p_end_date?: string; p_start_date?: string }; Returns: Json }
       get_booked_slots: {
         Args: { _business_id: string; _date: string }
         Returns: {

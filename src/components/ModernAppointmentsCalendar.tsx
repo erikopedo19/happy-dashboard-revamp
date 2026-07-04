@@ -178,18 +178,11 @@ export const ModernAppointmentsCalendar = ({
     weekStartsOn: 1
   });
   const weekDays = useMemo(() => {
-    const days = eachDayOfInterval({
+    return eachDayOfInterval({
       start: startOfCurrentWeek,
       end: endOfCurrentWeek
     });
-
-    const workingDays = agendaSettings?.working_days;
-    if (!workingDays || workingDays.length === 0) {
-      return days;
-    }
-
-    return days.filter(day => workingDays.includes(day.getDay()));
-  }, [startOfCurrentWeek, endOfCurrentWeek, agendaSettings?.working_days]);
+  }, [startOfCurrentWeek, endOfCurrentWeek]);
   const handlePreviousWeek = () => {
     setCurrentWeek(subWeeks(currentWeek, 1));
   };
