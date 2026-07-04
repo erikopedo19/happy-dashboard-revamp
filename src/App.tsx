@@ -54,6 +54,7 @@ import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import Microsite from "./pages/Microsite";
 import MicrositeEditor from "./pages/MicrositeEditor";
 import ChooseMode from "./pages/ChooseMode";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -112,6 +113,7 @@ function AnimatedRoutes() {
   return (
     <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
       <Route path="/choose-mode" element={<ChooseMode />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/book/:bookingLink" element={<Booking />} />
