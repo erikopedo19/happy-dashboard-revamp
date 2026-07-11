@@ -48,6 +48,8 @@ import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
+import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -85,6 +87,7 @@ type BrandProfileRecord = {
   description: string;
   years_experience?: number;
   accepts_waitlist?: boolean;
+  timezone: string;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
@@ -129,6 +132,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   description: "",
   years_experience: undefined,
   accepts_waitlist: false,
+  timezone: getBrowserTimezone(),
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -176,7 +180,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist, onboarding_completed")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist, onboarding_completed, timezone")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -283,6 +287,7 @@ const Settings = () => {
       description: data.profile?.description ?? "",
       years_experience: data.profile?.years_experience ?? undefined,
       accepts_waitlist: data.profile?.accepts_waitlist ?? false,
+      timezone: data.profile?.timezone ?? getBrowserTimezone(),
     });
 
     // Set dark mode from profile, default to dark mode
@@ -373,6 +378,7 @@ const Settings = () => {
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
         accepts_waitlist: brandForm.accepts_waitlist ?? false,
+        timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
         updated_at: new Date().toISOString(),
       };
 
@@ -770,6 +776,32 @@ const Settings = () => {
                                 </button>
                               ))}
                             </div>
+                          </div>
+
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Business time zone
+                            </Label>
+                            <Select
+                              value={brandForm.timezone || getBrowserTimezone()}
+                              onValueChange={(value) =>
+                                setBrandForm((prev) => ({ ...prev, timezone: value }))
+                              }
+                            >
+                              <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                                <SelectValue placeholder="Select time zone" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[280px]">
+                                {listTimezones().map((tz) => (
+                                  <SelectItem key={tz} value={tz}>
+                                    {formatTzLabel(tz)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-[#8E8E93] mt-1.5">
+                              Slots on your booking link and Find Barber use this time zone. Detected: {formatTzLabel(getBrowserTimezone())}
+                            </p>
                           </div>
 
                           <Separator />

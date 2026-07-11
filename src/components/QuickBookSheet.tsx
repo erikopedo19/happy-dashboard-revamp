@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Check, Calendar, Clock, Scissors, ArrowLeft, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
 
 interface QuickBookSheetProps {
   open: boolean;
@@ -34,6 +35,7 @@ interface AgendaSettings {
   end_hour: string;
   service_duration: number;
   working_days?: number[] | null;
+  timezone?: string | null;
 }
 
 interface BookedSlot {
@@ -110,19 +112,25 @@ export function QuickBookSheet({
     queryKey: ["quickbook-settings", barberId],
     enabled: open && !!barberId,
     queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from("agenda_settings")
-        .select("start_hour, end_hour, service_duration, working_days")
-        .eq("user_id", barberId)
-        .maybeSingle();
-      return (
-        data || {
-          start_hour: "09:00",
-          end_hour: "18:00",
-          service_duration: 30,
-          working_days: [0, 1, 2, 3, 4, 5, 6],
-        }
-      );
+      const [agendaRes, profileRes] = await Promise.all([
+        (supabase as any)
+          .from("agenda_settings")
+          .select("start_hour, end_hour, service_duration, working_days")
+          .eq("user_id", barberId)
+          .maybeSingle(),
+        (supabase as any)
+          .from("profiles")
+          .select("timezone")
+          .eq("id", barberId)
+          .maybeSingle(),
+      ]);
+      const base = agendaRes?.data || {
+        start_hour: "09:00",
+        end_hour: "18:00",
+        service_duration: 30,
+        working_days: [0, 1, 2, 3, 4, 5, 6],
+      };
+      return { ...base, timezone: profileRes?.data?.timezone || null } as AgendaSettings;
     },
   });
 
@@ -161,15 +169,14 @@ export function QuickBookSheet({
     if (!selectedService || !settings) return [];
     const interval = settings.service_duration;
     const slotsNeeded = Math.ceil(selectedService.duration / interval);
+    const tz = settings.timezone || getBrowserTimezone();
     const now = new Date();
-    const isToday = isSameDay(date, now);
+    const selectedDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const isTodayTz = selectedDateStr === dateStrInTz(now, tz);
+    const nowMinutes = minutesInTz(now, tz);
 
     return allSlots.filter((t) => {
-      if (isToday) {
-        const [h, m] = t.split(":").map(Number);
-        const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
-        if (slotDate <= now) return false;
-      }
+      if (isTodayTz && timeStrToMinutes(t) <= nowMinutes) return false;
       const startIdx = allSlots.indexOf(t);
       for (let i = 0; i < slotsNeeded; i++) {
         const check = allSlots[startIdx + i];

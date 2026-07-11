@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import ModernBookingForm from "@/components/ModernBookingForm";
+import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
 
 
 const bookingSchema = z.object({
@@ -65,6 +66,7 @@ interface AgendaSettings {
   end_hour: string;
   service_duration: number;
   working_days?: number[] | null;
+  timezone?: string | null;
 }
 
 interface Appointment {
@@ -213,17 +215,20 @@ const Booking = () => {
     queryFn: async () => {
       if (!businessProfile?.id) return null;
 
-      const { data, error } = await (supabase
-        .from('agenda_settings' as any)
-        .select('*') as any)
-        .eq('user_id', businessProfile.id)
-        .maybeSingle();
+      const [agendaRes, profileRes] = await Promise.all([
+        (supabase.from('agenda_settings' as any).select('*') as any)
+          .eq('user_id', businessProfile.id)
+          .maybeSingle(),
+        (supabase.from('profiles' as any).select('timezone') as any)
+          .eq('id', businessProfile.id)
+          .maybeSingle(),
+      ]);
 
+      const base = (agendaRes?.error && agendaRes.error.code !== 'PGRST116')
+        ? { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] }
+        : (agendaRes?.data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] });
 
-      if (error && error.code !== 'PGRST116') {
-        return { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
-      }
-      return data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
+      return { ...base, timezone: profileRes?.data?.timezone || null } as AgendaSettings;
     },
     enabled: !!businessProfile?.id,
   });
@@ -325,16 +330,14 @@ const Booking = () => {
         return false;
       }
 
-      // Check if time is in the past (for today)
+      // Check if time is in the past (in the business's timezone)
+      const tz = settings?.timezone || getBrowserTimezone();
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-
-      if (selectedDay.getTime() === today.getTime()) {
-        // It's today - check if the time slot is in the past
-        const [hours, minutes] = time.split(':').map(Number);
-        const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-        if (slotTime <= now) {
+      const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+      const todayStrTz = dateStrInTz(now, tz);
+      if (selectedDateStr === todayStrTz) {
+        const nowMinutes = minutesInTz(now, tz);
+        if (timeStrToMinutes(time) <= nowMinutes) {
           return false;
         }
       }
@@ -396,15 +399,14 @@ const Booking = () => {
       return [];
     }
 
-    // Check if time is in the past (for today)
+    // Check if time is in the past (in the business's timezone)
+    const tz = settings?.timezone || getBrowserTimezone();
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-
-    if (selectedDay.getTime() === today.getTime()) {
-      const [hours, minutes] = selectedTime.split(':').map(Number);
-      const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-      if (slotTime <= now) {
+    const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+    const todayStrTz = dateStrInTz(now, tz);
+    if (selectedDateStr === todayStrTz) {
+      const nowMinutes = minutesInTz(now, tz);
+      if (timeStrToMinutes(selectedTime) <= nowMinutes) {
         return [];
       }
     }
