@@ -832,7 +832,7 @@ function BarberExpandedDetails({
   const { data, isLoading } = useQuery({
     queryKey: ["barber-details", barberId],
     queryFn: async () => {
-      const [profileRes, servicesRes, hoursRes, productsRes] = await Promise.all([
+      const [profileRes, servicesRes, hoursRes, agendaRes, productsRes] = await Promise.all([
         (supabase as any)
           .from("profiles")
           .select("description, years_experience, business_name, full_name, accepts_waitlist")
@@ -851,6 +851,11 @@ function BarberExpandedDetails({
           .eq("user_id", barberId)
           .order("day_of_week", { ascending: true }),
         (supabase as any)
+          .from("agenda_settings")
+          .select("start_hour, end_hour, working_days")
+          .eq("user_id", barberId)
+          .maybeSingle(),
+        (supabase as any)
           .from("products")
           .select("id, name, price, image_url, category")
           .eq("user_id", barberId)
@@ -858,10 +863,27 @@ function BarberExpandedDetails({
           .order("created_at", { ascending: false })
           .limit(6),
       ]);
+
+      // Derive hours from agenda_settings (the source of truth used by the
+      // booking form) so Find Barber, agenda and booking link always match.
+      const agenda = agendaRes?.data;
+      let hours: Array<{ day_of_week: number; open_time: string; close_time: string; is_closed: boolean }> = [];
+      if (agenda?.start_hour && agenda?.end_hour) {
+        const workingDays: number[] = agenda.working_days ?? [0, 1, 2, 3, 4, 5, 6];
+        hours = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+          day_of_week: d,
+          open_time: agenda.start_hour,
+          close_time: agenda.end_hour,
+          is_closed: !workingDays.includes(d),
+        }));
+      } else {
+        hours = hoursRes.data || [];
+      }
+
       return {
         profile: profileRes.data,
         services: servicesRes.data || [],
-        hours: hoursRes.data || [],
+        hours,
         products: productsRes.data || [],
       };
     },
