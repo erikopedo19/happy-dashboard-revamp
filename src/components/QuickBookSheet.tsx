@@ -151,8 +151,9 @@ export function QuickBookSheet({
     return generateTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
   }, [settings]);
 
-  const selectedService = services.find((s) => s.id === serviceId);
-  const workingDays = settings?.working_days ?? [0, 1, 2, 3, 4, 5, 6];
+const selectedService = services.find((s) => s.id === serviceId);
+const workingDays = settings?.working_days ?? [0, 1, 2, 3, 4, 5, 6];
+const businessTz = settings?.timezone || getBrowserTimezone();
 
   const nextDays = useMemo(() => {
     const out: Date[] = [];
@@ -367,6 +368,10 @@ export function QuickBookSheet({
                 {/* Time */}
                 <section>
                   <SectionTitle icon={<Clock className="w-3.5 h-3.5" />} label="Time" />
+                  <div className="flex items-center gap-1.5 mb-2 text-[11px] text-[#8E8E93]">
+                    <Globe className="w-3 h-3" />
+                    <span>Times shown in {formatTzLabel(businessTz)}</span>
+                  </div>
                   {!selectedService ? (
                     <EmptyHint text="Pick a service first" />
                   ) : availableSlots.length === 0 ? (
