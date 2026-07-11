@@ -66,6 +66,7 @@ interface AgendaSettings {
   end_hour: string;
   service_duration: number;
   working_days?: number[] | null;
+  timezone?: string | null;
 }
 
 interface Appointment {
@@ -214,17 +215,20 @@ const Booking = () => {
     queryFn: async () => {
       if (!businessProfile?.id) return null;
 
-      const { data, error } = await (supabase
-        .from('agenda_settings' as any)
-        .select('*') as any)
-        .eq('user_id', businessProfile.id)
-        .maybeSingle();
+      const [agendaRes, profileRes] = await Promise.all([
+        (supabase.from('agenda_settings' as any).select('*') as any)
+          .eq('user_id', businessProfile.id)
+          .maybeSingle(),
+        (supabase.from('profiles' as any).select('timezone') as any)
+          .eq('id', businessProfile.id)
+          .maybeSingle(),
+      ]);
 
+      const base = (agendaRes?.error && agendaRes.error.code !== 'PGRST116')
+        ? { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] }
+        : (agendaRes?.data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] });
 
-      if (error && error.code !== 'PGRST116') {
-        return { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
-      }
-      return data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
+      return { ...base, timezone: profileRes?.data?.timezone || null } as AgendaSettings;
     },
     enabled: !!businessProfile?.id,
   });
