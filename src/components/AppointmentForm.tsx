@@ -29,17 +29,23 @@ interface Service {
   description?: string;
 }
 
-// Generate time slots from 9 AM to 6 PM
-const generateTimeSlots = () => {
-  const slots = [];
-  for (let hour = 9; hour <= 18; hour++) {
-    slots.push(`${hour.toString().padStart(2, '0')}:00`);
-    if (hour !== 18) {
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
-    }
+// Generate time slots from agenda settings (source of truth shared with public booking + Quick Book)
+const generateTimeSlots = (start: string, end: string, interval: number) => {
+  const slots: string[] = [];
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const startMin = sh * 60 + (sm || 0);
+  const endMin = eh * 60 + (em || 0);
+  const step = interval > 0 ? interval : 30;
+  for (let m = startMin; m <= endMin; m += step) {
+    if (m === endMin) break;
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    slots.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
   }
   return slots;
 };
+
 
 export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
   const [step, setStep] = useState<"datetime" | "details" | "success">("datetime");
