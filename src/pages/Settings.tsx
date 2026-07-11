@@ -85,6 +85,7 @@ type BrandProfileRecord = {
   description: string;
   years_experience?: number;
   accepts_waitlist?: boolean;
+  timezone: string;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
