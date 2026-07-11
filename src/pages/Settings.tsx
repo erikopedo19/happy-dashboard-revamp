@@ -778,6 +778,32 @@ const Settings = () => {
                             </div>
                           </div>
 
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Business time zone
+                            </Label>
+                            <Select
+                              value={brandForm.timezone || getBrowserTimezone()}
+                              onValueChange={(value) =>
+                                setBrandForm((prev) => ({ ...prev, timezone: value }))
+                              }
+                            >
+                              <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                                <SelectValue placeholder="Select time zone" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[280px]">
+                                {listTimezones().map((tz) => (
+                                  <SelectItem key={tz} value={tz}>
+                                    {formatTzLabel(tz)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-[#8E8E93] mt-1.5">
+                              Slots on your booking link and Find Barber use this time zone. Detected: {formatTzLabel(getBrowserTimezone())}
+                            </p>
+                          </div>
+
                           <Separator />
 
                           {/* Appearance Card */}
