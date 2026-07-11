@@ -130,6 +130,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   description: "",
   years_experience: undefined,
   accepts_waitlist: false,
+  timezone: getBrowserTimezone(),
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
