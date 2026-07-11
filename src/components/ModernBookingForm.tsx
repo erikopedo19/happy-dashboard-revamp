@@ -753,6 +753,12 @@ const ModernBookingForm = ({
                   </div>
                 </div>
 
+                {/* Timezone label */}
+                <div className="flex items-center gap-1.5 mb-3 text-xs text-gray-500 dark:text-gray-400">
+                  <Globe className="w-3 h-3" />
+                  <span>Times shown in {formatTzLabel(timezone)}</span>
+                </div>
+
                 {/* Time slots */}
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {selectedDate ? (
