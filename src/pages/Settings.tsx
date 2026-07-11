@@ -384,6 +384,21 @@ const Settings = () => {
       if (agendaResult.error) throw agendaResult.error;
       if (profileResult.error) throw profileResult.error;
 
+      // Keep business_hours in sync with agenda (single source of truth for public views)
+      try {
+        const hoursRows = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+          user_id: user.id,
+          day_of_week: d,
+          open_time: agendaForm.start_hour,
+          close_time: agendaForm.end_hour,
+          is_closed: !agendaForm.working_days.includes(d),
+        }));
+        await (supabase as any).from("business_hours").delete().eq("user_id", user.id);
+        await (supabase as any).from("business_hours").insert(hoursRows);
+      } catch (e) {
+        console.warn("business_hours sync skipped", e);
+      }
+
       // Reflect parsed coordinates back into the form
       if (mapsUrl && lat !== undefined && lng !== undefined) {
         setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
@@ -398,6 +413,7 @@ const Settings = () => {
         queryClient.invalidateQueries({ queryKey: ["public-agenda-settings"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["stylists"], exact: false }),
+        queryClient.invalidateQueries({ queryKey: ["barber-details"], exact: false }),
       ]);
 
       toast({
