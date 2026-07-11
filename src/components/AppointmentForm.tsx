@@ -67,9 +67,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const { user } = useAuth();
   const isMobile = useIsMobile();
 
-  const timeSlots = useMemo(() => generateTimeSlots(), []);
   const shouldFetchServices = !providedServices;
   const selectedDateIso = format(selectedDateObj, 'yyyy-MM-dd');
+
 
   // Fetch agenda settings (single source of truth for hours)
   const { data: agendaSettings } = useQuery<{ start_hour: string; end_hour: string; service_duration: number } | null>({
