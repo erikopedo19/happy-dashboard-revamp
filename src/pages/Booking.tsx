@@ -399,15 +399,14 @@ const Booking = () => {
       return [];
     }
 
-    // Check if time is in the past (for today)
+    // Check if time is in the past (in the business's timezone)
+    const tz = settings?.timezone || getBrowserTimezone();
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-
-    if (selectedDay.getTime() === today.getTime()) {
-      const [hours, minutes] = selectedTime.split(':').map(Number);
-      const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-      if (slotTime <= now) {
+    const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+    const todayStrTz = dateStrInTz(now, tz);
+    if (selectedDateStr === todayStrTz) {
+      const nowMinutes = minutesInTz(now, tz);
+      if (timeStrToMinutes(selectedTime) <= nowMinutes) {
         return [];
       }
     }
