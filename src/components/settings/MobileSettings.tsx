@@ -382,6 +382,24 @@ export function MobileSettings(props: any) {
                     })}
                   </div>
                 </Field>
+                <Field label="Time zone">
+                  <select
+                    value={brandForm.timezone || getBrowserTimezone()}
+                    onChange={(e) =>
+                      setBrandForm((p: any) => ({ ...p, timezone: e.target.value }))
+                    }
+                    className="w-full h-12 rounded-2xl bg-white/[0.06] border border-white/10 text-white px-3 text-[14px]"
+                  >
+                    {listTimezones().map((tz) => (
+                      <option key={tz} value={tz} className="bg-[#111]">
+                        {formatTzLabel(tz)}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-white/40 mt-1.5 px-1">
+                    Booking slots for clients use this zone. Device: {formatTzLabel(getBrowserTimezone())}
+                  </p>
+                </Field>
               </PanelStack>
             )}
 
