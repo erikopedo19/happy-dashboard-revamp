@@ -71,6 +71,51 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const shouldFetchServices = !providedServices;
   const selectedDateIso = format(selectedDateObj, 'yyyy-MM-dd');
 
+  // Fetch agenda settings (single source of truth for hours)
+  const { data: agendaSettings } = useQuery<{ start_hour: string; end_hour: string; service_duration: number } | null>({
+    queryKey: ['agenda-settings', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from('agenda_settings')
+        .select('start_hour, end_hour, service_duration')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch profile timezone for accurate "past hour" filtering
+  const { data: tzProfile } = useQuery<{ timezone: string | null } | null>({
+    queryKey: ['profile-tz', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from('profiles')
+        .select('timezone')
+        .eq('id', user.id)
+        .maybeSingle();
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  const timeSlots = useMemo(() => {
+    const start = agendaSettings?.start_hour || '09:00';
+    const end = agendaSettings?.end_hour || '18:00';
+    const interval = agendaSettings?.service_duration || 30;
+    const all = generateTimeSlots(start, end, interval);
+    // Filter past hours for today only (in barber's business timezone)
+    const tz = tzProfile?.timezone || getBrowserTimezone();
+    const now = new Date();
+    const isToday = selectedDateIso === dateStrInTz(now, tz);
+    if (!isToday) return all;
+    const nowMin = minutesInTz(now, tz);
+    return all.filter((t) => timeStrToMinutes(t) > nowMin);
+  }, [agendaSettings, tzProfile, selectedDateIso]);
+
+
   // Fetch services
   const { data: fetchedServices = [] } = useQuery<Service[]>({
     queryKey: ['services'],
