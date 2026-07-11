@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -889,6 +889,21 @@ function BarberExpandedDetails({
     },
     staleTime: 60_000,
   });
+
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!barberId) return;
+    const channel = supabase
+      .channel(`find-barber-sync-${barberId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_settings', filter: `user_id=eq.${barberId}` }, () => {
+        qc.invalidateQueries({ queryKey: ['barber-details', barberId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'services', filter: `user_id=eq.${barberId}` }, () => {
+        qc.invalidateQueries({ queryKey: ['barber-details', barberId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [barberId, qc]);
 
   const joinWaitlist = async () => {
     setJoining(true);

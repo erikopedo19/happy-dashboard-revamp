@@ -233,6 +233,40 @@ const Booking = () => {
     enabled: !!businessProfile?.id,
   });
 
+  // Realtime: keep agenda + booked slots in sync with the barber's side
+  useEffect(() => {
+    const bizId = businessProfile?.id;
+    if (!bizId) return;
+    const channel = supabase
+      .channel(`booking-sync-${bizId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'agenda_settings', filter: `user_id=eq.${bizId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['public-agenda-settings', bizId] });
+          queryClient.invalidateQueries({ queryKey: ['public-appointments', bizId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${bizId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['public-appointments', bizId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'services', filter: `user_id=eq.${bizId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['public-services', bizId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [businessProfile?.id, queryClient]);
+
   // Fetch existing appointments for selected date
   const selectedStylistId = form.watch("stylist_id") || "";
 
