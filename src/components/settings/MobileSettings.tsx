@@ -36,6 +36,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { MobileDock } from "@/components/MobileDock";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
+import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 
 const weekDays = [
   { value: 1, label: "Mon", full: "Monday" },
