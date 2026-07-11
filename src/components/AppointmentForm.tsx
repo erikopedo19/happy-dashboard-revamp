@@ -192,6 +192,25 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   const bookedSlotsSet = useMemo(() => new Set(bookedSlots), [bookedSlots]);
 
+  // Realtime sync — agenda hours + bookings updated instantly on this form
+  useEffect(() => {
+    if (!user || !isOpen) return;
+    const channel = supabase
+      .channel(`barber-form-sync-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_settings', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['agenda-settings', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['booked-slots', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['profile-tz', user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, isOpen, queryClient]);
+
+
   // Calendar days
   const calendarDays = useMemo(() => {
     const start = startOfMonth(currentMonth);
