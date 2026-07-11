@@ -413,6 +413,7 @@ const Settings = () => {
         queryClient.invalidateQueries({ queryKey: ["public-agenda-settings"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["stylists"], exact: false }),
+        queryClient.invalidateQueries({ queryKey: ["barber-details"], exact: false }),
       ]);
 
       toast({
