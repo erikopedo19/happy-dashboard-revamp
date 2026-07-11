@@ -50,6 +50,7 @@ interface ModernBookingFormProps {
     stylists_count?: number | null;
   } | null;
   workingDays?: number[];
+  timezone?: string;
   rescheduleAppointment?: any;
 }
 
@@ -69,6 +70,7 @@ const ModernBookingForm = ({
   isLoading,
   businessProfile,
   workingDays = [0, 1, 2, 3, 4, 5, 6],
+  timezone = "UTC",
   rescheduleAppointment
 }: ModernBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
