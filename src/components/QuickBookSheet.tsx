@@ -146,6 +146,25 @@ export function QuickBookSheet({
     },
   });
 
+  // Realtime sync with barber's agenda + bookings
+  useEffect(() => {
+    if (!open || !barberId) return;
+    const channel = supabase
+      .channel(`quickbook-sync-${barberId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_settings', filter: `user_id=eq.${barberId}` }, () => {
+        qc.invalidateQueries({ queryKey: ['quickbook-settings', barberId] });
+        qc.invalidateQueries({ queryKey: ['quickbook-booked', barberId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${barberId}` }, () => {
+        qc.invalidateQueries({ queryKey: ['quickbook-booked', barberId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'services', filter: `user_id=eq.${barberId}` }, () => {
+        qc.invalidateQueries({ queryKey: ['quickbook-services', barberId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [open, barberId, qc]);
+
   const allSlots = useMemo(() => {
     if (!settings) return [];
     return generateTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
