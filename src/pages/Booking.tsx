@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import ModernBookingForm from "@/components/ModernBookingForm";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
+import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes, formatTzLabel } from "@/lib/tz";
 
 
 const bookingSchema = z.object({
