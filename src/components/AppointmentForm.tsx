@@ -9,6 +9,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
+import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
+
 
 interface AppointmentFormProps {
   isOpen: boolean;
@@ -27,17 +29,23 @@ interface Service {
   description?: string;
 }
 
-// Generate time slots from 9 AM to 6 PM
-const generateTimeSlots = () => {
-  const slots = [];
-  for (let hour = 9; hour <= 18; hour++) {
-    slots.push(`${hour.toString().padStart(2, '0')}:00`);
-    if (hour !== 18) {
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
-    }
+// Generate time slots from agenda settings (source of truth shared with public booking + Quick Book)
+const generateTimeSlots = (start: string, end: string, interval: number) => {
+  const slots: string[] = [];
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const startMin = sh * 60 + (sm || 0);
+  const endMin = eh * 60 + (em || 0);
+  const step = interval > 0 ? interval : 30;
+  for (let m = startMin; m <= endMin; m += step) {
+    if (m === endMin) break;
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    slots.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
   }
   return slots;
 };
+
 
 export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
   const [step, setStep] = useState<"datetime" | "details" | "success">("datetime");
@@ -59,9 +67,54 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const { user } = useAuth();
   const isMobile = useIsMobile();
 
-  const timeSlots = useMemo(() => generateTimeSlots(), []);
   const shouldFetchServices = !providedServices;
   const selectedDateIso = format(selectedDateObj, 'yyyy-MM-dd');
+
+
+  // Fetch agenda settings (single source of truth for hours)
+  const { data: agendaSettings } = useQuery<{ start_hour: string; end_hour: string; service_duration: number } | null>({
+    queryKey: ['agenda-settings', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from('agenda_settings')
+        .select('start_hour, end_hour, service_duration')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch profile timezone for accurate "past hour" filtering
+  const { data: tzProfile } = useQuery<{ timezone: string | null } | null>({
+    queryKey: ['profile-tz', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from('profiles')
+        .select('timezone')
+        .eq('id', user.id)
+        .maybeSingle();
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  const timeSlots = useMemo(() => {
+    const start = agendaSettings?.start_hour || '09:00';
+    const end = agendaSettings?.end_hour || '18:00';
+    const interval = agendaSettings?.service_duration || 30;
+    const all = generateTimeSlots(start, end, interval);
+    // Filter past hours for today only (in barber's business timezone)
+    const tz = tzProfile?.timezone || getBrowserTimezone();
+    const now = new Date();
+    const isToday = selectedDateIso === dateStrInTz(now, tz);
+    if (!isToday) return all;
+    const nowMin = minutesInTz(now, tz);
+    return all.filter((t) => timeStrToMinutes(t) > nowMin);
+  }, [agendaSettings, tzProfile, selectedDateIso]);
+
 
   // Fetch services
   const { data: fetchedServices = [] } = useQuery<Service[]>({
@@ -138,6 +191,25 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   });
 
   const bookedSlotsSet = useMemo(() => new Set(bookedSlots), [bookedSlots]);
+
+  // Realtime sync — agenda hours + bookings updated instantly on this form
+  useEffect(() => {
+    if (!user || !isOpen) return;
+    const channel = supabase
+      .channel(`barber-form-sync-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_settings', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['agenda-settings', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['booked-slots', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['profile-tz', user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, isOpen, queryClient]);
+
 
   // Calendar days
   const calendarDays = useMemo(() => {
