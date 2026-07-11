@@ -756,6 +756,7 @@ const Booking = () => {
       isLoading={isLoading}
       businessProfile={businessProfile}
       workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
+      timezone={settings?.timezone || getBrowserTimezone()}
     />
   );
 };

@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star, Flame, Gift, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star, Flame, Gift, Sparkles, Globe } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { formatTzLabel } from "@/lib/tz";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 
 interface Service {
@@ -49,6 +50,7 @@ interface ModernBookingFormProps {
     stylists_count?: number | null;
   } | null;
   workingDays?: number[];
+  timezone?: string;
   rescheduleAppointment?: any;
 }
 
@@ -68,6 +70,7 @@ const ModernBookingForm = ({
   isLoading,
   businessProfile,
   workingDays = [0, 1, 2, 3, 4, 5, 6],
+  timezone = "UTC",
   rescheduleAppointment
 }: ModernBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
@@ -748,6 +751,12 @@ const ModernBookingForm = ({
                       24h
                     </button>
                   </div>
+                </div>
+
+                {/* Timezone label */}
+                <div className="flex items-center gap-1.5 mb-3 text-xs text-gray-500 dark:text-gray-400">
+                  <Globe className="w-3 h-3" />
+                  <span>Times shown in {formatTzLabel(timezone)}</span>
                 </div>
 
                 {/* Time slots */}
