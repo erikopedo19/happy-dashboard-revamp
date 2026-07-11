@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Check, Calendar, Clock, Scissors, ArrowLeft, Sparkles, X } from "lucide-react";
+import { Loader2, Check, Calendar, Clock, Scissors, ArrowLeft, Sparkles, X, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
+import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes, formatTzLabel } from "@/lib/tz";
 
 interface QuickBookSheetProps {
   open: boolean;

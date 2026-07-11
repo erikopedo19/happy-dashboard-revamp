@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star, Flame, Gift, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star, Flame, Gift, Sparkles, Globe } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { formatTzLabel } from "@/lib/tz";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 
 interface Service {
