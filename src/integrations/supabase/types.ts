@@ -126,11 +126,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["customer_exists"]
+          },
+          {
             foreignKeyName: "appointments_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
           },
           {
             foreignKeyName: "appointments_service_id_fkey"
@@ -797,6 +811,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
@@ -881,6 +902,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "stylist_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
+          },
           {
             foreignKeyName: "stylist_services_service_id_fkey"
             columns: ["service_id"]
@@ -1125,6 +1153,50 @@ export type Database = {
         }
         Relationships: []
       }
+      diag_orphaned_appointments: {
+        Row: {
+          appointment_date: string | null
+          appointment_time: string | null
+          customer_exists: string | null
+          customer_id: string | null
+          customer_issue: string | null
+          id: string | null
+          service_exists: string | null
+          service_id: string | null
+          service_issue: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["customer_exists"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
@@ -1149,7 +1221,6 @@ export type Database = {
       expire_waitlist_offers: { Args: never; Returns: undefined }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
       get_appointment_by_token: { Args: { _token: string }; Returns: Json }
-      get_user_appointments: { Args: { p_start_date?: string; p_end_date?: string }; Returns: Json }
       get_booked_slots: {
         Args: { _business_id: string; _date: string }
         Returns: {
@@ -1209,6 +1280,10 @@ export type Database = {
           rating: number
           reviewer_name: string
         }[]
+      }
+      get_user_appointments: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
       }
       is_org_owner: {
         Args: { _org_id: string; _user_id: string }
