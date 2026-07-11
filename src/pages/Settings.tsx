@@ -180,7 +180,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist, onboarding_completed")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist, onboarding_completed, timezone")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -287,6 +287,7 @@ const Settings = () => {
       description: data.profile?.description ?? "",
       years_experience: data.profile?.years_experience ?? undefined,
       accepts_waitlist: data.profile?.accepts_waitlist ?? false,
+      timezone: data.profile?.timezone ?? getBrowserTimezone(),
     });
 
     // Set dark mode from profile, default to dark mode
