@@ -378,6 +378,7 @@ const Settings = () => {
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
         accepts_waitlist: brandForm.accepts_waitlist ?? false,
+        timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
         updated_at: new Date().toISOString(),
       };
 
