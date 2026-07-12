@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
+import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
 
 interface AppointmentFormProps {
@@ -28,24 +29,6 @@ interface Service {
   price: number;
   description?: string;
 }
-
-// Generate time slots from agenda settings (source of truth shared with public booking + Quick Book)
-const generateTimeSlots = (start: string, end: string, interval: number) => {
-  const slots: string[] = [];
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const startMin = sh * 60 + (sm || 0);
-  const endMin = eh * 60 + (em || 0);
-  const step = interval > 0 ? interval : 30;
-  for (let m = startMin; m <= endMin; m += step) {
-    if (m === endMin) break;
-    const h = Math.floor(m / 60);
-    const mm = m % 60;
-    slots.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
-  }
-  return slots;
-};
-
 
 export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
   const [step, setStep] = useState<"datetime" | "details" | "success">("datetime");
@@ -105,15 +88,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     const start = agendaSettings?.start_hour || '09:00';
     const end = agendaSettings?.end_hour || '18:00';
     const interval = agendaSettings?.service_duration || 30;
-    const all = generateTimeSlots(start, end, interval);
-    // Filter past hours for today only (in barber's business timezone)
-    const tz = tzProfile?.timezone || getBrowserTimezone();
-    const now = new Date();
-    const isToday = selectedDateIso === dateStrInTz(now, tz);
-    if (!isToday) return all;
-    const nowMin = minutesInTz(now, tz);
-    return all.filter((t) => timeStrToMinutes(t) > nowMin);
-  }, [agendaSettings, tzProfile, selectedDateIso]);
+    return generateBookingTimeSlots(start, end, interval);
+  }, [agendaSettings]);
 
 
   // Fetch services
@@ -171,26 +147,36 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   });
 
   // Fetch already-booked slots for selected day to prevent duplicate bookings
-  const { data: bookedSlots = [] } = useQuery<string[]>({
+  const { data: bookedSlots = [] } = useQuery<BookedSlotLike[]>({
     queryKey: ['booked-slots', user?.id, selectedDateIso],
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await (supabase as any)
-        .from('appointments')
-        .select('appointment_time, status')
-        .eq('user_id', user.id)
-        .eq('appointment_date', selectedDateIso)
-        .neq('status', 'cancelled')
-        .order('appointment_time', { ascending: true });
+      const { data, error } = await (supabase as any).rpc('get_booked_slots', {
+        _business_id: user.id,
+        _date: selectedDateIso,
+      });
 
       if (error) throw error;
-      return (data || []).map((row: { appointment_time: string }) => row.appointment_time.slice(0, 5));
+      return data || [];
     },
     enabled: !!user && isOpen,
   });
 
-  const bookedSlotsSet = useMemo(() => new Set(bookedSlots), [bookedSlots]);
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedService || !agendaSettings) return [];
+    return getAvailableBookingSlots({
+      date: selectedDateObj,
+      allSlots: timeSlots,
+      startHour: agendaSettings.start_hour || '09:00',
+      endHour: agendaSettings.end_hour || '18:00',
+      interval: agendaSettings.service_duration || 30,
+      serviceDuration: selectedService.duration,
+      bookedSlots,
+      timezone: tzProfile?.timezone,
+      stylistId: stylistId || null,
+    });
+  }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId]);
 
   // Realtime sync — agenda hours + bookings updated instantly on this form
   useEffect(() => {
@@ -300,10 +286,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       return;
     }
 
-    if (bookedSlotsSet.has(selectedTimeSlot)) {
+    if (!availableTimeSlots.includes(selectedTimeSlot)) {
       toast({
         title: "Time unavailable",
-        description: "That time slot is already booked. Please choose another time.",
+        description: "That time slot is no longer available. Please choose another time.",
         variant: "destructive",
       });
       return;
@@ -396,6 +382,15 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       // Double-check time slot availability before creating appointment
       const normalizedSelectedTime = selectedTimeSlot.slice(0, 5);
+      if (!availableTimeSlots.includes(normalizedSelectedTime)) {
+        toast({
+          title: "Time unavailable",
+          description: "This slot was just booked or has passed. Please choose a different time.",
+          variant: "destructive",
+        });
+        setStep("datetime");
+        return;
+      }
       const { data: existingAppointment, error: existingAppointmentError } = await (supabase as any)
         .from('appointments')
         .select('id')
@@ -930,31 +925,29 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </h4>
 
                   <div className={cn("overflow-y-auto", isMobile ? "max-h-none grid grid-cols-2 gap-2" : "max-h-[400px] space-y-2")}>
-                    {timeSlots.map((time) => {
-                      const isBooked = bookedSlotsSet.has(time);
-
+                    {availableTimeSlots.map((time) => {
                       return (
                         <button
                           key={time}
                           onClick={() => {
-                            if (isBooked) return;
                             handleTimeSelect(time);
                           }}
-                          disabled={isBooked}
                           className={cn(
                             "py-3 px-2 rounded-xl border font-medium transition-all text-center flex items-center justify-center gap-1",
-                            isBooked
-                              ? "border-white/[0.06] text-gray-500 cursor-not-allowed opacity-60"
-                              : selectedTimeSlot === time
+                            selectedTimeSlot === time
                                 ? "border-[#0A84FF] bg-[#0A84FF]/10 text-white"
                                 : "border-white/[0.06] hover:border-gray-600 text-white"
                           )}
                         >
                           <span className="text-sm">{formatTime(time)}</span>
-                          {isBooked && <span className="text-[10px] uppercase tracking-wide">Booked</span>}
                         </button>
                       );
                     })}
+                    {availableTimeSlots.length === 0 && (
+                      <div className="col-span-2 rounded-xl border border-white/[0.06] p-4 text-center text-sm text-gray-500">
+                        No available times for this service.
+                      </div>
+                    )}
                   </div>
                 </>
               )}
