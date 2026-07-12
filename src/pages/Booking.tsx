@@ -570,13 +570,18 @@ const Booking = () => {
         description: "Your appointment has been scheduled successfully. Check your email for confirmation.",
       });
 
-      // Invalidate ALL appointment-related queries to refresh agenda immediately
-      await queryClient.invalidateQueries({ queryKey: ['appointments'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['public-appointments'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['recent-bookings'], exact: false });
-
-      // Force immediate refetch
-      await queryClient.refetchQueries({ queryKey: ['appointments'], exact: false });
+      // Invalidate every slot/appointment query across all forms so the just-booked time disappears immediately.
+      await queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === 'appointments'
+            || key === 'public-appointments'
+            || key === 'booked-slots'
+            || key === 'quickbook-booked'
+            || key === 'recent-bookings';
+        }
+      });
+      await queryClient.refetchQueries({ queryKey: ['public-appointments'], exact: false });
 
       form.reset();
       setSelectedTime("");

@@ -211,7 +211,15 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       }
       setConfirmedTime({ date, time });
       setStep("success");
-      qc.invalidateQueries({ queryKey: ["quickbook-booked"] });
+      qc.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === 'quickbook-booked'
+            || key === 'booked-slots'
+            || key === 'public-appointments'
+            || key === 'appointments';
+        }
+      });
     } catch (e: any) {
       // Release lock so the user can retry after a failure (e.g. slot taken).
       submitLockRef.current = false;
