@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from 'date-fns';
-import ModernBookingForm from "@/components/ModernBookingForm";
+import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
@@ -698,7 +698,7 @@ const Booking = () => {
   }
 
   return (
-    <ModernBookingForm
+    <AgendaBookingForm
       form={form}
       services={services || []}
       stylists={stylists}
@@ -711,8 +711,6 @@ const Booking = () => {
       timeSlots={timeSlots}
       isTimeSlotAvailable={isTimeSlotAvailable}
       getAvailableStylistsForTime={getAvailableStylistsForTime}
-      getAvailableDatesForStylist={getAvailableDatesForStylist}
-      getAvailableTimesForStylistAndDate={getAvailableTimesForStylistAndDate}
       onSubmit={onSubmit}
       isLoading={isLoading}
       businessProfile={businessProfile}
