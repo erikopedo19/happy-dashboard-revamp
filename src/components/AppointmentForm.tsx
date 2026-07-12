@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
+import { dateStrInTz, getBrowserTimezone } from "@/lib/tz";
 
 
 interface AppointmentFormProps {
@@ -54,13 +55,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
 
   // Fetch agenda settings (single source of truth for hours)
-  const { data: agendaSettings } = useQuery<{ start_hour: string; end_hour: string; service_duration: number } | null>({
+  const { data: agendaSettings } = useQuery<{ start_hour: string; end_hour: string; service_duration: number; working_days?: number[] | null } | null>({
     queryKey: ['agenda-settings', user?.id],
     queryFn: async () => {
       if (!user) return null;
       const { data } = await (supabase as any)
         .from('agenda_settings')
-        .select('start_hour, end_hour, service_duration')
+        .select('start_hour, end_hour, service_duration, working_days')
         .eq('user_id', user.id)
         .maybeSingle();
       return data || null;
@@ -165,15 +166,20 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const selectedService = services.find((s: Service) => s.id === serviceId);
 
   const availableTimeSlots = useMemo(() => {
-    if (!selectedService || !agendaSettings) return [];
+    if (!selectedService) return [];
+    const startHour = agendaSettings?.start_hour || '09:00';
+    const endHour = agendaSettings?.end_hour || '18:00';
+    const interval = agendaSettings?.service_duration || 30;
+
     return getAvailableBookingSlots({
       date: selectedDateObj,
       allSlots: timeSlots,
-      startHour: agendaSettings.start_hour || '09:00',
-      endHour: agendaSettings.end_hour || '18:00',
-      interval: agendaSettings.service_duration || 30,
+      startHour,
+      endHour,
+      interval,
       serviceDuration: selectedService.duration,
       bookedSlots,
+      workingDays: agendaSettings?.working_days,
       timezone: tzProfile?.timezone,
       stylistId: stylistId || null,
     });
@@ -718,17 +724,21 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       {calendarDays.map((day) => {
                         const isSelected = isSameDay(day, selectedDateObj);
                         const isCurrentMonth = isSameMonth(day, currentMonth);
+                        const tz = tzProfile?.timezone || getBrowserTimezone();
+                        const isPast = format(day, 'yyyy-MM-dd') < dateStrInTz(new Date(), tz);
+                        const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
+                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay;
                         
                         return (
                           <button
                             key={day.toISOString()}
                             onClick={() => handleDateSelect(day)}
-                            disabled={!isCurrentMonth}
+                            disabled={isDisabled}
                             className={cn(
                               "aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all",
                               isSelected
                                 ? "bg-[#0A84FF] text-white"
-                                : !isCurrentMonth
+                                : isDisabled
                                 ? "text-gray-600"
                                 : "text-white hover:bg-white/[0.06]"
                             )}
