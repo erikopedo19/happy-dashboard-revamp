@@ -292,6 +292,9 @@ const Booking = () => {
       return (data || []) as Appointment[];
     },
     enabled: !!businessProfile?.id && !!selectedDate,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   // Fetch stylist-service relationships
