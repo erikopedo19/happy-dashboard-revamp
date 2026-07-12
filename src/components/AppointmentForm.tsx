@@ -182,6 +182,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       workingDays: agendaSettings?.working_days,
       timezone: tzProfile?.timezone,
       stylistId: stylistId || null,
+      allowPastSlots: true,
+
     });
   }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId]);
 

@@ -63,6 +63,7 @@ export const getAvailableBookingSlots = ({
   workingDays,
   timezone,
   stylistId,
+  allowPastSlots = false,
 }: {
   date: Date;
   allSlots: string[];
@@ -74,6 +75,7 @@ export const getAvailableBookingSlots = ({
   workingDays?: number[] | null;
   timezone?: string | null;
   stylistId?: string | null;
+  allowPastSlots?: boolean;
 }) => {
   const days = workingDays ?? [0, 1, 2, 3, 4, 5, 6];
   if (!days.includes(date.getDay())) return [];
@@ -81,7 +83,7 @@ export const getAvailableBookingSlots = ({
   const tz = timezone || getBrowserTimezone();
   const selectedDate = dateKey(date);
   const today = dateStrInTz(new Date(), tz);
-  if (selectedDate < today) return [];
+  if (!allowPastSlots && selectedDate < today) return [];
 
   const nowMinutes = minutesInTz(new Date(), tz);
   const isToday = selectedDate === today;
@@ -94,7 +96,7 @@ export const getAvailableBookingSlots = ({
     const slotMin = parseTime(slot);
     if (slotMin < openMin || slotMin + slotDuration > closeMin) return false;
     if ((slotMin - openMin) % step !== 0) return false;
-    if (isToday && slotMin <= nowMinutes) return false;
+    if (!allowPastSlots && isToday && slotMin <= nowMinutes) return false;
     return !bookedSlots.some((booked) => bookingSlotOverlaps(slot, slotDuration, booked, step, stylistId));
   });
 };
