@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import ModernBookingForm from "@/components/ModernBookingForm";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
+import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
 
@@ -459,7 +459,6 @@ const Booking = () => {
     }, 0);
 
     const slotInterval = settings?.service_duration || 30;
-    const slotsNeeded = Math.ceil(totalDuration / slotInterval);
 
     return getAvailableBookingSlots({
       date,

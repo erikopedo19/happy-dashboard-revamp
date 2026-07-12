@@ -9,7 +9,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
 
@@ -163,6 +162,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     enabled: !!user && isOpen,
   });
 
+  const selectedService = services.find((s: Service) => s.id === serviceId);
+
   const availableTimeSlots = useMemo(() => {
     if (!selectedService || !agendaSettings) return [];
     return getAvailableBookingSlots({
@@ -204,7 +205,6 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
 
-  const selectedService = services.find((s: Service) => s.id === serviceId);
   const showServiceSelection = !selectedService;
   const showCalendarSelection = !isMobile || !!selectedService;
   const showTimeSelection = !isMobile || (!!selectedService && !!selectedDateObj);

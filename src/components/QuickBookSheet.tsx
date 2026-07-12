@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Check, Calendar, Clock, Scissors, ArrowLeft, Sparkles, X, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes, formatTzLabel } from "@/lib/tz";
+import { getBrowserTimezone, formatTzLabel } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
 interface QuickBookSheetProps {
