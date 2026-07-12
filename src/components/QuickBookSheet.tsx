@@ -10,7 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Check, Calendar, Clock, Scissors, ArrowLeft, Sparkles, X, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes, formatTzLabel } from "@/lib/tz";
+import { getBrowserTimezone, formatTzLabel } from "@/lib/tz";
+import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
 interface QuickBookSheetProps {
   open: boolean;
@@ -36,24 +37,6 @@ interface AgendaSettings {
   service_duration: number;
   working_days?: number[] | null;
   timezone?: string | null;
-}
-
-interface BookedSlot {
-  appointment_time: string;
-  service: { duration: number } | null;
-}
-
-function generateTimeSlots(start: string, end: string, interval: number) {
-  const slots: string[] = [];
-  const s = parseInt(start.split(":")[0]);
-  const e = parseInt(end.split(":")[0]);
-  for (let h = s; h <= e; h++) {
-    for (let m = 0; m < 60; m += interval) {
-      if (h === e && m > 0) break;
-      slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-    }
-  }
-  return slots;
 }
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
@@ -134,7 +117,7 @@ export function QuickBookSheet({
     },
   });
 
-  const { data: booked = [] } = useQuery<BookedSlot[]>({
+  const { data: booked = [] } = useQuery<BookedSlotLike[]>({
     queryKey: ["quickbook-booked", barberId, format(date, "yyyy-MM-dd")],
     enabled: open && !!barberId,
     queryFn: async () => {
@@ -167,7 +150,7 @@ export function QuickBookSheet({
 
   const allSlots = useMemo(() => {
     if (!settings) return [];
-    return generateTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
+    return generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
   }, [settings]);
 
 const selectedService = services.find((s) => s.id === serviceId);
@@ -187,31 +170,16 @@ const businessTz = settings?.timezone || getBrowserTimezone();
 
   const availableSlots = useMemo(() => {
     if (!selectedService || !settings) return [];
-    const interval = settings.service_duration;
-    const slotsNeeded = Math.ceil(selectedService.duration / interval);
-    const tz = settings.timezone || getBrowserTimezone();
-    const now = new Date();
-    const selectedDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    const isTodayTz = selectedDateStr === dateStrInTz(now, tz);
-    const nowMinutes = minutesInTz(now, tz);
-
-    return allSlots.filter((t) => {
-      if (isTodayTz && timeStrToMinutes(t) <= nowMinutes) return false;
-      const startIdx = allSlots.indexOf(t);
-      for (let i = 0; i < slotsNeeded; i++) {
-        const check = allSlots[startIdx + i];
-        if (!check) return false;
-        const taken = booked.some((b) => {
-          const bt = b.appointment_time?.substring(0, 5);
-          if (!bt) return false;
-          const bSlots = Math.ceil((b.service?.duration || interval) / interval);
-          const bIdx = allSlots.indexOf(bt);
-          const cIdx = allSlots.indexOf(check);
-          return cIdx >= bIdx && cIdx < bIdx + bSlots;
-        });
-        if (taken) return false;
-      }
-      return true;
+    return getAvailableBookingSlots({
+      date,
+      allSlots,
+      startHour: settings.start_hour,
+      endHour: settings.end_hour,
+      interval: settings.service_duration,
+      serviceDuration: selectedService.duration,
+      bookedSlots: booked,
+      workingDays,
+      timezone: settings.timezone,
     });
   }, [allSlots, booked, selectedService, settings, date]);
 

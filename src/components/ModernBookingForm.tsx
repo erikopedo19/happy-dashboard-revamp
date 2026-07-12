@@ -25,7 +25,7 @@ interface ModernBookingFormProps {
   services: Service[];
   stylists?: { id: string; name: string; avatar_url?: string | null; title?: string | null }[];
   stylistServices?: { stylist_id: string; service_id: string }[];
-  existingAppointments?: { id: string; appointment_date: string; appointment_time: string; service: Service; stylist_id?: string | null }[];
+  existingAppointments?: { id?: string; appointment_date?: string; appointment_time: string; service?: Service | null; service_duration?: number | null; stylist_id?: string | null }[];
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;

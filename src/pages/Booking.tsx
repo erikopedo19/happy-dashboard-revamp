@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import ModernBookingForm from "@/components/ModernBookingForm";
-import { getBrowserTimezone, dateStrInTz, minutesInTz, timeStrToMinutes } from "@/lib/tz";
+import { getBrowserTimezone } from "@/lib/tz";
+import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 
 
 const bookingSchema = z.object({
@@ -73,7 +74,8 @@ interface Appointment {
   id: string;
   appointment_date: string;
   appointment_time: string;
-  service: Service;
+  service?: Service | null;
+  service_duration?: number | null;
   stylist_id?: string | null;
 }
 
@@ -307,24 +309,9 @@ const Booking = () => {
     },
     enabled: !!businessProfile?.id,
   });
-  const generateTimeSlots = (startHour: string, endHour: string, interval: number = 30) => {
-    const slots = [];
-    const start = parseInt(startHour.split(':')[0]);
-    const end = parseInt(endHour.split(':')[0]);
-
-    for (let hour = start; hour <= end; hour++) {
-      for (let minutes = 0; minutes < 60; minutes += interval) {
-        if (hour === end && minutes > 0) break;
-        const timeSlot = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        slots.push(timeSlot);
-      }
-    }
-    return slots;
-  };
-
   useEffect(() => {
     if (settings) {
-      const slots = generateTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
+      const slots = generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
       setTimeSlots(slots);
     }
   }, [settings]);
@@ -358,58 +345,34 @@ const Booking = () => {
         return sum + (service?.duration || 0);
       }, 0);
 
-      // Check if selected date is a working day
-      const dayOfWeek = selectedDate.getDay();
-      if (!settings?.working_days?.includes(dayOfWeek)) {
-        return false;
-      }
-
-      // Check if time is in the past (in the business's timezone)
-      const tz = settings?.timezone || getBrowserTimezone();
-      const now = new Date();
-      const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
-      const todayStrTz = dateStrInTz(now, tz);
-      if (selectedDateStr === todayStrTz) {
-        const nowMinutes = minutesInTz(now, tz);
-        if (timeStrToMinutes(time) <= nowMinutes) {
-          return false;
-        }
-      }
-
       const slotInterval = settings?.service_duration || 30;
-      const slotsNeeded = Math.ceil(totalDuration / slotInterval);
-      const startSlotIndex = timeSlots.indexOf(time);
+      const candidateStylistIds = stylistId
+        ? [stylistId]
+        : stylists.length > 0
+          ? stylists.map((stylist) => stylist.id)
+          : [null];
 
-      // Check if this slot and required subsequent slots are free
-      for (let i = 0; i < slotsNeeded; i++) {
-        const checkTime = timeSlots[startSlotIndex + i];
-        if (!checkTime) return false;
+      return candidateStylistIds.some((candidateStylistId) => {
+        if (candidateStylistId && stylistServices.length > 0) {
+          const canDoAllServices = ids.every((serviceId) =>
+            stylistServices.some((row) => row.stylist_id === candidateStylistId && row.service_id === serviceId)
+          );
+          if (!canDoAllServices) return false;
+        }
 
-        // If no stylist selected yet, check if ANY stylist is available at this time
-        // If stylist selected, only check availability for that specific stylist
-        const isOccupied = existingAppointments.some(apt => {
-          if (!apt.service) return false;
-          const aptTime = apt.appointment_time?.substring(0, 5);
-          if (!aptTime) return false;
-          const aptDuration = apt.service.duration;
-          const aptSlotsNeeded = Math.ceil(aptDuration / slotInterval);
-          const aptStartIndex = timeSlots.indexOf(aptTime);
-          const checkIndex = timeSlots.indexOf(checkTime);
-
-          // If checking for specific stylist
-          if (stylistId) {
-            const matchesStylist = apt.stylist_id ? apt.stylist_id === stylistId : false;
-            if (!matchesStylist) return false; // Different stylist, doesn't affect this slot
-          }
-
-          // Check if the appointment overlaps with this time slot
-          return checkIndex >= aptStartIndex && checkIndex < aptStartIndex + aptSlotsNeeded;
-        });
-
-        if (isOccupied) return false;
-      }
-
-      return true;
+        return getAvailableBookingSlots({
+          date: selectedDate,
+          allSlots: timeSlots,
+          startHour: settings?.start_hour || '09:00',
+          endHour: settings?.end_hour || '18:00',
+          interval: slotInterval,
+          serviceDuration: totalDuration,
+          bookedSlots: existingAppointments as BookedSlotLike[],
+          workingDays: settings?.working_days,
+          timezone: settings?.timezone,
+          stylistId: candidateStylistId,
+        }).includes(time);
+      });
     } catch (error) {
       return false;
     }
@@ -427,52 +390,28 @@ const Booking = () => {
       return sum + (service?.duration || 0);
     }, 0);
 
-    // Check if selected date is a working day
-    const dayOfWeek = selectedDate.getDay();
-    if (!settings?.working_days?.includes(dayOfWeek)) {
-      return [];
-    }
-
-    // Check if time is in the past (in the business's timezone)
-    const tz = settings?.timezone || getBrowserTimezone();
-    const now = new Date();
-    const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
-    const todayStrTz = dateStrInTz(now, tz);
-    if (selectedDateStr === todayStrTz) {
-      const nowMinutes = minutesInTz(now, tz);
-      if (timeStrToMinutes(selectedTime) <= nowMinutes) {
-        return [];
-      }
-    }
-
     const slotInterval = settings?.service_duration || 30;
-    const slotsNeeded = Math.ceil(totalDur / slotInterval);
-    const startSlotIndex = timeSlots.indexOf(selectedTime);
 
     return stylists.filter(stylist => {
-      // Check if this stylist has all required slots free
-      for (let i = 0; i < slotsNeeded; i++) {
-        const checkTime = timeSlots[startSlotIndex + i];
-        if (!checkTime) return false;
-
-        const isOccupied = existingAppointments.some(apt => {
-          if (!apt.service) return false;
-          const aptTime = apt.appointment_time?.substring(0, 5);
-          if (!aptTime) return false;
-          const aptDuration = apt.service.duration;
-          const aptSlotsNeeded = Math.ceil(aptDuration / slotInterval);
-          const aptStartIndex = timeSlots.indexOf(aptTime);
-          const checkIndex = timeSlots.indexOf(checkTime);
-
-          // Check if appointment overlaps and is for this stylist
-          return checkIndex >= aptStartIndex && checkIndex < aptStartIndex + aptSlotsNeeded &&
-                 apt.stylist_id === stylist.id;
-        });
-
-        if (isOccupied) return false;
+      if (stylistServices.length > 0) {
+        const canDoAllServices = ids.every((serviceId) =>
+          stylistServices.some((row) => row.stylist_id === stylist.id && row.service_id === serviceId)
+        );
+        if (!canDoAllServices) return false;
       }
 
-      return true;
+      return getAvailableBookingSlots({
+        date: selectedDate,
+        allSlots: timeSlots,
+        startHour: settings?.start_hour || '09:00',
+        endHour: settings?.end_hour || '18:00',
+        interval: slotInterval,
+        serviceDuration: totalDur,
+        bookedSlots: existingAppointments as BookedSlotLike[],
+        workingDays: settings?.working_days,
+        timezone: settings?.timezone,
+        stylistId: stylist.id,
+      }).includes(selectedTime);
     });
   };
 
@@ -520,31 +459,18 @@ const Booking = () => {
     }, 0);
 
     const slotInterval = settings?.service_duration || 30;
-    const slotsNeeded = Math.ceil(totalDuration / slotInterval);
 
-    return timeSlots.filter(time => {
-      // Check if this stylist has all required slots free
-      for (let i = 0; i < slotsNeeded; i++) {
-        const timeIndex = timeSlots.indexOf(time);
-        const checkTime = timeSlots[timeIndex + i];
-        if (!checkTime) return false;
-
-        const isOccupied = existingAppointments.some(apt => {
-          if (!apt.service || apt.stylist_id !== stylistId) return false;
-          const aptTime = apt.appointment_time?.substring(0, 5);
-          if (!aptTime) return false;
-          const aptDuration = apt.service.duration;
-          const aptSlotsNeeded = Math.ceil(aptDuration / slotInterval);
-          const aptStartIndex = timeSlots.indexOf(aptTime);
-          const checkIndex = timeSlots.indexOf(checkTime);
-
-          return checkIndex >= aptStartIndex && checkIndex < aptStartIndex + aptSlotsNeeded;
-        });
-
-        if (isOccupied) return false;
-      }
-
-      return true;
+    return getAvailableBookingSlots({
+      date,
+      allSlots: timeSlots,
+      startHour: settings?.start_hour || '09:00',
+      endHour: settings?.end_hour || '18:00',
+      interval: slotInterval,
+      serviceDuration: totalDuration,
+      bookedSlots: existingAppointments as BookedSlotLike[],
+      workingDays: settings?.working_days,
+      timezone: settings?.timezone,
+      stylistId,
     });
   };
 
@@ -617,6 +543,7 @@ const Booking = () => {
         p_appointment_date: format(selectedDate, 'yyyy-MM-dd'),
         p_appointment_time: selectedTime,
         p_notes: values.notes || null,
+        p_stylist_id: values.stylist_id || null,
       });
 
       if (rpcError || !rpcResult?.success) {
