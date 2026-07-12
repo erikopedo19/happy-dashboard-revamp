@@ -161,6 +161,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       return data || [];
     },
     enabled: !!user && isOpen,
+    refetchInterval: isOpen ? 10000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   const selectedService = services.find((s: Service) => s.id === serviceId);
@@ -448,11 +451,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         description: `Your appointment is confirmed for ${format(selectedDateObj, 'MMMM d')} at ${selectedTimeSlot}.`,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['appointments'], exact: false });
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
-          return key === 'appointments' || key === 'public-appointments';
+          return key === 'appointments'
+            || key === 'public-appointments'
+            || key === 'booked-slots'
+            || key === 'quickbook-booked';
         }
       });
       window.dispatchEvent(new Event('appointmentUpdated'));

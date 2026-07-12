@@ -120,6 +120,9 @@ export function QuickBookSheet({
   const { data: booked = [] } = useQuery<BookedSlotLike[]>({
     queryKey: ["quickbook-booked", barberId, format(date, "yyyy-MM-dd")],
     enabled: open && !!barberId,
+    refetchInterval: open ? 10000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     queryFn: async () => {
       const { data } = await (supabase as any).rpc("get_booked_slots", {
         _business_id: barberId,
@@ -208,7 +211,15 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       }
       setConfirmedTime({ date, time });
       setStep("success");
-      qc.invalidateQueries({ queryKey: ["quickbook-booked"] });
+      qc.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === 'quickbook-booked'
+            || key === 'booked-slots'
+            || key === 'public-appointments'
+            || key === 'appointments';
+        }
+      });
     } catch (e: any) {
       // Release lock so the user can retry after a failure (e.g. slot taken).
       submitLockRef.current = false;
