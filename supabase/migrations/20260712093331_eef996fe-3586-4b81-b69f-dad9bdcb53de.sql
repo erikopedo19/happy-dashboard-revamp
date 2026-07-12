@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.create_public_booking(uuid, text, text, text, uuid, date, time without time zone, text);

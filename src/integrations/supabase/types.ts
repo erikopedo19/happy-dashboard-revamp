@@ -1204,34 +1204,20 @@ export type Database = {
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_pending_services: { Args: never; Returns: undefined }
-      create_public_booking:
-        | {
-            Args: {
-              p_appointment_date: string
-              p_appointment_time: string
-              p_business_id: string
-              p_customer_email: string
-              p_customer_name: string
-              p_customer_phone: string
-              p_notes?: string
-              p_service_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_appointment_date: string
-              p_appointment_time: string
-              p_business_id: string
-              p_customer_email: string
-              p_customer_name: string
-              p_customer_phone: string
-              p_notes?: string
-              p_service_id: string
-              p_stylist_id?: string
-            }
-            Returns: Json
-          }
+      create_public_booking: {
+        Args: {
+          p_appointment_date: string
+          p_appointment_time: string
+          p_business_id: string
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_notes?: string
+          p_service_id: string
+          p_stylist_id?: string
+        }
+        Returns: Json
+      }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
       expire_waitlist_offers: { Args: never; Returns: undefined }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
