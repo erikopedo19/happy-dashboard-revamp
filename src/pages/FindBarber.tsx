@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   LocateFixed,
   X,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
@@ -174,64 +175,45 @@ const FindBarber = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#FAF7F5] dark:bg-[#0c0c0c] pb-28 overflow-hidden">
+    <div className="relative min-h-screen bg-[#F2F2F7] dark:bg-[#000000] pb-28">
       <Seo
         title="Cutzio — Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
-      {/* Animated ambient liquid-glass blobs */}
-      <motion.div
-        aria-hidden
-        animate={{ x: [0, 30, -10, 0], y: [0, -20, 10, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-rose-300/50 blur-3xl dark:bg-rose-500/15"
-      />
-      <motion.div
-        aria-hidden
-        animate={{ x: [0, -20, 20, 0], y: [0, 30, -10, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute top-60 -left-24 h-64 w-64 rounded-full bg-amber-200/50 blur-3xl dark:bg-amber-500/10"
-      />
-      <motion.div
-        aria-hidden
-        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute top-1/3 right-1/4 h-48 w-48 rounded-full bg-pink-200/40 blur-3xl dark:bg-pink-500/10"
-      />
 
-      {/* Sticky glass header */}
-      <div className="sticky top-0 z-30 backdrop-blur-2xl bg-[#FAF7F5]/60 dark:bg-[#0c0c0c]/50 border-b border-white/40 dark:border-white/[0.03]">
+      {/* Sticky minimal header */}
+      <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
           <div className="flex items-center justify-between mb-3">
             <motion.h1
-              initial={{ opacity: 0, y: -6 }}
+              initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={spring}
-              className="font-serif text-[26px] leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]"
+              className="text-[28px] font-bold leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]"
             >
-              Cutzio — Find Your Next Barber<span className="italic text-rose-500">.</span>
+              Find a barber
             </motion.h1>
             <Link to="/settings">
-              <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm hover:scale-95 transition-transform">
-                <User className="w-4 h-4 text-rose-500" />
+              <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/10 hover:scale-95 transition-transform">
+                <User className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
               </Button>
             </Link>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
             <Input
               type="text"
               placeholder="Search barbers, styles, vibes"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-11 rounded-full border border-white/60 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl text-[#1C1C1E] dark:text-[#F2F2F7] shadow-[0_4px_20px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-rose-500"
+              className="pl-10 h-11 rounded-[14px] border-0 bg-black/[0.05] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15"
             />
           </div>
 
-          {/* Segmented Tabs */}
-          <div className="mt-2.5 relative grid grid-cols-3 gap-1 p-1 bg-white/60 dark:bg-white/[0.04] backdrop-blur-xl rounded-full border border-white/60 dark:border-white/10">
+          {/* iOS segmented control */}
+          <div className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
             {TABS.map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.key;
@@ -239,17 +221,17 @@ const FindBarber = () => {
                 <button
                   key={t.key}
                   onClick={() => changeTab(t.key)}
-                  className="relative h-8 rounded-full flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
-                  style={{ color: isActive ? "#fff" : "#8E8E93" }}
+                  className="relative h-8 rounded-[11px] flex items-center justify-center gap-1.5 text-[13px] font-medium transition-colors"
+                  style={{ color: isActive ? "#1C1C1E" : "#8E8E93" }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="tab-pill"
                       transition={spring}
-                      className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full shadow-[0_6px_18px_rgba(225,29,72,0.35)]"
+                      className="absolute inset-0 bg-white dark:bg-[#3A3A3C] rounded-[11px] shadow-[0_1px_3px_rgba(0,0,0,0.12)]"
                     />
                   )}
-                  <span className="relative flex items-center gap-1.5">
+                  <span className={cn("relative flex items-center gap-1.5", isActive && "dark:text-[#F2F2F7]")}>
                     <Icon className="w-3.5 h-3.5" />
                     {t.label}
                   </span>
@@ -344,17 +326,17 @@ function BarberCard({
       animate="show"
       transition={spring}
       className={cn(
-        "group relative rounded-[28px] bg-white/70 dark:bg-white/[0.04] backdrop-blur-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.06)]",
-        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)]"
+        "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
+        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       )}
     >
-      {/* Gradient header strip */}
+      {/* Header banner */}
       <div
         className="relative h-24"
         style={{
           background: barber.banner_url
             ? `url(${barber.banner_url}) center/cover`
-            : `linear-gradient(135deg, ${accent}, ${accent}55 60%, #fff0)`,
+            : `linear-gradient(135deg, ${accent}, ${accent}88)`,
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-[#1C1C1E]" />
@@ -366,7 +348,7 @@ function BarberCard({
             onToggleFavorite(barber.id);
           }}
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          className="absolute top-2.5 right-2.5 w-11 h-11 rounded-full bg-white/90 dark:bg-[#1C1C1E]/85 backdrop-blur flex items-center justify-center shadow-sm active:scale-90 transition-transform"
+          className="absolute top-2.5 right-2.5 w-11 h-11 rounded-full bg-white/90 dark:bg-[#2C2C2E]/90 backdrop-blur flex items-center justify-center active:scale-90 transition-transform"
         >
           <Heart
             className={cn(
@@ -384,28 +366,28 @@ function BarberCard({
             <img
               src={barber.avatar_url}
               alt={barber.brandName}
-              className="w-[68px] h-[68px] rounded-[22px] object-cover border-[3px] border-white dark:border-[#1C1C1E] shadow-md shrink-0"
+              className="w-[68px] h-[68px] rounded-[20px] object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
             />
           ) : (
             <div
-              className="w-[68px] h-[68px] rounded-[22px] flex items-center justify-center text-white font-serif text-3xl border-[3px] border-white dark:border-[#1C1C1E] shadow-md shrink-0"
+              className="w-[68px] h-[68px] rounded-[20px] flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
               style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
             >
               {initial}
             </div>
           )}
           <div className="min-w-0 flex-1 pb-1">
-            <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 mb-1">
+            <div className="inline-flex items-center gap-1 rounded-full bg-black/[0.04] dark:bg-white/[0.08] px-2 py-0.5 mb-1">
               <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 tabular-nums">
+              <span className="text-[11px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
                 {Number(rating).toFixed(1)}
               </span>
-              <span className="text-[10px] text-amber-700/70 dark:text-amber-300/70">· {reviews}</span>
+              <span className="text-[10px] text-[#8E8E93]">· {reviews}</span>
             </div>
           </div>
         </div>
 
-        <h3 className="mt-2 font-serif text-[22px] leading-tight tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+        <h3 className="mt-2 text-[19px] font-semibold leading-tight tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
           {barber.brandName}
         </h3>
         {barber.description && !isExpanded && (
@@ -441,7 +423,7 @@ function BarberCard({
       <div className="p-3 pt-3 flex gap-2">
         <button
           onClick={() => onExpand(barber.id)}
-          className="flex-1 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
+          className="flex-1 h-12 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
         >
           {isExpanded ? "Less" : "Details"}
           <motion.span animate={{ rotate: isExpanded ? 180 : 0 }} transition={spring} className="inline-flex">
@@ -451,14 +433,14 @@ function BarberCard({
         {barber.booking_link ? (
           <Button
             onClick={() => setBookOpen(true)}
-            className="flex-[1.4] w-full h-12 rounded-2xl text-white font-semibold border-0 shadow-[0_8px_20px_rgba(225,29,72,0.28)] active:scale-[0.97] transition-transform"
-            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
+            className="flex-[1.4] w-full h-12 rounded-[14px] text-white font-semibold border-0 active:scale-[0.97] transition-transform"
+            style={{ backgroundColor: accent }}
           >
             <Calendar className="w-4 h-4 mr-1.5" />
             Book
           </Button>
         ) : (
-          <Button disabled className="flex-[1.4] h-12 rounded-2xl bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
+          <Button disabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
             Unavailable
           </Button>
         )}
@@ -479,9 +461,9 @@ function BarberCard({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] py-2 text-center">
-      <div className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{value}</div>
-      <div className="text-[10px] uppercase tracking-wide text-[#8E8E93]">{label}</div>
+    <div className="rounded-[16px] bg-black/[0.04] dark:bg-white/[0.06] py-2.5 text-center">
+      <div className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-[#8E8E93] mt-0.5">{label}</div>
     </div>
   );
 }
@@ -507,7 +489,7 @@ function ExploreList({
     return (
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-40 rounded-3xl bg-white/60 dark:bg-[#1C1C1E]/60 animate-pulse" />
+          <div key={i} className="h-44 rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] animate-pulse" />
         ))}
       </div>
     );
@@ -600,7 +582,7 @@ function EmptyState({
       transition={spring}
       className="text-center py-20"
     >
-      <div className="w-20 h-20 rounded-3xl bg-white dark:bg-[#1C1C1E] flex items-center justify-center mx-auto mb-4 shadow-sm">
+      <div className="w-20 h-20 rounded-[22px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] flex items-center justify-center mx-auto mb-4">
         {icon}
       </div>
       <h3 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</h3>
@@ -832,7 +814,7 @@ function BarberExpandedDetails({
   const { data, isLoading } = useQuery({
     queryKey: ["barber-details", barberId],
     queryFn: async () => {
-      const [profileRes, servicesRes, hoursRes, agendaRes, productsRes] = await Promise.all([
+      const [profileRes, servicesRes, hoursRes, agendaRes, productsRes, micrositeRes] = await Promise.all([
         (supabase as any)
           .from("profiles")
           .select("description, years_experience, business_name, full_name, accepts_waitlist")
@@ -862,7 +844,16 @@ function BarberExpandedDetails({
           .eq("is_active", true)
           .order("created_at", { ascending: false })
           .limit(6),
+        (supabase as any)
+          .from("microsites")
+          .select("gallery")
+          .eq("user_id", barberId)
+          .maybeSingle(),
       ]);
+
+      const gallery: string[] = Array.isArray(micrositeRes?.data?.gallery)
+        ? (micrositeRes.data.gallery as string[]).filter(Boolean)
+        : [];
 
       // Derive hours from agenda_settings (the source of truth used by the
       // booking form) so Find Barber, agenda and booking link always match.
@@ -885,6 +876,7 @@ function BarberExpandedDetails({
         services: servicesRes.data || [],
         hours,
         products: productsRes.data || [],
+        gallery,
       };
     },
     staleTime: 60_000,
@@ -936,24 +928,46 @@ function BarberExpandedDetails({
     );
   }
 
+  const services = data?.services ?? [];
+  const products = data?.products ?? [];
+  const gallery = data?.gallery ?? [];
+
+  const priceValues = services.map((s: any) => Number(s.price)).filter((n) => !Number.isNaN(n));
+  const fromPrice = priceValues.length ? Math.min(...priceValues) : null;
+
+  const highlights = [
+    { label: "Rating", value: Number(rating).toFixed(1) },
+    { label: "Reviews", value: String(reviews) },
+    { label: years ? "Experience" : "Status", value: years ? `${years}y` : "Pro" },
+    ...(fromPrice != null ? [{ label: "From", value: `$${fromPrice.toFixed(0)}` }] : []),
+    ...(services.length ? [{ label: "Services", value: String(services.length) }] : []),
+    ...(products.length ? [{ label: "Products", value: String(products.length) }] : []),
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2">
-        <Stat label="Rating" value={Number(rating).toFixed(1)} />
-        <Stat label="Reviews" value={String(reviews)} />
-        <Stat label="Experience" value={years ? `${years}y` : "Pro"} />
+    <div className="space-y-5">
+      {/* Quick highlight chips */}
+      <div className="flex flex-wrap gap-2">
+        {highlights.map((h) => (
+          <div
+            key={h.label}
+            className="inline-flex items-baseline gap-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] px-3 py-1.5"
+          >
+            <span className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">{h.value}</span>
+            <span className="text-[11px] text-[#8E8E93]">{h.label}</span>
+          </div>
+        ))}
       </div>
 
       {/* Waitlist CTA */}
       {data?.profile?.accepts_waitlist && (
         <motion.button
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: 0.98 }}
           onClick={joinWaitlist}
           disabled={joining || joined}
-          className="w-full rounded-2xl p-3.5 flex items-center gap-3 border border-rose-500/20 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 text-left disabled:opacity-70"
+          className="w-full rounded-[18px] p-3.5 flex items-center gap-3 bg-black/[0.04] dark:bg-white/[0.06] text-left disabled:opacity-70 transition"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ backgroundColor: accent }}>
             <BellRing className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -967,7 +981,6 @@ function BarberExpandedDetails({
         </motion.button>
       )}
 
-
       {/* About */}
       {description && (
         <Section icon={<Sparkles className="w-3.5 h-3.5" style={{ color: accent }} />} title="About">
@@ -978,65 +991,102 @@ function BarberExpandedDetails({
       )}
 
       {/* Services / Rates */}
-      {data && data.services.length > 0 && (
+      {services.length > 0 && (
         <Section icon={<Award className="w-3.5 h-3.5" style={{ color: accent }} />} title="Services & rates">
-          <ul className="divide-y divide-black/5 dark:divide-white/5 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] overflow-hidden">
-            {data.services.map((s: any) => (
-              <li key={s.id} className="flex items-center justify-between px-3 py-2.5">
-                <div className="min-w-0">
-                  <div className="text-[13px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{s.name}</div>
-                  {s.duration && (
-                    <div className="text-[11px] text-[#8E8E93]">{s.duration} min</div>
-                  )}
+          <ul className="rounded-[18px] bg-black/[0.03] dark:bg-white/[0.05] overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05]">
+            {services.map((s: any, i: number) => (
+              <motion.li
+                key={s.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03, ...spring }}
+                className="flex items-center justify-between px-3.5 py-3"
+              >
+                <div className="min-w-0 flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}14` }}>
+                    <Scissors className="w-3.5 h-3.5" style={{ color: accent }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{s.name}</div>
+                    {s.duration && <div className="text-[11px] text-[#8E8E93]">{s.duration} min</div>}
+                  </div>
                 </div>
                 {s.price != null && (
-                  <div className="text-[13px] font-semibold tabular-nums" style={{ color: accent }}>
+                  <div className="text-[14px] font-semibold tabular-nums text-[#1C1C1E] dark:text-[#F2F2F7]">
                     ${Number(s.price).toFixed(0)}
                   </div>
                 )}
-              </li>
+              </motion.li>
             ))}
           </ul>
         </Section>
       )}
 
-      {/* Working hours */}
-      {data && data.hours.length > 0 && (
-        <Section icon={<Clock className="w-3.5 h-3.5" style={{ color: accent }} />} title="Working hours">
-          <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] p-3 grid grid-cols-1 gap-1">
-            {data.hours.map((h: any) => (
-              <div key={h.day_of_week} className="flex items-center justify-between text-[12px]">
-                <span className="text-[#1C1C1E] dark:text-[#F2F2F7] font-medium">{DAY_NAMES[h.day_of_week] || "—"}</span>
-                <span className="text-[#8E8E93] tabular-nums">
-                  {h.is_closed
-                    ? "Closed"
-                    : `${(h.open_time || "").slice(0, 5)} – ${(h.close_time || "").slice(0, 5)}`}
-                </span>
-              </div>
+      {/* Gallery */}
+      {gallery.length > 0 && (
+        <Section icon={<ImageIcon className="w-3.5 h-3.5" style={{ color: accent }} />} title="Recent work">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {gallery.map((url: string, i: number) => (
+              <motion.div
+                key={url + i}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04, ...spring }}
+                className="relative shrink-0 snap-start w-32 aspect-[3/4] rounded-[16px] overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]"
+              >
+                <img src={url} alt="Recent work" className="w-full h-full object-cover" loading="lazy" />
+              </motion.div>
             ))}
           </div>
         </Section>
       )}
 
       {/* Products */}
-      {data && data.products.length > 0 && (
+      {products.length > 0 && (
         <Section icon={<ShoppingBag className="w-3.5 h-3.5" style={{ color: accent }} />} title="Products">
-          <div className="grid grid-cols-3 gap-2">
-            {data.products.map((p: any) => (
-              <div key={p.id} className="rounded-2xl overflow-hidden bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {products.map((p: any, i: number) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03, ...spring }}
+                className="rounded-[16px] overflow-hidden bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.05]"
+              >
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} className="w-full aspect-square object-cover" />
+                  <img src={p.image_url} alt={p.name} className="w-full aspect-square object-cover" loading="lazy" />
                 ) : (
                   <div className="w-full aspect-square flex items-center justify-center">
-                    <ShoppingBag className="w-5 h-5 text-[#8E8E93]" />
+                    <ShoppingBag className="w-6 h-6 text-[#8E8E93]" />
                   </div>
                 )}
-                <div className="p-2">
-                  <div className="text-[11px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{p.name}</div>
-                  <div className="text-[11px] font-semibold tabular-nums" style={{ color: accent }}>
+                <div className="p-2.5">
+                  {p.category && (
+                    <div className="text-[9px] uppercase tracking-wide text-[#8E8E93] mb-0.5 truncate">{p.category}</div>
+                  )}
+                  <div className="text-[12px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{p.name}</div>
+                  <div className="text-[12px] font-semibold tabular-nums mt-0.5" style={{ color: accent }}>
                     ${Number(p.price).toFixed(0)}
                   </div>
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Working hours */}
+      {data && data.hours.length > 0 && (
+        <Section icon={<Clock className="w-3.5 h-3.5" style={{ color: accent }} />} title="Working hours">
+          <div className="rounded-[18px] bg-black/[0.03] dark:bg-white/[0.05] p-3.5 grid grid-cols-1 gap-1.5">
+            {data.hours.map((h: any) => (
+              <div key={h.day_of_week} className="flex items-center justify-between text-[12.5px]">
+                <span className="text-[#1C1C1E] dark:text-[#F2F2F7] font-medium">{DAY_NAMES[h.day_of_week] || "—"}</span>
+                <span className={cn("tabular-nums", h.is_closed ? "text-[#8E8E93]" : "text-[#3C3C43] dark:text-[#EBEBF5]/80")}>
+                  {h.is_closed
+                    ? "Closed"
+                    : `${(h.open_time || "").slice(0, 5)} – ${(h.close_time || "").slice(0, 5)}`}
+                </span>
               </div>
             ))}
           </div>
