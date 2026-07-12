@@ -120,6 +120,9 @@ export function QuickBookSheet({
   const { data: booked = [] } = useQuery<BookedSlotLike[]>({
     queryKey: ["quickbook-booked", barberId, format(date, "yyyy-MM-dd")],
     enabled: open && !!barberId,
+    refetchInterval: open ? 10000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     queryFn: async () => {
       const { data } = await (supabase as any).rpc("get_booked_slots", {
         _business_id: barberId,
