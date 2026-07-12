@@ -161,6 +161,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       return data || [];
     },
     enabled: !!user && isOpen,
+    refetchInterval: isOpen ? 10000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   const selectedService = services.find((s: Service) => s.id === serviceId);
