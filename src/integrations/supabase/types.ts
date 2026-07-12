@@ -1225,7 +1225,9 @@ export type Database = {
         Args: { _business_id: string; _date: string }
         Returns: {
           appointment_time: string
+          service_duration: number
           service_id: string
+          stylist_id: string
         }[]
       }
       get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
