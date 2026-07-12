@@ -1,0 +1,177 @@
+ALTER TABLE public.services REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.services;
+
+DROP FUNCTION IF EXISTS public.get_booked_slots(uuid, date);
+
+CREATE OR REPLACE FUNCTION public.get_booked_slots(_business_id uuid, _date date)
+RETURNS TABLE(
+  appointment_time time without time zone,
+  service_id uuid,
+  stylist_id uuid,
+  service_duration integer
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+  SELECT
+    a.appointment_time,
+    a.service_id,
+    a.stylist_id,
+    COALESCE(s.duration, 30)::integer AS service_duration
+  FROM public.appointments a
+  LEFT JOIN public.services s ON s.id = a.service_id
+  WHERE a.user_id = _business_id
+    AND a.appointment_date = _date
+    AND COALESCE(a.status, 'scheduled') <> 'cancelled'
+  ORDER BY a.appointment_time;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.create_public_booking(
+  p_business_id uuid,
+  p_customer_name text,
+  p_customer_email text,
+  p_customer_phone text,
+  p_service_id uuid,
+  p_appointment_date date,
+  p_appointment_time time without time zone,
+  p_notes text DEFAULT NULL::text
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+    v_customer_id uuid;
+    v_appointment_id uuid;
+    v_token uuid;
+    v_service_name text;
+    v_service_duration integer;
+    v_start_hour text;
+    v_end_hour text;
+    v_slot_interval integer;
+    v_working_days integer[];
+    v_timezone text;
+    v_start_min integer;
+    v_end_min integer;
+    v_slot_min integer;
+    v_service_end_min integer;
+    v_dow integer;
+    v_today text;
+    v_now_min integer;
+    v_overlap_exists boolean;
+BEGIN
+    SELECT s.name, COALESCE(s.duration, 30)::integer
+      INTO v_service_name, v_service_duration
+    FROM public.services s
+    WHERE s.id = p_service_id
+      AND s.user_id = p_business_id
+      AND s.deleted_at IS NULL;
+
+    IF v_service_duration IS NULL THEN
+      RETURN json_build_object('success', false, 'error', 'Selected service is no longer available.');
+    END IF;
+
+    SELECT
+      COALESCE(a.start_hour, '09:00'),
+      COALESCE(a.end_hour, '18:00'),
+      GREATEST(COALESCE(a.service_duration, 30), 1),
+      COALESCE(a.working_days, ARRAY[0,1,2,3,4,5,6]),
+      COALESCE(p.timezone, 'UTC')
+      INTO v_start_hour, v_end_hour, v_slot_interval, v_working_days, v_timezone
+    FROM public.profiles p
+    LEFT JOIN public.agenda_settings a ON a.user_id = p.id
+    WHERE p.id = p_business_id
+    LIMIT 1;
+
+    IF v_start_hour IS NULL THEN
+      v_start_hour := '09:00';
+      v_end_hour := '18:00';
+      v_slot_interval := 30;
+      v_working_days := ARRAY[0,1,2,3,4,5,6];
+      v_timezone := 'UTC';
+    END IF;
+
+    v_start_min := split_part(v_start_hour, ':', 1)::integer * 60 + COALESCE(NULLIF(split_part(v_start_hour, ':', 2), '')::integer, 0);
+    v_end_min := split_part(v_end_hour, ':', 1)::integer * 60 + COALESCE(NULLIF(split_part(v_end_hour, ':', 2), '')::integer, 0);
+    v_slot_min := EXTRACT(HOUR FROM p_appointment_time)::integer * 60 + EXTRACT(MINUTE FROM p_appointment_time)::integer;
+    v_service_end_min := v_slot_min + v_service_duration;
+    v_dow := EXTRACT(DOW FROM p_appointment_date)::integer;
+
+    IF NOT (v_dow = ANY(v_working_days)) THEN
+      RETURN json_build_object('success', false, 'error', 'Selected date is outside the barber availability.');
+    END IF;
+
+    IF v_slot_min < v_start_min OR v_service_end_min > v_end_min THEN
+      RETURN json_build_object('success', false, 'error', 'Selected time is outside the barber availability.');
+    END IF;
+
+    IF ((v_slot_min - v_start_min) % v_slot_interval) <> 0 THEN
+      RETURN json_build_object('success', false, 'error', 'Selected time does not match the barber availability intervals.');
+    END IF;
+
+    v_today := to_char(timezone(v_timezone, now()), 'YYYY-MM-DD');
+    v_now_min := EXTRACT(HOUR FROM timezone(v_timezone, now()))::integer * 60 + EXTRACT(MINUTE FROM timezone(v_timezone, now()))::integer;
+
+    IF p_appointment_date::text < v_today OR (p_appointment_date::text = v_today AND v_slot_min <= v_now_min) THEN
+      RETURN json_build_object('success', false, 'error', 'Selected time has already passed.');
+    END IF;
+
+    SELECT EXISTS (
+      SELECT 1
+      FROM public.appointments a
+      LEFT JOIN public.services s ON s.id = a.service_id
+      WHERE a.user_id = p_business_id
+        AND a.appointment_date = p_appointment_date
+        AND COALESCE(a.status, 'scheduled') <> 'cancelled'
+        AND v_slot_min < (
+          EXTRACT(HOUR FROM a.appointment_time)::integer * 60 + EXTRACT(MINUTE FROM a.appointment_time)::integer + COALESCE(s.duration, v_slot_interval, 30)
+        )
+        AND v_service_end_min > (
+          EXTRACT(HOUR FROM a.appointment_time)::integer * 60 + EXTRACT(MINUTE FROM a.appointment_time)::integer
+        )
+    ) INTO v_overlap_exists;
+
+    IF v_overlap_exists THEN
+      RETURN json_build_object('success', false, 'error', 'This time slot is already booked. Please choose another time.');
+    END IF;
+
+    SELECT id INTO v_customer_id FROM public.customers
+    WHERE email = p_customer_email AND user_id = p_business_id;
+
+    IF v_customer_id IS NULL THEN
+      INSERT INTO public.customers (name, email, phone, user_id)
+      VALUES (p_customer_name, p_customer_email, p_customer_phone, p_business_id)
+      RETURNING id INTO v_customer_id;
+    ELSE
+      UPDATE public.customers SET name = p_customer_name, phone = p_customer_phone WHERE id = v_customer_id;
+    END IF;
+
+    INSERT INTO public.appointments (
+      customer_id, service_id, appointment_date, appointment_time, notes, status, user_id
+    ) VALUES (
+      v_customer_id, p_service_id, p_appointment_date, p_appointment_time, p_notes, 'scheduled', p_business_id
+    ) RETURNING id, cancel_token INTO v_appointment_id, v_token;
+
+    INSERT INTO public.notifications (user_id, type, title, body, appointment_id)
+    VALUES (
+      p_business_id, 'booking_created', 'New booking',
+      p_customer_name || ' booked ' || COALESCE(v_service_name,'a service') || ' on ' ||
+        to_char(p_appointment_date, 'Mon DD') || ' at ' || to_char(p_appointment_time, 'HH24:MI'),
+      v_appointment_id
+    );
+
+    RETURN json_build_object(
+      'success', true,
+      'customer_id', v_customer_id,
+      'appointment_id', v_appointment_id,
+      'cancel_token', v_token
+    );
+EXCEPTION WHEN duplicate_object THEN
+    RETURN json_build_object('success', false, 'error', SQLERRM);
+WHEN OTHERS THEN
+    RETURN json_build_object('success', false, 'error', SQLERRM);
+END;
+$function$;
