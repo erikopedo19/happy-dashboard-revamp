@@ -226,7 +226,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-[28px] border-0 bg-white dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
+        className="rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5] dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
       >
         {/* Grabber */}
         <div className="pt-3 pb-1 flex justify-center shrink-0">
@@ -238,7 +238,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
           {step === "details" ? (
             <button
               onClick={() => setStep("pick")}
-              className="w-9 h-9 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center active:scale-95 transition hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
               aria-label="Back"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -250,13 +250,13 @@ const businessTz = settings?.timezone || getBrowserTimezone();
             <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold">
               {step === "success" ? "Confirmed" : "Book with"}
             </p>
-            <h2 className="font-serif text-[20px] leading-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate max-w-[200px]">
+            <h2 className="text-[20px] font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate max-w-[200px]">
               {barberName}
             </h2>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="w-9 h-9 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center active:scale-95 transition"
+            className="w-9 h-9 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center active:scale-95 transition hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -294,12 +294,12 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                               setTime("");
                             }}
                             className={cn(
-                              "w-full p-3.5 rounded-2xl border-2 flex items-center justify-between text-left transition active:scale-[0.99]",
+                              "w-full p-3.5 rounded-[22px] border-2 flex items-center justify-between text-left transition active:scale-[0.99]",
                               active
-                                ? "border-transparent bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10"
-                                : "border-black/5 dark:border-white/5 bg-[#F8F8F8] dark:bg-[#2C2C2E]"
+                                ? "border-transparent bg-[#F2F2F7] dark:bg-[#2C2C2E]"
+                                : "border-black/5 dark:border-white/5 bg-white dark:bg-[#2C2C2E]"
                             )}
-                            style={active ? { boxShadow: `0 0 0 2px ${accentColor}` } : undefined}
+                            style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12` } : undefined}
                           >
                             <div className="min-w-0">
                               <div className="font-semibold text-[14px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
@@ -333,12 +333,12 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                             setTime("");
                           }}
                           className={cn(
-                            "shrink-0 w-14 py-2.5 rounded-2xl flex flex-col items-center transition active:scale-95",
+                            "shrink-0 w-14 py-2.5 rounded-[20px] flex flex-col items-center transition active:scale-95",
                             active
-                              ? "text-white shadow-[0_8px_20px_rgba(225,29,72,0.28)]"
-                              : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                              ? "text-white"
+                              : "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] border border-black/5 dark:border-white/5"
                           )}
-                          style={active ? { background: accentColor } : undefined}
+                          style={active ? { backgroundColor: accentColor } : undefined}
                         >
                           <span className="text-[10px] uppercase tracking-wide opacity-80">
                             {format(d, "EEE")}
@@ -372,12 +372,12 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                             key={t}
                             onClick={() => setTime(t)}
                             className={cn(
-                              "h-11 rounded-xl text-[13px] font-semibold transition active:scale-95",
+                              "h-11 rounded-[14px] text-[13px] font-semibold transition active:scale-95 border border-black/5 dark:border-white/5",
                               active
-                                ? "text-white shadow-[0_6px_16px_rgba(225,29,72,0.28)]"
-                                : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+                                ? "text-white border-transparent"
+                                : "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
                             )}
-                            style={active ? { background: accentColor } : undefined}
+                            style={active ? { backgroundColor: accentColor } : undefined}
                           >
                             {t}
                           </button>
@@ -398,7 +398,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                 transition={{ duration: 0.2 }}
                 className="space-y-4 pb-4"
               >
-                <div className="rounded-2xl p-3.5 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10 flex items-center gap-3">
+                <div className="rounded-[22px] p-3.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: accentColor }}>
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
@@ -419,7 +419,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Alex Smith"
-                      className="mt-1.5 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border-transparent"
+                      className="mt-1.5 h-12 rounded-[14px] bg-white dark:bg-[#2C2C2E] border-[#E5E5EA] dark:border-[#3A3A3C]"
                     />
                   </div>
                   <div>
@@ -429,7 +429,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@email.com"
-                      className="mt-1.5 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border-transparent"
+                      className="mt-1.5 h-12 rounded-[14px] bg-white dark:bg-[#2C2C2E] border-[#E5E5EA] dark:border-[#3A3A3C]"
                     />
                   </div>
                   <div>
@@ -439,7 +439,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="mt-1.5 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border-transparent"
+                      className="mt-1.5 h-12 rounded-[14px] bg-white dark:bg-[#2C2C2E] border-[#E5E5EA] dark:border-[#3A3A3C]"
                     />
                   </div>
                 </div>
@@ -458,8 +458,8 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   initial={{ scale: 0, rotate: -90 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ ...spring, delay: 0.1 }}
-                  className="w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-[0_20px_40px_rgba(225,29,72,0.3)]"
-                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` }}
+                  className="w-24 h-24 mx-auto rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: accentColor }}
                 >
                   <Check className="w-12 h-12 text-white" strokeWidth={3} />
                 </motion.div>
@@ -468,7 +468,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="font-serif text-[28px] leading-tight mt-5 text-[#1C1C1E] dark:text-[#F2F2F7]"
+                  className="text-[28px] font-semibold tracking-tight mt-5 text-[#1C1C1E] dark:text-[#F2F2F7]"
                 >
                   You're booked.
                 </motion.h3>
@@ -491,14 +491,14 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                     <div className="flex items-center justify-around">
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-[#8E8E93] font-semibold">Date</div>
-                        <div className="font-serif text-[20px] mt-1 text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        <div className="text-[20px] font-semibold tracking-tight mt-1 text-[#1C1C1E] dark:text-[#F2F2F7]">
                           {format(confirmedTime.date, "MMM d")}
                         </div>
                       </div>
                       <div className="w-px h-10 bg-black/10 dark:bg-white/10" />
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-[#8E8E93] font-semibold">Time</div>
-                        <div className="font-serif text-[20px] mt-1 text-[#1C1C1E] dark:text-[#F2F2F7]">
+                        <div className="text-[20px] font-semibold tracking-tight mt-1 text-[#1C1C1E] dark:text-[#F2F2F7]">
                           {confirmedTime.time}
                         </div>
                       </div>
@@ -519,8 +519,8 @@ const businessTz = settings?.timezone || getBrowserTimezone();
             <Button
               disabled={!canContinue}
               onClick={() => setStep("details")}
-              className="w-full h-12 rounded-2xl text-white font-semibold border-0 disabled:opacity-40"
-              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` }}
+              className="w-full h-12 rounded-[14px] text-white font-semibold border-0 disabled:opacity-40"
+              style={{ backgroundColor: accentColor }}
             >
               Continue
             </Button>
@@ -529,8 +529,8 @@ const businessTz = settings?.timezone || getBrowserTimezone();
             <Button
               disabled={!canConfirm || submitting}
               onClick={handleConfirm}
-              className="w-full h-12 rounded-2xl text-white font-semibold border-0 disabled:opacity-40"
-              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` }}
+              className="w-full h-12 rounded-[14px] text-white font-semibold border-0 disabled:opacity-40"
+              style={{ backgroundColor: accentColor }}
             >
               {submitting ? (
                 <>
@@ -544,7 +544,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
           {step === "success" && (
             <Button
               onClick={() => onOpenChange(false)}
-              className="w-full h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#E5E5EA] font-semibold border-0"
+              className="w-full h-12 rounded-[14px] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] font-semibold border-0"
             >
               Done
             </Button>
