@@ -79,6 +79,7 @@ export type Database = {
           notes: string | null
           org_id: string | null
           price: number | null
+          review_email_sent_at: string | null
           service_id: string
           status: string | null
           stylist_id: string | null
@@ -95,6 +96,7 @@ export type Database = {
           notes?: string | null
           org_id?: string | null
           price?: number | null
+          review_email_sent_at?: string | null
           service_id: string
           status?: string | null
           stylist_id?: string | null
@@ -111,6 +113,7 @@ export type Database = {
           notes?: string | null
           org_id?: string | null
           price?: number | null
+          review_email_sent_at?: string | null
           service_id?: string
           status?: string | null
           stylist_id?: string | null
@@ -648,6 +651,7 @@ export type Database = {
           address: string | null
           ask_notes: boolean | null
           ask_phone: boolean | null
+          auto_review_emails: boolean
           avatar_url: string | null
           banner_url: string | null
           booking_link: string | null
@@ -668,6 +672,7 @@ export type Database = {
           phone: string | null
           rating: number | null
           rating_count: number | null
+          review_email_delay_hours: number
           sender_email: string | null
           sender_name: string | null
           timezone: string | null
@@ -681,6 +686,7 @@ export type Database = {
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
+          auto_review_emails?: boolean
           avatar_url?: string | null
           banner_url?: string | null
           booking_link?: string | null
@@ -701,6 +707,7 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
+          review_email_delay_hours?: number
           sender_email?: string | null
           sender_name?: string | null
           timezone?: string | null
@@ -714,6 +721,7 @@ export type Database = {
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
+          auto_review_emails?: boolean
           avatar_url?: string | null
           banner_url?: string | null
           booking_link?: string | null
@@ -734,6 +742,7 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
+          review_email_delay_hours?: number
           sender_email?: string | null
           sender_name?: string | null
           timezone?: string | null
@@ -1247,6 +1256,23 @@ export type Database = {
           status: string
         }[]
       }
+      get_pending_review_requests: {
+        Args: never
+        Returns: {
+          appointment_date: string
+          appointment_id: string
+          appointment_time: string
+          brand_color: string
+          business_id: string
+          business_name: string
+          cancel_token: string
+          customer_email: string
+          customer_name: string
+          sender_email: string
+          sender_name: string
+          service_name: string
+        }[]
+      }
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
@@ -1314,6 +1340,10 @@ export type Database = {
         }[]
       }
       list_public_shops: { Args: never; Returns: Json }
+      mark_review_email_sent: {
+        Args: { _appointment_id: string }
+        Returns: undefined
+      }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json
