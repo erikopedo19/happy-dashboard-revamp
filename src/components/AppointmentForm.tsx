@@ -503,7 +503,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         "p-0 overflow-hidden border-0 shadow-2xl",
         isMobile
           ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#0e0e10] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
-          : "max-w-5xl w-[92vw] max-h-[88vh] rounded-2xl bg-[#0e0e10] border border-white/[0.06]"
+          : "max-w-7xl w-[96vw] max-h-[90vh] rounded-[24px] bg-[#0e0e10] border border-white/[0.06]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
 
@@ -514,7 +514,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[90vh] min-h-[600px] overflow-hidden"
           )}
         >
           {/* Mobile sticky top bar with drag-handle + close */}
@@ -541,7 +541,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Left Panel - Service Info */}
           <div className={cn(
             "bg-[#0e0e10] flex flex-col",
-            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[320px] p-8 border-r border-white/[0.06]"
+            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[360px] p-8 border-r border-white/[0.06]"
           )}>
             {/* Desktop close */}
             {!isMobile && (
@@ -596,7 +596,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Center Panel - Calendar */}
           <div className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-8 border-r border-white/[0.06] overflow-y-auto"
+            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-8 overflow-y-auto"
           )}>
             {isMobile && (
               <div className="flex items-center gap-2 mb-5">
@@ -887,7 +887,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
               "bg-[#0e0e10]",
-              isMobile ? "p-4 pb-6" : "w-[280px] p-6 overflow-y-auto"
+              isMobile ? "p-4 pb-6" : "w-[320px] p-6 overflow-y-auto border-l border-white/[0.06]"
             )}>
             {!isMobile && step === "details" && (
               <div className="space-y-4">

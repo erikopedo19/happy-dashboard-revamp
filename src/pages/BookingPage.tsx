@@ -13,12 +13,8 @@ import {
   QrCode,
   Link2,
   LayoutTemplate,
-  Scissors,
   CalendarCheck,
   Printer,
-  Wifi,
-  BatteryFull,
-  Signal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -59,81 +55,6 @@ const StatTile = ({
     <p className="text-[15px] font-bold text-white mt-1 tracking-tight">{value}</p>
   </motion.div>
 );
-
-function PhonePreview({ slug, name }: { slug: string | null; name: string | null }) {
-  const displaySlug = slug || "your-shop";
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: 0.2, ...springSoft }}
-      className="relative mx-auto w-[250px]"
-    >
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="rounded-[38px] border border-white/[0.12] bg-[#0A0A0C] p-2 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
-      >
-        <div className="rounded-[30px] overflow-hidden bg-[#111114] border border-white/[0.06]">
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-5 pt-3 pb-1">
-            <span className="text-[10px] font-semibold text-white tabular-nums">9:41</span>
-            <div className="flex items-center gap-1 text-white">
-              <Signal className="w-2.5 h-2.5" />
-              <Wifi className="w-2.5 h-2.5" />
-              <BatteryFull className="w-3 h-3" />
-            </div>
-          </div>
-          {/* URL pill */}
-          <div className="mx-4 mt-1 mb-3 h-7 rounded-full bg-white/[0.07] border border-white/[0.06] flex items-center justify-center px-3">
-            <span className="text-[9px] text-[#8E8E93] font-mono truncate">
-              cutzioo.com/book/{displaySlug}
-            </span>
-          </div>
-          {/* Booking page preview */}
-          <div className="px-4 pb-5 space-y-3">
-            <div className="flex flex-col items-center pt-1">
-              <div className="w-12 h-12 rounded-[16px] bg-gradient-to-br from-[#FF2D6F] to-[#5E5CE6] flex items-center justify-center shadow-[0_8px_24px_rgba(255,45,111,0.4)]">
-                <Scissors className="w-5 h-5 text-white" strokeWidth={2.3} />
-              </div>
-              <p className="text-[13px] font-bold text-white mt-2 tracking-tight">
-                {name || "Your Shop"}
-              </p>
-              <p className="text-[9px] text-[#8E8E93]">Book your appointment</p>
-            </div>
-            {["Skin Fade — $35", "Beard Trim — $20", "Cut + Beard — $50"].map((s, i) => (
-              <motion.div
-                key={s}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.12, ...springSoft }}
-                className="flex items-center justify-between rounded-[12px] bg-white/[0.06] border border-white/[0.05] px-3 py-2.5"
-              >
-                <span className="text-[10px] font-semibold text-white">{s.split(" — ")[0]}</span>
-                <span className="text-[10px] font-bold text-[#FF6B95] tabular-nums">
-                  {s.split(" — ")[1]}
-                </span>
-              </motion.div>
-            ))}
-            <motion.div
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-              className="h-9 rounded-full bg-[#FF2D6F] flex items-center justify-center shadow-[0_8px_20px_rgba(255,45,111,0.4)]"
-            >
-              <span className="text-[11px] font-bold text-white">Book now</span>
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
-      {/* Glow */}
-      <div
-        aria-hidden
-        className="absolute -inset-8 -z-10 rounded-full opacity-40 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(255,45,111,0.3) 0%, transparent 70%)" }}
-      />
-    </motion.div>
-  );
-}
 
 const STEPS = [
   { icon: Link2, title: "Claim your slug", desc: "Pick a short URL that fits your brand." },
@@ -269,31 +190,21 @@ const BookingPage = () => {
               <StatTile icon={LayoutTemplate} label="Branded" value="Microsite" tint="#5E5CE6" delay={0.2} />
             </div>
 
-            {/* Main content: editor + live phone preview */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={tab}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={springSoft}
-                  className="rounded-[24px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
-                >
-                  <div className="p-4 sm:p-6 md:p-8">
-                    {tab === "link" ? <BookingLinkGenerator /> : <MicrositeEditorPanel />}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Live preview */}
-              <div className="hidden lg:block sticky top-40">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93] text-center mb-4">
-                  Live preview
-                </p>
-                <PhonePreview slug={profile?.booking_link ?? null} name={profile?.full_name ?? null} />
-              </div>
-            </div>
+            {/* Main content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={springSoft}
+                className="rounded-[24px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+              >
+                <div className="p-4 sm:p-6 md:p-8">
+                  {tab === "link" ? <BookingLinkGenerator /> : <MicrositeEditorPanel />}
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
             {/* How it works — iOS grouped list */}
             <motion.div

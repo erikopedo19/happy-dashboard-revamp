@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MobileDock } from "@/components/MobileDock";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,12 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, Search, Edit, Trash2, UserCheck, X, Star, Clock, Briefcase, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -268,7 +265,7 @@ const Stylists = () => {
               {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="rounded-3xl bg-white dark:bg-[#1C1C1E] p-5 h-44 animate-pulse" />
+                    <div key={i} className="rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] p-5 h-44 animate-pulse" />
                   ))}
                 </div>
               ) : filteredStylists.length === 0 ? (
@@ -276,9 +273,9 @@ const Stylists = () => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: "spring", stiffness: 320, damping: 28 }}
-                  className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-dashed border-black/10 dark:border-white/10 p-10 text-center"
+                  className="rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-dashed border-black/[0.08] dark:border-white/[0.08] p-10 text-center"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] mx-auto flex items-center justify-center mb-3">
+                  <div className="w-14 h-14 rounded-[18px] bg-black/[0.04] dark:bg-white/[0.06] mx-auto flex items-center justify-center mb-3">
                     <UserCheck className="h-6 w-6 text-[#8E8E93]" />
                   </div>
                   <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">No stylists yet</h3>
@@ -310,12 +307,12 @@ const Stylists = () => {
                         transition={{ delay: isBeingDeleted ? 0 : index * 0.05, type: "spring", stiffness: 380, damping: 30 }}
                         whileTap={{ scale: isBeingDeleted ? 1 : 0.98 }}
                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, stylist }); }}
-                        className="group relative rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow p-5"
+                        className="group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-shadow p-5"
                       >
                         {/* Deleting overlay */}
                         {isBeingDeleted && (
-                          <div className="absolute inset-0 rounded-3xl flex items-center justify-center bg-white/60 dark:bg-[#1C1C1E]/60 z-10">
-                            <Loader2 className="w-5 h-5 text-rose-500 animate-spin" />
+                          <div className="absolute inset-0 rounded-[24px] flex items-center justify-center bg-white/70 dark:bg-[#1C1C1E]/70 z-10">
+                            <Loader2 className="w-5 h-5 text-[#8E8E93] animate-spin" />
                           </div>
                         )}
 
@@ -338,7 +335,7 @@ const Stylists = () => {
                               <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <motion.button
                               whileTap={{ scale: 0.9 }}
                               onClick={() => handleEditClick(stylist)}
@@ -359,7 +356,7 @@ const Stylists = () => {
                         {stylist.specialties && stylist.specialties.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-4">
                             {stylist.specialties.slice(0, 4).map((s, i) => (
-                              <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
+                              <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
                                 {s}
                               </span>
                             ))}
@@ -384,31 +381,33 @@ const Stylists = () => {
       {contextMenu && (
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
-          <div
-            className="fixed z-[101] w-80 bg-card dark:bg-gray-900 rounded-2xl shadow-2xl border border-border dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 420, damping: 32 }}
+            className="fixed z-[101] w-[19rem] bg-white dark:bg-[#1C1C1E] rounded-[22px] shadow-[0_24px_64px_rgba(0,0,0,0.22)] border border-black/[0.05] dark:border-white/[0.08] overflow-hidden"
             style={{
-              left: Math.min(contextMenu.x, window.innerWidth - 340),
-              top: Math.min(contextMenu.y, window.innerHeight - 420),
+              left: Math.min(contextMenu.x, window.innerWidth - 320),
+              top: Math.min(contextMenu.y, window.innerHeight - 400),
             }}
           >
             {/* Header */}
-            <div className="relative p-4 pb-3 bg-gradient-to-r from-blue-500 to-indigo-600">
-              <div className="absolute inset-0 bg-black/10" />
-              <div className="relative z-10 flex items-center gap-3">
-                <Avatar className="h-12 w-12 border-2 border-white/30">
+            <div className="p-4 border-b border-black/[0.05] dark:border-white/[0.08]">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 ring-2 ring-black/[0.05] dark:ring-white/[0.08]">
                   <AvatarImage src={contextMenu.stylist.avatar_url || undefined} />
-                  <AvatarFallback className="bg-card/20 text-white font-semibold text-lg">
+                  <AvatarFallback className="bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-lg">
                     {contextMenu.stylist.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <h3 className="text-white font-semibold text-base">{contextMenu.stylist.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{contextMenu.stylist.name}</h3>
                   {contextMenu.stylist.title && (
-                    <p className="text-white/80 text-xs mt-0.5">{contextMenu.stylist.title}</p>
+                    <p className="text-xs text-[#8E8E93] mt-0.5 truncate">{contextMenu.stylist.title}</p>
                   )}
                 </div>
-                <button onClick={() => setContextMenu(null)} className="w-7 h-7 rounded-full bg-card/20 flex items-center justify-center hover:bg-card/30 transition-colors">
-                  <X className="w-3.5 h-3.5 text-white" />
+                <button onClick={() => setContextMenu(null)} className="w-7 h-7 rounded-full bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors">
+                  <X className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
                 </button>
               </div>
             </div>
@@ -416,23 +415,23 @@ const Stylists = () => {
             {/* Info Grid */}
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-3 gap-2">
-                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Status</p>
+                <div className="bg-black/[0.03] dark:bg-white/[0.05] rounded-[16px] p-2.5 text-center">
+                  <p className="text-[9px] font-medium text-[#8E8E93] uppercase tracking-wider">Status</p>
                   <p className={cn(
-                    "text-sm font-semibold mt-0.5 capitalize",
-                    contextMenu.stylist.status === 'available' ? 'text-green-600' :
-                    contextMenu.stylist.status === 'booked' ? 'text-amber-600' : 'text-muted-foreground'
+                    "text-[13px] font-semibold mt-0.5 capitalize",
+                    contextMenu.stylist.status === 'available' ? 'text-emerald-600' :
+                    contextMenu.stylist.status === 'booked' ? 'text-amber-600' : 'text-[#8E8E93]'
                   )}>{contextMenu.stylist.status || 'Unknown'}</p>
                 </div>
-                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Today</p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{contextMenu.stylist.bookings_today || 0}</p>
+                <div className="bg-black/[0.03] dark:bg-white/[0.05] rounded-[16px] p-2.5 text-center">
+                  <p className="text-[9px] font-medium text-[#8E8E93] uppercase tracking-wider">Today</p>
+                  <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mt-0.5">{contextMenu.stylist.bookings_today || 0}</p>
                 </div>
-                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Rating</p>
+                <div className="bg-black/[0.03] dark:bg-white/[0.05] rounded-[16px] p-2.5 text-center">
+                  <p className="text-[9px] font-medium text-[#8E8E93] uppercase tracking-wider">Rating</p>
                   <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{contextMenu.stylist.satisfaction?.toFixed(1) || 'N/A'}</p>
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{contextMenu.stylist.satisfaction?.toFixed(1) || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -440,23 +439,23 @@ const Stylists = () => {
               {/* Details */}
               <div className="space-y-2">
                 {contextMenu.stylist.next_availability && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <div className="w-7 h-7 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
-                      <Clock className="h-3.5 w-3.5 text-green-600" />
+                  <div className="flex items-center gap-2.5 text-sm text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    <div className="w-7 h-7 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center">
+                      <Clock className="h-3.5 w-3.5 text-[#8E8E93]" />
                     </div>
-                    <span className="text-foreground/80 dark:text-gray-300">Next: {contextMenu.stylist.next_availability}</span>
+                    <span className="text-[13px]">Next: {contextMenu.stylist.next_availability}</span>
                   </div>
                 )}
                 {contextMenu.stylist.specialties && contextMenu.stylist.specialties.length > 0 && (
                   <div className="flex items-start gap-2.5 text-sm">
-                    <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-                      <Briefcase className="h-3.5 w-3.5 text-purple-600" />
+                    <div className="w-7 h-7 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="h-3.5 w-3.5 text-[#8E8E93]" />
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {contextMenu.stylist.specialties.map((spec, i) => (
-                        <Badge key={i} variant="outline" className="text-[10px] font-normal px-1.5 py-0">
+                        <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
                           {spec}
-                        </Badge>
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -471,7 +470,7 @@ const Stylists = () => {
                     setContextMenu(null);
                     handleEditClick(s);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-[13px] font-medium bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   Edit
@@ -482,14 +481,14 @@ const Stylists = () => {
                     setContextMenu(null);
                     handleDeleteClick(s);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-[13px] font-medium bg-rose-50 dark:bg-rose-900/20 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Delete
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </>
       )}
 
@@ -516,59 +515,44 @@ const Stylists = () => {
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
               className="fixed z-[121] left-1/2 bottom-6 sm:bottom-auto sm:top-1/2 -translate-x-1/2 sm:-translate-y-1/2 w-[calc(100%-2rem)] max-w-sm"
             >
-              <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.28)] overflow-hidden">
-                {/* Destructive header */}
-                <div className="bg-rose-50 dark:bg-rose-950/40 px-6 pt-6 pb-5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center shrink-0">
+              <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.22)] overflow-hidden">
+                {/* Header */}
+                <div className="px-6 pt-6 pb-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[16px] bg-rose-500/10 flex items-center justify-center shrink-0">
                     <AlertTriangle className="w-5 h-5 text-rose-500" strokeWidth={2.3} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-rose-500">Remove stylist</p>
-                    <p className="text-[17px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">{deleteTarget.name}</p>
+                    <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">Remove {deleteTarget.name}?</p>
+                    <p className="text-[12px] text-[#8E8E93] mt-0.5">This will unassign them from future bookings.</p>
                   </div>
                 </div>
 
                 {/* Body */}
-                <div className="px-6 py-4">
-                  {/* Stylist mini-card */}
-                  <div className="flex items-center gap-3 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] px-4 py-3 mb-4">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={deleteTarget.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs font-semibold bg-white dark:bg-[#3A3A3C]">
-                        {deleteTarget.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{deleteTarget.name}</p>
-                      <p className="text-[12px] text-[#8E8E93] truncate">{deleteTarget.title || "Stylist"}</p>
-                    </div>
-                    <span className={cn("ml-auto w-2 h-2 rounded-full shrink-0", statusDot(deleteTarget.status))} />
-                  </div>
+                <div className="px-6 pb-4">
                   <p className="text-[13px] text-[#8E8E93] leading-relaxed">
-                    This will permanently remove this stylist and unassign them from future bookings.
-                    Past appointments will not be affected.
+                    Past appointments will not be affected. You can always add this stylist again later.
                   </p>
                 </div>
 
                 {/* Actions */}
                 <div className="px-6 pb-6 flex flex-col gap-2">
                   <motion.button
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={confirmDelete}
                     disabled={deleteStylistMutation.isPending}
-                    className="w-full h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-semibold text-[15px] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="w-full h-12 rounded-[14px] bg-rose-500 text-white font-semibold text-[15px] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     {deleteStylistMutation.isPending ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Removing…</>
                     ) : (
-                      <><Trash2 className="w-4 h-4" strokeWidth={2.3} /> Remove {deleteTarget.name.split(" ")[0]}</>
+                      <><Trash2 className="w-4 h-4" strokeWidth={2.3} /> Remove</>
                     )}
                   </motion.button>
                   <motion.button
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setDeleteTarget(null)}
                     disabled={deleteStylistMutation.isPending}
-                    className="w-full h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[15px] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[15px] transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </motion.button>
@@ -713,9 +697,9 @@ function StatPill({ label, value, accent }: { label: string; value: number; acce
     ? "text-amber-600 dark:text-amber-400"
     : "text-[#1C1C1E] dark:text-[#F2F2F7]";
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 px-3 py-2.5">
+    <div className="rounded-[18px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] px-4 py-3">
       <p className="text-[10px] uppercase tracking-wider text-[#8E8E93]">{label}</p>
-      <p className={cn("text-xl font-semibold mt-0.5", color)}>{value}</p>
+      <p className={cn("text-[19px] font-semibold mt-0.5", color)}>{value}</p>
     </div>
   );
 }
