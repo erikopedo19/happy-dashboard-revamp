@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
@@ -185,7 +185,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       workingDays: agendaSettings?.working_days,
       timezone: tzProfile?.timezone,
       stylistId: stylistId || null,
-      allowPastSlots: true,
+      allowPastSlots: false,
 
     });
   }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId]);
@@ -503,9 +503,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         "overflow-hidden shadow-2xl",
         isMobile
           ? "w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300 p-0 border-0"
-          : "sm:w-[98vw] sm:max-w-[1600px] sm:max-h-[95vh] sm:rounded-[24px] sm:p-0 sm:border sm:border-white/[0.06] bg-[#0e0e10]"
+          : "sm:w-[92vw] sm:max-w-[940px] sm:max-h-[86vh] sm:rounded-[20px] sm:p-0 sm:border sm:border-white/[0.08] bg-[#0e0e10]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
+        <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
 
         <motion.div
           ref={contentRef}
@@ -514,7 +515,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[95vh] min-h-[600px] overflow-hidden"
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Mobile sticky top bar with drag-handle + close */}
@@ -541,7 +542,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Left Panel - Service Info */}
           <div className={cn(
             "bg-[#0e0e10] flex flex-col",
-            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[420px] p-8 border-r border-white/[0.06]"
+            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[280px] shrink-0 p-6 border-r border-white/[0.06]"
           )}>
             {/* Desktop close */}
             {!isMobile && (
@@ -596,7 +597,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Center Panel - Calendar */}
           <div className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-8 overflow-y-auto"
+            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-6 overflow-y-auto"
           )}>
             {isMobile && (
               <div className="flex items-center gap-2 mb-5">
@@ -626,19 +627,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               <div className="h-full flex flex-col">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-medium text-white">
-                    {format(currentMonth, 'MMMM')} <span className="text-gray-500">{format(currentMonth, 'yyyy')}</span>
+                  <h3 className={cn("font-bold text-white tracking-tight", isMobile ? "text-xl" : "text-2xl")}>
+                    {format(currentMonth, 'MMMM yyyy')}
                   </h3>
-                  <div className="flex gap-1">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/[0.06] transition-colors text-gray-400"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/[0.06] transition-colors text-gray-400"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -718,9 +719,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {showCalendarSelection && (
                   <>
                     {/* Week days header */}
-                    <div className="grid grid-cols-7 gap-1 mb-2">
+                    <div className={cn("grid grid-cols-7 mb-1", isMobile ? "gap-1.5" : "gap-2")}>
                       {weekDays.map(day => (
-                        <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                        <div key={day} className="text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500 py-2">
                           {day}
                         </div>
                       ))}
@@ -732,25 +733,34 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         const isSelected = isSameDay(day, selectedDateObj);
                         const isCurrentMonth = isSameMonth(day, currentMonth);
                         const tz = tzProfile?.timezone || getBrowserTimezone();
-                        const isPast = format(day, 'yyyy-MM-dd') < dateStrInTz(new Date(), tz);
+                        const todayStr = dateStrInTz(new Date(), tz);
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const isPast = dayStr < todayStr;
+                        const isToday = dayStr === todayStr;
                         const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
                         const isDisabled = !isCurrentMonth || isPast || !isWorkingDay;
-                        
+                        const showDot = !isDisabled && !isSelected;
+
                         return (
                           <button
                             key={day.toISOString()}
                             onClick={() => handleDateSelect(day)}
                             disabled={isDisabled}
                             className={cn(
-                              "aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all",
+                              "relative aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all",
                               isSelected
-                                ? "bg-[#0A84FF] text-white"
+                                ? "bg-white text-[#0e0e10] shadow-[0_4px_14px_rgba(255,255,255,0.18)]"
                                 : isDisabled
-                                ? "text-gray-600"
+                                ? "text-gray-700"
+                                : isToday
+                                ? "bg-white/[0.10] text-white hover:bg-white/[0.16]"
                                 : "text-white hover:bg-white/[0.06]"
                             )}
                           >
                             {format(day, 'd')}
+                            {showDot && (
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#0A84FF]" />
+                            )}
                           </button>
                         );
                       })}
@@ -887,7 +897,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
               "bg-[#0e0e10]",
-              isMobile ? "p-4 pb-6" : "w-[380px] p-6 overflow-y-auto border-l border-white/[0.06]"
+              isMobile ? "p-4 pb-6" : "w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06]"
             )}>
             {!isMobile && step === "details" && (
               <div className="space-y-4">
@@ -916,32 +926,27 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             )}
               {!showSelectedTimeSummary && (
                 <>
-                  <div className="flex gap-2 mb-6">
-                    <button
-                      onClick={() => setTimeFormat("12h")}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                        timeFormat === "12h" ? "bg-white/[0.06] text-white" : "text-gray-500 hover:text-white"
-                      )}
-                    >
-                      12h
-                    </button>
-                    <button
-                      onClick={() => setTimeFormat("24h")}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                        timeFormat === "24h" ? "bg-white/[0.06] text-white" : "text-gray-500 hover:text-white"
-                      )}
-                    >
-                      24h
-                    </button>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-[15px] font-semibold text-white tracking-tight">
+                      {format(selectedDateObj, 'EEE, MMM d')}
+                    </h4>
+                    <div className="inline-flex p-0.5 rounded-full bg-white/[0.06]">
+                      {(["12h", "24h"] as const).map((tf) => (
+                        <button
+                          key={tf}
+                          onClick={() => setTimeFormat(tf)}
+                          className={cn(
+                            "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors",
+                            timeFormat === tf ? "bg-white text-[#0e0e10]" : "text-gray-400 hover:text-white"
+                          )}
+                        >
+                          {tf}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <h4 className="text-sm font-medium text-white mb-4">
-                    {format(selectedDateObj, 'EEE dd')}
-                  </h4>
-
-                  <div className={cn("overflow-y-auto max-h-[420px]", isMobile ? "max-h-none grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-2")}>
+                  <div className={cn("overflow-y-auto", isMobile ? "max-h-none grid grid-cols-2 gap-2" : "max-h-[360px] flex flex-col gap-1.5 pr-1")}>
                     {availableTimeSlots.map((time) => {
                       return (
                         <button
@@ -950,13 +955,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                             handleTimeSelect(time);
                           }}
                           className={cn(
-                            "py-3 px-2 rounded-xl border font-medium transition-all text-center flex items-center justify-center gap-1",
+                            "py-3 px-3 rounded-xl border text-sm font-semibold transition-all text-center",
                             selectedTimeSlot === time
-                                ? "border-[#0A84FF] bg-[#0A84FF]/10 text-white"
-                                : "border-white/[0.06] hover:border-gray-600 text-white"
+                                ? "border-[#0A84FF] bg-[#0A84FF] text-white"
+                                : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.07] text-white"
                           )}
                         >
-                          <span className="text-sm">{formatTime(time)}</span>
+                          {formatTime(time)}
                         </button>
                       );
                     })}
