@@ -47,6 +47,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { MobileSettings } from "@/components/settings/MobileSettings";
+import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -937,6 +938,7 @@ const Settings = () => {
                           ))}
                         </CardContent>
                       </Card>
+                      <ReviewRequestsCard />
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
