@@ -938,7 +938,9 @@ const Settings = () => {
                           ))}
                         </CardContent>
                       </Card>
-                      <ReviewRequestsCard />
+                      <div className="mt-6">
+                        <ReviewRequestsCard />
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
