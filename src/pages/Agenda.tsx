@@ -15,6 +15,7 @@ import {
   Settings
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +87,7 @@ const Agenda = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   // Always default to grid (day) view; user can switch to weekly overview manually.
@@ -107,6 +109,24 @@ const Agenda = () => {
 
   const fetchStartDate = startOfWeek(subWeeks(currentDate, 4), { weekStartsOn: 1 });
   const fetchEndDate = endOfWeek(addWeeks(currentDate, 12), { weekStartsOn: 1 });
+
+  // Fetch agenda settings to know if business hours are configured
+  const { data: agendaSettings } = useQuery<{ start_hour: string | null; end_hour: string | null } | null>({
+    queryKey: ['agenda-settings', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await (supabase as any)
+        .from('agenda_settings')
+        .select('start_hour, end_hour')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  const hasBusinessHours = !!agendaSettings?.start_hour && !!agendaSettings?.end_hour;
 
   // Fetch services for the legend
   const { data: services = [] } = useQuery<Service[]>({
@@ -351,16 +371,75 @@ const Agenda = () => {
         <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C]">
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
-            <LiquidGlassAgenda
-              appointments={filteredAppointments}
-              onDateTimeClick={handleDateTimeClick}
-              services={services}
-              currentWeek={currentWeek}
-              onWeekChange={setCurrentWeek}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              showViewModeToggle={false}
-            />
+            {!hasBusinessHours ? (
+              <div className="flex-1 flex flex-col items-center justify-center px-6 relative overflow-hidden">
+                {/* Soft ambient gradient */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-[#0A84FF]/10 blur-[80px]" />
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                  className="relative z-10 flex flex-col items-center text-center max-w-xs"
+                >
+                  {/* Animated clock icon */}
+                  <motion.div
+                    className="relative w-24 h-24 mb-8"
+                    animate={{ rotate: [0, 0, 6, -6, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/10 backdrop-blur-sm" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Clock className="w-10 h-10 text-white/90" strokeWidth={1.5} />
+                    </div>
+                    {/* Orbiting dot */}
+                    <motion.div
+                      className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1.5"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-[#0A84FF] shadow-[0_0_10px_#0A84FF]" />
+                    </motion.div>
+                  </motion.div>
+
+                  <h2 className="text-2xl font-bold text-white tracking-tight mb-2">
+                    Set business hours
+                  </h2>
+                  <p className="text-sm text-gray-400 leading-relaxed mb-8">
+                    Before booking appointments, choose your working hours so the agenda knows when you’re available.
+                  </p>
+
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => navigate('/settings?tab=business')}
+                    className="group relative flex items-center gap-2 px-6 py-3.5 rounded-full bg-white text-[#0A0A0C] font-semibold text-sm shadow-[0_8px_30px_rgba(255,255,255,0.18)] hover:shadow-[0_12px_40px_rgba(255,255,255,0.26)] transition-shadow"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Open business settings
+                    <motion.span
+                      className="inline-block"
+                      animate={{ x: [0, 3, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </motion.span>
+                  </motion.button>
+                </motion.div>
+              </div>
+            ) : (
+              <LiquidGlassAgenda
+                appointments={filteredAppointments}
+                onDateTimeClick={handleDateTimeClick}
+                services={services}
+                currentWeek={currentWeek}
+                onWeekChange={setCurrentWeek}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                showViewModeToggle={false}
+              />
+            )}
           </main>
         </div>
 

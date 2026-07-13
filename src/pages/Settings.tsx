@@ -44,7 +44,7 @@ import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
@@ -149,7 +149,10 @@ const sortWorkingDays = (days: number[]) =>
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("general");
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "general";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
   const [brandForm, setBrandForm] = useState<BrandProfileRecord>(defaultBrandProfile);
@@ -205,8 +208,8 @@ const Settings = () => {
   const autoSaveAgenda = useMutation({
     mutationFn: async (agenda: AgendaSettingsRecord) => {
       if (!user) throw new Error("User not found");
-      if (agenda.start_hour >= agenda.end_hour) throw new Error("Invalid hours");
-      if (agenda.working_days.length === 0) throw new Error("No working days");
+      if (agenda.start_hour >= agenda.end_hour) throw new Error("Opening hour must be earlier than closing hour");
+      if (agenda.working_days.length === 0) throw new Error("Select at least one working day");
 
       const { error } = await (supabase as any)
         .from("agenda_settings")
@@ -230,23 +233,28 @@ const Settings = () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false });
       toast({ title: "Schedule saved" });
     },
-    onError: () => {
-      // Silently fail to avoid spamming user during live editing
+    onError: (error: any) => {
+      toast({
+        title: "Couldn't save schedule",
+        description: error?.message || "Please try again",
+        variant: "destructive",
+      });
     },
   });
 
   useEffect(() => {
-    if (!user || !data?.agenda || isLoading) return;
+    if (!user || isLoading) return;
     if (agendaForm.start_hour >= agendaForm.end_hour) return;
     if (agendaForm.working_days.length === 0) return;
 
     const timeout = setTimeout(() => {
+      const baseline = data?.agenda;
       const changed =
-        agendaForm.service_duration !== (data.agenda?.service_duration ?? 30) ||
-        agendaForm.start_hour !== normalizeTime(data.agenda?.start_hour, "08:00") ||
-        agendaForm.end_hour !== normalizeTime(data.agenda?.end_hour, "18:00") ||
+        agendaForm.service_duration !== (baseline?.service_duration ?? 30) ||
+        agendaForm.start_hour !== normalizeTime(baseline?.start_hour, "08:00") ||
+        agendaForm.end_hour !== normalizeTime(baseline?.end_hour, "18:00") ||
         JSON.stringify(agendaForm.working_days) !==
-          JSON.stringify(sortWorkingDays(data.agenda?.working_days ?? [1, 2, 3, 4, 5, 6]));
+          JSON.stringify(sortWorkingDays(baseline?.working_days ?? [1, 2, 3, 4, 5, 6]));
 
       if (changed) {
         autoSaveAgenda.mutate(agendaForm);
@@ -552,7 +560,14 @@ const Settings = () => {
             <div className="max-w-6xl mx-auto p-4 md:p-6">
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={(v) => {
+                      setActiveTab(v);
+                      setSearchParams({ tab: v }, { replace: true });
+                    }}
+                    className="space-y-6"
+                  >
                     <TabsList className="grid w-full grid-cols-5 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
                       {[
                         { v: "general", icon: Settings2, label: "General" },
