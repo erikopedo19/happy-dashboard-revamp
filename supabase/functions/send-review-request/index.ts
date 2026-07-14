@@ -69,6 +69,47 @@ Deno.serve(async (req) => {
 
   const admin = createClient(supabaseUrl, serviceKey);
 
+  // Test mode: send a sample review email to a specified address.
+  let body: any = {};
+  try { body = await req.json(); } catch { /* no body */ }
+  if (body?.test && body?.to) {
+    const sample: Candidate = {
+      appointment_id: "00000000-0000-0000-0000-000000000000",
+      business_id: "00000000-0000-0000-0000-000000000000",
+      cancel_token: "test-token",
+      customer_email: body.to,
+      customer_name: body.name || "there",
+      service_name: body.service_name || "Haircut",
+      appointment_date: new Date().toISOString().slice(0, 10),
+      appointment_time: "12:00:00",
+      business_name: body.business_name || "Cutzioo Test",
+      brand_color: body.brand_color || "#e0c4a8",
+      sender_email: "noreply@cutzioo.com",
+      sender_name: body.business_name || "Cutzioo",
+    };
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: `${sample.sender_name} <${sample.sender_email}>`,
+        to: [body.to],
+        subject: `[TEST] How was your visit to ${sample.business_name}?`,
+        html: renderEmail(sample),
+      }),
+    });
+    const text = await res.text();
+    await admin.from("email_logs").insert({
+      recipient_email: body.to,
+      status: res.ok ? "sent" : `resend_${res.status}`,
+      error_message: res.ok ? null : text.slice(0, 500),
+      email_type: "review_request_test",
+    });
+    return new Response(JSON.stringify({ test: true, ok: res.ok, status: res.status, body: text.slice(0, 500) }), {
+      status: res.ok ? 200 : 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const { data: candidates, error: candErr } = await admin.rpc("get_pending_review_requests");
   if (candErr) {
     return new Response(JSON.stringify({ error: candErr.message }), {
@@ -83,6 +124,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
 
   // Filter to premium subscribers only.
   const businessIds = Array.from(new Set(rows.map((r) => r.business_id)));
