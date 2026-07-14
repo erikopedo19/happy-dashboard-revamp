@@ -159,6 +159,19 @@ export function ReviewRequestsCard() {
           </Select>
         </div>
 
+        {isPremium && (
+          <Button
+            onClick={sendTest}
+            disabled={testing || !user?.email}
+            variant="outline"
+            className="w-full h-11 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E]"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {testing ? "Sending…" : `Send test email to ${user?.email ?? "me"}`}
+          </Button>
+        )}
+
+
         {!isPremium && !premiumLoading && (
           <Button
             onClick={() => navigate("/pricing")}
