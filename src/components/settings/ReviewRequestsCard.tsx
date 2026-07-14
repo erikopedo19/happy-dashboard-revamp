@@ -33,6 +33,25 @@ export function ReviewRequestsCard() {
   const [delay, setDelay] = useState(24);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  const sendTest = async () => {
+    if (!user?.email) return;
+    setTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-review-request", {
+        body: { test: true, to: user.email },
+      });
+      if (error) throw error;
+      if (!(data as any)?.ok) throw new Error((data as any)?.body || "Failed to send");
+      toast({ title: "Test email sent", description: `Check ${user.email} in a moment.` });
+    } catch (e: any) {
+      toast({ title: "Couldn't send test", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setTesting(false);
+    }
+  };
+
 
   useEffect(() => {
     if (!user) return;
