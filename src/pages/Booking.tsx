@@ -186,6 +186,7 @@ const Booking = () => {
         .from('services' as any)
         .select('*') as any)
         .eq('user_id', businessProfile.id)
+        .is('deleted_at', null)
         .order('name');
 
 
@@ -486,7 +487,7 @@ const Booking = () => {
       .map((id: string) => services.find(s => s.id === id))
       .filter((service): service is Service => Boolean(service));
 
-    if (!businessProfile?.id || !selectedDate || !selectedTime || selectedServicesList.length === 0) {
+      if (!businessProfile?.id || !selectedDate || !selectedTime || selectedServicesList.length === 0) {
       const error: BookingError = {
         code: 'INCOMPLETE_BOOKING',
         message: 'Incomplete booking information',
@@ -498,7 +499,7 @@ const Booking = () => {
         description: error.message,
         variant: "destructive",
       });
-      return;
+      return { success: false, error: error.message };
     }
 
     setIsLoading(true);
@@ -517,7 +518,7 @@ const Booking = () => {
           description: error.details,
           variant: 'destructive',
         });
-        return false;
+        return { success: false, error: error.message };
       }
 
       // Guard against race: ensure the slot is still free for this stylist
@@ -533,7 +534,7 @@ const Booking = () => {
           description: error.details,
           variant: "destructive",
         });
-        return false;
+        return { success: false, error: error.message };
       }
 
       // Create booking via SECURITY DEFINER RPC (works without auth, no edge fn dependency)
@@ -585,7 +586,7 @@ const Booking = () => {
 
       form.reset();
       setSelectedTime("");
-      return true; // Return true to advance to success step
+      return { success: true }; // Return success to advance to success step
     } catch (error: any) {
 
       const displayError = bookingError || {
@@ -599,8 +600,7 @@ const Booking = () => {
         description: displayError.details,
         variant: "destructive",
       });
-
-      return false;
+      return { success: false, error: displayError.message };
     } finally {
       setIsLoading(false);
     }

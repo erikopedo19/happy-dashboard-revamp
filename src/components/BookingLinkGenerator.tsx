@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ExpandableActionBar } from "@/components/ui/be-ui-expanable-action-bar";
+import { Switch } from "@/components/ui/switch";
 import { 
   Copy, 
   ExternalLink, 
   RefreshCw, 
   Share2, 
   Save, 
-  Mail, 
-  QrCode, 
-  Settings,
   Link as LinkIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -27,8 +23,6 @@ const BookingLinkGenerator = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "christmas" | "summer">("default");
-  const [accentColor, setAccentColor] = useState("#e11d48");
 
   // Fetch user profile with booking link
   const { data: profile, refetch } = useQuery({
@@ -72,7 +66,6 @@ const BookingLinkGenerator = () => {
     }
     setAskPhone(profile?.ask_phone ?? true);
     setAskNotes(profile?.ask_notes ?? true);
-    setAccentColor(profile?.brand_color ?? "#e11d48");
   }, [profile]);
 
   const getBookingUrl = () => {
@@ -81,18 +74,12 @@ const BookingLinkGenerator = () => {
     const params = new URLSearchParams();
     if (askPhone) params.append('askPhone', 'true');
     if (askNotes) params.append('askNotes', 'true');
-    if (emailTheme) params.append('theme', emailTheme);
-    if (accentColor) params.append('accent', accentColor.replace('#', ''));
     const queryString = params.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
 
   const bookingUrl = getBookingUrl();
 
-  // QR Code URL using QuickChart QR API with custom color
-  const qrCodeUrl = bookingUrl 
-    ? `https://quickchart.io/qr?text=${encodeURIComponent(bookingUrl)}&size=300&dark=${accentColor.replace('#', '')}&light=ffffff&ecLevel=H&margin=2`
-    : '';
 
   const updateSlug = async () => {
     if (!user || !customSlug.trim()) return;
@@ -122,7 +109,6 @@ const BookingLinkGenerator = () => {
           booking_link: customSlug.trim(),
           ask_phone: askPhone,
           ask_notes: askNotes,
-          brand_color: accentColor,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -206,180 +192,120 @@ const BookingLinkGenerator = () => {
     }
   };
 
-  const downloadQrCode = async () => {
-    if (!qrCodeUrl) return;
-    try {
-      const response = await fetch(qrCodeUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `booking-qr-${customSlug || 'code'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast({
-        title: "Downloaded!",
-        description: "Your custom QR code has been saved.",
-      });
-    } catch (error) {
-      toast({
-        title: "Download failed",
-        description: "Could not download the QR code image.",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <LinkIcon className="h-5 w-5 text-[#e11d48]" />
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Booking Link</h3>
-        </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Customize your public booking link.
-        </p>
+    <div className="relative overflow-hidden rounded-[28px] bg-[#0A0A0C] text-white">
+      {/* Hero gradient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#0A84FF]/25 blur-[100px]" />
+        <div className="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-[#e11d48]/15 blur-[120px]" />
       </div>
 
-      {/* Slug Input */}
-      <div className="space-y-2">
-        <Label htmlFor="slug" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Link Slug</Label>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1 flex items-center bg-gray-50 dark:bg-zinc-900/60 rounded-[12px] px-3 border border-gray-200 dark:border-zinc-800 focus-within:border-[#e11d48] dark:focus-within:border-[#e11d48] focus-within:ring-1 focus-within:ring-[#e11d48]/20 transition-all">
-            <span className="text-sm text-gray-400 font-mono border-r border-gray-200 dark:border-zinc-800 pr-2.5 mr-2.5 select-none">
-              /book/
-            </span>
+      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12">
+        {/* Header */}
+        <div className="text-center max-w-md mx-auto mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-white/10 mb-4">
+            <LinkIcon className="h-5 w-5 text-white" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+            Your booking link
+          </h2>
+          <p className="text-sm text-gray-400">
+            Share this link with clients so they can book appointments online.
+          </p>
+        </div>
+
+        {/* Link card */}
+        <div className="max-w-lg mx-auto space-y-4">
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 focus-within:border-white/20 focus-within:bg-white/[0.07] transition-all">
+            <span className="text-sm text-gray-400 font-medium select-none">/book/</span>
             <input
               id="slug"
               value={customSlug}
               onChange={(e) => setCustomSlug(e.target.value)}
               placeholder="your-business-name"
-              className="bg-transparent font-mono text-sm h-11 w-full text-gray-800 dark:text-gray-100 outline-none"
+              className="bg-transparent flex-1 text-sm font-medium text-white placeholder:text-gray-600 outline-none"
             />
+            <button
+              type="button"
+              onClick={generateNewLink}
+              className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Generate
+            </button>
           </div>
+
+          {/* Actions */}
+          {bookingUrl && (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 h-11">
+                <LinkIcon className="h-4 w-4 text-gray-500 shrink-0" />
+                <span className="text-sm text-gray-300 truncate select-all">
+                  {bookingUrl.replace(/^https?:\/\//, "")}
+                </span>
+              </div>
+              <button
+                onClick={copyToClipboard}
+                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <Copy className="h-4 w-4 text-white" />
+              </button>
+              <button
+                onClick={shareLink}
+                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <Share2 className="h-4 w-4 text-white" />
+              </button>
+              <button
+                onClick={openBookingPage}
+                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <ExternalLink className="h-4 w-4 text-white" />
+              </button>
+            </div>
+          )}
+
+          {/* Save button */}
           <Button
             onClick={updateSlug}
-            disabled={
-              isGenerating ||
-              (
-                customSlug === profile?.booking_link &&
-                askPhone === (profile?.ask_phone ?? true) &&
-                askNotes === (profile?.ask_notes ?? true) &&
-                accentColor === (profile?.brand_color ?? "#e11d48")
-              )
-            }
-            className="bg-[#e11d48] hover:bg-[#be123c] text-white h-11 px-5 rounded-[12px] font-semibold flex items-center justify-center gap-2 shadow-sm transition-all w-full sm:w-auto"
+            disabled={isGenerating || customSlug.trim().length === 0}
+            className="w-full h-12 rounded-2xl bg-white text-[#0A0A0C] font-semibold hover:bg-gray-100 transition-colors"
           >
-            {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>Save</span>
+            {isGenerating ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            Save booking link
           </Button>
-        </div>
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={generateNewLink}
-            className="text-xs font-medium text-gray-400 hover:text-[#e11d48] flex items-center gap-1 transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Auto-generate from business name
-          </button>
-        </div>
-      </div>
 
-      {/* Form Configuration */}
-      <div className="space-y-3 pt-1">
-        <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Required Details</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-3.5 rounded-[12px] hover:bg-gray-100/50 dark:hover:bg-zinc-900/60 transition-colors">
-            <Checkbox
-              id="askPhone"
-              checked={askPhone}
-              onCheckedChange={(checked) => setAskPhone(checked as boolean)}
-              className="rounded-md border-gray-300 dark:border-zinc-700 data-[state=checked]:bg-[#e11d48] data-[state=checked]:border-[#e11d48]"
-            />
-            <Label htmlFor="askPhone" className="font-semibold text-sm cursor-pointer text-gray-700 dark:text-gray-300">Phone Number</Label>
-          </div>
-          <div className="flex items-center gap-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-3.5 rounded-[12px] hover:bg-gray-100/50 dark:hover:bg-zinc-900/60 transition-colors">
-            <Checkbox
-              id="askNotes"
-              checked={askNotes}
-              onCheckedChange={(checked) => setAskNotes(checked as boolean)}
-              className="rounded-md border-gray-300 dark:border-zinc-700 data-[state=checked]:bg-[#e11d48] data-[state=checked]:border-[#e11d48]"
-            />
-            <Label htmlFor="askNotes" className="font-semibold text-sm cursor-pointer text-gray-700 dark:text-gray-300">Extra Notes</Label>
-          </div>
-        </div>
-      </div>
-
-      {/* Color & Theme */}
-      <div className="space-y-4 pt-1">
-        <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Accent Branding</Label>
-            <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-2.5 rounded-[12px]">
-              <input
-                id="accentColor"
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="h-9 w-12 rounded-lg border border-gray-200 dark:border-zinc-800 bg-background cursor-pointer shrink-0"
+          {/* Toggles */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+              <Label htmlFor="askPhone" className="text-sm text-gray-300 cursor-pointer">
+                Ask phone
+              </Label>
+              <Switch
+                id="askPhone"
+                checked={askPhone}
+                onCheckedChange={(checked) => setAskPhone(checked as boolean)}
               />
-              <input
-                type="text"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="bg-transparent font-mono text-xs w-full text-gray-700 dark:text-gray-300 outline-none"
+            </div>
+            <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+              <Label htmlFor="askNotes" className="text-sm text-gray-300 cursor-pointer">
+                Ask notes
+              </Label>
+              <Switch
+                id="askNotes"
+                checked={askNotes}
+                onCheckedChange={(checked) => setAskNotes(checked as boolean)}
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1"><Mail className="h-3 w-3" /> Email Theme</Label>
-            <div className="relative">
-              <select
-                value={emailTheme}
-                onChange={(e) => setEmailTheme(e.target.value as any)}
-                className="w-full h-[46px] px-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 rounded-[12px] text-sm font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-[#e11d48] transition-all appearance-none cursor-pointer"
-              >
-                <option value="default">✉️ Classic Rose</option>
-                <option value="minimal">🪶 Slate Minimalist</option>
-                <option value="christmas">🎄 Festive Winter</option>
-                <option value="summer">☀️ Sunny Vibes</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                <Settings className="h-4 w-4" />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-
-      {/* URL Preview & Actions */}
-      {bookingUrl && (
-        <div className="pt-4">
-          <div className="flex flex-col sm:flex-row items-stretch gap-2">
-            <div className="flex-1 flex items-center gap-2 rounded-2xl bg-card border border-white/5 px-3 h-11 min-w-0">
-              <LinkIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="text-[13px] font-mono text-foreground truncate select-all">
-                {bookingUrl.replace(/^https?:\/\//, "")}
-              </span>
-            </div>
-            <ExpandableActionBar
-              items={[
-                { id: "copy", label: "Copy", icon: <Copy className="h-4 w-4" />, onClick: copyToClipboard },
-                { id: "share", label: "Share", icon: <Share2 className="h-4 w-4" />, onClick: shareLink },
-                { id: "open", label: "Open", icon: <ExternalLink className="h-4 w-4" />, onClick: openBookingPage },
-                { id: "qr", label: "QR", icon: <QrCode className="h-4 w-4" />, onClick: downloadQrCode },
-              ]}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
-};
+}
 
 export default BookingLinkGenerator;

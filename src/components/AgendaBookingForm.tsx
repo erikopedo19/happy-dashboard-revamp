@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -31,9 +31,9 @@ interface AgendaBookingFormProps {
   selectedTime: string;
   setSelectedTime: (time: string) => void;
   timeSlots: string[];
-  isTimeSlotAvailable: (time: string) => boolean;
+  isTimeSlotAvailable: (time: string, serviceIds?: string[]) => boolean;
   getAvailableStylistsForTime?: (time: string) => any[];
-  onSubmit: (values: any) => Promise<boolean | void>;
+  onSubmit: (values: any) => Promise<boolean | { success: boolean; error?: string } | void>;
   isLoading: boolean;
   businessProfile: {
     full_name: string;
@@ -81,6 +81,21 @@ const AgendaBookingForm = ({
   const displayName = businessProfile?.full_name || "Book an Appointment";
   const avatarUrl = businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
   const bannerUrl = businessProfile?.banner_url;
+
+  // Drop selected services that have been deleted and reset the flow if none remain.
+  useEffect(() => {
+    if (services.length === 0) return;
+    const validIds = selectedServiceIds.filter(id => services.some(s => s.id === id));
+    if (validIds.length !== selectedServiceIds.length) {
+      setSelectedServiceIds(validIds);
+      if (validIds.length === 0) {
+        setSelectedDate(undefined);
+        setSelectedTime("");
+        setSelectedStylistId("");
+        setStep("service");
+      }
+    }
+  }, [services]);
 
   const selectedServices = useMemo(() =>
     services.filter(s => selectedServiceIds.includes(s.id)),
@@ -162,6 +177,7 @@ const AgendaBookingForm = ({
   };
 
   const handleBack = () => {
+    setSubmitError(null);
     if (step === "details") setStep(stylists.length > 0 ? "stylist" : "datetime");
     else if (step === "stylist") setStep("datetime");
     else if (step === "datetime") {
@@ -172,11 +188,23 @@ const AgendaBookingForm = ({
     }
   };
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleSubmit = async (values: any) => {
+    setSubmitError(null);
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) values.stylist_id = selectedStylistId;
-    const success = await onSubmit(values);
-    if (success) setStep("success");
+    const result = await onSubmit(values);
+    if (!result) return;
+    if (typeof result === 'object' && 'success' in result) {
+      if (result.success) {
+        setStep("success");
+      } else if (result.error) {
+        setSubmitError(result.error);
+      }
+    } else {
+      setStep("success");
+    }
   };
 
   if (step === "success") {
@@ -235,8 +263,8 @@ const AgendaBookingForm = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a0c] text-white p-4 md:p-8 lg:p-12 flex items-center justify-center">
+      <div className="w-full max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -244,7 +272,7 @@ const AgendaBookingForm = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 lg:gap-6 items-start"
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 lg:gap-10 items-start"
           >
             {/* Left panel — brand + booking info */}
             <div className="lg:sticky lg:top-8 space-y-4">
@@ -635,6 +663,11 @@ const AgendaBookingForm = ({
 
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                      {submitError && (
+                        <div className="rounded-xl bg-[#FF375F]/10 border border-[#FF375F]/20 p-3 text-sm text-[#FF375F]">
+                          {submitError}
+                        </div>
+                      )}
                       <FormField
                         control={form.control}
                         name="customer_name"
