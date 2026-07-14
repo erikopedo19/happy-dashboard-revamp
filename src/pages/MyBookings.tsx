@@ -104,9 +104,10 @@ function Section({ title, items, upcoming }: { title: string; items: Booking[]; 
       <div className="space-y-3">
         {items.map((b, i) => {
           const isPast = !upcoming;
-          const isCompleted = b.status === "completed";
-          const canReview = isPast && isCompleted && !b.has_review && !!b.cancel_token;
+          // Allow reviews any time after the appointment has ended (day-after and later).
+          const canReview = isPast && b.status !== "cancelled" && !b.has_review && !!b.cancel_token;
           const canManage = upcoming && !!b.cancel_token && b.status !== "cancelled";
+
 
           return (
             <motion.div
@@ -144,7 +145,7 @@ function Section({ title, items, upcoming }: { title: string; items: Booking[]; 
               </div>
 
               {/* Action row */}
-              {(canManage || canReview || (isPast && isCompleted && b.has_review)) && (
+              {(canManage || canReview || (isPast && b.has_review)) && (
                 <div className="px-4 pb-4 flex gap-2">
                   {canManage && (
                     <Link
@@ -161,10 +162,10 @@ function Section({ title, items, upcoming }: { title: string; items: Booking[]; 
                       className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-2xl bg-[#FFCC00]/15 text-[#B8860B] dark:text-[#FFCC00] text-[13px] font-semibold active:scale-95 transition-transform"
                     >
                       <Star className="w-3.5 h-3.5" />
-                      Leave a review
+                      Rate your barber
                     </Link>
                   )}
-                  {isPast && isCompleted && b.has_review && (
+                  {isPast && b.has_review && (
                     <div className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-2xl bg-[#34C759]/10 text-[#34C759] text-[13px] font-semibold">
                       <Star className="w-3.5 h-3.5 fill-[#34C759]" />
                       Reviewed
@@ -172,6 +173,7 @@ function Section({ title, items, upcoming }: { title: string; items: Booking[]; 
                   )}
                 </div>
               )}
+
             </motion.div>
           );
         })}
