@@ -504,6 +504,7 @@ function ExploreList({
   searchTerm,
   expandedId,
   onExpand,
+  rateableMap,
 }: {
   loading: boolean;
   items: BarberProfile[];
@@ -512,6 +513,7 @@ function ExploreList({
   searchTerm: string;
   expandedId: string | null;
   onExpand: (id: string) => void;
+  rateableMap?: Map<string, string>;
 }) {
   if (loading) {
     return (
@@ -542,6 +544,7 @@ function ExploreList({
           isExpanded={expandedId === b.id}
           onToggleFavorite={onToggleFavorite}
           onExpand={onExpand}
+          rateToken={rateableMap?.get(b.id) ?? null}
         />
       ))}
     </motion.div>
@@ -554,12 +557,14 @@ function FavoritesList({
   onExplore,
   expandedId,
   onExpand,
+  rateableMap,
 }: {
   items: BarberProfile[];
   onToggleFavorite: (id: string) => void;
   onExplore: () => void;
   expandedId: string | null;
   onExpand: (id: string) => void;
+  rateableMap?: Map<string, string>;
 }) {
   if (items.length === 0) {
     return (
@@ -586,11 +591,13 @@ function FavoritesList({
           isExpanded={expandedId === b.id}
           onToggleFavorite={onToggleFavorite}
           onExpand={onExpand}
+          rateToken={rateableMap?.get(b.id) ?? null}
         />
       ))}
     </motion.div>
   );
 }
+
 
 function EmptyState({
   icon,
