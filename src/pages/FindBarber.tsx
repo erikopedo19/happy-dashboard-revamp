@@ -330,6 +330,7 @@ function BarberCard({
   isExpanded,
   onToggleFavorite,
   onExpand,
+  rateToken,
 }: {
   barber: BarberProfile;
   index: number;
@@ -337,7 +338,9 @@ function BarberCard({
   isExpanded: boolean;
   onToggleFavorite: (id: string) => void;
   onExpand: (id: string) => void;
+  rateToken?: string | null;
 }) {
+
   const accent = barber.brand_color || "#e11d48";
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
