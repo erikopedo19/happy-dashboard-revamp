@@ -529,15 +529,6 @@ export function MobileSettings(props: any) {
                   helperText="Recommended 1200×400, max 2MB"
                   className="w-full"
                 />
-                <BrandImageUpload
-                  label="Profile photo"
-                  path={brandForm.avatar_url}
-                  onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
-                  folder="avatar"
-                  circle
-                  helperText="Square, max 2MB"
-                  className="w-full"
-                />
 
                 <Field label="Business name">
                   <Input
