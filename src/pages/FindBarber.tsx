@@ -287,6 +287,7 @@ const FindBarber = () => {
                 searchTerm={searchTerm}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+                rateableMap={rateableMap}
               />
             )}
 
@@ -297,8 +298,10 @@ const FindBarber = () => {
                 onExplore={() => changeTab("explore")}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+                rateableMap={rateableMap}
               />
             )}
+
           </motion.div>
         </AnimatePresence>
       </div>
