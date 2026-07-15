@@ -136,6 +136,30 @@ const FindBarber = () => {
     },
   });
 
+  // Bookings in the last 2 days that the current user hasn't rated yet.
+  // Powers the "Rate" button on the Find Barber cards.
+  const { data: rateableMap } = useQuery({
+    queryKey: ["rateable-barbers", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("get_my_bookings");
+      if (error) throw error;
+      const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const map = new Map<string, string>();
+      for (const b of (data || []) as any[]) {
+        if (!b?.cancel_token || b?.has_review || b?.status === "cancelled") continue;
+        const ended = new Date(`${b.appointment_date}T${b.appointment_time}`).getTime();
+        if (isNaN(ended)) continue;
+        if (ended <= now && now - ended <= twoDaysMs) {
+          // keep the most recent token per barber
+          if (!map.has(b.barber_id)) map.set(b.barber_id, b.cancel_token);
+        }
+      }
+      return map;
+    },
+  });
+
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const list = barbers ?? [];
@@ -144,6 +168,7 @@ const FindBarber = () => {
   }, [barbers, searchTerm]);
 
   const favoriteBarbers = (barbers ?? []).filter((b) => favorites.includes(b.id));
+
 
   if (authLoading) {
     return (
