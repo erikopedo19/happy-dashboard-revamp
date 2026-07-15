@@ -581,9 +581,9 @@ const Settings = () => {
                         { v: "general", icon: Settings2, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
                         { v: "messages", icon: Sparkles, label: "Messages" },
-                        { v: "notifications", icon: Bell, label: "Alerts" },
+                        { v: "notifications", icon: Bell, label: "Alerts", badge: "New" },
                         { v: "business", icon: Store, label: "Business" },
-                      ].map(({ v, icon: Icon, label }) => (
+                      ].map(({ v, icon: Icon, label, badge }) => (
                         <TabsTrigger
                           key={v}
                           value={v}
@@ -593,7 +593,15 @@ const Settings = () => {
                             "data-[state=inactive]:text-[#8E8E93] data-[state=inactive]:hover:bg-white/[0.05]"
                           )}
                         >
-                          <Icon className="w-4 h-4" />{label}
+                          <div className="relative">
+                            <Icon className="w-4 h-4" />
+                            {badge && (
+                              <span className="absolute -top-2 -right-3 inline-flex items-center px-1 py-0 rounded-full bg-amber-500 text-[8px] font-bold text-black leading-none">
+                                {badge}
+                              </span>
+                            )}
+                          </div>
+                          {label}
                         </TabsTrigger>
                       ))}
                     </TabsList>

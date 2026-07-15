@@ -111,7 +111,7 @@ const Agenda = () => {
   const fetchEndDate = endOfWeek(addWeeks(currentDate, 12), { weekStartsOn: 1 });
 
   // Fetch agenda settings to know if business hours are configured
-  const { data: agendaSettings } = useQuery<{ start_hour: string | null; end_hour: string | null } | null>({
+  const { data: agendaSettings, isLoading: agendaSettingsLoading } = useQuery<{ start_hour: string | null; end_hour: string | null } | null>({
     queryKey: ['agenda-settings', user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -127,6 +127,7 @@ const Agenda = () => {
   });
 
   const hasBusinessHours = !!agendaSettings?.start_hour && !!agendaSettings?.end_hour;
+  const showHoursOnboarding = !agendaSettingsLoading && !hasBusinessHours;
 
   // Fetch services for the legend
   const { data: services = [] } = useQuery<Service[]>({
@@ -371,7 +372,12 @@ const Agenda = () => {
         <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C]">
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
-            {!hasBusinessHours ? (
+            {agendaSettingsLoading ? (
+              <div className="flex-1 flex flex-col items-center justify-center px-6">
+                <div className="w-10 h-10 rounded-2xl border-2 border-white/10 border-t-[#0A84FF] animate-spin" />
+                <p className="text-sm text-white/50 mt-4">Loading your schedule…</p>
+              </div>
+            ) : showHoursOnboarding ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6 relative overflow-hidden">
                 {/* Soft ambient gradient */}
                 <div className="absolute inset-0 pointer-events-none">

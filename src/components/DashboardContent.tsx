@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, subDays, isAfter, addDays } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -218,6 +219,8 @@ export function DashboardContent() {
 
           {/* Main */}
           <main className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
+            <ReviewAnnouncement />
+
             {/* Welcome */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>

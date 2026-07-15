@@ -115,7 +115,7 @@ export function ReviewRequestsCard() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Automatic review requests</CardTitle>
+              <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Reviews & notifications</CardTitle>
               {!isPremium && !premiumLoading && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white">
                   <Sparkles className="w-3 h-3" /> Premium
@@ -123,7 +123,7 @@ export function ReviewRequestsCard() {
               )}
             </div>
             <CardDescription className="text-[#8E8E93] dark:text-gray-500">
-              Email clients a rating link after their appointment. Only sent once per booking.
+              Automatically email clients a review link after their appointment and get notified when new reviews come in. One email per booking.
             </CardDescription>
           </div>
         </div>

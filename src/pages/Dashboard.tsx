@@ -3,6 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
+import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -182,6 +183,8 @@ function MobileDashboard() {
       </motion.header>
 
       <div className="flex-1 overflow-y-auto px-5 space-y-4 pb-32">
+        <ReviewAnnouncement />
+
         {/* Today hero */}
         <motion.section
           initial={{ opacity: 0, y: 14 }}
