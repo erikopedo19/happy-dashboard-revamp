@@ -8,10 +8,19 @@ import {
   Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck,
 } from "lucide-react";
 
+type Review = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  reviewer_name: string | null;
+  created_at: string;
+};
+
 type SiteData = {
   profile: any;
   microsite: any | null;
   services: any[];
+  reviews: Review[];
 };
 
 type ThemeId = "editorial" | "noir" | "mono";
@@ -137,6 +146,8 @@ const Microsite = () => {
   const bookingUrl = `/book/${p.booking_link}`;
   const rating = Number(p.rating) || 0;
   const reviewCount = p.rating_count || 0;
+  const showPublicReviews = !!p.show_public_reviews;
+  const reviews: Review[] = Array.isArray(data.reviews) ? data.reviews : [];
   const features = [
     { icon: Zap, title: "Instant booking", desc: "Confirmed in seconds, no waiting." },
     { icon: Shield, title: "Secure & private", desc: "Your details are always protected." },
@@ -492,22 +503,60 @@ const Microsite = () => {
           </section>
         )}
 
-        {/* TESTIMONIAL (synthetic if no reviews) */}
-        <section className="px-3 md:px-6 mt-3">
-          <div className="max-w-6xl mx-auto ms-card p-6 md:p-12 text-center" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
-            <div className="flex justify-center gap-0.5 mb-5">
-              {[0,1,2,3,4].map(i => (
-                <Star key={i} className="h-4 w-4" style={{ color: "#fbbf24", fill: "#fbbf24" }} />
-              ))}
+        {/* REVIEWS: real detailed reviews when enabled, otherwise synthetic testimonial */}
+        {showPublicReviews && reviews.length > 0 ? (
+          <section className="px-3 md:px-6 mt-3">
+            <div className="max-w-6xl mx-auto ms-card p-5 md:p-8" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex items-center gap-1.5">
+                  <Star className="h-5 w-5" style={{ color: "#fbbf24", fill: "#fbbf24" }} />
+                  <span className="font-semibold text-xl">{rating.toFixed(1)}</span>
+                </div>
+                <span className="text-[13px]" style={{ color: t.subtext }}>{reviewCount} reviews</span>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                {reviews.map((r) => (
+                  <div key={r.id} className="rounded-2xl p-4" style={{ background: t.chip }}>
+                    <div className="flex items-center gap-0.5 mb-2">
+                      {[1,2,3,4,5].map(s => (
+                        <Star
+                          key={s}
+                          className="h-3.5 w-3.5"
+                          style={{ color: "#fbbf24", fill: s <= r.rating ? "#fbbf24" : "transparent" }}
+                        />
+                      ))}
+                    </div>
+                    {r.comment && (
+                      <p className="text-[14px] leading-relaxed" style={{ color: t.text }}>
+                        “{r.comment}”
+                      </p>
+                    )}
+                    <div className="mt-3 flex items-center justify-between text-[12px]" style={{ color: t.subtext }}>
+                      {r.reviewer_name ? <span>{r.reviewer_name}</span> : <span>Verified client</span>}
+                      <span>{new Date(r.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="ms-display text-2xl md:text-4xl max-w-3xl mx-auto leading-[1.25]">
-              “{rating >= 4.5 ? `One of the best experiences in ${p.city || "town"}. Booking was effortless and the result was perfect.` : `A modern way to book — clean, simple, and the service is exceptional.`}”
-            </p>
-            <div className="mt-6 text-[13px] font-medium" style={{ color: t.subtext }}>
-              {reviewCount > 0 ? `From ${reviewCount} happy clients` : "From our clients"}
+          </section>
+        ) : (
+          <section className="px-3 md:px-6 mt-3">
+            <div className="max-w-6xl mx-auto ms-card p-6 md:p-12 text-center" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
+              <div className="flex justify-center gap-0.5 mb-5">
+                {[0,1,2,3,4].map(i => (
+                  <Star key={i} className="h-4 w-4" style={{ color: "#fbbf24", fill: "#fbbf24" }} />
+                ))}
+              </div>
+              <p className="ms-display text-2xl md:text-4xl max-w-3xl mx-auto leading-[1.25]">
+                “{rating >= 4.5 ? `One of the best experiences in ${p.city || "town"}. Booking was effortless and the result was perfect.` : `A modern way to book — clean, simple, and the service is exceptional.`}”
+              </p>
+              <div className="mt-6 text-[13px] font-medium" style={{ color: t.subtext }}>
+                {reviewCount > 0 ? `From ${reviewCount} happy clients` : "From our clients"}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* CTA BANNER */}
         <section className="px-3 md:px-6 mt-3">

@@ -31,6 +31,7 @@ export function ReviewRequestsCard() {
 
   const [enabled, setEnabled] = useState(false);
   const [delay, setDelay] = useState(24);
+  const [showPublicReviews, setShowPublicReviews] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -58,18 +59,19 @@ export function ReviewRequestsCard() {
     (async () => {
       const { data } = await (supabase as any)
         .from("profiles")
-        .select("auto_review_emails, review_email_delay_hours")
+        .select("auto_review_emails, review_email_delay_hours, show_public_reviews")
         .eq("id", user.id)
         .maybeSingle();
       if (data) {
         setEnabled(!!data.auto_review_emails);
         setDelay(data.review_email_delay_hours ?? 24);
+        setShowPublicReviews(!!data.show_public_reviews);
       }
       setLoading(false);
     })();
   }, [user]);
 
-  const save = async (patch: { auto_review_emails?: boolean; review_email_delay_hours?: number }) => {
+  const save = async (patch: { auto_review_emails?: boolean; review_email_delay_hours?: number; show_public_reviews?: boolean }) => {
     if (!user) return;
     setSaving(true);
     const { error } = await (supabase as any).from("profiles").update(patch).eq("id", user.id);
@@ -104,6 +106,25 @@ export function ReviewRequestsCard() {
     const n = Number(v);
     setDelay(n);
     await save({ review_email_delay_hours: n });
+  };
+
+  const onPublicReviewsToggle = async (v: boolean) => {
+    if (!isPremium) {
+      navigate("/pricing");
+      return;
+    }
+    setShowPublicReviews(v);
+    const ok = await save({ show_public_reviews: v });
+    if (ok) {
+      toast({
+        title: v ? "Public reviews visible" : "Public reviews hidden",
+        description: v
+          ? "Your clients' review text and names are now shown on your public page."
+          : "Only your overall rating and review count are shown publicly.",
+      });
+    } else {
+      setShowPublicReviews(!v);
+    }
   };
 
   return (
@@ -157,6 +178,27 @@ export function ReviewRequestsCard() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 py-1">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">
+              Show detailed reviews publicly
+              {!isPremium && !premiumLoading && (
+                <span className="ml-2 inline-flex items-center px-1.5 py-0 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wide">
+                  Premium
+                </span>
+              )}
+            </p>
+            <p className="text-sm text-[#8E8E93] dark:text-gray-500">
+              When on, review text and reviewer names appear on your public page. Off shows only the overall rating.
+            </p>
+          </div>
+          <Switch
+            checked={showPublicReviews && isPremium}
+            onCheckedChange={onPublicReviewsToggle}
+            disabled={loading || saving || premiumLoading}
+          />
         </div>
 
         {isPremium && (
