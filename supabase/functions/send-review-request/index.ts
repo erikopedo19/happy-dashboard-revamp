@@ -143,9 +143,15 @@ Deno.serve(async (req) => {
   let sent = 0;
   let failed = 0;
 
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   for (const c of rows) {
     if (!premium.has(c.business_id)) continue;
     try {
+      const fromEmail = c.sender_email && emailRe.test(c.sender_email) ? c.sender_email : "noreply@cutzioo.com";
+      const rawName = (c.sender_name || c.business_name || "Cutzioo").toString().trim();
+      // Strip email-looking substrings and angle brackets from the display name to keep `from` valid.
+      const safeName = rawName.replace(/[<>"]/g, "").replace(/\S+@\S+/g, "").replace(/\s+/g, " ").trim() || "Cutzioo";
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -153,7 +159,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: `${c.sender_name} <${c.sender_email}>`,
+          from: `${safeName} <${fromEmail}>`,
           to: [c.customer_email],
           subject: `How was your visit to ${c.business_name}?`,
           html: renderEmail(c),

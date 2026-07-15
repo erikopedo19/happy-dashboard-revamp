@@ -136,6 +136,30 @@ const FindBarber = () => {
     },
   });
 
+  // Bookings in the last 2 days that the current user hasn't rated yet.
+  // Powers the "Rate" button on the Find Barber cards.
+  const { data: rateableMap } = useQuery({
+    queryKey: ["rateable-barbers", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("get_my_bookings");
+      if (error) throw error;
+      const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const map = new Map<string, string>();
+      for (const b of (data || []) as any[]) {
+        if (!b?.cancel_token || b?.has_review || b?.status === "cancelled") continue;
+        const ended = new Date(`${b.appointment_date}T${b.appointment_time}`).getTime();
+        if (isNaN(ended)) continue;
+        if (ended <= now && now - ended <= twoDaysMs) {
+          // keep the most recent token per barber
+          if (!map.has(b.barber_id)) map.set(b.barber_id, b.cancel_token);
+        }
+      }
+      return map;
+    },
+  });
+
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const list = barbers ?? [];
@@ -144,6 +168,7 @@ const FindBarber = () => {
   }, [barbers, searchTerm]);
 
   const favoriteBarbers = (barbers ?? []).filter((b) => favorites.includes(b.id));
+
 
   if (authLoading) {
     return (
@@ -262,6 +287,7 @@ const FindBarber = () => {
                 searchTerm={searchTerm}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+                rateableMap={rateableMap}
               />
             )}
 
@@ -272,8 +298,10 @@ const FindBarber = () => {
                 onExplore={() => changeTab("explore")}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+                rateableMap={rateableMap}
               />
             )}
+
           </motion.div>
         </AnimatePresence>
       </div>
@@ -302,6 +330,7 @@ function BarberCard({
   isExpanded,
   onToggleFavorite,
   onExpand,
+  rateToken,
 }: {
   barber: BarberProfile;
   index: number;
@@ -309,7 +338,9 @@ function BarberCard({
   isExpanded: boolean;
   onToggleFavorite: (id: string) => void;
   onExpand: (id: string) => void;
+  rateToken?: string | null;
 }) {
+
   const accent = barber.brand_color || "#e11d48";
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
@@ -445,6 +476,18 @@ function BarberCard({
           </Button>
         )}
       </div>
+      {rateToken && (
+        <div className="px-3 pb-3 -mt-1">
+          <Link
+            to={`/review/${rateToken}`}
+            className="w-full h-11 rounded-[14px] bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-400/20 font-semibold text-[13px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
+          >
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            Rate your visit
+          </Link>
+        </div>
+      )}
+
       <QuickBookSheet
         open={bookOpen}
         onOpenChange={setBookOpen}
@@ -476,6 +519,7 @@ function ExploreList({
   searchTerm,
   expandedId,
   onExpand,
+  rateableMap,
 }: {
   loading: boolean;
   items: BarberProfile[];
@@ -484,6 +528,7 @@ function ExploreList({
   searchTerm: string;
   expandedId: string | null;
   onExpand: (id: string) => void;
+  rateableMap?: Map<string, string>;
 }) {
   if (loading) {
     return (
@@ -514,6 +559,7 @@ function ExploreList({
           isExpanded={expandedId === b.id}
           onToggleFavorite={onToggleFavorite}
           onExpand={onExpand}
+          rateToken={rateableMap?.get(b.id) ?? null}
         />
       ))}
     </motion.div>
@@ -526,12 +572,14 @@ function FavoritesList({
   onExplore,
   expandedId,
   onExpand,
+  rateableMap,
 }: {
   items: BarberProfile[];
   onToggleFavorite: (id: string) => void;
   onExplore: () => void;
   expandedId: string | null;
   onExpand: (id: string) => void;
+  rateableMap?: Map<string, string>;
 }) {
   if (items.length === 0) {
     return (
@@ -558,11 +606,13 @@ function FavoritesList({
           isExpanded={expandedId === b.id}
           onToggleFavorite={onToggleFavorite}
           onExpand={onExpand}
+          rateToken={rateableMap?.get(b.id) ?? null}
         />
       ))}
     </motion.div>
   );
 }
+
 
 function EmptyState({
   icon,
