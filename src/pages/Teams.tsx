@@ -96,7 +96,7 @@ const Teams = () => {
 
   // Fetch stylists
   const { data: stylists = [] } = useQuery<Stylist[]>({
-    queryKey: ["stylists", user?.id],
+    queryKey: ["stylists-team", user?.id],
     queryFn: async () => {
       if (!user) return [];
       try {
@@ -104,7 +104,8 @@ const Teams = () => {
         const result = await (db
           .from("stylists")
           .select("id, name, avatar_url, title") as any)
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .is("deleted_at", null);
         const { data, error } = result as any;
         
         if (error) {

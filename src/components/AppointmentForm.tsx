@@ -112,15 +112,16 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   const services = providedServices ?? fetchedServices;
 
-  // Fetch stylists
+  // Fetch stylists (active only — soft-deleted stylists can't be assigned to new bookings)
   const { data: stylists = [] } = useQuery<any[]>({
-    queryKey: ['stylists', user?.id],
+    queryKey: ['stylists-active', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await (supabase as any)
         .from('stylists')
         .select('*')
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .order('name');
       
       if (error) throw error;

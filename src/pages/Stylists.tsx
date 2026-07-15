@@ -28,6 +28,7 @@ interface Stylist {
   next_availability: string | null;
   user_id: string;
   created_at: string;
+  deleted_at?: string | null;
 }
 
 const Stylists = () => {
@@ -49,8 +50,8 @@ const Stylists = () => {
   const [deleteTarget, setDeleteTarget] = useState<Stylist | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Fetch stylists
-  const { data: stylists = [], isLoading } = useQuery<Stylist[]>({
+  // Fetch stylists (including soft-deleted — we filter them below).
+  const { data: allStylists = [], isLoading } = useQuery<Stylist[]>({
     queryKey: ["stylists", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -65,6 +66,32 @@ const Stylists = () => {
     },
     enabled: !!user,
   });
+
+  // Stylist ids that still have an upcoming (non-cancelled) appointment.
+  // A soft-deleted stylist stays visible on the team until this is empty.
+  const { data: busyStylistIds = [] } = useQuery<string[]>({
+    queryKey: ["stylists-busy", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await (supabase as any)
+        .from("appointments")
+        .select("stylist_id")
+        .eq("user_id", user.id)
+        .neq("status", "cancelled")
+        .not("stylist_id", "is", null)
+        .gte("appointment_date", today);
+      if (error) return [];
+      return Array.from(new Set((data || []).map((a: any) => a.stylist_id).filter(Boolean)));
+    },
+    enabled: !!user,
+  });
+
+  // Active stylists + soft-deleted ones that still have upcoming appointments.
+  const stylists = allStylists.filter(
+    (s) => !s.deleted_at || busyStylistIds.includes(s.id)
+  );
+  const isLeaving = (s: Stylist) => !!s.deleted_at;
 
   // Create stylist mutation
   const createStylistMutation = useMutation({
@@ -139,10 +166,15 @@ const Stylists = () => {
     },
   });
 
-  // Delete stylist mutation
+  // Delete stylist mutation (soft delete).
+  // Hides the stylist from booking/public immediately. The row is kept until
+  // their last appointment passes, then cleanup_pending_stylists() removes it.
   const deleteStylistMutation = useMutation({
     mutationFn: async (stylistId: string) => {
-      const { error } = await (supabase as any).from("stylists").delete().eq("id", stylistId);
+      const { error } = await (supabase as any)
+        .from("stylists")
+        .update({ deleted_at: new Date().toISOString(), is_public: false })
+        .eq("id", stylistId);
       if (error) throw error;
     },
     onMutate: (stylistId: string) => {
@@ -150,6 +182,7 @@ const Stylists = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stylists"] });
+      queryClient.invalidateQueries({ queryKey: ["stylists-busy"] });
       setDeleteTarget(null);
       setDeletingId(null);
       toast({ title: "Stylist removed" });
@@ -294,6 +327,7 @@ const Stylists = () => {
                     const initials = stylist.name
                       .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
                     const isBeingDeleted = deletingId === stylist.id;
+                    const leaving = isLeaving(stylist);
                     return (
                       <motion.div
                         key={stylist.id}
@@ -327,30 +361,37 @@ const Stylists = () => {
                             <span className={cn("absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-[#1C1C1E]", statusDot(stylist.status))} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
-                            <p className="text-xs text-[#8E8E93] truncate">{stylist.title || "Stylist"}</p>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
+                              {leaving && (
+                                <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Leaving</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-[#8E8E93] truncate">{leaving ? "Removed · finishing booked appointments" : (stylist.title || "Stylist")}</p>
                             <div className="flex items-center gap-1 mt-1.5">
                               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                               <span className="text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.satisfaction?.toFixed(1) || "5.0"}</span>
                               <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <motion.button
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() => handleEditClick(stylist)}
-                              className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] transition-colors"
-                            >
-                              <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                            </motion.button>
-                            <motion.button
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() => handleDeleteClick(stylist)}
-                              className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                            </motion.button>
-                          </div>
+                          {!leaving && (
+                            <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                              <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleEditClick(stylist)}
+                                className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] transition-colors"
+                              >
+                                <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                              </motion.button>
+                              <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleDeleteClick(stylist)}
+                                className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              </motion.button>
+                            </div>
+                          )}
                         </div>
 
                         {stylist.specialties && stylist.specialties.length > 0 && (

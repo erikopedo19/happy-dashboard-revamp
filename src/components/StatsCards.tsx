@@ -11,7 +11,8 @@ export function StatsCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stylists')
-        .select('*');
+        .select('*')
+        .is('deleted_at', null);
       
       if (error) throw error;
       return data || [];
