@@ -1306,6 +1306,249 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
   );
 }
 
+// ── iOS 26-style mobile report components ─────────────────────────────────────
+// Solid dark surfaces, no glass, round hierarchy, smooth spring animations.
+
+function MobileCard({
+  title,
+  subtitle,
+  children,
+  delay = 0,
+  className,
+}: {
+  title?: string;
+  subtitle?: string;
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, type: "spring", stiffness: 360, damping: 30 }}
+      className={cn("rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden", className)}
+    >
+      {(title || subtitle) && (
+        <div className="px-5 pt-5 pb-2">
+          {title && <h3 className="text-[17px] font-bold text-white tracking-tight">{title}</h3>}
+          {subtitle && <p className="text-[12px] text-white/50 mt-1">{subtitle}</p>}
+        </div>
+      )}
+      {children}
+    </motion.div>
+  );
+}
+
+function MobileStatCard({
+  icon,
+  label,
+  value,
+  hint,
+  tint,
+  delay = 0,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  hint?: string;
+  tint: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, ...springSoft }}
+      whileTap={{ scale: 0.97 }}
+      className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4"
+    >
+      <div
+        className="w-10 h-10 rounded-[14px] flex items-center justify-center mb-3"
+        style={{ backgroundColor: `${tint}15`, color: tint }}
+      >
+        {icon}
+      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">{label}</p>
+      <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">{value}</p>
+      {hint && <p className="text-[11px] text-white/50 mt-1">{hint}</p>}
+    </motion.div>
+  );
+}
+
+function MobileSparkline({ data }: { data: { label: string; revenue: number }[] }) {
+  if (data.length < 2) {
+    return (
+      <div className="h-full w-full flex items-center justify-center rounded-[20px] bg-[#1C1C1E]">
+        <span className="text-[11px] text-white/40">No trend data</span>
+      </div>
+    );
+  }
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id="mobileSpark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.35} />
+            <stop offset="100%" stopColor={iOS.rose} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          dataKey="revenue"
+          stroke={iOS.rose}
+          strokeWidth={2.5}
+          fill="url(#mobileSpark)"
+          dot={false}
+          activeDot={{ r: 4, fill: iOS.rose, stroke: "#fff", strokeWidth: 2 }}
+          animationDuration={900}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function MobileDonut({
+  data,
+  value,
+  label,
+}: {
+  data: { name: string; value: number; fill: string }[];
+  value: number;
+  label: string;
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="h-[140px] flex items-center justify-center">
+        <span className="text-[11px] text-white/40">No data</span>
+      </div>
+    );
+  }
+  return (
+    <div className="relative h-[140px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            innerRadius={42}
+            outerRadius={58}
+            paddingAngle={4}
+            cornerRadius={8}
+            strokeWidth={0}
+            animationDuration={900}
+          >
+            {data.map((item) => (
+              <Cell key={item.name} fill={item.fill} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-[22px] font-bold text-white tabular-nums leading-none">{value}%</span>
+        <span className="text-[9px] uppercase tracking-[0.14em] text-[#8E8E93] mt-1 font-semibold">{label}</span>
+      </div>
+    </div>
+  );
+}
+
+function MobileBarChart({
+  data,
+  xKey,
+  yKey,
+  highlight,
+  interval = 1,
+}: {
+  data: any[];
+  xKey: string;
+  yKey: string;
+  highlight?: string;
+  interval?: number | "preserveStartEnd";
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <span className="text-[11px] text-white/40">No data</span>
+      </div>
+    );
+  }
+  const max = Math.max(...data.map((d) => d[yKey]), 1);
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.06)" />
+        <XAxis
+          dataKey={xKey}
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 9, fill: "#8E8E93", fontWeight: 500 }}
+          interval={interval}
+          dy={4}
+        />
+        <YAxis hide />
+        <Bar dataKey={yKey} radius={[6, 6, 6, 6]} animationDuration={900}>
+          {data.map((entry, i) => {
+            const isHighlight = highlight && entry[xKey] === highlight;
+            const opacity = 0.3 + (entry[yKey] / max) * 0.7;
+            return <Cell key={i} fill={isHighlight ? iOS.rose : `rgba(10,132,255,${opacity})`} />;
+          })}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+function MobileReviewsSummary({ reviews }: { reviews: ReviewRow[] }) {
+  const avgRating = useMemo(
+    () => (reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0),
+    [reviews]
+  );
+  const distribution = useMemo(
+    () => [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length })),
+    [reviews]
+  );
+  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
+
+  return (
+    <div className="px-5 pb-5 space-y-4">
+      <div className="flex items-center gap-4">
+        <div className="text-center shrink-0">
+          <p className="text-[32px] font-bold text-white tabular-nums leading-none">{avgRating.toFixed(1)}</p>
+          <div className="flex justify-center gap-0.5 mt-1.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                className={cn(
+                  "w-3.5 h-3.5",
+                  s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30"
+                )}
+              />
+            ))}
+          </div>
+          <p className="text-[10px] text-white/50 mt-1">{reviews.length} reviews</p>
+        </div>
+        <div className="flex-1 space-y-1.5">
+          {distribution.map(({ star, count }, i) => (
+            <div key={star} className="flex items-center gap-2">
+              <span className="text-[10px] text-white/50 w-2.5 tabular-nums">{star}</span>
+              <div className="flex-1 h-1.5 rounded-full bg-[#1C1C1E] overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-[#FFD60A]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(count / maxCount) * 100}%` }}
+                  transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+              <span className="text-[10px] text-white/50 w-3 text-right tabular-nums">{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MobileReportsView({
   analytics,
   isLoading,
@@ -1323,14 +1566,12 @@ function MobileReportsView({
   setDateRange: (v: RangeValue) => void;
   onExport: () => void;
 }) {
-  const top = analytics.serviceBreakdown?.[0];
   const completedShare = analytics.completionRate || 0;
-  const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 
   return (
     <div className="px-4 pt-3 pb-32 space-y-4">
-      {/* iOS-style header */}
+      {/* iOS 26 header */}
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1341,13 +1582,13 @@ function MobileReportsView({
           <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
           <p className="text-[13px] text-white/50 mt-0.5">{today}</p>
         </div>
-        <motion.div
+        <motion.button
           whileTap={{ scale: 0.94 }}
           onClick={onExport}
-          className="h-10 w-10 rounded-[12px] bg-[#22222A] border border-white/[0.08] flex items-center justify-center"
+          className="h-11 w-11 rounded-full bg-[#1C1C1E] border border-white/[0.08] flex items-center justify-center"
         >
           <Download className="w-5 h-5 text-white" strokeWidth={2.3} />
-        </motion.div>
+        </motion.button>
       </motion.div>
 
       {/* Date range */}
@@ -1361,138 +1602,122 @@ function MobileReportsView({
         </TabsList>
       </Tabs>
 
-      {/* Hero revenue card */}
-      <motion.div
-        initial={{ opacity: 0, y: 16, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 360, damping: 30 }}
-        className="relative overflow-hidden rounded-[20px] bg-[#15151A] border border-white/[0.08]"
-      >
-        <div className="relative px-5 pt-5 pb-6 flex flex-col items-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">Total revenue</p>
-
-          <AnimatePresence mode="wait">
-            <motion.h2
-              key={analytics.totalRevenue}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.45 }}
-              className="text-[48px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.035em] leading-none mt-2"
-            >
-              {isLoading ? "—" : currency.format(analytics.totalRevenue)}
-            </motion.h2>
-          </AnimatePresence>
-
-          <div className="mt-4 flex items-center gap-2.5">
-            <div
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold",
-                analytics.revenueDelta >= 0
-                  ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/20"
-                  : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/20"
-              )}
-            >
-              {analytics.revenueDelta >= 0 ? (
-                <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
-              ) : (
-                <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
-              )}
-              {Math.abs(analytics.revenueDelta)}%
+      {/* Hero revenue card with gauge + sparkline */}
+      <MobileCard className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">Total revenue</p>
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={analytics.totalRevenue}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.45 }}
+                className="text-[42px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.035em] leading-none mt-2"
+              >
+                {isLoading ? "—" : currency.format(analytics.totalRevenue)}
+              </motion.h2>
+            </AnimatePresence>
+            <div className="mt-3 flex items-center gap-2.5">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold",
+                  analytics.revenueDelta >= 0
+                    ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/20"
+                    : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/20"
+                )}
+              >
+                {analytics.revenueDelta >= 0 ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+                )}
+                {Math.abs(analytics.revenueDelta)}%
+              </div>
+              <span className="text-xs text-white/50">vs prior</span>
             </div>
-            <span className="text-xs text-white/50">vs prior</span>
           </div>
-
-          <div className="mt-4">
-            <CompletionGauge value={completedShare} />
-          </div>
+          <CompletionGauge value={completedShare} />
         </div>
-      </motion.div>
+        <div className="mt-4 h-[100px]">
+          <MobileSparkline data={analytics.revenueTrend} />
+        </div>
+      </MobileCard>
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 gap-3">
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, ...springSoft }}
-          whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
-        >
-          <div className="w-9 h-9 rounded-[12px] bg-[#FF375F]/15 flex items-center justify-center mb-3">
-            <CalendarDays className="w-4 h-4 text-[#FF375F]" strokeWidth={2.3} />
-          </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Bookings</p>
-          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
-            {numberFormat.format(analytics.totalAppointments)}
-          </p>
-          <p className="text-[11px] text-white/50 mt-1">{analytics.completionRate}% done</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, ...springSoft }}
-          whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
-        >
-          <div className="w-9 h-9 rounded-[12px] bg-[#FF375F]/20 flex items-center justify-center mb-3">
-            <Users className="w-4 h-4 text-[#5AC8FF]" strokeWidth={2.3} />
-          </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Clients</p>
-          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
-            {numberFormat.format(analytics.totalCustomers)}
-          </p>
-          <p className="text-[11px] text-white/50 mt-1">{analytics.activeStylists} stylists</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, ...springSoft }}
-          whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
-        >
-          <div className="w-9 h-9 rounded-[12px] bg-[#30D158]/20 flex items-center justify-center mb-3">
-            <DollarSign className="w-4 h-4 text-[#30D158]" strokeWidth={2.3} />
-          </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Avg ticket</p>
-          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
-            {currency.format(analytics.averageTicket || 0)}
-          </p>
-          <p className="text-[11px] text-white/50 mt-1">Per booking</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, ...springSoft }}
-          whileTap={{ scale: 0.97 }}
-          className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
-        >
-          <div className="w-9 h-9 rounded-[12px] bg-[#5E5CE6]/20 flex items-center justify-center mb-3">
-            <Scissors className="w-4 h-4 text-[#9B99FF]" strokeWidth={2.3} />
-          </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Services</p>
-          <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">
-            {numberFormat.format(analytics.activeServices)}
-          </p>
-          <p className="text-[11px] text-white/50 mt-1">{analytics.completedAppointments} done</p>
-        </motion.div>
+        <MobileStatCard
+          delay={0.05}
+          icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
+          label="Bookings"
+          value={numberFormat.format(analytics.totalAppointments)}
+          hint={`${analytics.completionRate}% done`}
+          tint={iOS.rose}
+        />
+        <MobileStatCard
+          delay={0.1}
+          icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
+          label="Clients"
+          value={numberFormat.format(analytics.totalCustomers)}
+          hint={`${analytics.activeStylists} stylists`}
+          tint={iOS.blue}
+        />
+        <MobileStatCard
+          delay={0.15}
+          icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
+          label="Avg ticket"
+          value={currency.format(analytics.averageTicket || 0)}
+          hint="Per booking"
+          tint={iOS.green}
+        />
+        <MobileStatCard
+          delay={0.2}
+          icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
+          label="Services"
+          value={numberFormat.format(analytics.activeServices)}
+          hint={`${analytics.completedAppointments} done`}
+          tint={iOS.indigo}
+        />
       </div>
 
-      {/* Top services */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.28, ...springSoft }}
-        className="rounded-[20px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
-      >
-        <div className="px-5 pt-5 pb-2">
-          <h3 className="text-[17px] font-bold text-white tracking-tight">Top services</h3>
-          <p className="text-[12px] text-white/50 mt-1">Most booked this period</p>
+      {/* Status + busiest days charts */}
+      <div className="grid grid-cols-2 gap-3">
+        <MobileCard title="Status" subtitle="Bookings" delay={0.22}>
+          <div className="pb-4">
+            <MobileDonut data={analytics.statusBreakdown} value={analytics.completionRate} label="done" />
+          </div>
+        </MobileCard>
+        <MobileCard title="Busiest day" subtitle={analytics.busiestDay?.day ?? "—"} delay={0.26}>
+          <div className="h-[140px] pb-4">
+            <MobileBarChart
+              data={analytics.dayOfWeekDemand}
+              xKey="day"
+              yKey="count"
+              highlight={analytics.busiestDay?.day}
+              interval="preserveStartEnd"
+            />
+          </div>
+        </MobileCard>
+      </div>
+
+      {/* Peak hours */}
+      <MobileCard title="Peak hours" subtitle="Bookings by hour" delay={0.3}>
+        <div className="h-[160px] pb-5">
+          <MobileBarChart
+            data={analytics.hourlyDemand}
+            xKey="hour"
+            yKey="count"
+            highlight={analytics.peakHour?.hour}
+            interval={2}
+          />
         </div>
-        <div className="divide-y divide-white/[0.06]">
-          {(analytics.serviceBreakdown?.slice(0, 4) || []).map((s: any, i: number) => {
+      </MobileCard>
+
+      {/* Top services */}
+      <MobileCard title="Top services" subtitle="Most booked this period" delay={0.34}>
+        <div className="px-5 pb-5 space-y-4">
+          {analytics.serviceBreakdown?.slice(0, 4).map((s: any, i: number) => {
             const max = analytics.serviceBreakdown[0]?.bookings || 1;
             const pct = (s.bookings / max) * 100;
             return (
@@ -1500,50 +1725,41 @@ function MobileReportsView({
                 key={s.name}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.05, ...springSoft }}
-                className="px-5 py-4"
+                transition={{ delay: 0.36 + i * 0.05, ...springSoft }}
+                className="space-y-2"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-[10px] bg-white/[0.08] text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-7 h-7 rounded-[10px] bg-[#1C1C1E] text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
                       {i + 1}
                     </span>
-                    <span className="font-medium text-white">{s.name}</span>
+                    <span className="font-medium text-white truncate">{s.name}</span>
                   </div>
                   <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
                 </div>
-                <div className="h-2 rounded-[10px] bg-white/5 overflow-hidden">
+                <div className="h-2 rounded-full bg-[#1C1C1E] overflow-hidden">
                   <motion.div
-                    className="h-full rounded-[10px] bg-[#FF375F]"
+                    className="h-full rounded-full bg-[#FF375F]"
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
-                    transition={{ delay: 0.3 + i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ delay: 0.36 + i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
               </motion.div>
             );
           })}
           {(!analytics.serviceBreakdown || analytics.serviceBreakdown.length === 0) && (
-            <div className="px-5 py-8 text-center">
+            <div className="py-4 text-center">
               <p className="text-[12px] text-white/50">No services booked yet</p>
             </div>
           )}
         </div>
-      </motion.div>
+      </MobileCard>
 
-      {/* Top customers */}
+      {/* Best customers */}
       {topCustomers.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.38, ...springSoft }}
-          className="rounded-[20px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
-        >
-          <div className="px-5 pt-5 pb-2">
-            <h3 className="text-[17px] font-bold text-white tracking-tight">Best customers</h3>
-            <p className="text-[12px] text-white/50 mt-1">Ranked by spend this period</p>
-          </div>
-          <div className="divide-y divide-white/[0.06]">
+        <MobileCard title="Best customers" subtitle="Top spenders this period" delay={0.38}>
+          <div className="px-5 pb-5 divide-y divide-white/[0.06]">
             {topCustomers.slice(0, 4).map((c, i) => {
               const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
               return (
@@ -1553,11 +1769,11 @@ function MobileReportsView({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 + i * 0.05, ...springSoft }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
-                  className="flex items-center gap-3.5 px-5 py-4"
+                  className="flex items-center gap-3.5 py-3.5 first:pt-0"
                 >
-                  <Avatar className="h-10 w-10 rounded-[12px]">
+                  <Avatar className="h-10 w-10 rounded-full">
                     <AvatarFallback
-                      className="rounded-[12px] text-xs font-bold"
+                      className="rounded-full text-xs font-bold"
                       style={{ backgroundColor: `${tint}28`, color: tint }}
                     >
                       {c.initials || "?"}
@@ -1567,7 +1783,7 @@ function MobileReportsView({
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
                       {i === 0 && (
-                        <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
+                        <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-full">
                           VIP
                         </span>
                       )}
@@ -1583,7 +1799,14 @@ function MobileReportsView({
               );
             })}
           </div>
-        </motion.div>
+        </MobileCard>
+      )}
+
+      {/* Reviews */}
+      {reviews.length > 0 && (
+        <MobileCard title="Reviews" subtitle={`${reviews.length} total`} delay={0.42}>
+          <MobileReviewsSummary reviews={reviews} />
+        </MobileCard>
       )}
     </div>
   );

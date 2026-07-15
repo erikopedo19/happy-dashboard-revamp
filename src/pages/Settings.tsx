@@ -89,6 +89,8 @@ type BrandProfileRecord = {
   years_experience?: number;
   accepts_waitlist?: boolean;
   timezone: string;
+  avatar_url?: string;
+  banner_url?: string;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
@@ -134,6 +136,8 @@ const defaultBrandProfile: BrandProfileRecord = {
   years_experience: undefined,
   accepts_waitlist: false,
   timezone: getBrowserTimezone(),
+  avatar_url: "",
+  banner_url: "",
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -184,7 +188,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist, onboarding_completed, timezone")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, onboarding_completed, timezone")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -297,6 +301,8 @@ const Settings = () => {
       years_experience: data.profile?.years_experience ?? undefined,
       accepts_waitlist: data.profile?.accepts_waitlist ?? false,
       timezone: data.profile?.timezone ?? getBrowserTimezone(),
+      avatar_url: data.profile?.avatar_url ?? "",
+      banner_url: data.profile?.banner_url ?? "",
     });
 
     // Set dark mode from profile, default to dark mode
@@ -388,6 +394,8 @@ const Settings = () => {
         years_experience: brandForm.years_experience ?? null,
         accepts_waitlist: brandForm.accepts_waitlist ?? false,
         timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
+        avatar_url: brandForm.avatar_url?.trim() || null,
+        banner_url: brandForm.banner_url?.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -977,6 +985,29 @@ const Settings = () => {
                         </CardHeader>
 
                         <CardContent className="space-y-5">
+                          {/* Brand media — organised at the top */}
+                          <div className="space-y-5">
+                            <BrandImageUpload
+                              label="Banner"
+                              path={brandForm.banner_url}
+                              folder="banner"
+                              onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
+                              className="w-full"
+                              helperText="Best 1200×400. Shown at the top of your public profile."
+                            />
+
+                            <BrandImageUpload
+                              label="Profile photo"
+                              path={brandForm.avatar_url}
+                              folder="avatar"
+                              circle
+                              onChange={(url) => setBrandForm((prev) => ({ ...prev, avatar_url: url }))}
+                              helperText="Square image works best."
+                            />
+                          </div>
+
+                          <Separator />
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">

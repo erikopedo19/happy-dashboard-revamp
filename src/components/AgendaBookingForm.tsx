@@ -457,14 +457,14 @@ const AgendaBookingForm = ({
                           </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-7 gap-1 mb-2">
+                      <div className="grid grid-cols-7 gap-2 mb-3">
                         {weekDays.map(day => (
                           <div key={day} className="text-center text-xs font-medium text-[#8E8E93] py-2">
                             {day}
                           </div>
                         ))}
                       </div>
-                      <div className="grid grid-cols-7 gap-1">
+                      <div className="grid grid-cols-7 gap-2">
                         {calendarDays.map((day) => {
                           const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                           const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -476,7 +476,7 @@ const AgendaBookingForm = ({
                               onClick={() => !isDisabled && handleDateSelect(day)}
                               disabled={isDisabled}
                               className={cn(
-                                "aspect-square flex items-center justify-center text-sm font-medium rounded-xl transition-all min-h-[40px]",
+                                "aspect-square flex items-center justify-center text-sm font-medium rounded-xl transition-all min-h-[44px]",
                                 isSelected
                                   ? "text-white"
                                   : isDisabled
