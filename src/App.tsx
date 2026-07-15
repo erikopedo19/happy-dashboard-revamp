@@ -47,6 +47,7 @@ import ReviewPage from "./pages/ReviewPage";
 import WaitlistClaim from "./pages/WaitlistClaim";
 import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
@@ -180,13 +181,15 @@ function App() {
               </div>
             )}
           <BrowserRouter>
-            <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
-              <GlimmIntercept />
-              <AnimatedRoutes />
-              <NotificationBell />
-              <PremiumGiftPopup />
-              <PersistentDock />
-            </GlimmProvider>
+            <OnboardingProvider>
+              <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
+                <GlimmIntercept />
+                <AnimatedRoutes />
+                <NotificationBell />
+                <PremiumGiftPopup />
+                <PersistentDock />
+              </GlimmProvider>
+            </OnboardingProvider>
           </BrowserRouter>
         </div>
       </AuthProvider>

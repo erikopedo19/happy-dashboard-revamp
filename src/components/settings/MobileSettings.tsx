@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
   ChevronRight,
-  ChevronUp,
-  ChevronDown,
   Bell,
   Clock,
   User,
@@ -64,21 +62,6 @@ const dayCircles = [
   { value: 5, letter: "F" },
   { value: 6, letter: "S" },
 ];
-
-const TIME_STEP_MIN = 15;
-const timeToMins = (t: string) => {
-  const [h, m] = (t || "00:00").split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
-};
-const minsToTime = (mins: number) =>
-  `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
-const clampMins = (mins: number) => Math.max(0, Math.min(23 * 60 + 45, mins));
-const to12h = (t: string) => {
-  let [h, m] = (t || "00:00").split(":").map(Number);
-  const ap = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${String(m || 0).padStart(2, "0")} ${ap}`;
-};
 
 type Panel =
   | null
@@ -353,17 +336,30 @@ export function MobileSettings(props: any) {
                       During this time
                     </p>
                   </div>
-                  <div className="rounded-3xl bg-white/[0.04] border border-white/10 overflow-hidden divide-y divide-white/5">
-                    <TimeStepperRow
-                      label="From"
-                      value={agendaForm.start_hour}
-                      onChange={(v) => setAgendaForm((p: any) => ({ ...p, start_hour: v }))}
-                    />
-                    <TimeStepperRow
-                      label="To"
-                      value={agendaForm.end_hour}
-                      onChange={(v) => setAgendaForm((p: any) => ({ ...p, end_hour: v }))}
-                    />
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <input
+                        type="time"
+                        value={agendaForm.start_hour}
+                        onChange={(e) =>
+                          setAgendaForm((p: any) => ({ ...p, start_hour: e.target.value }))
+                        }
+                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-rose-500"
+                      />
+                      <p className="text-[11px] text-white/40 text-center mt-1.5">Opens</p>
+                    </div>
+                    <span className="text-white/40 font-medium mb-5">to</span>
+                    <div className="flex-1">
+                      <input
+                        type="time"
+                        value={agendaForm.end_hour}
+                        onChange={(e) =>
+                          setAgendaForm((p: any) => ({ ...p, end_hour: e.target.value }))
+                        }
+                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-rose-500"
+                      />
+                      <p className="text-[11px] text-white/40 text-center mt-1.5">Closes</p>
+                    </div>
                   </div>
                   {!hasValidHours && (
                     <p className="text-[12px] text-rose-300 px-1 mt-2">
@@ -798,49 +794,6 @@ function Sheet({
 
 function PanelStack({ children }: { children: React.ReactNode }) {
   return <div className="space-y-5">{children}</div>;
-}
-
-function TimeStepperRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const step = (dir: number) =>
-    onChange(minsToTime(clampMins(timeToMins(value) + dir * TIME_STEP_MIN)));
-  return (
-    <div className="flex items-center justify-between px-4 py-3.5">
-      <div className="flex items-center gap-2.5">
-        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-        <span className="text-[15px] text-white">{label}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-[15px] font-medium text-white tabular-nums w-[76px] text-right">
-          {to12h(value)}
-        </span>
-        <div className="flex flex-col rounded-xl bg-white/[0.06] border border-white/10 overflow-hidden">
-          <button
-            onClick={() => step(1)}
-            className="h-5 w-8 flex items-center justify-center text-white/70 active:bg-white/10"
-            aria-label={`Increase ${label} time`}
-          >
-            <ChevronUp className="h-3.5 w-3.5" />
-          </button>
-          <div className="h-px bg-white/10" />
-          <button
-            onClick={() => step(-1)}
-            className="h-5 w-8 flex items-center justify-center text-white/70 active:bg-white/10"
-            aria-label={`Decrease ${label} time`}
-          >
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

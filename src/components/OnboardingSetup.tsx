@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useOnboardingVisibility } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Clock, Check, Calendar } from "lucide-react";
@@ -25,8 +26,14 @@ interface OnboardingSetupProps {
 export function OnboardingSetup({ onComplete }: OnboardingSetupProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { setIsOpen } = useOnboardingVisibility();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<"days" | "hours">("days");
+
+  useEffect(() => {
+    setIsOpen(true);
+    return () => setIsOpen(false);
+  }, [setIsOpen]);
   const [workingDays, setWorkingDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [startHour, setStartHour] = useState("08:00");
   const [endHour, setEndHour] = useState("18:00");

@@ -37,7 +37,23 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  const showOnboarding = profile && profile.onboarding_completed === false;
+  const { data: agendaSettings } = useQuery({
+    queryKey: ["agenda-settings", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await db
+        .from("agenda_settings")
+        .select("start_hour, end_hour")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const hasExistingHours = !!(agendaSettings?.start_hour && agendaSettings?.end_hour);
+  const showOnboarding = profile && profile.onboarding_completed === false && !hasExistingHours;
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
