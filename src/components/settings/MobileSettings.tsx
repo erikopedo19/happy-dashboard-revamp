@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Bell,
   Clock,
   User,
@@ -49,6 +51,32 @@ const weekDays = [
 ];
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
+
+// Sunday-first order for the day circles (S M T W T F S).
+const dayCircles = [
+  { value: 0, letter: "S" },
+  { value: 1, letter: "M" },
+  { value: 2, letter: "T" },
+  { value: 3, letter: "W" },
+  { value: 4, letter: "T" },
+  { value: 5, letter: "F" },
+  { value: 6, letter: "S" },
+];
+
+const TIME_STEP_MIN = 15;
+const timeToMins = (t: string) => {
+  const [h, m] = (t || "00:00").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+};
+const minsToTime = (mins: number) =>
+  `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+const clampMins = (mins: number) => Math.max(0, Math.min(23 * 60 + 45, mins));
+const to12h = (t: string) => {
+  let [h, m] = (t || "00:00").split(":").map(Number);
+  const ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${String(m || 0).padStart(2, "0")} ${ap}`;
+};
 
 type Panel =
   | null
@@ -315,6 +343,66 @@ export function MobileSettings(props: any) {
 
             {panel === "agenda" && (
               <PanelStack>
+                {/* During this time */}
+                <div>
+                  <div className="flex items-center gap-2 px-1 mb-2">
+                    <Clock className="h-3.5 w-3.5 text-white/40" />
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                      During this time
+                    </p>
+                  </div>
+                  <div className="rounded-3xl bg-white/[0.04] border border-white/10 overflow-hidden divide-y divide-white/5">
+                    <TimeStepperRow
+                      label="From"
+                      value={agendaForm.start_hour}
+                      onChange={(v) => setAgendaForm((p: any) => ({ ...p, start_hour: v }))}
+                    />
+                    <TimeStepperRow
+                      label="To"
+                      value={agendaForm.end_hour}
+                      onChange={(v) => setAgendaForm((p: any) => ({ ...p, end_hour: v }))}
+                    />
+                  </div>
+                  {!hasValidHours && (
+                    <p className="text-[12px] text-rose-300 px-1 mt-2">
+                      Closing time must be later than opening.
+                    </p>
+                  )}
+                </div>
+
+                {/* On these days */}
+                <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-4">
+                  <div className="flex items-center justify-between mb-3.5">
+                    <p className="text-[15px] font-medium text-white">On these days</p>
+                    <span className="text-[13px] text-white/40">
+                      {agendaForm.working_days.length === 7
+                        ? "Everyday"
+                        : `${agendaForm.working_days.length} days`}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {dayCircles.map((d) => {
+                      const active = agendaForm.working_days.includes(d.value);
+                      return (
+                        <motion.button
+                          key={`${d.value}-${d.letter}`}
+                          whileTap={{ scale: 0.88 }}
+                          onClick={() => toggleWorkingDay(d.value)}
+                          className={cn(
+                            "h-9 w-9 rounded-full text-[13px] font-semibold transition",
+                            active
+                              ? "bg-white text-black"
+                              : "bg-white/[0.06] text-white/50"
+                          )}
+                        >
+                          {d.letter}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Slot duration */}
                 <Field label="Slot duration">
                   <div className="grid grid-cols-4 gap-2">
                     {serviceDurationOptions.map((d) => (
@@ -324,7 +412,7 @@ export function MobileSettings(props: any) {
                           setAgendaForm((p: any) => ({ ...p, service_duration: d }))
                         }
                         className={cn(
-                          "h-11 rounded-xl text-[13px] font-semibold border transition",
+                          "h-11 rounded-2xl text-[13px] font-semibold border transition",
                           agendaForm.service_duration === d
                             ? "bg-rose-500 text-white border-rose-500"
                             : "bg-white/[0.04] text-white/70 border-white/10"
@@ -335,54 +423,8 @@ export function MobileSettings(props: any) {
                     ))}
                   </div>
                 </Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Opens">
-                    <Input
-                      type="time"
-                      value={agendaForm.start_hour}
-                      onChange={(e) =>
-                        setAgendaForm((p: any) => ({ ...p, start_hour: e.target.value }))
-                      }
-                      className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                    />
-                  </Field>
-                  <Field label="Closes">
-                    <Input
-                      type="time"
-                      value={agendaForm.end_hour}
-                      onChange={(e) =>
-                        setAgendaForm((p: any) => ({ ...p, end_hour: e.target.value }))
-                      }
-                      className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                    />
-                  </Field>
-                </div>
-                {!hasValidHours && (
-                  <p className="text-[12px] text-rose-300 px-1">
-                    Closing time must be later than opening.
-                  </p>
-                )}
-                <Field label="Working days">
-                  <div className="grid grid-cols-7 gap-1.5">
-                    {weekDays.map((d) => {
-                      const active = agendaForm.working_days.includes(d.value);
-                      return (
-                        <button
-                          key={d.value}
-                          onClick={() => toggleWorkingDay(d.value)}
-                          className={cn(
-                            "h-12 rounded-xl text-[11px] font-bold border transition",
-                            active
-                              ? "bg-rose-500 text-white border-rose-500"
-                              : "bg-white/[0.04] text-white/60 border-white/10"
-                          )}
-                        >
-                          {d.label.slice(0, 1)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </Field>
+
+                {/* Time zone */}
                 <Field label="Time zone">
                   <select
                     value={brandForm.timezone || getBrowserTimezone()}
@@ -401,6 +443,20 @@ export function MobileSettings(props: any) {
                     Booking slots for clients use this zone. Device: {formatTzLabel(getBrowserTimezone())}
                   </p>
                 </Field>
+
+                {/* Gradient save button */}
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending || !hasValidHours || agendaForm.working_days.length === 0}
+                  className="w-full h-14 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(225,29,72,0.65)] flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save working hours</>
+                  )}
+                </motion.button>
               </PanelStack>
             )}
 
@@ -719,6 +775,49 @@ function Sheet({
 
 function PanelStack({ children }: { children: React.ReactNode }) {
   return <div className="space-y-5">{children}</div>;
+}
+
+function TimeStepperRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const step = (dir: number) =>
+    onChange(minsToTime(clampMins(timeToMins(value) + dir * TIME_STEP_MIN)));
+  return (
+    <div className="flex items-center justify-between px-4 py-3.5">
+      <div className="flex items-center gap-2.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+        <span className="text-[15px] text-white">{label}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-[15px] font-medium text-white tabular-nums w-[76px] text-right">
+          {to12h(value)}
+        </span>
+        <div className="flex flex-col rounded-xl bg-white/[0.06] border border-white/10 overflow-hidden">
+          <button
+            onClick={() => step(1)}
+            className="h-5 w-8 flex items-center justify-center text-white/70 active:bg-white/10"
+            aria-label={`Increase ${label} time`}
+          >
+            <ChevronUp className="h-3.5 w-3.5" />
+          </button>
+          <div className="h-px bg-white/10" />
+          <button
+            onClick={() => step(-1)}
+            className="h-5 w-8 flex items-center justify-center text-white/70 active:bg-white/10"
+            aria-label={`Decrease ${label} time`}
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

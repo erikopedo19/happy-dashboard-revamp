@@ -11,9 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, isAfter } from "date-fns";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, BarChart, Bar, Cell, PieChart, Pie } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, Clock } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 const db = supabase as any;
 
@@ -132,25 +132,8 @@ function MobileDashboard() {
   }, [last30]);
   const topServiceMax = topServices[0]?.revenue || 1;
 
-  // Hourly demand (last 30d)
-  const hourly = useMemo(() => {
-    const buckets: { h: number; count: number }[] = Array.from({ length: 12 }).map((_, i) => ({ h: i + 8, count: 0 }));
-    last30.forEach((a) => {
-      const t = (a.appointment_time || "").slice(0, 2);
-      const h = parseInt(t, 10);
-      const idx = buckets.findIndex((b) => b.h === h);
-      if (idx >= 0) buckets[idx].count += 1;
-    });
-    return buckets;
-  }, [last30]);
-  const peakHour = hourly.reduce((m, b) => (b.count > m.count ? b : m), hourly[0]);
-
-  // Status mix
-  const statusMix = [
-    { name: "Done", value: completed, color: "#22c55e" },
-    { name: "Upcoming", value: scheduled, color: "#3b82f6" },
-    { name: "Cancelled", value: cancelled, color: "#ef4444" },
-  ].filter((s) => s.value > 0);
+  // Today's real revenue (non-cancelled)
+  const todayRevenue = todays.reduce((s, a) => s + Number(a.price || a.service?.price || 0), 0);
 
   const weekDays = Array.from({ length: 5 }).map((_, i) => {
     const d = addDays(weekStart, i);
@@ -172,6 +155,7 @@ function MobileDashboard() {
   };
 
   const numClass = "font-geist tabular-nums tracking-tight";
+  const profileInitial = (user?.email || "C").charAt(0).toUpperCase();
 
   return (
     <>
@@ -179,57 +163,66 @@ function MobileDashboard() {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="px-6 pt-6 pb-6 flex justify-between items-end"
+        className="px-5 pt-7 pb-5 flex justify-between items-center"
       >
         <div className="space-y-1">
           <p className="text-white/40 text-[13px] font-medium">
             {format(new Date(), "EEEE, MMM d")}
           </p>
-          <h1 className="text-2xl font-bold font-geist text-white tracking-tight">
-            Cutzio Admin
+          <h1 className="text-[26px] font-bold font-geist text-white tracking-tight leading-none">
+            Dashboard
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="h-10 w-10 rounded-full bg-[#22222A] border border-white/[0.08] text-white/70 hover:bg-[#1a1a1e]" />
-          <div className="w-10 h-10 rounded-full bg-[#22222A] border border-white/[0.08] flex items-center justify-center">
-            <div className="w-7 h-7 rounded-full bg-[#FF375F]" />
+          <SidebarTrigger className="h-10 w-10 rounded-full bg-white/[0.06] border border-white/[0.08] text-white/70 hover:bg-white/[0.1]" />
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-500 to-amber-400 flex items-center justify-center text-white text-sm font-bold">
+            {(profileInitial || "C")}
           </div>
         </div>
       </motion.header>
 
-      <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-32">
+      <div className="flex-1 overflow-y-auto px-5 space-y-4 pb-32">
+        {/* Today hero */}
         <motion.section
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 240, damping: 26 }}
-          className="relative overflow-hidden rounded-[24px] bg-[#15151A] border border-white/[0.08] p-5"
+          className="relative overflow-hidden rounded-[28px] bg-[#16161A] border border-white/[0.06] p-6"
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-white/40 text-[11px] uppercase tracking-[0.18em] font-semibold">This Week</p>
-              <p className={`${numClass} text-[34px] font-bold text-white mt-1 leading-none`}>
-                €{weekRevenue.toFixed(0)}
+              <p className="text-white/45 text-[13px] font-medium">Today's revenue</p>
+              <p className={`${numClass} text-[40px] font-bold text-white mt-1 leading-none`}>
+                €{todayRevenue.toFixed(0)}
               </p>
-              <p className="text-white/45 text-xs mt-2">{last30.length} bookings · last 30d</p>
+              <p className="text-white/40 text-[13px] mt-2">
+                {todays.length} {todays.length === 1 ? "appointment" : "appointments"} today
+              </p>
             </div>
-            <div className="px-2.5 py-1 rounded-full bg-[#FF375F]/12 text-[#FF375F] text-[10px] font-bold uppercase tracking-wider">
-              Live
+            <div
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                revenueDelta >= 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"
+              }`}
+            >
+              {revenueDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {Math.abs(revenueDelta)}%
             </div>
           </div>
-          <div className="h-20 -mx-1 mt-3">
+          <div className="h-16 -mx-2 mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={spark} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+              <AreaChart data={spark} margin={{ top: 6, right: 6, left: 6, bottom: 0 }}>
                 <Tooltip
-                  contentStyle={{ background: "#141417", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, fontSize: 11 }}
+                  contentStyle={{ background: "#0b0b0d", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, fontSize: 11 }}
                   formatter={(v: number) => [`€${v}`, "Revenue"]}
                   labelFormatter={(l) => `Day ${l}`}
                 />
-                <Area type="monotone" dataKey="rev" stroke="#FF375F" strokeWidth={2} fill="rgba(255,55,95,0.08)" />
+                <Area type="monotone" dataKey="rev" stroke="#f43f5e" strokeWidth={2.5} fill="rgba(244,63,94,0.10)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </motion.section>
 
+        {/* Real stat tiles */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,122 +230,46 @@ function MobileDashboard() {
           className="grid grid-cols-3 gap-3"
         >
           <KPI label="Pending" value={pending} accent="text-white" numClass={numClass} />
-          <KPI label="Avg Ticket" value={`€${avgTicket}`} accent="text-white" numClass={numClass} />
-          <KPI label="Complete" value={`${completionRate}%`} accent="text-[#FF375F]" numClass={numClass} />
+          <KPI label="Avg ticket" value={`€${avgTicket}`} accent="text-white" numClass={numClass} />
+          <KPI label="Complete" value={`${completionRate}%`} accent="text-white" numClass={numClass} />
         </motion.div>
 
-        {/* iOS Concentric Targets Activity Rings Widget - Mobile */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.07, type: "spring", stiffness: 260, damping: 26 }}
-          className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-5 flex items-center justify-between gap-5"
-        >
-          <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-              {/* Outer: Revenue */}
-              <circle cx="60" cy="60" r="50" stroke="rgba(255,55,95,0.10)" strokeWidth="10" fill="transparent" />
-              <motion.circle
-                cx="60" cy="60" r="50"
-                stroke="#FF375F" strokeWidth="10" fill="transparent"
-                strokeDasharray={2 * Math.PI * 50}
-                initial={{ strokeDashoffset: 2 * Math.PI * 50 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 50 * (1 - (Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45) / 100) }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                strokeLinecap="round"
-              />
-              {/* Middle: Capacity */}
-              <circle cx="60" cy="60" r="39" stroke="rgba(10,132,255,0.10)" strokeWidth="10" fill="transparent" />
-              <motion.circle
-                cx="60" cy="60" r="39"
-                stroke="#0A84FF" strokeWidth="10" fill="transparent"
-                strokeDasharray={2 * Math.PI * 39}
-                initial={{ strokeDashoffset: 2 * Math.PI * 39 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 39 * (1 - (Math.min(100, Math.round((todays.length / 12) * 100)) || 35) / 100) }}
-                transition={{ duration: 1.2, delay: 0.15, ease: "easeOut" }}
-                strokeLinecap="round"
-              />
-              {/* Inner: Completion */}
-              <circle cx="60" cy="60" r="28" stroke="rgba(48,209,88,0.10)" strokeWidth="10" fill="transparent" />
-              <motion.circle
-                cx="60" cy="60" r="28"
-                stroke="#30D158" strokeWidth="10" fill="transparent"
-                strokeDasharray={2 * Math.PI * 28}
-                initial={{ strokeDashoffset: 2 * Math.PI * 28 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 28 * (1 - (completionRate || 0) / 100) }}
-                transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-white/50" />
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-2 min-w-0">
-            <p className="text-white/40 text-[9px] uppercase tracking-widest font-bold">Daily Activity</p>
-            <div className="flex items-center justify-between text-xs font-semibold text-white/80">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#FF375F]" /> Rev Target</span>
-              <span className="tabular-nums font-geist">{Math.min(100, Math.round((weekRevenue / 5 / 500) * 100)) || 45}%</span>
-            </div>
-            <div className="flex items-center justify-between text-xs font-semibold text-white/80">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#0A84FF]" /> Capacity</span>
-              <span className="tabular-nums font-geist">{Math.min(100, Math.round((todays.length / 12) * 100)) || 35}%</span>
-            </div>
-            <div className="flex items-center justify-between text-xs font-semibold text-white/80">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-[#30D158]" /> Completed</span>
-              <span className="tabular-nums font-geist">{completionRate}%</span>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* 30-day Revenue card with trend delta */}
+        {/* 30-day summary */}
         <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}
-          className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-5"
+          className="rounded-[28px] bg-[#16161A] border border-white/[0.06] p-6"
         >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-white/40 text-[11px] uppercase tracking-[0.18em] font-semibold">30-Day Revenue</p>
-              <p className={`${numClass} text-[28px] font-bold text-white mt-1 leading-none`}>
-                €{last30Revenue.toFixed(0)}
-              </p>
-            </div>
-            <div
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                revenueDelta >= 0 ? "bg-[#30D158]/15 text-[#4ade80]" : "bg-[#ef4444]/15 text-[#f87171]"
-              }`}
-            >
-              {revenueDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {Math.abs(revenueDelta)}%
-            </div>
+          <div className="flex items-baseline justify-between">
+            <p className="text-white/45 text-[13px] font-medium">Last 30 days</p>
+            <p className={`${numClass} text-[15px] font-semibold text-white`}>€{last30Revenue.toFixed(0)}</p>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             <div>
-              <p className={`${numClass} text-base font-bold text-white`}>{completed}</p>
-              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Done</p>
+              <p className={`${numClass} text-xl font-bold text-white`}>{completed}</p>
+              <p className="text-[11px] text-white/40 mt-0.5">Done</p>
             </div>
             <div className="border-x border-white/5">
-              <p className={`${numClass} text-base font-bold text-[#60a5fa]`}>{scheduled}</p>
-              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Upcoming</p>
+              <p className={`${numClass} text-xl font-bold text-[#60a5fa]`}>{scheduled}</p>
+              <p className="text-[11px] text-white/40 mt-0.5">Upcoming</p>
             </div>
             <div>
-              <p className={`${numClass} text-base font-bold text-[#f87171]`}>{cancelled}</p>
-              <p className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Cancelled</p>
+              <p className={`${numClass} text-xl font-bold text-[#f87171]`}>{cancelled}</p>
+              <p className="text-[11px] text-white/40 mt-0.5">Cancelled</p>
             </div>
           </div>
         </motion.section>
 
-        <section className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-geist text-[15px] font-semibold text-white">Week Schedule</h3>
+        {/* Week strip */}
+        <section className="rounded-[28px] bg-[#16161A] border border-white/[0.06] p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-geist text-[15px] font-semibold text-white">This week</h3>
             <button
               onClick={() => navigate("/agenda")}
-              className="text-white/60 text-xs font-bold uppercase tracking-wider active:opacity-60 hover:text-white transition"
+              className="text-white/45 text-[13px] font-medium active:opacity-60 hover:text-white transition"
             >
-              Full View
+              View
             </button>
           </div>
           <div className="flex justify-between">
@@ -365,17 +282,17 @@ function MobileDashboard() {
                 onClick={() => navigate("/agenda")}
                 className="flex flex-col items-center gap-2"
               >
-                <span className="text-[10px] text-white/40 font-bold">{d.label}</span>
+                <span className="text-[11px] text-white/35 font-semibold">{d.label}</span>
                 <div
                   className={
                     d.isToday
-                      ? `w-10 h-10 rounded-2xl bg-white text-[#0b0b0d] flex items-center justify-center text-sm font-bold shadow-lg shadow-white/10 ${numClass}`
-                      : `w-10 h-10 rounded-2xl bg-[#22222A] border border-white/[0.08] flex items-center justify-center text-white/70 text-sm font-bold ${numClass}`
+                      ? `w-11 h-11 rounded-2xl bg-white text-[#0b0b0d] flex items-center justify-center text-[15px] font-bold ${numClass}`
+                      : `w-11 h-11 rounded-2xl bg-white/[0.05] flex items-center justify-center text-white/70 text-[15px] font-bold ${numClass}`
                   }
                 >
                   {d.date}
                 </div>
-                <span className={`text-[10px] font-bold ${numClass} ${d.count > 0 ? "text-white/70" : "text-white/20"}`}>
+                <span className={`text-[11px] font-semibold ${numClass} ${d.count > 0 ? "text-white/60" : "text-white/20"}`}>
                   {d.count}
                 </span>
               </motion.button>
@@ -389,96 +306,37 @@ function MobileDashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="space-y-3"
+            className="rounded-[28px] bg-[#16161A] border border-white/[0.06] p-5 space-y-3.5"
           >
-            <h3 className="font-geist text-[15px] font-semibold text-white">Top Services</h3>
-            <div className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4 space-y-3">
-              {topServices.map((s, i) => (
-                <div key={s.name} className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-white/85 font-medium truncate">{s.name}</span>
-                    <span className={`text-[12px] text-white/60 ${numClass}`}>€{s.revenue.toFixed(0)} · {s.count}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(s.revenue / topServiceMax) * 100}%` }}
-                      transition={{ delay: 0.15 + i * 0.06, duration: 0.6, ease: "easeOut" }}
-                      className="h-full rounded-full bg-[#FF375F]"
-                    />
-                  </div>
+            <h3 className="font-geist text-[15px] font-semibold text-white">Top services</h3>
+            {topServices.map((s, i) => (
+              <div key={s.name} className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[14px] text-white/85 font-medium truncate">{s.name}</span>
+                  <span className={`text-[12px] text-white/45 ${numClass}`}>€{s.revenue.toFixed(0)} · {s.count}</span>
                 </div>
-              ))}
-            </div>
+                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(s.revenue / topServiceMax) * 100}%` }}
+                    transition={{ delay: 0.15 + i * 0.06, duration: 0.6, ease: "easeOut" }}
+                    className="h-full rounded-full bg-rose-500"
+                  />
+                </div>
+              </div>
+            ))}
           </motion.section>
         )}
 
-        {/* Hourly demand + Status mix */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          className="grid grid-cols-5 gap-3"
-        >
-          <div className="col-span-3 rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Hourly Demand</p>
-                <p className={`${numClass} text-white text-sm font-bold mt-0.5 flex items-center gap-1`}>
-                  <Clock className="h-3 w-3 text-white/40" /> Peak {peakHour?.h ?? "—"}:00
-                </p>
-              </div>
-            </div>
-            <div className="h-20 -mx-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={hourly} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                  <Tooltip
-                    contentStyle={{ background: "#0b0b0d", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 11 }}
-                    formatter={(v: number) => [`${v} bookings`, "Count"]}
-                    labelFormatter={(l) => `${l}:00`}
-                  />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {hourly.map((b, idx) => (
-                      <Cell key={idx} fill={b.h === peakHour?.h ? "#FF375F" : "rgba(255,255,255,0.16)"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="col-span-2 rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4">
-            <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Status Mix</p>
-            {statusMix.length > 0 ? (
-              <div className="h-24 mt-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={statusMix} dataKey="value" innerRadius={22} outerRadius={36} paddingAngle={2}>
-                      {statusMix.map((s) => (
-                        <Cell key={s.name} fill={s.color} stroke="none" />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ background: "#0b0b0d", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 11 }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <p className="text-white/30 text-xs mt-3">No data</p>
-            )}
-          </div>
-        </motion.section>
-
-
-        <section className="space-y-4">
-          <h3 className="font-geist text-[15px] font-semibold text-white">Today's Appointments</h3>
+        {/* Today's appointments */}
+        <section className="space-y-3">
+          <h3 className="font-geist text-[15px] font-semibold text-white px-1">Today's appointments</h3>
           {todays.length === 0 ? (
-            <div className="bg-[#15151A] p-6 rounded-3xl border border-white/10 text-center text-sm text-white/40">
+            <div className="bg-[#16161A] p-8 rounded-[28px] border border-white/[0.06] text-center text-sm text-white/40">
               Nothing scheduled today.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="rounded-[28px] bg-[#16161A] border border-white/[0.06] divide-y divide-white/5 overflow-hidden">
               {todays.slice(0, 6).map((a, i) => {
                 const chip = statusChipFor(a);
                 return (
@@ -488,9 +346,9 @@ function MobileDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, type: "spring", stiffness: 360, damping: 26 }}
                     onClick={() => navigate("/agenda")}
-                    className="bg-[#15151A] p-4 rounded-3xl border border-white/10 flex items-center gap-4 cursor-pointer active:scale-[0.99] hover:border-white/10 transition-all"
+                    className="p-4 flex items-center gap-4 cursor-pointer active:bg-white/[0.03] transition-colors"
                   >
-                    <div className={`w-12 h-12 rounded-2xl bg-[#22222A] flex items-center justify-center border border-white/10 text-[11px] font-bold text-white/85 ${numClass}`}>
+                    <div className={`w-12 h-12 rounded-2xl bg-white/[0.05] flex items-center justify-center text-[11px] font-bold text-white/85 ${numClass}`}>
                       {(a.appointment_time || "").slice(0, 5) || "--:--"}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -511,21 +369,22 @@ function MobileDashboard() {
           )}
         </section>
 
+        {/* Quick actions */}
         <section className="pb-10">
           <div className="grid grid-cols-2 gap-3">
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/agenda")}
-              className="h-14 bg-white text-[#0b0b0d] rounded-3xl font-geist font-bold text-[13px] shadow-lg shadow-white/5"
+              className="h-14 bg-white text-[#0b0b0d] rounded-[20px] font-geist font-bold text-[14px]"
             >
-              New Booking
+              New booking
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/services")}
-              className="h-14 bg-[#22222A] border border-white/[0.08] rounded-3xl font-geist font-bold text-white text-[13px]"
+              className="h-14 bg-white/[0.05] border border-white/[0.08] rounded-[20px] font-geist font-bold text-white text-[14px]"
             >
-              Edit Services
+              Edit services
             </motion.button>
           </div>
         </section>
