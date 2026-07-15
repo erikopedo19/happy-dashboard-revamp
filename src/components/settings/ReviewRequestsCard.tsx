@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,25 +33,6 @@ export function ReviewRequestsCard() {
   const [showPublicReviews, setShowPublicReviews] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
-
-  const sendTest = async () => {
-    if (!user?.email) return;
-    setTesting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("send-review-request", {
-        body: { test: true, to: user.email },
-      });
-      if (error) throw error;
-      if (!(data as any)?.ok) throw new Error((data as any)?.body || "Failed to send");
-      toast({ title: "Test email sent", description: `Check ${user.email} in a moment.` });
-    } catch (e: any) {
-      toast({ title: "Couldn't send test", description: e?.message || String(e), variant: "destructive" });
-    } finally {
-      setTesting(false);
-    }
-  };
-
 
   useEffect(() => {
     if (!user) return;
@@ -200,18 +180,6 @@ export function ReviewRequestsCard() {
             disabled={loading || saving || premiumLoading}
           />
         </div>
-
-        {isPremium && (
-          <Button
-            onClick={sendTest}
-            disabled={testing || !user?.email}
-            variant="outline"
-            className="w-full h-11 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E]"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            {testing ? "Sending…" : `Send test email to ${user?.email ?? "me"}`}
-          </Button>
-        )}
 
 
         {!isPremium && !premiumLoading && (

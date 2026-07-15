@@ -36,6 +36,8 @@ import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
+import { BrandImageUpload } from "@/components/BrandImageUpload";
+import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { MobileDock } from "@/components/MobileDock";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
@@ -221,30 +223,6 @@ export function MobileSettings(props: any) {
 
       {/* Grouped lists */}
       <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
-        <Group label="Preferences">
-          <Row
-            icon={Clock}
-            tint="#3b82f6"
-            label="Agenda timing"
-            value={`${agendaForm.start_hour} – ${agendaForm.end_hour}`}
-            onClick={() => setPanel("agenda")}
-          />
-          <Row
-            icon={theme === "dark" ? Moon : Sun}
-            tint="#a855f7"
-            label="Appearance"
-            value={theme === "dark" ? "Dark" : "Light"}
-            onClick={() => setPanel("appearance")}
-          />
-          <Row
-            icon={Bell}
-            tint="#f59e0b"
-            label="Notifications"
-            value={`${Object.values(notificationPrefs).filter(Boolean).length} on`}
-            onClick={() => setPanel("notifications")}
-          />
-        </Group>
-
         <Group label="Business">
           <Row
             icon={Store}
@@ -284,6 +262,30 @@ export function MobileSettings(props: any) {
             label="Subscription"
             value="Plan & billing"
             onClick={() => setPanel("subscription")}
+          />
+        </Group>
+
+        <Group label="Preferences">
+          <Row
+            icon={Clock}
+            tint="#3b82f6"
+            label="Agenda timing"
+            value={`${agendaForm.start_hour} – ${agendaForm.end_hour}`}
+            onClick={() => setPanel("agenda")}
+          />
+          <Row
+            icon={theme === "dark" ? Moon : Sun}
+            tint="#a855f7"
+            label="Appearance"
+            value={theme === "dark" ? "Dark" : "Light"}
+            onClick={() => setPanel("appearance")}
+          />
+          <Row
+            icon={Bell}
+            tint="#f59e0b"
+            label="Alerts & reviews"
+            value={`${Object.values(notificationPrefs).filter(Boolean).length} on`}
+            onClick={() => setPanel("notifications")}
           />
         </Group>
 
@@ -497,6 +499,9 @@ export function MobileSettings(props: any) {
                     />
                   ))}
                 </ListCard>
+                <div className="mt-4">
+                  <ReviewRequestsCard />
+                </div>
               </PanelStack>
             )}
 
@@ -520,6 +525,24 @@ export function MobileSettings(props: any) {
 
             {panel === "business" && (
               <PanelStack>
+                <BrandImageUpload
+                  label="Banner photo"
+                  path={brandForm.banner_url}
+                  onChange={(url) => setBrandForm((p: any) => ({ ...p, banner_url: url }))}
+                  folder="banner"
+                  helperText="Recommended 1200×400, max 2MB"
+                  className="w-full"
+                />
+                <BrandImageUpload
+                  label="Profile photo"
+                  path={brandForm.avatar_url}
+                  onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
+                  folder="avatar"
+                  circle
+                  helperText="Square, max 2MB"
+                  className="w-full"
+                />
+
                 <Field label="Business name">
                   <Input
                     value={brandForm.name}

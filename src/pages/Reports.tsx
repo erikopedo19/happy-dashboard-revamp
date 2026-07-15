@@ -711,7 +711,7 @@ const Reports = () => {
                         <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} />
                         <YAxis hide />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="count" radius={[10, 10, 10, 10]} animationDuration={1000}>
+                        <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
                           {analytics.dayOfWeekDemand.map((entry, i) => {
                             const max = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
                             const opacity = 0.35 + (entry.count / max) * 0.65;
@@ -738,7 +738,7 @@ const Reports = () => {
                       <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} interval={1} />
                       <YAxis hide />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="count" radius={[10, 10, 10, 10]} animationDuration={1000}>
+                      <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
                         {analytics.hourlyDemand.map((entry, i) => {
                           const max = Math.max(...analytics.hourlyDemand.map((h) => h.count), 1);
                           const isPeak = entry.hour === analytics.peakHour?.hour && entry.count > 0;
@@ -1487,7 +1487,7 @@ function MobileBarChart({
           dy={4}
         />
         <YAxis hide />
-        <Bar dataKey={yKey} radius={[6, 6, 6, 6]} animationDuration={900}>
+        <Bar dataKey={yKey} radius={[6, 6, 0, 0]} animationDuration={900}>
           {data.map((entry, i) => {
             const isHighlight = highlight && entry[xKey] === highlight;
             const opacity = 0.3 + (entry[yKey] / max) * 0.7;
