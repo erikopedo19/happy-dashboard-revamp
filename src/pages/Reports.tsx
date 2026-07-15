@@ -1185,48 +1185,51 @@ function EmptyMini() {
 }
 
 function CompletionGauge({ value }: { value: number }) {
-  // iOS-style semicircular arc with glowing rose ticks
-  const TICKS = 22;
-  const filled = Math.round((value / 100) * TICKS);
+  // Smooth iOS-style semicircular progress ring with a rose gradient
+  const radius = 82;
+  const stroke = 14;
+  const cx = 100;
+  const cy = 100;
+  const clamped = Math.max(0, Math.min(100, value));
+  const arc = Math.PI * radius; // semicircle length
+  const dash = (clamped / 100) * arc;
+
   return (
-    <div className="relative w-[148px] h-[92px] shrink-0">
+    <div className="relative w-[160px] h-[100px] shrink-0">
       <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
-        {Array.from({ length: TICKS }).map((_, i) => {
-          const angle = Math.PI - (i / (TICKS - 1)) * Math.PI;
-          const r1 = 78, r2 = 92, cx = 100, cy = 100;
-          const x1 = cx + Math.cos(angle) * r1;
-          const y1 = cy - Math.sin(angle) * r1;
-          const x2 = cx + Math.cos(angle) * r2;
-          const y2 = cy - Math.sin(angle) * r2;
-          const active = i < filled;
-          return (
-            <motion.line
-              key={i}
-              x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke={active ? iOS.rose : "rgba(255,255,255,0.10)"}
-              strokeWidth={4}
-              strokeLinecap="round"
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 + i * 0.025, type: "spring", stiffness: 320, damping: 22 }}
-              style={{ transformOrigin: `${cx}px ${cy}px` }}
-            />
-          );
-        })}
-        {/* pill at center */}
-        <motion.ellipse
-          cx="100" cy="100" rx="13" ry="6"
-          fill={iOS.rose}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        <defs>
+          <linearGradient id="gauge-rose" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={iOS.rose} />
+            <stop offset="100%" stopColor={iOS.pink} />
+          </linearGradient>
+        </defs>
+        {/* background track */}
+        <path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+        />
+        {/* filled progress arc */}
+        <motion.path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="url(#gauge-rose)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={arc}
+          initial={{ strokeDashoffset: arc }}
+          animate={{ strokeDashoffset: arc - dash }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          style={{ filter: "drop-shadow(0 0 10px rgba(255,45,111,0.5))" }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
-        <span className="text-[22px] font-bold text-white tabular-nums leading-none tracking-tight">
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-2 pointer-events-none">
+        <span className="text-[26px] font-bold text-white tabular-nums leading-none tracking-tight">
           {value}%
         </span>
-        <span className="text-[9px] uppercase tracking-[0.18em] text-[#FF375F] mt-1 font-semibold">done</span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-[#FF375F] mt-1 font-semibold">done</span>
       </div>
     </div>
   );
