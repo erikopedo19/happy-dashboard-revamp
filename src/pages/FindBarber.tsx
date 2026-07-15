@@ -476,6 +476,18 @@ function BarberCard({
           </Button>
         )}
       </div>
+      {rateToken && (
+        <div className="px-3 pb-3 -mt-1">
+          <Link
+            to={`/review/${rateToken}`}
+            className="w-full h-11 rounded-[14px] bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-400/20 font-semibold text-[13px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
+          >
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            Rate your visit
+          </Link>
+        </div>
+      )}
+
       <QuickBookSheet
         open={bookOpen}
         onOpenChange={setBookOpen}
