@@ -1005,7 +1005,8 @@ const Settings = () => {
                               folder="banner"
                               onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
                               className="w-full"
-                              helperText="Best 1200×400. Shown at the top of your public profile."
+                              maxSizeMB={bannerMaxMB}
+                              helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
                             />
 
                             <BrandImageUpload
@@ -1014,7 +1015,8 @@ const Settings = () => {
                               folder="avatar"
                               circle
                               onChange={(url) => setBrandForm((prev) => ({ ...prev, avatar_url: url }))}
-                              helperText="Square image works best."
+                              maxSizeMB={avatarMaxMB}
+                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 5MB"}.`}
                             />
                           </div>
 
