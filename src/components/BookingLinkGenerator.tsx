@@ -20,7 +20,6 @@ const BookingLinkGenerator = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
-  const [bookingLocale, setBookingLocale] = useState<"en" | "el">("en");
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -33,7 +32,7 @@ const BookingLinkGenerator = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale, avatar_url, banner_url')
+        .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
         .eq('id', user.id)
         .single();
 
@@ -48,7 +47,7 @@ const BookingLinkGenerator = () => {
               ask_notes: true,  // Default to true for new profiles
               brand_color: "#e11d48"
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale, avatar_url, banner_url')
+            .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
             .single();
 
           if (createError) throw createError;
@@ -67,7 +66,6 @@ const BookingLinkGenerator = () => {
     }
     setAskPhone(profile?.ask_phone ?? true);
     setAskNotes(profile?.ask_notes ?? true);
-    setBookingLocale(profile?.booking_locale === "el" ? "el" : "en");
   }, [profile]);
 
   const getBookingUrl = () => {
@@ -76,7 +74,6 @@ const BookingLinkGenerator = () => {
     const params = new URLSearchParams();
     if (askPhone) params.append('askPhone', 'true');
     if (askNotes) params.append('askNotes', 'true');
-    params.append('lang', bookingLocale);
     const queryString = params.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
@@ -112,7 +109,6 @@ const BookingLinkGenerator = () => {
           booking_link: customSlug.trim(),
           ask_phone: askPhone,
           ask_notes: askNotes,
-          booking_locale: bookingLocale,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -197,41 +193,30 @@ const BookingLinkGenerator = () => {
   };
 
   return (
-    <div className="bg-[#0A0A0C] text-white">
-      <div className="px-4 py-6 sm:px-8 sm:py-8">
+    <div className="relative overflow-hidden rounded-[28px] bg-[#0A0A0C] text-white">
+      {/* Hero gradient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#0A84FF]/25 blur-[100px]" />
+        <div className="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-[#e11d48]/15 blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12">
         {/* Header */}
         <div className="text-center max-w-md mx-auto mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-white/10 mb-4">
             <LinkIcon className="h-5 w-5 text-white" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Booking link
+            Your booking link
           </h2>
           <p className="text-sm text-gray-400">
-            Share one simple link so clients can book with you.
+            Share this link with clients so they can book appointments online.
           </p>
         </div>
 
-        {/* Barber avatar preview */}
-        {profile?.avatar_url && (
-          <div className="max-w-lg mx-auto mb-4 flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-            <img
-              src={profile.avatar_url}
-              alt={profile.full_name || "Barber"}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
-                {profile.full_name || "Your name"}
-              </p>
-              <p className="text-xs text-gray-400">Clients see this on your booking page</p>
-            </div>
-          </div>
-        )}
-
         {/* Link card */}
         <div className="max-w-lg mx-auto space-y-4">
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 focus-within:border-white/20 transition-all">
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 focus-within:border-white/20 focus-within:bg-white/[0.07] transition-all">
             <span className="text-sm text-gray-400 font-medium select-none">/book/</span>
             <input
               id="slug"
@@ -293,22 +278,6 @@ const BookingLinkGenerator = () => {
             )}
             Save booking link
           </Button>
-
-          {/* Booking language */}
-          <div className="border border-white/10 bg-white/5 rounded-2xl px-4 py-4">
-            <Label htmlFor="bookingLocale" className="mb-2 block text-sm font-semibold text-gray-300">
-              Booking page language
-            </Label>
-            <select
-              id="bookingLocale"
-              value={bookingLocale}
-              onChange={(event) => setBookingLocale(event.target.value as "en" | "el")}
-              className="h-10 w-full rounded-xl border border-white/10 bg-[#151519] px-3 text-sm text-white outline-none"
-            >
-              <option value="en">English (default)</option>
-              <option value="el">Greek (Ελληνικά)</option>
-            </select>
-          </div>
 
           {/* Toggles */}
           <div className="grid grid-cols-2 gap-3 pt-2">
