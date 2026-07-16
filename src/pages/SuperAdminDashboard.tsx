@@ -58,6 +58,10 @@ export default function SuperAdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings">("users");
   const [showGoogleButton, setShowGoogleButton] = useState(true);
+  const [fakeShopsEnabled, setFakeShopsEnabled] = useState(false);
+  const [fakeShopsCount, setFakeShopsCount] = useState(0);
+  const [fakeShopsBusy, setFakeShopsBusy] = useState(false);
+  const [fakeShopsToGenerate, setFakeShopsToGenerate] = useState(20);
   const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
   const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
