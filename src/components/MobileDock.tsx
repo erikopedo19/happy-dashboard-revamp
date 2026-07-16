@@ -69,25 +69,23 @@ export const MobileDockInner = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-3 pb-[max(env(safe-area-inset-bottom),0.8rem)]">
-      <div className="mobile-dock pointer-events-auto relative mx-auto max-w-[34rem] rounded-[30px] backdrop-blur-2xl">
-        <div className="grid grid-cols-6 items-center px-2 py-2">
-          {mainItems.map((item) => (
-            <DockLink key={item.path} item={item} location={location} />
-          ))}
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-2.5 pb-[max(env(safe-area-inset-bottom),0.7rem)]">
+      <div className="mobile-dock pointer-events-auto mx-auto flex max-w-[26rem] items-stretch justify-between rounded-[28px] px-1.5 py-1.5 backdrop-blur-2xl">
+        {mainItems.map((item) => (
+          <DockLink key={item.path} item={item} location={location} />
+        ))}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="More Options"
-                className="flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-2 text-[#8E8E93] transition-transform active:scale-95 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
-              >
-                <MoreHorizontal className="h-5 w-5" />
-                <span className="text-[10px] font-medium">More Options</span>
-
-              </button>
-            </DropdownMenuTrigger>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="More"
+              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1.5 py-2 text-[#8E8E93] transition-transform active:scale-95 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
+            >
+              <MoreHorizontal className="h-[18px] w-[18px]" />
+              <span className="text-[10px] font-medium leading-none">More</span>
+            </button>
+          </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 mb-2">
               {moreItems.map((item) => {
                 const Icon = item.icon;
