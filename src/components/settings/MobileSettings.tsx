@@ -208,6 +208,18 @@ export function MobileSettings(props: any) {
       <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
         <Group label="Business">
           <Row
+            icon={User}
+            tint="#0A84FF"
+            label="Profile identity"
+            value={
+              profileForm.full_name ||
+              user?.user_metadata?.full_name ||
+              user?.email?.split("@")[0] ||
+              "Set your name"
+            }
+            onClick={() => setPanel("profile")}
+          />
+          <Row
             icon={Store}
             tint="#e11d48"
             label="Business identity"
