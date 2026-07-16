@@ -772,4 +772,53 @@ function StatPill({ label, value, accent }: { label: string; value: number; acce
   );
 }
 
+function AvatarUploader({
+  value,
+  onFile,
+  uploading,
+  name,
+}: {
+  value: string;
+  onFile: (file: File) => void;
+  uploading: boolean;
+  name: string;
+}) {
+  const initials = (name || "S")
+    .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative">
+        <Avatar className="h-16 w-16 ring-2 ring-black/[0.05] dark:ring-white/10">
+          <AvatarImage src={value || undefined} />
+          <AvatarFallback className="bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        {uploading && (
+          <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+            <Loader2 className="w-4 h-4 text-white animate-spin" />
+          </div>
+        )}
+      </div>
+      <div className="flex-1">
+        <Label className="text-[#1C1C1E] dark:text-[#F2F2F7]">Profile photo</Label>
+        <p className="text-[11px] text-[#8E8E93] mb-2">PNG or JPG, up to 5MB</p>
+        <label className="inline-flex items-center gap-2 h-9 px-3 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] text-[13px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onFile(f);
+              e.currentTarget.value = "";
+            }}
+          />
+          {value ? "Change photo" : "Upload photo"}
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export default Stylists;
