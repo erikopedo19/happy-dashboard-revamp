@@ -241,8 +241,15 @@ export function MobileSettings(props: any) {
             icon={Link2}
             tint="#06b6d4"
             label="Booking link"
-            value="Share & embed"
+            value="Share, language & embed"
             onClick={() => setPanel("booking")}
+          />
+          <Row
+            icon={Clock}
+            tint="#3b82f6"
+            label="Agenda timing"
+            value={`${agendaForm.start_hour} – ${agendaForm.end_hour}`}
+            onClick={() => setPanel("agenda")}
           />
           <Row
             icon={Sparkles}
@@ -261,13 +268,6 @@ export function MobileSettings(props: any) {
         </Group>
 
         <Group label="Preferences">
-          <Row
-            icon={Clock}
-            tint="#3b82f6"
-            label="Agenda timing"
-            value={`${agendaForm.start_hour} – ${agendaForm.end_hour}`}
-            onClick={() => setPanel("agenda")}
-          />
           <Row
             icon={theme === "dark" ? Moon : Sun}
             tint="#a855f7"
@@ -559,23 +559,6 @@ export function MobileSettings(props: any) {
                   </select>
                   <p className="text-[11px] text-white/40 mt-1.5 px-1">
                     Booking slots for clients use this zone. Device: {formatTzLabel(getBrowserTimezone())}
-                  </p>
-                </Field>
-
-                {/* Booking language */}
-                <Field label="Booking language">
-                  <select
-                    value={brandForm.booking_locale || "en"}
-                    onChange={(e) =>
-                      setBrandForm((p: any) => ({ ...p, booking_locale: e.target.value }))
-                    }
-                    className="w-full h-12 rounded-2xl bg-white/[0.06] border border-white/10 text-white px-3 text-[14px]"
-                  >
-                    <option value="en" className="bg-[#111]">English</option>
-                    <option value="el" className="bg-[#111]">Greek (Ελληνικά)</option>
-                  </select>
-                  <p className="text-[11px] text-white/40 mt-1.5 px-1">
-                    Language used on the public booking page and client messages. Default: English.
                   </p>
                 </Field>
 

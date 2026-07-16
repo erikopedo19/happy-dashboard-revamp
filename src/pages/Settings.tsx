@@ -916,29 +916,6 @@ const Settings = () => {
                             </p>
                           </div>
 
-                          <div>
-                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
-                              Booking language
-                            </Label>
-                            <Select
-                              value={brandForm.booking_locale || "en"}
-                              onValueChange={(value) =>
-                                setBrandForm((prev) => ({ ...prev, booking_locale: value as "en" | "el" }))
-                              }
-                            >
-                              <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
-                                <SelectValue placeholder="Select language" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="en">English</SelectItem>
-                                <SelectItem value="el">Greek (Ελληνικά)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <p className="text-[11px] text-[#8E8E93] mt-1.5">
-                              Language used on your public booking page and client messages. Default: English.
-                            </p>
-                          </div>
-
                           <Separator />
 
                           {/* Appearance Card */}
