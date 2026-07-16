@@ -5,6 +5,7 @@ import { DashboardContent } from "@/components/DashboardContent";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { IdentitySuggestionPopup } from "@/components/IdentitySuggestionPopup";
+import { BookingStreakCard } from "@/components/BookingStreakCard";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
