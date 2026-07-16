@@ -37,6 +37,7 @@ import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { MobileDock } from "@/components/MobileDock";
+import { BookingStreakCard } from "@/components/BookingStreakCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 
@@ -208,6 +209,7 @@ export function MobileSettings(props: any) {
 
       {/* Grouped lists */}
       <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
+        <BookingStreakCard />
         <Group label="Business">
           <Row
             icon={User}

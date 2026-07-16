@@ -52,7 +52,7 @@ export function BookingStreakCard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="mx-5 mb-4 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-orange-500/[0.14] via-white/[0.04] to-transparent p-4 relative overflow-hidden"
+      className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4"
     >
       <div className="flex items-center gap-3">
         <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/30">

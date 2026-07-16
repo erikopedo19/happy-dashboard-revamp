@@ -5,7 +5,6 @@ import { DashboardContent } from "@/components/DashboardContent";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { IdentitySuggestionPopup } from "@/components/IdentitySuggestionPopup";
-import { BookingStreakCard } from "@/components/BookingStreakCard";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -200,7 +199,7 @@ function MobileDashboard() {
           </div>
         </div>
       </motion.header>
-      <BookingStreakCard />
+
 
 
       <div className="flex-1 overflow-y-auto px-5 space-y-4 pb-32">
