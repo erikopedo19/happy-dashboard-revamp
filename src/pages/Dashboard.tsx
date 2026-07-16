@@ -199,7 +199,7 @@ function MobileDashboard() {
           </div>
         </div>
       </motion.header>
-      <BookingStreakCard />
+
 
 
       <div className="flex-1 overflow-y-auto px-5 space-y-4 pb-32">
