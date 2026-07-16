@@ -113,15 +113,7 @@ export function MobileSettings(props: any) {
 
   return (
     <div className="min-h-screen w-full bg-[#0b0b0d] text-white relative overflow-x-hidden">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 -left-20 h-[26rem] w-[26rem] rounded-full bg-rose-500/20 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute top-1/3 -right-24 h-[22rem] w-[22rem] rounded-full bg-indigo-500/20 blur-[120px]"
-      />
+
 
       {/* Header */}
       <header className="relative z-10 px-6 pt-7 pb-4 flex items-end justify-between">
