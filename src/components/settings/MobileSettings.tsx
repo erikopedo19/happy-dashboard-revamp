@@ -319,6 +319,7 @@ export function MobileSettings(props: any) {
                     onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
                     folder="avatar"
                     circle
+                    maxSizeMB={avatarMaxMB}
                     className="shrink-0"
                   />
                   <div className="min-w-0">
