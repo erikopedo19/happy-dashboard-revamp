@@ -46,6 +46,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
+import { usePremium } from "@/hooks/use-premium";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
