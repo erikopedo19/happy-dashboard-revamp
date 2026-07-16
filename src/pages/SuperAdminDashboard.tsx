@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2 } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -58,6 +58,7 @@ export default function SuperAdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings">("users");
   const [showGoogleButton, setShowGoogleButton] = useState(true);
+  const [totalBookings, setTotalBookings] = useState(0);
   const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
   const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
@@ -103,6 +104,7 @@ export default function SuperAdminDashboard() {
       toast.error("Failed to load users", { description: error.message });
     } else {
       setRows(data?.users ?? []);
+      setTotalBookings(data?.totalBookings ?? 0);
       setShowGoogleButton(data?.settings?.auth?.show_google_button !== false);
     }
     setBusy(false);
@@ -252,10 +254,11 @@ export default function SuperAdminDashboard() {
       {tab === "users" && (
       <motion.div key="users" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <StatCard icon={<Users className="w-4 h-4" />} label="Total users" value={stats.total} />
           <StatCard icon={<Crown className="w-4 h-4 text-amber-500" />} label="Premium" value={stats.active} />
           <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Free" value={stats.free} />
+          <StatCard icon={<Calendar className="w-4 h-4 text-emerald-500" />} label="Bookings" value={totalBookings} />
         </div>
 
         <Card className="rounded-3xl">

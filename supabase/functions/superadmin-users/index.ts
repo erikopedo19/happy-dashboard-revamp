@@ -51,10 +51,11 @@ Deno.serve(async (req) => {
       }
       const ids = all.map((u) => u.id);
 
-      const [{ data: profiles }, { data: subs }, { data: authSettings }] = await Promise.all([
+      const [{ data: profiles }, { data: subs }, { data: authSettings }, { count: totalBookings }] = await Promise.all([
         admin.from("profiles").select("id, full_name, business_name, avatar_url, role").in("id", ids),
         admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, updated_at"),
         admin.from("app_settings").select("value").eq("key", "auth").maybeSingle(),
+        admin.from("appointments").select("id", { count: "exact", head: true }).neq("status", "cancelled"),
       ]);
       const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
       const sByUser = new Map((subs ?? []).filter((s: any) => s.user_id).map((s: any) => [s.user_id, s]));
@@ -77,7 +78,7 @@ Deno.serve(async (req) => {
         };
       });
 
-      return new Response(JSON.stringify({ users: rows, settings: { auth: authSettings?.value ?? { show_google_button: true } } }), {
+      return new Response(JSON.stringify({ users: rows, totalBookings: totalBookings ?? 0, settings: { auth: authSettings?.value ?? { show_google_button: true } } }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
