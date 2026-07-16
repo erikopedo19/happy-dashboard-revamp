@@ -637,6 +637,7 @@ const Stylists = () => {
             <DialogDescription className="text-[#8E8E93]">Add a new stylist to your salon team</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 px-6">
+            <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
               <Label htmlFor="name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
@@ -700,6 +701,7 @@ const Stylists = () => {
             <DialogDescription className="text-[#8E8E93]">Update stylist information</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 px-6">
+            <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
               <Label htmlFor="edit-name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
