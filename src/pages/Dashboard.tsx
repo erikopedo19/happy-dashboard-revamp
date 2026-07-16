@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
+import { IdentitySuggestionPopup } from "@/components/IdentitySuggestionPopup";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -176,6 +177,7 @@ function MobileDashboard() {
 
   return (
     <>
+      <IdentitySuggestionPopup />
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
