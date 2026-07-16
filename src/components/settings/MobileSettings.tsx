@@ -479,6 +479,23 @@ export function MobileSettings(props: any) {
                   </p>
                 </Field>
 
+                {/* Booking language */}
+                <Field label="Booking language">
+                  <select
+                    value={brandForm.booking_locale || "en"}
+                    onChange={(e) =>
+                      setBrandForm((p: any) => ({ ...p, booking_locale: e.target.value }))
+                    }
+                    className="w-full h-12 rounded-2xl bg-white/[0.06] border border-white/10 text-white px-3 text-[14px]"
+                  >
+                    <option value="en" className="bg-[#111]">English</option>
+                    <option value="el" className="bg-[#111]">Greek (Ελληνικά)</option>
+                  </select>
+                  <p className="text-[11px] text-white/40 mt-1.5 px-1">
+                    Language used on the public booking page and client messages. Default: English.
+                  </p>
+                </Field>
+
                 {/* Gradient save button */}
                 <motion.button
                   whileTap={{ scale: 0.98 }}
