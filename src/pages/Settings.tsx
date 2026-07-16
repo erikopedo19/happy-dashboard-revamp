@@ -170,6 +170,9 @@ const Settings = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
+  const bannerMaxMB = isPremium ? 8 : 2;
+  const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
