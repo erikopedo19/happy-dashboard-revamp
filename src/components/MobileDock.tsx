@@ -103,9 +103,8 @@ export const MobileDockInner = () => {
                   </DropdownMenuItem>
                 );
               })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
