@@ -13,6 +13,7 @@ type BrandImageUploadProps = {
   className?: string;
   helperText?: string;
   circle?: boolean;
+  maxSizeMB?: number;
 };
 
 export function BrandImageUpload({
@@ -23,6 +24,7 @@ export function BrandImageUpload({
   className,
   helperText,
   circle,
+  maxSizeMB = 2,
 }: BrandImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -36,6 +38,15 @@ export function BrandImageUpload({
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      toast({
+        title: "Image too large",
+        description: `Please upload an image under ${maxSizeMB}MB.`,
+        variant: "destructive",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
