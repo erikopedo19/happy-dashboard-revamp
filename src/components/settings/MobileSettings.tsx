@@ -209,6 +209,7 @@ export function MobileSettings(props: any) {
 
       {/* Grouped lists */}
       <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
+        <BookingStreakCard />
         <Group label="Business">
           <Row
             icon={User}
