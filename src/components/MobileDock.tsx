@@ -41,7 +41,7 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
     <Link
       to={item.path}
       className={cn(
-        'relative flex flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-1.5 transition-transform duration-150 active:scale-95',
+        'relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1.5 py-2 transition-transform duration-150 active:scale-95',
         isActive
           ? 'text-[#FF375F]'
           : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]'
@@ -50,12 +50,12 @@ const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<type
       {isActive && (
         <motion.span
           layoutId="admin-dock-active"
-          className="absolute inset-x-1 top-1 h-8 rounded-2xl bg-[#FF375F]/10"
+          className="absolute inset-x-0.5 inset-y-0.5 rounded-2xl bg-[#FF375F]/15"
           transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         />
       )}
-      <Icon className={cn('relative h-5 w-5 transition-transform', isActive && 'scale-110')} />
-      <span className={cn('relative text-[10px] font-medium', isActive && 'font-semibold')}>
+      <Icon className={cn('relative h-[18px] w-[18px] transition-transform', isActive && 'scale-110')} />
+      <span className={cn('relative text-[10px] font-medium leading-none', isActive && 'font-semibold')}>
         {item.label}
       </span>
     </Link>
