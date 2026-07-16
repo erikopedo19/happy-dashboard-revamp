@@ -16,6 +16,7 @@ export const ONBOARDING_STORAGE_KEY = "cutzio_onboarding_v1";
 export type OnboardingDraft = {
   role: "barber" | "client" | null;
   workType: "solo" | "team" | null;
+  teamInviteCode: string;
   businessName: string;
   yearsExperience: string;
   address: string;
