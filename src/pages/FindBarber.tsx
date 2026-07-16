@@ -257,7 +257,7 @@ const FindBarber = () => {
             >
               Find a barber
             </motion.h1>
-            <Link to="/settings">
+            <Link to="/me">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/10 hover:scale-95 transition-transform">
                 <User className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
               </Button>

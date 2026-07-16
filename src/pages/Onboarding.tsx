@@ -16,6 +16,7 @@ export const ONBOARDING_STORAGE_KEY = "cutzio_onboarding_v1";
 export type OnboardingDraft = {
   role: "barber" | "client" | null;
   workType: "solo" | "team" | null;
+  teamInviteCode: string;
   businessName: string;
   yearsExperience: string;
   address: string;
@@ -39,6 +40,7 @@ export type OnboardingDraft = {
 const DEFAULT_DRAFT: OnboardingDraft = {
   role: null,
   workType: null,
+  teamInviteCode: "",
   businessName: "",
   yearsExperience: "",
   address: "",
@@ -162,13 +164,21 @@ export default function Onboarding() {
               <h1 className="text-base font-semibold tracking-tight">Cutzio</h1>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate("/auth")}
-            className="text-xs font-medium text-white/60 hover:text-white transition"
-          >
-            Sign in
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href="mailto:support@cutzioo.com?subject=Onboarding%20help"
+              className="text-xs font-medium text-white/60 hover:text-white transition"
+            >
+              Need help?
+            </a>
+            <button
+              type="button"
+              onClick={() => navigate("/auth")}
+              className="text-xs font-medium text-white/60 hover:text-white transition"
+            >
+              Sign in
+            </button>
+          </div>
         </div>
 
         {/* Progress */}
@@ -242,6 +252,26 @@ export default function Onboarding() {
                       desc="I run or work with a team."
                     />
                   </div>
+
+                  {data.workType === "team" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-white">Joining an existing team?</p>
+                        <p className="text-xs text-white/55 mt-0.5">
+                          Paste the invite / referral link from your barbershop owner. Leave blank if you're setting up a new team — you'll get your own invite links after signup.
+                        </p>
+                      </div>
+                      <DarkInput
+                        value={data.teamInviteCode}
+                        onChange={(e) => update("teamInviteCode", e.target.value)}
+                        placeholder="Paste invite link or code (optional)"
+                      />
+                    </motion.div>
+                  )}
                 </>
               )}
 
