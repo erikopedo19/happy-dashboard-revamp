@@ -252,6 +252,26 @@ export default function Onboarding() {
                       desc="I run or work with a team."
                     />
                   </div>
+
+                  {data.workType === "team" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-white">Joining an existing team?</p>
+                        <p className="text-xs text-white/55 mt-0.5">
+                          Paste the invite / referral link from your barbershop owner. Leave blank if you're setting up a new team — you'll get your own invite links after signup.
+                        </p>
+                      </div>
+                      <DarkInput
+                        value={data.teamInviteCode}
+                        onChange={(e) => update("teamInviteCode", e.target.value)}
+                        placeholder="Paste invite link or code (optional)"
+                      />
+                    </motion.div>
+                  )}
                 </>
               )}
 
