@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, subDays, differenceInCalendarDays } from "date-fns";
+import { format, subDays } from "date-fns";
 import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 
