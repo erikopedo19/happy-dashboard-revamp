@@ -95,6 +95,13 @@ type BrandProfileRecord = {
   banner_url?: string;
 };
 
+type BusinessHourRecord = {
+  day_of_week: number;
+  open_time: string;
+  close_time: string;
+  is_closed: boolean;
+};
+
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
 const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } | null => {
   if (!url) return null;
@@ -143,6 +150,14 @@ const defaultBrandProfile: BrandProfileRecord = {
   banner_url: "",
 };
 
+const defaultBusinessHours = (start = "08:00", end = "18:00", workingDays: number[] = [0, 1, 2, 3, 4, 5, 6]): BusinessHourRecord[] =>
+  [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+    day_of_week: day,
+    open_time: start,
+    close_time: end,
+    is_closed: !workingDays.includes(day),
+  }));
+
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
   if (!value) return fallback;
   return value.substring(0, 5);
@@ -163,6 +178,8 @@ const Settings = () => {
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
   const [brandForm, setBrandForm] = useState<BrandProfileRecord>(defaultBrandProfile);
+  const [businessHours, setBusinessHours] = useState<BusinessHourRecord[]>(defaultBusinessHours());
+  const [useCustomHours, setUseCustomHours] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState({
     newBookings: true,
     reminders: true,
@@ -186,7 +203,7 @@ const Settings = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      const [agendaResult, profileResult] = await Promise.all([
+      const [agendaResult, profileResult, hoursResult] = await Promise.all([
         (supabase as any)
           .from("agenda_settings")
           .select("user_id, service_duration, start_hour, end_hour, working_days")
@@ -197,6 +214,11 @@ const Settings = () => {
           .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, onboarding_completed, timezone, booking_locale")
           .eq("id", user.id)
           .maybeSingle(),
+        (supabase as any)
+          .from("business_hours")
+          .select("day_of_week, open_time, close_time, is_closed")
+          .eq("user_id", user.id)
+          .order("day_of_week", { ascending: true }),
       ]);
 
       if (agendaResult.error && agendaResult.error.code !== "PGRST116") {
@@ -207,9 +229,14 @@ const Settings = () => {
         throw profileResult.error;
       }
 
+      if (hoursResult.error && hoursResult.error.code !== "PGRST116") {
+        throw hoursResult.error;
+      }
+
       return {
         agenda: agendaResult.data,
         profile: profileResult.data,
+        businessHours: hoursResult.data ?? [],
       };
     },
   });

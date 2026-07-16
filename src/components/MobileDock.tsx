@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Calendar, BarChart3, Scissors, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import type { ComponentType } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,9 +67,32 @@ export const MobileDock = () => null;
 export const MobileDockInner = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const current = window.scrollY;
+          if (current > lastScrollY && current > 60) setHidden(true);
+          else if (current < lastScrollY) setHidden(false);
+          lastScrollY = current;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-2.5 pb-[max(env(safe-area-inset-bottom),0.7rem)]">
+    <div className={cn(
+      "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-2.5 pb-[max(env(safe-area-inset-bottom),0.7rem)] transition-transform duration-300 ease-out",
+      hidden && "translate-y-[120%]"
+    )}>
       <div className="mobile-dock pointer-events-auto mx-auto flex max-w-[26rem] items-stretch justify-between rounded-[28px] px-1.5 py-1.5 backdrop-blur-2xl">
         {mainItems.map((item) => (
           <DockLink key={item.path} item={item} location={location} />
