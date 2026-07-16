@@ -164,13 +164,21 @@ export default function Onboarding() {
               <h1 className="text-base font-semibold tracking-tight">Cutzio</h1>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate("/auth")}
-            className="text-xs font-medium text-white/60 hover:text-white transition"
-          >
-            Sign in
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href="mailto:support@cutzioo.com?subject=Onboarding%20help"
+              className="text-xs font-medium text-white/60 hover:text-white transition"
+            >
+              Need help?
+            </a>
+            <button
+              type="button"
+              onClick={() => navigate("/auth")}
+              className="text-xs font-medium text-white/60 hover:text-white transition"
+            >
+              Sign in
+            </button>
+          </div>
         </div>
 
         {/* Progress */}
