@@ -298,6 +298,22 @@ export function MobileSettings(props: any) {
           <Sheet onClose={() => setPanel(null)} title={titleFor(panel)}>
             {panel === "profile" && (
               <PanelStack>
+                <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-4">
+                  <BrandImageUpload
+                    label=""
+                    path={brandForm.avatar_url}
+                    onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
+                    folder="avatar"
+                    circle
+                    className="shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-white truncate">
+                      {profileForm.full_name || brandForm.name || "Your name"}
+                    </p>
+                    <p className="text-[11px] text-white/50">Personal identity · shown on Find Barber</p>
+                  </div>
+                </div>
                 <Field label="Full name">
                   <Input
                     value={profileForm.full_name}
@@ -318,6 +334,18 @@ export function MobileSettings(props: any) {
                     className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
                   />
                 </Field>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save changes</>
+                  )}
+                </motion.button>
                 {user?.id && (
                   <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-1">
                     <PublicVisibilityCard userId={user.id} />
