@@ -525,6 +525,8 @@ const Settings = () => {
         updateDarkModeMutation={updateDarkModeMutation}
         isLoading={isLoading}
         navigate={navigate}
+        bannerMaxMB={bannerMaxMB}
+        avatarMaxMB={avatarMaxMB}
       />
     );
   }
