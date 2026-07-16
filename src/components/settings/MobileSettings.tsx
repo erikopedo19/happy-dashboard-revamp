@@ -94,6 +94,8 @@ export function MobileSettings(props: any) {
     saveMutation,
     updateDarkModeMutation,
     isLoading,
+    bannerMaxMB = 2,
+    avatarMaxMB = 2,
   } = props;
 
   const { toast } = useToast();
