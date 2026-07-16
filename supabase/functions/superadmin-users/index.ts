@@ -109,6 +109,41 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (body?.action === "update_fake_shops_settings") {
+      const enabled = body?.enabled === true;
+      const { error } = await admin
+        .from("app_settings")
+        .upsert({
+          key: "fake_shops",
+          value: { enabled },
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "key" });
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true, settings: { fake_shops: { enabled } } }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (body?.action === "generate_fake_shops") {
+      const count = Math.max(1, Math.min(200, Number(body?.count ?? 20)));
+      const shops = buildFakeShops(count);
+      const { error, data } = await admin.from("fake_barbershops").insert(shops).select("id");
+      if (error) throw error;
+      const { count: total } = await admin.from("fake_barbershops").select("*", { count: "exact", head: true });
+      return new Response(JSON.stringify({ ok: true, generated: data?.length ?? 0, total: total ?? 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (body?.action === "clear_fake_shops") {
+      const { error } = await admin.from("fake_barbershops").delete().gt("created_at", "1900-01-01");
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true, total: 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
     if (body?.action === "gift_newcomers") {
       const days = Number(body?.days ?? 10);
       const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
