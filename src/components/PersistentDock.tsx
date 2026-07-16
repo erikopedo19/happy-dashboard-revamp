@@ -35,15 +35,14 @@ export const PersistentDock = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const { isOpen: onboardingOpen } = useOnboardingVisibility();
 
   if (!isMobile) return null;
   if (HIDE_ON.includes(location.pathname)) return null;
   if (HIDE_PREFIX.some((p) => location.pathname.startsWith(p))) return null;
-  // Hide on landing page when logged out
   if (!user && location.pathname === "/") return null;
-
-  const { isOpen: onboardingOpen } = useOnboardingVisibility();
   if (onboardingOpen) return null;
+
 
   const role = (user?.user_metadata as any)?.role;
   const isClientRoute = CLIENT_ROUTES.some((r) => location.pathname.startsWith(r));
