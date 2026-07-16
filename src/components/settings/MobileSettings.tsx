@@ -94,6 +94,8 @@ export function MobileSettings(props: any) {
     saveMutation,
     updateDarkModeMutation,
     isLoading,
+    bannerMaxMB = 2,
+    avatarMaxMB = 2,
   } = props;
 
   const { toast } = useToast();
@@ -317,6 +319,7 @@ export function MobileSettings(props: any) {
                     onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
                     folder="avatar"
                     circle
+                    maxSizeMB={avatarMaxMB}
                     className="shrink-0"
                   />
                   <div className="min-w-0">
@@ -566,7 +569,8 @@ export function MobileSettings(props: any) {
                   path={brandForm.banner_url}
                   onChange={(url) => setBrandForm((p: any) => ({ ...p, banner_url: url }))}
                   folder="banner"
-                  helperText="Recommended 1200×400, max 2MB"
+                  maxSizeMB={bannerMaxMB}
+                  helperText={`Recommended 1200×400, max ${bannerMaxMB}MB`}
                   className="w-full"
                 />
 

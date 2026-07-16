@@ -46,6 +46,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
+import { usePremium } from "@/hooks/use-premium";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
@@ -169,6 +170,9 @@ const Settings = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
+  const bannerMaxMB = isPremium ? 8 : 2;
+  const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
@@ -521,6 +525,8 @@ const Settings = () => {
         updateDarkModeMutation={updateDarkModeMutation}
         isLoading={isLoading}
         navigate={navigate}
+        bannerMaxMB={bannerMaxMB}
+        avatarMaxMB={avatarMaxMB}
       />
     );
   }
@@ -1001,7 +1007,8 @@ const Settings = () => {
                               folder="banner"
                               onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
                               className="w-full"
-                              helperText="Best 1200×400. Shown at the top of your public profile."
+                              maxSizeMB={bannerMaxMB}
+                              helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
                             />
 
                             <BrandImageUpload
@@ -1010,7 +1017,8 @@ const Settings = () => {
                               folder="avatar"
                               circle
                               onChange={(url) => setBrandForm((prev) => ({ ...prev, avatar_url: url }))}
-                              helperText="Square image works best."
+                              maxSizeMB={avatarMaxMB}
+                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 5MB"}.`}
                             />
                           </div>
 

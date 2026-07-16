@@ -34,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { IdentitySuggestionPopup } from "@/components/IdentitySuggestionPopup";
 
 interface BarberProfile {
   id: string;
@@ -208,6 +209,8 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
+      <IdentitySuggestionPopup />
+
 
       {/* Sticky minimal header */}
       <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
