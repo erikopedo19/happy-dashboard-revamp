@@ -44,8 +44,11 @@ const Stylists = () => {
     name: "",
     title: "",
     specialties: "",
-    status: "available"
+    status: "available",
+    avatar_url: "" as string,
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useState<HTMLInputElement | null>(null)[0];
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; stylist: Stylist } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Stylist | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
