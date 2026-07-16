@@ -111,44 +111,47 @@ export function IdentitySuggestionPopup() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 40, opacity: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 30 }}
-          className="fixed left-1/2 -translate-x-1/2 z-[60] w-[min(92vw,380px)] bottom-24 sm:bottom-6"
+          className="fixed left-1/2 -translate-x-1/2 z-[60] w-[min(94vw,380px)] bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] sm:bottom-6"
         >
-          <div className="rounded-2xl bg-[#1C1C1E] text-white border border-white/10 shadow-2xl p-4 flex gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-amber-400 flex items-center justify-center shrink-0">
-              <config.icon className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold leading-tight">{config.title}</p>
-              <p className="text-[12px] text-white/60 mt-0.5">{config.body}</p>
-              <div className="flex items-center gap-2 mt-3">
-                <button
-                  onClick={goEdit}
-                  className="h-8 px-3 rounded-full bg-white text-[#1C1C1E] text-[12px] font-semibold inline-flex items-center gap-1"
-                >
-                  {config.cta} <ArrowRight className="h-3 w-3" />
-                </button>
-                <button
-                  onClick={dismiss}
-                  className="h-8 px-3 rounded-full bg-white/10 text-white/80 text-[12px] font-medium"
-                >
-                  Not now
-                </button>
-                <button
-                  onClick={never}
-                  className="h-8 px-2 text-[11px] text-white/45 hover:text-white/70"
-                >
-                  Never again
-                </button>
-              </div>
-            </div>
+          <div className="relative rounded-2xl bg-[#1C1C1E] text-white border border-white/10 shadow-2xl p-3.5 pr-9">
             <button
               onClick={dismiss}
               aria-label="Close"
-              className="h-7 w-7 rounded-full text-white/50 hover:text-white flex items-center justify-center"
+              className="absolute top-2 right-2 h-7 w-7 rounded-full text-white/50 hover:text-white flex items-center justify-center"
             >
               <X className="h-4 w-4" />
             </button>
+            <div className="flex gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-amber-400 flex items-center justify-center shrink-0">
+                <config.icon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-semibold leading-tight">{config.title}</p>
+                <p className="text-[12px] text-white/60 mt-0.5 leading-snug">{config.body}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <button
+                onClick={goEdit}
+                className="h-9 px-3.5 rounded-full bg-white text-[#1C1C1E] text-[12px] font-semibold inline-flex items-center gap-1"
+              >
+                {config.cta} <ArrowRight className="h-3 w-3" />
+              </button>
+              <button
+                onClick={dismiss}
+                className="h-9 px-3.5 rounded-full bg-white/10 text-white/80 text-[12px] font-medium"
+              >
+                Not now
+              </button>
+              <button
+                onClick={never}
+                className="ml-auto h-9 px-2 text-[11px] text-white/45 hover:text-white/70"
+              >
+                Never again
+              </button>
+            </div>
           </div>
+
         </motion.div>
       )}
     </AnimatePresence>
