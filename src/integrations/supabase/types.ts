@@ -1341,6 +1341,7 @@ export type Database = {
           banner_url: string
           booking_link: string
           brand_color: string
+          business_name: string
           description: string
           full_name: string
           id: string

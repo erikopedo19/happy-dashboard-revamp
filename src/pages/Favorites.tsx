@@ -89,7 +89,7 @@ const Favorites = () => {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                    {b.full_name || "Barber"}
+                    {b.business_name || b.full_name || "Barber"}
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">
                     <Star className="w-3.5 h-3.5 fill-[#FFB800] text-[#FFB800]" />
