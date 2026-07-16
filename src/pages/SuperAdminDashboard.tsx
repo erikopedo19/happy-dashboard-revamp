@@ -175,6 +175,45 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const updateFakeShopsEnabled = async (next: boolean) => {
+    setFakeShopsEnabled(next);
+    setFakeShopsBusy(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "update_fake_shops_settings", enabled: next },
+    });
+    setFakeShopsBusy(false);
+    if (error) {
+      toast.error("Update failed", { description: error.message });
+      setFakeShopsEnabled(!next);
+    } else {
+      toast.success(next ? "Fake barbershops turned ON" : "Fake barbershops turned OFF");
+    }
+  };
+
+  const generateFakeShops = async () => {
+    setFakeShopsBusy(true);
+    const { error, data } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "generate_fake_shops", count: fakeShopsToGenerate },
+    });
+    setFakeShopsBusy(false);
+    if (error) { toast.error("Generation failed", { description: error.message }); return; }
+    setFakeShopsCount(Number(data?.total ?? 0));
+    toast.success(`Generated ${data?.generated ?? 0} fake barbershops`);
+  };
+
+  const clearFakeShops = async () => {
+    if (!confirm("Delete ALL fake barbershops?")) return;
+    setFakeShopsBusy(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "clear_fake_shops" },
+    });
+    setFakeShopsBusy(false);
+    if (error) { toast.error("Clear failed", { description: error.message }); return; }
+    setFakeShopsCount(0);
+    toast.success("All fake barbershops removed");
+  };
+
+
   const quickToggle = async (row: Row, next: boolean) => {
     const optimistic = rows.map((r) => r.id === row.id ? {
       ...r,
