@@ -635,6 +635,18 @@ export function MobileSettings(props: any) {
                     }
                   />
                 </ListCard>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save business identity</>
+                  )}
+                </motion.button>
               </PanelStack>
             )}
 
