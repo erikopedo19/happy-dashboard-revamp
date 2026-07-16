@@ -365,6 +365,57 @@ export type Database = {
         }
         Relationships: []
       }
+      fake_barbershops: {
+        Row: {
+          avatar_url: string | null
+          banner_url: string | null
+          brand_color: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          id: string
+          latitude: number | null
+          locale: string | null
+          longitude: number | null
+          name: string
+          rating: number | null
+          rating_count: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          brand_color?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude?: number | null
+          locale?: string | null
+          longitude?: number | null
+          name: string
+          rating?: number | null
+          rating_count?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          brand_color?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude?: number | null
+          locale?: string | null
+          longitude?: number | null
+          name?: string
+          rating?: number | null
+          rating_count?: number | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
