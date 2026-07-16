@@ -27,6 +27,7 @@ const Me = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setRole, switching } = useRoleSwitch();
   const [waitlistAlerts, setWaitlistAlerts] = useState(true);
   const [waitlistSaving, setWaitlistSaving] = useState(false);
 
