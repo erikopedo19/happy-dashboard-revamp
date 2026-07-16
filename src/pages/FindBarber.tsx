@@ -121,9 +121,12 @@ const FindBarber = () => {
     queryKey: ["find-barbers"],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc("list_public_profiles");
-      if (error) throw error;
-      return (data || []).map((p: any): BarberProfile => ({
+      const [rpcRes, settingRes] = await Promise.all([
+        (supabase as any).rpc("list_public_profiles"),
+        (supabase as any).from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
+      ]);
+      if (rpcRes.error) throw rpcRes.error;
+      const real = (rpcRes.data || []).map((p: any): BarberProfile => ({
         id: p.id,
         full_name: p.full_name,
         business_name: p.business_name ?? null,
@@ -136,8 +139,38 @@ const FindBarber = () => {
         description: p.description ?? null,
         brandName: p.business_name || p.full_name || "Barber",
       }));
+
+      const fakeEnabled = settingRes?.data?.value?.enabled === true;
+      if (!fakeEnabled) return real;
+
+      const { data: fakes } = await (supabase as any)
+        .from("fake_barbershops")
+        .select("id, name, description, city, country, avatar_url, banner_url, brand_color, rating, rating_count");
+      const fakeMapped: BarberProfile[] = (fakes || []).map((f: any) => ({
+        id: `fake:${f.id}`,
+        full_name: f.name,
+        business_name: f.name,
+        booking_link: null,
+        brand_color: f.brand_color,
+        avatar_url: f.avatar_url ?? null,
+        banner_url: f.banner_url ?? null,
+        rating: f.rating,
+        rating_count: f.rating_count,
+        description: [f.description, [f.city, f.country].filter(Boolean).join(", ")].filter(Boolean).join(" · "),
+        brandName: f.name,
+      }));
+
+      // Interleave so fakes feel scattered, not clumped at the bottom.
+      const merged: BarberProfile[] = [];
+      const maxLen = Math.max(real.length, fakeMapped.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (i < real.length) merged.push(real[i]);
+        if (i < fakeMapped.length) merged.push(fakeMapped[i]);
+      }
+      return merged;
     },
   });
+
 
   // Bookings in the last 2 days that the current user hasn't rated yet.
   // Powers the "Rate" button on the Find Barber cards.

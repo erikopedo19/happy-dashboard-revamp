@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2 } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -58,6 +58,10 @@ export default function SuperAdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings">("users");
   const [showGoogleButton, setShowGoogleButton] = useState(true);
+  const [fakeShopsEnabled, setFakeShopsEnabled] = useState(false);
+  const [fakeShopsCount, setFakeShopsCount] = useState(0);
+  const [fakeShopsBusy, setFakeShopsBusy] = useState(false);
+  const [fakeShopsToGenerate, setFakeShopsToGenerate] = useState(20);
   const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
   const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
@@ -104,6 +108,8 @@ export default function SuperAdminDashboard() {
     } else {
       setRows(data?.users ?? []);
       setShowGoogleButton(data?.settings?.auth?.show_google_button !== false);
+      setFakeShopsEnabled(data?.settings?.fake_shops?.enabled === true);
+      setFakeShopsCount(Number(data?.settings?.fake_shops?.count ?? 0));
     }
     setBusy(false);
   };
@@ -168,6 +174,45 @@ export default function SuperAdminDashboard() {
       toast.success(next ? "Google button enabled" : "Google button hidden");
     }
   };
+
+  const updateFakeShopsEnabled = async (next: boolean) => {
+    setFakeShopsEnabled(next);
+    setFakeShopsBusy(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "update_fake_shops_settings", enabled: next },
+    });
+    setFakeShopsBusy(false);
+    if (error) {
+      toast.error("Update failed", { description: error.message });
+      setFakeShopsEnabled(!next);
+    } else {
+      toast.success(next ? "Fake barbershops turned ON" : "Fake barbershops turned OFF");
+    }
+  };
+
+  const generateFakeShops = async () => {
+    setFakeShopsBusy(true);
+    const { error, data } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "generate_fake_shops", count: fakeShopsToGenerate },
+    });
+    setFakeShopsBusy(false);
+    if (error) { toast.error("Generation failed", { description: error.message }); return; }
+    setFakeShopsCount(Number(data?.total ?? 0));
+    toast.success(`Generated ${data?.generated ?? 0} fake barbershops`);
+  };
+
+  const clearFakeShops = async () => {
+    if (!confirm("Delete ALL fake barbershops?")) return;
+    setFakeShopsBusy(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "clear_fake_shops" },
+    });
+    setFakeShopsBusy(false);
+    if (error) { toast.error("Clear failed", { description: error.message }); return; }
+    setFakeShopsCount(0);
+    toast.success("All fake barbershops removed");
+  };
+
 
   const quickToggle = async (row: Row, next: boolean) => {
     const optimistic = rows.map((r) => r.id === row.id ? {
@@ -397,13 +442,53 @@ export default function SuperAdminDashboard() {
               <CardTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> App settings</CardTitle>
               <CardDescription>Control global sign-in and platform features.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-5">
               <div className="flex items-center justify-between gap-4 rounded-3xl border border-border p-5">
                 <div>
                   <div className="font-medium">Show Google sign-in button</div>
                   <div className="text-sm text-muted-foreground">Turn this off to remove the Google button from the auth page for everyone.</div>
                 </div>
                 <Switch checked={showGoogleButton} disabled={saving} onCheckedChange={updateGoogleButton} />
+              </div>
+
+              <div className="rounded-3xl border border-border p-5 space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-medium">Fake barbershops on Find Barber</div>
+                    <div className="text-sm text-muted-foreground">
+                      When ON, the discovery page also shows generated barbershops with bios in Greek, Italian, Spanish, French, English and German.
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Currently stored: <span className="font-semibold text-foreground">{fakeShopsCount}</span></div>
+                  </div>
+                  <Switch checked={fakeShopsEnabled} disabled={fakeShopsBusy} onCheckedChange={updateFakeShopsEnabled} />
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border">
+                  <Label className="text-sm">Generate</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={fakeShopsToGenerate}
+                    onChange={(e) => setFakeShopsToGenerate(Math.max(1, Math.min(200, Number(e.target.value) || 1)))}
+                    className="w-24 h-9 rounded-full"
+                  />
+                  <Button
+                    onClick={generateFakeShops}
+                    disabled={fakeShopsBusy}
+                    className="rounded-full bg-white text-black hover:bg-white/90"
+                  >
+                    {fakeShopsBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    Generate now
+                  </Button>
+                  <Button
+                    onClick={clearFakeShops}
+                    disabled={fakeShopsBusy || fakeShopsCount === 0}
+                    variant="outline"
+                    className="rounded-full"
+                  >
+                    Clear all
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
