@@ -95,5 +95,5 @@ function buildLast7(set: Set<string>, today: Date) {
     const d = subDays(today, 6 - i);
     const key = format(d, "yyyy-MM-dd");
     return { key, label: format(d, "EEEEE"), active: set.has(key) };
-  }).map((d) => ({ ...d, _: differenceInCalendarDays }));
+  });
 }
