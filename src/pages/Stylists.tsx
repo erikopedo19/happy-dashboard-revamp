@@ -111,6 +111,7 @@ const Stylists = () => {
         title: data.title || null,
         specialties: specialtiesArray,
         status: data.status,
+        avatar_url: data.avatar_url || null,
         is_public: true,
         satisfaction: 5.0,
         bookings_today: 0
@@ -121,7 +122,7 @@ const Stylists = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stylists"] });
       setIsCreateDialogOpen(false);
-      setFormData({ name: "", title: "", specialties: "", status: "available" });
+      setFormData({ name: "", title: "", specialties: "", status: "available", avatar_url: "" });
       toast({ title: "Stylist created successfully" });
     },
     onError: (error: any) => {
@@ -147,7 +148,8 @@ const Stylists = () => {
           name: data.name,
           title: data.title || null,
           specialties: specialtiesArray,
-          status: data.status
+          status: data.status,
+          avatar_url: data.avatar_url || null,
         })
         .eq("id", data.id);
       
@@ -217,9 +219,30 @@ const Stylists = () => {
       name: stylist.name,
       title: stylist.title || "",
       specialties: stylist.specialties ? stylist.specialties.join(", ") : "",
-      status: stylist.status || "available"
+      status: stylist.status || "available",
+      avatar_url: stylist.avatar_url || "",
     });
     setIsEditDialogOpen(true);
+  };
+
+  // Upload stylist avatar to the shared brand-images bucket
+  const handleAvatarUpload = async (file: File) => {
+    if (!user || !file) return;
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/stylists/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await (supabase as any).storage
+        .from("brand-images")
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = (supabase as any).storage.from("brand-images").getPublicUrl(path);
+      setFormData((f) => ({ ...f, avatar_url: pub.publicUrl }));
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e?.message || "Try another image", variant: "destructive" });
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleDeleteClick = (stylist: Stylist) => {
