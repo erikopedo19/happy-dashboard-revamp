@@ -442,13 +442,53 @@ export default function SuperAdminDashboard() {
               <CardTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> App settings</CardTitle>
               <CardDescription>Control global sign-in and platform features.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-5">
               <div className="flex items-center justify-between gap-4 rounded-3xl border border-border p-5">
                 <div>
                   <div className="font-medium">Show Google sign-in button</div>
                   <div className="text-sm text-muted-foreground">Turn this off to remove the Google button from the auth page for everyone.</div>
                 </div>
                 <Switch checked={showGoogleButton} disabled={saving} onCheckedChange={updateGoogleButton} />
+              </div>
+
+              <div className="rounded-3xl border border-border p-5 space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-medium">Fake barbershops on Find Barber</div>
+                    <div className="text-sm text-muted-foreground">
+                      When ON, the discovery page also shows generated barbershops with bios in Greek, Italian, Spanish, French, English and German.
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Currently stored: <span className="font-semibold text-foreground">{fakeShopsCount}</span></div>
+                  </div>
+                  <Switch checked={fakeShopsEnabled} disabled={fakeShopsBusy} onCheckedChange={updateFakeShopsEnabled} />
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border">
+                  <Label className="text-sm">Generate</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={fakeShopsToGenerate}
+                    onChange={(e) => setFakeShopsToGenerate(Math.max(1, Math.min(200, Number(e.target.value) || 1)))}
+                    className="w-24 h-9 rounded-full"
+                  />
+                  <Button
+                    onClick={generateFakeShops}
+                    disabled={fakeShopsBusy}
+                    className="rounded-full bg-white text-black hover:bg-white/90"
+                  >
+                    {fakeShopsBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    Generate now
+                  </Button>
+                  <Button
+                    onClick={clearFakeShops}
+                    disabled={fakeShopsBusy || fakeShopsCount === 0}
+                    variant="outline"
+                    className="rounded-full"
+                  >
+                    Clear all
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
