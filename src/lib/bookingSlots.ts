@@ -62,6 +62,7 @@ export const getAvailableBookingSlots = ({
   bookedSlots,
   workingDays,
   timezone,
+  businessHours,
   stylistId,
   allowPastSlots = false,
 }: {
@@ -74,11 +75,14 @@ export const getAvailableBookingSlots = ({
   bookedSlots: BookedSlotLike[];
   workingDays?: number[] | null;
   timezone?: string | null;
+  businessHours?: Array<{ day_of_week: number; open_time: string; close_time: string; is_closed: boolean }>;
   stylistId?: string | null;
   allowPastSlots?: boolean;
 }) => {
+  const dayOfWeek = date.getDay();
+  const dayHours = businessHours?.find((hours) => hours.day_of_week === dayOfWeek);
   const days = workingDays ?? [0, 1, 2, 3, 4, 5, 6];
-  if (!days.includes(date.getDay())) return [];
+  if (!days.includes(dayOfWeek) || dayHours?.is_closed) return [];
 
   const tz = timezone || getBrowserTimezone();
   const selectedDate = dateKey(date);
@@ -87,12 +91,15 @@ export const getAvailableBookingSlots = ({
 
   const nowMinutes = minutesInTz(new Date(), tz);
   const isToday = selectedDate === today;
-  const openMin = parseTime(startHour);
-  const closeMin = parseTime(endHour);
+  const effectiveStart = dayHours?.open_time ?? startHour;
+  const effectiveEnd = dayHours?.close_time ?? endHour;
+  const openMin = parseTime(effectiveStart);
+  const closeMin = parseTime(effectiveEnd);
   const slotDuration = Math.max(serviceDuration || interval || 30, 1);
   const step = Math.max(interval || 30, 1);
+  const slots = dayHours ? generateBookingTimeSlots(effectiveStart, effectiveEnd, step) : allSlots;
 
-  return allSlots.filter((slot) => {
+  return slots.filter((slot) => {
     const slotMin = parseTime(slot);
     if (slotMin < openMin || slotMin + slotDuration > closeMin) return false;
     if ((slotMin - openMin) % step !== 0) return false;

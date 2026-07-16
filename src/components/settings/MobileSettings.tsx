@@ -87,6 +87,10 @@ export function MobileSettings(props: any) {
     setBrandForm,
     agendaForm,
     setAgendaForm,
+    businessHours,
+    setBusinessHours,
+    useCustomHours,
+    setUseCustomHours,
     toggleWorkingDay,
     notificationPrefs,
     setNotificationPrefs,
@@ -373,7 +377,7 @@ export function MobileSettings(props: any) {
                       During this time
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className={cn("flex items-center gap-3", useCustomHours && "opacity-50 pointer-events-none")}>
                     <div className="flex-1">
                       <input
                         type="time"
@@ -402,6 +406,85 @@ export function MobileSettings(props: any) {
                     <p className="text-[12px] text-rose-300 px-1 mt-2">
                       Closing time must be later than opening.
                     </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setUseCustomHours((v: boolean) => !v)}
+                    className={cn(
+                      "mt-3 w-full h-11 rounded-2xl text-[13px] font-semibold border transition flex items-center justify-center gap-2",
+                      useCustomHours
+                        ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                        : "bg-white/[0.06] text-white border-white/10"
+                    )}
+                  >
+                    {useCustomHours ? "Using custom hours" : "Set custom hours per day"}
+                  </button>
+
+                  {useCustomHours && (
+                    <div className="mt-3 space-y-2">
+                      {businessHours.map((h: any) => (
+                        <div
+                          key={h.day_of_week}
+                          className="flex items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 px-3 py-2"
+                        >
+                          <span className="w-8 text-[13px] font-medium text-white/80">
+                            {weekDays.find((d) => d.value === h.day_of_week)?.label}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setBusinessHours((prev: any) =>
+                                prev.map((row: any) =>
+                                  row.day_of_week === h.day_of_week
+                                    ? { ...row, is_closed: !row.is_closed }
+                                    : row
+                                )
+                              )
+                            }
+                            className={cn(
+                              "text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition min-w-[4.5rem]",
+                              h.is_closed
+                                ? "bg-white/10 text-white/40 border-white/10"
+                                : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                            )}
+                          >
+                            {h.is_closed ? "Closed" : "Open"}
+                          </button>
+                          <input
+                            type="time"
+                            value={h.open_time}
+                            disabled={h.is_closed}
+                            onChange={(e) =>
+                              setBusinessHours((prev: any) =>
+                                prev.map((row: any) =>
+                                  row.day_of_week === h.day_of_week
+                                    ? { ...row, open_time: e.target.value }
+                                    : row
+                                )
+                              )
+                            }
+                            className="flex-1 h-10 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[13px] outline-none focus:border-rose-500 disabled:opacity-30"
+                          />
+                          <span className="text-white/30 text-[11px]">to</span>
+                          <input
+                            type="time"
+                            value={h.close_time}
+                            disabled={h.is_closed}
+                            onChange={(e) =>
+                              setBusinessHours((prev: any) =>
+                                prev.map((row: any) =>
+                                  row.day_of_week === h.day_of_week
+                                    ? { ...row, close_time: e.target.value }
+                                    : row
+                                )
+                              )
+                            }
+                            className="flex-1 h-10 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[13px] outline-none focus:border-rose-500 disabled:opacity-30"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 
@@ -500,8 +583,8 @@ export function MobileSettings(props: any) {
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending || !hasValidHours || agendaForm.working_days.length === 0}
-                  className="w-full h-14 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(225,29,72,0.65)] flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={saveMutation.isPending || !hasValidHours || (useCustomHours ? !businessHours.some((h: any) => !h.is_closed) : agendaForm.working_days.length === 0)}
+                  className="w-full h-14 bg-rose-500 text-white text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -562,9 +645,9 @@ export function MobileSettings(props: any) {
             )}
 
             {panel === "booking" && (
-              <PanelStack>
+              <div className="-mx-4 -mb-4 bg-[#F2F2F7] p-4 text-[#1C1C1E]">
                 <BookingLinkGenerator />
-              </PanelStack>
+              </div>
             )}
 
             {panel === "subscription" && (

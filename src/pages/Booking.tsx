@@ -54,6 +54,7 @@ interface BusinessProfile {
   total_bookings?: number | null;
   services_count?: number | null;
   stylists_count?: number | null;
+  booking_locale?: "en" | "el" | null;
 }
 
 interface BookingError {
@@ -68,6 +69,14 @@ interface AgendaSettings {
   service_duration: number;
   working_days?: number[] | null;
   timezone?: string | null;
+  business_hours?: BusinessHour[];
+}
+
+interface BusinessHour {
+  day_of_week: number;
+  open_time: string;
+  close_time: string;
+  is_closed: boolean;
 }
 
 interface Appointment {
@@ -144,7 +153,15 @@ const Booking = () => {
         throw error;
       }
 
-      return profile as BusinessProfile;
+      const { data: localeProfile } = await (supabase.from('profiles' as any).select('booking_locale') as any)
+        .eq('id', profile.id)
+        .maybeSingle();
+      const requestedLocale = new URLSearchParams(window.location.search).get("lang");
+      const bookingLocale = requestedLocale === "el" || requestedLocale === "en"
+        ? requestedLocale
+        : localeProfile?.booking_locale === "el" ? "el" : "en";
+
+      return { ...profile, booking_locale: bookingLocale } as BusinessProfile;
     },
     retry: (failureCount, error: any) => {
       // Don't retry if it's a known error that won't resolve
@@ -219,20 +236,27 @@ const Booking = () => {
     queryFn: async () => {
       if (!businessProfile?.id) return null;
 
-      const [agendaRes, profileRes] = await Promise.all([
+      const [agendaRes, profileRes, hoursRes] = await Promise.all([
         (supabase.from('agenda_settings' as any).select('*') as any)
           .eq('user_id', businessProfile.id)
           .maybeSingle(),
         (supabase.from('profiles' as any).select('timezone') as any)
           .eq('id', businessProfile.id)
           .maybeSingle(),
+        (supabase.from('business_hours' as any).select('day_of_week, open_time, close_time, is_closed') as any)
+          .eq('user_id', businessProfile.id)
+          .order('day_of_week', { ascending: true }),
       ]);
 
       const base = (agendaRes?.error && agendaRes.error.code !== 'PGRST116')
         ? { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] }
         : (agendaRes?.data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] });
 
-      return { ...base, timezone: profileRes?.data?.timezone || null } as AgendaSettings;
+      return {
+        ...base,
+        timezone: profileRes?.data?.timezone || null,
+        business_hours: hoursRes?.error ? [] : (hoursRes?.data ?? []),
+      } as AgendaSettings;
     },
     enabled: !!businessProfile?.id,
   });
@@ -316,8 +340,10 @@ const Booking = () => {
   });
   useEffect(() => {
     if (settings) {
-      const slots = generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
-      setTimeSlots(slots);
+      const hours = settings.business_hours?.filter((hours) => !hours.is_closed) ?? [];
+      const start = hours.length ? hours.map((hours) => hours.open_time).sort()[0] : settings.start_hour;
+      const end = hours.length ? hours.map((hours) => hours.close_time).sort().at(-1) : settings.end_hour;
+      setTimeSlots(generateBookingTimeSlots(start, end, settings.service_duration));
     }
   }, [settings]);
 
@@ -375,6 +401,7 @@ const Booking = () => {
           bookedSlots: existingAppointments as BookedSlotLike[],
           workingDays: settings?.working_days,
           timezone: settings?.timezone,
+          businessHours: settings?.business_hours,
           stylistId: candidateStylistId,
         }).includes(time);
       });
@@ -415,6 +442,7 @@ const Booking = () => {
         bookedSlots: existingAppointments as BookedSlotLike[],
         workingDays: settings?.working_days,
         timezone: settings?.timezone,
+        businessHours: settings?.business_hours,
         stylistId: stylist.id,
       }).includes(selectedTime);
     });
@@ -475,6 +503,7 @@ const Booking = () => {
       bookedSlots: existingAppointments as BookedSlotLike[],
       workingDays: settings?.working_days,
       timezone: settings?.timezone,
+      businessHours: settings?.business_hours,
       stylistId,
     });
   };
@@ -725,6 +754,7 @@ const Booking = () => {
       businessProfile={businessProfile}
       workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
       timezone={settings?.timezone || getBrowserTimezone()}
+      locale={businessProfile?.booking_locale === "el" ? "el" : "en"}
     />
   );
 };

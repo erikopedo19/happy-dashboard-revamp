@@ -339,6 +339,25 @@ const Settings = () => {
       banner_url: data.profile?.banner_url ?? "",
     });
 
+    const normalizedHours =
+      data.businessHours?.length === 7
+        ? data.businessHours
+        : defaultBusinessHours(data.agenda?.start_hour, data.agenda?.end_hour, data.agenda?.working_days);
+    setBusinessHours(normalizedHours);
+
+    const defaultHours = defaultBusinessHours(
+      data.agenda?.start_hour,
+      data.agenda?.end_hour,
+      data.agenda?.working_days
+    );
+    const hasCustomHours = normalizedHours.some(
+      (h: any, i: number) =>
+        h.open_time !== defaultHours[i].open_time ||
+        h.close_time !== defaultHours[i].close_time ||
+        h.is_closed !== defaultHours[i].is_closed
+    );
+    setUseCustomHours(hasCustomHours);
+
     // Set dark mode from profile, default to dark mode
     const savedDarkMode = data.profile?.dark_mode;
     if (savedDarkMode !== undefined && savedDarkMode !== null) {
@@ -349,7 +368,12 @@ const Settings = () => {
     }
   }, [data, user, setTheme]);
 
-  const hasValidHours = useMemo(() => agendaForm.start_hour < agendaForm.end_hour, [agendaForm]);
+  const hasValidHours = useMemo(() => {
+    if (useCustomHours) {
+      return businessHours.every((h) => (h.is_closed ? true : h.open_time < h.close_time));
+    }
+    return agendaForm.start_hour < agendaForm.end_hour;
+  }, [agendaForm, businessHours, useCustomHours]);
 
   const generateTimeSlots = () => {
     if (!hasValidHours) return [];
@@ -391,16 +415,23 @@ const Settings = () => {
     mutationFn: async () => {
       if (!user) throw new Error("User not found");
       if (!hasValidHours) throw new Error("Opening hour must be earlier than closing hour");
-      if (agendaForm.working_days.length === 0) {
+      const hasWorkingDay = useCustomHours
+        ? businessHours.some((h) => !h.is_closed)
+        : agendaForm.working_days.length > 0;
+      if (!hasWorkingDay) {
         throw new Error("Select at least one working day");
       }
+
+      const customWorkingDays = useCustomHours
+        ? sortWorkingDays(businessHours.filter((h) => !h.is_closed).map((h) => h.day_of_week))
+        : agendaForm.working_days;
 
       const agendaPayload = {
         user_id: user.id,
         service_duration: agendaForm.service_duration,
         start_hour: agendaForm.start_hour,
         end_hour: agendaForm.end_hour,
-        working_days: agendaForm.working_days,
+        working_days: customWorkingDays,
       };
 
       // Auto-extract coordinates from a Google Maps URL if pasted
@@ -442,15 +473,23 @@ const Settings = () => {
       if (agendaResult.error) throw agendaResult.error;
       if (profileResult.error) throw profileResult.error;
 
-      // Keep business_hours in sync with agenda (single source of truth for public views)
+      // Keep business_hours in sync with agenda / custom hours
       try {
-        const hoursRows = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
-          user_id: user.id,
-          day_of_week: d,
-          open_time: agendaForm.start_hour,
-          close_time: agendaForm.end_hour,
-          is_closed: !agendaForm.working_days.includes(d),
-        }));
+        const hoursRows = useCustomHours
+          ? businessHours.map((h) => ({
+              user_id: user.id,
+              day_of_week: h.day_of_week,
+              open_time: h.open_time,
+              close_time: h.close_time,
+              is_closed: h.is_closed,
+            }))
+          : [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+              user_id: user.id,
+              day_of_week: d,
+              open_time: agendaForm.start_hour,
+              close_time: agendaForm.end_hour,
+              is_closed: !agendaForm.working_days.includes(d),
+            }));
         await (supabase as any).from("business_hours").delete().eq("user_id", user.id);
         await (supabase as any).from("business_hours").insert(hoursRows);
       } catch (e) {
@@ -547,6 +586,10 @@ const Settings = () => {
         setBrandForm={setBrandForm}
         agendaForm={agendaForm}
         setAgendaForm={setAgendaForm}
+        businessHours={businessHours}
+        setBusinessHours={setBusinessHours}
+        useCustomHours={useCustomHours}
+        setUseCustomHours={setUseCustomHours}
         toggleWorkingDay={toggleWorkingDay}
         notificationPrefs={notificationPrefs}
         setNotificationPrefs={setNotificationPrefs}

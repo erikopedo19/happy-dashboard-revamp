@@ -20,6 +20,7 @@ const BookingLinkGenerator = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
+  const [bookingLocale, setBookingLocale] = useState<"en" | "el">("en");
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -32,7 +33,7 @@ const BookingLinkGenerator = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
+        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
         .eq('id', user.id)
         .single();
 
@@ -47,7 +48,7 @@ const BookingLinkGenerator = () => {
               ask_notes: true,  // Default to true for new profiles
               brand_color: "#e11d48"
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
+            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
             .single();
 
           if (createError) throw createError;
@@ -66,6 +67,7 @@ const BookingLinkGenerator = () => {
     }
     setAskPhone(profile?.ask_phone ?? true);
     setAskNotes(profile?.ask_notes ?? true);
+    setBookingLocale(profile?.booking_locale === "el" ? "el" : "en");
   }, [profile]);
 
   const getBookingUrl = () => {
@@ -74,6 +76,7 @@ const BookingLinkGenerator = () => {
     const params = new URLSearchParams();
     if (askPhone) params.append('askPhone', 'true');
     if (askNotes) params.append('askNotes', 'true');
+    params.append('lang', bookingLocale);
     const queryString = params.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
@@ -109,6 +112,7 @@ const BookingLinkGenerator = () => {
           booking_link: customSlug.trim(),
           ask_phone: askPhone,
           ask_notes: askNotes,
+          booking_locale: bookingLocale,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -278,6 +282,22 @@ const BookingLinkGenerator = () => {
             )}
             Save booking link
           </Button>
+
+          {/* Booking language */}
+          <div className="border border-white/10 bg-white/5 px-4 py-3">
+            <Label htmlFor="bookingLocale" className="mb-2 block text-sm text-gray-300">
+              Booking page language
+            </Label>
+            <select
+              id="bookingLocale"
+              value={bookingLocale}
+              onChange={(event) => setBookingLocale(event.target.value as "en" | "el")}
+              className="h-10 w-full border border-white/10 bg-[#151519] px-3 text-sm text-white outline-none"
+            >
+              <option value="en">English (default)</option>
+              <option value="el">Greek (Ελληνικά)</option>
+            </select>
+          </div>
 
           {/* Toggles */}
           <div className="grid grid-cols-2 gap-3 pt-2">

@@ -51,6 +51,7 @@ interface AgendaBookingFormProps {
   workingDays?: number[];
   timezone?: string;
   rescheduleAppointment?: any;
+  locale?: "en" | "el";
 }
 
 const AgendaBookingForm = ({
@@ -70,6 +71,7 @@ const AgendaBookingForm = ({
   workingDays = [0, 1, 2, 3, 4, 5, 6],
   timezone = "UTC",
   rescheduleAppointment,
+  locale = "en",
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
@@ -81,6 +83,33 @@ const AgendaBookingForm = ({
   const displayName = businessProfile?.full_name || "Book an Appointment";
   const avatarUrl = businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
   const bannerUrl = businessProfile?.banner_url;
+  const copy = locale === "el"
+    ? {
+        service: "Επιλέξτε υπηρεσία",
+        dateTime: "Επιλέξτε ημερομηνία και ώρα",
+        details: "Τα στοιχεία σας",
+        continue: "Συνέχεια",
+        back: "Πίσω",
+        selectedService: "Επιλεγμένη υπηρεσία",
+        selectedServices: "Επιλεγμένες υπηρεσίες",
+        total: "Σύνολο",
+        bookAnother: "Νέα κράτηση",
+        booked: "Η κράτησή σας ολοκληρώθηκε",
+        confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
+      }
+    : {
+        service: "Select a service",
+        dateTime: "Choose date and time",
+        details: "Your details",
+        continue: "Continue",
+        back: "Back",
+        selectedService: "Selected service",
+        selectedServices: "Selected services",
+        total: "Total",
+        bookAnother: "Book another",
+        booked: "You’re booked",
+        confirmation: "Confirmation just landed in your inbox.",
+      };
 
   // Drop selected services that have been deleted and reset the flow if none remain.
   useEffect(() => {
@@ -222,12 +251,12 @@ const AgendaBookingForm = ({
             <Check className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-2xl font-semibold text-white mb-2">
-            {rescheduleAppointment ? 'Appointment updated' : "You're booked"}
+            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : "Appointment updated") : copy.booked}
           </h2>
           <p className="text-[#8E8E93] mb-6">
             {rescheduleAppointment
-              ? "Your appointment has been rescheduled successfully."
-              : "Confirmation just landed in your inbox."}
+              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : "Your appointment has been rescheduled successfully.")
+              : copy.confirmation}
           </p>
           <div className="rounded-3xl bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
             {selectedServices.map((service, index) => (
@@ -255,7 +284,7 @@ const AgendaBookingForm = ({
             className="h-12 px-8 rounded-[14px] font-semibold text-white"
             style={{ backgroundColor: accentColor }}
           >
-            Book another
+            {copy.bookAnother}
           </Button>
         </motion.div>
       </div>
@@ -263,7 +292,7 @@ const AgendaBookingForm = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white p-4 md:p-8 lg:p-12 flex items-center justify-center">
+    <div className="min-h-screen bg-[#F2F2F7] text-[#1C1C1E] p-3 md:p-8 lg:p-12 flex items-center justify-center">
       <div className="w-full max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
@@ -276,7 +305,7 @@ const AgendaBookingForm = ({
           >
             {/* Left panel — brand + booking info */}
             <div className="lg:sticky lg:top-8 space-y-4">
-              <div className="rounded-3xl bg-[#15151A] border border-white/[0.08] overflow-hidden">
+              <div className="bg-white border border-[#D1D1D6] overflow-hidden">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -309,7 +338,7 @@ const AgendaBookingForm = ({
                     <div className="mt-4 space-y-4">
                       <div>
                         <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">
-                          {selectedServices.length > 1 ? "Selected services" : "Selected service"}
+                          {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
                         </p>
                         <h2 className="text-lg font-semibold text-white">
                           {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
@@ -355,12 +384,12 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="rounded-3xl bg-[#15151A] border border-white/[0.08] p-5 md:p-8 min-h-[520px]">
+            <div className="bg-white border border-[#D1D1D6] p-4 md:p-8 min-h-[520px]">
               {step === "service" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-6">
-                    <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 1 of 3</p>
-                    <h2 className="text-2xl font-semibold text-white">Select a service</h2>
+                    <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
+                    <h2 className="text-2xl font-semibold text-[#1C1C1E]">{copy.service}</h2>
                   </div>
                   <div className="grid gap-3">
                     {services.map((service) => {
