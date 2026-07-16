@@ -706,6 +706,7 @@ export type Database = {
           avatar_url: string | null
           banner_url: string | null
           booking_link: string | null
+          booking_locale: string
           booking_theme: string | null
           brand_color: string | null
           business_name: string | null
@@ -734,6 +735,7 @@ export type Database = {
           years_experience: number | null
         }
         Insert: {
+          booking_locale?: string
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
@@ -770,6 +772,7 @@ export type Database = {
           years_experience?: number | null
         }
         Update: {
+          booking_locale?: string
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null

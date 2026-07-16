@@ -197,7 +197,7 @@ const BookingLinkGenerator = () => {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] bg-[#0A0A0C] text-white">
+    <div className="relative overflow-hidden bg-[#0A0A0C] text-white">
       {/* Hero gradient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#0A84FF]/25 blur-[100px]" />
@@ -207,7 +207,7 @@ const BookingLinkGenerator = () => {
       <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12">
         {/* Header */}
         <div className="text-center max-w-md mx-auto mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-white/10 mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 border border-white/10 mb-4">
             <LinkIcon className="h-5 w-5 text-white" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
@@ -220,7 +220,7 @@ const BookingLinkGenerator = () => {
 
         {/* Link card */}
         <div className="max-w-lg mx-auto space-y-4">
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 focus-within:border-white/20 focus-within:bg-white/[0.07] transition-all">
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-3.5 focus-within:border-white/20 focus-within:bg-white/[0.07] transition-all">
             <span className="text-sm text-gray-400 font-medium select-none">/book/</span>
             <input
               id="slug"
@@ -242,7 +242,7 @@ const BookingLinkGenerator = () => {
           {/* Actions */}
           {bookingUrl && (
             <div className="flex items-center gap-2">
-              <div className="flex-1 min-w-0 flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 h-11">
+              <div className="flex-1 min-w-0 flex items-center gap-2 bg-white/5 border border-white/10 px-4 h-11">
                 <LinkIcon className="h-4 w-4 text-gray-500 shrink-0" />
                 <span className="text-sm text-gray-300 truncate select-all">
                   {bookingUrl.replace(/^https?:\/\//, "")}
@@ -250,19 +250,19 @@ const BookingLinkGenerator = () => {
               </div>
               <button
                 onClick={copyToClipboard}
-                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                className="h-11 w-11 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
               >
                 <Copy className="h-4 w-4 text-white" />
               </button>
               <button
                 onClick={shareLink}
-                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                className="h-11 w-11 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
               >
                 <Share2 className="h-4 w-4 text-white" />
               </button>
               <button
                 onClick={openBookingPage}
-                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                className="h-11 w-11 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
               >
                 <ExternalLink className="h-4 w-4 text-white" />
               </button>
@@ -273,7 +273,7 @@ const BookingLinkGenerator = () => {
           <Button
             onClick={updateSlug}
             disabled={isGenerating || customSlug.trim().length === 0}
-            className="w-full h-12 rounded-2xl bg-white text-[#0A0A0C] font-semibold hover:bg-gray-100 transition-colors"
+            className="w-full h-12 bg-white text-[#0A0A0C] font-semibold hover:bg-gray-100 transition-colors"
           >
             {isGenerating ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -301,7 +301,7 @@ const BookingLinkGenerator = () => {
 
           {/* Toggles */}
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 px-4 py-3">
               <Label htmlFor="askPhone" className="text-sm text-gray-300 cursor-pointer">
                 Ask phone
               </Label>
@@ -311,7 +311,7 @@ const BookingLinkGenerator = () => {
                 onCheckedChange={(checked) => setAskPhone(checked as boolean)}
               />
             </div>
-            <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 px-4 py-3">
               <Label htmlFor="askNotes" className="text-sm text-gray-300 cursor-pointer">
                 Ask notes
               </Label>
