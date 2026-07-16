@@ -38,6 +38,7 @@ import { Seo } from "@/components/Seo";
 interface BarberProfile {
   id: string;
   full_name: string | null;
+  business_name: string | null;
   booking_link: string | null;
   brand_color: string | null;
   avatar_url: string | null;
@@ -124,6 +125,7 @@ const FindBarber = () => {
       return (data || []).map((p: any): BarberProfile => ({
         id: p.id,
         full_name: p.full_name,
+        business_name: p.business_name ?? null,
         booking_link: p.booking_link,
         brand_color: p.brand_color,
         avatar_url: p.avatar_url ?? null,
@@ -131,7 +133,7 @@ const FindBarber = () => {
         rating: p.rating ?? null,
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
-        brandName: p.full_name || "Barber",
+        brandName: p.business_name || p.full_name || "Barber",
       }));
     },
   });
