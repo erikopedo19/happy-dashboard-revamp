@@ -108,6 +108,8 @@ export default function SuperAdminDashboard() {
     } else {
       setRows(data?.users ?? []);
       setShowGoogleButton(data?.settings?.auth?.show_google_button !== false);
+      setFakeShopsEnabled(data?.settings?.fake_shops?.enabled === true);
+      setFakeShopsCount(Number(data?.settings?.fake_shops?.count ?? 0));
     }
     setBusy(false);
   };
