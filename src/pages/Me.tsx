@@ -258,6 +258,24 @@ const Me = () => {
         <motion.button
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, type: "spring", stiffness: 380, damping: 30 }}
+          onClick={() => setRole("barber")}
+          disabled={switching}
+          className="w-full rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4 flex items-center gap-3 active:scale-[0.98] transition-transform disabled:opacity-60"
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF9500] to-[#FF2D55] flex items-center justify-center shrink-0">
+            <Scissors className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">Switch to barber mode</div>
+            <div className="text-[11px] text-[#8E8E93]">Manage bookings, agenda & your chair</div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#C7C7CC]" />
+        </motion.button>
+
+        <motion.button
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, type: "spring", stiffness: 380, damping: 30 }}
           onClick={async () => {
             await signOut();
