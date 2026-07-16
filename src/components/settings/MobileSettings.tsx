@@ -567,7 +567,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending || !hasValidHours || (useCustomHours ? !businessHours.some((h: any) => !h.is_closed) : agendaForm.working_days.length === 0)}
-                  className="w-full h-14 bg-rose-500 text-white text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full h-14 rounded-2xl bg-rose-500 text-white text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -628,7 +628,7 @@ export function MobileSettings(props: any) {
             )}
 
             {panel === "booking" && (
-              <div className="-mx-4 -mb-4 bg-[#F2F2F7] p-4 text-[#1C1C1E]">
+              <div className="-mx-4 -mb-4">
                 <BookingLinkGenerator />
               </div>
             )}
