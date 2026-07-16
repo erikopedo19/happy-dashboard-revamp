@@ -675,6 +675,7 @@ export type Database = {
           review_email_delay_hours: number
           sender_email: string | null
           sender_name: string | null
+          show_public_reviews: boolean | null
           timezone: string | null
           updated_at: string
           website: string | null
@@ -710,6 +711,7 @@ export type Database = {
           review_email_delay_hours?: number
           sender_email?: string | null
           sender_name?: string | null
+          show_public_reviews?: boolean | null
           timezone?: string | null
           updated_at?: string
           website?: string | null
@@ -745,6 +747,7 @@ export type Database = {
           review_email_delay_hours?: number
           sender_email?: string | null
           sender_name?: string | null
+          show_public_reviews?: boolean | null
           timezone?: string | null
           updated_at?: string
           website?: string | null
@@ -939,6 +942,7 @@ export type Database = {
           avatar_url: string | null
           bookings_today: number | null
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_public: boolean | null
           name: string
@@ -955,6 +959,7 @@ export type Database = {
           avatar_url?: string | null
           bookings_today?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_public?: boolean | null
           name: string
@@ -971,6 +976,7 @@ export type Database = {
           avatar_url?: string | null
           bookings_today?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_public?: boolean | null
           name?: string
@@ -1213,6 +1219,7 @@ export type Database = {
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_pending_services: { Args: never; Returns: undefined }
+      cleanup_pending_stylists: { Args: never; Returns: undefined }
       create_public_booking: {
         Args: {
           p_appointment_date: string
@@ -1239,6 +1246,10 @@ export type Database = {
           service_id: string
           stylist_id: string
         }[]
+      }
+      get_business_analytics_summary: {
+        Args: { _business_id: string; _end_date: string; _start_date: string }
+        Returns: Json
       }
       get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
       get_my_bookings: {
