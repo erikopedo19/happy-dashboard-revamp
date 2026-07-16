@@ -40,6 +40,7 @@ export type OnboardingDraft = {
 const DEFAULT_DRAFT: OnboardingDraft = {
   role: null,
   workType: null,
+  teamInviteCode: "",
   businessName: "",
   yearsExperience: "",
   address: "",
