@@ -246,7 +246,12 @@ Deno.serve(async (req) => {
 
     if (body?.action === "generate_fake_shops") {
       const count = Math.max(1, Math.min(200, Number(body?.count ?? 20)));
-      const shops = buildFakeShops(count);
+      const shops = buildFakeShops(count).map((s) => ({
+        ...s,
+        brand_color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
+        rating: Math.round((4.2 + Math.random() * 0.8) * 10) / 10,
+        rating_count: Math.floor(20 + Math.random() * 400),
+      }));
       const { error, data } = await admin.from("fake_barbershops").insert(shops).select("id");
       if (error) throw error;
       const { count: total } = await admin.from("fake_barbershops").select("*", { count: "exact", head: true });
