@@ -44,8 +44,10 @@ const Stylists = () => {
     name: "",
     title: "",
     specialties: "",
-    status: "available"
+    status: "available",
+    avatar_url: "" as string,
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; stylist: Stylist } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Stylist | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -108,6 +110,7 @@ const Stylists = () => {
         title: data.title || null,
         specialties: specialtiesArray,
         status: data.status,
+        avatar_url: data.avatar_url || null,
         is_public: true,
         satisfaction: 5.0,
         bookings_today: 0
@@ -118,7 +121,7 @@ const Stylists = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stylists"] });
       setIsCreateDialogOpen(false);
-      setFormData({ name: "", title: "", specialties: "", status: "available" });
+      setFormData({ name: "", title: "", specialties: "", status: "available", avatar_url: "" });
       toast({ title: "Stylist created successfully" });
     },
     onError: (error: any) => {
@@ -144,7 +147,8 @@ const Stylists = () => {
           name: data.name,
           title: data.title || null,
           specialties: specialtiesArray,
-          status: data.status
+          status: data.status,
+          avatar_url: data.avatar_url || null,
         })
         .eq("id", data.id);
       
@@ -214,9 +218,30 @@ const Stylists = () => {
       name: stylist.name,
       title: stylist.title || "",
       specialties: stylist.specialties ? stylist.specialties.join(", ") : "",
-      status: stylist.status || "available"
+      status: stylist.status || "available",
+      avatar_url: stylist.avatar_url || "",
     });
     setIsEditDialogOpen(true);
+  };
+
+  // Upload stylist avatar to the shared brand-images bucket
+  const handleAvatarUpload = async (file: File) => {
+    if (!user || !file) return;
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/stylists/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await (supabase as any).storage
+        .from("brand-images")
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = (supabase as any).storage.from("brand-images").getPublicUrl(path);
+      setFormData((f) => ({ ...f, avatar_url: pub.publicUrl }));
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e?.message || "Try another image", variant: "destructive" });
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleDeleteClick = (stylist: Stylist) => {
@@ -612,6 +637,7 @@ const Stylists = () => {
             <DialogDescription className="text-[#8E8E93]">Add a new stylist to your salon team</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 px-6">
+            <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
               <Label htmlFor="name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
@@ -675,6 +701,7 @@ const Stylists = () => {
             <DialogDescription className="text-[#8E8E93]">Update stylist information</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 px-6">
+            <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
               <Label htmlFor="edit-name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
@@ -741,6 +768,55 @@ function StatPill({ label, value, accent }: { label: string; value: number; acce
     <div className="rounded-[18px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] px-4 py-3">
       <p className="text-[10px] uppercase tracking-wider text-[#8E8E93]">{label}</p>
       <p className={cn("text-[19px] font-semibold mt-0.5", color)}>{value}</p>
+    </div>
+  );
+}
+
+function AvatarUploader({
+  value,
+  onFile,
+  uploading,
+  name,
+}: {
+  value: string;
+  onFile: (file: File) => void;
+  uploading: boolean;
+  name: string;
+}) {
+  const initials = (name || "S")
+    .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative">
+        <Avatar className="h-16 w-16 ring-2 ring-black/[0.05] dark:ring-white/10">
+          <AvatarImage src={value || undefined} />
+          <AvatarFallback className="bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        {uploading && (
+          <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+            <Loader2 className="w-4 h-4 text-white animate-spin" />
+          </div>
+        )}
+      </div>
+      <div className="flex-1">
+        <Label className="text-[#1C1C1E] dark:text-[#F2F2F7]">Profile photo</Label>
+        <p className="text-[11px] text-[#8E8E93] mb-2">PNG or JPG, up to 5MB</p>
+        <label className="inline-flex items-center gap-2 h-9 px-3 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] text-[13px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onFile(f);
+              e.currentTarget.value = "";
+            }}
+          />
+          {value ? "Change photo" : "Upload photo"}
+        </label>
+      </div>
     </div>
   );
 }

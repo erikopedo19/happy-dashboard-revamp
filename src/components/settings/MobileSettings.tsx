@@ -37,6 +37,7 @@ import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { MobileDock } from "@/components/MobileDock";
+import { BookingStreakCard } from "@/components/BookingStreakCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 
@@ -94,6 +95,8 @@ export function MobileSettings(props: any) {
     saveMutation,
     updateDarkModeMutation,
     isLoading,
+    bannerMaxMB = 2,
+    avatarMaxMB = 2,
   } = props;
 
   const { toast } = useToast();
@@ -110,15 +113,7 @@ export function MobileSettings(props: any) {
 
   return (
     <div className="min-h-screen w-full bg-[#0b0b0d] text-white relative overflow-x-hidden">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 -left-20 h-[26rem] w-[26rem] rounded-full bg-rose-500/20 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute top-1/3 -right-24 h-[22rem] w-[22rem] rounded-full bg-indigo-500/20 blur-[120px]"
-      />
+
 
       {/* Header */}
       <header className="relative z-10 px-6 pt-7 pb-4 flex items-end justify-between">
@@ -206,7 +201,20 @@ export function MobileSettings(props: any) {
 
       {/* Grouped lists */}
       <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
+        <BookingStreakCard />
         <Group label="Business">
+          <Row
+            icon={User}
+            tint="#0A84FF"
+            label="Profile identity"
+            value={
+              profileForm.full_name ||
+              user?.user_metadata?.full_name ||
+              user?.email?.split("@")[0] ||
+              "Set your name"
+            }
+            onClick={() => setPanel("profile")}
+          />
           <Row
             icon={Store}
             tint="#e11d48"
@@ -298,6 +306,23 @@ export function MobileSettings(props: any) {
           <Sheet onClose={() => setPanel(null)} title={titleFor(panel)}>
             {panel === "profile" && (
               <PanelStack>
+                <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-4">
+                  <BrandImageUpload
+                    label=""
+                    path={brandForm.avatar_url}
+                    onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
+                    folder="avatar"
+                    circle
+                    maxSizeMB={avatarMaxMB}
+                    className="shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-white truncate">
+                      {profileForm.full_name || brandForm.name || "Your name"}
+                    </p>
+                    <p className="text-[11px] text-white/50">Personal identity · shown on Find Barber</p>
+                  </div>
+                </div>
                 <Field label="Full name">
                   <Input
                     value={profileForm.full_name}
@@ -318,6 +343,18 @@ export function MobileSettings(props: any) {
                     className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
                   />
                 </Field>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save changes</>
+                  )}
+                </motion.button>
                 {user?.id && (
                   <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-1">
                     <PublicVisibilityCard userId={user.id} />
@@ -526,7 +563,8 @@ export function MobileSettings(props: any) {
                   path={brandForm.banner_url}
                   onChange={(url) => setBrandForm((p: any) => ({ ...p, banner_url: url }))}
                   folder="banner"
-                  helperText="Recommended 1200×400, max 2MB"
+                  maxSizeMB={bannerMaxMB}
+                  helperText={`Recommended 1200×400, max ${bannerMaxMB}MB`}
                   className="w-full"
                 />
 
@@ -607,6 +645,18 @@ export function MobileSettings(props: any) {
                     }
                   />
                 </ListCard>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save business identity</>
+                  )}
+                </motion.button>
               </PanelStack>
             )}
 

@@ -29,6 +29,126 @@ async function requireSuperAdmin(req: Request) {
   return data.user;
 }
 
+type FakeShop = {
+  name: string; description: string; city: string; country: string; locale: string;
+  latitude: number; longitude: number;
+};
+
+const FAKE_POOLS: Record<string, { shops: string[]; bios: string[]; cities: { city: string; lat: number; lng: number }[]; country: string }> = {
+  el: {
+    country: "Greece",
+    shops: ["Κουρείο Ακρόπολις", "Barber Olympus", "Το Ξυράφι", "Aegean Cuts", "Κουρείο Ερμής", "Athens Fade Co.", "Barbershop Παρθενών", "Λευκός Πύργος Cuts", "Kolonaki Grooming", "Kifisia Blades"],
+    bios: [
+      "Παραδοσιακό κούρεμα με μοντέρνο στιλ στην καρδιά της Αθήνας.",
+      "Ζεστό ξύρισμα, κλασικά fade και ολίγον από ρακή. Καλώς ήρθες.",
+      "Δύο γενιές κουρέων. Το ραντεβού σου είναι πάντα έτοιμο.",
+      "Skin fades, γενειάδες και καφές freddo από νωρίς το πρωί.",
+    ],
+    cities: [
+      { city: "Athens", lat: 37.9838, lng: 23.7275 },
+      { city: "Thessaloniki", lat: 40.6401, lng: 22.9444 },
+      { city: "Patras", lat: 38.2466, lng: 21.7346 },
+      { city: "Heraklion", lat: 35.3387, lng: 25.1442 },
+    ],
+  },
+  it: {
+    country: "Italy",
+    shops: ["Barberia Roma", "Il Rasoio d'Oro", "Milano Cuts", "Barberia Napoli", "Firenze Blades", "La Bottega del Barbiere", "Barberia Vespa"],
+    bios: [
+      "Rasatura calda, cura della barba e un espresso mentre aspetti.",
+      "Taglio classico italiano dal 1998, sempre su appuntamento.",
+      "Studio moderno, fade precisi e styling per ogni occasione.",
+    ],
+    cities: [
+      { city: "Rome", lat: 41.9028, lng: 12.4964 },
+      { city: "Milan", lat: 45.4642, lng: 9.19 },
+      { city: "Naples", lat: 40.8518, lng: 14.2681 },
+    ],
+  },
+  es: {
+    country: "Spain",
+    shops: ["Barbería Madrid", "El Corte del Rey", "Barcelona Fade", "Sevilla Blades", "La Navaja"],
+    bios: [
+      "Cortes clásicos y modernos con toque mediterráneo.",
+      "Afeitado a navaja, tratamiento de barba y buen café.",
+      "Estilo urbano en el corazón de la ciudad.",
+    ],
+    cities: [
+      { city: "Madrid", lat: 40.4168, lng: -3.7038 },
+      { city: "Barcelona", lat: 41.3874, lng: 2.1686 },
+      { city: "Valencia", lat: 39.4699, lng: -0.3763 },
+    ],
+  },
+  fr: {
+    country: "France",
+    shops: ["Barbier de Paris", "Le Rasoir", "Lyon Cuts", "Marseille Blades", "Coupe & Style"],
+    bios: [
+      "Coupes soignées et rasage traditionnel au coeur de la ville.",
+      "L'art du barbier depuis trois générations.",
+      "Ambiance feutrée, service impeccable.",
+    ],
+    cities: [
+      { city: "Paris", lat: 48.8566, lng: 2.3522 },
+      { city: "Lyon", lat: 45.7640, lng: 4.8357 },
+      { city: "Marseille", lat: 43.2965, lng: 5.3698 },
+    ],
+  },
+  en: {
+    country: "United Kingdom",
+    shops: ["London Fade Co.", "Sharp & Co Barbers", "The Gentlemen's Cut", "East End Blades", "Soho Barbershop"],
+    bios: [
+      "Skin fades, beard sculpting and a proper cup of coffee.",
+      "Classic barbering with a modern edge since 2015.",
+      "Walk-ins welcome, appointments recommended.",
+    ],
+    cities: [
+      { city: "London", lat: 51.5074, lng: -0.1278 },
+      { city: "Manchester", lat: 53.4808, lng: -2.2426 },
+      { city: "Birmingham", lat: 52.4862, lng: -1.8904 },
+    ],
+  },
+  de: {
+    country: "Germany",
+    shops: ["Berliner Barbier", "Hamburg Cuts", "Der Rasierer", "München Blades"],
+    bios: [
+      "Klassische Herrenschnitte und Bartpflege in entspannter Atmosphäre.",
+      "Präzise Fades und Nassrasur mit heißen Tüchern.",
+    ],
+    cities: [
+      { city: "Berlin", lat: 52.52, lng: 13.405 },
+      { city: "Hamburg", lat: 53.5511, lng: 9.9937 },
+      { city: "Munich", lat: 48.1351, lng: 11.582 },
+    ],
+  },
+};
+
+const BRAND_COLORS = ["#e0c4a8", "#0A84FF", "#FF375F", "#30D158", "#FF9F0A", "#BF5AF2", "#5E5CE6", "#64D2FF"];
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function buildFakeShops(count: number): FakeShop[] {
+  const pools = Object.entries(FAKE_POOLS);
+  const out: FakeShop[] = [];
+  for (let i = 0; i < count; i++) {
+    const [locale, pool] = pick(pools);
+    const spot = pick(pool.cities);
+    const name = pick(pool.shops);
+    const bio = pick(pool.bios);
+    const jitter = () => (Math.random() - 0.5) * 0.08;
+    out.push({
+      name,
+      description: bio,
+      city: spot.city,
+      country: pool.country,
+      locale,
+      latitude: spot.lat + jitter(),
+      longitude: spot.lng + jitter(),
+    });
+  }
+  return out;
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const me = await requireSuperAdmin(req);
@@ -51,11 +171,13 @@ Deno.serve(async (req) => {
       }
       const ids = all.map((u) => u.id);
 
-      const [{ data: profiles }, { data: subs }, { data: authSettings }, { count: totalBookings }] = await Promise.all([
+      const [{ data: profiles }, { data: subs }, { data: authSettings }, { data: fakeShopsSettings }, { count: totalBookings }, { count: fakeShopsCount }] = await Promise.all([
         admin.from("profiles").select("id, full_name, business_name, avatar_url, role").in("id", ids),
         admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, updated_at"),
         admin.from("app_settings").select("value").eq("key", "auth").maybeSingle(),
+        admin.from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
         admin.from("appointments").select("id", { count: "exact", head: true }).neq("status", "cancelled"),
+        admin.from("fake_barbershops").select("*", { count: "exact", head: true }),
       ]);
       const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
       const sByUser = new Map((subs ?? []).filter((s: any) => s.user_id).map((s: any) => [s.user_id, s]));
@@ -78,7 +200,14 @@ Deno.serve(async (req) => {
         };
       });
 
-      return new Response(JSON.stringify({ users: rows, totalBookings: totalBookings ?? 0, settings: { auth: authSettings?.value ?? { show_google_button: true } } }), {
+      return new Response(JSON.stringify({
+        users: rows,
+        totalBookings: totalBookings ?? 0,
+        settings: {
+          auth: authSettings?.value ?? { show_google_button: true },
+          fake_shops: { ...(fakeShopsSettings?.value ?? { enabled: false }), count: fakeShopsCount ?? 0 },
+        },
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -101,6 +230,46 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    if (body?.action === "update_fake_shops_settings") {
+      const enabled = body?.enabled === true;
+      const { error } = await admin
+        .from("app_settings")
+        .upsert({
+          key: "fake_shops",
+          value: { enabled },
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "key" });
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true, settings: { fake_shops: { enabled } } }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (body?.action === "generate_fake_shops") {
+      const count = Math.max(1, Math.min(200, Number(body?.count ?? 20)));
+      const shops = buildFakeShops(count).map((s) => ({
+        ...s,
+        brand_color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
+        rating: Math.round((4.2 + Math.random() * 0.8) * 10) / 10,
+        rating_count: Math.floor(20 + Math.random() * 400),
+      }));
+      const { error, data } = await admin.from("fake_barbershops").insert(shops).select("id");
+      if (error) throw error;
+      const { count: total } = await admin.from("fake_barbershops").select("*", { count: "exact", head: true });
+      return new Response(JSON.stringify({ ok: true, generated: data?.length ?? 0, total: total ?? 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (body?.action === "clear_fake_shops") {
+      const { error } = await admin.from("fake_barbershops").delete().gt("created_at", "1900-01-01");
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true, total: 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     if (body?.action === "gift_newcomers") {
       const days = Number(body?.days ?? 10);

@@ -34,10 +34,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { IdentitySuggestionPopup } from "@/components/IdentitySuggestionPopup";
 
 interface BarberProfile {
   id: string;
   full_name: string | null;
+  business_name: string | null;
   booking_link: string | null;
   brand_color: string | null;
   avatar_url: string | null;
@@ -119,11 +121,15 @@ const FindBarber = () => {
     queryKey: ["find-barbers"],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc("list_public_profiles");
-      if (error) throw error;
-      return (data || []).map((p: any): BarberProfile => ({
+      const [rpcRes, settingRes] = await Promise.all([
+        (supabase as any).rpc("list_public_profiles"),
+        (supabase as any).from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
+      ]);
+      if (rpcRes.error) throw rpcRes.error;
+      const real = (rpcRes.data || []).map((p: any): BarberProfile => ({
         id: p.id,
         full_name: p.full_name,
+        business_name: p.business_name ?? null,
         booking_link: p.booking_link,
         brand_color: p.brand_color,
         avatar_url: p.avatar_url ?? null,
@@ -131,10 +137,40 @@ const FindBarber = () => {
         rating: p.rating ?? null,
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
-        brandName: p.full_name || "Barber",
+        brandName: p.business_name || p.full_name || "Barber",
       }));
+
+      const fakeEnabled = settingRes?.data?.value?.enabled === true;
+      if (!fakeEnabled) return real;
+
+      const { data: fakes } = await (supabase as any)
+        .from("fake_barbershops")
+        .select("id, name, description, city, country, avatar_url, banner_url, brand_color, rating, rating_count");
+      const fakeMapped: BarberProfile[] = (fakes || []).map((f: any) => ({
+        id: `fake:${f.id}`,
+        full_name: f.name,
+        business_name: f.name,
+        booking_link: null,
+        brand_color: f.brand_color,
+        avatar_url: f.avatar_url ?? null,
+        banner_url: f.banner_url ?? null,
+        rating: f.rating,
+        rating_count: f.rating_count,
+        description: [f.description, [f.city, f.country].filter(Boolean).join(", ")].filter(Boolean).join(" · "),
+        brandName: f.name,
+      }));
+
+      // Interleave so fakes feel scattered, not clumped at the bottom.
+      const merged: BarberProfile[] = [];
+      const maxLen = Math.max(real.length, fakeMapped.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (i < real.length) merged.push(real[i]);
+        if (i < fakeMapped.length) merged.push(fakeMapped[i]);
+      }
+      return merged;
     },
   });
+
 
   // Bookings in the last 2 days that the current user hasn't rated yet.
   // Powers the "Rate" button on the Find Barber cards.
@@ -206,6 +242,8 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
+      <IdentitySuggestionPopup />
+
 
       {/* Sticky minimal header */}
       <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
@@ -219,7 +257,7 @@ const FindBarber = () => {
             >
               Find a barber
             </motion.h1>
-            <Link to="/settings">
+            <Link to="/me">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/10 hover:scale-95 transition-transform">
                 <User className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
               </Button>
