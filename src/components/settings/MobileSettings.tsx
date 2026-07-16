@@ -569,7 +569,8 @@ export function MobileSettings(props: any) {
                   path={brandForm.banner_url}
                   onChange={(url) => setBrandForm((p: any) => ({ ...p, banner_url: url }))}
                   folder="banner"
-                  helperText="Recommended 1200×400, max 2MB"
+                  maxSizeMB={bannerMaxMB}
+                  helperText={`Recommended 1200×400, max ${bannerMaxMB}MB`}
                   className="w-full"
                 />
 
