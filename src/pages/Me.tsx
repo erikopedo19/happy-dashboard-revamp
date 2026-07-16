@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
+import { useRoleSwitch } from "@/hooks/use-role-switch";
 
 interface BookingRow {
   id: string;
