@@ -111,7 +111,7 @@ export function IdentitySuggestionPopup() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 40, opacity: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 30 }}
-          className="fixed left-1/2 -translate-x-1/2 z-[60] w-[min(94vw,380px)] bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] sm:bottom-6"
+          className="fixed inset-x-3 z-[60] mx-auto max-w-[380px] bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:bottom-6"
         >
           <div className="relative rounded-2xl bg-[#1C1C1E] text-white border border-white/10 shadow-2xl p-3.5 pr-9">
             <button
