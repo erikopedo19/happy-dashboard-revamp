@@ -33,7 +33,7 @@ const BookingLinkGenerator = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
+        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale, avatar_url, banner_url')
         .eq('id', user.id)
         .single();
 
@@ -48,7 +48,7 @@ const BookingLinkGenerator = () => {
               ask_notes: true,  // Default to true for new profiles
               brand_color: "#e11d48"
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
+            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale, avatar_url, banner_url')
             .single();
 
           if (createError) throw createError;
@@ -211,6 +211,23 @@ const BookingLinkGenerator = () => {
             Share one simple link so clients can book with you.
           </p>
         </div>
+
+        {/* Barber avatar preview */}
+        {profile?.avatar_url && (
+          <div className="max-w-lg mx-auto mb-4 flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+            <img
+              src={profile.avatar_url}
+              alt={profile.full_name || "Barber"}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white truncate">
+                {profile.full_name || "Your name"}
+              </p>
+              <p className="text-xs text-gray-400">Clients see this on your booking page</p>
+            </div>
+          </div>
+        )}
 
         {/* Link card */}
         <div className="max-w-lg mx-auto space-y-4">
