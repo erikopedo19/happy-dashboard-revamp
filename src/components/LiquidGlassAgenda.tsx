@@ -108,7 +108,24 @@ export const LiquidGlassAgenda = ({
   const queryClient = useQueryClient();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
+  const isAppointmentPast = (apt: Appointment) => {
+    const [hh, mm] = (apt.appointment_time || "00:00").split(":").map(Number);
+    const d = new Date(apt.appointment_date);
+    d.setHours(hh || 0, mm || 0, 0, 0);
+    return d.getTime() < Date.now();
+  };
+
   const cancelAppointment = async (id: string) => {
+    const target = appointments.find((a) => a.id === id);
+    if (target && isAppointmentPast(target)) {
+      toast({
+        title: "Can't cancel past appointments",
+        description: "This booking has already passed.",
+        variant: "destructive",
+      });
+      setContextMenu(null);
+      return;
+    }
     setCancellingId(id);
     try {
       const { error } = await (supabase as any)
@@ -663,7 +680,8 @@ export const LiquidGlassAgenda = ({
                     const slotsSpanned = Math.max(Math.ceil(duration / slotInterval), 1);
                     const minHeight = Math.max(slotsSpanned * 64, 56);
                     const isCompleted = apt.status === 'completed';
-                    const serviceColor = apt.service.color || '#22c55e';
+                    const isCancelled = apt.status === 'cancelled';
+                    const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
 
                     return (
                       <div key={apt.id} className="pl-[60px] pr-0 mb-2">
@@ -677,15 +695,21 @@ export const LiquidGlassAgenda = ({
                           className={cn(
                             "w-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
                             "border",
-                            isDark
-                              ? "border-white/10 shadow-lg shadow-black/20"
-                              : "border-gray-200/60 shadow-sm"
+                            isCancelled
+                              ? (isDark
+                                  ? "border-red-500/25 border-dashed opacity-60 shadow-none"
+                                  : "border-red-300/60 border-dashed opacity-70 shadow-none")
+                              : (isDark
+                                  ? "border-white/10 shadow-lg shadow-black/20"
+                                  : "border-gray-200/60 shadow-sm")
                           )}
                           style={{
                             minHeight: `${minHeight}px`,
-                            background: getGlassGradient(serviceColor, isDark),
-                            backdropFilter: 'blur(40px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                            background: isCancelled
+                              ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
+                              : getGlassGradient(serviceColor, isDark),
+                            backdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
+                            WebkitBackdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
                           }}
                         >
                           {/* Glass shine effect */}
@@ -715,9 +739,16 @@ export const LiquidGlassAgenda = ({
                               <div className="flex-1 min-w-0">
                                 <h3 className={cn(
                                   "text-[15px] font-semibold leading-tight truncate",
+                                  isCancelled && "line-through",
                                   isDark ? "text-white" : "text-gray-900"
                                 )}>
                                   {apt.service.name}
+                                  {isCancelled && (
+                                    <span className={cn(
+                                      "ml-2 no-underline inline-block align-middle text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md",
+                                      isDark ? "bg-red-500/20 text-red-300" : "bg-red-100 text-red-600"
+                                    )}>Cancelled</span>
+                                  )}
                                 </h3>
                                 <div className="flex items-center gap-1.5 mt-1">
                                   <User className={cn("w-3 h-3", isDark ? "text-white/50" : "text-gray-500")} />
@@ -923,7 +954,7 @@ export const LiquidGlassAgenda = ({
                 )}
               </div>
 
-              {contextMenu.appointment.status !== "cancelled" && (
+              {contextMenu.appointment.status !== "cancelled" && !isAppointmentPast(contextMenu.appointment) && (
                 <button
                   onClick={() => {
                     if (cancellingId) return;
