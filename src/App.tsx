@@ -49,7 +49,7 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
-import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
+
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import Microsite from "./pages/Microsite";
@@ -186,7 +186,7 @@ function App() {
                 <GlimmIntercept />
                 <AnimatedRoutes />
                 <NotificationBell />
-                <PremiumGiftPopup />
+                
                 <PersistentDock />
               </GlimmProvider>
             </OnboardingProvider>

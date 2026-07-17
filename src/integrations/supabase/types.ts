@@ -735,7 +735,6 @@ export type Database = {
           years_experience: number | null
         }
         Insert: {
-          booking_locale?: string
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
@@ -744,6 +743,7 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           booking_link?: string | null
+          booking_locale?: string
           booking_theme?: string | null
           brand_color?: string | null
           business_name?: string | null
@@ -772,7 +772,6 @@ export type Database = {
           years_experience?: number | null
         }
         Update: {
-          booking_locale?: string
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
@@ -781,6 +780,7 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           booking_link?: string | null
+          booking_locale?: string
           booking_theme?: string | null
           brand_color?: string | null
           business_name?: string | null
@@ -1269,6 +1269,10 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
+      cancel_appointment_by_barber: {
+        Args: { _appointment_id: string }
+        Returns: Json
+      }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       cleanup_old_logs: { Args: never; Returns: undefined }

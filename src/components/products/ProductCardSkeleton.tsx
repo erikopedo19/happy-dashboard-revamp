@@ -1,26 +1,17 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const ProductCardSkeleton = () => {
   return (
-    <Card className="overflow-hidden">
-      <div className="aspect-square">
-        <Skeleton className="w-full h-full" />
-      </div>
-      <CardContent className="p-4">
-        <div className="space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <Skeleton className="h-5 flex-1" />
-            <Skeleton className="h-5 w-16" />
-          </div>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-4 w-16" />
-          </div>
+    <div className="rounded-3xl overflow-hidden bg-[#15151A] border border-white/5">
+      <Skeleton className="aspect-square w-full bg-white/5" />
+      <div className="p-3.5 space-y-2">
+        <Skeleton className="h-4 w-3/4 bg-white/5" />
+        <Skeleton className="h-3 w-1/2 bg-white/5" />
+        <div className="flex items-center justify-between pt-1">
+          <Skeleton className="h-4 w-16 bg-white/5" />
+          <Skeleton className="h-3 w-12 bg-white/5" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

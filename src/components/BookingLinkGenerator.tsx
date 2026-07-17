@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +10,9 @@ import {
   RefreshCw, 
   Share2, 
   Save, 
-  Link as LinkIcon
+  Link as LinkIcon,
+  Languages,
+  Check,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +24,7 @@ const BookingLinkGenerator = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
-  const [bookingLocale, setBookingLocale] = useState<"en" | "el">("en");
+  const [bookingLocale, setBookingLocale] = useState<string>("en");
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -33,7 +37,7 @@ const BookingLinkGenerator = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale, avatar_url, banner_url')
+        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
         .eq('id', user.id)
         .single();
 
@@ -46,9 +50,10 @@ const BookingLinkGenerator = () => {
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               ask_phone: true, // Default to true for new profiles
               ask_notes: true,  // Default to true for new profiles
-              brand_color: "#e11d48"
+              brand_color: "#e11d48",
+              booking_locale: "en",
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale, avatar_url, banner_url')
+            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
             .single();
 
           if (createError) throw createError;
@@ -67,7 +72,7 @@ const BookingLinkGenerator = () => {
     }
     setAskPhone(profile?.ask_phone ?? true);
     setAskNotes(profile?.ask_notes ?? true);
-    setBookingLocale(profile?.booking_locale === "el" ? "el" : "en");
+    setBookingLocale((profile as any)?.booking_locale ?? "en");
   }, [profile]);
 
   const getBookingUrl = () => {
@@ -76,7 +81,6 @@ const BookingLinkGenerator = () => {
     const params = new URLSearchParams();
     if (askPhone) params.append('askPhone', 'true');
     if (askNotes) params.append('askNotes', 'true');
-    params.append('lang', bookingLocale);
     const queryString = params.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
@@ -114,7 +118,7 @@ const BookingLinkGenerator = () => {
           ask_notes: askNotes,
           booking_locale: bookingLocale,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -197,41 +201,30 @@ const BookingLinkGenerator = () => {
   };
 
   return (
-    <div className="bg-[#0A0A0C] text-white">
-      <div className="px-4 py-6 sm:px-8 sm:py-8">
+    <div className="relative overflow-hidden rounded-[28px] bg-[#0A0A0C] text-white">
+      {/* Hero gradient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#0A84FF]/25 blur-[100px]" />
+        <div className="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-[#e11d48]/15 blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12">
         {/* Header */}
         <div className="text-center max-w-md mx-auto mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-white/10 mb-4">
             <LinkIcon className="h-5 w-5 text-white" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Booking link
+            Your booking link
           </h2>
           <p className="text-sm text-gray-400">
-            Share one simple link so clients can book with you.
+            Share this link with clients so they can book appointments online.
           </p>
         </div>
 
-        {/* Barber avatar preview */}
-        {profile?.avatar_url && (
-          <div className="max-w-lg mx-auto mb-4 flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-            <img
-              src={profile.avatar_url}
-              alt={profile.full_name || "Barber"}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
-                {profile.full_name || "Your name"}
-              </p>
-              <p className="text-xs text-gray-400">Clients see this on your booking page</p>
-            </div>
-          </div>
-        )}
-
         {/* Link card */}
         <div className="max-w-lg mx-auto space-y-4">
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 focus-within:border-white/20 transition-all">
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 focus-within:border-white/20 focus-within:bg-white/[0.07] transition-all">
             <span className="text-sm text-gray-400 font-medium select-none">/book/</span>
             <input
               id="slug"
@@ -280,38 +273,45 @@ const BookingLinkGenerator = () => {
             </div>
           )}
 
-          {/* Save button */}
-          <Button
-            onClick={updateSlug}
-            disabled={isGenerating || customSlug.trim().length === 0}
-            className="w-full h-12 rounded-2xl bg-white text-[#0A0A0C] font-semibold hover:bg-gray-100 transition-colors"
-          >
-            {isGenerating ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            Save booking link
-          </Button>
-
-          {/* Booking language */}
-          <div className="border border-white/10 bg-white/5 rounded-2xl px-4 py-4">
-            <Label htmlFor="bookingLocale" className="mb-2 block text-sm font-semibold text-gray-300">
-              Booking page language
-            </Label>
-            <select
-              id="bookingLocale"
-              value={bookingLocale}
-              onChange={(event) => setBookingLocale(event.target.value as "en" | "el")}
-              className="h-10 w-full rounded-xl border border-white/10 bg-[#151519] px-3 text-sm text-white outline-none"
-            >
-              <option value="en">English (default)</option>
-              <option value="el">Greek (Ελληνικά)</option>
-            </select>
+          {/* Language selector */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
+            <div className="flex items-center gap-2 px-1 mb-2">
+              <Languages className="h-4 w-4 text-white/70" />
+              <Label className="text-sm text-gray-300">Booking page language</Label>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: "en", label: "English", flag: "🇬🇧" },
+                { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
+                { value: "pl", label: "Polski", flag: "🇵🇱" },
+              ].map((lang) => {
+                const active = bookingLocale === lang.value;
+                return (
+                  <button
+                    key={lang.value}
+                    type="button"
+                    onClick={() => setBookingLocale(lang.value)}
+                    className={cn(
+                      "relative h-11 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-1.5",
+                      active
+                        ? "bg-white text-[#0A0A0C] border-white shadow-[0_6px_18px_-6px_rgba(255,255,255,0.35)]"
+                        : "bg-white/[0.04] text-white/70 border-white/10 hover:bg-white/[0.08]"
+                    )}
+                  >
+                    <span className="text-base leading-none">{lang.flag}</span>
+                    <span>{lang.label}</span>
+                    {active && <Check className="w-3.5 h-3.5 absolute top-1 right-1.5" />}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-white/40 mt-2 px-1">
+              Default is English. Applies to the public booking page and confirmation messages.
+            </p>
           </div>
 
           {/* Toggles */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
               <Label htmlFor="askPhone" className="text-sm text-gray-300 cursor-pointer">
                 Ask phone
@@ -333,6 +333,26 @@ const BookingLinkGenerator = () => {
               />
             </div>
           </div>
+
+          {/* Save button — polished pill */}
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={updateSlug}
+            disabled={isGenerating || customSlug.trim().length === 0}
+            className="w-full h-14 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[15px] font-semibold shadow-[0_14px_34px_-10px_rgba(225,29,72,0.7)] hover:shadow-[0_18px_40px_-10px_rgba(225,29,72,0.85)] transition-shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGenerating ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" strokeWidth={2.5} />
+                Save booking link
+              </>
+            )}
+          </motion.button>
         </div>
       </div>
     </div>

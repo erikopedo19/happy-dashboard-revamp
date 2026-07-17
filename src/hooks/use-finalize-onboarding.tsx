@@ -50,7 +50,38 @@ export function useFinalizeOnboarding() {
           return;
         }
 
-        // 2. Profile (barber)
+        // 2. Team invite (if barber pasted an invite link/code)
+        const rawInvite = (draft.teamInviteCode || "").trim();
+        if (rawInvite) {
+          // Accept full URLs or bare tokens: pull the last path/query segment.
+          const token = (() => {
+            try {
+              const url = new URL(rawInvite);
+              const qsToken = url.searchParams.get("token") || url.searchParams.get("code");
+              if (qsToken) return qsToken.trim();
+              const segs = url.pathname.split("/").filter(Boolean);
+              return segs[segs.length - 1] || rawInvite;
+            } catch {
+              return rawInvite;
+            }
+          })();
+
+          try {
+            const { data: res, error } = await (supabase as any).rpc("accept_invitation", { token_str: token });
+            if (error) throw error;
+            if (res?.success) {
+              localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+              toast.success("You've joined the team!");
+              navigate("/admin", { replace: true });
+              return;
+            }
+            toast.error("Invite couldn't be applied", { description: res?.error || "Continuing as solo — ask your owner for a fresh invite link." });
+          } catch (e: any) {
+            toast.error("Invalid invite link", { description: e?.message || "Continuing as solo — ask your owner for a fresh invite link." });
+          }
+        }
+
+        // 3. Profile (barber)
         const fullAddress = [draft.address, draft.city].filter(Boolean).join(", ");
         const years = parseInt(draft.yearsExperience) || null;
 

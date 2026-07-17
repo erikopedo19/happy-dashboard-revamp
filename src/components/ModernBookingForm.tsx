@@ -318,7 +318,7 @@ const ModernBookingForm = ({
 
       {/* Theme Controls Panel */}
       {showThemeControls && (
-        <div className={`fixed top-16 right-4 z-50 p-4 rounded-xl ${getCardBgClass()} ${getBorderClass()} border shadow-xl w-64`}>
+        <div className={`fixed top-16 right-4 z-50 p-4 rounded-xl ${getCardBgClass()} ${getBorderClass()} border w-64`}>
           <h3 className={`text-sm font-semibold mb-3 ${getTextClass()}`}>Theme Settings</h3>
           
           {/* Dark/Light Toggle */}
