@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Service {
   id: string;
