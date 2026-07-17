@@ -35,7 +35,7 @@ const BookingLinkGenerator = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
+        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
         .eq('id', user.id)
         .single();
 
@@ -48,9 +48,10 @@ const BookingLinkGenerator = () => {
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               ask_phone: true, // Default to true for new profiles
               ask_notes: true,  // Default to true for new profiles
-              brand_color: "#e11d48"
+              brand_color: "#e11d48",
+              booking_locale: "en",
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
+            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
             .single();
 
           if (createError) throw createError;
@@ -69,6 +70,7 @@ const BookingLinkGenerator = () => {
     }
     setAskPhone(profile?.ask_phone ?? true);
     setAskNotes(profile?.ask_notes ?? true);
+    setBookingLocale((profile as any)?.booking_locale ?? "en");
   }, [profile]);
 
   const getBookingUrl = () => {
