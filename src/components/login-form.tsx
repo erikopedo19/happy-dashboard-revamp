@@ -233,6 +233,21 @@ export function LoginForm() {
                     </button>
                   </div>
                 )}
+                {isSignup && (
+                  <label className="flex items-start gap-2.5 pt-1 select-none cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={agreedToPolicy}
+                      onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-black/20 dark:border-white/20 accent-[#0A84FF]"
+                    />
+                    <span className="text-[12px] leading-relaxed text-foreground/60">
+                      I agree to the{" "}
+                      <a href="/terms" target="_blank" className="underline underline-offset-2 text-foreground/80">Terms</a> and{" "}
+                      <a href="/privacy" target="_blank" className="underline underline-offset-2 text-foreground/80">Privacy Policy</a>.
+                    </span>
+                  </label>
+                )}
 
                 <button
                   type="submit"
