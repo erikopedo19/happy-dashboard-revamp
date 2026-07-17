@@ -271,22 +271,45 @@ const BookingLinkGenerator = () => {
             </div>
           )}
 
-          {/* Save button */}
-          <Button
-            onClick={updateSlug}
-            disabled={isGenerating || customSlug.trim().length === 0}
-            className="w-full h-12 rounded-2xl bg-white text-[#0A0A0C] font-semibold hover:bg-gray-100 transition-colors"
-          >
-            {isGenerating ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            Save booking link
-          </Button>
+          {/* Language selector */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
+            <div className="flex items-center gap-2 px-1 mb-2">
+              <Languages className="h-4 w-4 text-white/70" />
+              <Label className="text-sm text-gray-300">Booking page language</Label>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: "en", label: "English", flag: "🇬🇧" },
+                { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
+                { value: "pl", label: "Polski", flag: "🇵🇱" },
+              ].map((lang) => {
+                const active = bookingLocale === lang.value;
+                return (
+                  <button
+                    key={lang.value}
+                    type="button"
+                    onClick={() => setBookingLocale(lang.value)}
+                    className={cn(
+                      "relative h-11 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-1.5",
+                      active
+                        ? "bg-white text-[#0A0A0C] border-white shadow-[0_6px_18px_-6px_rgba(255,255,255,0.35)]"
+                        : "bg-white/[0.04] text-white/70 border-white/10 hover:bg-white/[0.08]"
+                    )}
+                  >
+                    <span className="text-base leading-none">{lang.flag}</span>
+                    <span>{lang.label}</span>
+                    {active && <Check className="w-3.5 h-3.5 absolute top-1 right-1.5" />}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-white/40 mt-2 px-1">
+              Default is English. Applies to the public booking page and confirmation messages.
+            </p>
+          </div>
 
           {/* Toggles */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
               <Label htmlFor="askPhone" className="text-sm text-gray-300 cursor-pointer">
                 Ask phone
@@ -308,6 +331,26 @@ const BookingLinkGenerator = () => {
               />
             </div>
           </div>
+
+          {/* Save button — polished pill */}
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={updateSlug}
+            disabled={isGenerating || customSlug.trim().length === 0}
+            className="w-full h-14 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[15px] font-semibold shadow-[0_14px_34px_-10px_rgba(225,29,72,0.7)] hover:shadow-[0_18px_40px_-10px_rgba(225,29,72,0.85)] transition-shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGenerating ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" strokeWidth={2.5} />
+                Save booking link
+              </>
+            )}
+          </motion.button>
         </div>
       </div>
     </div>
