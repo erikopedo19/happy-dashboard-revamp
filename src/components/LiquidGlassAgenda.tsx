@@ -108,7 +108,24 @@ export const LiquidGlassAgenda = ({
   const queryClient = useQueryClient();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
+  const isAppointmentPast = (apt: Appointment) => {
+    const [hh, mm] = (apt.appointment_time || "00:00").split(":").map(Number);
+    const d = new Date(apt.appointment_date);
+    d.setHours(hh || 0, mm || 0, 0, 0);
+    return d.getTime() < Date.now();
+  };
+
   const cancelAppointment = async (id: string) => {
+    const target = appointments.find((a) => a.id === id);
+    if (target && isAppointmentPast(target)) {
+      toast({
+        title: "Can't cancel past appointments",
+        description: "This booking has already passed.",
+        variant: "destructive",
+      });
+      setContextMenu(null);
+      return;
+    }
     setCancellingId(id);
     try {
       const { error } = await (supabase as any)
