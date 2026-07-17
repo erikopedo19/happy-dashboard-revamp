@@ -19,6 +19,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
