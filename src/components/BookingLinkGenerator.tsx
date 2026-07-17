@@ -114,8 +114,9 @@ const BookingLinkGenerator = () => {
           booking_link: customSlug.trim(),
           ask_phone: askPhone,
           ask_notes: askNotes,
+          booking_locale: bookingLocale,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', user.id);
 
       if (error) throw error;
