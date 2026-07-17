@@ -34,7 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
-import { IdentitySuggestionPopup } from "@/components/IdentitySuggestionPopup";
+
 
 interface BarberProfile {
   id: string;
@@ -242,7 +242,7 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
-      {(user?.user_metadata as any)?.role === "barber" && <IdentitySuggestionPopup />}
+      
 
 
       {/* Sticky minimal header */}
