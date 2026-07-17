@@ -281,7 +281,7 @@ const AgendaBookingForm = ({
           </div>
           <Button
             onClick={() => window.location.reload()}
-            className="h-12 px-8 rounded-[14px] font-semibold text-white"
+            className="h-12 px-8 rounded-full font-semibold text-white"
             style={{ backgroundColor: accentColor }}
           >
             {copy.bookAnother}
@@ -437,7 +437,7 @@ const AgendaBookingForm = ({
                     <div className="mt-6 pt-4 border-t border-white/[0.08]">
                       <Button
                         onClick={handleServiceContinue}
-                        className="w-full h-12 rounded-[14px] font-semibold text-white border-0"
+                        className="w-full h-12 rounded-full font-semibold text-white border-0"
                         style={{ backgroundColor: accentColor }}
                       >
                         Continue
@@ -603,7 +603,7 @@ const AgendaBookingForm = ({
                         <Button
                           onClick={handleContinue}
                           disabled={!selectedTime}
-                          className="w-full h-12 mt-4 rounded-[14px] font-semibold text-white border-0 disabled:opacity-40"
+                          className="w-full h-12 mt-4 rounded-full font-semibold text-white border-0 disabled:opacity-40"
                           style={selectedTime ? { backgroundColor: accentColor } : {}}
                         >
                           Continue
@@ -666,8 +666,16 @@ const AgendaBookingForm = ({
                         );
                       })
                     ) : (
-                      <div className="text-center text-[#8E8E93] py-8">
-                        No stylists available for this time
+                      <div className="text-center py-8">
+                        <p className="text-[#8E8E93] mb-4">No stylists available for this time</p>
+                        <Button
+                          onClick={handleBack}
+                          variant="outline"
+                          className="rounded-full border-[#D1D1D6] text-[#1C1C1E] hover:bg-[#F2F2F7]"
+                        >
+                          <ChevronLeft className="w-4 h-4 mr-1.5" />
+                          Pick another time
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -758,7 +766,7 @@ const AgendaBookingForm = ({
                         <Button
                           type="submit"
                           disabled={isLoading}
-                          className="w-full h-12 rounded-[14px] font-semibold text-white border-0 flex items-center justify-center gap-2"
+                          className="w-full h-12 rounded-full font-semibold text-white border-0 flex items-center justify-center gap-2"
                           style={{ backgroundColor: accentColor }}
                         >
                           {isLoading ? (

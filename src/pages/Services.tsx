@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, Clock, Scissors, ChevronRight, Crown } from "lucide-react";
@@ -60,6 +61,7 @@ const Services = () => {
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const requireAuth = useRequireAuth();
   const queryClient = useQueryClient();
   const { isPremium } = usePremium();
 
@@ -97,7 +99,7 @@ const Services = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!requireAuth("Sign in to manage services")) return;
     // Free-tier cap
     if (!editingService && !isPremium && services.length >= PREMIUM_LIMITS.freeServices) {
       toast({
@@ -147,6 +149,7 @@ const Services = () => {
 
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
+    if (!requireAuth("Sign in to delete services")) return;
     try {
       const pending = futureCountFor(serviceToDelete);
       if (pending > 0) {
@@ -173,6 +176,7 @@ const Services = () => {
   };
 
   const restoreService = async (id: string) => {
+    if (!requireAuth("Sign in to restore services")) return;
     try {
       const { error } = await db.from("services").update({ deleted_at: null }).eq("id", id);
       if (error) throw error;
@@ -208,7 +212,7 @@ const Services = () => {
                 <DialogTrigger asChild>
                   <Button
                     onClick={() => setEditingService(null)}
-                    className="h-10 rounded-full px-4 text-white border-0 shadow-sm"
+                    className="h-10 rounded-full px-4 text-white border-0"
                     style={{ background: ROSE }}
                   >
                     <Plus className="h-4 w-4 mr-1.5" />

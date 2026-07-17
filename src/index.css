@@ -422,8 +422,8 @@ html, body, #root, button, input, textarea, select {
     border-radius: 20px !important;
   }
 
-  /* Buttons keep moderate rounding */
-  .button { border-radius: 12px; }
+  /* Buttons — Apple UI fully rounded, no glow */
+  .button { border-radius: 9999px; }
 
   /* Tabs styling */
   [role="tablist"] {

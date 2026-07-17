@@ -3,6 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +35,7 @@ interface Stylist {
 const Stylists = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const requireAuth = useRequireAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -203,10 +205,12 @@ const Stylists = () => {
   });
 
   const handleCreateStylist = () => {
+    if (!requireAuth("Sign in to add stylists")) return;
     createStylistMutation.mutate(formData);
   };
 
   const handleUpdateStylist = () => {
+    if (!requireAuth("Sign in to edit stylists")) return;
     if (selectedStylist) {
       updateStylistMutation.mutate({ ...formData, id: selectedStylist.id });
     }
@@ -249,6 +253,7 @@ const Stylists = () => {
   };
 
   const confirmDelete = () => {
+    if (!requireAuth("Sign in to remove stylists")) return;
     if (deleteTarget) deleteStylistMutation.mutate(deleteTarget.id);
   };
 

@@ -25,7 +25,7 @@ export const RoseGradientButton = React.forwardRef<HTMLButtonElement, RoseGradie
         type={type}
         disabled={disabled}
         className={cn(
-          "relative inline-flex p-[2px] bg-black text-white shadow-lg shadow-rose-900/20",
+          "relative inline-flex p-[2px] bg-black text-white",
           outerRadius,
           "bg-gradient-to-t from-[#9f1239] to-[#fda4af]",
           "cursor-pointer opacity-90 transition-opacity hover:opacity-100",

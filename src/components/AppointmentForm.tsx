@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -48,6 +49,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const requireAuth = useRequireAuth();
   const isMobile = useIsMobile();
 
   const shouldFetchServices = !providedServices;
@@ -324,6 +326,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth("Sign in to book an appointment")) return;
     
     if (!user || !selectedService || !selectedTimeSlot || !customerName || !stylistId) {
       toast({

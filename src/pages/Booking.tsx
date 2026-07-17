@@ -183,7 +183,7 @@ const Booking = () => {
         .from('stylists' as any)
         .select('id, name, avatar_url, title') as any)
         .eq('user_id', businessProfile.id)
-        .eq('is_public', true)
+        .or('is_public.eq.true,is_public.is.null')
         .is('deleted_at', null);
 
       if (error) {

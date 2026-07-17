@@ -311,7 +311,7 @@ const ModernBookingForm = ({
       {/* Theme Toggle Button */}
       <button
         onClick={() => setShowThemeControls(!showThemeControls)}
-        className={`fixed top-4 right-4 z-50 p-3 rounded-full ${getCardBgClass()} ${getBorderClass()} border shadow-lg hover:scale-105 transition-transform`}
+        className={`fixed top-4 right-4 z-50 p-3 rounded-full ${getCardBgClass()} ${getBorderClass()} border hover:scale-105 transition-transform`}
       >
         <div className="w-5 h-5 rounded-full" style={accentStyle} />
       </button>
@@ -402,7 +402,7 @@ const ModernBookingForm = ({
                   <div className="flex items-center gap-3">
                     <div
                       className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${accentColor}20`, color: accentColor, boxShadow: `0 4px 14px ${accentColor}30` }}
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
                     >
                       <Flame className="w-5 h-5" />
                     </div>
@@ -417,7 +417,7 @@ const ModernBookingForm = ({
                   <div className="flex items-center gap-3">
                     <div
                       className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${accentColor}20`, color: accentColor, boxShadow: `0 4px 14px ${accentColor}30` }}
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
                     >
                       <Sparkles className="w-5 h-5" />
                     </div>
@@ -432,7 +432,7 @@ const ModernBookingForm = ({
                   <div className="flex items-center gap-3">
                     <div
                       className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${accentColor}20`, color: accentColor, boxShadow: `0 4px 14px ${accentColor}30` }}
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
                     >
                       <Gift className="w-5 h-5" />
                     </div>
@@ -521,7 +521,7 @@ const ModernBookingForm = ({
         {/* Main 3-Panel Layout with Animation */}
         <div 
           className={cn(
-            `flex flex-col lg:flex-row min-h-[600px] ${getCardBgClass()} rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ease-out`,
+            `flex flex-col lg:flex-row min-h-[600px] ${getCardBgClass()} rounded-2xl overflow-hidden transition-all duration-300 ease-out`,
             animationDirection === "forward" ? "animate-in slide-in-from-right-4" : "animate-in slide-in-from-left-4"
           )}
           key={step}
