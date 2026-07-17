@@ -169,8 +169,6 @@ function App() {
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
-            <Toaster />
-            <Sonner />
             {showSplash && (
               <div className="splash-screen">
                 <div className="splash-stage">
