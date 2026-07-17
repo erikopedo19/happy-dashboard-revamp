@@ -680,7 +680,8 @@ export const LiquidGlassAgenda = ({
                     const slotsSpanned = Math.max(Math.ceil(duration / slotInterval), 1);
                     const minHeight = Math.max(slotsSpanned * 64, 56);
                     const isCompleted = apt.status === 'completed';
-                    const serviceColor = apt.service.color || '#22c55e';
+                    const isCancelled = apt.status === 'cancelled';
+                    const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
 
                     return (
                       <div key={apt.id} className="pl-[60px] pr-0 mb-2">
