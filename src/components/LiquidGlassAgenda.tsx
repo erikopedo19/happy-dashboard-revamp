@@ -922,6 +922,30 @@ export const LiquidGlassAgenda = ({
                   </div>
                 )}
               </div>
+
+              {contextMenu.appointment.status !== "cancelled" && (
+                <button
+                  onClick={() => {
+                    if (cancellingId) return;
+                    if (window.confirm("Cancel this appointment? The client's slot will be freed up.")) {
+                      cancelAppointment(contextMenu.appointment.id);
+                    }
+                  }}
+                  disabled={cancellingId === contextMenu.appointment.id}
+                  className={cn(
+                    "mt-3 w-full h-11 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60",
+                    isDark
+                      ? "bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/20"
+                      : "bg-red-50 hover:bg-red-100 text-red-600 border border-red-100"
+                  )}
+                >
+                  {cancellingId === contextMenu.appointment.id ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Cancelling…</>
+                  ) : (
+                    <><Ban className="h-4 w-4" /> Cancel appointment</>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </>
