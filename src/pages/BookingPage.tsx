@@ -12,7 +12,7 @@ import {
   Share2,
   QrCode,
   Link2,
-  LayoutTemplate,
+  
   CalendarCheck,
   Printer,
 } from "lucide-react";
