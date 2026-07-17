@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
   ChevronRight,
   Bell,
@@ -213,6 +214,7 @@ export function MobileSettings(props: any) {
               user?.email?.split("@")[0] ||
               "Set your name"
             }
+            avatar={brandForm.avatar_url}
             onClick={() => setPanel("profile")}
           />
           <Row
@@ -220,8 +222,11 @@ export function MobileSettings(props: any) {
             tint="#e11d48"
             label="Business identity"
             value={brandForm.name || "Not set"}
+            avatar={brandForm.avatar_url}
+            banner={brandForm.banner_url}
             onClick={() => setPanel("business")}
           />
+
           <Row
             icon={MapPin}
             tint="#22c55e"
@@ -436,6 +441,15 @@ export function MobileSettings(props: any) {
                     })}
                   </div>
                 </div>
+
+                {/* Per-day custom hours */}
+                <CustomDayHoursEditor
+                  userId={user?.id}
+                  workingDays={agendaForm.working_days}
+                  defaultOpen={agendaForm.start_hour}
+                  defaultClose={agendaForm.end_hour}
+                />
+
 
                 {/* Slot duration */}
                 <Field label="Slot duration">
@@ -776,6 +790,8 @@ function Row({
   value,
   onClick,
   danger,
+  avatar,
+  banner,
 }: {
   icon: any;
   tint: string;
@@ -783,18 +799,38 @@ function Row({
   value?: string;
   onClick?: () => void;
   danger?: boolean;
+  avatar?: string | null;
+  banner?: string | null;
 }) {
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-white/5 transition text-left"
     >
-      <span
-        className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: `${tint}26` }}
-      >
-        <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
-      </span>
+      {banner || avatar ? (
+        <span className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-white/5 border border-white/10">
+          {banner && (
+            <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          {avatar && (
+            <img
+              src={avatar}
+              alt=""
+              className={cn(
+                "h-full w-full object-cover",
+                banner && "absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-[#15151A]"
+              )}
+            />
+          )}
+        </span>
+      ) : (
+        <span
+          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: `${tint}26` }}
+        >
+          <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
+        </span>
+      )}
       <span
         className={cn(
           "flex-1 text-[15px] font-medium truncate",
@@ -810,6 +846,7 @@ function Row({
     </button>
   );
 }
+
 
 function Sheet({
   title,
@@ -845,11 +882,17 @@ function Sheet({
           </button>
           <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
         </header>
-        <div className="flex-1 overflow-y-auto px-5 py-5 pb-32">{children}</div>
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 pb-32"
+          style={{ WebkitOverflowScrolling: "touch" as any }}
+        >
+          {children}
+        </div>
       </motion.div>
     </>
   );
 }
+
 
 function PanelStack({ children }: { children: React.ReactNode }) {
   return <div className="space-y-5">{children}</div>;
@@ -951,3 +994,156 @@ function ModeRow() {
     </div>
   );
 }
+
+/* ---------- custom per-day hours ---------- */
+
+const DAY_LABELS: Record<number, string> = {
+  0: "Sun",
+  1: "Mon",
+  2: "Tue",
+  3: "Wed",
+  4: "Thu",
+  5: "Fri",
+  6: "Sat",
+};
+
+function CustomDayHoursEditor({
+  userId,
+  workingDays,
+  defaultOpen,
+  defaultClose,
+}: {
+  userId?: string;
+  workingDays: number[];
+  defaultOpen: string;
+  defaultClose: string;
+}) {
+  const { toast } = useToast();
+  const [enabled, setEnabled] = useState(false);
+  const [hours, setHours] = useState<Record<number, { open: string; close: string }>>({});
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await (supabase as any)
+        .from("business_hours")
+        .select("day_of_week, open_time, close_time, is_closed")
+        .eq("user_id", userId);
+      if (cancelled) return;
+      const map: Record<number, { open: string; close: string }> = {};
+      let anyCustom = false;
+      (data || []).forEach((row: any) => {
+        const open = (row.open_time || defaultOpen).slice(0, 5);
+        const close = (row.close_time || defaultClose).slice(0, 5);
+        map[row.day_of_week] = { open, close };
+        if (!row.is_closed && (open !== defaultOpen || close !== defaultClose)) {
+          anyCustom = true;
+        }
+      });
+      setHours(map);
+      setEnabled(anyCustom);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const getForDay = (d: number) =>
+    hours[d] || { open: defaultOpen, close: defaultClose };
+
+  const save = async () => {
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const rows = [0, 1, 2, 3, 4, 5, 6].map((d) => {
+        const isWorking = workingDays.includes(d);
+        const custom = enabled ? getForDay(d) : { open: defaultOpen, close: defaultClose };
+        return {
+          user_id: userId,
+          day_of_week: d,
+          open_time: custom.open,
+          close_time: custom.close,
+          is_closed: !isWorking,
+        };
+      });
+      await (supabase as any).from("business_hours").delete().eq("user_id", userId);
+      const { error } = await (supabase as any).from("business_hours").insert(rows);
+      if (error) throw error;
+      toast({ title: "Per-day hours saved" });
+    } catch (e: any) {
+      toast({ title: "Couldn't save hours", description: e?.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sortedDays = [...workingDays].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
+
+  return (
+    <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-4 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[15px] font-medium text-white">Custom hours per day</p>
+          <p className="text-[12px] text-white/45 mt-0.5">
+            Different opening times for specific days. Off = same for all.
+          </p>
+        </div>
+        <Switch checked={enabled} onCheckedChange={setEnabled} disabled={loading} />
+      </div>
+
+      {enabled && (
+        <div className="space-y-2.5">
+          {sortedDays.length === 0 && (
+            <p className="text-[12px] text-white/40">Select working days first.</p>
+          )}
+          {sortedDays.map((d) => {
+            const { open, close } = getForDay(d);
+            return (
+              <div key={d} className="flex items-center gap-2">
+                <span className="w-11 text-[13px] font-semibold text-white/70">
+                  {DAY_LABELS[d]}
+                </span>
+                <input
+                  type="time"
+                  value={open}
+                  onChange={(e) =>
+                    setHours((p) => ({ ...p, [d]: { open: e.target.value, close } }))
+                  }
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-rose-500"
+                />
+                <span className="text-white/40 text-[12px]">–</span>
+                <input
+                  type="time"
+                  value={close}
+                  onChange={(e) =>
+                    setHours((p) => ({ ...p, [d]: { open, close: e.target.value } }))
+                  }
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-rose-500"
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={save}
+        disabled={saving || loading}
+        className="w-full h-11 rounded-2xl bg-white/10 border border-white/10 text-white text-[13px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        {saving ? (
+          <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+        ) : (
+          <><Save className="h-4 w-4" /> Save per-day hours</>
+        )}
+      </motion.button>
+    </div>
+  );
+}
+
