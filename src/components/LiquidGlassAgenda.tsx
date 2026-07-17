@@ -739,9 +739,16 @@ export const LiquidGlassAgenda = ({
                               <div className="flex-1 min-w-0">
                                 <h3 className={cn(
                                   "text-[15px] font-semibold leading-tight truncate",
+                                  isCancelled && "line-through",
                                   isDark ? "text-white" : "text-gray-900"
                                 )}>
                                   {apt.service.name}
+                                  {isCancelled && (
+                                    <span className={cn(
+                                      "ml-2 no-underline inline-block align-middle text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md",
+                                      isDark ? "bg-red-500/20 text-red-300" : "bg-red-100 text-red-600"
+                                    )}>Cancelled</span>
+                                  )}
                                 </h3>
                                 <div className="flex items-center gap-1.5 mt-1">
                                   <User className={cn("w-3 h-3", isDark ? "text-white/50" : "text-gray-500")} />
