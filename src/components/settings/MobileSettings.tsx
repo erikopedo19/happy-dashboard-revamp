@@ -214,6 +214,7 @@ export function MobileSettings(props: any) {
               user?.email?.split("@")[0] ||
               "Set your name"
             }
+            avatar={brandForm.avatar_url}
             onClick={() => setPanel("profile")}
           />
           <Row
@@ -221,8 +222,11 @@ export function MobileSettings(props: any) {
             tint="#e11d48"
             label="Business identity"
             value={brandForm.name || "Not set"}
+            avatar={brandForm.avatar_url}
+            banner={brandForm.banner_url}
             onClick={() => setPanel("business")}
           />
+
           <Row
             icon={MapPin}
             tint="#22c55e"
@@ -437,6 +441,15 @@ export function MobileSettings(props: any) {
                     })}
                   </div>
                 </div>
+
+                {/* Per-day custom hours */}
+                <CustomDayHoursEditor
+                  userId={user?.id}
+                  workingDays={agendaForm.working_days}
+                  defaultOpen={agendaForm.start_hour}
+                  defaultClose={agendaForm.end_hour}
+                />
+
 
                 {/* Slot duration */}
                 <Field label="Slot duration">
@@ -777,6 +790,8 @@ function Row({
   value,
   onClick,
   danger,
+  avatar,
+  banner,
 }: {
   icon: any;
   tint: string;
@@ -784,18 +799,38 @@ function Row({
   value?: string;
   onClick?: () => void;
   danger?: boolean;
+  avatar?: string | null;
+  banner?: string | null;
 }) {
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-white/5 transition text-left"
     >
-      <span
-        className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: `${tint}26` }}
-      >
-        <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
-      </span>
+      {banner || avatar ? (
+        <span className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-white/5 border border-white/10">
+          {banner && (
+            <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          {avatar && (
+            <img
+              src={avatar}
+              alt=""
+              className={cn(
+                "h-full w-full object-cover",
+                banner && "absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-[#15151A]"
+              )}
+            />
+          )}
+        </span>
+      ) : (
+        <span
+          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: `${tint}26` }}
+        >
+          <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
+        </span>
+      )}
       <span
         className={cn(
           "flex-1 text-[15px] font-medium truncate",
@@ -811,6 +846,7 @@ function Row({
     </button>
   );
 }
+
 
 function Sheet({
   title,
@@ -846,11 +882,17 @@ function Sheet({
           </button>
           <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
         </header>
-        <div className="flex-1 overflow-y-auto px-5 py-5 pb-32">{children}</div>
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 pb-32"
+          style={{ WebkitOverflowScrolling: "touch" as any }}
+        >
+          {children}
+        </div>
       </motion.div>
     </>
   );
 }
+
 
 function PanelStack({ children }: { children: React.ReactNode }) {
   return <div className="space-y-5">{children}</div>;
