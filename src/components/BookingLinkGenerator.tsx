@@ -22,6 +22,7 @@ const BookingLinkGenerator = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
+  const [bookingLocale, setBookingLocale] = useState<string>("en");
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
