@@ -954,7 +954,7 @@ export const LiquidGlassAgenda = ({
                 )}
               </div>
 
-              {contextMenu.appointment.status !== "cancelled" && (
+              {contextMenu.appointment.status !== "cancelled" && !isAppointmentPast(contextMenu.appointment) && (
                 <button
                   onClick={() => {
                     if (cancellingId) return;
