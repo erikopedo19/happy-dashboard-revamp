@@ -994,3 +994,156 @@ function ModeRow() {
     </div>
   );
 }
+
+/* ---------- custom per-day hours ---------- */
+
+const DAY_LABELS: Record<number, string> = {
+  0: "Sun",
+  1: "Mon",
+  2: "Tue",
+  3: "Wed",
+  4: "Thu",
+  5: "Fri",
+  6: "Sat",
+};
+
+function CustomDayHoursEditor({
+  userId,
+  workingDays,
+  defaultOpen,
+  defaultClose,
+}: {
+  userId?: string;
+  workingDays: number[];
+  defaultOpen: string;
+  defaultClose: string;
+}) {
+  const { toast } = useToast();
+  const [enabled, setEnabled] = useState(false);
+  const [hours, setHours] = useState<Record<number, { open: string; close: string }>>({});
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await (supabase as any)
+        .from("business_hours")
+        .select("day_of_week, open_time, close_time, is_closed")
+        .eq("user_id", userId);
+      if (cancelled) return;
+      const map: Record<number, { open: string; close: string }> = {};
+      let anyCustom = false;
+      (data || []).forEach((row: any) => {
+        const open = (row.open_time || defaultOpen).slice(0, 5);
+        const close = (row.close_time || defaultClose).slice(0, 5);
+        map[row.day_of_week] = { open, close };
+        if (!row.is_closed && (open !== defaultOpen || close !== defaultClose)) {
+          anyCustom = true;
+        }
+      });
+      setHours(map);
+      setEnabled(anyCustom);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const getForDay = (d: number) =>
+    hours[d] || { open: defaultOpen, close: defaultClose };
+
+  const save = async () => {
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const rows = [0, 1, 2, 3, 4, 5, 6].map((d) => {
+        const isWorking = workingDays.includes(d);
+        const custom = enabled ? getForDay(d) : { open: defaultOpen, close: defaultClose };
+        return {
+          user_id: userId,
+          day_of_week: d,
+          open_time: custom.open,
+          close_time: custom.close,
+          is_closed: !isWorking,
+        };
+      });
+      await (supabase as any).from("business_hours").delete().eq("user_id", userId);
+      const { error } = await (supabase as any).from("business_hours").insert(rows);
+      if (error) throw error;
+      toast({ title: "Per-day hours saved" });
+    } catch (e: any) {
+      toast({ title: "Couldn't save hours", description: e?.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sortedDays = [...workingDays].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
+
+  return (
+    <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-4 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[15px] font-medium text-white">Custom hours per day</p>
+          <p className="text-[12px] text-white/45 mt-0.5">
+            Different opening times for specific days. Off = same for all.
+          </p>
+        </div>
+        <Switch checked={enabled} onCheckedChange={setEnabled} disabled={loading} />
+      </div>
+
+      {enabled && (
+        <div className="space-y-2.5">
+          {sortedDays.length === 0 && (
+            <p className="text-[12px] text-white/40">Select working days first.</p>
+          )}
+          {sortedDays.map((d) => {
+            const { open, close } = getForDay(d);
+            return (
+              <div key={d} className="flex items-center gap-2">
+                <span className="w-11 text-[13px] font-semibold text-white/70">
+                  {DAY_LABELS[d]}
+                </span>
+                <input
+                  type="time"
+                  value={open}
+                  onChange={(e) =>
+                    setHours((p) => ({ ...p, [d]: { open: e.target.value, close } }))
+                  }
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-rose-500"
+                />
+                <span className="text-white/40 text-[12px]">–</span>
+                <input
+                  type="time"
+                  value={close}
+                  onChange={(e) =>
+                    setHours((p) => ({ ...p, [d]: { open, close: e.target.value } }))
+                  }
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-rose-500"
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={save}
+        disabled={saving || loading}
+        className="w-full h-11 rounded-2xl bg-white/10 border border-white/10 text-white text-[13px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        {saving ? (
+          <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+        ) : (
+          <><Save className="h-4 w-4" /> Save per-day hours</>
+        )}
+      </motion.button>
+    </div>
+  );
+}
+
