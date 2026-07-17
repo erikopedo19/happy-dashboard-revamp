@@ -52,7 +52,7 @@ export function LoginForm() {
   const canSubmit =
     mode === "signin"
       ? email.trim().length > 3 && password.length > 0
-      : email.trim().length > 3 && password.length >= 6 && fullName.trim().length > 1;
+      : email.trim().length > 3 && password.length >= 6 && fullName.trim().length > 1 && agreedToPolicy;
 
   const switchMode = (m: "signin" | "signup") => {
     if (m === mode) return;
