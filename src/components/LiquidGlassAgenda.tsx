@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Service {
   id: string;
@@ -103,6 +104,28 @@ export const LiquidGlassAgenda = ({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const cancelAppointment = async (id: string) => {
+    setCancellingId(id);
+    try {
+      const { error } = await (supabase as any)
+        .from("appointments")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: "Appointment cancelled", description: "The booking was marked as cancelled." });
+      setContextMenu(null);
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const { data: agendaSettings } = useQuery<AgendaSettings | null>({
     queryKey: ["agenda_settings", user?.id],
@@ -899,6 +922,30 @@ export const LiquidGlassAgenda = ({
                   </div>
                 )}
               </div>
+
+              {contextMenu.appointment.status !== "cancelled" && (
+                <button
+                  onClick={() => {
+                    if (cancellingId) return;
+                    if (window.confirm("Cancel this appointment? The client's slot will be freed up.")) {
+                      cancelAppointment(contextMenu.appointment.id);
+                    }
+                  }}
+                  disabled={cancellingId === contextMenu.appointment.id}
+                  className={cn(
+                    "mt-3 w-full h-11 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60",
+                    isDark
+                      ? "bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/20"
+                      : "bg-red-50 hover:bg-red-100 text-red-600 border border-red-100"
+                  )}
+                >
+                  {cancellingId === contextMenu.appointment.id ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Cancelling…</>
+                  ) : (
+                    <><Ban className="h-4 w-4" /> Cancel appointment</>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </>
