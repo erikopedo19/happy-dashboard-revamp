@@ -695,15 +695,21 @@ export const LiquidGlassAgenda = ({
                           className={cn(
                             "w-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
                             "border",
-                            isDark
-                              ? "border-white/10 shadow-lg shadow-black/20"
-                              : "border-gray-200/60 shadow-sm"
+                            isCancelled
+                              ? (isDark
+                                  ? "border-red-500/25 border-dashed opacity-60 shadow-none"
+                                  : "border-red-300/60 border-dashed opacity-70 shadow-none")
+                              : (isDark
+                                  ? "border-white/10 shadow-lg shadow-black/20"
+                                  : "border-gray-200/60 shadow-sm")
                           )}
                           style={{
                             minHeight: `${minHeight}px`,
-                            background: getGlassGradient(serviceColor, isDark),
-                            backdropFilter: 'blur(40px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                            background: isCancelled
+                              ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
+                              : getGlassGradient(serviceColor, isDark),
+                            backdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
+                            WebkitBackdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
                           }}
                         >
                           {/* Glass shine effect */}
