@@ -490,6 +490,7 @@ export function MobileSettings(props: any) {
                   >
                     <option value="en" className="bg-[#111]">English</option>
                     <option value="el" className="bg-[#111]">Greek (Ελληνικά)</option>
+                    <option value="pl" className="bg-[#111]">Polish (Polski)</option>
                   </select>
                   <p className="text-[11px] text-white/40 mt-1.5 px-1">
                     Language used on the public booking page and client messages. Default: English.
