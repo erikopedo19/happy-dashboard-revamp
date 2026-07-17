@@ -104,6 +104,28 @@ export const LiquidGlassAgenda = ({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const cancelAppointment = async (id: string) => {
+    setCancellingId(id);
+    try {
+      const { error } = await (supabase as any)
+        .from("appointments")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: "Appointment cancelled", description: "The booking was marked as cancelled." });
+      setContextMenu(null);
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const { data: agendaSettings } = useQuery<AgendaSettings | null>({
     queryKey: ["agenda_settings", user?.id],
