@@ -8,7 +8,9 @@ import {
   RefreshCw, 
   Share2, 
   Save, 
-  Link as LinkIcon
+  Link as LinkIcon,
+  Languages,
+  Check,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
