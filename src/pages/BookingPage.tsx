@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MicrositeEditorPanel } from "@/pages/MicrositeEditor";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,6 @@ const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
 
 const TABS = [
   { value: "link", label: "Booking Link", icon: Link2 },
-  { value: "site", label: "Microsite", icon: LayoutTemplate },
 ] as const;
 
 const StatTile = ({
@@ -183,11 +182,10 @@ const BookingPage = () => {
 
           <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-8 space-y-6">
             {/* Quick stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <StatTile icon={Link2} label="Custom" value="Slug Link" tint="#FF2D6F" delay={0.05} />
               <StatTile icon={QrCode} label="Instant" value="QR Flyer" tint="#0A84FF" delay={0.1} />
               <StatTile icon={Share2} label="Share" value="Anywhere" tint="#30D158" delay={0.15} />
-              <StatTile icon={LayoutTemplate} label="Branded" value="Microsite" tint="#5E5CE6" delay={0.2} />
             </div>
 
             {/* Main content */}
@@ -201,7 +199,7 @@ const BookingPage = () => {
                 className="rounded-[24px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
               >
                 <div className="p-4 sm:p-6 md:p-8">
-                  {tab === "link" ? <BookingLinkGenerator /> : <MicrositeEditorPanel />}
+                  <BookingLinkGenerator />
                 </div>
               </motion.div>
             </AnimatePresence>

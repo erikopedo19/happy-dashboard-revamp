@@ -186,7 +186,7 @@ function App() {
                 <GlimmIntercept />
                 <AnimatedRoutes />
                 <NotificationBell />
-                <PremiumGiftPopup />
+                
                 <PersistentDock />
               </GlimmProvider>
             </OnboardingProvider>
