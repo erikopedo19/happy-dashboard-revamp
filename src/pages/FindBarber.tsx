@@ -242,7 +242,7 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
-      <IdentitySuggestionPopup />
+      {(user?.user_metadata as any)?.role === "barber" && <IdentitySuggestionPopup />}
 
 
       {/* Sticky minimal header */}
