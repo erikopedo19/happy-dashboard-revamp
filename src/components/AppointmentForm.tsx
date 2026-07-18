@@ -193,7 +193,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     });
   }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId]);
 
-  // Realtime sync — agenda hours + bookings updated instantly on this form
+  // Realtime sync — agenda hours + bookings + stylists updated instantly on this form
   useEffect(() => {
     if (!user || !isOpen) return;
     const channel = supabase
@@ -204,12 +204,16 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['booked-slots', user.id] });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stylists', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['stylists-active', user.id] });
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['profile-tz', user.id] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, isOpen, queryClient]);
+
 
 
   // Calendar days
