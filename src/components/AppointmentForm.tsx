@@ -130,7 +130,11 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       return data || [];
     },
     enabled: !!user,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
+
 
   // Fetch user profile for business info
   const { data: profile } = useQuery<any>({
