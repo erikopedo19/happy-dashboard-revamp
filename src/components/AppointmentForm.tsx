@@ -447,7 +447,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         .insert({
           customer_id: customerId,
           service_id: validSelectedService.id,
-          stylist_id: stylistId,
+          stylist_id: stylistId || null,
           appointment_date: format(selectedDateObj, 'yyyy-MM-dd'),
           appointment_time: normalizedSelectedTime,
           price: validSelectedService.price,
