@@ -695,43 +695,112 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </div>
                 )}
 
-                {/* Stylist Selection */}
+                {/* Stylist Selection — optional, with quick-add / invite / skip */}
                 {selectedService && (
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-400 mb-3">Select Stylist *</label>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-medium text-gray-400">
+                        Stylist <span className="text-gray-600">(optional)</span>
+                      </label>
+                      {stylists.length > 0 && stylistId && (
+                        <button
+                          type="button"
+                          onClick={() => setStylistId("")}
+                          className="text-xs text-gray-500 hover:text-white"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
                     <div className="grid grid-cols-1 gap-2">
                       {stylists.length === 0 ? (
-                        <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-center">
-                          <p className="text-sm text-rose-400">No stylists available. Please add a stylist first.</p>
+                        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
+                          <p className="text-sm text-gray-400">
+                            No stylists yet — book without one, or add your team.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); window.location.href = "/stylists"; }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              + Add stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); window.location.href = "/teams"; }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              Invite worker
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-600">You can continue without a stylist.</p>
                         </div>
                       ) : (
-                        stylists.map((stylist: any) => (
-                          <button
-                            key={stylist.id}
-                            onClick={() => setStylistId(stylist.id)}
-                            className={cn(
-                              "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
-                              stylistId === stylist.id
-                                ? "border-[#0A84FF] bg-white/[0.06]"
-                                : "border-white/[0.06] hover:border-gray-600"
-                            )}
-                          >
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm">
-                              {stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-white">{stylist.name}</p>
-                              <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
-                            </div>
-                            {stylistId === stylist.id && (
-                              <Check className="w-5 h-5 text-[#0A84FF]" />
-                            )}
-                          </button>
-                        ))
+                        <>
+                          {stylists.map((stylist: any) => (
+                            <button
+                              key={stylist.id}
+                              type="button"
+                              onClick={() => setStylistId(stylist.id)}
+                              className={cn(
+                                "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                stylistId === stylist.id
+                                  ? "border-[#0A84FF] bg-white/[0.06]"
+                                  : "border-white/[0.06] hover:border-gray-600"
+                              )}
+                            >
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
+                                {stylist.avatar_url ? (
+                                  <img src={stylist.avatar_url} alt={stylist.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-white">{stylist.name}</p>
+                                <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
+                              </div>
+                              {stylistId === stylist.id && (
+                                <Check className="w-5 h-5 text-[#0A84FF]" />
+                              )}
+                            </button>
+                          ))}
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setStylistId("")}
+                              className={cn(
+                                "h-8 px-3 rounded-full text-xs font-medium border transition-all",
+                                !stylistId
+                                  ? "bg-white/[0.08] border-white/20 text-white"
+                                  : "bg-transparent border-white/[0.08] text-gray-400 hover:text-white"
+                              )}
+                            >
+                              Skip / any stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); window.location.href = "/stylists"; }}
+                              className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
+                            >
+                              + Add stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); window.location.href = "/teams"; }}
+                              className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
+                            >
+                              Invite worker
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
                 )}
+
 
                 {showCalendarSelection && (
                   <>
