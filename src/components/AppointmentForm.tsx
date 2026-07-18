@@ -293,14 +293,16 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       });
       return;
     }
-    if (!stylistId) {
+    // Stylist is optional — if the shop has stylists but none selected, prompt; otherwise allow skip.
+    if (stylists.length > 0 && !stylistId) {
       toast({
-        title: "Select a stylist",
-        description: "Please choose a stylist before continuing.",
+        title: "Select a stylist or skip",
+        description: "Pick a stylist, or tap Skip to book without one.",
         variant: "destructive",
       });
       return;
     }
+
     if (!selectedTimeSlot) {
       toast({
         title: "Select a time",
