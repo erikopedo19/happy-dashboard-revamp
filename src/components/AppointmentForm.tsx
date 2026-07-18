@@ -338,11 +338,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     e.preventDefault();
     if (!requireAuth("Sign in to book an appointment")) return;
     
-    if (!user || !selectedService || !selectedTimeSlot || !customerName || !stylistId) {
+    if (!user || !selectedService || !selectedTimeSlot || !customerName) {
       toast({
         title: "Missing information",
-        description: "Please complete the service, stylist, time, and customer details before booking.",
+        description: "Please complete the service, time, and customer details before booking.",
         variant: "destructive",
+
       });
       return;
     }
