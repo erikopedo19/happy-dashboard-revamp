@@ -206,26 +206,23 @@ export function MobileSettings(props: any) {
         <Group label="Business">
           <Row
             icon={User}
-            tint="#0A84FF"
-            label="Profile identity"
+            tint="#e11d48"
+            label="Identity"
             value={
-              profileForm.full_name ||
-              user?.user_metadata?.full_name ||
-              user?.email?.split("@")[0] ||
-              "Set your name"
+              [
+                profileForm.full_name ||
+                  user?.user_metadata?.full_name ||
+                  user?.email?.split("@")[0],
+                brandForm.name,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "Set your identity"
             }
             avatar={brandForm.avatar_url}
+            banner={brandForm.banner_url}
             onClick={() => setPanel("profile")}
           />
-          <Row
-            icon={Store}
-            tint="#e11d48"
-            label="Business identity"
-            value={brandForm.name || "Not set"}
-            avatar={brandForm.avatar_url}
-            banner={brandForm.banner_url}
-            onClick={() => setPanel("business")}
-          />
+
 
           <Row
             icon={MapPin}
