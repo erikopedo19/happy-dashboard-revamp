@@ -357,6 +357,15 @@ export function MobileSettings(props: any) {
                     <><Save className="h-4 w-4" strokeWidth={2.5} /> Save changes</>
                   )}
                 </motion.button>
+                <button
+                  type="button"
+                  onClick={() => setPanel("business")}
+                  className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 text-white/80 text-[13px] font-semibold flex items-center justify-between px-4"
+                >
+                  <span className="flex items-center gap-2"><Store className="h-4 w-4 text-rose-400" /> Business identity</span>
+                  <ChevronRight className="h-4 w-4 text-white/40" />
+                </button>
+
                 {user?.id && (
                   <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-1">
                     <PublicVisibilityCard userId={user.id} />
