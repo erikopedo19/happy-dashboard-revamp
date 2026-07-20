@@ -843,15 +843,6 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     />
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setStep("datetime")}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mt-4"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span>Back to calendar</span>
-                  </button>
-
                   <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
                     <button
                       type="submit"
