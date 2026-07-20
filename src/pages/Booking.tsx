@@ -315,12 +315,54 @@ const Booking = () => {
     },
     enabled: !!businessProfile?.id,
   });
+
+  // Fetch per-day business hours (may override agenda_settings global start/end)
+  const { data: businessHours = [] } = useQuery<{ day_of_week: number; open_time: string | null; close_time: string | null; is_closed: boolean | null }[]>({
+    queryKey: ['public-business-hours', businessProfile?.id],
+    queryFn: async () => {
+      if (!businessProfile?.id) return [];
+      const { data, error } = await (supabase
+        .from('business_hours' as any)
+        .select('day_of_week, open_time, close_time, is_closed') as any)
+        .eq('user_id', businessProfile.id);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!businessProfile?.id,
+  });
+
+  // Effective open/close for the currently selected date (falls back to agenda settings)
+  const effectiveHoursForDate = (date: Date | undefined) => {
+    const fallback = {
+      start: settings?.start_hour || '09:00',
+      end: settings?.end_hour || '18:00',
+      closed: false,
+    };
+    if (!date) return fallback;
+    const row = businessHours.find((h) => h.day_of_week === date.getDay());
+    if (!row) return fallback;
+    if (row.is_closed) return { ...fallback, closed: true };
+    return {
+      start: (row.open_time || fallback.start).slice(0, 5),
+      end: (row.close_time || fallback.end).slice(0, 5),
+      closed: false,
+    };
+  };
+
   useEffect(() => {
     if (settings) {
-      const slots = generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
+      // Build the widest possible slot list so per-day narrowing still finds slots.
+      const hours = businessHours.filter((h) => !h.is_closed);
+      let earliest = settings.start_hour;
+      let latest = settings.end_hour;
+      for (const h of hours) {
+        if (h.open_time && h.open_time.slice(0, 5) < earliest) earliest = h.open_time.slice(0, 5);
+        if (h.close_time && h.close_time.slice(0, 5) > latest) latest = h.close_time.slice(0, 5);
+      }
+      const slots = generateBookingTimeSlots(earliest, latest, settings.service_duration);
       setTimeSlots(slots);
     }
-  }, [settings]);
+  }, [settings, businessHours]);
 
   // Use profile brand color as fallback accent
   useEffect(() => {
