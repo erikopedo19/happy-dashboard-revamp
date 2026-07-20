@@ -89,6 +89,7 @@ const Booking = () => {
   const [bookingError, setBookingError] = useState<BookingError | null>(null);
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
+  const [locale, setLocale] = useState<"en" | "el" | "pl">("en");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -333,8 +334,10 @@ const Booking = () => {
     const params = new URLSearchParams(window.location.search);
     const theme = params.get('theme') as "default" | "minimal" | "festive" | null;
     const accent = params.get('accent');
+    const lang = params.get('lang');
     if (theme) setEmailTheme(theme);
     if (accent) setAccentColor(accent);
+    if (lang === 'el' || lang === 'pl' || lang === 'en') setLocale(lang);
   }, []);
 
   // Check if a time slot is available
@@ -725,6 +728,7 @@ const Booking = () => {
       businessProfile={businessProfile}
       workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
       timezone={settings?.timezone || getBrowserTimezone()}
+      locale={locale}
     />
   );
 };
