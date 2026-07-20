@@ -171,14 +171,15 @@ Deno.serve(async (req) => {
       }
       const ids = all.map((u) => u.id);
 
-      const [{ data: profiles }, { data: subs }, { data: authSettings }, { data: fakeShopsSettings }, { count: totalBookings }, { count: fakeShopsCount }] = await Promise.all([
+      const [{ data: profiles }, { data: subs }, { data: authSettings }, { data: fakeShopsSettings }, { data: totalBookingsData }, { count: fakeShopsCount }] = await Promise.all([
         admin.from("profiles").select("id, full_name, business_name, avatar_url, role").in("id", ids),
         admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, updated_at"),
         admin.from("app_settings").select("value").eq("key", "auth").maybeSingle(),
         admin.from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
-        admin.from("appointments").select("id", { count: "exact", head: true }).neq("status", "cancelled"),
+        admin.rpc("get_total_bookings"),
         admin.from("fake_barbershops").select("*", { count: "exact", head: true }),
       ]);
+      const totalBookings = Number(totalBookingsData ?? 0);
       const pMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
       const sByUser = new Map((subs ?? []).filter((s: any) => s.user_id).map((s: any) => [s.user_id, s]));
       const sByEmail = new Map((subs ?? []).map((s: any) => [(s.email ?? "").toLowerCase(), s]));

@@ -19,6 +19,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+const cleanSlug = (raw: string) =>
+  raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const BookingLinkGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
@@ -37,7 +44,7 @@ const BookingLinkGenerator = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
+        .select('booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_locale')
         .eq('id', user.id)
         .single();
 
@@ -53,7 +60,7 @@ const BookingLinkGenerator = () => {
               brand_color: "#e11d48",
               booking_locale: "en",
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color, booking_locale')
+            .select('booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_locale')
             .single();
 
           if (createError) throw createError;
@@ -90,7 +97,18 @@ const BookingLinkGenerator = () => {
 
 
   const updateSlug = async () => {
-    if (!user || !customSlug.trim()) return;
+    if (!user) return;
+
+    const cleaned = cleanSlug(customSlug);
+    if (!cleaned) {
+      toast({
+        title: "Invalid booking link",
+        description: "Use letters and numbers only.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setCustomSlug(cleaned);
 
     setIsGenerating(true);
     try {
@@ -98,7 +116,7 @@ const BookingLinkGenerator = () => {
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('booking_link', customSlug.trim())
+        .eq('booking_link', cleaned)
         .neq('id', user.id) // Exclude current user
         .single();
 
@@ -114,7 +132,7 @@ const BookingLinkGenerator = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          booking_link: customSlug.trim(),
+          booking_link: cleaned,
           ask_phone: askPhone,
           ask_notes: askNotes,
           booking_locale: bookingLocale,
@@ -144,19 +162,8 @@ const BookingLinkGenerator = () => {
   };
 
   const generateNewLink = () => {
-    let newSlug = '';
-    if (profile?.full_name) {
-      newSlug = profile.full_name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-
-      if (!newSlug) {
-        newSlug = 'book-' + Math.random().toString(36).substring(2, 15);
-      }
-    } else {
-      newSlug = 'book-' + Math.random().toString(36).substring(2, 15);
-    }
+    const baseName = (profile as any)?.business_name || profile?.full_name || '';
+    const newSlug = cleanSlug(baseName) || ('book-' + Math.random().toString(36).substring(2, 15));
     setCustomSlug(newSlug);
   };
 
