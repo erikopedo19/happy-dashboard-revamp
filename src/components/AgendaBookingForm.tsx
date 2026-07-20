@@ -306,7 +306,7 @@ const AgendaBookingForm = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] text-[#1C1C1E] p-3 md:p-8 lg:p-12 flex items-center justify-center">
+    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center">
       <div className="w-full max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
@@ -319,7 +319,7 @@ const AgendaBookingForm = ({
           >
             {/* Left panel — brand + booking info */}
             <div className="lg:sticky lg:top-8 space-y-4">
-              <div className="bg-white border border-[#D1D1D6] overflow-hidden">
+              <div className="bg-[#1C1C1E] border border-white/[0.08] overflow-hidden">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -329,24 +329,24 @@ const AgendaBookingForm = ({
                       style={{ background: `linear-gradient(135deg, ${accentColor}40 0%, #E5E5EA 100%)` }}
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C1C1E] via-transparent to-transparent" />
                 </div>
                 <div className="px-5 pb-5 -mt-10 relative">
                   <div className="flex items-end gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white bg-[#E5E5EA]">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-[#1C1C1E] bg-[#2C2C2E]">
                       <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                     </div>
                     <div className="pb-1">
                       {businessProfile?.rating != null && (
                         <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
                           <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
-                          <span className="font-medium text-[#1C1C1E]">{Number(businessProfile.rating).toFixed(1)}</span>
+                          <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
                           <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <h1 className="text-xl font-semibold tracking-tight text-[#1C1C1E] mb-1">{displayName}</h1>
+                  <h1 className="text-xl font-semibold tracking-tight text-white mb-1">{displayName}</h1>
 
                   {selectedService ? (
                     <div className="mt-4 space-y-4">
@@ -354,7 +354,7 @@ const AgendaBookingForm = ({
                         <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">
                           {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
                         </p>
-                        <h2 className="text-lg font-semibold text-[#1C1C1E]">
+                        <h2 className="text-lg font-semibold text-white">
                           {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
                         </h2>
                         {selectedService.description && selectedServices.length === 1 && (
@@ -383,10 +383,10 @@ const AgendaBookingForm = ({
                         )}
                       </div>
 
-                      <div className="pt-4 border-t border-[#D1D1D6]">
+                      <div className="pt-4 border-t border-white/[0.08]">
                         <div className="flex items-center justify-between">
                           <span className="text-[#8E8E93]">{copy.total}</span>
-                          <span className="text-xl font-bold text-[#1C1C1E]">€{totalPrice}</span>
+                          <span className="text-xl font-bold text-white">€{totalPrice}</span>
                         </div>
                       </div>
                     </div>
@@ -398,12 +398,12 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-white border border-[#D1D1D6] p-4 md:p-8 min-h-[520px]">
+            <div className="bg-[#1C1C1E] border border-white/[0.08] p-4 md:p-8 min-h-[520px]">
               {step === "service" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-6">
                     <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
-                    <h2 className="text-2xl font-semibold text-[#1C1C1E]">{copy.service}</h2>
+                    <h2 className="text-2xl font-semibold text-white">{copy.service}</h2>
                   </div>
                   <div className="grid gap-3">
                     {services.map((service) => {
@@ -685,7 +685,7 @@ const AgendaBookingForm = ({
                         <Button
                           onClick={handleBack}
                           variant="outline"
-                          className="rounded-full border-[#D1D1D6] text-[#1C1C1E] hover:bg-[#F2F2F7]"
+                          className="rounded-full border-white/[0.08] text-white hover:bg-[#2C2C2E]"
                         >
                           <ChevronLeft className="w-4 h-4 mr-1.5" />
                           Pick another time

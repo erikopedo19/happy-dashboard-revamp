@@ -671,7 +671,7 @@ const Booking = () => {
   // Show loading state (also while bookingLink is missing or query is fetching)
   if (!bookingLink || profileLoading || profileFetching || (!businessProfile && !profileError)) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#0c0c0c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0c0c0c] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e11d48] mx-auto"></div>
           <p className="mt-4 text-[#8E8E93]">Loading booking page...</p>
