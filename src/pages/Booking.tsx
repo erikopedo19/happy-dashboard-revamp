@@ -266,6 +266,13 @@ const Booking = () => {
           queryClient.invalidateQueries({ queryKey: ['public-services', bizId] });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'business_hours', filter: `user_id=eq.${bizId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['public-business-hours', bizId] });
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
