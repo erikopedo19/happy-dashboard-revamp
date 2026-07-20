@@ -51,7 +51,7 @@ interface AgendaBookingFormProps {
   workingDays?: number[];
   timezone?: string;
   rescheduleAppointment?: any;
-  locale?: "en" | "el";
+  locale?: "en" | "el" | "pl";
 }
 
 const AgendaBookingForm = ({
@@ -96,6 +96,20 @@ const AgendaBookingForm = ({
         bookAnother: "Νέα κράτηση",
         booked: "Η κράτησή σας ολοκληρώθηκε",
         confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
+      }
+    : locale === "pl"
+    ? {
+        service: "Wybierz usługę",
+        dateTime: "Wybierz datę i godzinę",
+        details: "Twoje dane",
+        continue: "Kontynuuj",
+        back: "Wstecz",
+        selectedService: "Wybrana usługa",
+        selectedServices: "Wybrane usługi",
+        total: "Razem",
+        bookAnother: "Nowa rezerwacja",
+        booked: "Rezerwacja potwierdzona",
+        confirmation: "Potwierdzenie zostało wysłane na Twój email.",
       }
     : {
         service: "Select a service",
@@ -251,11 +265,11 @@ const AgendaBookingForm = ({
             <Check className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-2xl font-semibold text-white mb-2">
-            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : "Appointment updated") : copy.booked}
+            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : locale === "pl" ? "Rezerwacja zaktualizowana" : "Appointment updated") : copy.booked}
           </h2>
           <p className="text-[#8E8E93] mb-6">
             {rescheduleAppointment
-              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : "Your appointment has been rescheduled successfully.")
+              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "pl" ? "Twoja rezerwacja została zmieniona." : "Your appointment has been rescheduled successfully.")
               : copy.confirmation}
           </p>
           <div className="rounded-3xl bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
