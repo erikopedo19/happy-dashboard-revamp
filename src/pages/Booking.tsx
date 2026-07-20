@@ -402,6 +402,9 @@ const Booking = () => {
           ? stylists.map((stylist) => stylist.id)
           : [null];
 
+      const hoursForDate = effectiveHoursForDate(selectedDate);
+      if (hoursForDate.closed) return false;
+
       return candidateStylistIds.some((candidateStylistId) => {
         if (candidateStylistId && stylistServices.length > 0) {
           const canDoAllServices = ids.every((serviceId) =>
@@ -413,8 +416,8 @@ const Booking = () => {
         return getAvailableBookingSlots({
           date: selectedDate,
           allSlots: timeSlots,
-          startHour: settings?.start_hour || '09:00',
-          endHour: settings?.end_hour || '18:00',
+          startHour: hoursForDate.start,
+          endHour: hoursForDate.end,
           interval: slotInterval,
           serviceDuration: totalDuration,
           bookedSlots: existingAppointments as BookedSlotLike[],
@@ -442,6 +445,9 @@ const Booking = () => {
 
     const slotInterval = settings?.service_duration || 30;
 
+    const hoursForDate = effectiveHoursForDate(selectedDate);
+    if (hoursForDate.closed) return [];
+
     return stylists.filter(stylist => {
       if (stylistServices.length > 0) {
         const canDoAllServices = ids.every((serviceId) =>
@@ -453,8 +459,8 @@ const Booking = () => {
       return getAvailableBookingSlots({
         date: selectedDate,
         allSlots: timeSlots,
-        startHour: settings?.start_hour || '09:00',
-        endHour: settings?.end_hour || '18:00',
+        startHour: hoursForDate.start,
+        endHour: hoursForDate.end,
         interval: slotInterval,
         serviceDuration: totalDur,
         bookedSlots: existingAppointments as BookedSlotLike[],
@@ -510,11 +516,14 @@ const Booking = () => {
 
     const slotInterval = settings?.service_duration || 30;
 
+    const hoursForDate = effectiveHoursForDate(date);
+    if (hoursForDate.closed) return [];
+
     return getAvailableBookingSlots({
       date,
       allSlots: timeSlots,
-      startHour: settings?.start_hour || '09:00',
-      endHour: settings?.end_hour || '18:00',
+      startHour: hoursForDate.start,
+      endHour: hoursForDate.end,
       interval: slotInterval,
       serviceDuration: totalDuration,
       bookedSlots: existingAppointments as BookedSlotLike[],
