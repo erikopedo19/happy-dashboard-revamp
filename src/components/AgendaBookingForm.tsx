@@ -269,7 +269,7 @@ const AgendaBookingForm = ({
           </h2>
           <p className="text-[#8E8E93] mb-6">
             {rescheduleAppointment
-              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : "Your appointment has been rescheduled successfully.")
+              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "pl" ? "Twoja rezerwacja została zmieniona." : "Your appointment has been rescheduled successfully.")
               : copy.confirmation}
           </p>
           <div className="rounded-3xl bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
