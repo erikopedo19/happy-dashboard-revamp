@@ -81,6 +81,7 @@ const BookingLinkGenerator = () => {
     const params = new URLSearchParams();
     if (askPhone) params.append('askPhone', 'true');
     if (askNotes) params.append('askNotes', 'true');
+    if (bookingLocale && bookingLocale !== 'en') params.append('lang', bookingLocale);
     const queryString = params.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };

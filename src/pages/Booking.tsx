@@ -89,6 +89,7 @@ const Booking = () => {
   const [bookingError, setBookingError] = useState<BookingError | null>(null);
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
+  const [locale, setLocale] = useState<"en" | "el" | "pl">("en");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -265,6 +266,13 @@ const Booking = () => {
           queryClient.invalidateQueries({ queryKey: ['public-services', bizId] });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'business_hours', filter: `user_id=eq.${bizId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['public-business-hours', bizId] });
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -314,12 +322,54 @@ const Booking = () => {
     },
     enabled: !!businessProfile?.id,
   });
+
+  // Fetch per-day business hours (may override agenda_settings global start/end)
+  const { data: businessHours = [] } = useQuery<{ day_of_week: number; open_time: string | null; close_time: string | null; is_closed: boolean | null }[]>({
+    queryKey: ['public-business-hours', businessProfile?.id],
+    queryFn: async () => {
+      if (!businessProfile?.id) return [];
+      const { data, error } = await (supabase
+        .from('business_hours' as any)
+        .select('day_of_week, open_time, close_time, is_closed') as any)
+        .eq('user_id', businessProfile.id);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!businessProfile?.id,
+  });
+
+  // Effective open/close for the currently selected date (falls back to agenda settings)
+  const effectiveHoursForDate = (date: Date | undefined) => {
+    const fallback = {
+      start: settings?.start_hour || '09:00',
+      end: settings?.end_hour || '18:00',
+      closed: false,
+    };
+    if (!date) return fallback;
+    const row = businessHours.find((h) => h.day_of_week === date.getDay());
+    if (!row) return fallback;
+    if (row.is_closed) return { ...fallback, closed: true };
+    return {
+      start: (row.open_time || fallback.start).slice(0, 5),
+      end: (row.close_time || fallback.end).slice(0, 5),
+      closed: false,
+    };
+  };
+
   useEffect(() => {
     if (settings) {
-      const slots = generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
+      // Build the widest possible slot list so per-day narrowing still finds slots.
+      const hours = businessHours.filter((h) => !h.is_closed);
+      let earliest = settings.start_hour;
+      let latest = settings.end_hour;
+      for (const h of hours) {
+        if (h.open_time && h.open_time.slice(0, 5) < earliest) earliest = h.open_time.slice(0, 5);
+        if (h.close_time && h.close_time.slice(0, 5) > latest) latest = h.close_time.slice(0, 5);
+      }
+      const slots = generateBookingTimeSlots(earliest, latest, settings.service_duration);
       setTimeSlots(slots);
     }
-  }, [settings]);
+  }, [settings, businessHours]);
 
   // Use profile brand color as fallback accent
   useEffect(() => {
@@ -333,8 +383,10 @@ const Booking = () => {
     const params = new URLSearchParams(window.location.search);
     const theme = params.get('theme') as "default" | "minimal" | "festive" | null;
     const accent = params.get('accent');
+    const lang = params.get('lang');
     if (theme) setEmailTheme(theme);
     if (accent) setAccentColor(accent);
+    if (lang === 'el' || lang === 'pl' || lang === 'en') setLocale(lang);
   }, []);
 
   // Check if a time slot is available
@@ -357,6 +409,9 @@ const Booking = () => {
           ? stylists.map((stylist) => stylist.id)
           : [null];
 
+      const hoursForDate = effectiveHoursForDate(selectedDate);
+      if (hoursForDate.closed) return false;
+
       return candidateStylistIds.some((candidateStylistId) => {
         if (candidateStylistId && stylistServices.length > 0) {
           const canDoAllServices = ids.every((serviceId) =>
@@ -368,8 +423,8 @@ const Booking = () => {
         return getAvailableBookingSlots({
           date: selectedDate,
           allSlots: timeSlots,
-          startHour: settings?.start_hour || '09:00',
-          endHour: settings?.end_hour || '18:00',
+          startHour: hoursForDate.start,
+          endHour: hoursForDate.end,
           interval: slotInterval,
           serviceDuration: totalDuration,
           bookedSlots: existingAppointments as BookedSlotLike[],
@@ -397,6 +452,9 @@ const Booking = () => {
 
     const slotInterval = settings?.service_duration || 30;
 
+    const hoursForDate = effectiveHoursForDate(selectedDate);
+    if (hoursForDate.closed) return [];
+
     return stylists.filter(stylist => {
       if (stylistServices.length > 0) {
         const canDoAllServices = ids.every((serviceId) =>
@@ -408,8 +466,8 @@ const Booking = () => {
       return getAvailableBookingSlots({
         date: selectedDate,
         allSlots: timeSlots,
-        startHour: settings?.start_hour || '09:00',
-        endHour: settings?.end_hour || '18:00',
+        startHour: hoursForDate.start,
+        endHour: hoursForDate.end,
         interval: slotInterval,
         serviceDuration: totalDur,
         bookedSlots: existingAppointments as BookedSlotLike[],
@@ -465,11 +523,14 @@ const Booking = () => {
 
     const slotInterval = settings?.service_duration || 30;
 
+    const hoursForDate = effectiveHoursForDate(date);
+    if (hoursForDate.closed) return [];
+
     return getAvailableBookingSlots({
       date,
       allSlots: timeSlots,
-      startHour: settings?.start_hour || '09:00',
-      endHour: settings?.end_hour || '18:00',
+      startHour: hoursForDate.start,
+      endHour: hoursForDate.end,
       interval: slotInterval,
       serviceDuration: totalDuration,
       bookedSlots: existingAppointments as BookedSlotLike[],
@@ -725,6 +786,7 @@ const Booking = () => {
       businessProfile={businessProfile}
       workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
       timezone={settings?.timezone || getBrowserTimezone()}
+      locale={locale}
     />
   );
 };
