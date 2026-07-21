@@ -1312,6 +1312,7 @@ export type Database = {
         Returns: Json
       }
       get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
+      get_mobile_dashboard_metrics: { Args: { p_today?: string }; Returns: Json }
       get_my_bookings: {
         Args: never
         Returns: {

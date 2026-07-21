@@ -2,6 +2,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
+import { MobileDashboardIOS } from "@/components/MobileDashboardIOS";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 
@@ -65,7 +66,7 @@ const Dashboard = () => {
             {showOnboarding ? (
               <OnboardingSetup onComplete={() => {}} />
             ) : isMobile ? (
-              <MobileDashboard />
+              <MobileDashboardIOS />
             ) : (
               <DashboardContent />
             )}
