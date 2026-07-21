@@ -649,7 +649,7 @@ const DarkInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <Input
     {...props}
     className={cn(
-      "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-rose-500/40 h-11 rounded-xl",
+      "bg-[#1c1c1e] border-white/5 text-white placeholder:text-white/30 focus-visible:ring-rose-500/40 h-12 rounded-2xl",
       props.className
     )}
   />
@@ -664,13 +664,13 @@ const RoleCard = ({
     className={cn(
       "group relative flex w-full items-start gap-4 rounded-2xl border p-5 text-left transition-all active:scale-[0.99]",
       active
-        ? "border-rose-400/60 bg-rose-500/10 shadow-lg shadow-rose-900/20"
-        : "border-white/10 bg-white/5 hover:border-white/20"
+        ? "border-rose-400/60 bg-[#1c1c1e]"
+        : "border-white/5 bg-[#1c1c1e] hover:border-white/15"
     )}
   >
     <div className={cn(
       "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all",
-      active ? "bg-gradient-to-br from-rose-500 to-rose-700 text-white" : "bg-white/10 text-white/70"
+      active ? "bg-rose-500 text-white" : "bg-white/[0.06] text-white/70"
     )}>
       {icon}
     </div>
@@ -681,10 +681,82 @@ const RoleCard = ({
     {active && (
       <motion.div
         initial={{ scale: 0 }} animate={{ scale: 1 }}
-        className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-rose-700 text-white"
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-white"
       >
         <Check className="h-3.5 w-3.5" />
       </motion.div>
     )}
   </button>
 );
+
+function StylistsEditor({
+  stylists,
+  onChange,
+}: {
+  stylists: { name: string; title?: string }[];
+  onChange: (next: { name: string; title?: string }[]) => void;
+}) {
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+
+  const add = () => {
+    const n = name.trim();
+    if (!n) return;
+    onChange([...stylists, { name: n, title: title.trim() || undefined }]);
+    setName("");
+    setTitle("");
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-3 space-y-2">
+        <DarkInput
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Stylist name (e.g. Marco)"
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <DarkInput
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title (optional — e.g. Senior Barber)"
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!name.trim()}
+          className="w-full h-11 rounded-xl bg-rose-500 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-[0.98] transition"
+        >
+          <Plus className="h-4 w-4" /> Add stylist
+        </button>
+      </div>
+
+      {stylists.length === 0 ? (
+        <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-5 text-center">
+          <UserPlus className="h-5 w-5 text-white/40 mx-auto mb-2" />
+          <p className="text-[13px] text-white/50">No stylists yet — you can skip and add later.</p>
+        </div>
+      ) : (
+        <ul className="rounded-2xl bg-[#1c1c1e] border border-white/5 divide-y divide-white/[0.06] overflow-hidden">
+          {stylists.map((s, i) => (
+            <li key={i} className="flex items-center justify-between px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-[14px] font-medium text-white truncate">{s.name}</p>
+                {s.title && <p className="text-[11px] text-white/45 truncate">{s.title}</p>}
+              </div>
+              <button
+                type="button"
+                onClick={() => onChange(stylists.filter((_, idx) => idx !== i))}
+                className="h-8 w-8 rounded-full bg-white/[0.06] text-white/60 flex items-center justify-center hover:bg-white/[0.1] hover:text-white transition"
+                aria-label="Remove"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
