@@ -80,7 +80,12 @@ const AgendaBookingForm = ({
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
   const accentColor = businessProfile?.brand_color || "#e11d48";
-  const displayName = businessProfile?.full_name || "Book an Appointment";
+  const displayName =
+    (businessProfile?.full_name && businessProfile.full_name.trim()) ||
+    (typeof window !== "undefined"
+      ? decodeURIComponent(window.location.pathname.split("/book/")[1]?.split("/")[0] || "")
+      : "") ||
+    "Book an Appointment";
   const avatarUrl = businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
   const bannerUrl = businessProfile?.banner_url;
   const copy = locale === "el"
