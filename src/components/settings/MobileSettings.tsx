@@ -308,63 +308,156 @@ export function MobileSettings(props: any) {
           <Sheet onClose={() => setPanel(null)} title={titleFor(panel)}>
             {panel === "profile" && (
               <PanelStack>
-                <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-4">
-                  <BrandImageUpload
-                    label=""
-                    path={brandForm.avatar_url}
-                    onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
-                    folder="avatar"
-                    circle
-                    maxSizeMB={avatarMaxMB}
-                    className="shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-semibold text-white truncate">
-                      {profileForm.full_name || brandForm.name || "Your name"}
-                    </p>
-                    <p className="text-[11px] text-white/50">Personal identity · shown on Find Barber</p>
+                {/* Unified identity: banner + avatar in one card */}
+                <div className="rounded-3xl bg-white/[0.04] border border-white/10 overflow-hidden">
+                  <div className="relative">
+                    <BrandImageUpload
+                      label=""
+                      path={brandForm.banner_url}
+                      onChange={(url) => setBrandForm((p: any) => ({ ...p, banner_url: url }))}
+                      folder="banner"
+                      maxSizeMB={bannerMaxMB}
+                      helperText=""
+                      className="w-full [&_*]:rounded-none"
+                    />
+                  </div>
+                  <div className="px-4 pt-3 pb-4 flex items-center gap-3 -mt-8 relative">
+                    <div className="ring-4 ring-[#0b0b0d] rounded-full">
+                      <BrandImageUpload
+                        label=""
+                        path={brandForm.avatar_url}
+                        onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
+                        folder="avatar"
+                        circle
+                        maxSizeMB={avatarMaxMB}
+                        className="shrink-0"
+                      />
+                    </div>
+                    <div className="min-w-0 pt-6">
+                      <p className="text-[14px] font-semibold text-white truncate">
+                        {brandForm.name || profileForm.full_name || "Your identity"}
+                      </p>
+                      <p className="text-[11px] text-white/45 truncate">
+                        {profileForm.full_name || "Personal name"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <Field label="Full name">
-                  <Input
-                    value={profileForm.full_name}
-                    onChange={(e) =>
-                      setProfileForm((p: any) => ({ ...p, full_name: e.target.value }))
-                    }
-                    placeholder="Your full name"
-                    className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                  />
-                </Field>
-                <Field label="Personal phone">
-                  <Input
-                    value={profileForm.phone}
-                    onChange={(e) =>
-                      setProfileForm((p: any) => ({ ...p, phone: e.target.value }))
-                    }
-                    placeholder="+1 555 123 4567"
-                    className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                  />
-                </Field>
+
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2 px-1">
+                    <User className="inline h-3 w-3 mr-1 -mt-0.5" /> Personal
+                  </p>
+                  <div className="space-y-3">
+                    <Field label="Full name">
+                      <Input
+                        value={profileForm.full_name}
+                        onChange={(e) =>
+                          setProfileForm((p: any) => ({ ...p, full_name: e.target.value }))
+                        }
+                        placeholder="Your full name"
+                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                      />
+                    </Field>
+                    <Field label="Personal phone">
+                      <Input
+                        value={profileForm.phone}
+                        onChange={(e) =>
+                          setProfileForm((p: any) => ({ ...p, phone: e.target.value }))
+                        }
+                        placeholder="+1 555 123 4567"
+                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                      />
+                    </Field>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2 px-1">
+                    <Store className="inline h-3 w-3 mr-1 -mt-0.5" /> Business
+                  </p>
+                  <div className="space-y-3">
+                    <Field label="Business name">
+                      <Input
+                        value={brandForm.name}
+                        onChange={(e) => setBrandForm((p: any) => ({ ...p, name: e.target.value }))}
+                        placeholder="Cutzio Studio"
+                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                      />
+                    </Field>
+                    <Field label="Public phone">
+                      <Input
+                        value={brandForm.contact_phone}
+                        onChange={(e) =>
+                          setBrandForm((p: any) => ({ ...p, contact_phone: e.target.value }))
+                        }
+                        placeholder="+1 555 987 6543"
+                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                      />
+                    </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="City">
+                        <Input
+                          value={brandForm.city}
+                          onChange={(e) => setBrandForm((p: any) => ({ ...p, city: e.target.value }))}
+                          placeholder="New York"
+                          className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                        />
+                      </Field>
+                      <Field label="Years exp">
+                        <Input
+                          type="number"
+                          value={brandForm.years_experience ?? ""}
+                          onChange={(e) =>
+                            setBrandForm((p: any) => ({
+                              ...p,
+                              years_experience: e.target.value
+                                ? parseInt(e.target.value, 10)
+                                : undefined,
+                            }))
+                          }
+                          placeholder="7"
+                          className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Street address">
+                      <Input
+                        value={brandForm.location}
+                        onChange={(e) =>
+                          setBrandForm((p: any) => ({ ...p, location: e.target.value }))
+                        }
+                        placeholder="123 Main Street"
+                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                      />
+                    </Field>
+                    <Field label="About">
+                      <textarea
+                        value={brandForm.description}
+                        onChange={(e) =>
+                          setBrandForm((p: any) => ({ ...p, description: e.target.value }))
+                        }
+                        rows={4}
+                        maxLength={400}
+                        placeholder="Tell clients about your style..."
+                        className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-white/20"
+                      />
+                    </Field>
+                  </div>
+                </div>
+
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full h-12 rounded-2xl bg-white text-black text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
                   ) : (
-                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save changes</>
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save identity</>
                   )}
                 </motion.button>
-                <button
-                  type="button"
-                  onClick={() => setPanel("business")}
-                  className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 text-white/80 text-[13px] font-semibold flex items-center justify-between px-4"
-                >
-                  <span className="flex items-center gap-2"><Store className="h-4 w-4 text-rose-400" /> Business identity</span>
-                  <ChevronRight className="h-4 w-4 text-white/40" />
-                </button>
 
                 {user?.id && (
                   <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-1">
