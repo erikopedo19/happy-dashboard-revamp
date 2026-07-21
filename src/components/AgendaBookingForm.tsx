@@ -305,21 +305,34 @@ const AgendaBookingForm = ({
     );
   }
 
+  const spring = { type: "spring" as const, stiffness: 380, damping: 34 };
+
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center">
-      <div className="w-full max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center relative overflow-hidden">
+      {/* Ambient glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 -right-32 h-[520px] w-[520px] rounded-full blur-3xl opacity-20"
+        style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 -left-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-15"
+        style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
+      />
+      <div className="w-full max-w-5xl mx-auto relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.25 }}
-            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 lg:gap-10 items-start"
+            exit={{ opacity: 0, y: -10 }}
+            transition={spring}
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
             <div className="lg:sticky lg:top-8 space-y-4">
-              <div className="bg-[#1C1C1E] border border-white/[0.08] overflow-hidden">
+              <div className="bg-[#141416] border border-white/[0.06] overflow-hidden rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -398,7 +411,7 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#1C1C1E] border border-white/[0.08] p-4 md:p-8 min-h-[520px]">
+            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-[520px] rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
               {step === "service" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-6">
