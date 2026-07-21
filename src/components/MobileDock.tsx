@@ -4,6 +4,9 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NavItem {
   label: string;
@@ -16,11 +19,11 @@ const mainItems: NavItem[] = [
   { label: 'Admin', icon: LayoutDashboard, path: '/admin' },
   { label: 'Agenda', icon: Calendar, path: '/agenda' },
   { label: 'Reports', icon: BarChart3, path: '/reports' },
-  { label: 'Services', icon: Scissors, path: '/services' },
   { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 const moreItems: NavItem[] = [
+  { label: 'Services', icon: Scissors, path: '/services' },
   { label: 'Customers', icon: Users, path: '/customers' },
   { label: 'Booking', icon: Globe, path: '/booking-page' },
   { label: 'Stylists', icon: UserCheck, path: '/stylists' },
@@ -28,7 +31,7 @@ const moreItems: NavItem[] = [
   { label: 'Products', icon: Package, path: '/products', isNew: true },
 ];
 
-const MoreOverlay = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: NavItem[] }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -78,7 +81,7 @@ const MoreOverlay = ({ open, onClose }: { open: boolean; onClose: () => void }) 
             className="absolute bottom-0 right-0 flex flex-col items-end gap-1.5 px-7 pb-[calc(env(safe-area-inset-bottom)+7.5rem)]"
             onClick={(e) => e.stopPropagation()}
           >
-            {moreItems.map((item, i) => {
+            {items.map((item, i) => {
               const isActive =
                 location.pathname === item.path ||
                 location.pathname.startsWith(item.path + '/');
@@ -176,10 +179,29 @@ export const MobileDock = () => null;
 export const MobileDockInner = () => {
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
+  const { user } = useAuth();
+
+  const { data: services = [] } = useQuery({
+    queryKey: ['dock-services', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from('services')
+        .select('id')
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const hasServices = services.length > 0;
+  const visibleMoreItems = hasServices ? moreItems : moreItems.filter((item) => item.label !== 'Services');
 
   return (
     <>
-      <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} />
+      <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} items={visibleMoreItems} />
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-2.5 pb-[max(env(safe-area-inset-bottom),0.7rem)]">
         <div className="mobile-dock pointer-events-auto mx-auto flex max-w-[26rem] items-stretch justify-between rounded-[28px] px-1.5 py-1.5 backdrop-blur-2xl">
           {mainItems.map((item) => (
