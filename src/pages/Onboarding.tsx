@@ -465,6 +465,51 @@ export default function Onboarding() {
                 </>
               )}
 
+              {!isClient && step === 7 && (
+                <>
+                  <Header
+                    title="Your booking link"
+                    subtitle="This is what clients will share and open to book you."
+                  />
+                  <Field label="cutzioo.com/book/" icon={<LinkIcon className="h-4 w-4" />}>
+                    <div className="flex items-center gap-2 rounded-2xl bg-[#1c1c1e] border border-white/5 px-3 h-12">
+                      <span className="text-[13px] text-white/40 shrink-0">/book/</span>
+                      <input
+                        value={data.bookingLink}
+                        onChange={(e) => update("bookingLink", cleanSlug(e.target.value))}
+                        placeholder={cleanSlug(data.businessName) || "your-name"}
+                        className="flex-1 bg-transparent text-[15px] font-medium text-white placeholder:text-white/25 outline-none"
+                      />
+                    </div>
+                  </Field>
+                  <button
+                    type="button"
+                    onClick={() => update("bookingLink", cleanSlug(data.businessName))}
+                    className="text-[12px] font-medium text-white/50 hover:text-white transition"
+                  >
+                    Use my business name → {cleanSlug(data.businessName) || "your-name"}
+                  </button>
+                  <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-4 text-[12px] text-white/60 leading-relaxed">
+                    Only letters, numbers and dashes. You can change it anytime in settings.
+                  </div>
+                </>
+              )}
+
+              {!isClient && step === 8 && (
+                <>
+                  <Header
+                    title="Add your stylists"
+                    subtitle={data.workType === "team"
+                      ? "Add everyone who takes bookings. Skip if you're setting this up later."
+                      : "Working with others? Add them now. Skip if it's just you."}
+                  />
+                  <StylistsEditor
+                    stylists={data.stylists}
+                    onChange={(next) => update("stylists", next)}
+                  />
+                </>
+              )}
+
               {isClient && step === 1 && (
                 <>
                   <Header title="What are you looking for?" subtitle="Pick anything you might book." />
