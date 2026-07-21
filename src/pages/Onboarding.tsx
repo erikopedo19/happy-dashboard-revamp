@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Scissors, User as UserIcon, Users, Building2, Briefcase,
   MapPin, Calendar, ArrowRight, ArrowLeft, Check, Sparkles,
+  Link as LinkIcon, Plus, X, UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,8 @@ export type OnboardingDraft = {
   goal: "grow" | "organize" | "fill_slots" | "solo" | null;
   heardFrom: "instagram" | "tiktok" | "friend" | "search" | "other" | null;
   acceptsWaitlist: boolean;
+  bookingLink: string;
+  stylists: { name: string; title?: string }[];
   // Client extras
   clientLookingFor: string[];
   clientBudget: "low" | "mid" | "premium" | null;
@@ -53,11 +56,16 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   goal: null,
   heardFrom: null,
   acceptsWaitlist: true,
+  bookingLink: "",
+  stylists: [],
   clientLookingFor: [],
   clientBudget: null,
   clientRadiusKm: 10,
   clientFullName: "",
 };
+
+const cleanSlug = (raw: string) =>
+  raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 
 const DAYS = [
   { n: 1, l: "Mon" }, { n: 2, l: "Tue" }, { n: 3, l: "Wed" },
