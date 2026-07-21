@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -124,6 +124,10 @@ export function MobileDashboardIOS() {
     enabled: !!user,
   });
 
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [profile?.avatar_url]);
+
   const displayName = profile?.business_name?.trim() || profile?.full_name?.trim() || "Your business";
   const firstName = profile?.full_name?.trim().split(/\s+/)[0] || displayName;
   const initial = displayName.charAt(0).toUpperCase() || "C";
@@ -134,7 +138,7 @@ export function MobileDashboardIOS() {
   const topServiceMax = Math.max(...metrics.top_services.map((item) => item.bookings), 1);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[#F2F2F7] text-[#1C1C1E]">
+    <div className="flex h-full flex-col overflow-hidden bg-black text-white">
       <header className="shrink-0 px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -142,12 +146,12 @@ export function MobileDashboardIOS() {
             <h1 className="mt-0.5 truncate text-[29px] font-bold tracking-[-0.035em]">Hi, {firstName}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <SidebarTrigger className="h-11 w-11 rounded-full border-0 bg-white text-[#1C1C1E] shadow-none hover:bg-[#E5E5EA]" />
+            <SidebarTrigger className="h-11 w-11 rounded-full border-0 bg-[#1C1C1E] text-white shadow-none hover:bg-[#2C2C2E]" />
             <button
               type="button"
               aria-label="Open profile settings"
               onClick={() => navigate("/settings")}
-              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[#1C1C1E] text-sm font-bold text-white"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[#2C2C2E] text-sm font-bold text-white ring-1 ring-[#3A3A3C]"
             >
               {profile?.avatar_url && !avatarFailed ? (
                 <img
@@ -201,7 +205,7 @@ export function MobileDashboardIOS() {
           <MetricCard icon={Check} color="bg-[#FF9F0A]" label="Completion" value={`${metrics.completion_rate}%`} detail={`${metrics.cancelled_30d} cancelled`} />
         </section>
 
-        <section className="rounded-[28px] bg-white px-5 py-4">
+        <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
           <SectionTitle title="This week" action="Agenda" onClick={() => navigate("/agenda")} />
           <div className="mt-4 grid grid-cols-7 gap-1">
             {metrics.week.map((day) => {
@@ -210,19 +214,19 @@ export function MobileDashboardIOS() {
               return (
                 <button key={day.date} type="button" onClick={() => navigate("/agenda")} className="flex min-w-0 flex-col items-center gap-2">
                   <span className="text-[10px] font-semibold text-[#8E8E93]">{format(date, "EEEEE")}</span>
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold ${active ? "bg-[#FF375F] text-white" : "bg-[#F2F2F7] text-[#3A3A3C]"}`}>
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold ${active ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-[#F2F2F7]"}`}>
                     {format(date, "d")}
                   </span>
-                  <span className={`text-[11px] font-bold ${day.bookings ? "text-[#1C1C1E]" : "text-[#C7C7CC]"}`}>{day.bookings}</span>
+                  <span className={`text-[11px] font-bold ${day.bookings ? "text-white" : "text-[#636366]"}`}>{day.bookings}</span>
                 </button>
               );
             })}
           </div>
         </section>
 
-        <section className="rounded-[28px] bg-white px-5 py-4">
+        <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
           <SectionTitle title="Customer pulse" action="Customers" onClick={() => navigate("/customers")} />
-          <div className="mt-4 flex items-center divide-x divide-[#E5E5EA]">
+          <div className="mt-4 flex items-center divide-x divide-[#3A3A3C]">
             <MiniStat label="New" value={metrics.new_customers_30d} />
             <MiniStat label="Returning" value={metrics.returning_customers_30d} />
             <MiniStat label="Completed" value={metrics.completed_30d} />
@@ -230,7 +234,7 @@ export function MobileDashboardIOS() {
         </section>
 
         {metrics.top_services.length > 0 && (
-          <section className="rounded-[28px] bg-white px-5 py-4">
+          <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
             <SectionTitle title="Top services" action="Services" onClick={() => navigate("/services")} />
             <div className="mt-4 space-y-4">
               {metrics.top_services.map((service) => (
@@ -239,7 +243,7 @@ export function MobileDashboardIOS() {
                     <span className="truncate text-[14px] font-semibold">{service.name}</span>
                     <span className="shrink-0 text-[12px] font-semibold text-[#8E8E93]">{service.bookings} · {money.format(service.revenue)}</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#F2F2F7]">
+                  <div className="h-2 overflow-hidden rounded-full bg-[#2C2C2E]">
                     <div className="h-full rounded-full bg-[#FF375F]" style={{ width: `${(service.bookings / topServiceMax) * 100}%` }} />
                   </div>
                 </div>
@@ -250,7 +254,7 @@ export function MobileDashboardIOS() {
 
         <section>
           <SectionTitle title="Today's schedule" action="See all" onClick={() => navigate("/agenda")} />
-          <div className="mt-3 overflow-hidden rounded-[28px] bg-white">
+          <div className="mt-3 overflow-hidden rounded-[28px] bg-[#1C1C1E]">
             {appointments.length === 0 ? (
               <div className="flex flex-col items-center px-6 py-9 text-center">
                 <CalendarDays className="h-7 w-7 text-[#8E8E93]" />
@@ -263,9 +267,9 @@ export function MobileDashboardIOS() {
                   key={appointment.id}
                   type="button"
                   onClick={() => navigate("/agenda")}
-                  className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-[#F2F2F7] ${index ? "border-t border-[#E5E5EA]" : ""}`}
+                  className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-[#2C2C2E] ${index ? "border-t border-[#38383A]" : ""}`}
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F2F2F7] text-[12px] font-bold">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2C2C2E] text-[12px] font-bold">
                     {appointment.appointment_time.slice(0, 5)}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -301,7 +305,7 @@ function Trend({ value }: { value: number }) {
 
 function MetricCard({ icon: Icon, color, label, value, detail }: { icon: typeof CalendarDays; color: string; label: string; value: string; detail: string }) {
   return (
-    <div className="min-h-[142px] rounded-[26px] bg-white p-4">
+    <div className="min-h-[142px] rounded-[26px] bg-[#1C1C1E] p-4">
       <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${color}`}><Icon className="h-[18px] w-[18px]" /></div>
       <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8E8E93]">{label}</p>
       <p className="mt-1 text-[25px] font-bold tracking-[-0.035em]">{value}</p>
@@ -327,7 +331,7 @@ function MiniStat({ label, value }: { label: string; value: number }) {
 
 function ActionButton({ icon: Icon, label, primary = false, onClick }: { icon: typeof UserRound; label: string; primary?: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`flex h-14 items-center justify-center gap-2 rounded-[20px] text-[14px] font-bold active:scale-[0.98] ${primary ? "bg-[#FF375F] text-white" : "bg-white text-[#1C1C1E]"}`}>
+    <button type="button" onClick={onClick} className={`flex h-14 items-center justify-center gap-2 rounded-[20px] text-[14px] font-bold active:scale-[0.98] ${primary ? "bg-[#FF375F] text-white" : "bg-[#1C1C1E] text-white"}`}>
       <Icon className="h-4 w-4" />{label}<ArrowRight className="h-4 w-4" />
     </button>
   );

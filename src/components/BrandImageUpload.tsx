@@ -83,6 +83,7 @@ export function BrandImageUpload({
           <img
             src={preview}
             alt={label}
+            onError={() => setPreview(null)}
             className={`object-cover ${circle ? "w-20 h-20 rounded-full" : "w-full h-32 rounded-lg"}`}
           />
         ) : (

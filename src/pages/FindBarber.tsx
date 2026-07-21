@@ -50,10 +50,11 @@ interface BarberProfile {
   brandName: string;
 }
 
-type TabKey = "explore" | "map" | "favorites";
+type TabKey = "today" | "most-booking" | "map" | "favorites";
 
 const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
-  { key: "explore", label: "Explore", icon: Search, activeColor: "#e11d48" },
+  { key: "today", label: "Today", icon: Calendar, activeColor: "#e11d48" },
+  { key: "most-booking", label: "Most Booking", icon: Award, activeColor: "#e11d48" },
   { key: "map", label: "Map", icon: MapIcon, activeColor: "#e11d48" },
   { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#e11d48" },
 ];
@@ -63,7 +64,7 @@ const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 const FindBarber = () => {
   const { user, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get("tab") as TabKey) || "explore";
+  const initialTab = (searchParams.get("tab") as TabKey) || "today";
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -82,7 +83,7 @@ const FindBarber = () => {
 
   const changeTab = (key: TabKey) => {
     setActiveTab(key);
-    if (key === "explore") {
+    if (key === "today") {
       searchParams.delete("tab");
     } else {
       searchParams.set("tab", key);
@@ -203,6 +204,12 @@ const FindBarber = () => {
     return list.filter((b) => b.brandName.toLowerCase().includes(term));
   }, [barbers, searchTerm]);
 
+  const mostBookedItems = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const list = (barbers ?? []).filter((b) => !term || b.brandName.toLowerCase().includes(term));
+    return list.sort((a, b) => (b.rating_count ?? 0) - (a.rating_count ?? 0));
+  }, [barbers, searchTerm]);
+
   const favoriteBarbers = (barbers ?? []).filter((b) => favorites.includes(b.id));
 
 
@@ -276,7 +283,7 @@ const FindBarber = () => {
           </div>
 
           {/* iOS segmented control */}
-          <div className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
+          <div className="mt-2.5 relative grid grid-cols-4 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
             {TABS.map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.key;
@@ -316,10 +323,23 @@ const FindBarber = () => {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
           >
-            {activeTab === "explore" && (
+            {activeTab === "today" && (
               <ExploreList
                 loading={barbersLoading}
                 items={filtered}
+                favorites={favorites}
+                onToggleFavorite={toggleFavorite}
+                searchTerm={searchTerm}
+                expandedId={expandedId}
+                onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+                rateableMap={rateableMap}
+              />
+            )}
+
+            {activeTab === "most-booking" && (
+              <ExploreList
+                loading={barbersLoading}
+                items={mostBookedItems}
                 favorites={favorites}
                 onToggleFavorite={toggleFavorite}
                 searchTerm={searchTerm}
@@ -333,7 +353,7 @@ const FindBarber = () => {
               <FavoritesList
                 items={favoriteBarbers}
                 onToggleFavorite={toggleFavorite}
-                onExplore={() => changeTab("explore")}
+                onExplore={() => changeTab("today")}
                 expandedId={expandedId}
                 onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
                 rateableMap={rateableMap}
@@ -721,6 +741,26 @@ function FullScreenMap({
             hideSearch
             showControls={false}
           />
+        </div>
+      </div>
+
+      {/* Coming Soon overlay */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="mx-5 max-w-sm rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 text-center shadow-2xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10">
+            <MapIcon className="h-6 w-6 text-rose-500" />
+          </div>
+          <h2 className="mt-4 text-[18px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Map coming soon</h2>
+          <p className="mt-2 text-[13px] text-[#8E8E93]">
+            Barbers will appear here as they add their shop locations.
+          </p>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-5 h-11 w-full rounded-full bg-rose-500 text-[13px] font-semibold text-white active:scale-95 transition-transform"
+          >
+            Browse barbers
+          </button>
         </div>
       </div>
 

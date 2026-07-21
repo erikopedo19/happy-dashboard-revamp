@@ -445,6 +445,7 @@ const Settings = () => {
         queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["stylists"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["barber-details"], exact: false }),
+        queryClient.invalidateQueries({ queryKey: ["mobile-dashboard-profile", user?.id] }),
       ]);
 
       toast({

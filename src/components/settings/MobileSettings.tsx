@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   ChevronRight,
@@ -101,8 +102,31 @@ export function MobileSettings(props: any) {
   } = props;
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [panel, setPanel] = useState<Panel>(null);
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const currentRole = user?.user_metadata?.role ?? "client";
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [brandForm.avatar_url]);
+
+  const updateIdentityImage = async (field: "avatar_url" | "banner_url", url: string) => {
+    const previousUrl = brandForm[field];
+    setBrandForm((previous: any) => ({ ...previous, [field]: url }));
+    if (!user?.id) return;
+    const { error } = await (supabase as any).from("profiles").update({ [field]: url }).eq("id", user.id);
+    if (error) {
+      setBrandForm((previous: any) => ({ ...previous, [field]: previousUrl }));
+      toast({ title: "Image could not be saved", description: error.message, variant: "destructive" });
+      return;
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["mobile-dashboard-profile", user.id] }),
+      queryClient.invalidateQueries({ queryKey: ["settings-page-data", user.id] }),
+    ]);
+    toast({ title: field === "avatar_url" ? "Profile photo updated" : "Business cover updated" });
+  };
 
   const initials =
     (profileForm.full_name || user?.email || "U")
@@ -146,10 +170,14 @@ export function MobileSettings(props: any) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => setPanel("profile")}
-          className="w-full text-left rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 p-4 flex items-center gap-4 active:bg-white/[0.06] transition"
+          className="w-full text-left rounded-3xl bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex items-center gap-4 active:bg-[#2C2C2E] transition"
         >
-          <div className="h-14 w-14 rounded-full bg-gradient-to-tr from-rose-500 to-amber-400 flex items-center justify-center font-cal text-xl text-white shadow-lg">
-            {initials}
+          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-[#2C2C2E] ring-1 ring-[#3A3A3C] flex items-center justify-center font-cal text-xl text-white">
+            {brandForm.avatar_url && !avatarFailed ? (
+              <img src={brandForm.avatar_url} alt={profileForm.full_name || brandForm.name || "Profile"} onError={() => setAvatarFailed(true)} className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-cal text-[18px] text-white truncate">
@@ -309,148 +337,124 @@ export function MobileSettings(props: any) {
             {panel === "profile" && (
               <PanelStack>
                 {/* Unified identity: banner + avatar in one card */}
-                <div className="rounded-3xl bg-white/[0.04] border border-white/10 overflow-hidden">
-                  <div className="relative">
-                    <BrandImageUpload
-                      label=""
-                      path={brandForm.banner_url}
-                      onChange={(url) => setBrandForm((p: any) => ({ ...p, banner_url: url }))}
-                      folder="banner"
-                      maxSizeMB={bannerMaxMB}
-                      helperText=""
-                      className="w-full [&_*]:rounded-none"
-                    />
-                  </div>
-                  <div className="px-4 pt-3 pb-4 flex items-center gap-3 -mt-8 relative">
-                    <div className="ring-4 ring-[#0b0b0d] rounded-full">
+                <section>
+                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">
+                    <User className="mr-1 inline h-3 w-3 -mt-0.5" /> Profile identity
+                  </p>
+                  <div className="rounded-[28px] bg-[#1C1C1E] p-4">
+                    <div className="flex items-center gap-4 border-b border-[#38383A] pb-4">
                       <BrandImageUpload
                         label=""
                         path={brandForm.avatar_url}
-                        onChange={(url) => setBrandForm((p: any) => ({ ...p, avatar_url: url }))}
+                        onChange={(url) => updateIdentityImage("avatar_url", url)}
                         folder="avatar"
                         circle
                         maxSizeMB={avatarMaxMB}
-                        className="shrink-0"
+                        className="flex min-w-0 flex-1 items-center gap-4 [&>div]:!mb-0 [&>button]:h-10 [&>button]:shrink-0 [&>button]:border-0 [&>button]:bg-[#2C2C2E] [&>button]:px-4 [&>button]:text-white"
                       />
                     </div>
-                    <div className="min-w-0 pt-6">
-                      <p className="text-[14px] font-semibold text-white truncate">
-                        {brandForm.name || profileForm.full_name || "Your identity"}
-                      </p>
-                      <p className="text-[11px] text-white/45 truncate">
-                        {profileForm.full_name || "Personal name"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2 px-1">
-                    <User className="inline h-3 w-3 mr-1 -mt-0.5" /> Stylist · personal identity
-                  </p>
-                  <div className="space-y-3">
-                    <Field label="Full name">
-                      <Input
-                        value={profileForm.full_name}
-                        onChange={(e) =>
-                          setProfileForm((p: any) => ({ ...p, full_name: e.target.value }))
-                        }
-                        placeholder="Your full name"
-                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                      />
-                    </Field>
-                    <Field label="Personal phone">
-                      <Input
-                        value={profileForm.phone}
-                        onChange={(e) =>
-                          setProfileForm((p: any) => ({ ...p, phone: e.target.value }))
-                        }
-                        placeholder="+1 555 123 4567"
-                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                      />
-                    </Field>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2 px-1">
-                    <Store className="inline h-3 w-3 mr-1 -mt-0.5" /> Business · public view
-                  </p>
-                  <div className="space-y-3">
-                    <Field label="Business name">
-                      <Input
-                        value={brandForm.name}
-                        onChange={(e) => setBrandForm((p: any) => ({ ...p, name: e.target.value }))}
-                        placeholder="Cutzio Studio"
-                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                      />
-                    </Field>
-                    <Field label="Public phone">
-                      <Input
-                        value={brandForm.contact_phone}
-                        onChange={(e) =>
-                          setBrandForm((p: any) => ({ ...p, contact_phone: e.target.value }))
-                        }
-                        placeholder="+1 555 987 6543"
-                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                      />
-                    </Field>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="City">
+                    <div className="space-y-4 pt-4">
+                      <Field label="Full name">
                         <Input
-                          value={brandForm.city}
-                          onChange={(e) => setBrandForm((p: any) => ({ ...p, city: e.target.value }))}
-                          placeholder="New York"
-                          className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                          value={profileForm.full_name}
+                          onChange={(e) => setProfileForm((p: any) => ({ ...p, full_name: e.target.value }))}
+                          placeholder="Your full name"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
                         />
                       </Field>
-                      <Field label="Years exp">
+                      <Field label="Personal phone">
                         <Input
-                          type="number"
-                          value={brandForm.years_experience ?? ""}
-                          onChange={(e) =>
-                            setBrandForm((p: any) => ({
-                              ...p,
-                              years_experience: e.target.value
-                                ? parseInt(e.target.value, 10)
-                                : undefined,
-                            }))
-                          }
-                          placeholder="7"
-                          className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
+                          value={profileForm.phone}
+                          onChange={(e) => setProfileForm((p: any) => ({ ...p, phone: e.target.value }))}
+                          placeholder="+1 555 123 4567"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
                         />
                       </Field>
                     </div>
-                    <Field label="Street address">
-                      <Input
-                        value={brandForm.location}
-                        onChange={(e) =>
-                          setBrandForm((p: any) => ({ ...p, location: e.target.value }))
-                        }
-                        placeholder="123 Main Street"
-                        className="h-12 rounded-2xl bg-white/[0.06] border-white/10 text-white"
-                      />
-                    </Field>
-                    <Field label="About">
-                      <textarea
-                        value={brandForm.description}
-                        onChange={(e) =>
-                          setBrandForm((p: any) => ({ ...p, description: e.target.value }))
-                        }
-                        rows={4}
-                        maxLength={400}
-                        placeholder="Tell clients about your style..."
-                        className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-white/20"
-                      />
-                    </Field>
                   </div>
-                </div>
+                </section>
+
+                <section>
+                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">
+                    <Store className="mr-1 inline h-3 w-3 -mt-0.5" /> Business identity
+                  </p>
+                  <div className="overflow-hidden rounded-[28px] bg-[#1C1C1E]">
+                    <BrandImageUpload
+                      label=""
+                      path={brandForm.banner_url}
+                      onChange={(url) => updateIdentityImage("banner_url", url)}
+                      folder="banner"
+                      maxSizeMB={bannerMaxMB}
+                      helperText=""
+                      className="relative [&>div]:!mb-0 [&>div]:!h-36 [&>div]:border-0 [&>div]:bg-[#2C2C2E] [&>div>img]:!h-36 [&>div>img]:rounded-none [&>button]:absolute [&>button]:bottom-3 [&>button]:right-3 [&>button]:h-9 [&>button]:border-0 [&>button]:bg-black [&>button]:px-4 [&>button]:text-white"
+                    />
+                    <div className="space-y-4 p-4">
+                      <div>
+                        <p className="truncate text-[17px] font-bold text-white">{brandForm.name || "Your business"}</p>
+                        <p className="mt-0.5 truncate text-[12px] text-[#8E8E93]">Public booking profile</p>
+                      </div>
+                      <Field label="Business name">
+                        <Input
+                          value={brandForm.name}
+                          onChange={(e) => setBrandForm((p: any) => ({ ...p, name: e.target.value }))}
+                          placeholder="Cutzio Studio"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                        />
+                      </Field>
+                      <Field label="Public phone">
+                        <Input
+                          value={brandForm.contact_phone}
+                          onChange={(e) => setBrandForm((p: any) => ({ ...p, contact_phone: e.target.value }))}
+                          placeholder="+1 555 987 6543"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                        />
+                      </Field>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="City">
+                          <Input
+                            value={brandForm.city}
+                            onChange={(e) => setBrandForm((p: any) => ({ ...p, city: e.target.value }))}
+                            placeholder="New York"
+                            className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          />
+                        </Field>
+                        <Field label="Years exp">
+                          <Input
+                            type="number"
+                            value={brandForm.years_experience ?? ""}
+                            onChange={(e) => setBrandForm((p: any) => ({ ...p, years_experience: e.target.value ? parseInt(e.target.value, 10) : undefined }))}
+                            placeholder="7"
+                            className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          />
+                        </Field>
+                      </div>
+                      <Field label="Street address">
+                        <Input
+                          value={brandForm.location}
+                          onChange={(e) => setBrandForm((p: any) => ({ ...p, location: e.target.value }))}
+                          placeholder="123 Main Street"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                        />
+                      </Field>
+                      <Field label="About">
+                        <textarea
+                          value={brandForm.description}
+                          onChange={(e) => setBrandForm((p: any) => ({ ...p, description: e.target.value }))}
+                          rows={4}
+                          maxLength={400}
+                          placeholder="Tell clients about your style..."
+                          className="w-full resize-none rounded-2xl border-0 bg-[#2C2C2E] p-3 text-[14px] text-white outline-none placeholder:text-[#8E8E93] focus:ring-2 focus:ring-[#FF375F]"
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </section>
 
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="w-full h-12 rounded-2xl bg-white text-black text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF375F] text-[14px] font-semibold text-white disabled:opacity-60"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
