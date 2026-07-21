@@ -84,6 +84,25 @@ export function useFinalizeOnboarding() {
         // 3. Profile (barber)
         const fullAddress = [draft.address, draft.city].filter(Boolean).join(", ");
         const years = parseInt(draft.yearsExperience) || null;
+        const cleanSlug = (raw: string) =>
+          raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+        const desiredSlug = cleanSlug(draft.bookingLink || draft.businessName || "");
+
+        // Ensure the booking link is unique; append -2, -3... if taken.
+        let finalSlug: string | null = null;
+        if (desiredSlug) {
+          finalSlug = desiredSlug;
+          for (let i = 0; i < 10; i++) {
+            const { data: taken } = await (supabase as any)
+              .from("profiles")
+              .select("id")
+              .eq("booking_link", finalSlug)
+              .neq("id", user.id)
+              .maybeSingle();
+            if (!taken) break;
+            finalSlug = `${desiredSlug}-${i + 2}`;
+          }
+        }
 
         await supabase
           .from("profiles")
@@ -94,11 +113,28 @@ export function useFinalizeOnboarding() {
             description: draft.description || null,
             years_experience: years,
             is_public: true,
+            booking_link: finalSlug ?? undefined,
             accepts_waitlist: !!draft.acceptsWaitlist,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),
           } as any)
           .eq("id", user.id);
+
+        // 3b. Stylists (from onboarding)
+        if (draft.stylists?.length) {
+          try {
+            await supabase.from("stylists").insert(
+              draft.stylists.map((s) => ({
+                user_id: user.id,
+                name: s.name,
+                title: s.title || "Stylist",
+                is_public: true,
+              }))
+            );
+          } catch (err) {
+            console.warn("Stylist insert failed", err);
+          }
+        }
 
         // 3. Services
         if (draft.services?.length) {
