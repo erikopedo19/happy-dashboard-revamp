@@ -186,6 +186,9 @@ function App() {
                 <NotificationBell />
                 
                 <PersistentDock />
+                <Toaster />
+                <Sonner />
+
               </GlimmProvider>
             </OnboardingProvider>
           </BrowserRouter>
