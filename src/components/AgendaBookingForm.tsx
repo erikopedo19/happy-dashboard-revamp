@@ -305,21 +305,34 @@ const AgendaBookingForm = ({
     );
   }
 
+  const spring = { type: "spring" as const, stiffness: 380, damping: 34 };
+
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center">
-      <div className="w-full max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center relative overflow-hidden">
+      {/* Ambient glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 -right-32 h-[520px] w-[520px] rounded-full blur-3xl opacity-20"
+        style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 -left-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-15"
+        style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
+      />
+      <div className="w-full max-w-5xl mx-auto relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.25 }}
-            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 lg:gap-10 items-start"
+            exit={{ opacity: 0, y: -10 }}
+            transition={spring}
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
             <div className="lg:sticky lg:top-8 space-y-4">
-              <div className="bg-[#1C1C1E] border border-white/[0.08] overflow-hidden">
+              <div className="bg-[#141416] border border-white/[0.06] overflow-hidden rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -398,7 +411,7 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#1C1C1E] border border-white/[0.08] p-4 md:p-8 min-h-[520px]">
+            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-[520px] rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
               {step === "service" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-6">
@@ -406,23 +419,27 @@ const AgendaBookingForm = ({
                     <h2 className="text-2xl font-semibold text-white">{copy.service}</h2>
                   </div>
                   <div className="grid gap-3">
-                    {services.map((service) => {
+                    {services.map((service, i) => {
                       const active = selectedServiceIds.includes(service.id);
                       return (
-                        <button
+                        <motion.button
                           key={service.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ ...spring, delay: i * 0.04 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-4 rounded-2xl border text-left transition-all bg-[#1C1C1E]",
+                            "w-full p-4 rounded-2xl border text-left transition-colors bg-[#1a1a1d]",
                             active
                               ? "border-transparent"
-                              : "border-white/[0.06] hover:border-white/[0.12]"
+                              : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#1f1f22]"
                           )}
-                          style={active ? { borderColor: `${accentColor}60`, backgroundColor: `${accentColor}12` } : {}}
+                          style={active ? { borderColor: `${accentColor}60`, backgroundColor: `${accentColor}15` } : {}}
                         >
                           <div className="flex justify-between items-start gap-4">
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-white text-base">{service.name}</p>
+                              <p className="font-semibold text-white text-[15px]">{service.name}</p>
                               {service.description && (
                                 <p className="text-sm text-[#8E8E93] mt-1 line-clamp-2">{service.description}</p>
                               )}
@@ -432,33 +449,45 @@ const AgendaBookingForm = ({
                               </div>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
-                              {active && (
-                                <div
-                                  className="w-5 h-5 rounded-full flex items-center justify-center text-white"
-                                  style={{ backgroundColor: accentColor }}
-                                >
-                                  <Check className="w-3 h-3" />
-                                </div>
-                              )}
-                              <p className="text-lg font-bold text-white">€{service.price}</p>
+                              <AnimatePresence>
+                                {active && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    transition={spring}
+                                    className="w-5 h-5 rounded-full flex items-center justify-center text-white"
+                                    style={{ backgroundColor: accentColor }}
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                              <p className="text-lg font-bold text-white tabular-nums">€{service.price}</p>
                             </div>
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-white/[0.08]">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={spring}
+                      className="mt-6 pt-4 border-t border-white/[0.06]"
+                    >
                       <Button
                         onClick={handleServiceContinue}
-                        className="w-full h-12 rounded-full font-semibold text-white border-0"
+                        className="w-full h-12 rounded-full font-semibold text-white border-0 transition-transform active:scale-[0.98]"
                         style={{ backgroundColor: accentColor }}
                       >
-                        Continue
+                        {copy.continue}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
+
                 </div>
               )}
 
@@ -578,18 +607,22 @@ const AgendaBookingForm = ({
                       <div className="flex-1 overflow-y-auto space-y-2 max-h-[360px] pr-1">
                         {selectedDate ? (
                           availableTimeSlots.length > 0 ? (
-                            availableTimeSlots.map((time) => {
+                            availableTimeSlots.map((time, idx) => {
                               const active = selectedTime === time;
                               const showRange = totalDuration > 30;
                               return (
-                                <button
+                                <motion.button
                                   key={time}
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ ...spring, delay: Math.min(idx * 0.015, 0.3) }}
+                                  whileTap={{ scale: 0.97 }}
                                   onClick={() => handleTimeSelect(time)}
                                   className={cn(
-                                    "w-full rounded-xl border font-medium text-center py-3 px-4 transition-all",
+                                    "w-full rounded-xl border font-medium text-center py-3 px-4 tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-white/[0.06] bg-[#1C1C1E] text-white hover:border-white/[0.12]"
+                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:border-white/[0.14] hover:bg-[#1f1f22]"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >
@@ -599,9 +632,10 @@ const AgendaBookingForm = ({
                                       → {formatTime(getEndTime(time, totalDuration))}
                                     </span>
                                   )}
-                                </button>
+                                </motion.button>
                               );
                             })
+
                           ) : (
                             <div className="text-center text-[#8E8E93] py-8 text-sm">
                               No available times

@@ -1275,6 +1275,8 @@ export type Database = {
       }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
+      clean_booking_link: { Args: { raw: string }; Returns: string }
+      clean_display_name: { Args: { raw: string }; Returns: string }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_pending_services: { Args: never; Returns: undefined }
       cleanup_pending_stylists: { Args: never; Returns: undefined }
@@ -1379,6 +1381,7 @@ export type Database = {
           reviewer_name: string
         }[]
       }
+      get_total_bookings: { Args: never; Returns: number }
       get_user_appointments: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
