@@ -50,11 +50,10 @@ interface BarberProfile {
   brandName: string;
 }
 
-type TabKey = "today" | "most-booking" | "map" | "favorites";
+type TabKey = "today" | "map" | "favorites";
 
 const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
   { key: "today", label: "Today", icon: Calendar, activeColor: "#e11d48" },
-  { key: "most-booking", label: "Most Booking", icon: Award, activeColor: "#e11d48" },
   { key: "map", label: "Map", icon: MapIcon, activeColor: "#e11d48" },
   { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#e11d48" },
 ];
@@ -204,12 +203,6 @@ const FindBarber = () => {
     return list.filter((b) => b.brandName.toLowerCase().includes(term));
   }, [barbers, searchTerm]);
 
-  const mostBookedItems = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    const list = (barbers ?? []).filter((b) => !term || b.brandName.toLowerCase().includes(term));
-    return list.sort((a, b) => (b.rating_count ?? 0) - (a.rating_count ?? 0));
-  }, [barbers, searchTerm]);
-
   const favoriteBarbers = (barbers ?? []).filter((b) => favorites.includes(b.id));
 
 
@@ -237,7 +230,7 @@ const FindBarber = () => {
         setMaxDistance={setMaxDistance}
         minRating={minRating}
         setMinRating={setMinRating}
-        onBack={() => changeTab("explore")}
+        onBack={() => changeTab("today")}
       />
     );
   }
@@ -283,7 +276,7 @@ const FindBarber = () => {
           </div>
 
           {/* iOS segmented control */}
-          <div className="mt-2.5 relative grid grid-cols-4 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
+          <div className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
             {TABS.map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.key;
@@ -327,19 +320,6 @@ const FindBarber = () => {
               <ExploreList
                 loading={barbersLoading}
                 items={filtered}
-                favorites={favorites}
-                onToggleFavorite={toggleFavorite}
-                searchTerm={searchTerm}
-                expandedId={expandedId}
-                onExpand={(id) => setExpandedId((prev) => (prev === id ? null : id))}
-                rateableMap={rateableMap}
-              />
-            )}
-
-            {activeTab === "most-booking" && (
-              <ExploreList
-                loading={barbersLoading}
-                items={mostBookedItems}
                 favorites={favorites}
                 onToggleFavorite={toggleFavorite}
                 searchTerm={searchTerm}

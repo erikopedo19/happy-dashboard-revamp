@@ -199,10 +199,10 @@ export function MobileDashboardIOS() {
         </motion.section>
 
         <section className="grid grid-cols-2 gap-3">
-          <MetricCard icon={CalendarDays} color="bg-[#0A84FF]" label="30-day bookings" value={metrics.bookings_30d.toString()} detail={`${metrics.upcoming_bookings} upcoming`} />
-          <MetricCard icon={CircleDollarSign} color="bg-[#30D158]" label="Average ticket" value={money.format(metrics.avg_ticket_30d)} detail={`${money.format(metrics.revenue_30d)} total`} />
-          <MetricCard icon={UsersRound} color="bg-[#AF52DE]" label="Customers" value={metrics.total_customers.toString()} detail={`+${metrics.new_customers_30d} new`} />
-          <MetricCard icon={Check} color="bg-[#FF9F0A]" label="Completion" value={`${metrics.completion_rate}%`} detail={`${metrics.cancelled_30d} cancelled`} />
+          <MetricCard icon={CalendarDays} color="bg-[#0A5BBF]" label="30-day bookings" value={metrics.bookings_30d.toString()} detail={`${metrics.upcoming_bookings} upcoming`} />
+          <MetricCard icon={CircleDollarSign} color="bg-[#1E7A3A]" label="Average ticket" value={money.format(metrics.avg_ticket_30d)} detail={`${money.format(metrics.revenue_30d)} total`} />
+          <MetricCard icon={UsersRound} color="bg-[#7B3FA0]" label="Customers" value={metrics.total_customers.toString()} detail={`+${metrics.new_customers_30d} new`} />
+          <MetricCard icon={Check} color="bg-[#B8730A]" label="Completion" value={`${metrics.completion_rate}%`} detail={`${metrics.cancelled_30d} cancelled`} />
         </section>
 
         <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
@@ -214,7 +214,7 @@ export function MobileDashboardIOS() {
               return (
                 <button key={day.date} type="button" onClick={() => navigate("/agenda")} className="flex min-w-0 flex-col items-center gap-2">
                   <span className="text-[10px] font-semibold text-[#8E8E93]">{format(date, "EEEEE")}</span>
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold ${active ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-[#F2F2F7]"}`}>
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold ${active ? "bg-[#C62B4A] text-white" : "bg-[#2C2C2E] text-[#F2F2F7]"}`}>
                     {format(date, "d")}
                   </span>
                   <span className={`text-[11px] font-bold ${day.bookings ? "text-white" : "text-[#636366]"}`}>{day.bookings}</span>

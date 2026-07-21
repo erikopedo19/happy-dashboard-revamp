@@ -435,9 +435,21 @@ const Settings = () => {
         setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
       }
 
-      return true;
+      return profilePayload;
     },
-    onSuccess: async () => {
+    onSuccess: async (profilePayload) => {
+      // Optimistically update caches so the saved name/image/texts are visible immediately
+      queryClient.setQueryData(["settings-page-data", user?.id], (old: any) => ({
+        ...old,
+        profile: { ...(old?.profile || {}), ...profilePayload, id: user?.id },
+      }));
+      queryClient.setQueryData(["mobile-dashboard-profile", user?.id], (old: any) => ({
+        ...(old || {}),
+        full_name: profilePayload.full_name,
+        business_name: profilePayload.business_name,
+        avatar_url: profilePayload.avatar_url,
+      }));
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["settings-page-data", user?.id] }),
         queryClient.invalidateQueries({ queryKey: ["agenda_settings", user?.id] }),
