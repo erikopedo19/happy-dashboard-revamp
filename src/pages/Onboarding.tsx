@@ -120,7 +120,7 @@ export default function Onboarding() {
     setData((p) => ({ ...p, [k]: v }));
 
   const isClient = data.role === "client";
-  const steps = isClient ? 4 : 7;
+  const steps = isClient ? 4 : 9;
 
   const canNext = () => {
     if (step === 0) return data.role !== null;
@@ -136,6 +136,8 @@ export default function Onboarding() {
     if (step === 4) return data.workingDays.length > 0;
     if (step === 5) return data.goal !== null;
     if (step === 6) return true;
+    if (step === 7) return cleanSlug(data.bookingLink || data.businessName).length >= 2;
+    if (step === 8) return true; // stylists optional
     return true;
   };
 
@@ -155,11 +157,7 @@ export default function Onboarding() {
   const progress = ((step + 1) / steps) * 100;
 
   return (
-    <div className="h-[100dvh] w-full relative overflow-hidden bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#0f0f12] text-white">
-      {/* Apple-style ambient blurs (rose + blue) */}
-      <div className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-rose-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl" />
-
+    <div className="h-[100dvh] w-full relative overflow-hidden bg-[#0b0b0d] text-white">
       <div className="relative z-10 mx-auto flex h-full w-full max-w-xl flex-col px-4 pt-4 pb-[env(safe-area-inset-bottom)] sm:px-5 sm:pt-6">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between sm:mb-4">
