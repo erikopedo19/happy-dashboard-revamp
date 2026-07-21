@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Scissors, User as UserIcon, Users, Building2, Briefcase,
   MapPin, Calendar, ArrowRight, ArrowLeft, Check, Sparkles,
+  Link as LinkIcon, Plus, X, UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,8 @@ export type OnboardingDraft = {
   goal: "grow" | "organize" | "fill_slots" | "solo" | null;
   heardFrom: "instagram" | "tiktok" | "friend" | "search" | "other" | null;
   acceptsWaitlist: boolean;
+  bookingLink: string;
+  stylists: { name: string; title?: string }[];
   // Client extras
   clientLookingFor: string[];
   clientBudget: "low" | "mid" | "premium" | null;
@@ -53,11 +56,16 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   goal: null,
   heardFrom: null,
   acceptsWaitlist: true,
+  bookingLink: "",
+  stylists: [],
   clientLookingFor: [],
   clientBudget: null,
   clientRadiusKm: 10,
   clientFullName: "",
 };
+
+const cleanSlug = (raw: string) =>
+  raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 
 const DAYS = [
   { n: 1, l: "Mon" }, { n: 2, l: "Tue" }, { n: 3, l: "Wed" },
@@ -112,7 +120,7 @@ export default function Onboarding() {
     setData((p) => ({ ...p, [k]: v }));
 
   const isClient = data.role === "client";
-  const steps = isClient ? 4 : 7;
+  const steps = isClient ? 4 : 9;
 
   const canNext = () => {
     if (step === 0) return data.role !== null;
@@ -128,6 +136,8 @@ export default function Onboarding() {
     if (step === 4) return data.workingDays.length > 0;
     if (step === 5) return data.goal !== null;
     if (step === 6) return true;
+    if (step === 7) return cleanSlug(data.bookingLink || data.businessName).length >= 2;
+    if (step === 8) return true; // stylists optional
     return true;
   };
 
@@ -147,11 +157,7 @@ export default function Onboarding() {
   const progress = ((step + 1) / steps) * 100;
 
   return (
-    <div className="h-[100dvh] w-full relative overflow-hidden bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#0f0f12] text-white">
-      {/* Apple-style ambient blurs (rose + blue) */}
-      <div className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-rose-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/20 blur-3xl" />
-
+    <div className="h-[100dvh] w-full relative overflow-hidden bg-[#0b0b0d] text-white">
       <div className="relative z-10 mx-auto flex h-full w-full max-w-xl flex-col px-4 pt-4 pb-[env(safe-area-inset-bottom)] sm:px-5 sm:pt-6">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between sm:mb-4">
@@ -459,6 +465,51 @@ export default function Onboarding() {
                 </>
               )}
 
+              {!isClient && step === 7 && (
+                <>
+                  <Header
+                    title="Your booking link"
+                    subtitle="This is what clients will share and open to book you."
+                  />
+                  <Field label="cutzioo.com/book/" icon={<LinkIcon className="h-4 w-4" />}>
+                    <div className="flex items-center gap-2 rounded-2xl bg-[#1c1c1e] border border-white/5 px-3 h-12">
+                      <span className="text-[13px] text-white/40 shrink-0">/book/</span>
+                      <input
+                        value={data.bookingLink}
+                        onChange={(e) => update("bookingLink", cleanSlug(e.target.value))}
+                        placeholder={cleanSlug(data.businessName) || "your-name"}
+                        className="flex-1 bg-transparent text-[15px] font-medium text-white placeholder:text-white/25 outline-none"
+                      />
+                    </div>
+                  </Field>
+                  <button
+                    type="button"
+                    onClick={() => update("bookingLink", cleanSlug(data.businessName))}
+                    className="text-[12px] font-medium text-white/50 hover:text-white transition"
+                  >
+                    Use my business name → {cleanSlug(data.businessName) || "your-name"}
+                  </button>
+                  <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-4 text-[12px] text-white/60 leading-relaxed">
+                    Only letters, numbers and dashes. You can change it anytime in settings.
+                  </div>
+                </>
+              )}
+
+              {!isClient && step === 8 && (
+                <>
+                  <Header
+                    title="Add your stylists"
+                    subtitle={data.workType === "team"
+                      ? "Add everyone who takes bookings. Skip if you're setting this up later."
+                      : "Working with others? Add them now. Skip if it's just you."}
+                  />
+                  <StylistsEditor
+                    stylists={data.stylists}
+                    onChange={(next) => update("stylists", next)}
+                  />
+                </>
+              )}
+
               {isClient && step === 1 && (
                 <>
                   <Header title="What are you looking for?" subtitle="Pick anything you might book." />
@@ -598,7 +649,7 @@ const DarkInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <Input
     {...props}
     className={cn(
-      "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-rose-500/40 h-11 rounded-xl",
+      "bg-[#1c1c1e] border-white/5 text-white placeholder:text-white/30 focus-visible:ring-rose-500/40 h-12 rounded-2xl",
       props.className
     )}
   />
@@ -613,13 +664,13 @@ const RoleCard = ({
     className={cn(
       "group relative flex w-full items-start gap-4 rounded-2xl border p-5 text-left transition-all active:scale-[0.99]",
       active
-        ? "border-rose-400/60 bg-rose-500/10 shadow-lg shadow-rose-900/20"
-        : "border-white/10 bg-white/5 hover:border-white/20"
+        ? "border-rose-400/60 bg-[#1c1c1e]"
+        : "border-white/5 bg-[#1c1c1e] hover:border-white/15"
     )}
   >
     <div className={cn(
       "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all",
-      active ? "bg-gradient-to-br from-rose-500 to-rose-700 text-white" : "bg-white/10 text-white/70"
+      active ? "bg-rose-500 text-white" : "bg-white/[0.06] text-white/70"
     )}>
       {icon}
     </div>
@@ -630,10 +681,82 @@ const RoleCard = ({
     {active && (
       <motion.div
         initial={{ scale: 0 }} animate={{ scale: 1 }}
-        className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-rose-700 text-white"
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-white"
       >
         <Check className="h-3.5 w-3.5" />
       </motion.div>
     )}
   </button>
 );
+
+function StylistsEditor({
+  stylists,
+  onChange,
+}: {
+  stylists: { name: string; title?: string }[];
+  onChange: (next: { name: string; title?: string }[]) => void;
+}) {
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+
+  const add = () => {
+    const n = name.trim();
+    if (!n) return;
+    onChange([...stylists, { name: n, title: title.trim() || undefined }]);
+    setName("");
+    setTitle("");
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-3 space-y-2">
+        <DarkInput
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Stylist name (e.g. Marco)"
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <DarkInput
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title (optional — e.g. Senior Barber)"
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!name.trim()}
+          className="w-full h-11 rounded-xl bg-rose-500 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-[0.98] transition"
+        >
+          <Plus className="h-4 w-4" /> Add stylist
+        </button>
+      </div>
+
+      {stylists.length === 0 ? (
+        <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-5 text-center">
+          <UserPlus className="h-5 w-5 text-white/40 mx-auto mb-2" />
+          <p className="text-[13px] text-white/50">No stylists yet — you can skip and add later.</p>
+        </div>
+      ) : (
+        <ul className="rounded-2xl bg-[#1c1c1e] border border-white/5 divide-y divide-white/[0.06] overflow-hidden">
+          {stylists.map((s, i) => (
+            <li key={i} className="flex items-center justify-between px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-[14px] font-medium text-white truncate">{s.name}</p>
+                {s.title && <p className="text-[11px] text-white/45 truncate">{s.title}</p>}
+              </div>
+              <button
+                type="button"
+                onClick={() => onChange(stylists.filter((_, idx) => idx !== i))}
+                className="h-8 w-8 rounded-full bg-white/[0.06] text-white/60 flex items-center justify-center hover:bg-white/[0.1] hover:text-white transition"
+                aria-label="Remove"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

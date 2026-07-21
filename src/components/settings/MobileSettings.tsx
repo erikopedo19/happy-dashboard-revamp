@@ -346,7 +346,7 @@ export function MobileSettings(props: any) {
 
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2 px-1">
-                    <User className="inline h-3 w-3 mr-1 -mt-0.5" /> Personal
+                    <User className="inline h-3 w-3 mr-1 -mt-0.5" /> Stylist · personal identity
                   </p>
                   <div className="space-y-3">
                     <Field label="Full name">
@@ -374,7 +374,7 @@ export function MobileSettings(props: any) {
 
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2 px-1">
-                    <Store className="inline h-3 w-3 mr-1 -mt-0.5" /> Business
+                    <Store className="inline h-3 w-3 mr-1 -mt-0.5" /> Business · public view
                   </p>
                   <div className="space-y-3">
                     <Field label="Business name">
@@ -459,11 +459,7 @@ export function MobileSettings(props: any) {
                   )}
                 </motion.button>
 
-                {user?.id && (
-                  <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-1">
-                    <PublicVisibilityCard userId={user.id} />
-                  </div>
-                )}
+                {/* Profiles are public by default — visibility toggle removed. */}
               </PanelStack>
             )}
 

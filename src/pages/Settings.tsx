@@ -1009,7 +1009,7 @@ const Settings = () => {
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionCard />
-                      {user?.id && <PublicVisibilityCard userId={user.id} />}
+                      {/* Public visibility toggle removed — all profiles are public by default */}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
