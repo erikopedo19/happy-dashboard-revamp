@@ -711,6 +711,7 @@ export type Database = {
           brand_color: string | null
           business_name: string | null
           created_at: string
+          dark_mode: boolean | null
           description: string | null
           email_template_html: string | null
           full_name: string | null
@@ -748,6 +749,7 @@ export type Database = {
           brand_color?: string | null
           business_name?: string | null
           created_at?: string
+          dark_mode?: boolean | null
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
@@ -785,6 +787,7 @@ export type Database = {
           brand_color?: string | null
           business_name?: string | null
           created_at?: string
+          dark_mode?: boolean | null
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
@@ -1295,6 +1298,16 @@ export type Database = {
         Returns: Json
       }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
+      ensure_profile_identity: {
+        Args: {
+          p_avatar_url?: string
+          p_banner_url?: string
+          p_business_name?: string
+          p_full_name?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       expire_waitlist_offers: { Args: never; Returns: undefined }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
       get_appointment_by_token: { Args: { _token: string }; Returns: Json }
@@ -1312,7 +1325,10 @@ export type Database = {
         Returns: Json
       }
       get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
-      get_mobile_dashboard_metrics: { Args: { p_today?: string }; Returns: Json }
+      get_mobile_dashboard_metrics: {
+        Args: { p_today?: string }
+        Returns: Json
+      }
       get_my_bookings: {
         Args: never
         Returns: {

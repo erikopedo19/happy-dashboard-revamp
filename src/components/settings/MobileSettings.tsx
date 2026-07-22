@@ -38,6 +38,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
+import { IdentityMissingBanner } from "@/components/IdentityMissingBanner";
 import { MobileDock } from "@/components/MobileDock";
 import { BookingStreakCard } from "@/components/BookingStreakCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
@@ -230,6 +231,11 @@ export function MobileSettings(props: any) {
 
       {/* Grouped lists */}
       <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
+        <IdentityMissingBanner
+          missingAvatar={!brandForm.avatar_url}
+          missingBanner={!brandForm.banner_url}
+          onOpenIdentity={() => setPanel("profile")}
+        />
         <BookingStreakCard />
         <Group label="Business">
           <Row
