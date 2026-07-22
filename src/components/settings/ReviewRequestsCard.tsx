@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { Star, Sparkles, Lock } from "lucide-react";
+import { Star, Sparkles, Lock, Send, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ export function ReviewRequestsCard() {
   const [showPublicReviews, setShowPublicReviews] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -181,6 +182,45 @@ export function ReviewRequestsCard() {
           />
         </div>
 
+
+        {isPremium && !premiumLoading && (
+          <Button
+            variant="outline"
+            disabled={sendingTest || !user?.email}
+            onClick={async () => {
+              if (!user?.email) return;
+              setSendingTest(true);
+              try {
+                const { data, error } = await supabase.functions.invoke("send-review-request", {
+                  body: {
+                    test: true,
+                    to: user.email,
+                    business_name: "Cutzio Test",
+                    service_name: "Haircut",
+                  },
+                });
+                if (error) throw error;
+                if ((data as any)?.ok === false) throw new Error((data as any)?.data?.message || "Send failed");
+                toast({ title: "Test email sent", description: `Check ${user.email}. Give it a minute to arrive.` });
+              } catch (e: any) {
+                toast({
+                  title: "Couldn't send test email",
+                  description: e?.message || "Please try again in a minute.",
+                  variant: "destructive",
+                });
+              } finally {
+                setSendingTest(false);
+              }
+            }}
+            className="w-full h-11 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E]"
+          >
+            {sendingTest ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending…</>
+            ) : (
+              <><Send className="w-4 h-4 mr-2" /> Send test to me</>
+            )}
+          </Button>
+        )}
 
         {!isPremium && !premiumLoading && (
           <Button
