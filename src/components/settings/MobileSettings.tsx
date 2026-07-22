@@ -38,6 +38,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
+import { IdentityMissingBanner } from "@/components/IdentityMissingBanner";
 import { MobileDock } from "@/components/MobileDock";
 import { BookingStreakCard } from "@/components/BookingStreakCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
