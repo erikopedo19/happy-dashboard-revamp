@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,6 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from '@tanstack/react-query';
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
 // Simple RadialMenu replacement - just renders children with right-click menu
 const RadialMenu = ({ children, menuItems, onSelect }: {
@@ -29,56 +28,6 @@ const RadialMenu = ({ children, menuItems, onSelect }: {
 }) => {
   return <div>{children}</div>;
 };
-
-function useLightEffectsEnabled() {
-  const [enabled, setEnabled] = useState(() => {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') return true;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const cores = navigator.hardwareConcurrency || 2;
-    const memory = (navigator as any).deviceMemory || 4;
-    return !reduced && cores > 2 && memory >= 4;
-  });
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const listener = () => {
-      const reduced = media.matches;
-      const cores = navigator.hardwareConcurrency || 2;
-      const memory = (navigator as any).deviceMemory || 4;
-      setEnabled(!reduced && cores > 2 && memory >= 4);
-    };
-    listener();
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, []);
-  return enabled;
-}
-
-function SlotSweep({ active }: { active: boolean }) {
-  const enabled = useLightEffectsEnabled();
-  if (!enabled || !active) return null;
-  return (
-    <motion.div
-      className="absolute inset-0 z-20 pointer-events-none rounded-xl overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: [0, 1, 1, 0] }}
-      transition={{ duration: 1.2, times: [0, 0.15, 0.85, 1] }}
-    >
-      <motion.div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,80,0,0.5) 50%, transparent 100%)' }}
-        initial={{ x: '-100%' }}
-        animate={{ x: '100%' }}
-        transition={{ duration: 0.7, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0, boxShadow: 'inset 0 0 0px rgba(255,80,0,0)' }}
-        animate={{ opacity: [0, 1, 0], boxShadow: ['inset 0 0 0px rgba(255,80,0,0)', 'inset 0 0 28px rgba(255,80,0,0.45)', 'inset 0 0 0px rgba(255,80,0,0)'] }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
-      />
-    </motion.div>
-  );
-}
 
 interface Service {
   id: string;
@@ -169,54 +118,6 @@ export const ModernAppointmentsCalendar = ({
   } = useAuth();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isLongPressing, setIsLongPressing] = useState(false);
-  const [tick, setTick] = useState(Date.now());
-  const [sweepSlotKey, setSweepSlotKey] = useState<string | null>(null);
-  const prevAppointmentsRef = useRef<Appointment[] | null>(null);
-
-  // Countdown tick for waitlist offers
-  useEffect(() => {
-    const id = window.setInterval(() => setTick(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  // Fetch active waitlist offers for the displayed week
-  const { data: waitlistOffers = [] } = useQuery({
-    queryKey: ['cancellation-waitlist-offers', user?.id, format(currentWeek, 'yyyy-MM-dd'), viewMode],
-    queryFn: async () => {
-      if (!user) return [];
-      const start = format(startOfWeek(currentWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-      const end = format(endOfWeek(currentWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-      const { data, error } = await (supabase as any).rpc('get_waitlist_offers_for_agenda_range', {
-        p_barber_id: user.id,
-        p_start_date: start,
-        p_end_date: end,
-      });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user && viewMode === 'day',
-  });
-
-  const offersByApptId = useMemo(() => {
-    return Object.fromEntries(waitlistOffers.map((o: any) => [o.offered_appointment_id, o]));
-  }, [waitlistOffers]);
-
-  // Red/orange light sweep when a previously cancelled slot gets rebooked
-  useEffect(() => {
-    const prev = prevAppointmentsRef.current;
-    prevAppointmentsRef.current = appointments;
-    if (!prev) return;
-    const cancelledSlots = prev.filter((a) => a.status === 'cancelled');
-    const newAppointments = appointments.filter((a) => !prev.some((p) => p.id === a.id));
-    for (const apt of newAppointments) {
-      if (cancelledSlots.some((c) => c.appointment_date === apt.appointment_date && c.appointment_time === apt.appointment_time)) {
-        const key = `${apt.appointment_date}|${apt.appointment_time.slice(0, 5)}`;
-        setSweepSlotKey(key);
-        const timer = window.setTimeout(() => setSweepSlotKey(null), 1600);
-        return () => window.clearTimeout(timer);
-      }
-    }
-  }, [appointments]);
 
   // Fetch agenda settings for dynamic time slots
   const { data: agendaSettings } = useQuery({
@@ -365,21 +266,13 @@ export const ModernAppointmentsCalendar = ({
   const handleLongPressStart = useCallback((appointment: Appointment) => {
     setIsLongPressing(true);
     setLongPressedId(appointment.id);
-    const offer: any = offersByApptId[appointment.id];
-    const isOfferSlot = appointment.status === 'cancelled' && !!offer;
-
     longPressTimer.current = setTimeout(() => {
+      setSelectedAppointment(appointment);
+      setShowAppointmentDetails(true);
       setIsLongPressing(false);
       setLongPressedId(null);
-      if (isOfferSlot) {
-        // 2-sec long press on a cancelled waitlist slot lets the barber rebook it for someone else
-        onDateTimeClick(appointment.appointment_date, appointment.appointment_time);
-      } else {
-        setSelectedAppointment(appointment);
-        setShowAppointmentDetails(true);
-      }
-    }, isOfferSlot ? 2000 : 3800);
-  }, [offersByApptId, onDateTimeClick]);
+    }, 3800);
+  }, []);
   const handleLongPressEnd = useCallback(() => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
@@ -1082,65 +975,40 @@ export const ModernAppointmentsCalendar = ({
                         <div className="w-full h-full rounded-xl bg-[#FF9500]/10 border border-[#FF9500]/20 flex items-center justify-center cursor-pointer hover:bg-[#FF9500]/15 transition-colors">
                           <Coffee className="h-3 w-3 text-[#FF9500]/70" />
                         </div>
-                      ) : hasAppointments ? (() => {
-                        const apt = dayAppointments[0];
-                        const offer: any = offersByApptId[apt.id];
-                        const isOfferSlot = apt.status === 'cancelled' && !!offer;
-                        const offerSecondsLeft = isOfferSlot
-                          ? Math.max(0, Math.floor((new Date(offer.offer_expires_at).getTime() - tick) / 1000))
-                          : null;
-                        const slotKey = `${apt.appointment_date}|${apt.appointment_time.slice(0, 5)}`;
-
-                        return (
+                      ) : hasAppointments ? (
                         // Appointment slot - dark card with colored service dot
                         <div
                           className={cn(
-                            "w-full h-full rounded-xl border cursor-pointer transition-colors relative overflow-hidden p-2 select-none",
-                            isOfferSlot
-                              ? "bg-[#2a1a0a] border-orange-500/40 hover:bg-[#331e0c] shadow-[0_0_20px_rgba(249,115,22,0.12)]"
-                              : "bg-[#1C1C1E] border-white/[0.08] hover:bg-[#22222A]",
-                            isLongPressing && longPressedId === apt.id && "animate-pulse"
+                            "w-full h-full rounded-xl bg-[#1C1C1E] border border-white/[0.08] cursor-pointer hover:bg-[#22222A] transition-colors relative overflow-hidden p-2",
+                            isLongPressing && longPressedId === dayAppointments[0].id && "animate-pulse"
                           )}
                           onClick={() => {
-                            setSelectedAppointment(apt);
+                            setSelectedAppointment(dayAppointments[0]);
                             setShowAppointmentDetails(true);
                           }}
-                          onMouseDown={() => handleLongPressStart(apt)}
-                          onMouseUp={handleLongPressEnd}
-                          onMouseLeave={handleLongPressEnd}
-                          onTouchStart={() => handleLongPressStart(apt)}
-                          onTouchEnd={handleLongPressEnd}
                         >
-                          <SlotSweep active={sweepSlotKey === slotKey} />
-                          <div className={cn("absolute left-0 top-2 bottom-2 w-[3px] rounded-full", isOfferSlot ? "bg-orange-500" : "")} style={{ backgroundColor: isOfferSlot ? undefined : serviceColor }} />
+                          <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full" style={{ backgroundColor: serviceColor }} />
                           <div className="relative z-10 flex flex-col justify-center h-full pl-2">
-                            <div className={cn("text-[11px] font-semibold leading-tight mb-0.5 truncate", isOfferSlot ? "text-orange-200" : "text-white")}>
-                              {apt.service.name}
-                              {isOfferSlot && <span className="ml-1 inline-flex items-center text-[9px] text-orange-300">!</span>}
+                            <div className="text-[11px] font-semibold text-white leading-tight mb-0.5 truncate">
+                              {dayAppointments[0].service.name}
                             </div>
-                            <div className={cn("text-[10px] truncate", isOfferSlot ? "text-orange-300/70" : "text-white/50")}>
-                              {isOfferSlot ? 'Waiting for waitlist' : apt.customer.name}
+                            <div className="text-[10px] text-white/50 truncate">
+                              {dayAppointments[0].customer.name}
                             </div>
-                            <div className={cn("text-[9px] mt-0.5", isOfferSlot ? "text-orange-400" : "text-white/40")}>
-                              {apt.appointment_time.slice(0, 5)}
-                              {isOfferSlot && offerSecondsLeft !== null && (
-                                <span className="ml-1.5 font-medium">
-                                  {Math.floor(offerSecondsLeft / 60)}:{String(offerSecondsLeft % 60).padStart(2, '0')} left
-                                </span>
-                              )}
-                              {rowSpan > 1 && !isOfferSlot && (() => {
-                                const startTime = apt.appointment_time.slice(0, 5);
+                            <div className="text-[9px] text-white/40 mt-0.5">
+                              {dayAppointments[0].appointment_time.slice(0, 5)}
+                              {rowSpan > 1 && (() => {
+                                const startTime = dayAppointments[0].appointment_time.slice(0, 5);
                                 const [startHours, startMinutes] = startTime.split(':').map(Number);
                                 const startDate = new Date();
                                 startDate.setHours(startHours, startMinutes, 0, 0);
-                                const endDate = addMinutes(startDate, apt.totalDurationMinutes || apt.service.duration);
+                                const endDate = addMinutes(startDate, dayAppointments[0].totalDurationMinutes || dayAppointments[0].service.duration);
                                 return ` - ${format(endDate, 'HH:mm')}`;
                               })()}
                             </div>
                           </div>
                         </div>
-                        );
-                      })() : isPastSlot ? (
+                      ) : isPastSlot ? (
                         // Past slot
                         <div className="w-full h-full rounded-xl bg-transparent opacity-40" />
                       ) : (
@@ -1488,32 +1356,18 @@ export const ModernAppointmentsCalendar = ({
 
               {/* Quick Actions */}
               <div className="flex gap-2 pt-1">
-                {contextMenu.appointment.status === 'cancelled' && offersByApptId[contextMenu.appointment.id] ? (
-                  <button
-                    onClick={() => {
-                      const apt = contextMenu.appointment;
-                      setContextMenu(null);
-                      onDateTimeClick(apt.appointment_date, apt.appointment_time);
-                    }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    Rebook now
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setContextMenu(null);
-                      setSelectedAppointment(contextMenu.appointment);
-                      handleCompleteAppointment();
-                    }}
-                    disabled={contextMenu.appointment.status === 'completed'}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-40"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    Complete
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    setContextMenu(null);
+                    setSelectedAppointment(contextMenu.appointment);
+                    handleCompleteAppointment();
+                  }}
+                  disabled={contextMenu.appointment.status === 'completed'}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-40"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Complete
+                </button>
                 <button
                   onClick={() => {
                     const apt = contextMenu.appointment;
