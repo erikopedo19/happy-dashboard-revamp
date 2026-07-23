@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
+import { OffersPanel } from "@/components/OffersPanel";
 
 
 
@@ -56,7 +57,7 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings">("users");
+  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings" | "offers">("users");
   const [showGoogleButton, setShowGoogleButton] = useState(true);
   const [totalBookings, setTotalBookings] = useState(0);
   const [fakeShopsEnabled, setFakeShopsEnabled] = useState(false);
@@ -280,7 +281,7 @@ export default function SuperAdminDashboard() {
       {/* Tab nav */}
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
         <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
-          {(["users", "campaigns", "gifts", "settings"] as const).map((t) => (
+          {(["users", "campaigns", "gifts", "settings", "offers"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -288,8 +289,8 @@ export default function SuperAdminDashboard() {
                 tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : "Settings"}
+              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : t === "offers" ? <Gift className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : t === "offers" ? "Offers" : "Settings"}
             </button>
           ))}
         </div>
@@ -496,6 +497,12 @@ export default function SuperAdminDashboard() {
             </CardContent>
           </Card>
         </div>
+      </motion.div>
+      )}
+
+      {tab === "offers" && (
+      <motion.div key="offers" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+        <OffersPanel />
       </motion.div>
       )}
       </AnimatePresence>

@@ -19,6 +19,7 @@ import {
   Scissors,
   UserCircle2,
   LogOut,
+  Trash2,
   ChevronLeft,
   Calendar as CalendarIcon,
   MapPin,
@@ -127,6 +128,19 @@ export function MobileSettings(props: any) {
       queryClient.invalidateQueries({ queryKey: ["settings-page-data", user.id] }),
     ]);
     toast({ title: field === "avatar_url" ? "Profile photo updated" : "Business cover updated" });
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.id) return;
+    if (!window.confirm("Permanently delete your account? This cannot be undone.")) return;
+    const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
+    if (error || !data?.success) {
+      toast({ title: "Could not delete account", description: error?.message || data?.error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Account deleted" });
+    await supabase.auth.signOut();
+    window.location.href = "/";
   };
 
   const initials =
@@ -326,6 +340,17 @@ export function MobileSettings(props: any) {
               await supabase.auth.signOut();
               window.location.href = "/login";
             }}
+          />
+        </Group>
+
+        <Group label="Danger zone">
+          <Row
+            icon={Trash2}
+            tint="#ef4444"
+            label="Delete account"
+            value="Permanently remove"
+            danger
+            onClick={handleDeleteAccount}
           />
         </Group>
 
@@ -907,23 +932,28 @@ function Row({
   avatar?: string | null;
   banner?: string | null;
 }) {
+  const [bannerError, setBannerError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+  const showVisual = (banner && !bannerError) || (avatar && !avatarError);
+
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-white/5 transition text-left"
     >
-      {banner || avatar ? (
+      {showVisual ? (
         <span className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-white/5 border border-white/10">
-          {banner && (
-            <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          {banner && !bannerError && (
+            <img src={banner} alt="" onError={() => setBannerError(true)} className="absolute inset-0 h-full w-full object-cover" />
           )}
-          {avatar && (
+          {avatar && !avatarError && (
             <img
               src={avatar}
               alt=""
+              onError={() => setAvatarError(true)}
               className={cn(
                 "h-full w-full object-cover",
-                banner && "absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-[#15151A]"
+                banner && !bannerError && "absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-[#15151A]"
               )}
             />
           )}

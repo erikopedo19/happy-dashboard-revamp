@@ -26,10 +26,21 @@ export function IdentityMissingBanner({ missingAvatar, missingBanner, onOpenIden
         ? "banner"
         : null;
 
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(() => {
+    if (!kind) return false;
+    try {
+      const until = Number(localStorage.getItem(DISMISS_KEY) || 0);
+      return Date.now() >= until;
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
-    if (!kind) { setShow(false); return; }
+    if (!kind) {
+      setShow(false);
+      return;
+    }
     try {
       const until = Number(localStorage.getItem(DISMISS_KEY) || 0);
       setShow(Date.now() >= until);
@@ -55,8 +66,9 @@ export function IdentityMissingBanner({ missingAvatar, missingBanner, onOpenIden
   const Icon = kind === "avatar" ? UserIcon : ImagePlus;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
+        key="identity-missing-banner"
         initial={{ opacity: 0, y: -8, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}

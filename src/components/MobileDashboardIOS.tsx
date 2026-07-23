@@ -128,8 +128,8 @@ export function MobileDashboardIOS() {
     setAvatarFailed(false);
   }, [profile?.avatar_url]);
 
-  const displayName = profile?.business_name?.trim() || profile?.full_name?.trim() || "Your business";
-  const firstName = profile?.full_name?.trim().split(/\s+/)[0] || displayName;
+  const displayName = profile?.business_name?.trim() || profile?.full_name?.trim() || "there";
+  const greetName = displayName;
   const initial = displayName.charAt(0).toUpperCase() || "C";
   const chart = useMemo(() => {
     const max = Math.max(...metrics.spark.map((item) => item.revenue), 1);
@@ -143,7 +143,7 @@ export function MobileDashboardIOS() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-[#8E8E93]">{format(new Date(), "EEEE, MMMM d")}</p>
-            <h1 className="mt-0.5 truncate text-[29px] font-bold tracking-[-0.035em]">Hi, {firstName}</h1>
+            <h1 className="mt-0.5 truncate text-[29px] font-bold tracking-[-0.035em]">Hi, {greetName}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <SidebarTrigger className="h-11 w-11 rounded-full border-0 bg-[#1C1C1E] text-white shadow-none hover:bg-[#2C2C2E]" />

@@ -20,6 +20,7 @@ import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import PricingSuccess from "./pages/PricingSuccess";
+import PricingFailure from "./pages/PricingFailure";
 import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
@@ -49,6 +50,7 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
+import { GlobalBanner } from "./components/GlobalBanner";
 
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
@@ -144,6 +146,7 @@ function AnimatedRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+      <Route path="/pricing/failure" element={<ProtectedRoute><PricingFailure /></ProtectedRoute>} />
       <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
       <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
       <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
@@ -182,6 +185,7 @@ function App() {
             <OnboardingProvider>
               <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                 <GlimmIntercept />
+                <GlobalBanner />
                 <AnimatedRoutes />
                 <NotificationBell />
                 
