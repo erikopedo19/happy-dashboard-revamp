@@ -57,6 +57,24 @@ interface AgendaSettings {
   working_days: number[] | null;
 }
 
+const slotListVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const slotItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+};
+
 // Parse hex or named color to rgba with opacity
 function colorToRgba(color: string, opacity: number): string {
   if (!color) return `rgba(100, 200, 150, ${opacity})`;
@@ -631,7 +649,13 @@ export const LiquidGlassAgenda = ({
           </AnimatePresence>
         ) : (
           /* Timeline with appointments */
-          <div className="relative pt-4">
+          <motion.div
+            key={selectedDay.toISOString()}
+            className="relative pt-4"
+            initial="hidden"
+            animate="visible"
+            variants={slotListVariants}
+          >
             {/* Time markers and appointment cards */}
             {hours.map((hour) => {
               const [slotHour, slotMinute] = hour.split(':').map(Number);
@@ -684,7 +708,11 @@ export const LiquidGlassAgenda = ({
                     const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
 
                     return (
-                      <div key={apt.id} className="pl-[60px] pr-0 mb-2">
+                      <motion.div
+                        variants={slotItemVariants}
+                        key={apt.id}
+                        className="pl-[60px] pr-0 mb-2"
+                      >
                         {/* Liquid Glass Card */}
                         <button
                           onClick={() => onAppointmentClick?.(apt)}
@@ -790,7 +818,7 @@ export const LiquidGlassAgenda = ({
                             </div>
                           </div>
                         </button>
-                      </div>
+                      </motion.div>
                     );
                   })}
 
@@ -822,7 +850,7 @@ export const LiquidGlassAgenda = ({
                 </div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
 
