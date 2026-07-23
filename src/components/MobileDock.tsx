@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { GlassDock } from '@/components/GlassDock';
+import { GlassDock, type DockItem } from '@/components/GlassDock';
 
 interface MoreItem {
   label: string;
@@ -15,7 +15,7 @@ interface MoreItem {
   isNew?: boolean;
 }
 
-const mainItems = [
+const mainItems: DockItem[] = [
   { label: 'Admin', icon: LayoutDashboard, to: '/admin' },
   { label: 'Agenda', icon: Calendar, to: '/agenda' },
   { label: 'Reports', icon: BarChart3, to: '/reports' },
@@ -31,7 +31,7 @@ const moreItems: MoreItem[] = [
   { label: 'Products', icon: 'package', path: '/products', isNew: true },
 ];
 
-const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: NavItem[] }) => {
+const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -89,14 +89,14 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
                 <motion.button
                   key={item.path}
                   type="button"
-                  initial={{ opacity: 0, y: 46, filter: 'blur(10px)' }}
+                  initial={{ opacity: 0, y: 36, filter: 'blur(8px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
+                  exit={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
                   transition={{
                     type: 'spring',
-                    stiffness: 380,
-                    damping: 32,
-                    delay: 0.05 + (moreItems.length - 1 - i) * 0.045,
+                    stiffness: 280,
+                    damping: 28,
+                    delay: 0.04 + (moreItems.length - 1 - i) * 0.04,
                   }}
                   onClick={() => {
                     onClose();
@@ -169,7 +169,7 @@ export const MobileDockInner = () => {
   const hasServices = services.length > 0;
   const visibleMoreItems = hasServices ? moreItems : moreItems.filter((item) => item.label !== 'Services');
 
-  const glassItems = [
+  const glassItems: DockItem[] = [
     ...mainItems,
     { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true) },
   ];
