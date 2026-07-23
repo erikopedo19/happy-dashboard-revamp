@@ -1,34 +1,34 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BarChart3, Scissors, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users, X } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Calendar, BarChart3, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import type { ComponentType } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { GlassDock } from '@/components/GlassDock';
 
-interface NavItem {
+interface MoreItem {
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: any;
   path: string;
   isNew?: boolean;
 }
 
-const mainItems: NavItem[] = [
-  { label: 'Admin', icon: LayoutDashboard, path: '/admin' },
-  { label: 'Agenda', icon: Calendar, path: '/agenda' },
-  { label: 'Reports', icon: BarChart3, path: '/reports' },
-  { label: 'Settings', icon: Settings, path: '/settings' },
+const mainItems = [
+  { label: 'Admin', icon: LayoutDashboard, to: '/admin' },
+  { label: 'Agenda', icon: Calendar, to: '/agenda' },
+  { label: 'Reports', icon: BarChart3, to: '/reports' },
+  { label: 'Settings', icon: Settings, to: '/settings' },
 ];
 
-const moreItems: NavItem[] = [
-  { label: 'Services', icon: Scissors, path: '/services' },
-  { label: 'Customers', icon: Users, path: '/customers' },
-  { label: 'Booking', icon: Globe, path: '/booking-page' },
-  { label: 'Stylists', icon: UserCheck, path: '/stylists' },
-  { label: 'Teams', icon: Briefcase, path: '/teams', isNew: true },
-  { label: 'Products', icon: Package, path: '/products', isNew: true },
+const moreItems: MoreItem[] = [
+  { label: 'Services', icon: 'scissors', path: '/services' },
+  { label: 'Customers', icon: 'users', path: '/customers' },
+  { label: 'Booking', icon: 'globe', path: '/booking-page' },
+  { label: 'Stylists', icon: 'user-check', path: '/stylists' },
+  { label: 'Teams', icon: 'briefcase', path: '/teams', isNew: true },
+  { label: 'Products', icon: 'package', path: '/products', isNew: true },
 ];
 
 const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: NavItem[] }) => {
@@ -144,36 +144,6 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
   );
 };
 
-const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<typeof useLocation> }) => {
-  const Icon = item.icon;
-  const isActive =
-    location.pathname === item.path ||
-    (item.path !== '/admin' && location.pathname.startsWith(item.path + '/'));
-  return (
-    <Link
-      to={item.path}
-      className={cn(
-        'relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1.5 py-2 transition-transform duration-150 active:scale-95',
-        isActive
-          ? 'text-[#FF375F]'
-          : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]'
-      )}
-    >
-      {isActive && (
-        <motion.span
-          layoutId="admin-dock-active"
-          className="absolute inset-x-0.5 inset-y-0.5 rounded-2xl bg-[#FF375F]/15"
-          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-        />
-      )}
-      <Icon className={cn('relative h-[18px] w-[18px] transition-transform', isActive && 'scale-110')} />
-      <span className={cn('relative text-[10px] font-medium leading-none', isActive && 'font-semibold')}>
-        {item.label}
-      </span>
-    </Link>
-  );
-};
-
 export const MobileDock = () => null;
 
 export const MobileDockInner = () => {
@@ -199,26 +169,20 @@ export const MobileDockInner = () => {
   const hasServices = services.length > 0;
   const visibleMoreItems = hasServices ? moreItems : moreItems.filter((item) => item.label !== 'Services');
 
+  const glassItems = [
+    ...mainItems,
+    { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true) },
+  ];
+
+  const activeIndex = glassItems.findIndex((item) => {
+    if (!item.to) return false;
+    return location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'));
+  });
+
   return (
     <>
       <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} items={visibleMoreItems} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-2.5 pb-[max(env(safe-area-inset-bottom),0.7rem)]">
-        <div className="mobile-dock pointer-events-auto mx-auto flex max-w-[26rem] items-stretch justify-between rounded-[28px] px-1.5 py-1.5 backdrop-blur-2xl">
-          {mainItems.map((item) => (
-            <DockLink key={item.path} item={item} location={location} />
-          ))}
-
-          <button
-            type="button"
-            aria-label="More"
-            onClick={() => setMoreOpen(true)}
-            className="relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1.5 py-2 text-[#8E8E93] transition-transform active:scale-95 hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
-          >
-            <MoreHorizontal className="h-[18px] w-[18px]" />
-            <span className="text-[10px] font-medium leading-none">More</span>
-          </button>
-        </div>
-      </div>
+      <GlassDock items={glassItems} activeIndex={activeIndex >= 0 ? activeIndex : 0} />
     </>
   );
 };
