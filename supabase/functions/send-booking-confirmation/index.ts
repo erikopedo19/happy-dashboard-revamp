@@ -44,82 +44,117 @@ function buildHtml(opts: {
   const rescheduleUrl = manageUrl ? `${manageUrl}` : "";
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1c1c1e;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:40px 16px;">
-  <tr><td align="center">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e5e5ea;">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+</head>
+<body style="margin:0;padding:0;background:#f6f6f8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1c;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f8;padding:48px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;background:#ffffff;border-radius:28px;overflow:hidden;border:1px solid #e8e8ec;">
 
-      <!-- Header -->
-      <tr><td style="padding:36px 32px 4px;text-align:center;">
-        <div style="font-size:12px;color:#8e8e93;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-bottom:10px;">Booking confirmed</div>
-        <h1 style="margin:0;font-size:22px;font-weight:700;color:#1c1c1e;letter-spacing:-0.01em;line-height:1.3;">${escapeHtml(businessName)}</h1>
-      </td></tr>
-
-      <!-- Greeting -->
-      <tr><td style="padding:20px 32px 8px;">
-        <p style="margin:0;font-size:15px;line-height:1.6;color:#48484a;text-align:center;">
-          Hi <strong style="color:#1c1c1e;">${escapeHtml(customerName || "there")}</strong> — you're all set. See you soon.
-        </p>
-      </td></tr>
-
-      <!-- Details -->
-      <tr><td style="padding:20px 32px 4px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <!-- Subtle brand mark -->
           <tr>
-            <td style="padding:14px 0;border-bottom:1px solid #e5e5ea;font-size:13px;color:#8e8e93;width:110px;">Service</td>
-            <td style="padding:14px 0;border-bottom:1px solid #e5e5ea;font-size:15px;font-weight:600;color:#1c1c1e;text-align:right;">${escapeHtml(serviceName)}</td>
-          </tr>
-          <tr>
-            <td style="padding:14px 0;border-bottom:1px solid #e5e5ea;font-size:13px;color:#8e8e93;">Date</td>
-            <td style="padding:14px 0;border-bottom:1px solid #e5e5ea;font-size:15px;font-weight:600;color:#1c1c1e;text-align:right;">${escapeHtml(appointmentDate)}</td>
-          </tr>
-          <tr>
-            <td style="padding:14px 0;${price != null || notes ? "border-bottom:1px solid #e5e5ea;" : ""}font-size:13px;color:#8e8e93;">Time</td>
-            <td style="padding:14px 0;${price != null || notes ? "border-bottom:1px solid #e5e5ea;" : ""}font-size:15px;font-weight:600;color:#1c1c1e;text-align:right;">${escapeHtml(appointmentTime)}</td>
-          </tr>
-          ${price != null ? `<tr>
-            <td style="padding:14px 0;${notes ? "border-bottom:1px solid #e5e5ea;" : ""}font-size:13px;color:#8e8e93;">Price</td>
-            <td style="padding:14px 0;${notes ? "border-bottom:1px solid #e5e5ea;" : ""}font-size:15px;font-weight:700;color:${accent};text-align:right;">€${escapeHtml(String(price))}</td>
-          </tr>` : ""}
-          ${notes ? `<tr>
-            <td colspan="2" style="padding:14px 0 4px;font-size:13px;color:#8e8e93;">Note</td>
-          </tr>
-          <tr>
-            <td colspan="2" style="padding:0 0 8px;font-size:14px;color:#48484a;line-height:1.55;">${escapeHtml(notes)}</td>
-          </tr>` : ""}
-        </table>
-      </td></tr>
-
-      <!-- Actions -->
-      ${manageUrl ? `<tr><td style="padding:24px 32px 8px;">
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding-right:6px;width:50%;">
-              <a href="${escapeHtml(rescheduleUrl)}" style="display:block;text-align:center;background:${accent};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:14px 0;border-radius:14px;">Reschedule</a>
-            </td>
-            <td style="padding-left:6px;width:50%;">
-              <a href="${escapeHtml(cancelUrl)}" style="display:block;text-align:center;background:#ffffff;color:#1c1c1e;text-decoration:none;font-weight:600;font-size:14px;padding:13px 0;border-radius:14px;border:1px solid #d1d1d6;">Cancel</a>
+            <td style="padding:32px 32px 0;text-align:center;">
+              <div style="display:inline-block;width:40px;height:40px;border-radius:12px;background:${accent};opacity:0.9;"></div>
             </td>
           </tr>
-        </table>
-        <p style="margin:14px 0 0;text-align:center;font-size:12px;color:#8e8e93;">Manage anytime — no login needed.</p>
-      </td></tr>` : ""}
 
-      <!-- Footer -->
-      <tr><td style="padding:28px 32px 28px;text-align:center;">
-        <div style="height:1px;background:#e5e5ea;margin-bottom:18px;"></div>
-        ${bookingId ? `<div style="font-size:11px;color:#aeaeb2;font-family:'SF Mono',Menlo,monospace;letter-spacing:0.04em;margin-bottom:10px;">REF · ${escapeHtml(String(bookingId).slice(0, 8))}</div>` : ""}
-        <a href="${APP_URL}" style="text-decoration:none;display:inline-block;">
-          <div style="font-size:11px;color:#8e8e93;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">
-            Powered by <span style="color:${accent};font-weight:700;">Cutzioo</span>
-          </div>
-        </a>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body></html>`;
+          <!-- Headline -->
+          <tr>
+            <td style="padding:18px 32px 0;text-align:center;">
+              <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#8c8c92;">Booking confirmed</p>
+              <h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-0.02em;line-height:1.2;color:#121214;">${escapeHtml(businessName)}</h1>
+            </td>
+          </tr>
+
+          <!-- Summary -->
+          <tr>
+            <td style="padding:22px 32px 0;">
+              <p style="margin:0;font-size:16px;line-height:1.6;color:#4a4a50;text-align:center;">
+                Hi ${escapeHtml(customerName || "there")},<br>you're booked for <strong style="color:#121214;">${escapeHtml(serviceName)}</strong>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Appointment card -->
+          <tr>
+            <td style="padding:28px 32px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafb;border-radius:20px;border:1px solid #eeeff2;">
+                <tr>
+                  <td style="padding:22px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                      <tr>
+                        <td style="padding:0 0 14px;font-size:13px;color:#6e6e77;text-transform:uppercase;letter-spacing:0.04em;">Date</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:0 0 16px;font-size:18px;font-weight:650;color:#121214;">${escapeHtml(appointmentDate)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:0 0 14px;font-size:13px;color:#6e6e77;text-transform:uppercase;letter-spacing:0.04em;">Time</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:0 0 16px;font-size:18px;font-weight:650;color:#121214;">${escapeHtml(appointmentTime)}</td>
+                      </tr>
+                      ${price != null ? `<tr>
+                        <td style="padding:0 0 14px;font-size:13px;color:#6e6e77;text-transform:uppercase;letter-spacing:0.04em;">Price</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:0 0 16px;font-size:18px;font-weight:650;color:${accent};">€${escapeHtml(String(price))}</td>
+                      </tr>` : ""}
+                      ${notes ? `<tr>
+                        <td style="padding:0 0 8px;font-size:13px;color:#6e6e77;text-transform:uppercase;letter-spacing:0.04em;">Note</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:15px;color:#3a3a3f;line-height:1.55;">${escapeHtml(notes)}</td>
+                      </tr>` : ""}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Actions -->
+          ${manageUrl ? `<tr>
+            <td style="padding:24px 32px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:0 0 8px;">
+                    <a href="${escapeHtml(rescheduleUrl)}" style="display:block;text-align:center;background:#121214;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 0;border-radius:14px;">Reschedule</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0;">
+                    <a href="${escapeHtml(cancelUrl)}" style="display:block;text-align:center;background:#ffffff;color:#ff3b30;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">Cancel</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:14px 0 0;text-align:center;font-size:12px;color:#8c8c92;">No login needed.</p>
+            </td>
+          </tr>` : ""}
+
+          <!-- Divider & footer -->
+          <tr>
+            <td style="padding:30px 32px 32px;text-align:center;">
+              <div style="height:1px;background:#eeeff2;margin-bottom:22px;"></div>
+              ${bookingId ? `<div style="font-size:11px;color:#9a9aa2;font-family:'SF Mono',SFMono-Regular,monospace;letter-spacing:0.04em;margin-bottom:10px;">REF · ${escapeHtml(String(bookingId).slice(0, 8))}</div>` : ""}
+              <a href="${APP_URL}" style="text-decoration:none;font-size:11px;color:#8c8c92;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;">
+                Powered by <span style="color:${accent};font-weight:700;">Cutzioo</span>
+              </a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 serve(async (req: Request) => {
