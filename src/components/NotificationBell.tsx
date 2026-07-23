@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { Bell, Check } from "lucide-react";
+import { Bell, Calendar, Check, Info, MessageSquare, Star } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,10 +9,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 
 type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string };
 
 const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin", "/find-barber", "/find-barbershop", "/my-bookings", "/me", "/favorites"];
+
+const typeMeta: Record<string, { icon: typeof Bell; color: string; darkColor: string }> = {
+  appointment: { icon: Calendar, color: "text-blue-600 bg-blue-100", darkColor: "text-blue-300 bg-blue-500/20" },
+  review: { icon: Star, color: "text-amber-600 bg-amber-100", darkColor: "text-amber-300 bg-amber-500/20" },
+  message: { icon: MessageSquare, color: "text-emerald-600 bg-emerald-100", darkColor: "text-emerald-300 bg-emerald-500/20" },
+  default: { icon: Info, color: "text-gray-600 bg-gray-100", darkColor: "text-gray-300 bg-gray-700/40" },
+};
 
 export function NotificationBell() {
   const { user } = useAuth();
@@ -41,7 +51,6 @@ export function NotificationBell() {
           const n = payload.new as N;
           setItems((prev) => [n, ...prev].slice(0, 20));
           toast({ title: n.title, description: n.body || undefined });
-          // Browser native notification (if granted)
           if (typeof Notification !== "undefined" && Notification.permission === "granted") {
             try { new Notification(n.title, { body: n.body || "", icon: "/logo.svg" }); } catch {}
           }
@@ -65,7 +74,7 @@ export function NotificationBell() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-[60] w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center hover:scale-105 transition"
+          className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50 w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center hover:scale-105 transition"
           aria-label="Notifications"
         >
           <Bell className="w-5 h-5 text-[#1C1C1E] dark:text-white" />
@@ -76,25 +85,50 @@ export function NotificationBell() {
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0 rounded-2xl border-black/5 dark:border-white/10">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-black/5 dark:border-white/10">
-          <div className="font-semibold">Notifications</div>
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        className="z-[60] w-80 p-0 rounded-2xl border-black/5 dark:border-white/10 overflow-hidden"
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-black/5 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur">
+          <div className="font-semibold text-sm">Notifications</div>
           {unread > 0 && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={markAllRead}>
               <Check className="w-3 h-3 mr-1" /> Mark all read
             </Button>
           )}
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto bg-white/90 dark:bg-[#0E0E0F]/90 backdrop-blur">
           {items.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">No notifications yet</div>
-          ) : items.map((i) => (
-            <div key={i.id} className={`px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 ${!i.read ? "bg-blue-500/5" : ""}`}>
-              <div className="text-sm font-medium">{i.title}</div>
-              {i.body && <div className="text-xs text-muted-foreground mt-0.5">{i.body}</div>}
-              <div className="text-[10px] text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}</div>
-            </div>
-          ))}
+          ) : (
+            <AnimatePresence initial={false}>
+              {items.map((i) => {
+                const meta = typeMeta[i.type] || typeMeta.default;
+                const Icon = meta.icon;
+                return (
+                  <motion.div
+                    key={i.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={`flex items-start gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 ${!i.read ? "bg-blue-500/[0.03]" : ""}`}
+                  >
+                    <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${meta.color} dark:${meta.darkColor}`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-sm truncate ${!i.read ? "font-semibold" : "font-medium"}`}>{i.title}</div>
+                      {i.body && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{i.body}</div>}
+                      <div className="text-[10px] text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}</div>
+                    </div>
+                    {!i.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#007AFF]" />}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          )}
         </div>
       </PopoverContent>
     </Popover>

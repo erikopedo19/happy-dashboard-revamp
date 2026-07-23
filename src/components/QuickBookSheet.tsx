@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays, isSameDay } from "date-fns";
+import { format, addDays, isSameDay, startOfDay } from "date-fns";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Check, Calendar, Clock, Scissors, ArrowLeft, Sparkles, X, Globe } from "lucide-react";
+import { Loader2, Check, Calendar as CalendarIcon, Clock, Scissors, ArrowLeft, Sparkles, X, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBrowserTimezone, formatTzLabel } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface QuickBookSheetProps {
   open: boolean;
@@ -59,6 +61,7 @@ export function QuickBookSheet({
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [confirmedTime, setConfirmedTime] = useState<{ date: Date; time: string } | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   // Hard re-entry lock — guards against double-tap firing two RPCs before React re-renders the disabled state.
   const submitLockRef = useRef(false);
 
@@ -332,7 +335,38 @@ const businessTz = settings?.timezone || getBrowserTimezone();
 
                 {/* Date */}
                 <section>
-                  <SectionTitle icon={<Calendar className="w-3.5 h-3.5" />} label="Date" />
+                  <div className="flex items-center justify-between mb-2">
+                    <SectionTitle icon={<CalendarIcon className="w-3.5 h-3.5" />} label="Date" />
+                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Open full calendar"
+                          className="w-8 h-8 rounded-full bg-white dark:bg-[#2C2C2E] border border-black/5 dark:border-white/5 flex items-center justify-center active:scale-95 transition"
+                        >
+                          <CalendarIcon className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 rounded-2xl" align="end">
+                        <CalendarPicker
+                          mode="single"
+                          selected={date}
+                          onSelect={(d) => {
+                            if (d) {
+                              setDate(d);
+                              setTime("");
+                              setCalendarOpen(false);
+                            }
+                          }}
+                          disabled={[
+                            { before: startOfDay(new Date()) },
+                            { dayOfWeek: [0, 1, 2, 3, 4, 5, 6].filter((d) => !workingDays.includes(d)) },
+                          ]}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {nextDays.map((d) => {
                       const active = isSameDay(d, date);

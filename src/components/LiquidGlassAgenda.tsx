@@ -194,6 +194,9 @@ export const LiquidGlassAgenda = ({
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
+  // Scrollable day strip (3 weeks) so users can swipe to more dates
+  const scrollDays = Array.from({ length: 21 }, (_, i) => addDays(weekStart, i));
+
   // Get appointments for selected day, sorted by time
   const dayAppointments = useMemo(() => {
     return appointments
@@ -411,9 +414,9 @@ export const LiquidGlassAgenda = ({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Week days */}
-          <div className="flex-1 flex justify-around">
-            {weekDays.map((day) => {
+          {/* Scrollable day strip */}
+          <div className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 pr-1">
+            {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
               const hasAppointments = appointments.some(apt => isSameDay(parseISO(apt.appointment_date), day));
@@ -423,7 +426,7 @@ export const LiquidGlassAgenda = ({
                   key={day.toISOString()}
                   onClick={() => setSelectedDay(day)}
                   className={cn(
-                    "flex flex-col items-center py-1.5 px-2 rounded-xl transition-all",
+                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all",
                     isSelected
                       ? "bg-gray-900 dark:bg-white"
                       : "hover:bg-gray-100 dark:hover:bg-white/5"
