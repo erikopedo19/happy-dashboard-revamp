@@ -181,8 +181,8 @@ export function OffersPanel() {
           warningText="This exclusive offer won't last long. Claim it now before it's gone forever."
           claimButtonText="👉 Claim Offer Now"
           declineButtonText="No thanks, I'll pay full price"
-          onClaimOffer={() => toast.info("Offer claimed (preview)")}
-          onDeclineOffer={() => toast.info("Offer declined (preview)")}
+          onClaimOffer={() => { toast.info("Offer claimed (preview)"); }}
+          onDeclineOffer={() => { toast.info("Offer declined (preview)"); }}
           onDialogClose={() => setPreviewOffer(null)}
         />
       )}
