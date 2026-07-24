@@ -34,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { StoriesRail } from "@/components/stories/StoriesRail";
 
 
 interface BarberProfile {
