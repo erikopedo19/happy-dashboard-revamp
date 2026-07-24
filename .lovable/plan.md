@@ -1,51 +1,63 @@
-## 1. Premium unlock audit (Stripe → Pro role)
+## 1. Booking email — more details
 
-**Current flow (verified):**
-- `Pricing.tsx` → redirects to Stripe Payment Link with `client_reference_id = user.id`
-- `stripe-webhook` edge function → verifies signature, upserts `subscribers` row with `subscribed=true, subscription_tier='Pro', subscription_end=…`
-- `usePremium` hook → reads `subscribers`, treats `subscribed && (end is null || end > now)` as Pro
-- `PremiumGate` component → wraps gated pages
+Update `supabase/functions/send-booking-confirmation/index.ts`:
+- Add stylist row (name + small avatar circle) when `stylist_id` is set on the appointment.
+- Add address block with a "Open in Maps" link (`https://www.google.com/maps/search/?api=1&query=...`).
+- Add a clear breakdown card: Service · Duration (min) · Price.
+- Attach a generated `.ics` file (VEVENT with SUMMARY, LOCATION, DESCRIPTION, DTSTART/DTEND in the business timezone) so Apple/Google/Outlook can add to calendar in one tap. Also add a fallback "Add to Google Calendar" text link.
+- Keep the existing dark Reschedule / outlined Cancel buttons and minimal layout — just add the new rows above them.
 
-**Small fixes I'll apply:**
-- In `stripe-webhook`, `checkout.session.completed` currently uses `s.expires_at` for `subscription_end` (that's the *checkout session* expiry, not the subscription period). I'll switch to fetching the subscription period via the `subscription` object on the session, falling back to `invoice.payment_succeeded` (which already sets it correctly).
-- Add `customer.subscription.updated` handler so plan changes / renewals refresh `subscription_end` and `subscribed` accurately — this is what makes "premium for as long as they pay" automatic. When Stripe cancels at period end, `subscribed` flips to false.
+DB: `get_appointment_by_token` already returns stylist? No — extend the payload the trigger sends so the function has `stylistName`, `stylistAvatar`, `address`, `latitude/longitude`, `durationMinutes`. Update `trigger_send_booking_email` to include those fields.
 
-**Manual test guide (Stripe test mode):**
-1. In Stripe Dashboard → switch to Test mode → use the Payment Link in test mode (or create a test one)
-2. Sign in to the app with a test user → go to `/pricing` → click Pro → checkout with card `4242 4242 4242 4242`
-3. Watch the webhook in Supabase → `stripe-webhook` logs should show `checkout.session.completed`
-4. Run in SQL editor: `select * from subscribers where email = '<your email>'` → confirm `subscribed=true`
-5. Refresh the app → gated pages should unlock immediately (the hook re-checks on window focus)
-6. To test downgrade: in Stripe → cancel the test subscription → webhook fires `customer.subscription.deleted` → `subscribed=false` → pages re-lock
+## 2. Agenda — past days are view-only
 
-## 2. Push notifications for new bookings (Web + iOS)
+In `AgendaBookingForm.tsx`, `AppointmentForm.tsx`, and the mobile `LiquidGlassAgenda.tsx`:
+- Disable the "New booking" / "+" action when the selected date < today (business timezone).
+- Show a subtle banner: "Past day — view only. You can see appointments but can't add or edit them."
+- Disable edit/cancel actions on past appointments.
+- Keep DB trigger as-is (walk-in past bookings blocked by validation when `auth.uid()` is not the owner; owner path already allowed — we're just hiding UI so barbers don't book historically per user preference).
 
-### Database
-- New table `push_subscriptions(user_id, endpoint, p256dh, auth, platform, created_at)` for Web Push
-- New table `device_tokens(user_id, token, platform, created_at)` for APNs
-- DB trigger on `notifications` INSERT → calls `send-push` edge function via `pg_net` (so pushes fire even when app is closed)
+## 3. Stories on Find Barber
 
-### Web Push (PC + Android + installed iOS PWA)
-- Generate VAPID key pair (I'll need you to add `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` as secrets)
-- `public/sw.js` service worker — listens for `push` events, shows notification, deep-links on click
-- `src/lib/push.ts` — registers SW, requests permission, subscribes, stores subscription in DB
-- Settings page → "Enable booking alerts" toggle
-- `send-push` edge function fans out to all subscriptions for the booking owner
+### Storage
+- New private bucket `stories` (20 MB per file, images/videos).
+- RLS: owner (barber) can insert/update/delete their own folder `stories/{user_id}/*`. Everyone can read (public URL served through signed policy on `SELECT`).
 
-### Native iOS (APNs)
-- `send-push` edge function also sends to APNs via JWT auth (token-based, no certs)
-- Needs these secrets from you (Apple Developer account):
-  - `APNS_KEY_ID` (10-char Key ID)
-  - `APNS_TEAM_ID` (10-char Team ID)
-  - `APNS_BUNDLE_ID` (e.g. `com.cutzio.app`)
-  - `APNS_PRIVATE_KEY` (contents of the `.p8` file)
-  - `APNS_USE_SANDBOX` (`true` for dev, `false` for prod)
-- iOS app changes (in `ios/CutzioApp`):
-  - Register for remote notifications on launch
-  - Upsert the device token into `device_tokens` via Supabase Swift SDK after sign-in
-  - I'll provide the Swift snippet to drop in
+### DB
+```sql
+create table public.stories (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  media_url text not null,
+  media_type text not null check (media_type in ('image','video')),
+  music_track_id text,
+  music_title text,
+  music_artist text,
+  music_preview_url text,
+  duration_seconds int default 5,
+  created_at timestamptz default now(),
+  expires_at timestamptz default now() + interval '10 days'
+);
+-- grants + RLS: barbers manage their own; anyone can select non-expired
+```
+Cron job (`pg_cron`) daily: delete rows where `expires_at < now()` and remove their storage objects via an edge function `cleanup-expired-stories`.
 
-### After approval
-I'll: apply the webhook fixes → run migrations for the two tables + trigger → write the service worker + push lib → write `send-push` edge function → request the VAPID + APNs secrets → give you the iOS snippet and test steps.
+### Spotify integration
+- Add secrets `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` (Client Credentials flow — no user OAuth needed for search + 30s previews).
+- New edge function `spotify-search` (public): takes `q`, returns list of `{id, title, artist, preview_url, artwork}`. Uses client-credentials token cached in memory.
+- Trending: preload a curated playlist (Spotify's Top 50 - Global, id `37i9dQZEVXbMDoHDwVN2tF`) via `spotify-trending` when the picker opens with no query.
 
-If you don't have APNs credentials handy, I can ship Web Push fully working today and stub the APNs path so it activates the moment you add the secrets.
+### UI
+- `src/components/stories/StoryUploader.tsx`: file input (image/video, ≤20MB client check + toast), preview, "Pick a song" opens `SpotifyMusicPicker.tsx` with search + trending list, "Publish".
+- `src/components/stories/StoriesRail.tsx` on `FindBarber` above the barbers list: horizontal avatars with gradient ring for barbers with active stories.
+- `src/components/stories/StoryViewer.tsx`: full-screen modal, auto-advance ~5s per story, plays music preview in background (muted by default with tap-to-unmute per iOS autoplay rules), swipe/tap navigation, close X.
+- Everyone can view (no login required); only barbers see the "+ Add story" tile (own row).
+
+## Technical
+
+- New files: `supabase/functions/spotify-search/index.ts`, `supabase/functions/cleanup-expired-stories/index.ts`, `src/components/stories/*`.
+- Modified: `supabase/functions/send-booking-confirmation/index.ts`, DB trigger `trigger_send_booking_email`, agenda components, `src/pages/FindBarber.tsx`.
+- Secrets needed from user: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` (free — https://developer.spotify.com/dashboard).
+- Bucket `stories` created via `supabase--storage_create_bucket` (public read for simplicity so viewer can stream without signed URLs).
+
+I'll request the Spotify secrets before wiring the music picker — everything else I can build immediately.

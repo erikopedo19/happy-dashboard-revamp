@@ -165,6 +165,57 @@ export type Database = {
           },
         ]
       }
+      banners: {
+        Row: {
+          active: boolean
+          auto_dismiss: number | null
+          button_link: string | null
+          button_text: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          dismissable: boolean
+          gradient_colors: Json | null
+          id: string
+          priority: number
+          title: string
+          updated_at: string
+          variant: string
+        }
+        Insert: {
+          active?: boolean
+          auto_dismiss?: number | null
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dismissable?: boolean
+          gradient_colors?: Json | null
+          id?: string
+          priority?: number
+          title: string
+          updated_at?: string
+          variant?: string
+        }
+        Update: {
+          active?: boolean
+          auto_dismiss?: number | null
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dismissable?: boolean
+          gradient_colors?: Json | null
+          id?: string
+          priority?: number
+          title?: string
+          updated_at?: string
+          variant?: string
+        }
+        Relationships: []
+      }
       brand_profiles_raw: {
         Row: {
           booking_link: string | null
