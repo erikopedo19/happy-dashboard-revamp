@@ -275,6 +275,13 @@ const FindBarber = () => {
             />
           </div>
 
+          {/* Stories rail */}
+          <div className="mt-3">
+            <StoriesRail />
+          </div>
+
+
+
           {/* iOS segmented control */}
           <div className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
             {TABS.map((t) => {
