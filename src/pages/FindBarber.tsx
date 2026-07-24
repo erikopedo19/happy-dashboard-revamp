@@ -34,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { StoriesRail } from "@/components/stories/StoriesRail";
 
 
 interface BarberProfile {
@@ -274,6 +275,13 @@ const FindBarber = () => {
               className="pl-10 h-11 rounded-[14px] border-0 bg-black/[0.05] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15"
             />
           </div>
+
+          {/* Stories rail */}
+          <div className="mt-3">
+            <StoriesRail />
+          </div>
+
+
 
           {/* iOS segmented control */}
           <div className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
