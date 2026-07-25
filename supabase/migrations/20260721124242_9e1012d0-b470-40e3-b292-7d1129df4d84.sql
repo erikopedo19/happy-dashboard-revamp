@@ -1,5 +1,7 @@
+DROP FUNCTION IF EXISTS public.get_public_profile_by_booking_link(text);
+
 CREATE OR REPLACE FUNCTION public.get_public_profile_by_booking_link(_booking_link text)
- RETURNS TABLE(id uuid, full_name text, booking_link text, brand_color text, avatar_url text, banner_url text, address text, phone text, rating numeric, rating_count integer, description text, total_bookings integer, services_count integer, stylists_count integer, years_experience integer)
+ RETURNS TABLE(id uuid, full_name text, booking_link text, brand_color text, booking_theme text, ask_phone boolean, ask_notes boolean, avatar_url text, banner_url text, address text, phone text, rating numeric, rating_count integer, description text, total_bookings integer, services_count integer, stylists_count integer, years_experience integer)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -9,6 +11,9 @@ AS $function$
     COALESCE(NULLIF(TRIM(p.business_name), ''), NULLIF(TRIM(p.full_name), ''), p.booking_link, 'Business') AS full_name,
     p.booking_link,
     COALESCE(p.brand_color, '#e0c4a8') AS brand_color,
+    p.booking_theme,
+    COALESCE(p.ask_phone, true) AS ask_phone,
+    COALESCE(p.ask_notes, true) AS ask_notes,
     p.avatar_url,
     p.banner_url,
     p.address,

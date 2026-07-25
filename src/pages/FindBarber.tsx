@@ -134,6 +134,8 @@ const FindBarber = () => {
   const { data: barbers, isLoading: barbersLoading } = useQuery({
     queryKey: ["find-barbers", todayCounts ? Array.from(todayCounts.entries()).length : 0],
     enabled: !!user,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const [rpcRes, settingRes] = await Promise.all([
         (supabase as any).rpc("list_public_profiles"),
@@ -588,14 +590,16 @@ function BarberCard({
         </div>
       )}
 
-      <QuickBookSheet
-        open={bookOpen}
-        onOpenChange={setBookOpen}
-        barberId={barber.id}
-        barberName={barber.brandName}
-        bookingLink={barber.booking_link}
-        accentColor={accent}
-      />
+      {bookOpen && (
+        <QuickBookSheet
+          open={bookOpen}
+          onOpenChange={setBookOpen}
+          barberId={barber.id}
+          barberName={barber.brandName}
+          bookingLink={barber.booking_link}
+          accentColor={accent}
+        />
+      )}
     </motion.div>
   );
 }
