@@ -264,8 +264,9 @@ const FindBarber = () => {
       
 
 
-      {/* Sticky minimal header */}
-      <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
+      {/* Sticky minimal header — hides on scroll down, reappears on scroll up */}
+      <StickyHeader>
+        <div className="backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
           <div className="flex items-center justify-between mb-3">
             <motion.h1
