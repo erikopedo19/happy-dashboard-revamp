@@ -118,8 +118,21 @@ const FindBarber = () => {
     });
   };
 
+  const { data: todayCounts } = useQuery({
+    queryKey: ["today-booking-counts"],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_today_booking_counts");
+      if (error) return new Map<string, number>();
+      const m = new Map<string, number>();
+      for (const r of (data || []) as any[]) m.set(r.user_id, Number(r.count) || 0);
+      return m;
+    },
+  });
+
   const { data: barbers, isLoading: barbersLoading } = useQuery({
-    queryKey: ["find-barbers"],
+    queryKey: ["find-barbers", todayCounts ? Array.from(todayCounts.entries()).length : 0],
     enabled: !!user,
     queryFn: async () => {
       const [rpcRes, settingRes] = await Promise.all([
@@ -127,7 +140,7 @@ const FindBarber = () => {
         (supabase as any).from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
       ]);
       if (rpcRes.error) throw rpcRes.error;
-      const real = (rpcRes.data || []).map((p: any): BarberProfile => ({
+      const real = (rpcRes.data || []).map((p: any): BarberProfile & { _today: number } => ({
         id: p.id,
         full_name: p.full_name,
         business_name: p.business_name ?? null,
@@ -139,10 +152,14 @@ const FindBarber = () => {
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
         brandName: p.business_name || p.full_name || "Barber",
+        _today: todayCounts?.get(p.id) ?? 0,
       }));
 
+      // Sort by number of bookings today (busiest first), then rating.
+      real.sort((a, b) => (b._today - a._today) || ((b.rating ?? 0) - (a.rating ?? 0)));
+
       const fakeEnabled = settingRes?.data?.value?.enabled === true;
-      if (!fakeEnabled) return real;
+      if (!fakeEnabled) return real as BarberProfile[];
 
       const { data: fakes } = await (supabase as any)
         .from("fake_barbershops")
@@ -171,6 +188,7 @@ const FindBarber = () => {
       return merged;
     },
   });
+
 
 
   // Bookings in the last 2 days that the current user hasn't rated yet.
