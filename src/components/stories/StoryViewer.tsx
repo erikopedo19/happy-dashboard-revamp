@@ -86,12 +86,32 @@ export function StoryViewer({
     }
   };
 
+  useEffect(() => {
+    document.body.classList.add("stories-open");
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.classList.remove("stories-open");
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   if (!story) return null;
   const src = useMemo(() => publicUrl(story.media_path), [story.media_path]);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
-      <div className="relative w-full h-full sm:max-w-md sm:h-[90vh] sm:rounded-2xl overflow-hidden bg-black">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] bg-black flex items-center justify-center"
+    >
+      <motion.div
+        initial={{ scale: 0.94, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 320, damping: 28 }}
+        className="relative w-full h-full sm:max-w-md sm:h-[90vh] sm:rounded-3xl overflow-hidden bg-black"
+      >
         {/* Progress */}
         <div className="absolute top-2 left-2 right-2 flex gap-1 z-20">
           {group.stories.map((_, i) => (
