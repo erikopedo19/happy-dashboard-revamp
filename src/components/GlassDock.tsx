@@ -33,8 +33,9 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
 
   return (
     <div
+      data-glass-dock
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(env(safe-area-inset-bottom),0.7rem)]",
+        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(env(safe-area-inset-bottom),0.7rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
     >
