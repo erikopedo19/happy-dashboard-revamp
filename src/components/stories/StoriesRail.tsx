@@ -34,7 +34,13 @@ export function StoriesRail() {
   return (
     <>
       <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4">
-        <div className="flex items-start gap-4 py-3">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/60 dark:text-white/60">Stories</span>
+          <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-[1px] rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 text-white shadow-[0_1px_6px_rgba(244,63,94,0.5)]">
+            Beta
+          </span>
+        </div>
+        <div className="flex items-start gap-4 py-2">
           {isBarber && (
             <StoryUploader onDone={() => qc.invalidateQueries({ queryKey: ["stories-active"] })} />
           )}
@@ -42,7 +48,7 @@ export function StoriesRail() {
             <button
               key={g.user_id}
               onClick={() => setOpenUser(g.user_id)}
-              className="flex flex-col items-center gap-1 shrink-0"
+              className="flex flex-col items-center gap-1 shrink-0 active:scale-95 transition-transform"
             >
               <div className="p-[2px] rounded-full bg-gradient-to-tr from-rose-500 via-fuchsia-500 to-amber-400">
                 <div className="bg-black p-[2px] rounded-full">

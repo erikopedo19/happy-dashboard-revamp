@@ -118,8 +118,21 @@ const FindBarber = () => {
     });
   };
 
+  const { data: todayCounts } = useQuery({
+    queryKey: ["today-booking-counts"],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_today_booking_counts");
+      if (error) return new Map<string, number>();
+      const m = new Map<string, number>();
+      for (const r of (data || []) as any[]) m.set(r.user_id, Number(r.count) || 0);
+      return m;
+    },
+  });
+
   const { data: barbers, isLoading: barbersLoading } = useQuery({
-    queryKey: ["find-barbers"],
+    queryKey: ["find-barbers", todayCounts ? Array.from(todayCounts.entries()).length : 0],
     enabled: !!user,
     queryFn: async () => {
       const [rpcRes, settingRes] = await Promise.all([
@@ -127,7 +140,7 @@ const FindBarber = () => {
         (supabase as any).from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
       ]);
       if (rpcRes.error) throw rpcRes.error;
-      const real = (rpcRes.data || []).map((p: any): BarberProfile => ({
+      const real = (rpcRes.data || []).map((p: any): BarberProfile & { _today: number } => ({
         id: p.id,
         full_name: p.full_name,
         business_name: p.business_name ?? null,
@@ -139,10 +152,14 @@ const FindBarber = () => {
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
         brandName: p.business_name || p.full_name || "Barber",
+        _today: todayCounts?.get(p.id) ?? 0,
       }));
 
+      // Sort by number of bookings today (busiest first), then rating.
+      real.sort((a, b) => (b._today - a._today) || ((b.rating ?? 0) - (a.rating ?? 0)));
+
       const fakeEnabled = settingRes?.data?.value?.enabled === true;
-      if (!fakeEnabled) return real;
+      if (!fakeEnabled) return real as BarberProfile[];
 
       const { data: fakes } = await (supabase as any)
         .from("fake_barbershops")
@@ -171,6 +188,7 @@ const FindBarber = () => {
       return merged;
     },
   });
+
 
 
   // Bookings in the last 2 days that the current user hasn't rated yet.
@@ -246,8 +264,9 @@ const FindBarber = () => {
       
 
 
-      {/* Sticky minimal header */}
-      <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
+      {/* Sticky minimal header — hides on scroll down, reappears on scroll up */}
+      <StickyHeader>
+        <div className="backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
           <div className="flex items-center justify-between mb-3">
             <motion.h1
@@ -311,7 +330,8 @@ const FindBarber = () => {
             })}
           </div>
         </div>
-      </div>
+        </div>
+      </StickyHeader>
 
 
 
@@ -358,6 +378,40 @@ const FindBarber = () => {
 };
 
 /* ---------- Sub-components ---------- */
+
+function StickyHeader({ children }: { children: React.ReactNode }) {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        if (y < 40) setHidden(false);
+        else if (delta > 6) setHidden(true);
+        else if (delta < -6) setHidden(false);
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <motion.div
+      initial={false}
+      animate={{ y: hidden ? "-100%" : "0%" }}
+      transition={{ type: "spring", stiffness: 350, damping: 32 }}
+      className="sticky top-0 z-30 will-change-transform"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 
 const cardItem: Variants = {
   hidden: { opacity: 0, y: 14, scale: 0.98 },
