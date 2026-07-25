@@ -110,7 +110,7 @@ export function StoryViewer({
         initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="relative w-full h-full sm:max-w-md sm:h-[90vh] sm:rounded-3xl overflow-hidden bg-black"
+        className="relative w-full h-full overflow-hidden bg-black"
       >
         {/* Progress */}
         <div className="absolute top-2 left-2 right-2 flex gap-1 z-20">
