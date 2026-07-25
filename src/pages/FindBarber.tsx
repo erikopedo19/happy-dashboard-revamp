@@ -330,7 +330,8 @@ const FindBarber = () => {
             })}
           </div>
         </div>
-      </div>
+        </div>
+      </StickyHeader>
 
 
 
