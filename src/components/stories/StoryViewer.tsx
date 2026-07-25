@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronLeft, ChevronRight, Volume2, VolumeX, X } from "lucide-react";
@@ -21,7 +21,8 @@ type Group = {
   stories: Story[];
 };
 
-function publicUrl(path: string) {
+function publicUrl(path: string | null | undefined) {
+  if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const { data } = supabase.storage.from("stories").getPublicUrl(path);
   return data.publicUrl;
@@ -40,6 +41,8 @@ export function StoryViewer({
   const [gIdx, setGIdx] = useState(startIdx);
   const [sIdx, setSIdx] = useState(0);
   const [muted, setMuted] = useState(true);
+  const [signedSrc, setSignedSrc] = useState<string | null>(null);
+  const [triedSigned, setTriedSigned] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -87,6 +90,23 @@ export function StoryViewer({
     }
   };
 
+  const handleMediaError = async () => {
+    if (!triedSigned && story?.media_path) {
+      const { data } = await supabase.storage.from("stories").createSignedUrl(story.media_path, 60 * 60);
+      if (data?.signedUrl) {
+        setSignedSrc(data.signedUrl);
+        setTriedSigned(true);
+        return;
+      }
+    }
+    next();
+  };
+
+  useEffect(() => {
+    setSignedSrc(null);
+    setTriedSigned(false);
+  }, [story?.id]);
+
   useEffect(() => {
     document.body.classList.add("stories-open");
     const prevOverflow = document.body.style.overflow;
@@ -98,7 +118,7 @@ export function StoryViewer({
   }, []);
 
   if (!story) return null;
-  const src = useMemo(() => publicUrl(story.media_path), [story.media_path]);
+  const mediaSrc = signedSrc ?? publicUrl(story.media_path);
 
   return (
     <motion.div
@@ -160,14 +180,20 @@ export function StoryViewer({
             {story.media_type === "video" ? (
               <video
                 ref={videoRef}
-                src={src}
+                src={mediaSrc}
                 className="w-full h-full object-cover"
                 autoPlay
                 muted={muted}
                 playsInline
+                onError={handleMediaError}
               />
             ) : (
-              <img src={src} className="w-full h-full object-contain" alt="" />
+              <img
+                src={mediaSrc}
+                className="w-full h-full object-contain"
+                alt=""
+                onError={handleMediaError}
+              />
             )}
           </motion.div>
         </AnimatePresence>

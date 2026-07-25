@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -99,8 +100,19 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
-        <div className="w-full max-w-sm bg-[#15151a] rounded-3xl overflow-hidden border border-white/10 flex flex-col">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+      >
+        <motion.div
+          initial={{ scale: 0.92, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          className="w-full max-w-sm bg-[#15151a] rounded-3xl overflow-hidden border border-white/10 flex flex-col"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <h3 className="text-sm font-semibold text-white">New story</h3>
             <button onClick={reset} className="p-1 rounded-full hover:bg-white/10">
@@ -144,8 +156,8 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
             </Button>
             <p className="text-center text-[11px] text-white/40">Max 20 MB · Auto-deletes in 10 days</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
       <SpotifyMusicPicker
         open={picking}
         onClose={() => setPicking(false)}
