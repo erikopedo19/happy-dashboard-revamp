@@ -1528,6 +1528,13 @@ export type Database = {
         }[]
       }
       list_public_shops: { Args: never; Returns: Json }
+      list_today_booking_counts: {
+        Args: never
+        Returns: {
+          count: number
+          user_id: string
+        }[]
+      }
       mark_review_email_sent: {
         Args: { _appointment_id: string }
         Returns: undefined
