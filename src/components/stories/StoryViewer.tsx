@@ -199,7 +199,7 @@ export function StoryViewer({
         >
           <ChevronRight className="w-6 h-6" />
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
