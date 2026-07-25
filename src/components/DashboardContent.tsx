@@ -13,6 +13,14 @@ import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
   CartesianGrid, Line, ComposedChart,
 } from "recharts";
@@ -361,6 +369,41 @@ export function DashboardContent() {
                     </tbody>
                   </table>
                 </div>
+              )}
+            </div>
+            {/* Top clients board */}
+            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">PC board</p>
+                  <h2 className="text-base font-semibold text-white mt-1">Top clients</h2>
+                </div>
+                <Users className="h-4 w-4 text-white/40" />
+              </div>
+              {stats.topCustomers.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Users className="h-8 w-8 mx-auto text-white/20 mb-2" />
+                  <p className="text-sm text-white/40">No customer data yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/[0.06] hover:bg-transparent">
+                      <TableHead className="text-white/40">Customer</TableHead>
+                      <TableHead className="text-white/40 text-right">Visits</TableHead>
+                      <TableHead className="text-white/40 text-right">Spent</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.topCustomers.map((c) => (
+                      <TableRow key={c.name} className="border-white/[0.06]">
+                        <TableCell className="font-medium text-white">{c.name}</TableCell>
+                        <TableCell className="text-right text-white/70">{c.visits}</TableCell>
+                        <TableCell className="text-right font-semibold text-white">€{c.spend.toFixed(0)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </div>
           </main>
