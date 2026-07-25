@@ -47,27 +47,21 @@ serve(async (req: Request) => {
     const q = url.searchParams.get("q")?.trim();
     const token = await getToken();
 
-    let tracks: any[] = [];
-    if (q) {
-      const res = await fetch(
-        `https://api.spotify.com/v1/search?type=track&limit=25&q=${encodeURIComponent(q)}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      const data = await res.json();
-      tracks = (data.tracks?.items || []).map(mapTrack).filter((t: any) => t.preview_url);
-    } else {
-      // Trending — Spotify's editorial "Today's Top Hits" playlist
-      const res = await fetch(
-        "https://api.spotify.com/v1/playlists/37i9dQZF1DXcBWIGoYBM5M/tracks?limit=30",
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      const data = await res.json();
-      tracks = (data.items || [])
-        .map((it: any) => it.track)
-        .filter(Boolean)
-        .map(mapTrack)
-        .filter((t: any) => t.preview_url);
-    }
+    // Spotify deprecated Client-Credentials access to editorial playlists,
+    // so trending is served via a search query that returns fresh popular tracks.
+    const query = q && q.length > 0 ? q : "top hits 2026";
+    const res = await fetch(
+      `https://api.spotify.com/v1/search?type=track&limit=40&market=US&q=${encodeURIComponent(query)}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!res.ok) throw new Error(`Spotify search failed: ${res.status} ${await res.text()}`);
+    const data = await res.json();
+    const all = (data.tracks?.items || []).map(mapTrack);
+    // Prefer tracks with a preview, but fall back to any track so the list is never empty.
+    const withPreview = all.filter((t: any) => t.preview_url);
+    let tracks = withPreview.length >= 6 ? withPreview : all;
+    // Order by popularity-ish (Spotify already sorts by relevance).
+    tracks = tracks.slice(0, 30);
 
     return new Response(JSON.stringify({ tracks }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
