@@ -379,6 +379,40 @@ const FindBarber = () => {
 
 /* ---------- Sub-components ---------- */
 
+function StickyHeader({ children }: { children: React.ReactNode }) {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        if (y < 40) setHidden(false);
+        else if (delta > 6) setHidden(true);
+        else if (delta < -6) setHidden(false);
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <motion.div
+      initial={false}
+      animate={{ y: hidden ? "-100%" : "0%" }}
+      transition={{ type: "spring", stiffness: 350, damping: 32 }}
+      className="sticky top-0 z-30 will-change-transform"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+
 const cardItem: Variants = {
   hidden: { opacity: 0, y: 14, scale: 0.98 },
   show: (i: number) => ({
