@@ -435,16 +435,23 @@ const Agenda = () => {
                 </motion.div>
               </div>
             ) : (
-              <LiquidGlassAgenda
-                appointments={filteredAppointments}
-                onDateTimeClick={handleDateTimeClick}
-                services={services}
-                currentWeek={currentWeek}
-                onWeekChange={setCurrentWeek}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                showViewModeToggle={false}
-              />
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="flex-1 flex flex-col overflow-hidden"
+              >
+                <LiquidGlassAgenda
+                  appointments={filteredAppointments}
+                  onDateTimeClick={handleDateTimeClick}
+                  services={services}
+                  currentWeek={currentWeek}
+                  onWeekChange={setCurrentWeek}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  showViewModeToggle={false}
+                />
+              </motion.div>
             )}
           </main>
         </div>
