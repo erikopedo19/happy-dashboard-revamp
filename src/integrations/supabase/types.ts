@@ -165,6 +165,57 @@ export type Database = {
           },
         ]
       }
+      banners: {
+        Row: {
+          active: boolean
+          auto_dismiss: number | null
+          button_link: string | null
+          button_text: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          dismissable: boolean
+          gradient_colors: Json | null
+          id: string
+          priority: number
+          title: string
+          updated_at: string
+          variant: string
+        }
+        Insert: {
+          active?: boolean
+          auto_dismiss?: number | null
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dismissable?: boolean
+          gradient_colors?: Json | null
+          id?: string
+          priority?: number
+          title: string
+          updated_at?: string
+          variant?: string
+        }
+        Update: {
+          active?: boolean
+          auto_dismiss?: number | null
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dismissable?: boolean
+          gradient_colors?: Json | null
+          id?: string
+          priority?: number
+          title?: string
+          updated_at?: string
+          variant?: string
+        }
+        Relationships: []
+      }
       brand_profiles_raw: {
         Row: {
           booking_link: string | null
@@ -948,6 +999,51 @@ export type Database = {
           },
         ]
       }
+      stories: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          expires_at: string
+          id: string
+          media_path: string
+          media_type: string
+          music_artist: string | null
+          music_artwork_url: string | null
+          music_preview_url: string | null
+          music_title: string | null
+          music_track_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          expires_at?: string
+          id?: string
+          media_path: string
+          media_type: string
+          music_artist?: string | null
+          music_artwork_url?: string | null
+          music_preview_url?: string | null
+          music_title?: string | null
+          music_track_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          expires_at?: string
+          id?: string
+          media_path?: string
+          media_type?: string
+          music_artist?: string | null
+          music_artwork_url?: string | null
+          music_preview_url?: string | null
+          music_title?: string | null
+          music_track_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       stylist_services: {
         Row: {
           created_at: string | null
@@ -1280,6 +1376,7 @@ export type Database = {
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       clean_booking_link: { Args: { raw: string }; Returns: string }
       clean_display_name: { Args: { raw: string }; Returns: string }
+      cleanup_expired_stories: { Args: never; Returns: undefined }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_pending_services: { Args: never; Returns: undefined }
       cleanup_pending_stylists: { Args: never; Returns: undefined }
@@ -1412,6 +1509,7 @@ export type Database = {
         Args: { _barber_id: string }
         Returns: Json
       }
+      list_active_stories: { Args: never; Returns: Json }
       list_public_profiles: {
         Args: never
         Returns: {

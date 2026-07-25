@@ -293,6 +293,11 @@ const Agenda = () => {
   }, [user, toast, queryClient]);
 
   const handleDateTimeClick = (date: string, time: string) => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    if (date < today) {
+      toast({ title: "Past day — view only", description: "You can see appointments but can't add new ones on past dates." });
+      return;
+    }
     setSelectedTimeSlot({ date, time });
     setIsAppointmentFormOpen(true);
   };

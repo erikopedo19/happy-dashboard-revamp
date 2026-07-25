@@ -1,0 +1,79 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { StoryUploader } from "./StoryUploader";
+import { StoryViewer } from "./StoryViewer";
+
+type Group = {
+  user_id: string;
+  name: string;
+  avatar_url: string | null;
+  booking_link: string | null;
+  latest: string;
+  stories: any[];
+};
+
+export function StoriesRail() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [openUser, setOpenUser] = useState<string | null>(null);
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ["stories-active"],
+    queryFn: async (): Promise<Group[]> => {
+      const { data } = await supabase.rpc("list_active_stories");
+      return (data as Group[]) || [];
+    },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  const isBarber = !!user;
+
+  return (
+    <>
+      <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4">
+        <div className="flex items-start gap-4 py-3">
+          {isBarber && (
+            <StoryUploader onDone={() => qc.invalidateQueries({ queryKey: ["stories-active"] })} />
+          )}
+          {groups.map((g) => (
+            <button
+              key={g.user_id}
+              onClick={() => setOpenUser(g.user_id)}
+              className="flex flex-col items-center gap-1 shrink-0"
+            >
+              <div className="p-[2px] rounded-full bg-gradient-to-tr from-rose-500 via-fuchsia-500 to-amber-400">
+                <div className="bg-black p-[2px] rounded-full">
+                  {g.avatar_url ? (
+                    <img
+                      src={g.avatar_url}
+                      alt={g.name}
+                      className="w-[60px] h-[60px] rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-[60px] h-[60px] rounded-full bg-white/10 flex items-center justify-center text-white/60 text-lg font-semibold">
+                      {g.name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <span className="text-[11px] text-white/70 max-w-[68px] truncate">{g.name}</span>
+            </button>
+          ))}
+          {groups.length === 0 && !isBarber && (
+            <div className="text-xs text-white/40 py-4">No stories yet — check back soon.</div>
+          )}
+        </div>
+      </div>
+      {openUser && (
+        <StoryViewer
+          groups={groups}
+          startUserId={openUser}
+          onClose={() => setOpenUser(null)}
+        />
+      )}
+    </>
+  );
+}
