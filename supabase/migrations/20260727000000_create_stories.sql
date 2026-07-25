@@ -32,10 +32,72 @@ CREATE TRIGGER stories_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION public.set_stories_updated_at();
 
--- 3. Enable RLS
+-- 3. Storage bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('stories', 'stories', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Cleanup expired stories
+CREATE OR REPLACE FUNCTION public.cleanup_expired_stories()
+RETURNS VOID
+LANGUAGE SQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  DELETE FROM public.stories WHERE expires_at <= now();
+$$;
+
+-- 5. List active stories grouped by user
+-- Created before RLS/policies so the stories table is not locked while this references profiles.
+CREATE OR REPLACE FUNCTION public.list_active_stories()
+RETURNS JSONB
+LANGUAGE SQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  WITH active AS (
+    SELECT user_id, MAX(created_at) AS latest
+    FROM public.stories
+    WHERE expires_at > now()
+    GROUP BY user_id
+  ),
+  user_stories AS (
+    SELECT s.user_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'id', s.id,
+          'media_path', s.media_path,
+          'media_type', s.media_type,
+          'music_title', s.music_title,
+          'music_artist', s.music_artist,
+          'music_preview_url', s.music_preview_url,
+          'music_artwork_url', s.music_artwork_url,
+          'duration_seconds', s.duration_seconds
+        ) ORDER BY s.created_at DESC
+      ) AS stories
+    FROM public.stories s
+    WHERE s.expires_at > now()
+    GROUP BY s.user_id
+  )
+  SELECT COALESCE(jsonb_agg(
+    jsonb_build_object(
+      'user_id', p.id,
+      'name', COALESCE(p.business_name, p.full_name, 'Barber'),
+      'avatar_url', p.avatar_url,
+      'booking_link', p.booking_link,
+      'latest', a.latest,
+      'stories', us.stories
+    )
+  ), '[]'::jsonb)
+  FROM active a
+  JOIN public.profiles p ON p.id = a.user_id
+  JOIN user_stories us ON us.user_id = a.user_id;
+$$;
+
+-- 6. Enable RLS
 ALTER TABLE public.stories ENABLE ROW LEVEL SECURITY;
 
--- 4. Row policies
+-- 7. Row policies
 DROP POLICY IF EXISTS "Users can insert own stories" ON public.stories;
 CREATE POLICY "Users can insert own stories"
   ON public.stories FOR INSERT
@@ -56,12 +118,7 @@ CREATE POLICY "Anyone can view active stories"
   ON public.stories FOR SELECT
   USING (expires_at > now());
 
--- 5. Storage bucket
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('stories', 'stories', true)
-ON CONFLICT (id) DO NOTHING;
-
--- 6. Storage policies
+-- 8. Storage policies
 DROP POLICY IF EXISTS "Anyone can view story files" ON storage.objects;
 CREATE POLICY "Anyone can view story files"
   ON storage.objects FOR SELECT
@@ -81,51 +138,3 @@ DROP POLICY IF EXISTS "Users can delete own story files" ON storage.objects;
 CREATE POLICY "Users can delete own story files"
   ON storage.objects FOR DELETE
   USING (bucket_id = 'stories' AND owner = auth.uid());
-
--- 7. Cleanup expired stories
-CREATE OR REPLACE FUNCTION public.cleanup_expired_stories()
-RETURNS VOID
-LANGUAGE SQL
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  DELETE FROM public.stories WHERE expires_at <= now();
-$$;
-
--- 8. List active stories grouped by user
-CREATE OR REPLACE FUNCTION public.list_active_stories()
-RETURNS JSONB
-LANGUAGE SQL
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT COALESCE(jsonb_agg(
-    jsonb_build_object(
-      'user_id', p.id,
-      'name', COALESCE(p.business_name, p.full_name, 'Barber'),
-      'avatar_url', p.avatar_url,
-      'booking_link', p.booking_link,
-      'latest', MAX(s.created_at),
-      'stories', (
-        SELECT jsonb_agg(
-          jsonb_build_object(
-            'id', s2.id,
-            'media_path', s2.media_path,
-            'media_type', s2.media_type,
-            'music_title', s2.music_title,
-            'music_artist', s2.music_artist,
-            'music_preview_url', s2.music_preview_url,
-            'music_artwork_url', s2.music_artwork_url,
-            'duration_seconds', s2.duration_seconds
-          ) ORDER BY s2.created_at DESC
-        )
-        FROM public.stories s2
-        WHERE s2.user_id = s.user_id AND s2.expires_at > now()
-      )
-    )
-  ), '[]'::jsonb)
-  FROM (
-    SELECT DISTINCT user_id FROM public.stories WHERE expires_at > now()
-  ) s
-  JOIN public.profiles p ON p.id = s.user_id;
-$$;
