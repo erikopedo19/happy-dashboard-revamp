@@ -152,6 +152,7 @@ function AnimatedRoutes() {
       <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
       <Route path="/site/:slug" element={<Microsite />} />
       <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+      <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

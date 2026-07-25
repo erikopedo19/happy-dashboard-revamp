@@ -37,7 +37,8 @@ interface AgendaBookingFormProps {
   isLoading: boolean;
   businessProfile: {
     full_name: string;
-    brand_color?: string;
+    brand_color?: string | null;
+    booking_theme?: string | null;
     address?: string;
     phone?: string;
     avatar_url?: string;
@@ -52,6 +53,8 @@ interface AgendaBookingFormProps {
   timezone?: string;
   rescheduleAppointment?: any;
   locale?: "en" | "el" | "pl";
+  askPhone?: boolean;
+  askNotes?: boolean;
 }
 
 const AgendaBookingForm = ({
@@ -72,6 +75,8 @@ const AgendaBookingForm = ({
   timezone = "UTC",
   rescheduleAppointment,
   locale = "en",
+  askPhone = true,
+  askNotes = true,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
@@ -80,12 +85,19 @@ const AgendaBookingForm = ({
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
   const accentColor = businessProfile?.brand_color || "#e11d48";
-  const displayName =
-    (businessProfile?.full_name && businessProfile.full_name.trim()) ||
-    (typeof window !== "undefined"
-      ? decodeURIComponent(window.location.pathname.split("/book/")[1]?.split("/")[0] || "")
-      : "") ||
-    "Book an Appointment";
+  const bookingTheme = businessProfile?.booking_theme || "default";
+  const isPremiumTheme = bookingTheme !== "default";
+  const buttonStyle = isPremiumTheme
+    ? { backgroundColor: accentColor, boxShadow: `0 12px 32px -8px ${accentColor}` }
+    : { backgroundColor: accentColor };
+  const buttonClass = "w-full h-12 rounded-full font-semibold text-white border-0 flex items-center justify-center gap-2";
+  const displayName = useMemo(() => {
+    if (businessProfile?.full_name && businessProfile.full_name.trim()) return businessProfile.full_name.trim();
+    if (typeof window === "undefined") return "Book an Appointment";
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    const raw = parts.length >= 2 && parts[0] === "book" ? parts[1] : parts[0] || "";
+    return decodeURIComponent(raw).replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Book an Appointment";
+  }, [businessProfile?.full_name]);
   const avatarUrl = businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
   const bannerUrl = businessProfile?.banner_url;
   const copy = locale === "el"
@@ -301,7 +313,7 @@ const AgendaBookingForm = ({
           <Button
             onClick={() => window.location.reload()}
             className="h-12 px-8 rounded-full font-semibold text-white"
-            style={{ backgroundColor: accentColor }}
+            style={buttonStyle}
           >
             {copy.bookAnother}
           </Button>
@@ -797,30 +809,53 @@ const AgendaBookingForm = ({
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="customer_phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[#8E8E93] text-sm">Phone</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="w-full px-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
-                                placeholder="+1 555 123 4567"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {askPhone && (
+                        <FormField
+                          control={form.control}
+                          name="customer_phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[#8E8E93] text-sm">Phone</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  className="w-full px-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
+                                  placeholder="+1 555 123 4567"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {askNotes && (
+                        <FormField
+                          control={form.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[#8E8E93] text-sm">Notes</FormLabel>
+                              <FormControl>
+                                <textarea
+                                  {...field}
+                                  rows={3}
+                                  className="w-full px-3 py-2.5 bg-[#1C1C1E] border border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0 resize-none"
+                                  placeholder="Anything we should know?"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
                       <div className="pt-4">
                         <Button
                           type="submit"
                           disabled={isLoading}
-                          className="w-full h-12 rounded-full font-semibold text-white border-0 flex items-center justify-center gap-2"
-                          style={{ backgroundColor: accentColor }}
+                          className={buttonClass}
+                          style={buttonStyle}
                         >
                           {isLoading ? (
                             <>

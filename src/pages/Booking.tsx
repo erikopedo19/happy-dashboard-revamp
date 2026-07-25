@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,12 +43,15 @@ interface Stylist {
 interface BusinessProfile {
   id: string;
   full_name: string;
-  brand_color?: string;
+  brand_color?: string | null;
+  booking_theme?: string | null;
   booking_link?: string;
   avatar_url?: string | null;
   banner_url?: string | null;
   address?: string | null;
   phone?: string | null;
+  ask_phone?: boolean | null;
+  ask_notes?: boolean | null;
   rating?: number | null;
   rating_count?: number | null;
   total_bookings?: number | null;
@@ -82,6 +85,7 @@ interface Appointment {
 const Booking = () => {
   const params = useParams();
   const bookingLink = params.bookingLink;
+  const [searchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -767,6 +771,11 @@ const Booking = () => {
     );
   }
 
+  const askPhoneParam = searchParams.get('askPhone');
+  const askNotesParam = searchParams.get('askNotes');
+  const showPhone = askPhoneParam === 'true' ? true : askPhoneParam === 'false' ? false : businessProfile?.ask_phone ?? true;
+  const showNotes = askNotesParam === 'true' ? true : askNotesParam === 'false' ? false : businessProfile?.ask_notes ?? true;
+
   return (
     <AgendaBookingForm
       form={form}
@@ -787,6 +796,8 @@ const Booking = () => {
       workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
       timezone={settings?.timezone || getBrowserTimezone()}
       locale={locale}
+      askPhone={showPhone}
+      askNotes={showNotes}
     />
   );
 };

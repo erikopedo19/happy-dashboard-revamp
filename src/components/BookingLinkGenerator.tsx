@@ -11,9 +11,11 @@ import {
   Save,
   Link as LinkIcon,
   Check,
+  Crown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePremium } from "@/hooks/use-premium";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -37,8 +39,11 @@ const BookingLinkGenerator = () => {
   const [askNotes, setAskNotes] = useState(true);
   const [bookingLocale, setBookingLocale] = useState<string>("en");
   const [copied, setCopied] = useState(false);
+  const [bookingTheme, setBookingTheme] = useState<string>("default");
+  const [brandColor, setBrandColor] = useState<string>("#e11d48");
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading, refetch } = useQuery({
@@ -48,7 +53,7 @@ const BookingLinkGenerator = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_locale"
+          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_theme, booking_locale"
         )
         .eq("id", user.id)
         .single();
@@ -95,12 +100,14 @@ const BookingLinkGenerator = () => {
     setAskPhone(profile.ask_phone ?? true);
     setAskNotes(profile.ask_notes ?? true);
     setBookingLocale((profile as any)?.booking_locale ?? "en");
+    setBookingTheme((profile as any)?.booking_theme || "default");
+    setBrandColor((profile as any)?.brand_color || "#e11d48");
   }, [profile, suggestedSlug]);
 
   const getBookingUrl = () => {
     const slug = profile?.booking_link || customSlug;
     if (!slug) return "";
-    const baseUrl = `${window.location.origin}/book/${slug}`;
+    const baseUrl = `${window.location.origin}/${slug}`;
     const params = new URLSearchParams();
     if (askPhone) params.append("askPhone", "true");
     if (askNotes) params.append("askNotes", "true");
@@ -147,6 +154,8 @@ const BookingLinkGenerator = () => {
           ask_phone: askPhone,
           ask_notes: askNotes,
           booking_locale: bookingLocale,
+          booking_theme: isPremium ? bookingTheme : "default",
+          brand_color: isPremium ? brandColor : null,
           updated_at: new Date().toISOString(),
         } as any)
         .eq("id", user.id);
@@ -339,6 +348,59 @@ const BookingLinkGenerator = () => {
             );
           })}
         </div>
+      </div>
+
+      {/* Theme */}
+      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3 space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+            Button theme
+          </Label>
+          {!isPremium && (
+            <span className="text-[11px] flex items-center gap-1 text-rose-400 font-medium">
+              <Crown className="w-3 h-3" /> Pro
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { value: "default", label: "Default" },
+            { value: "premium", label: "Premium" },
+          ].map((t) => {
+            const active = bookingTheme === t.value;
+            const disabled = !isPremium && t.value !== "default";
+            return (
+              <button
+                key={t.value}
+                type="button"
+                disabled={disabled}
+                onClick={() => setBookingTheme(t.value)}
+                className={cn(
+                  "h-10 rounded-xl text-[12.5px] font-medium border transition flex items-center justify-center",
+                  active
+                    ? "bg-white text-black border-white"
+                    : "bg-white/[0.03] text-white/60 border-white/10 hover:bg-white/[0.06]",
+                  disabled && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+        {isPremium ? (
+          <div className="flex items-center gap-2 px-1">
+            <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">Brand color</Label>
+            <input
+              type="color"
+              value={brandColor}
+              onChange={(e) => setBrandColor(e.target.value)}
+              className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 bg-transparent cursor-pointer"
+            />
+          </div>
+        ) : (
+          <p className="px-1 text-[11px] text-white/40">Upgrade to Pro to customize colors and premium button themes.</p>
+        )}
       </div>
 
       {/* Save */}
