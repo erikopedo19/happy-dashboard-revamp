@@ -22,41 +22,17 @@ import { cn } from "@/lib/utils";
 
 const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
 
+const cleanSlug = (raw: string) =>
+  raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const TABS = [
   { value: "link", label: "Booking Link", icon: Link2 },
   { value: "qr", label: "QR Flyer", icon: QrCode },
 ] as const;
-
-const StatTile = ({
-  icon: Icon,
-  label,
-  value,
-  tint,
-  delay = 0,
-}: {
-  icon: any;
-  label: string;
-  value: string;
-  tint: string;
-  delay?: number;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 14 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, ...springSoft }}
-    whileTap={{ scale: 0.97 }}
-    className="rounded-[16px] bg-[#15151A] border border-white/[0.08] p-4"
-  >
-    <div
-      className="w-9 h-9 rounded-[12px] flex items-center justify-center mb-3"
-      style={{ backgroundColor: `${tint}22` }}
-    >
-      <Icon className="w-4 h-4" strokeWidth={2.3} style={{ color: tint }} />
-    </div>
-    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">{label}</p>
-    <p className="text-[15px] font-bold text-white mt-1 tracking-tight">{value}</p>
-  </motion.div>
-);
 
 const STEPS = [
   { icon: Link2, title: "Claim your slug", desc: "Pick a short URL that fits your brand." },
@@ -79,15 +55,17 @@ const BookingPage = () => {
       if (!user) return null;
       const { data } = await (supabase as any)
         .from("profiles")
-        .select("booking_link, full_name")
+        .select("booking_link, full_name, business_name")
         .eq("id", user.id)
         .single();
-      return data as { booking_link: string | null; full_name: string | null } | null;
+      return data as { booking_link: string | null; full_name: string | null; business_name: string | null } | null;
     },
   });
 
-  const bookingUrl = profile?.booking_link
-    ? `${window.location.origin}/book/${profile.booking_link}`
+  const fallbackSlug = cleanSlug((profile?.business_name || profile?.full_name || "").trim());
+
+  const bookingUrl = (profile?.booking_link || fallbackSlug)
+    ? `${window.location.origin}/book/${profile?.booking_link || fallbackSlug}`
     : "";
 
   if (!user) {
@@ -191,13 +169,6 @@ const BookingPage = () => {
           </div>
 
           <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-8 space-y-6">
-            {/* Quick stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <StatTile icon={Link2} label="Custom" value="Slug Link" tint="#FF2D6F" delay={0.05} />
-              <StatTile icon={QrCode} label="Instant" value="QR Flyer" tint="#0A84FF" delay={0.1} />
-              <StatTile icon={Share2} label="Share" value="Anywhere" tint="#30D158" delay={0.15} />
-            </div>
-
             {/* Main content */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -212,7 +183,7 @@ const BookingPage = () => {
                   {tab === "qr" ? (
                     <BookingQR
                       url={bookingUrl}
-                      businessName={profile?.full_name}
+                      businessName={profile?.business_name || profile?.full_name}
                       isPremium={isPremium}
                     />
                   ) : (

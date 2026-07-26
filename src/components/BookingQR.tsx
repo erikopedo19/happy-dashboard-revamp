@@ -62,7 +62,7 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
     if (!qrBlob) return;
     try {
       const flyer = await generateBookingFlyer(qrBlob, displayName);
-      const filename = `cutzioo-flyer-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
+      const filename = `qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
       const file = new File([flyer], filename, { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {

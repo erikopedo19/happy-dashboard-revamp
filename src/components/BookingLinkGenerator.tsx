@@ -41,7 +41,7 @@ const cleanSlug = (raw: string) =>
 const LANGS = [
   { value: "en", label: "English", flag: "🇬🇧" },
   { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
-  { value: "pl", label: "Polski", flag: "🇵🇱" },
+  { value: "es", label: "Español", flag: "��" },
 ] as const;
 
 const BookingLinkGenerator = () => {
@@ -302,9 +302,23 @@ const BookingLinkGenerator = () => {
           <input
             value={customSlug}
             onChange={(e) => setCustomSlug(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                updateSlug();
+              }
+            }}
             placeholder={suggestedSlug || "your-name"}
             className="flex-1 bg-transparent text-[14px] font-medium text-white placeholder:text-white/25 outline-none"
           />
+          <button
+            type="button"
+            onClick={updateSlug}
+            disabled={isGenerating || customSlug.trim().length === 0}
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition text-white"
+          >
+            Save
+          </button>
         </div>
         {suggestedSlug && customSlug !== suggestedSlug && (
           <p className="text-[11px] text-white/40">

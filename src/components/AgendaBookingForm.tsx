@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ interface AgendaBookingFormProps {
   workingDays?: number[];
   timezone?: string;
   rescheduleAppointment?: any;
-  locale?: "en" | "el" | "pl";
+  locale?: "en" | "el" | "es";
   askPhone?: boolean;
   askNotes?: boolean;
 }
@@ -92,6 +92,41 @@ const AgendaBookingForm = ({
     ? { backgroundColor: accentColor, boxShadow: `0 12px 32px -8px ${accentColor}` }
     : { backgroundColor: accentColor };
   const buttonClass = "w-full h-12 rounded-full font-semibold text-white border-0 flex items-center justify-center gap-2";
+
+  const BookingButton = ({
+    text,
+    onClick,
+    disabled,
+    type = "button",
+    className,
+  }: {
+    text: string;
+    onClick?: () => void;
+    disabled?: boolean;
+    type?: "button" | "submit";
+    className?: string;
+  }) =>
+    isPremiumTheme ? (
+      <PulseButton
+        text={text}
+        onClick={onClick}
+        disabled={disabled}
+        type={type}
+        color={bookingTheme as ButtonColor}
+        size="md"
+        className={cn("w-full h-12", className)}
+      />
+    ) : (
+      <Button
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        className={cn(buttonClass, className)}
+        style={buttonStyle}
+      >
+        {text}
+      </Button>
+    );
   const displayName = useMemo(() => {
     if (businessProfile?.full_name && businessProfile.full_name.trim()) return businessProfile.full_name.trim();
     if (typeof window === "undefined") return "Book an Appointment";
@@ -115,19 +150,19 @@ const AgendaBookingForm = ({
         booked: "Η κράτησή σας ολοκληρώθηκε",
         confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
       }
-    : locale === "pl"
+    : locale === "es"
     ? {
-        service: "Wybierz usługę",
-        dateTime: "Wybierz datę i godzinę",
-        details: "Twoje dane",
-        continue: "Kontynuuj",
-        back: "Wstecz",
-        selectedService: "Wybrana usługa",
-        selectedServices: "Wybrane usługi",
-        total: "Razem",
-        bookAnother: "Nowa rezerwacja",
-        booked: "Rezerwacja potwierdzona",
-        confirmation: "Potwierdzenie zostało wysłane na Twój email.",
+        service: "Selecciona un servicio",
+        dateTime: "Elige fecha y hora",
+        details: "Tus datos",
+        continue: "Continuar",
+        back: "Atrás",
+        selectedService: "Servicio seleccionado",
+        selectedServices: "Servicios seleccionados",
+        total: "Total",
+        bookAnother: "Nueva reserva",
+        booked: "Reserva confirmada",
+        confirmation: "Se ha enviado la confirmación a tu correo.",
       }
     : {
         service: "Select a service",
@@ -283,11 +318,11 @@ const AgendaBookingForm = ({
             <Check className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-2xl font-semibold text-white mb-2">
-            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : locale === "pl" ? "Rezerwacja zaktualizowana" : "Appointment updated") : copy.booked}
+            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : locale === "es" ? "Reserva actualizada" : "Appointment updated") : copy.booked}
           </h2>
           <p className="text-[#8E8E93] mb-6">
             {rescheduleAppointment
-              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "pl" ? "Twoja rezerwacja została zmieniona." : "Your appointment has been rescheduled successfully.")
+              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "es" ? "Tu reserva se ha modificado." : "Your appointment has been rescheduled successfully.")
               : copy.confirmation}
           </p>
           <div className="rounded-3xl bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
@@ -536,14 +571,10 @@ const AgendaBookingForm = ({
                       transition={spring}
                       className="mt-6 pt-4 border-t border-white/[0.06]"
                     >
-                      <Button
+                      <BookingButton
+                        text={copy.continue}
                         onClick={handleServiceContinue}
-                        className="w-full h-12 rounded-full font-semibold text-white border-0 transition-transform active:scale-[0.98]"
-                        style={{ backgroundColor: accentColor }}
-                      >
-                        {copy.continue}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
+                      />
                     </motion.div>
                   )}
 
@@ -707,14 +738,12 @@ const AgendaBookingForm = ({
                         )}
                       </div>
                       {selectedDate && availableTimeSlots.length > 0 && (
-                        <Button
+                        <BookingButton
+                          text={copy.continue}
                           onClick={handleContinue}
                           disabled={!selectedTime}
-                          className="w-full h-12 mt-4 rounded-full font-semibold text-white border-0 disabled:opacity-40"
-                          style={selectedTime ? { backgroundColor: accentColor } : {}}
-                        >
-                          Continue
-                        </Button>
+                          className="mt-4"
+                        />
                       )}
                     </div>
                   </div>
@@ -893,32 +922,11 @@ const AgendaBookingForm = ({
                       )}
 
                       <div className="pt-4">
-                        {isPremiumTheme ? (
-                          <PulseButton
-                            type="submit"
-                            text={rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
-                            color={bookingTheme as ButtonColor}
-                            size="md"
-                            className="w-full h-12"
-                            disabled={isLoading}
-                          />
-                        ) : (
-                          <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className={buttonClass}
-                            style={buttonStyle}
-                          >
-                            {isLoading ? (
-                              <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Processing...
-                              </>
-                            ) : (
-                              <>{rescheduleAppointment ? "Confirm Change" : "Book Appointment"}</>
-                            )}
-                          </Button>
-                        )}
+                        <BookingButton
+                          type="submit"
+                          text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
+                          disabled={isLoading}
+                        />
                       </div>
                     </form>
                   </Form>
