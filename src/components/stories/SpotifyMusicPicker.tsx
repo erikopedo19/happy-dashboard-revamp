@@ -35,11 +35,12 @@ export function SpotifyMusicPicker({
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
       setLoading(true);
+      const search = q.trim() || "trending";
       try {
         let list: SpotifyTrack[] = [];
         if (SUPABASE_URL) {
           const url = new URL(`${SUPABASE_URL}/functions/v1/spotify-search`);
-          if (q) url.searchParams.set("q", q);
+          url.searchParams.set("q", search);
           const res = await fetch(url.toString(), {
             signal: ctrl.signal,
             headers: {
@@ -52,7 +53,7 @@ export function SpotifyMusicPicker({
         }
         if (list.length === 0) {
           const { data } = await supabase.functions.invoke("spotify-search", {
-            body: { q },
+            body: { q: search },
           });
           list = (data as any)?.tracks || [];
         }
@@ -117,7 +118,7 @@ export function SpotifyMusicPicker({
             <p className="text-[11px] text-white/40 mt-2 uppercase tracking-wider">Trending now</p>
           )}
         </div>
-        <div className="overflow-y-auto flex-1 divide-y divide-white/5">
+        <div className="overflow-y-auto flex-1 min-h-0 pb-[max(env(safe-area-inset-bottom),1rem)]">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-5 h-5 animate-spin text-white/50" />
@@ -127,39 +128,41 @@ export function SpotifyMusicPicker({
               No tracks found. Try another search.
             </div>
           ) : (
-            tracks.map((t) => (
-              <div key={t.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5">
-                {t.artwork_url ? (
-                  <img src={t.artwork_url} alt="" className="w-11 h-11 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-11 h-11 rounded-lg bg-white/10" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold truncate">{t.title}</div>
-                  <div className="text-xs text-white/50 truncate">{t.artist}</div>
-                </div>
-                {t.preview_url && (
-                  <button
-                    onClick={() => togglePlay(t)}
-                    className="p-2 rounded-full bg-white/10 hover:bg-white/20"
-                    aria-label="Preview"
+            <div className="p-4 space-y-2">
+              {tracks.map((t) => (
+                <div key={t.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 active:bg-white/[0.06]">
+                  {t.artwork_url ? (
+                    <img src={t.artwork_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-white/10" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate">{t.title}</div>
+                    <div className="text-xs text-white/50 truncate">{t.artist}</div>
+                  </div>
+                  {t.preview_url && (
+                    <button
+                      onClick={() => togglePlay(t)}
+                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 shrink-0"
+                      aria-label="Preview"
+                    >
+                      {playingId === t.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      audioRef.current?.pause();
+                      setPlayingId(null);
+                      onPick(t);
+                    }}
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs h-8 shrink-0"
                   >
-                    {playingId === t.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </button>
-                )}
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    audioRef.current?.pause();
-                    setPlayingId(null);
-                    onPick(t);
-                  }}
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs h-8"
-                >
-                  Use
-                </Button>
-              </div>
-            ))
+                    Use
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

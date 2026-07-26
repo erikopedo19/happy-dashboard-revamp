@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,9 +26,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { BarbershopMap } from "@/components/BarbershopMap";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { QuickBookSheet } from "@/components/QuickBookSheet";
+
+const BarbershopMap = lazy(() => import("@/components/BarbershopMap").then((m) => ({ default: m.BarbershopMap })));
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -778,14 +779,16 @@ function FullScreenMap({
       {/* Full-bleed map */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
-          <BarbershopMap
-            barbershops={[]}
-            userLocation={userLocation || undefined}
-            height="100%"
-            accentColor="#e11d48"
-            hideSearch
-            showControls={false}
-          />
+          <Suspense fallback={<div className="w-full h-full bg-[#e5e5ea] dark:bg-[#1c1c1e]" />}>
+            <BarbershopMap
+              barbershops={[]}
+              userLocation={userLocation || undefined}
+              height="100%"
+              accentColor="#e11d48"
+              hideSearch
+              showControls={false}
+            />
+          </Suspense>
         </div>
       </div>
 
