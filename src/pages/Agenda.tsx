@@ -78,6 +78,7 @@ const Agenda = () => {
   const [currentDate] = useState(new Date());
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; time: string } | null>(null);
+  const [isSlotBooking, setIsSlotBooking] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -299,12 +300,14 @@ const Agenda = () => {
       return;
     }
     setSelectedTimeSlot({ date, time });
+    setIsSlotBooking(true);
     setIsAppointmentFormOpen(true);
   };
 
   const handleCloseAppointmentForm = () => {
     setIsAppointmentFormOpen(false);
     setSelectedTimeSlot(null);
+    setIsSlotBooking(false);
   };
 
   const handleServiceSelect = (serviceId: string | null) => {
@@ -318,6 +321,7 @@ const Agenda = () => {
     const time = `${hour.toString().padStart(2, '0')}:00`;
     setSelectedServiceId(null);
     setSelectedTimeSlot({ date, time });
+    setIsSlotBooking(false);
     setIsAppointmentFormOpen(true);
   };
 
@@ -460,6 +464,7 @@ const Agenda = () => {
             onClose={handleCloseAppointmentForm}
             selectedDate={selectedTimeSlot.date}
             selectedTime={selectedTimeSlot.time}
+            skipTimeSelection={isSlotBooking}
             services={services}
             initialServiceId={selectedServiceId}
           />
@@ -764,6 +769,7 @@ const Agenda = () => {
             onClose={handleCloseAppointmentForm}
             selectedDate={selectedTimeSlot.date}
             selectedTime={selectedTimeSlot.time}
+            skipTimeSelection={isSlotBooking}
             services={services}
             initialServiceId={selectedServiceId}
           />

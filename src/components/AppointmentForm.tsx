@@ -20,6 +20,7 @@ interface AppointmentFormProps {
   onClose: () => void;
   selectedDate: string;
   selectedTime: string;
+  skipTimeSelection?: boolean;
   services?: Service[];
   initialServiceId?: string | null;
 }
@@ -32,7 +33,7 @@ interface Service {
   description?: string;
 }
 
-export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
+export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, skipTimeSelection = false, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
   const [step, setStep] = useState<"datetime" | "details" | "success">("datetime");
   const [selectedDateObj, setSelectedDateObj] = useState<Date>(new Date(selectedDate));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(selectedTime);
@@ -234,7 +235,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const showServiceSelection = !selectedService;
   const showCalendarSelection = !isMobile || !!selectedService;
   const showTimeSelection = !isMobile || (!!selectedService && !!selectedDateObj);
-  const showSelectedTimeSummary = isMobile && !!selectedTimeSlot;
+  const showSelectedTimeSummary = (isMobile || skipTimeSelection) && !!selectedTimeSlot;
 
   useEffect(() => {
     if (!services.length) return;
