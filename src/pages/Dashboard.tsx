@@ -5,6 +5,7 @@ import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDashboardIOS } from "@/components/MobileDashboardIOS";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
+import { PWAInstallDrawer } from "@/components/PWAInstallDrawer";
 
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -78,6 +79,7 @@ const Dashboard = () => {
               <DashboardContent />
             )}
           </div>
+          <PWAInstallDrawer />
         </main>
       </div>
     </SidebarProvider>
