@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-lg font-semibold">Privacy Policy</h1>
+          <h1 className="text-lg font-semibold">Privacy Policy | YOU HAVE AGREED OUR TERMS-PRIVACYPOLICY</h1>
         </div>
       </header>
 
@@ -23,56 +23,64 @@ export default function PrivacyPolicy() {
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">1. Information We Collect</h2>
           <p>
-            We collect the information you provide when creating an account, such as your name, email, phone number, business details, and booking preferences. We also collect usage data to improve the platform.
+            We collect the information you provide when creating an account, such as your name, email, phone number,
+            business details, and booking preferences. We also collect usage data to improve the platform.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">2. How We Use Your Information</h2>
           <p>
-            Your information is used to provide and improve the service, process bookings, communicate with users, and ensure platform security. We do not sell your personal data.
+            Your information is used to provide and improve the service, process bookings, communicate with users, and
+            ensure platform security. We do not sell your personal data.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">3. Sharing of Information</h2>
           <p>
-            We may share data with service providers who help us operate the platform. We only share what is necessary and require those providers to protect your data.
+            We may share data with service providers who help us operate the platform. We only share what is necessary
+            and require those providers to protect your data.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">4. Data Security</h2>
           <p>
-            We take reasonable measures to protect your data from unauthorized access, loss, or misuse. No system is completely secure, so we encourage you to use strong passwords.
+            We take reasonable measures to protect your data from unauthorized access, loss, or misuse. No system is
+            completely secure, so we encourage you to use strong passwords.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">5. Your Rights</h2>
           <p>
-            You can access, update, or delete your account information at any time through the app settings. You may also contact us to request data deletion.
+            You can access, update, or delete your account information at any time through the app settings. You may
+            also contact us to request data deletion.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">6. Cookies and Tracking</h2>
           <p>
-            We may use cookies and similar technologies to improve your experience and analyze platform usage. You can manage cookie preferences through your browser settings.
+            We may use cookies and similar technologies to improve your experience and analyze platform usage. You can
+            manage cookie preferences through your browser settings.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">7. Changes to This Policy</h2>
           <p>
-            We may update this Privacy Policy from time to time. We will notify you of significant changes through the app or by email.
+            We may update this Privacy Policy from time to time. We will notify you of significant changes through the
+            app or by email.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">8. Contact</h2>
           <p>
-            If you have any questions about this Privacy Policy, please contact us through the app or at our support email.
+            If you have any questions about this Privacy Policy, please contact us through the app or at our support
+            email.
           </p>
         </section>
 
