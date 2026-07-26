@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { GlimmProvider } from "glimm/react";
 import { accentChain } from "glimm";
@@ -51,6 +51,7 @@ import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GlobalBanner } from "./components/GlobalBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
 
@@ -163,10 +164,27 @@ function AnimatedRoutes() {
 
 const HeaderActions = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   if (!user) return null;
+  const userInitial =
+    typeof user?.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name.trim().charAt(0).toUpperCase()
+      : "U";
   return (
     <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50 flex items-center gap-2">
       <NotificationBell />
+      <button
+        onClick={() => navigate("/profile")}
+        className="w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center overflow-hidden hover:scale-105 transition"
+        aria-label="Profile"
+      >
+        <Avatar className="h-full w-full">
+          <AvatarImage src={user?.user_metadata?.avatar_url as string | undefined} className="h-full w-full object-cover" />
+          <AvatarFallback className="bg-indigo-500 text-white text-xs font-semibold">
+            {userInitial}
+          </AvatarFallback>
+        </Avatar>
+      </button>
     </div>
   );
 };
