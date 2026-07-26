@@ -1462,9 +1462,12 @@ export type Database = {
         Args: { _booking_link: string }
         Returns: {
           address: string
+          ask_notes: boolean
+          ask_phone: boolean
           avatar_url: string
           banner_url: string
           booking_link: string
+          booking_theme: string
           brand_color: string
           description: string
           full_name: string

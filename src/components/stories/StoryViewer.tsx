@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Volume2, VolumeX, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Volume2, VolumeX, X } from "lucide-react";
 
 type Story = {
   id: string;
@@ -20,6 +20,27 @@ type Group = {
   avatar_url: string | null;
   stories: Story[];
 };
+
+const VIEWED_KEY = "cutzio.stories.viewed.v1";
+
+export function markStoryViewed(storyId: string) {
+  try {
+    const raw = localStorage.getItem(VIEWED_KEY);
+    const set = new Set<string>(raw ? JSON.parse(raw) : []);
+    set.add(storyId);
+    localStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
+    window.dispatchEvent(new Event("stories:viewed"));
+  } catch {}
+}
+
+export function getViewedStories(): Set<string> {
+  try {
+    const raw = localStorage.getItem(VIEWED_KEY);
+    return new Set<string>(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
 
 function publicUrl(path: string | null | undefined) {
   if (!path) return "";
@@ -43,6 +64,7 @@ export function StoryViewer({
   const [muted, setMuted] = useState(true);
   const [signedSrc, setSignedSrc] = useState<string | null>(null);
   const [triedSigned, setTriedSigned] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -50,13 +72,29 @@ export function StoryViewer({
   const story = group?.stories[sIdx];
   const duration = (story?.duration_seconds ?? 5) * 1000;
 
+  // Advance only after media loaded
   useEffect(() => {
-    if (!story) return;
-    const start = Date.now();
+    if (!story || !loaded) return;
     const t = setTimeout(() => next(), duration);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gIdx, sIdx]);
+  }, [gIdx, sIdx, loaded]);
+
+  // Mark viewed on open
+  useEffect(() => {
+    if (story) markStoryViewed(story.id);
+  }, [story?.id]);
+
+  // Preload next story image for snappy transitions
+  useEffect(() => {
+    const nextStory =
+      group?.stories[sIdx + 1] ||
+      groups[gIdx + 1]?.stories[0];
+    if (nextStory && nextStory.media_type === "image") {
+      const img = new Image();
+      img.src = publicUrl(nextStory.media_path);
+    }
+  }, [gIdx, sIdx, group, groups]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -105,6 +143,7 @@ export function StoryViewer({
   useEffect(() => {
     setSignedSrc(null);
     setTriedSigned(false);
+    setLoaded(false);
   }, [story?.id]);
 
   useEffect(() => {
@@ -126,44 +165,59 @@ export function StoryViewer({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[200] bg-black"
+      style={{ height: "100dvh" }}
     >
-      <motion.div
-        initial={{ scale: 0.94, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="relative w-full h-full overflow-hidden bg-black"
-      >
+      <div className="relative w-full h-full overflow-hidden bg-black">
         {/* Progress */}
-        <div className="absolute top-2 left-2 right-2 flex gap-1 z-20">
+        <div
+          className="absolute left-2 right-2 flex gap-1 z-30"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+        >
           {group.stories.map((_, i) => (
             <div key={i} className="flex-1 h-0.5 bg-white/25 rounded-full overflow-hidden">
               <motion.div
-                key={`${gIdx}-${sIdx}-${i}`}
+                key={`${gIdx}-${sIdx}-${i}-${loaded ? 1 : 0}`}
                 className="h-full bg-white"
                 initial={{ width: i < sIdx ? "100%" : "0%" }}
-                animate={{ width: i < sIdx ? "100%" : i === sIdx ? "100%" : "0%" }}
-                transition={{ duration: i === sIdx ? duration / 1000 : 0, ease: "linear" }}
+                animate={{
+                  width:
+                    i < sIdx
+                      ? "100%"
+                      : i === sIdx
+                        ? loaded
+                          ? "100%"
+                          : "0%"
+                        : "0%",
+                }}
+                transition={{ duration: i === sIdx && loaded ? duration / 1000 : 0, ease: "linear" }}
               />
             </div>
           ))}
         </div>
 
         {/* Header */}
-        <div className="absolute top-5 left-3 right-3 flex items-center gap-2 z-20 mt-2">
+        <div
+          className="absolute left-3 right-3 flex items-center gap-2 z-30"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
+        >
           {group.avatar_url ? (
             <img src={group.avatar_url} className="w-8 h-8 rounded-full object-cover" />
           ) : (
             <div className="w-8 h-8 rounded-full bg-white/20" />
           )}
-          <span className="text-white text-sm font-semibold flex-1 truncate">{group.name}</span>
+          <span className="text-white text-sm font-semibold flex-1 truncate drop-shadow">{group.name}</span>
           <button
             onClick={() => setMuted((m) => !m)}
-            className="p-1.5 rounded-full bg-white/10 text-white"
+            className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
             aria-label="mute"
           >
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
-          <button onClick={onClose} className="p-1.5 rounded-full bg-white/10 text-white" aria-label="close">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
+            aria-label="close"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -176,15 +230,17 @@ export function StoryViewer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
           >
             {story.media_type === "video" ? (
               <video
                 ref={videoRef}
                 src={mediaSrc}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 autoPlay
                 muted={muted}
                 playsInline
+                onLoadedData={() => setLoaded(true)}
                 onError={handleMediaError}
               />
             ) : (
@@ -192,15 +248,26 @@ export function StoryViewer({
                 src={mediaSrc}
                 className="w-full h-full object-contain"
                 alt=""
+                onLoad={() => setLoaded(true)}
                 onError={handleMediaError}
               />
             )}
           </motion.div>
         </AnimatePresence>
 
+        {/* Loading overlay */}
+        {!loaded && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <Loader2 className="w-7 h-7 animate-spin text-white/80" />
+          </div>
+        )}
+
         {/* Music badge */}
         {story.music_title && (
-          <div className="absolute bottom-6 left-3 right-16 z-20 flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur">
+          <div
+            className="absolute left-3 right-16 z-20 flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur"
+            style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}
+          >
             {story.music_artwork_url && (
               <img src={story.music_artwork_url} className="w-7 h-7 rounded" />
             )}
@@ -214,19 +281,19 @@ export function StoryViewer({
         {/* Tap zones */}
         <button
           onClick={prev}
-          className="absolute inset-y-0 left-0 w-1/3 z-10 flex items-center justify-start pl-2 text-white/0 hover:text-white/70"
+          className="absolute inset-y-0 left-0 w-1/3 z-20 flex items-center justify-start pl-2 text-white/0 hover:text-white/70"
           aria-label="Previous"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button
           onClick={next}
-          className="absolute inset-y-0 right-0 w-1/3 z-10 flex items-center justify-end pr-2 text-white/0 hover:text-white/70"
+          className="absolute inset-y-0 right-0 w-1/3 z-20 flex items-center justify-end pr-2 text-white/0 hover:text-white/70"
           aria-label="Next"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
