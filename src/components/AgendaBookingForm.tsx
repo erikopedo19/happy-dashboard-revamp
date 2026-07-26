@@ -324,6 +324,46 @@ const AgendaBookingForm = ({
 
   const spring = { type: "spring" as const, stiffness: 380, damping: 34 };
 
+  const MobileSummary = () => (
+    <div className="lg:hidden mb-4 px-4 pt-4">
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 rounded-2xl overflow-hidden ring-2 ring-white/[0.06] bg-[#2C2C2E]">
+          <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight text-white truncate">{displayName}</h1>
+          {businessProfile?.rating != null && (
+            <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
+              <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
+              <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
+              <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
+            </div>
+          )}
+        </div>
+      </div>
+      {selectedService && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-3 rounded-2xl bg-[#1C1C1E] border border-white/[0.06] p-3 flex items-center justify-between"
+        >
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold">
+              {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
+            </p>
+            <p className="text-white font-medium truncate">
+              {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
+            </p>
+          </div>
+          <div className="text-right shrink-0 pl-3">
+            <p className="text-white font-bold">€{totalPrice}</p>
+            <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center relative overflow-hidden">
       {/* Ambient glow */}
@@ -338,6 +378,7 @@ const AgendaBookingForm = ({
         style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
       />
       <div className="w-full max-w-5xl mx-auto relative z-10">
+        <MobileSummary />
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -348,7 +389,7 @@ const AgendaBookingForm = ({
             className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
-            <div className="lg:sticky lg:top-8 space-y-4">
+            <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
               <div className="bg-[#141416] border border-white/[0.06] overflow-hidden rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
@@ -428,7 +469,7 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-[520px] rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-none md:rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
               {step === "service" && (
                 <div className="h-full flex flex-col">
                   <div className="mb-6">

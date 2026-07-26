@@ -15,7 +15,7 @@ export function LoginForm() {
   const { toast } = useToast();
   const { user, signIn, signUp, resetPassword } = useAuth();
 
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [resetting, setResetting] = useState(false);

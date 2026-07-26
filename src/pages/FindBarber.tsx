@@ -225,12 +225,12 @@ const FindBarber = () => {
 
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    const list = barbers ?? [];
+    const list = sortedBarbers;
     if (!term) return list;
     return list.filter((b) => b.brandName.toLowerCase().includes(term));
-  }, [barbers, searchTerm]);
+  }, [sortedBarbers, searchTerm]);
 
-  const favoriteBarbers = (barbers ?? []).filter((b) => favorites.includes(b.id));
+  const favoriteBarbers = sortedBarbers.filter((b) => favorites.includes(b.id));
 
 
   if (authLoading) {
@@ -247,7 +247,7 @@ const FindBarber = () => {
   if (activeTab === "map") {
     return (
       <FullScreenMap
-        barbers={barbers ?? []}
+        barbers={sortedBarbers}
         userLocation={userLocation}
         mapSearch={mapSearch}
         setMapSearch={setMapSearch}

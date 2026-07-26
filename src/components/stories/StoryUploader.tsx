@@ -120,12 +120,12 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto min-h-0 bg-black">
-            <div className="w-full flex items-center justify-center bg-black">
+          <div className="flex-1 overflow-hidden min-h-0 bg-black">
+            <div className="w-full h-full flex items-center justify-center bg-black">
               {file.type.startsWith("video") ? (
-                <video src={preview!} className="w-full max-h-[55dvh] object-contain" controls playsInline />
+                <video src={preview!} className="w-full h-full object-contain" controls playsInline />
               ) : (
-                <img src={preview!} alt="preview" className="w-full max-h-[55dvh] object-contain" />
+                <img src={preview!} alt="preview" className="w-full h-full object-contain" />
               )}
             </div>
           </div>

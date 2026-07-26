@@ -4,7 +4,7 @@
 // Original used @phosphor-icons/react; swapped to lucide-react and made reusable.
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ComponentType } from "react";
@@ -22,8 +22,6 @@ interface GlassDockProps {
   activeIndex: number;
   className?: string;
 }
-
-const MotionLink = motion(Link);
 
 const defaultColor = "#FF375F";
 
@@ -91,38 +89,16 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
             </div>
           );
 
-          return item.to ? (
-            <MotionLink
-              key={item.label}
-              to={item.to}
-              onHoverStart={() => setHovered(i)}
-              onHoverEnd={() => setHovered(null)}
-              whileTap={{ scale: 0.85 }}
-              className="relative flex cursor-pointer flex-col items-center gap-[3px] px-3 py-1"
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="tab-glow"
-                  className={cn(
-                    "absolute -inset-y-1 rounded-full",
-                    i === 0 ? "-left-5 -right-3" : i === items.length - 1 ? "-left-3 -right-5" : "-inset-x-3"
-                  )}
-                  style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                  }}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-              )}
-              {content}
-            </MotionLink>
-          ) : (
+          const handleClick = () => {
+            if (item.to) navigate(item.to);
+            item.onClick?.();
+          };
+
+          return (
             <motion.button
               key={item.label}
               type="button"
-              onClick={() => {
-                item.onClick?.();
-              }}
+              onClick={handleClick}
               onHoverStart={() => setHovered(i)}
               onHoverEnd={() => setHovered(null)}
               whileTap={{ scale: 0.85 }}

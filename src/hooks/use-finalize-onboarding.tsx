@@ -41,8 +41,7 @@ export function useFinalizeOnboarding() {
           if (draft.clientFullName?.trim()) {
             await supabase
               .from("profiles")
-              .update({ full_name: draft.clientFullName.trim(), updated_at: new Date().toISOString() } as any)
-              .eq("id", user.id);
+              .upsert({ id: user.id, full_name: draft.clientFullName.trim(), updated_at: new Date().toISOString() } as any);
           }
           localStorage.removeItem(ONBOARDING_STORAGE_KEY);
           toast.success("Welcome to Cutzio!");
@@ -106,7 +105,8 @@ export function useFinalizeOnboarding() {
 
         await supabase
           .from("profiles")
-          .update({
+          .upsert({
+            id: user.id,
             full_name: draft.businessName || undefined,
             business_name: draft.businessName || undefined,
             address: fullAddress || null,
@@ -118,8 +118,7 @@ export function useFinalizeOnboarding() {
             accepts_waitlist: !!draft.acceptsWaitlist,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),
-          } as any)
-          .eq("id", user.id);
+          } as any);
 
         // 3b. Stylists (from onboarding)
         if (draft.stylists?.length) {
