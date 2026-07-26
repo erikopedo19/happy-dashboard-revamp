@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePremium } from "@/hooks/use-premium";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
+import { BookingQR } from "@/components/BookingQR";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
@@ -22,6 +24,7 @@ const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
 
 const TABS = [
   { value: "link", label: "Booking Link", icon: Link2 },
+  { value: "qr", label: "QR Flyer", icon: QrCode },
 ] as const;
 
 const StatTile = ({
@@ -64,7 +67,10 @@ const STEPS = [
 
 const BookingPage = () => {
   const { user } = useAuth();
+  const { isPremium } = usePremium();
   const [tab, setTab] = useState<(typeof TABS)[number]["value"]>("link");
+
+  const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value !== "qr");
 
   const { data: profile } = useQuery({
     queryKey: ["booking-page-profile", user?.id],
@@ -79,6 +85,10 @@ const BookingPage = () => {
       return data as { booking_link: string | null; full_name: string | null } | null;
     },
   });
+
+  const bookingUrl = profile?.booking_link
+    ? `${window.location.origin}/book/${profile.booking_link}`
+    : "";
 
   if (!user) {
     return (
@@ -153,7 +163,7 @@ const BookingPage = () => {
             {/* iOS segmented control */}
             <div className="max-w-6xl mx-auto px-4 md:px-8 pb-4">
               <div className="inline-flex w-full sm:w-auto p-1 rounded-[12px] bg-white/[0.06] gap-0.5">
-                {TABS.map((t) => {
+                {visibleTabs.map((t) => {
                   const active = tab === t.value;
                   return (
                     <button
@@ -199,7 +209,15 @@ const BookingPage = () => {
                 className="rounded-[24px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
               >
                 <div className="p-4 sm:p-6 md:p-8">
-                  <BookingLinkGenerator />
+                  {tab === "qr" ? (
+                    <BookingQR
+                      url={bookingUrl}
+                      businessName={profile?.full_name}
+                      isPremium={isPremium}
+                    />
+                  ) : (
+                    <BookingLinkGenerator />
+                  )}
                 </div>
               </motion.div>
             </AnimatePresence>

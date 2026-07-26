@@ -36,9 +36,17 @@ export function SpotifyMusicPicker({
     const t = setTimeout(async () => {
       setLoading(true);
       const search = q.trim() || "trending";
+      let list: SpotifyTrack[] = [];
       try {
-        let list: SpotifyTrack[] = [];
-        if (SUPABASE_URL) {
+        const { data } = await supabase.functions.invoke("spotify-search", {
+          body: { q: search },
+        });
+        list = (data as any)?.tracks || [];
+      } catch {
+        list = [];
+      }
+      if (list.length === 0 && SUPABASE_URL) {
+        try {
           const url = new URL(`${SUPABASE_URL}/functions/v1/spotify-search`);
           url.searchParams.set("q", search);
           const res = await fetch(url.toString(), {
@@ -50,19 +58,12 @@ export function SpotifyMusicPicker({
           });
           const json = await res.json().catch(() => ({}));
           list = json.tracks || [];
+        } catch {
+          list = [];
         }
-        if (list.length === 0) {
-          const { data } = await supabase.functions.invoke("spotify-search", {
-            body: { q: search },
-          });
-          list = (data as any)?.tracks || [];
-        }
-        setTracks(list);
-      } catch {
-        setTracks([]);
-      } finally {
-        setLoading(false);
       }
+      setTracks(list);
+      setLoading(false);
     }, q ? 300 : 0);
     return () => {
       clearTimeout(t);
@@ -94,7 +95,7 @@ export function SpotifyMusicPicker({
 
   return (
     <div className="fixed inset-0 z-[220] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center">
-      <div className="w-full sm:max-w-md bg-[#141418] text-white rounded-t-3xl sm:rounded-3xl overflow-hidden border border-white/10 h-[85dvh] sm:h-auto sm:max-h-[85dvh] flex flex-col">
+      <div className="w-full sm:max-w-md bg-[#141418] text-white rounded-t-3xl sm:rounded-3xl overflow-hidden border border-white/10 h-auto max-h-[85dvh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
             <Music className="w-4 h-4 text-indigo-400" />

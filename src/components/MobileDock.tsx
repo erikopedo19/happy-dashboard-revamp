@@ -173,10 +173,16 @@ export const MobileDockInner = () => {
     { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true) },
   ];
 
-  const activeIndex = glassItems.findIndex((item) => {
-    if (!item.to) return false;
-    return location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'));
-  });
+  const moreActive = visibleMoreItems.some(
+    (item) => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'))
+  );
+
+  const activeIndex = moreActive
+    ? mainItems.length
+    : glassItems.findIndex((item) => {
+        if (!item.to) return false;
+        return location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'));
+      });
 
   return (
     <>

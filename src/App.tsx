@@ -52,6 +52,7 @@ import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
+import { UpdatePopup } from "./components/UpdatePopup";
 
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
@@ -189,6 +190,7 @@ function App() {
               <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                 <GlimmIntercept />
                 <GlobalBanner />
+                <UpdatePopup />
                 <AnimatedRoutes />
                 <NotificationBell />
                 
