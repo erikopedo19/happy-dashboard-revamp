@@ -81,8 +81,8 @@ export default function PulseButton({
   disabled = false,
   type = "button",
 }: PulseButtonProps) {
-  const config = sizeConfig[size];
-  const theme = colorMap[color];
+  const config = sizeConfig[size] || sizeConfig.lg;
+  const theme = colorMap[color] || colorMap.pink;
 
   return (
     <motion.button

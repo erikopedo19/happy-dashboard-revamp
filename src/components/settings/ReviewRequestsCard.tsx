@@ -111,14 +111,14 @@ export function ReviewRequestsCard() {
     <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-            <Star className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+            <Star className="w-5 h-5 text-rose-600 dark:text-rose-400" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Reviews & notifications</CardTitle>
               {!isPremium && !premiumLoading && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white">
                   <Sparkles className="w-3 h-3" /> Premium
                 </span>
               )}
@@ -165,7 +165,7 @@ export function ReviewRequestsCard() {
             <p className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">
               Show detailed reviews publicly
               {!isPremium && !premiumLoading && (
-                <span className="ml-2 inline-flex items-center px-1.5 py-0 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wide">
+                <span className="ml-2 inline-flex items-center px-1.5 py-0 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[9px] font-bold uppercase tracking-wide">
                   Premium
                 </span>
               )}
@@ -185,7 +185,7 @@ export function ReviewRequestsCard() {
         {!isPremium && !premiumLoading && (
           <Button
             onClick={() => navigate("/pricing")}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-semibold"
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 hover:opacity-90 text-white font-semibold"
           >
             <Lock className="w-4 h-4 mr-2" /> Unlock with Premium
           </Button>
