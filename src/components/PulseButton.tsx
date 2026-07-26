@@ -147,8 +147,7 @@ export default function PulseButton({
         />
       </div>
       <span
-        className={cn("relative z-10 text-white font-semibold tracking-tight", config.text)}
-        style={{ textShadow: "0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4)" }}
+        className={cn("relative z-10 text-white font-semibold tracking-tight whitespace-nowrap", config.text)}
       >
         {text}
       </span>
