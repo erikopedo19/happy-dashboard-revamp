@@ -17,8 +17,13 @@ export function useFinalizeOnboarding() {
   const navigate = useNavigate();
   const location = useLocation();
   const ran = useRef(false);
+  const lastPath = useRef(location.pathname);
 
   useEffect(() => {
+    if (lastPath.current !== location.pathname) {
+      lastPath.current = location.pathname;
+      ran.current = false;
+    }
     if (!user || ran.current) return;
 
     const raw = (() => {

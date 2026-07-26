@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
   Link as LinkIcon, Plus, X, UserPlus, Globe2, Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MODE_CHOICE_KEY } from "@/pages/ChooseMode";
 
 export const ONBOARDING_STORAGE_KEY = "cutzio_onboarding_v1";
 
@@ -99,6 +101,7 @@ const BUDGETS: { k: OnboardingDraft["clientBudget"]; label: string; desc: string
 export default function Onboarding() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { user } = useAuth();
   const presetRole = params.get("role") as "barber" | "client" | null;
 
   const [data, setData] = useState<OnboardingDraft>(() => {
@@ -150,7 +153,14 @@ export default function Onboarding() {
 
   const finish = () => {
     try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
-    navigate("/auth?mode=signup", { replace: true });
+    if (data.role) {
+      try { localStorage.setItem(MODE_CHOICE_KEY, data.role); } catch {}
+    }
+    if (user) {
+      navigate(data.role === "client" ? "/find-barber" : "/admin", { replace: true });
+    } else {
+      navigate("/auth?mode=signup", { replace: true });
+    }
   };
 
   const handleNext = () => {

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -86,6 +86,7 @@ const Booking = () => {
   const params = useParams();
   const bookingLink = params.bookingLink;
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -687,56 +688,36 @@ const Booking = () => {
   // Show error state
   if (profileError || !businessProfile) {
 
-    const error = profileError as any;
-    const errorCode = error?.code || 'UNKNOWN_ERROR';
-    const errorMessage = error?.message || 'Booking Not Found';
-    const errorDetails = error?.details || "The booking link you're looking for doesn't exist or has been removed.";
-
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="mb-6">
-            <div className="w-20 h-20 rounded-full bg-[#e11d48]/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-[#e11d48]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold text-white mb-4">{errorMessage}</h1>
-            <p className="text-slate-300 mb-4">{errorDetails}</p>
+      <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center px-6 text-center">
+        <div className="max-w-sm w-full">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-rose-500/10">
+            <svg className="h-9 w-9 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
-
-          <div className="bg-slate-800/50 rounded-lg p-4 mb-6 text-left">
-            <div className="text-xs text-slate-500 mb-2">Error Details:</div>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Error Code:</span>
-                <span className="font-mono text-slate-300">{errorCode}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Booking Link:</span>
-                <span className="font-mono text-slate-300">{bookingLink || 'N/A'}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 justify-center">
+          <h1 className="text-2xl font-semibold text-white mb-3">Business not found</h1>
+          <p className="text-sm text-white/60 mb-8">
+            We couldn't find a business at this link. It may be incorrect or has been removed.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
-              onClick={() => window.location.reload()}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => navigate('/find-barber')}
+              className="h-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white px-6"
             >
-              Try Again
+              Find a barber
             </Button>
             <Button
               onClick={() => window.history.back()}
               variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              className="h-12 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white px-6"
             >
-              Go Back
+              Go back
             </Button>
           </div>
         </div>
       </div>
-   );
+    );
   }
 
   // Show warning if no services available

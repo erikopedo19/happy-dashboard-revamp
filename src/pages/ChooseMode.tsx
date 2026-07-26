@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Scissors, Search, Loader2, Check } from "lucide-react";
+import { Scissors, Search, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +18,6 @@ export default function ChooseMode() {
   const [params] = useSearchParams();
   const next = params.get("next");
 
-  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState<Mode | null>(null);
 
   const pick = async (mode: Mode) => {
@@ -34,12 +33,7 @@ export default function ChooseMode() {
             .eq("id", user.id);
         } catch {}
       }
-      if (remember) {
-        try { localStorage.setItem(MODE_CHOICE_KEY, mode); } catch {}
-      } else {
-        try { localStorage.removeItem(MODE_CHOICE_KEY); } catch {}
-      }
-      const dest = next && next !== "/" ? next : mode === "client" ? "/find-barber" : "/admin";
+      const dest = next && next !== "/" ? next : `/onboarding?role=${mode}`;
       triggerGlimm({ sweepMs: 700, outroMs: 380 });
       setTimeout(() => navigate(dest, { replace: true }), 280);
     } catch (e: any) {
@@ -84,20 +78,6 @@ export default function ChooseMode() {
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setRemember((v) => !v)}
-            className="mt-6 flex w-full items-center gap-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3 text-left transition hover:bg-black/[0.05] dark:hover:bg-white/[0.07]"
-          >
-            <span
-              className={`flex h-5 w-5 items-center justify-center rounded-md transition ${
-                remember ? "bg-[#0A84FF] text-white" : "bg-black/10 dark:bg-white/10 text-transparent"
-              }`}
-            >
-              <Check className="h-3.5 w-3.5" strokeWidth={3} />
-            </span>
-            <span className="text-[13px] font-medium text-foreground/80">Remember my choice</span>
-          </button>
         </div>
       </motion.div>
     </div>
