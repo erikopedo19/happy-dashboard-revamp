@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { StoryUploader } from "./StoryUploader";
-import { StoryViewer } from "./StoryViewer";
+import { StoryViewer, getViewedStories } from "./StoryViewer";
+
 
 type Group = {
   user_id: string;
