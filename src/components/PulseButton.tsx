@@ -127,6 +127,7 @@ export default function PulseButton({
             backgroundPosition: "0 0, 9px 9px",
             WebkitMaskImage: "linear-gradient(to right, transparent 4%, white 12%, transparent 24%, transparent 76%, white 88%, transparent 96%)",
             maskImage: "linear-gradient(to right, transparent 4%, white 12%, transparent 24%, transparent 76%, white 88%, transparent 96%)",
+            willChange: "opacity",
           }}
           animate={{ opacity: [0.15, 1, 0.15] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
@@ -139,6 +140,7 @@ export default function PulseButton({
             backgroundPosition: "0 0, 9px 9px",
             WebkitMaskImage: "linear-gradient(to right, transparent 15%, white 25%, transparent 35%, transparent 65%, white 75%, transparent 85%)",
             maskImage: "linear-gradient(to right, transparent 15%, white 25%, transparent 35%, transparent 65%, white 75%, transparent 85%)",
+            willChange: "opacity",
           }}
           animate={{ opacity: [0.15, 1, 0.15] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}

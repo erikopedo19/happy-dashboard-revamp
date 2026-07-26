@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -12,11 +13,11 @@ import {
   Link as LinkIcon,
   Check,
   Crown,
+  QrCode,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
-import { BookingQR } from "@/components/BookingQR";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
 import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +58,7 @@ const BookingLinkGenerator = () => {
   const { user } = useAuth();
   const { isPremium } = usePremium();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: profile, isLoading, refetch } = useQuery({
     queryKey: ["profile-booking-link", user?.id],
@@ -277,11 +279,14 @@ const BookingLinkGenerator = () => {
         </div>
       </div>
 
-      <BookingQR
-        url={bookingUrl}
-        businessName={(profile as any)?.business_name || profile?.full_name}
-        isPremium={isPremium}
-      />
+      <button
+        type="button"
+        onClick={() => navigate('/booking-page?tab=qr')}
+        disabled={!bookingUrl}
+        className="w-full h-12 rounded-2xl bg-white/[0.05] border border-white/10 text-white text-[14px] font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-40"
+      >
+        <QrCode className="h-4 w-4" /> QR Code Flyer
+      </button>
 
       {/* Slug editor */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
