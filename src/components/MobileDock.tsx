@@ -165,8 +165,7 @@ export const MobileDockInner = () => {
     enabled: !!user,
   });
 
-  const hasServices = services.length > 0;
-  const visibleMoreItems = hasServices ? moreItems : moreItems.filter((item) => item.label !== 'Services');
+  const visibleMoreItems = moreItems;
 
   const glassItems: DockItem[] = [
     ...mainItems,
