@@ -97,6 +97,7 @@ export default function PulseButton({
       style={{
         background: `linear-gradient(to right, ${theme.glow}, ${theme.primary}, ${theme.glow})`,
         boxShadow: `0 8px 32px ${theme.shadow}, inset 0 0 0 1.5px rgba(255, 255, 255, 0.3)`,
+        willChange: "transform",
         // @ts-ignore - custom property for focus ring
         "--tw-ring-color": theme.primary,
       }}
@@ -113,6 +114,7 @@ export default function PulseButton({
             backgroundPosition: "0 0, 9px 9px",
             WebkitMaskImage: "linear-gradient(to right, white 0%, transparent 12%, transparent 88%, white 100%)",
             maskImage: "linear-gradient(to right, white 0%, transparent 12%, transparent 88%, white 100%)",
+            willChange: "opacity",
           }}
           animate={{ opacity: [0.15, 1, 0.15] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0 }}

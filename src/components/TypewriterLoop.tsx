@@ -94,6 +94,7 @@ const TypewriterLoop = ({
             exit={{ width: 0, opacity: 0 }}
             transition={transition}
             className="overflow-hidden whitespace-nowrap relative"
+            style={{ willChange: "width, opacity" }}
           >
             <div
               className={cn(
@@ -129,6 +130,7 @@ const TypewriterLoop = ({
             repeat: Infinity,
             repeatType: "reverse",
           }}
+          style={{ willChange: "opacity" }}
         />
       </div>
     </div>

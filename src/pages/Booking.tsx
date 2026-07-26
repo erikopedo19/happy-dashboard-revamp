@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BlurReveal from "@/components/BlurReveal";
-import { ShimmerText } from "@/components/ShimmerText";import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ShimmerText } from "@/components/ShimmerText";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
@@ -98,6 +100,7 @@ const Booking = () => {
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
   const [locale, setLocale] = useState<"en" | "el" | "es">("en");
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
 
@@ -723,32 +726,66 @@ const Booking = () => {
   }
 
   // Show warning if no services available
+  const isOwner = user?.id === businessProfile?.id;
+
   if (services.length === 0 && !servicesError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="mb-6">
-            <div className="w-20 h-20 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+      <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-20 -left-20 h-80 w-80 rounded-full bg-[#FF2D6F]/20 blur-[120px]" />
+        <div className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#FF6B00]/15 blur-[120px]" />
+
+        <div className="relative z-10 max-w-5xl w-full grid md:grid-cols-2 gap-12 items-center">
+          <div className="text-left">
+            <BlurReveal
+              className="text-4xl md:text-5xl font-bold text-white leading-tight"
+              speedReveal={1.2}
+            >
+              Create your first service
+            </BlurReveal>
+            <div className="mt-4 text-xl md:text-2xl font-semibold">
+              <ShimmerText gradient duration={2} delay={0.5}>
+                so clients can start booking
+              </ShimmerText>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-4">No Services Available</h1>
-            <p className="text-slate-300 mb-4">
+            <p className="mt-5 text-white/50 max-w-sm">
               {businessProfile?.full_name || 'This business'} hasn't set up any services yet.
             </p>
-            <p className="text-slate-400 text-sm">
-              Please contact them directly or check back later.
-            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {isOwner && (
+                <Button
+                  onClick={() => navigate('/services')}
+                  className="h-12 rounded-full bg-[#FF2D6F] hover:bg-[#FF2D6F]/90 text-white px-6"
+                >
+                  Set up services
+                </Button>
+              )}
+              <Button
+                onClick={() => window.history.back()}
+                variant="outline"
+                className="h-12 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white px-6"
+              >
+                Go Back
+              </Button>
+            </div>
           </div>
 
-          <Button
-            onClick={() => window.history.back()}
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-800"
-          >
-            Go Back
-          </Button>
+          <div className="relative h-64 md:h-80 flex items-center justify-center">
+            <motion.div
+              className="absolute h-1.5 w-full bg-gradient-to-r from-transparent via-white/60 to-transparent blur-sm"
+              initial={{ x: '-100%' }}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear', repeatDelay: 0.5 }}
+              style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
+            />
+            <div className="relative z-10 rounded-3xl border border-white/[0.08] bg-[#15151A] p-8 text-center shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#FF2D6F] to-[#FF6B00] flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <p className="text-white/40 text-sm">Your services will appear here</p>
+            </div>
+          </div>
         </div>
       </div>
     );
