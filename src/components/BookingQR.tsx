@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Download, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
 
 interface BookingQRProps {
   url: string;
@@ -38,33 +39,46 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
     );
   }
 
-  const handleDownload = () => {
-    if (!qrBlob) return;
-    const blobUrl = URL.createObjectURL(qrBlob);
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = blobUrl;
-    a.download = `cutzioo-qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(blobUrl);
   };
 
+  const handleDownload = () => {
+    if (!qrBlob) return;
+    downloadBlob(
+      qrBlob,
+      `cutzioo-qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`
+    );
+  };
+
   const handleShare = async () => {
     if (!qrBlob) return;
-    const file = new File([qrBlob], `cutzioo-qr-${displayName}.png`, { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          title: `Book with ${displayName}`,
-          text: `Scan to book with ${displayName}`,
-          files: [file],
-        });
-      } catch {
-        /* cancelled */
+    try {
+      const flyer = await generateBookingFlyer(qrBlob, displayName);
+      const filename = `cutzioo-flyer-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
+      const file = new File([flyer], filename, { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: `Book with ${displayName}`,
+            text: `Scan to book with ${displayName}`,
+            files: [file],
+          });
+        } catch {
+          /* cancelled */
+        }
+      } else {
+        downloadBlob(flyer, filename);
       }
-    } else {
-      toast({ title: "Sharing not supported", variant: "destructive" });
+    } catch {
+      toast({ title: "Couldn't create flyer", variant: "destructive" });
     }
   };
 
@@ -100,7 +114,7 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
           disabled={!qrBlob}
           className="h-11 px-4 rounded-xl bg-rose-500 text-white text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
         >
-          <Share2 className="h-4 w-4" /> Share
+          <Share2 className="h-4 w-4" /> Share flyer
         </button>
       </div>
 
