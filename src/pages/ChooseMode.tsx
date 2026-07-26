@@ -12,7 +12,7 @@ export const MODE_CHOICE_KEY = "cutzio:mode-choice";
 type Mode = "barber" | "client";
 
 export default function ChooseMode() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [params] = useSearchParams();
@@ -31,9 +31,17 @@ export default function ChooseMode() {
             .from("profiles")
             .update({ role: mode, updated_at: new Date().toISOString() })
             .eq("id", user.id);
+          await refreshUser();
         } catch {}
       }
-      const dest = next && next !== "/" ? next : `/onboarding?role=${mode}`;
+      const dest =
+        next && next !== "/"
+          ? next
+          : user
+            ? mode === "client"
+              ? "/find-barber"
+              : "/admin"
+            : `/onboarding?role=${mode}`;
       triggerGlimm({ sweepMs: 700, outroMs: 380 });
       setTimeout(() => navigate(dest, { replace: true }), 280);
     } catch (e: any) {

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Loader2, Music, Pause, Play, Search, X } from "lucide-react";
@@ -78,7 +80,12 @@ export function SpotifyMusicPicker({
     }
   }, [open]);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
 
   const togglePlay = (t: SpotifyTrack) => {
     if (!t.preview_url) return;
@@ -94,8 +101,24 @@ export function SpotifyMusicPicker({
   };
 
   return (
-    <div className="fixed inset-0 z-[220] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center">
-      <div className="w-full sm:max-w-md bg-[#141418] text-white rounded-t-3xl sm:rounded-3xl overflow-hidden border border-white/10 h-auto max-h-[85dvh] flex flex-col">
+    <AnimatePresence>
+      {open &&
+        createPortal(
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[220] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center"
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:max-w-md bg-[#141418] text-white rounded-3xl overflow-hidden border border-white/10 h-auto max-h-[85dvh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
             <Music className="w-4 h-4 text-indigo-400" />
@@ -166,7 +189,10 @@ export function SpotifyMusicPicker({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>,
+    document.body
+  )}
+</AnimatePresence>
   );
 }

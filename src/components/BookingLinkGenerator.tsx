@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
+import { BookingQR } from "@/components/BookingQR";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -264,6 +265,12 @@ const BookingLinkGenerator = () => {
           </button>
         </div>
       </div>
+
+      <BookingQR
+        url={bookingUrl}
+        businessName={(profile as any)?.business_name || profile?.full_name}
+        isPremium={isPremium}
+      />
 
       {/* Slug editor */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">

@@ -15,14 +15,21 @@ import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, is
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 const db = supabase as any;
 
 const Dashboard = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.user_metadata?.role === "client") {
+      navigate("/find-barber", { replace: true });
+    }
+  }, [user, navigate]);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
