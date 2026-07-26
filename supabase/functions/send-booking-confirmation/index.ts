@@ -23,8 +23,43 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }
 
-// Build a minimal ICS calendar file (VEVENT). Dates use floating local time
-// so the recipient's calendar interprets them in the business's local zone.
+function localToUtc(dateIso: string, time: string, timeZone?: string | null): Date {
+  if (!timeZone || timeZone === "UTC") {
+    const [y, m, d] = dateIso.split("-").map(Number);
+    const [hh, mm] = time.split(":").map(Number);
+    return new Date(Date.UTC(y, m - 1, d, hh, mm));
+  }
+  const [y, mo, d] = dateIso.split("-").map(Number);
+  const [h, m] = time.split(":").map(Number);
+  const wall = new Date(Date.UTC(y, mo - 1, d, h, m));
+  const getParts = (dt: Date) => {
+    const parts: Record<string, number> = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(dt).forEach((p) => {
+      if (p.type !== "literal") parts[p.type] = Number(p.value);
+    });
+    return parts;
+  };
+  let current = wall;
+  for (let i = 0; i < 4; i++) {
+    const p = getParts(current);
+    const tzLocal = new Date(Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second));
+    const diff = wall.getTime() - tzLocal.getTime();
+    if (Math.abs(diff) < 1000) break;
+    current = new Date(current.getTime() + diff);
+  }
+  return current;
+}
+
+// Build a minimal ICS calendar file (VEVENT).
 function buildIcs(opts: {
   uid: string;
   summary: string;
@@ -33,17 +68,16 @@ function buildIcs(opts: {
   startIso: string; // YYYY-MM-DD
   startTime: string; // HH:MM
   durationMinutes: number;
+  timeZone?: string | null;
 }) {
-  const [y, m, d] = opts.startIso.split("-").map(Number);
-  const [hh, mm] = opts.startTime.split(":").map(Number);
-  const start = new Date(Date.UTC(y, m - 1, d, hh, mm));
+  const start = localToUtc(opts.startIso, opts.startTime, opts.timeZone);
   const end = new Date(start.getTime() + opts.durationMinutes * 60000);
   const fmt = (dt: Date) =>
     dt.getUTCFullYear().toString().padStart(4, "0") +
     (dt.getUTCMonth() + 1).toString().padStart(2, "0") +
     dt.getUTCDate().toString().padStart(2, "0") + "T" +
     dt.getUTCHours().toString().padStart(2, "0") +
-    dt.getUTCMinutes().toString().padStart(2, "0") + "00";
+    dt.getUTCMinutes().toString().padStart(2, "0") + "00Z";
   const esc = (s: string) => (s || "").replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
   const lines = [
     "BEGIN:VCALENDAR",
@@ -72,10 +106,9 @@ function googleCalUrl(opts: {
   startIso: string;
   startTime: string;
   durationMinutes: number;
+  timeZone?: string | null;
 }) {
-  const [y, m, d] = opts.startIso.split("-").map(Number);
-  const [hh, mm] = opts.startTime.split(":").map(Number);
-  const start = new Date(Date.UTC(y, m - 1, d, hh, mm));
+  const start = localToUtc(opts.startIso, opts.startTime, opts.timeZone);
   const end = new Date(start.getTime() + opts.durationMinutes * 60000);
   const fmt = (dt: Date) =>
     dt.getUTCFullYear().toString().padStart(4, "0") +
@@ -270,7 +303,7 @@ serve(async (req: Request) => {
     const [{ data: customer }, { data: service }, { data: profile }, stylistRes] = await Promise.all([
       supabase.from("customers").select("name, email, phone").eq("id", apptRow.customer_id).maybeSingle(),
       supabase.from("services").select("name, price, duration").eq("id", apptRow.service_id).maybeSingle(),
-      supabase.from("profiles").select("business_name, full_name, brand_color, sender_email, sender_name, address").eq("id", apptRow.user_id).maybeSingle(),
+      supabase.from("profiles").select("business_name, full_name, brand_color, sender_email, sender_name, address, timezone").eq("id", apptRow.user_id).maybeSingle(),
       apptRow.stylist_id
         ? supabase.from("stylists").select("name, avatar_url").eq("id", apptRow.stylist_id).maybeSingle()
         : Promise.resolve({ data: null }),
@@ -319,6 +352,7 @@ serve(async (req: Request) => {
       details: `Booking at ${businessName}${notes ? `\n\nNote: ${notes}` : ""}\n\nManage: ${finalManageUrl}`,
       location: address,
       startIso, startTime, durationMinutes,
+      timeZone: profile?.timezone || "UTC",
     });
 
     const html = buildHtml({
@@ -337,6 +371,7 @@ serve(async (req: Request) => {
       description: `Booking at ${businessName}${notes ? `\n\nNote: ${notes}` : ""}\n\nManage: ${finalManageUrl}`,
       location: address,
       startIso, startTime, durationMinutes,
+      timeZone: profile?.timezone || "UTC",
     });
     // base64 encode
     const icsB64 = btoa(unescape(encodeURIComponent(ics)));

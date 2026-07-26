@@ -332,6 +332,20 @@ serve(async (req: Request) => {
       );
     }
 
+    // In-app + push notification for the business
+    try {
+      const serviceNames = services.map((s: { name?: string | null }) => s?.name).filter(Boolean).join(", ");
+      await supabase.from("notifications").insert({
+        user_id: payload.businessId,
+        type: "booking_created",
+        title: "New booking",
+        body: `${payload.customerName} booked ${serviceNames || "a service"} on ${formatDateLong(payload.appointmentDate)} at ${payload.appointmentTime}`,
+        appointment_id: appointment.id,
+      });
+    } catch (notifErr) {
+      console.error("Booking notification insert failed:", notifErr);
+    }
+
     // Fetch stylist details if present
     let stylistName: string | undefined;
     let stylistTitle: string | undefined;

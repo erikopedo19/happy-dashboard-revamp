@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
@@ -44,7 +44,13 @@ const STEPS = [
 const BookingPage = () => {
   const { user } = useAuth();
   const { isPremium } = usePremium();
-  const [tab, setTab] = useState<(typeof TABS)[number]["value"]>("link");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "qr" ? "qr" : "link";
+  const setTab = (value: (typeof TABS)[number]["value"]) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", value);
+    setSearchParams(next, { replace: true });
+  };
 
   const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value !== "qr");
 
