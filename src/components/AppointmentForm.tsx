@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -50,6 +51,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const requireAuth = useRequireAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   const shouldFetchServices = !providedServices;
@@ -714,14 +716,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                           <div className="flex flex-col sm:flex-row gap-2 justify-center">
                             <button
                               type="button"
-                              onClick={() => { onClose(); window.location.href = "/stylists"; }}
+                              onClick={() => { onClose(); navigate("/stylists"); }}
                               className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
                             >
                               + Add stylist
                             </button>
                             <button
                               type="button"
-                              onClick={() => { onClose(); window.location.href = "/teams"; }}
+                              onClick={() => { onClose(); navigate("/teams"); }}
                               className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
                             >
                               Invite worker
@@ -774,14 +776,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                             </button>
                             <button
                               type="button"
-                              onClick={() => { onClose(); window.location.href = "/stylists"; }}
+                              onClick={() => { onClose(); navigate("/stylists"); }}
                               className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
                             >
                               + Add stylist
                             </button>
                             <button
                               type="button"
-                              onClick={() => { onClose(); window.location.href = "/teams"; }}
+                              onClick={() => { onClose(); navigate("/teams"); }}
                               className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
                             >
                               Invite worker
