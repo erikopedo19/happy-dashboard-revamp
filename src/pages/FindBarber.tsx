@@ -132,7 +132,7 @@ const FindBarber = () => {
   });
 
   const { data: barbers, isLoading: barbersLoading } = useQuery({
-    queryKey: ["find-barbers", todayCounts ? Array.from(todayCounts.entries()).length : 0],
+    queryKey: ["find-barbers"],
     enabled: !!user,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
@@ -142,7 +142,7 @@ const FindBarber = () => {
         (supabase as any).from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
       ]);
       if (rpcRes.error) throw rpcRes.error;
-      const real = (rpcRes.data || []).map((p: any): BarberProfile & { _today: number } => ({
+      const real: BarberProfile[] = (rpcRes.data || []).map((p: any) => ({
         id: p.id,
         full_name: p.full_name,
         business_name: p.business_name ?? null,
@@ -154,14 +154,10 @@ const FindBarber = () => {
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
         brandName: p.business_name || p.full_name || "Barber",
-        _today: todayCounts?.get(p.id) ?? 0,
       }));
 
-      // Sort by number of bookings today (busiest first), then rating.
-      real.sort((a, b) => (b._today - a._today) || ((b.rating ?? 0) - (a.rating ?? 0)));
-
       const fakeEnabled = settingRes?.data?.value?.enabled === true;
-      if (!fakeEnabled) return real as BarberProfile[];
+      if (!fakeEnabled) return real;
 
       const { data: fakes } = await (supabase as any)
         .from("fake_barbershops")
@@ -190,6 +186,16 @@ const FindBarber = () => {
       return merged;
     },
   });
+
+  const sortedBarbers = useMemo(() => {
+    const list = barbers ?? [];
+    const counts = todayCounts ?? new Map<string, number>();
+    return [...list].sort(
+      (a, b) =>
+        ((counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)) ||
+        ((b.rating ?? 0) - (a.rating ?? 0))
+    );
+  }, [barbers, todayCounts]);
 
 
 
