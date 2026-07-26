@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import React, { useState, useEffect, useMemo, lazy, Suspense, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +67,7 @@ const FindBarber = () => {
   const initialTab = (searchParams.get("tab") as TabKey) || "today";
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+  const touchStartX = useRef<number | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -90,6 +91,20 @@ const FindBarber = () => {
       searchParams.set("tab", key);
     }
     setSearchParams(searchParams, { replace: true });
+  };
+
+  const handleTabTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTabTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    touchStartX.current = null;
+    if (Math.abs(diff) < 40) return;
+    const idx = TABS.findIndex((t) => t.key === activeTab);
+    if (diff > 0 && idx < TABS.length - 1) changeTab(TABS[idx + 1].key);
+    if (diff < 0 && idx > 0) changeTab(TABS[idx - 1].key);
   };
 
   useEffect(() => {
@@ -282,7 +297,8 @@ const FindBarber = () => {
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={spring}
-              className="text-[28px] font-bold leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]"
+              onDoubleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="text-[28px] font-bold leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] select-none"
             >
               Find a barber
             </motion.h1>
@@ -312,7 +328,12 @@ const FindBarber = () => {
 
 
           {/* iOS segmented control */}
-          <div className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]">
+          <div
+            className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]"
+            onTouchStart={handleTabTouchStart}
+            onTouchEnd={handleTabTouchEnd}
+            style={{ touchAction: "pan-y" }}
+          >
             {TABS.map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.key;
@@ -414,7 +435,7 @@ function StickyHeader({ children }: { children: React.ReactNode }) {
       initial={false}
       animate={{ y: hidden ? "-100%" : "0%" }}
       transition={{ type: "spring", stiffness: 350, damping: 32 }}
-      className="sticky top-0 z-30 will-change-transform"
+      className="sticky top-0 z-50 isolate will-change-transform"
     >
       {children}
     </motion.div>
