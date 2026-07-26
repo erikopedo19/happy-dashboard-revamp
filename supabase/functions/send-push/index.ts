@@ -1,7 +1,7 @@
 // send-push: fans out a notification to web push subscriptions and APNs device tokens
 // Called by DB trigger on notifications insert. No JWT (public endpoint, no PII in payload).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import webpush from "npm:web-push@3.6.7";
+import { sendNotification } from "npm:web-push-neo@0.1.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -115,7 +115,6 @@ Deno.serve(async (req) => {
     // Web Push
     let webResults: any[] = [];
     if (vapidPub && vapidPriv) {
-      webpush.setVapidDetails(vapidSubject, vapidPub, vapidPriv);
       const { data: subs } = await sb.from("push_subscriptions").select("*").eq("user_id", user_id);
       const payload = JSON.stringify({
         title,
@@ -125,11 +124,23 @@ Deno.serve(async (req) => {
       });
       webResults = await Promise.all((subs ?? []).map(async (s: any) => {
         try {
-          await webpush.sendNotification(
-            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } } as any,
-            payload
+          const res = await sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+            {
+              vapidDetails: {
+                subject: vapidSubject,
+                publicKey: vapidPub,
+                privateKey: vapidPriv,
+              },
+              TTL: 3600,
+            },
           );
-          return { endpoint: s.endpoint, ok: true };
+          const status = (res as any)?.statusCode ?? (res as any)?.status ?? (res as any)?.response?.statusCode;
+          if (status === 404 || status === 410) {
+            await sb.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
+          }
+          return { endpoint: s.endpoint, ok: status ? status < 400 : true, status };
         } catch (err: any) {
           // Clean up dead subscriptions
           if (err?.statusCode === 404 || err?.statusCode === 410) {
