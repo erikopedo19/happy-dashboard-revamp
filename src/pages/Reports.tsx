@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -458,9 +458,11 @@ const Reports = () => {
                 <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
                   <TabsList className="w-full md:w-auto bg-[#15151A]">
                     {RANGES.map((r) => (
-                      <TabsTrigger key={r.value} value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
-                        <span className="relative">{r.label}</span>
-                      </TabsTrigger>
+                      <Fragment key={r.value}>
+                        <TabsTrigger value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
+                          <span className="relative">{r.label}</span>
+                        </TabsTrigger>
+                      </Fragment>
                     ))}
                   </TabsList>
                 </Tabs>
@@ -1585,9 +1587,11 @@ function MobileReportsView({
       <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
         <TabsList className="w-full bg-[#15151A]">
           {RANGES.map((r) => (
-            <TabsTrigger key={r.value} value={r.value} className="flex-1" indicatorClassName="bg-[#FF375F]">
-              <span className="relative">{r.short}</span>
-            </TabsTrigger>
+            <Fragment key={r.value}>
+              <TabsTrigger value={r.value} className="flex-1" indicatorClassName="bg-[#FF375F]">
+                <span className="relative">{r.short}</span>
+              </TabsTrigger>
+            </Fragment>
           ))}
         </TabsList>
       </Tabs>

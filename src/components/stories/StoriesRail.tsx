@@ -42,7 +42,7 @@ export function StoriesRail() {
 
   return (
     <>
-      <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4">
+      <div className="w-full overflow-x-auto scrollbar-hide -mx-4 px-4">
         <div className="flex items-center gap-1.5 mb-1.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-white/60 dark:text-white/60">Stories</span>
           <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-[1px] rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 text-white shadow-[0_1px_6px_rgba(244,63,94,0.5)]">

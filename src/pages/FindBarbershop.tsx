@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -360,16 +360,17 @@ const FindBarbershop = () => {
           ) : (
             <div className="space-y-3">
               {shops.map((shop, index) => (
-                <BarberCard
-                  key={shop.id}
-                  barber={shop}
-                  index={index}
-                  isFavorite={false}
-                  isExpanded={selectedId === shop.id}
-                  onToggleFavorite={() => {}}
-                  onExpand={() => setSelectedId(selectedId === shop.id ? null : shop.id)}
-                  userLocation={userLocation}
-                />
+                <Fragment key={shop.id}>
+                  <BarberCard
+                    barber={shop}
+                    index={index}
+                    isFavorite={false}
+                    isExpanded={selectedId === shop.id}
+                    onToggleFavorite={() => {}}
+                    onExpand={() => setSelectedId(selectedId === shop.id ? null : shop.id)}
+                    userLocation={userLocation}
+                  />
+                </Fragment>
               ))}
             </div>
           )}
