@@ -281,13 +281,7 @@ const Stylists = () => {
             <div className="flex items-center justify-between">
               <SidebarTrigger className="text-[#1C1C1E] dark:text-[#F2F2F7]" />
               <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-              <button
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="w-9 h-9 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center active:scale-95 transition"
-                aria-label="Add stylist"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+              <div className="w-9" />
             </div>
           </div>
 
@@ -444,6 +438,13 @@ const Stylists = () => {
               )}
             </div>
           </div>
+          <button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="fixed bottom-20 right-4 z-50 lg:hidden w-14 h-14 rounded-full bg-white text-[#1C1C1E] shadow-2xl flex items-center justify-center active:scale-95 transition"
+            aria-label="Add stylist"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
         </main>
       </div>
 

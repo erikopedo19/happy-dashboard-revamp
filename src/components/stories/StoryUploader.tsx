@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Loader2, Music, Plus, X } from "lucide-react";
-import { SpotifyMusicPicker, type SpotifyTrack } from "./SpotifyMusicPicker";
+import { Loader2, Plus, X } from "lucide-react";
 
 const MAX_SIZE = 20 * 1024 * 1024;
 
@@ -15,8 +14,6 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [track, setTrack] = useState<SpotifyTrack | null>(null);
-  const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -48,8 +45,6 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
 
   const reset = () => {
     setFile(null);
-    setTrack(null);
-    setPicking(false);
   };
 
   const publish = async () => {
@@ -68,15 +63,15 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
         user_id: user.id,
         media_path: path,
         media_type: mediaType,
-        music_track_id: track?.id ?? null,
-        music_title: track?.title ?? null,
-        music_artist: track?.artist ?? null,
-        music_preview_url: track?.preview_url ?? null,
-        music_artwork_url: track?.artwork_url ?? null,
+        music_track_id: null,
+        music_title: null,
+        music_artist: null,
+        music_preview_url: null,
+        music_artwork_url: null,
         duration_seconds: mediaType === "video" ? 10 : 5,
       });
       if (error) throw error;
-      toast({ title: "Story posted", description: "It will stay live for 10 days." });
+      toast({ title: "Story posted", description: "It will stay live for 24 hours." });
       reset();
       onDone?.();
     } catch (e: any) {
@@ -145,26 +140,6 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
                 </div>
               </div>
               <div className="p-4 space-y-3 shrink-0 bg-[#141418] border-t border-white/10" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
-                <button
-                  onClick={() => setPicking(true)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-left"
-                >
-                  {track?.artwork_url ? (
-                    <img src={track.artwork_url} className="w-9 h-9 rounded-md" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-md bg-white/10 flex items-center justify-center">
-                      <Music className="w-4 h-4 text-white/70" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white truncate">
-                      {track ? track.title : "Add music"}
-                    </div>
-                    <div className="text-xs text-white/50 truncate">
-                      {track ? track.artist : "Preview trending clips"}
-                    </div>
-                  </div>
-                </button>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     onClick={reset}
@@ -181,18 +156,9 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
                     {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish story"}
                   </Button>
                 </div>
-                <p className="text-center text-[11px] text-white/40">Max 20 MB · Auto-deletes in 10 days</p>
+                <p className="text-center text-[11px] text-white/40">Max 20 MB · Auto-deletes in 24 hours</p>
               </div>
             </motion.div>
-
-            <SpotifyMusicPicker
-              open={picking}
-              onClose={() => setPicking(false)}
-              onPick={(t) => {
-                setTrack(t);
-                setPicking(false);
-              }}
-            />
           </motion.div>
         )}
       </AnimatePresence>

@@ -82,7 +82,7 @@ async function sendApns(token: string, title: string, body: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { user_id, appointment_id } = await req.json();
+    const { user_id, appointment_id, title: reqTitle, body: reqBody, type: reqType } = await req.json();
     if (!user_id) return new Response(JSON.stringify({ error: "user_id required" }), { status: 400, headers: corsHeaders });
 
     // Authenticate the request by requiring a freshly-created matching notification row
@@ -94,12 +94,19 @@ Deno.serve(async (req) => {
       .limit(1);
     if (appointment_id) q = q.eq("appointment_id", appointment_id);
     const { data: notif } = await q.maybeSingle();
-    if (!notif) {
+
+    let title = reqTitle ?? "Notification";
+    let body = reqBody ?? "";
+    let type = reqType ?? "default";
+
+    if (notif) {
+      title = notif.title ?? title;
+      body = notif.body ?? body;
+      type = notif.type ?? type;
+    } else if (!reqTitle || !reqBody) {
+      // Trigger always sends title/body; if missing and no recent DB row, reject.
       return new Response(JSON.stringify({ error: "no recent matching notification" }), { status: 401, headers: corsHeaders });
     }
-    const title = notif.title ?? "Notification";
-    const body = notif.body ?? "";
-    const type = notif.type;
 
     const vapidPub = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPriv = Deno.env.get("VAPID_PRIVATE_KEY");

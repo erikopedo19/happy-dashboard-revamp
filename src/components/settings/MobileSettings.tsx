@@ -1049,7 +1049,7 @@ function Sheet({
 
 
 function PanelStack({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-5">{children}</div>;
+  return <div className="space-y-5 md:max-w-2xl md:mx-auto">{children}</div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
