@@ -56,6 +56,7 @@ interface AgendaBookingFormProps {
   locale?: "en" | "el" | "es";
   askPhone?: boolean;
   askNotes?: boolean;
+  submitLabel?: string;
 }
 
 const AgendaBookingForm = ({
@@ -78,6 +79,7 @@ const AgendaBookingForm = ({
   locale = "en",
   askPhone = true,
   askNotes = true,
+  submitLabel,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
@@ -146,6 +148,7 @@ const AgendaBookingForm = ({
         selectedService: "Επιλεγμένη υπηρεσία",
         selectedServices: "Επιλεγμένες υπηρεσίες",
         total: "Σύνολο",
+        book: "Κλείστε Ραντεβού",
         bookAnother: "Νέα κράτηση",
         booked: "Η κράτησή σας ολοκληρώθηκε",
         confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
@@ -160,6 +163,7 @@ const AgendaBookingForm = ({
         selectedService: "Servicio seleccionado",
         selectedServices: "Servicios seleccionados",
         total: "Total",
+        book: "Reservar cita",
         bookAnother: "Nueva reserva",
         booked: "Reserva confirmada",
         confirmation: "Se ha enviado la confirmación a tu correo.",
@@ -173,6 +177,7 @@ const AgendaBookingForm = ({
         selectedService: "Selected service",
         selectedServices: "Selected services",
         total: "Total",
+        book: "Book Appointment",
         bookAnother: "Book another",
         booked: "You’re booked",
         confirmation: "Confirmation just landed in your inbox.",
@@ -824,7 +829,7 @@ const AgendaBookingForm = ({
                   </div>
 
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pb-24 sm:pb-0">
                       {submitError && (
                         <div className="rounded-xl bg-[#FF375F]/10 border border-[#FF375F]/20 p-3 text-sm text-[#FF375F]">
                           {submitError}
@@ -910,10 +915,10 @@ const AgendaBookingForm = ({
                         />
                       )}
 
-                      <div className="pt-4">
+                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
                           type="button"
-                          text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
+                          text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : submitLabel || copy.book}
                           disabled={isLoading}
                           onClick={() => form.handleSubmit(handleSubmit)()}
                         />

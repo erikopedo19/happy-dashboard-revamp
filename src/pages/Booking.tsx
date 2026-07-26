@@ -793,6 +793,7 @@ const Booking = () => {
 
   const askPhoneParam = searchParams.get('askPhone');
   const askNotesParam = searchParams.get('askNotes');
+  const buttonParam = searchParams.get('button');
   const showPhone = askPhoneParam === 'true' ? true : askPhoneParam === 'false' ? false : businessProfile?.ask_phone ?? true;
   const showNotes = askNotesParam === 'true' ? true : askNotesParam === 'false' ? false : businessProfile?.ask_notes ?? true;
 
@@ -818,6 +819,7 @@ const Booking = () => {
       locale={locale}
       askPhone={showPhone}
       askNotes={showNotes}
+      submitLabel={buttonParam ?? undefined}
     />
   );
 };
