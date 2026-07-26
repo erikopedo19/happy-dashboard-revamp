@@ -435,7 +435,7 @@ function StickyHeader({ children }: { children: React.ReactNode }) {
       initial={false}
       animate={{ y: hidden ? "-100%" : "0%" }}
       transition={{ type: "spring", stiffness: 350, damping: 32 }}
-      className="sticky top-0 z-50 isolate will-change-transform"
+      className="sticky top-0 z-50 isolate will-change-transform touch-pan-y"
     >
       {children}
     </motion.div>

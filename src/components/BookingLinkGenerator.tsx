@@ -17,8 +17,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
 import { BookingQR } from "@/components/BookingQR";
+import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+const BUTTON_COLORS: { value: ButtonColor; label: string; tw: string }[] = [
+  { value: "pink", label: "Neon Pink", tw: "bg-[#ff2281]" },
+  { value: "blue", label: "Ocean", tw: "bg-[#0070f3]" },
+  { value: "orange", label: "Sunset", tw: "bg-[#f2994a]" },
+  { value: "yellow", label: "Gold", tw: "bg-[#f2c94c]" },
+  { value: "green", label: "Mint", tw: "bg-[#27ae60]" },
+  { value: "purple", label: "Berry", tw: "bg-[#8e44ad]" },
+];
 
 const cleanSlug = (raw: string) =>
   raw
@@ -351,43 +362,59 @@ const BookingLinkGenerator = () => {
       </div>
 
       {/* Theme */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3 space-y-3">
+      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
         <div className="flex items-center justify-between px-1">
-          <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            Button theme
-          </Label>
+          <div className="flex items-center gap-2">
+            <Crown className="w-3.5 h-3.5 text-rose-400" />
+            <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              Premium button theme
+            </Label>
+          </div>
           {!isPremium && (
             <span className="text-[11px] flex items-center gap-1 text-rose-400 font-medium">
               <Crown className="w-3 h-3" /> Pro
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { value: "default", label: "Default" },
-            { value: "premium", label: "Premium" },
-          ].map((t) => {
-            const active = bookingTheme === t.value;
-            const disabled = !isPremium && t.value !== "default";
+
+        <TypewriterLoop
+          LeadText="Button"
+          morphingText={BUTTON_COLORS.map((c) => c.label)}
+          className="text-2xl md:text-4xl !justify-start"
+          interval={3500}
+        />
+
+        <PulseButton
+          text={bookingUrl ? "Book now" : "Preview"}
+          color={BUTTON_COLORS.find((c) => c.value === bookingTheme)?.value || "pink"}
+          size="md"
+          className="w-full"
+          disabled={!isPremium}
+        />
+
+        <div className="grid grid-cols-6 gap-2">
+          {BUTTON_COLORS.map((c) => {
+            const active = bookingTheme === c.value;
+            const disabled = !isPremium;
             return (
               <button
-                key={t.value}
+                key={c.value}
                 type="button"
                 disabled={disabled}
-                onClick={() => setBookingTheme(t.value)}
+                onClick={() => setBookingTheme(c.value)}
                 className={cn(
-                  "h-10 rounded-xl text-[12.5px] font-medium border transition flex items-center justify-center",
-                  active
-                    ? "bg-white text-black border-white"
-                    : "bg-white/[0.03] text-white/60 border-white/10 hover:bg-white/[0.06]",
+                  "h-10 rounded-xl border-2 transition flex items-center justify-center",
+                  active ? "border-white" : "border-transparent",
                   disabled && "opacity-50 cursor-not-allowed"
                 )}
+                title={c.label}
               >
-                {t.label}
+                <div className={cn("w-6 h-6 rounded-full", c.tw)} />
               </button>
             );
           })}
         </div>
+
         {isPremium ? (
           <div className="flex items-center gap-2 px-1">
             <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">Brand color</Label>
@@ -399,7 +426,9 @@ const BookingLinkGenerator = () => {
             />
           </div>
         ) : (
-          <p className="px-1 text-[11px] text-white/40">Upgrade to Pro to customize colors and premium button themes.</p>
+          <p className="px-1 text-[11px] text-white/40">
+            Upgrade to Pro to unlock animated premium button themes.
+          </p>
         )}
       </div>
 

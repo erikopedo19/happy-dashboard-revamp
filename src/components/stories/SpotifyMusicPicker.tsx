@@ -96,8 +96,11 @@ export function SpotifyMusicPicker({
     }
     if (!audioRef.current) audioRef.current = new Audio();
     audioRef.current.src = t.preview_url;
-    audioRef.current.play().catch(() => {});
-    setPlayingId(t.id);
+    audioRef.current.onended = () => setPlayingId(null);
+    audioRef.current
+      .play()
+      .then(() => setPlayingId(t.id))
+      .catch(() => setPlayingId(null));
   };
 
   return (
@@ -110,7 +113,7 @@ export function SpotifyMusicPicker({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-[220] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center"
+            className="fixed inset-0 z-[1000] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center"
           >
             <motion.div
               initial={{ y: 40, opacity: 0 }}

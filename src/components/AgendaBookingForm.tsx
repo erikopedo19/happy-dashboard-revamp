@@ -8,6 +8,7 @@ import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { formatTzLabel } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
+import PulseButton, { type ButtonColor } from "@/components/PulseButton";
 
 interface Service {
   id: string;
@@ -892,21 +893,32 @@ const AgendaBookingForm = ({
                       )}
 
                       <div className="pt-4">
-                        <Button
-                          type="submit"
-                          disabled={isLoading}
-                          className={buttonClass}
-                          style={buttonStyle}
-                        >
-                          {isLoading ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            <>{rescheduleAppointment ? "Confirm Change" : "Book Appointment"}</>
-                          )}
-                        </Button>
+                        {isPremiumTheme ? (
+                          <PulseButton
+                            type="submit"
+                            text={rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
+                            color={bookingTheme as ButtonColor}
+                            size="md"
+                            className="w-full h-12"
+                            disabled={isLoading}
+                          />
+                        ) : (
+                          <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className={buttonClass}
+                            style={buttonStyle}
+                          >
+                            {isLoading ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>{rescheduleAppointment ? "Confirm Change" : "Book Appointment"}</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </form>
                   </Form>
