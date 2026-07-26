@@ -748,7 +748,7 @@ const Booking = () => {
               </ShimmerText>
             </div>
             <p className="mt-5 text-white/50 max-w-sm">
-              {businessProfile?.full_name || 'This business'} hasn't set up any services yet.
+              {businessProfile?.business_name || businessProfile?.full_name || 'This business'} hasn't set up any services yet.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               {isOwner && (
