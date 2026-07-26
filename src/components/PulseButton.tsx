@@ -90,7 +90,7 @@ export default function PulseButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative flex items-center justify-center group focus:outline-none focus:ring-2 focus:ring-offset-2 w-fit disabled:opacity-60 disabled:cursor-not-allowed",
+        "overflow-hidden relative flex items-center justify-center group focus:outline-none focus:ring-2 focus:ring-offset-2 w-fit disabled:opacity-60 disabled:cursor-not-allowed",
         config.button,
         className
       )}
@@ -109,7 +109,7 @@ export default function PulseButton({
         <motion.div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.45) ${config.dots[0]}px, transparent ${config.dots[0]}px), radial-gradient(circle, rgba(255,255,255,0.45) ${config.dots[0]}px, transparent ${config.dots[0]}px)`,
+            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.25) ${config.dots[0]}px, transparent ${config.dots[0]}px), radial-gradient(circle, rgba(255,255,255,0.25) ${config.dots[0]}px, transparent ${config.dots[0]}px)`,
             backgroundSize: "18px 18px",
             backgroundPosition: "0 0, 9px 9px",
             WebkitMaskImage: "linear-gradient(to right, white 0%, transparent 12%, transparent 88%, white 100%)",
@@ -122,7 +122,7 @@ export default function PulseButton({
         <motion.div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.45) ${config.dots[1]}px, transparent ${config.dots[1]}px), radial-gradient(circle, rgba(255,255,255,0.45) ${config.dots[1]}px, transparent ${config.dots[1]}px)`,
+            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.25) ${config.dots[1]}px, transparent ${config.dots[1]}px), radial-gradient(circle, rgba(255,255,255,0.25) ${config.dots[1]}px, transparent ${config.dots[1]}px)`,
             backgroundSize: "18px 18px",
             backgroundPosition: "0 0, 9px 9px",
             WebkitMaskImage: "linear-gradient(to right, transparent 4%, white 12%, transparent 24%, transparent 76%, white 88%, transparent 96%)",
@@ -135,7 +135,7 @@ export default function PulseButton({
         <motion.div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.45) ${config.dots[2]}px, transparent ${config.dots[2]}px), radial-gradient(circle, rgba(255,255,255,0.45) ${config.dots[2]}px, transparent ${config.dots[2]}px)`,
+            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.25) ${config.dots[2]}px, transparent ${config.dots[2]}px), radial-gradient(circle, rgba(255,255,255,0.25) ${config.dots[2]}px, transparent ${config.dots[2]}px)`,
             backgroundSize: "18px 18px",
             backgroundPosition: "0 0, 9px 9px",
             WebkitMaskImage: "linear-gradient(to right, transparent 15%, white 25%, transparent 35%, transparent 65%, white 75%, transparent 85%)",

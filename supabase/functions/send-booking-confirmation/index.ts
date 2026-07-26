@@ -323,9 +323,11 @@ serve(async (req: Request) => {
     const bookingId = String(apptRow.id).slice(0, 8);
     const startIso = String(apptRow.appointment_date);
     const startTime = String(apptRow.appointment_time).slice(0, 5);
-    const appointmentDate = new Date(startIso).toLocaleDateString("en-US", {
-      weekday: "long", month: "long", day: "numeric", year: "numeric"
-    });
+    const tz = profile?.timezone || "UTC";
+    const appointmentDate = new Intl.DateTimeFormat("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+      timeZone: tz,
+    }).format(localToUtc(startIso, startTime, tz));
     const appointmentTime = startTime;
 
     let template: any = null;

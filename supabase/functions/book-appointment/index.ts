@@ -66,15 +66,55 @@ const isSameDateString = (dateStr: string, compare: Date) => {
   );
 };
 
-const formatDateLong = (dateStr: string) => {
-  const [y, m, d] = dateStr.split("-").map((n) => Number(n));
-  if (!y || !m || !d) return dateStr;
-  const dt = new Date(Date.UTC(y, m - 1, d));
+function localToUtc(dateIso: string, time: string, timeZone?: string | null): Date {
+  if (!timeZone || timeZone === "UTC") {
+    const [y, m, d] = dateIso.split("-").map(Number);
+    const [hh, mm] = time.split(":").map(Number);
+    return new Date(Date.UTC(y, m - 1, d, hh, mm));
+  }
+  const [y, mo, d] = dateIso.split("-").map(Number);
+  const [h, m] = time.split(":").map(Number);
+  const wall = new Date(Date.UTC(y, mo - 1, d, h, m));
+  const getParts = (dt: Date) => {
+    const parts: Record<string, number> = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(dt).forEach((p) => {
+      if (p.type !== "literal") parts[p.type] = Number(p.value);
+    });
+    return parts;
+  };
+  let current = wall;
+  for (let i = 0; i < 4; i++) {
+    const p = getParts(current);
+    const tzLocal = new Date(Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second));
+    const diff = wall.getTime() - tzLocal.getTime();
+    if (Math.abs(diff) < 1000) break;
+    current = new Date(current.getTime() + diff);
+  }
+  return current;
+}
+
+const formatDateLong = (dateStr: string, time: string, timeZone?: string | null) => {
+  if (!timeZone || timeZone === "UTC") {
+    const [y, m, d] = dateStr.split("-").map((n) => Number(n));
+    if (!y || !m || !d) return dateStr;
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+    }).format(dt);
+  }
+  const dt = localToUtc(dateStr, time, timeZone);
   return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    timeZone,
   }).format(dt);
 };
 
@@ -339,7 +379,7 @@ serve(async (req: Request) => {
         user_id: payload.businessId,
         type: "booking_created",
         title: "New booking",
-        body: `${payload.customerName} booked ${serviceNames || "a service"} on ${formatDateLong(payload.appointmentDate)} at ${payload.appointmentTime}`,
+        body: `${payload.customerName} booked ${serviceNames || "a service"} on ${formatDateLong(payload.appointmentDate, payload.appointmentTime, profile.timezone)} at ${payload.appointmentTime}`,
         appointment_id: appointment.id,
       });
     } catch (notifErr) {
@@ -385,7 +425,7 @@ serve(async (req: Request) => {
             customerPhone: payload.customerPhone ?? undefined,
             businessName: profile.business_name || profile.full_name,
             serviceName: primaryService.name || "Service",
-            appointmentDate: formatDateLong(payload.appointmentDate),
+            appointmentDate: formatDateLong(payload.appointmentDate, payload.appointmentTime, profile.timezone),
             appointmentTime: payload.appointmentTime,
             price: services.reduce(
               (sum: number, s: { price?: number | null }) => sum + (s?.price || 0),

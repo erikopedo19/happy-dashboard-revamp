@@ -401,18 +401,7 @@ const AgendaBookingForm = ({
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center relative overflow-hidden">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-40 -right-32 h-[520px] w-[520px] rounded-full blur-3xl opacity-20"
-        style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-40 -left-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-15"
-        style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
-      />
+    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center relative">
       <div className="w-full max-w-5xl mx-auto relative z-10">
         <MobileSummary />
         <AnimatePresence mode="wait">
