@@ -923,9 +923,10 @@ const AgendaBookingForm = ({
 
                       <div className="pt-4">
                         <BookingButton
-                          type="submit"
+                          type="button"
                           text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
                           disabled={isLoading}
+                          onClick={() => form.handleSubmit(handleSubmit)()}
                         />
                       </div>
                     </form>
