@@ -44,12 +44,18 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const url = new URL(req.url);
-    const q = url.searchParams.get("q")?.trim();
+    let q = url.searchParams.get("q")?.trim() ?? "";
+    if (req.method === "POST") {
+      try {
+        const body = await req.json().catch(() => ({}));
+        if (body?.q) q = String(body.q).trim();
+      } catch { /* keep URL param */ }
+    }
     const token = await getToken();
 
     // Spotify deprecated Client-Credentials access to editorial playlists,
     // so trending is served via a search query that returns fresh popular tracks.
-    const query = q && q.length > 0 ? q : "top hits 2026";
+    const query = q.length > 0 ? q : "top hits 2026";
     const res = await fetch(
       `https://api.spotify.com/v1/search?type=track&limit=40&market=US&q=${encodeURIComponent(query)}`,
       { headers: { Authorization: `Bearer ${token}` } },

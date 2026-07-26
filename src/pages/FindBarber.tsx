@@ -77,7 +77,8 @@ const FindBarber = () => {
 
   useEffect(() => {
     const tab = searchParams.get("tab") as TabKey | null;
-    if (tab && tab !== activeTab) setActiveTab(tab);
+    const next = tab || "today";
+    if (next !== activeTab) setActiveTab(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
