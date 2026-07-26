@@ -23,7 +23,8 @@ import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BUTTON_COLORS: { value: ButtonColor; label: string; tw: string }[] = [
+const BUTTON_COLORS: { value: string; label: string; tw: string }[] = [
+  { value: "default", label: "Default UI", tw: "bg-white/10 border border-white/20" },
   { value: "pink", label: "Neon Pink", tw: "bg-[#ff2281]" },
   { value: "blue", label: "Ocean", tw: "bg-[#0070f3]" },
   { value: "orange", label: "Sunset", tw: "bg-[#f2994a]" },
@@ -403,18 +404,29 @@ const BookingLinkGenerator = () => {
           interval={3500}
         />
 
-        <PulseButton
-          text={bookingUrl ? "Book now" : "Preview"}
-          color={BUTTON_COLORS.find((c) => c.value === bookingTheme)?.value || "pink"}
-          size="md"
-          className="w-full"
-          disabled={!isPremium}
-        />
+        {bookingTheme === "default" ? (
+          <button
+            type="button"
+            disabled={!isPremium}
+            className="w-full h-12 rounded-full font-semibold text-white flex items-center justify-center"
+            style={{ backgroundColor: brandColor }}
+          >
+            {bookingUrl ? "Book now" : "Preview"}
+          </button>
+        ) : (
+          <PulseButton
+            text={bookingUrl ? "Book now" : "Preview"}
+            color={(BUTTON_COLORS.find((c) => c.value === bookingTheme)?.value as ButtonColor) || "pink"}
+            size="md"
+            className="w-full"
+            disabled={!isPremium && bookingTheme !== "default"}
+          />
+        )}
 
         <div className="grid grid-cols-6 gap-2">
           {BUTTON_COLORS.map((c) => {
             const active = bookingTheme === c.value;
-            const disabled = !isPremium;
+            const disabled = !isPremium && c.value !== "default";
             return (
               <button
                 key={c.value}
@@ -464,7 +476,7 @@ const BookingLinkGenerator = () => {
           </>
         ) : (
           <>
-            <Save className="w-4 h-4" strokeWidth={2.5} /> Save link
+            <Save className="w-4 h-4" strokeWidth={2.5} /> Save
           </>
         )}
       </motion.button>
