@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Loader2, Volume2, VolumeX, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Trash2, Volume2, VolumeX, X } from "lucide-react";
 
 type Story = {
   id: string;
@@ -62,6 +64,7 @@ export function StoryViewer({
   const [gIdx, setGIdx] = useState(startIdx);
   const [sIdx, setSIdx] = useState(0);
   const [muted, setMuted] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [signedSrc, setSignedSrc] = useState<string | null>(null);
   const [triedSigned, setTriedSigned] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -125,6 +128,27 @@ export function StoryViewer({
     else if (gIdx > 0) {
       setGIdx(gIdx - 1);
       setSIdx(0);
+    }
+  };
+
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    if (!story || !user || !confirm("Delete this story?")) return;
+    setBusy(true);
+    try {
+      const { error: dbError } = await supabase.from("stories").delete().eq("id", story.id);
+      if (dbError) throw dbError;
+      if (story.media_path) {
+        await supabase.storage.from("stories").remove([story.media_path]);
+      }
+      toast({ title: "Story deleted" });
+      onClose();
+    } catch (e: any) {
+      toast({ title: "Could not delete story", description: e?.message, variant: "destructive" });
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -213,6 +237,16 @@ export function StoryViewer({
           >
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
+          {user?.id === group?.user_id && (
+            <button
+              onClick={handleDelete}
+              disabled={busy}
+              className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur disabled:opacity-50"
+              aria-label="Delete story"
+            >
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            </button>
+          )}
           <button
             onClick={onClose}
             className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"

@@ -408,36 +408,18 @@ serve(async (req: Request) => {
 
     // Fire-and-forget confirmation email + SMS
     try {
-      const ANON = Deno.env.get("SUPABASE_ANON_KEY") || "";
+      const FUNCTION_SECRET = Deno.env.get("FUNCTION_SECRET") || "";
       await fetch(
         `${SUPABASE_URL}/functions/v1/send-booking-confirmation`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${ANON}`,
-            apikey: ANON,
+            "x-functions-secret": FUNCTION_SECRET,
           },
           body: JSON.stringify({
-            userId: payload.businessId,
-            customerEmail: payload.customerEmail,
-            customerName: payload.customerName,
-            customerPhone: payload.customerPhone ?? undefined,
-            businessName: profile.business_name || profile.full_name,
-            serviceName: primaryService.name || "Service",
-            appointmentDate: formatDateLong(payload.appointmentDate, payload.appointmentTime, profile.timezone),
-            appointmentTime: payload.appointmentTime,
-            price: services.reduce(
-              (sum: number, s: { price?: number | null }) => sum + (s?.price || 0),
-              0,
-            ),
-            notes: notesText || undefined,
-            bookingId: appointment.id?.toString().substring(0, 8),
+            cancelToken: appointment.cancel_token,
             accentColor: payload.accentColor || profile.brand_color || "#2563eb",
-            stylistName,
-            stylistTitle,
-            senderEmail: senderProfile?.sender_email || "noreply@cutzioo.com",
-            senderName: senderProfile?.sender_name || senderProfile?.business_name || senderProfile?.full_name || "Cutzioo",
           }),
         },
       );

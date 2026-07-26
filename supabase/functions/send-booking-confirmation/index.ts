@@ -258,6 +258,15 @@ function buildHtml(opts: {
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  const functionSecret = Deno.env.get("FUNCTION_SECRET");
+  const providedSecret = req.headers.get("x-functions-secret") ?? "";
+  if (!functionSecret || providedSecret !== functionSecret) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Forbidden" }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
