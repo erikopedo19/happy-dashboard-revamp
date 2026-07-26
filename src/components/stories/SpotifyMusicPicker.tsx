@@ -12,6 +12,9 @@ export type SpotifyTrack = {
   artwork_url: string | null;
 };
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+
 export function SpotifyMusicPicker({
   open,
   onClose,
@@ -29,31 +32,41 @@ export function SpotifyMusicPicker({
 
   useEffect(() => {
     if (!open) return;
+    const ctrl = new AbortController();
     const t = setTimeout(async () => {
       setLoading(true);
       try {
-        const { data } = await supabase.functions.invoke("spotify-search", {
-          body: {},
-          method: "GET" as any,
-          headers: q ? { "x-q": q } : undefined,
-        } as any);
-        // fallback: call via fetch to append query string reliably
-        const url = new URL(
-          `${(supabase as any).functionsUrl || ""}/spotify-search`,
-        );
-        if (q) url.searchParams.set("q", q);
-        const res = await fetch(url.toString(), {
-          headers: { apikey: (supabase as any).supabaseKey || "" },
-        });
-        const json = await res.json();
-        setTracks(json.tracks || (data as any)?.tracks || []);
+        let list: SpotifyTrack[] = [];
+        if (SUPABASE_URL) {
+          const url = new URL(`${SUPABASE_URL}/functions/v1/spotify-search`);
+          if (q) url.searchParams.set("q", q);
+          const res = await fetch(url.toString(), {
+            signal: ctrl.signal,
+            headers: {
+              apikey: SUPABASE_KEY || "",
+              Authorization: `Bearer ${SUPABASE_KEY || ""}`,
+            },
+          });
+          const json = await res.json().catch(() => ({}));
+          list = json.tracks || [];
+        }
+        if (list.length === 0) {
+          const { data } = await supabase.functions.invoke("spotify-search", {
+            body: { q },
+          });
+          list = (data as any)?.tracks || [];
+        }
+        setTracks(list);
       } catch {
         setTracks([]);
       } finally {
         setLoading(false);
       }
     }, q ? 300 : 0);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
   }, [q, open]);
 
   useEffect(() => {
@@ -79,18 +92,18 @@ export function SpotifyMusicPicker({
   };
 
   return (
-    <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-xl flex items-end sm:items-center justify-center">
-      <div className="w-full sm:max-w-md bg-[#1a1a1f] text-white rounded-t-3xl sm:rounded-3xl overflow-hidden border border-white/10 max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+    <div className="fixed inset-0 z-[220] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center">
+      <div className="w-full sm:max-w-md bg-[#141418] text-white rounded-t-3xl sm:rounded-3xl overflow-hidden border border-white/10 h-[85dvh] sm:h-auto sm:max-h-[85dvh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
-            <Music className="w-4 h-4 text-rose-400" />
+            <Music className="w-4 h-4 text-indigo-400" />
             <h3 className="text-sm font-semibold">Add music</h3>
           </div>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-4 border-b border-white/10">
+        <div className="p-4 border-b border-white/10 shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
@@ -111,7 +124,7 @@ export function SpotifyMusicPicker({
             </div>
           ) : tracks.length === 0 ? (
             <div className="text-center text-white/50 text-sm py-12 px-6">
-              No previewable tracks. Try another search.
+              No tracks found. Try another search.
             </div>
           ) : (
             tracks.map((t) => (
@@ -125,13 +138,15 @@ export function SpotifyMusicPicker({
                   <div className="text-sm font-semibold truncate">{t.title}</div>
                   <div className="text-xs text-white/50 truncate">{t.artist}</div>
                 </div>
-                <button
-                  onClick={() => togglePlay(t)}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20"
-                  aria-label="Preview"
-                >
-                  {playingId === t.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
+                {t.preview_url && (
+                  <button
+                    onClick={() => togglePlay(t)}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20"
+                    aria-label="Preview"
+                  >
+                    {playingId === t.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </button>
+                )}
                 <Button
                   size="sm"
                   onClick={() => {
@@ -139,7 +154,7 @@ export function SpotifyMusicPicker({
                     setPlayingId(null);
                     onPick(t);
                   }}
-                  className="bg-rose-500 hover:bg-rose-600 text-white text-xs h-8"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs h-8"
                 >
                   Use
                 </Button>

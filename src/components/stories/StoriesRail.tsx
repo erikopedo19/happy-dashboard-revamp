@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { StoryUploader } from "./StoryUploader";
-import { StoryViewer } from "./StoryViewer";
+import { StoryViewer, getViewedStories } from "./StoryViewer";
+
 
 type Group = {
   user_id: string;
@@ -18,6 +19,13 @@ export function StoriesRail() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [openUser, setOpenUser] = useState<string | null>(null);
+  const [viewed, setViewed] = useState<Set<string>>(() => getViewedStories());
+
+  useEffect(() => {
+    const onChange = () => setViewed(getViewedStories());
+    window.addEventListener("stories:viewed", onChange);
+    return () => window.removeEventListener("stories:viewed", onChange);
+  }, []);
 
   const { data: groups = [] } = useQuery({
     queryKey: ["stories-active"],
@@ -28,6 +36,7 @@ export function StoriesRail() {
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
+
 
   const isBarber = !!user;
 
@@ -44,35 +53,45 @@ export function StoriesRail() {
           {isBarber && (
             <StoryUploader onDone={() => qc.invalidateQueries({ queryKey: ["stories-active"] })} />
           )}
-          {groups.map((g) => (
-            <button
-              key={g.user_id}
-              onClick={() => setOpenUser(g.user_id)}
-              className="flex flex-col items-center gap-1 shrink-0 active:scale-95 transition-transform"
-            >
-              <div className="p-[2px] rounded-full bg-gradient-to-tr from-rose-500 via-fuchsia-500 to-amber-400">
-                <div className="bg-black p-[2px] rounded-full">
-                  {g.avatar_url ? (
-                    <img
-                      src={g.avatar_url}
-                      alt={g.name}
-                      className="w-[60px] h-[60px] rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-[60px] h-[60px] rounded-full bg-white/10 flex items-center justify-center text-white/60 text-lg font-semibold">
-                      {g.name?.[0]?.toUpperCase() ?? "?"}
-                    </div>
-                  )}
+          {groups.map((g) => {
+            const allViewed = g.stories?.every((s: any) => viewed.has(s.id));
+            return (
+              <button
+                key={g.user_id}
+                onClick={() => setOpenUser(g.user_id)}
+                className="flex flex-col items-center gap-1 shrink-0 active:scale-95 transition-transform"
+              >
+                <div
+                  className={
+                    allViewed
+                      ? "p-[2px] rounded-full bg-white/15"
+                      : "p-[2px] rounded-full bg-gradient-to-tr from-indigo-500 via-fuchsia-500 to-amber-400"
+                  }
+                >
+                  <div className="bg-black p-[2px] rounded-full">
+                    {g.avatar_url ? (
+                      <img
+                        src={g.avatar_url}
+                        alt={g.name}
+                        className={`w-[60px] h-[60px] rounded-full object-cover ${allViewed ? "opacity-80" : ""}`}
+                      />
+                    ) : (
+                      <div className="w-[60px] h-[60px] rounded-full bg-white/10 flex items-center justify-center text-white/60 text-lg font-semibold">
+                        {g.name?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <span className="text-[11px] text-white/70 max-w-[68px] truncate">{g.name}</span>
-            </button>
-          ))}
+                <span className="text-[11px] text-white/70 max-w-[68px] truncate">{g.name}</span>
+              </button>
+            );
+          })}
           {groups.length === 0 && !isBarber && (
             <div className="text-xs text-white/40 py-4">No stories yet — check back soon.</div>
           )}
         </div>
       </div>
+
       {openUser && (
         <StoryViewer
           groups={groups}
