@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -133,6 +134,7 @@ export function StoryViewer({
 
   const { user } = useAuth();
   const { toast } = useToast();
+  const qc = useQueryClient();
 
   const handleDelete = async () => {
     if (!story || !user || !confirm("Delete this story?")) return;
@@ -143,6 +145,7 @@ export function StoryViewer({
       if (story.media_path) {
         await supabase.storage.from("stories").remove([story.media_path]);
       }
+      await qc.invalidateQueries({ queryKey: ["stories-active"] });
       toast({ title: "Story deleted" });
       onClose();
     } catch (e: any) {
