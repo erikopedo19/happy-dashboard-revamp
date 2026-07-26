@@ -16,7 +16,6 @@ import {
   ChevronDown,
   Clock,
   Award,
-  ShoppingBag,
   Sparkles,
   BellRing,
   SlidersHorizontal,
@@ -988,7 +987,7 @@ function BarberExpandedDetails({
   const { data, isLoading } = useQuery({
     queryKey: ["barber-details", barberId],
     queryFn: async () => {
-      const [profileRes, servicesRes, hoursRes, agendaRes, productsRes, micrositeRes] = await Promise.all([
+      const [profileRes, servicesRes, hoursRes, agendaRes, micrositeRes] = await Promise.all([
         (supabase as any)
           .from("profiles")
           .select("description, years_experience, business_name, full_name, accepts_waitlist")
@@ -1011,13 +1010,6 @@ function BarberExpandedDetails({
           .select("start_hour, end_hour, working_days")
           .eq("user_id", barberId)
           .maybeSingle(),
-        (supabase as any)
-          .from("products")
-          .select("id, name, price, image_url, category")
-          .eq("user_id", barberId)
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(6),
         (supabase as any)
           .from("microsites")
           .select("gallery")
@@ -1049,7 +1041,6 @@ function BarberExpandedDetails({
         profile: profileRes.data,
         services: servicesRes.data || [],
         hours,
-        products: productsRes.data || [],
         gallery,
       };
     },
@@ -1103,7 +1094,6 @@ function BarberExpandedDetails({
   }
 
   const services = data?.services ?? [];
-  const products = data?.products ?? [];
   const gallery = data?.gallery ?? [];
 
   const priceValues = services.map((s: any) => Number(s.price)).filter((n) => !Number.isNaN(n));
@@ -1115,7 +1105,6 @@ function BarberExpandedDetails({
     { label: years ? "Experience" : "Status", value: years ? `${years}y` : "Pro" },
     ...(fromPrice != null ? [{ label: "From", value: `$${fromPrice.toFixed(0)}` }] : []),
     ...(services.length ? [{ label: "Services", value: String(services.length) }] : []),
-    ...(products.length ? [{ label: "Products", value: String(products.length) }] : []),
   ];
 
   return (
@@ -1209,40 +1198,6 @@ function BarberExpandedDetails({
                 className="relative shrink-0 snap-start w-32 aspect-[3/4] rounded-[16px] overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]"
               >
                 <img src={url} alt="Recent work" className="w-full h-full object-cover" loading="lazy" />
-              </motion.div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Products */}
-      {products.length > 0 && (
-        <Section icon={<ShoppingBag className="w-3.5 h-3.5" style={{ color: accent }} />} title="Products">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {products.map((p: any, i: number) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03, ...spring }}
-                className="rounded-[16px] overflow-hidden bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.05]"
-              >
-                {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} className="w-full aspect-square object-cover" loading="lazy" />
-                ) : (
-                  <div className="w-full aspect-square flex items-center justify-center">
-                    <ShoppingBag className="w-6 h-6 text-[#8E8E93]" />
-                  </div>
-                )}
-                <div className="p-2.5">
-                  {p.category && (
-                    <div className="text-[9px] uppercase tracking-wide text-[#8E8E93] mb-0.5 truncate">{p.category}</div>
-                  )}
-                  <div className="text-[12px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{p.name}</div>
-                  <div className="text-[12px] font-semibold tabular-nums mt-0.5" style={{ color: accent }}>
-                    ${Number(p.price).toFixed(0)}
-                  </div>
-                </div>
               </motion.div>
             ))}
           </div>

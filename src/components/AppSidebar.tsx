@@ -1,4 +1,4 @@
-import { Calendar, Users, Settings, Home, Package, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark, Crown, AlertCircle } from "lucide-react";
+import { Calendar, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark, Crown, AlertCircle } from "lucide-react";
 import logoMark from "@/assets/logo-mark.webp";
 import {
   Sidebar,
@@ -58,11 +58,6 @@ const mainItems = [
     title: "Stylists",
     url: "/stylists",
     icon: UserCheck,
-  },
-  {
-    title: "Products",
-    url: "/products",
-    icon: Package,
   },
   {
     title: "Teams",

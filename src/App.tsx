@@ -15,7 +15,6 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Customers from "./pages/Customers";
-import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
@@ -140,7 +139,6 @@ function AnimatedRoutes() {
       <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
       <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
       <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
-      <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
       <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, BarChart3, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users, X } from 'lucide-react';
+import { LayoutDashboard, Calendar, BarChart3, Settings, MoreHorizontal, Globe, UserCheck, Briefcase, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
@@ -28,7 +28,6 @@ const moreItems: MoreItem[] = [
   { label: 'Booking', icon: 'globe', path: '/booking-page' },
   { label: 'Stylists', icon: 'user-check', path: '/stylists' },
   { label: 'Teams', icon: 'briefcase', path: '/teams', isNew: true },
-  { label: 'Products', icon: 'package', path: '/products', isNew: true },
 ];
 
 const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {

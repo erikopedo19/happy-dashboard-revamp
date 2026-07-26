@@ -34,7 +34,6 @@ export function PremiumGate({
   const defaults = perks ?? [
     "Unlimited services & customers",
     "Teams & multi-stylist scheduling",
-    "Products catalog & inventory",
     "Advanced reports & analytics",
     "Map listing & discovery",
     "Custom branding",

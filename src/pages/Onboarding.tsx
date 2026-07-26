@@ -140,7 +140,7 @@ export default function Onboarding() {
     if (step === 1) return data.workType !== null;
     if (step === 2) return data.businessName.trim().length > 1;
     if (step === 3) return true;
-    if (step === 4) return data.workingDays.length > 0;
+    if (step === 4) return data.services.length > 0 && data.workingDays.length > 0 && data.startHour < data.endHour;
     if (step === 5) return data.goal !== null;
     if (step === 6) return true;
     if (step === 7) return cleanSlug(data.bookingLink || data.businessName).length >= 2;
@@ -227,35 +227,7 @@ export default function Onboarding() {
                     title="Let's get you set up"
                     subtitle="A few quick questions — no account needed yet."
                   />
-                  <div className="rounded-[22px] border border-white/[0.08] bg-[#1c1c1e] p-2 shadow-2xl shadow-black/20">
-                    <div className="flex items-center gap-2 px-2 pb-2 pt-1">
-                      <Globe2 className="h-4 w-4 text-rose-400" />
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">App language</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {([
-                        { value: "en", label: "English", detail: "English" },
-                        { value: "el", label: "Ελληνικά", detail: "Greek" },
-                      ] as const).map((language) => {
-                        const active = data.appLanguage === language.value;
-                        return (
-                          <button
-                            key={language.value}
-                            type="button"
-                            onClick={() => update("appLanguage", language.value)}
-                            className={cn(
-                              "relative rounded-2xl px-3 py-3 text-left transition-all active:scale-[0.98]",
-                              active ? "bg-white text-black shadow-sm" : "bg-white/[0.05] text-white"
-                            )}
-                          >
-                            <span className="block text-[14px] font-semibold">{language.label}</span>
-                            <span className={cn("text-[10px]", active ? "text-black/45" : "text-white/35")}>{language.detail}</span>
-                            {active && <Check className="absolute right-3 top-3 h-4 w-4 text-rose-500" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <LanguagePicker value={data.appLanguage} onChange={(language) => update("appLanguage", language)} />
                   <div className="grid gap-3">
                     <RoleCard
                       active={data.role === "barber"}
@@ -278,6 +250,7 @@ export default function Onboarding() {
               {!isClient && step === 1 && (
                 <>
                   <Header title="How do you work?" subtitle="We'll tailor your setup." />
+                  {presetRole && <LanguagePicker value={data.appLanguage} onChange={(language) => update("appLanguage", language)} />}
                   <div className="grid gap-3">
                     <RoleCard
                       active={data.workType === "solo"}
@@ -598,6 +571,7 @@ export default function Onboarding() {
               {isClient && step === 1 && (
                 <>
                   <Header title="What are you looking for?" subtitle="Pick anything you might book." />
+                  {presetRole && <LanguagePicker value={data.appLanguage} onChange={(language) => update("appLanguage", language)} />}
                   <div className="flex flex-wrap gap-2">
                     {CLIENT_LOOKING.map((s) => {
                       const active = data.clientLookingFor.includes(s);
@@ -718,6 +692,38 @@ const Header = ({ title, subtitle }: { title: string; subtitle: string }) => (
   <div className="space-y-1">
     <h2 className="text-[22px] sm:text-[28px] font-semibold tracking-tight leading-tight">{title}</h2>
     <p className="text-[13px] sm:text-sm text-white/55">{subtitle}</p>
+  </div>
+);
+
+const LanguagePicker = ({ value, onChange }: { value: "en" | "el"; onChange: (value: "en" | "el") => void }) => (
+  <div className="rounded-[22px] border border-white/[0.08] bg-[#1c1c1e] p-2 shadow-2xl shadow-black/20">
+    <div className="flex items-center gap-2 px-2 pb-2 pt-1">
+      <Globe2 className="h-4 w-4 text-rose-400" />
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">App language</span>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+      {([
+        { value: "en", label: "English", detail: "English" },
+        { value: "el", label: "Ελληνικά", detail: "Greek" },
+      ] as const).map((language) => {
+        const active = value === language.value;
+        return (
+          <button
+            key={language.value}
+            type="button"
+            onClick={() => onChange(language.value)}
+            className={cn(
+              "relative rounded-2xl px-3 py-3 text-left transition-all active:scale-[0.98]",
+              active ? "bg-white text-black shadow-sm" : "bg-white/[0.05] text-white"
+            )}
+          >
+            <span className="block text-[14px] font-semibold">{language.label}</span>
+            <span className={cn("text-[10px]", active ? "text-black/45" : "text-white/35")}>{language.detail}</span>
+            {active && <Check className="absolute right-3 top-3 h-4 w-4 text-rose-500" />}
+          </button>
+        );
+      })}
+    </div>
   </div>
 );
 

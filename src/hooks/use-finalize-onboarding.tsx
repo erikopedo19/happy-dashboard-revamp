@@ -114,6 +114,7 @@ export function useFinalizeOnboarding() {
             years_experience: years,
             is_public: true,
             booking_link: finalSlug ?? undefined,
+            booking_locale: draft.appLanguage || "en",
             accepts_waitlist: !!draft.acceptsWaitlist,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),
