@@ -5,11 +5,10 @@ import { Bell, Calendar, Check, Info, MessageSquare, Star } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
 
 type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string };
 
@@ -26,7 +25,6 @@ export function NotificationBell() {
   const { user } = useAuth();
   const location = useLocation();
   const [items, setItems] = useState<N[]>([]);
-  const [open, setOpen] = useState(false);
 
   const role = (user?.user_metadata as any)?.role;
   const hidden = !user || role === "client" || HIDE_PREFIX.some((p) => location.pathname === p || location.pathname.startsWith(p)) || location.pathname === "/";
@@ -71,8 +69,8 @@ export function NotificationBell() {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <button
           className="w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center hover:scale-105 transition"
           aria-label="Notifications"
@@ -84,11 +82,11 @@ export function NotificationBell() {
             </span>
           )}
         </button>
-      </PopoverTrigger>
-      <PopoverContent
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="z-[60] w-80 p-0 rounded-2xl border-black/5 dark:border-white/10 overflow-hidden"
+        className="z-50 w-80 p-0 rounded-2xl border border-black/5 dark:border-white/10 bg-white/90 dark:bg-[#0E0E0F]/90 backdrop-blur max-h-96 overflow-hidden"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-black/5 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur">
           <div className="font-semibold text-sm">Notifications</div>
@@ -98,40 +96,34 @@ export function NotificationBell() {
             </Button>
           )}
         </div>
-        <div className="max-h-96 overflow-y-auto bg-white/90 dark:bg-[#0E0E0F]/90 backdrop-blur">
+        <div className="max-h-80 overflow-y-auto">
           {items.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">No notifications yet</div>
           ) : (
-            <AnimatePresence initial={false}>
-              {items.map((i) => {
-                const meta = typeMeta[i.type] || typeMeta.default;
-                const Icon = meta.icon;
-                return (
-                  <motion.div
-                    key={i.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className={`flex items-start gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 ${!i.read ? "bg-blue-500/[0.03]" : ""}`}
-                  >
-                    <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${meta.color} dark:${meta.darkColor}`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className={`text-sm truncate ${!i.read ? "font-semibold" : "font-medium"}`}>{i.title}</div>
-                      {i.body && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{i.body}</div>}
-                      <div className="text-[10px] text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}</div>
-                    </div>
-                    {!i.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#007AFF]" />}
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+            items.map((i) => {
+              const meta = typeMeta[i.type] || typeMeta.default;
+              const Icon = meta.icon;
+              return (
+                <div
+                  key={i.id}
+                  className={`flex items-start gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 ${!i.read ? "bg-blue-500/[0.03]" : ""}`}
+                >
+                  <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${meta.color} dark:${meta.darkColor}`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-sm truncate ${!i.read ? "font-semibold" : "font-medium"}`}>{i.title}</div>
+                    {i.body && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{i.body}</div>}
+                    <div className="text-[10px] text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}</div>
+                  </div>
+                  {!i.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#007AFF]" />}
+                </div>
+              );
+            })
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
