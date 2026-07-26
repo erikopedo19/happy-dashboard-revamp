@@ -160,28 +160,13 @@ export function MobileSettings(props: any) {
 
 
       {/* Header */}
-      <header className="relative z-10 px-6 pt-7 pb-4 flex items-end justify-between">
-        <div>
-          <p className="text-white/40 text-[12px] font-medium uppercase tracking-[0.18em]">
-            Account
-          </p>
-          <h1 className="font-cal text-[40px] leading-[1.05] text-white mt-1">
-            Settings.
-          </h1>
-        </div>
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || isLoading}
-          className="h-11 px-4 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[13px] font-semibold shadow-[0_8px_22px_-6px_rgba(225,29,72,0.6)] flex items-center gap-1.5"
-        >
-          {saveMutation.isPending ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Save className="h-3.5 w-3.5" strokeWidth={2.5} />
-          )}
-          {saveMutation.isPending ? "Saving" : "Save"}
-        </motion.button>
+      <header className="relative z-10 px-6 pt-7 pb-4">
+        <p className="text-white/40 text-[12px] font-medium uppercase tracking-[0.18em]">
+          Account
+        </p>
+        <h1 className="font-cal text-[40px] leading-[1.05] text-white mt-1">
+          Settings.
+        </h1>
       </header>
 
       {/* Profile hero card */}

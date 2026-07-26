@@ -560,14 +560,14 @@ function BarberCard({
               src={avatar}
               alt={barber.name}
               className={cn(
-                "shrink-0 rounded-2xl border-2 border-white object-cover dark:border-[#1C1C1E]",
+                "shrink-0 rounded-full border-2 border-white object-cover dark:border-[#1C1C1E]",
                 isExpanded ? "h-16 w-16" : "h-14 w-14",
               )}
             />
           ) : (
             <div
               className={cn(
-                "flex shrink-0 items-center justify-center rounded-2xl border-2 border-white dark:border-[#1C1C1E]",
+                "flex shrink-0 items-center justify-center rounded-full border-2 border-white dark:border-[#1C1C1E] overflow-hidden",
                 isExpanded ? "h-16 w-16" : "h-14 w-14",
               )}
               style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}

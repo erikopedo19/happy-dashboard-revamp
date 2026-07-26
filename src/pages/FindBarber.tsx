@@ -527,11 +527,11 @@ function BarberCard({
             <img
               src={barber.avatar_url}
               alt={barber.brandName}
-              className="w-[68px] h-[68px] rounded-[20px] object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
+              className="w-[68px] h-[68px] rounded-full object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
             />
           ) : (
             <div
-              className="w-[68px] h-[68px] rounded-[20px] flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
+              className="w-[68px] h-[68px] rounded-full flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden"
               style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
             >
               {initial}

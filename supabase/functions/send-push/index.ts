@@ -110,7 +110,9 @@ Deno.serve(async (req) => {
 
     const vapidPub = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPriv = Deno.env.get("VAPID_PRIVATE_KEY");
-    const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@cutzioo.com";
+    const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:xmaxerikopedo19@gmail.com";
+
+    console.log("send-push", { user_id, appointment_id, title, body, type, hasVapid: !!(vapidPub && vapidPriv) });
 
     // Web Push
     let webResults: any[] = [];

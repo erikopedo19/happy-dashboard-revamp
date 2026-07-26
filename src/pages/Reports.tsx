@@ -1576,19 +1576,9 @@ function MobileReportsView({
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={springSoft}
-        className="flex items-center justify-between"
       >
-        <div>
-          <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
-          <p className="text-[13px] text-white/50 mt-0.5">{today}</p>
-        </div>
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          onClick={onExport}
-          className="h-11 w-11 rounded-full bg-[#1C1C1E] border border-white/[0.08] flex items-center justify-center"
-        >
-          <Download className="w-5 h-5 text-white" strokeWidth={2.3} />
-        </motion.button>
+        <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
+        <p className="text-[13px] text-white/50 mt-0.5">{today}</p>
       </motion.div>
 
       {/* Date range */}
