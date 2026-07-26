@@ -107,14 +107,7 @@ const BookingLinkGenerator = () => {
   const getBookingUrl = () => {
     const slug = profile?.booking_link || customSlug;
     if (!slug) return "";
-    const baseUrl = `${window.location.origin}/book/${slug}`;
-    const params = new URLSearchParams();
-    if (askPhone) params.append("askPhone", "true");
-    if (askNotes) params.append("askNotes", "true");
-    if (bookingLocale && bookingLocale !== "en")
-      params.append("lang", bookingLocale);
-    const q = params.toString();
-    return q ? `${baseUrl}?${q}` : baseUrl;
+    return `${window.location.origin}/book/${slug}`;
   };
 
   const bookingUrl = getBookingUrl();
