@@ -53,12 +53,6 @@ interface BarberProfile {
 
 type TabKey = "today" | "map" | "favorites";
 
-const TABS: { key: TabKey; label: string; icon: any; activeColor: string }[] = [
-  { key: "today", label: "Today", icon: Calendar, activeColor: "#e11d48" },
-  { key: "map", label: "Map", icon: MapIcon, activeColor: "#e11d48" },
-  { key: "favorites", label: "Favorites", icon: Heart, activeColor: "#e11d48" },
-];
-
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const FindBarber = () => {
@@ -67,7 +61,6 @@ const FindBarber = () => {
   const initialTab = (searchParams.get("tab") as TabKey) || "today";
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
-  const touchStartX = useRef<number | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -91,20 +84,6 @@ const FindBarber = () => {
       searchParams.set("tab", key);
     }
     setSearchParams(searchParams, { replace: true });
-  };
-
-  const handleTabTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTabTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    touchStartX.current = null;
-    if (Math.abs(diff) < 40) return;
-    const idx = TABS.findIndex((t) => t.key === activeTab);
-    if (diff > 0 && idx < TABS.length - 1) changeTab(TABS[idx + 1].key);
-    if (diff < 0 && idx > 0) changeTab(TABS[idx - 1].key);
   };
 
   useEffect(() => {
@@ -327,38 +306,6 @@ const FindBarber = () => {
 
 
 
-          {/* iOS segmented control */}
-          <div
-            className="mt-2.5 relative grid grid-cols-3 gap-0.5 p-1 bg-black/[0.05] dark:bg-white/[0.06] rounded-[14px]"
-            onTouchStart={handleTabTouchStart}
-            onTouchEnd={handleTabTouchEnd}
-            style={{ touchAction: "pan-y" }}
-          >
-            {TABS.map((t) => {
-              const Icon = t.icon;
-              const isActive = activeTab === t.key;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => changeTab(t.key)}
-                  className="relative h-8 rounded-[11px] flex items-center justify-center gap-1.5 text-[13px] font-medium transition-colors"
-                  style={{ color: isActive ? "#1C1C1E" : "#8E8E93" }}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="tab-pill"
-                      transition={spring}
-                      className="absolute inset-0 bg-white dark:bg-[#3A3A3C] rounded-[11px] shadow-[0_1px_3px_rgba(0,0,0,0.12)]"
-                    />
-                  )}
-                  <span className={cn("relative flex items-center gap-1.5", isActive && "dark:text-[#F2F2F7]")}>
-                    <Icon className="w-3.5 h-3.5" />
-                    {t.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </div>
         </div>
       </StickyHeader>
