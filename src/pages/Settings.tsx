@@ -1409,6 +1409,33 @@ const Settings = () => {
                       </div>
                     </CardContent>
                   </Card>
+
+                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
+                    <CardHeader>
+                      <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Legal</CardTitle>
+                      <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                        Review our terms and privacy policy.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/terms")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Terms of Service
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/privacy")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Privacy Policy
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>

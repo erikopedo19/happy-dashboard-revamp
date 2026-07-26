@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -20,6 +21,8 @@ import {
   UserCircle2,
   LogOut,
   Trash2,
+  FileText,
+  Shield,
   ChevronLeft,
   Calendar as CalendarIcon,
   MapPin,
@@ -104,6 +107,7 @@ export function MobileSettings(props: any) {
   } = props;
 
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [panel, setPanel] = useState<Panel>(null);
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -340,6 +344,21 @@ export function MobileSettings(props: any) {
               await supabase.auth.signOut();
               window.location.href = "/login";
             }}
+          />
+        </Group>
+
+        <Group label="Legal">
+          <Row
+            icon={FileText}
+            tint="#8E8E93"
+            label="Terms of Service"
+            onClick={() => navigate("/terms")}
+          />
+          <Row
+            icon={Shield}
+            tint="#8E8E93"
+            label="Privacy Policy"
+            onClick={() => navigate("/privacy")}
           />
         </Group>
 

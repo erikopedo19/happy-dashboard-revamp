@@ -277,8 +277,8 @@ export function LoginForm() {
 
               <p className="mt-6 text-center text-[11px] leading-relaxed text-foreground/45">
                 By continuing you agree to our{" "}
-                <a className="underline-offset-2 hover:underline" href="#" data-glimm-skip>Terms</a> and{" "}
-                <a className="underline-offset-2 hover:underline" href="#" data-glimm-skip>Privacy</a>.
+                <a className="underline-offset-2 hover:underline" href="/terms" data-glimm-skip>Terms</a> and{" "}
+                <a className="underline-offset-2 hover:underline" href="/privacy" data-glimm-skip>Privacy</a>.
               </p>
             </div>
           </div>

@@ -20,6 +20,8 @@ import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import PricingSuccess from "./pages/PricingSuccess";
 import PricingFailure from "./pages/PricingFailure";
+import Terms from "./pages/Terms";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
@@ -150,6 +152,8 @@ function AnimatedRoutes() {
       <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
       <Route path="/site/:slug" element={<Microsite />} />
       <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
