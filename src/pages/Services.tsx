@@ -194,7 +194,7 @@ const Services = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
         <AppSidebar />
         <main className="flex-1 pb-28">
           <div className="max-w-3xl mx-auto px-4 pt-6 md:px-8 md:pt-10">

@@ -117,6 +117,10 @@ export const ModernAppointmentsCalendar = ({
     user
   } = useAuth();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentDay = format(now, 'yyyy-MM-dd');
   const [isLongPressing, setIsLongPressing] = useState(false);
 
   // Fetch agenda settings for dynamic time slots
@@ -225,27 +229,30 @@ export const ModernAppointmentsCalendar = ({
     return Math.ceil(serviceDuration / slotDuration);
   };
 
-  // Check if a slot is occupied by a spanning appointment from an earlier slot
-  const isSlotOccupied = (date: Date, time: string) => {
+  // Precompute all date|time slots that are spanned by an earlier appointment
+  const occupiedSlots = useMemo(() => {
+    const set = new Set<string>();
     const slotDuration = agendaSettings?.service_duration || 60;
-    const currentSlotIndex = timeSlots.indexOf(time);
-    if (currentSlotIndex === -1) return false;
-
-    // Check previous slots to see if any appointments span into this slot
-    for (let i = 0; i < currentSlotIndex; i++) {
-      const prevTime = timeSlots[i];
-      const prevAppointments = getAppointmentsForDateTime(date, prevTime);
-
-      for (const apt of prevAppointments) {
-        const span = getSlotSpan(apt);
-        const aptSlotIndex = timeSlots.indexOf(prevTime);
-        // If this appointment spans into the current slot
-        if (aptSlotIndex + span > currentSlotIndex) {
-          return true;
+    for (const [key, appts] of appointmentMap.entries()) {
+      const [dateStr, time] = key.split("|");
+      const startIndex = timeSlots.indexOf(time);
+      if (startIndex === -1) continue;
+      for (const apt of appts) {
+        const serviceDuration = apt.totalDurationMinutes || apt.service.duration;
+        const span = Math.ceil(serviceDuration / slotDuration);
+        for (let i = 1; i < span; i++) {
+          const nextIndex = startIndex + i;
+          if (nextIndex >= timeSlots.length) break;
+          set.add(`${dateStr}|${timeSlots[nextIndex]}`);
         }
       }
     }
-    return false;
+    return set;
+  }, [appointmentMap, timeSlots, agendaSettings?.service_duration]);
+
+  const isSlotOccupied = (date: Date, time: string) => {
+    const key = `${format(date, "yyyy-MM-dd")}|${time.slice(0, 5)}`;
+    return occupiedSlots.has(key);
   };
   const toggleBreakSlot = (date: Date, time: string) => {
     const key = `${format(date, 'yyyy-MM-dd')}|${time}`;
@@ -925,16 +932,16 @@ export const ModernAppointmentsCalendar = ({
 
                   {/* Day Cells */}
                   {weekDays.map(day => {
+                    const dayKey = format(day, 'yyyy-MM-dd');
                     const dayAppointments = getAppointmentsForDateTime(day, time);
                     const hasAppointments = dayAppointments.length > 0;
                     const isBreak = isBreakSlot(day, time);
-                    const isCurrentHour = isSameDay(day, new Date()) && parseInt(time.split(':')[0]) === new Date().getHours();
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const isCurrentHour = dayKey === currentDay && hours === currentHour;
                     const occupied = isSlotOccupied(day, time);
 
                     // Check if this time slot is in the past
-                    const now = new Date();
                     const slotDateTime = new Date(day);
-                    const [hours, minutes] = time.split(':').map(Number);
                     slotDateTime.setHours(hours, minutes, 0, 0);
                     const isPastSlot = slotDateTime < now;
 
@@ -951,7 +958,7 @@ export const ModernAppointmentsCalendar = ({
                     return <div
                       key={`${day.toISOString()}-${time}`}
                       className={cn(
-                        "h-[80px] border-r border-b border-white/[0.06] last:border-r-0 p-1.5 group relative transition-colors",
+                        "h-[80px] border-r border-b border-white/[0.06] last:border-r-0 p-1.5 group relative",
                         isCurrentHour && "bg-[#FF375F]/5",
                         isPastSlot && "bg-white/[0.02]",
                         !isCurrentHour && !isPastSlot && "hover:bg-white/[0.03]"
@@ -972,14 +979,14 @@ export const ModernAppointmentsCalendar = ({
 
                       {isBreak ? (
                         // Break slot
-                        <div className="w-full h-full rounded-xl bg-[#FF9500]/10 border border-[#FF9500]/20 flex items-center justify-center cursor-pointer hover:bg-[#FF9500]/15 transition-colors">
+                        <div className="w-full h-full rounded-xl bg-[#FF9500]/10 border border-[#FF9500]/20 flex items-center justify-center cursor-pointer hover:bg-[#FF9500]/15">
                           <Coffee className="h-3 w-3 text-[#FF9500]/70" />
                         </div>
                       ) : hasAppointments ? (
                         // Appointment slot - dark card with colored service dot
                         <div
                           className={cn(
-                            "w-full h-full rounded-xl bg-[#1C1C1E] border border-white/[0.08] cursor-pointer hover:bg-[#22222A] transition-colors relative overflow-hidden p-2",
+                            "w-full h-full rounded-xl bg-[#1C1C1E] border border-white/[0.08] cursor-pointer hover:bg-[#22222A] relative overflow-hidden p-2",
                             isLongPressing && longPressedId === dayAppointments[0].id && "animate-pulse"
                           )}
                           onClick={() => {
@@ -1016,7 +1023,7 @@ export const ModernAppointmentsCalendar = ({
                         <button
                           type="button"
                           onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)}
-                          className="w-full h-full rounded-xl border border-dashed border-white/[0.06] group-hover:border-white/[0.12] transition-colors"
+                          className="w-full h-full rounded-xl border border-dashed border-white/[0.06] group-hover:border-white/[0.12]"
                           title={`Book at ${time}`}
                         />
                       )}

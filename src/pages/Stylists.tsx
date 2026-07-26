@@ -273,7 +273,7 @@ const Stylists = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F5F5F7] dark:bg-[#0a0a0a] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#0A0A0C] text-white overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Mobile top bar */}

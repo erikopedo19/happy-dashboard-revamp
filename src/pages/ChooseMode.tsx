@@ -51,7 +51,7 @@ export default function ChooseMode() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#f5f5f7] dark:bg-[#0a0a0c] text-foreground flex items-center justify-center px-5 py-10">
+    <div className="relative min-h-screen w-full bg-[#0A0A0C] text-foreground flex items-center justify-center px-5 py-10">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

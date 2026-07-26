@@ -47,7 +47,7 @@ const MyBookings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
       </div>
     );
@@ -62,7 +62,7 @@ const MyBookings = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
+    <div className="min-h-screen bg-[#0A0A0C] text-white pb-28">
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5">
         <div className="max-w-3xl mx-auto px-4 pt-6 pb-4">
           <h1 className="text-[28px] leading-tight font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">

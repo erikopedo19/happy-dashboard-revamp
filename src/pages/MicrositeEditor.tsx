@@ -391,7 +391,7 @@ const ImageField = ({ url, onPick, onClear, aspect, rounded = "rounded-2xl" }: a
 const MicrositeEditor = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#f5f5f7] dark:bg-[#0a0a0c]">
+      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
         <AppSidebar />
         <main className="flex-1 pb-24 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-4 pt-8 md:px-8 md:pt-12">

@@ -99,7 +99,7 @@ const Me = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
       </div>
     );
@@ -110,7 +110,7 @@ const Me = () => {
     .split(" ").map((s: string) => s[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
+    <div className="min-h-screen bg-[#0A0A0C] text-white pb-28">
       {/* Hero */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF] via-[#5856D6] to-[#AF52DE]" />

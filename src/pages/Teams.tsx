@@ -341,7 +341,7 @@ const Teams = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-[#F5F5F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
         <AppSidebar />
         <main className="flex-1">
           <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] p-4 lg:hidden">

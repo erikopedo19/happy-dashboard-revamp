@@ -72,7 +72,7 @@ export function NotificationBell() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center hover:scale-105 transition"
+          className="relative w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center hover:scale-105 transition"
           aria-label="Notifications"
         >
           <Bell className="w-5 h-5 text-[#1C1C1E] dark:text-white" />
@@ -86,7 +86,7 @@ export function NotificationBell() {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="z-50 w-80 p-0 rounded-2xl border border-black/5 dark:border-white/10 bg-white/90 dark:bg-[#0E0E0F]/90 backdrop-blur max-h-96 overflow-hidden"
+        className="z-50 w-80 p-0 rounded-2xl border border-black/5 dark:border-white/10 bg-white/95 dark:bg-[#0E0E0F]/95 backdrop-blur-2xl shadow-2xl max-h-96 overflow-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-2"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-black/5 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur">
           <div className="font-semibold text-sm">Notifications</div>

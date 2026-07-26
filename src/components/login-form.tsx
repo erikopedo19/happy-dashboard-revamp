@@ -100,7 +100,7 @@ export function LoginForm() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="relative min-h-screen w-full bg-[#f5f5f7] dark:bg-[#0a0a0c] text-foreground">
+    <div className="relative min-h-screen w-full bg-[#0A0A0C] text-foreground">
       {/* iOS-style header */}
       <header className="relative z-10 mx-auto flex w-full max-w-[460px] items-center justify-between px-5 pt-6">
         <button
