@@ -111,7 +111,7 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
           initial={{ scale: 0.92, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="w-full max-w-sm max-h-[90vh] bg-[#15151a] rounded-3xl overflow-hidden border border-white/10 flex flex-col"
+          className="w-full max-w-sm max-h-[92dvh] bg-[#15151a] rounded-3xl overflow-hidden border border-white/10 flex flex-col"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
             <h3 className="text-sm font-semibold text-white">New story</h3>
@@ -120,14 +120,14 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="bg-black flex items-center justify-center max-h-[60vh] overflow-hidden">
+            <div className="bg-black flex items-center justify-center max-h-[55dvh] overflow-hidden">
               {file.type.startsWith("video") ? (
-                <video src={preview!} className="w-full max-h-[60vh] object-contain" controls playsInline />
+                <video src={preview!} className="w-full max-h-[55dvh] object-contain" controls playsInline />
               ) : (
-                <img src={preview!} alt="preview" className="w-full max-h-[60vh] object-contain" />
+                <img src={preview!} alt="preview" className="w-full max-h-[55dvh] object-contain" />
               )}
             </div>
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 pb-[max(env(safe-area-inset-bottom),1rem)]">
               <button
                 onClick={() => setPicking(true)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-left"

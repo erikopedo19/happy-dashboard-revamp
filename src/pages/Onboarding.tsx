@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Scissors, User as UserIcon, Users, Building2, Briefcase,
   MapPin, Calendar, ArrowRight, ArrowLeft, Check, Sparkles,
-  Link as LinkIcon, Plus, X, UserPlus,
+  Link as LinkIcon, Plus, X, UserPlus, Globe2, Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ export const ONBOARDING_STORAGE_KEY = "cutzio_onboarding_v1";
 
 export type OnboardingDraft = {
   role: "barber" | "client" | null;
+  appLanguage: "en" | "el";
   workType: "solo" | "team" | null;
   teamInviteCode: string;
   businessName: string;
@@ -42,6 +43,7 @@ export type OnboardingDraft = {
 
 const DEFAULT_DRAFT: OnboardingDraft = {
   role: null,
+  appLanguage: "en",
   workType: null,
   teamInviteCode: "",
   businessName: "",
@@ -111,9 +113,14 @@ export default function Onboarding() {
 
   // If role is preset via URL, skip the role-selection step
   const [step, setStep] = useState(presetRole ? 1 : 0);
+  const [customService, setCustomService] = useState("");
 
   useEffect(() => {
-    try { localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data)); } catch {}
+    try {
+      localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem("cutzio_app_language", data.appLanguage);
+      document.documentElement.lang = data.appLanguage;
+    } catch {}
   }, [data]);
 
   const update = <K extends keyof OnboardingDraft>(k: K, v: OnboardingDraft[K]) =>
@@ -220,6 +227,35 @@ export default function Onboarding() {
                     title="Let's get you set up"
                     subtitle="A few quick questions — no account needed yet."
                   />
+                  <div className="rounded-[22px] border border-white/[0.08] bg-[#1c1c1e] p-2 shadow-2xl shadow-black/20">
+                    <div className="flex items-center gap-2 px-2 pb-2 pt-1">
+                      <Globe2 className="h-4 w-4 text-rose-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">App language</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { value: "en", label: "English", detail: "English" },
+                        { value: "el", label: "Ελληνικά", detail: "Greek" },
+                      ] as const).map((language) => {
+                        const active = data.appLanguage === language.value;
+                        return (
+                          <button
+                            key={language.value}
+                            type="button"
+                            onClick={() => update("appLanguage", language.value)}
+                            className={cn(
+                              "relative rounded-2xl px-3 py-3 text-left transition-all active:scale-[0.98]",
+                              active ? "bg-white text-black shadow-sm" : "bg-white/[0.05] text-white"
+                            )}
+                          >
+                            <span className="block text-[14px] font-semibold">{language.label}</span>
+                            <span className={cn("text-[10px]", active ? "text-black/45" : "text-white/35")}>{language.detail}</span>
+                            {active && <Check className="absolute right-3 top-3 h-4 w-4 text-rose-500" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <div className="grid gap-3">
                     <RoleCard
                       active={data.role === "barber"}
@@ -337,71 +373,120 @@ export default function Onboarding() {
 
               {!isClient && step === 4 && (
                 <>
-                  <Header title="Services & hours" subtitle="Pick what you offer and when you work." />
-                  <div className="space-y-3">
-                    <Label className="text-xs uppercase tracking-wider text-white/50">Services</Label>
-                    <div className="flex flex-wrap gap-2">
+                  <Header title="Set up your bookings" subtitle="Add services and choose when clients can book." />
+                  <div className="rounded-[24px] border border-white/[0.08] bg-[#1c1c1e] p-4 shadow-2xl shadow-black/20">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-[15px] font-semibold text-white">Your services</p>
+                        <p className="text-[11px] text-white/40">Choose a suggestion or create your own</p>
+                      </div>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/15 text-rose-400">
+                        <Scissors className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        value={customService}
+                        onChange={(e) => setCustomService(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter") return;
+                          e.preventDefault();
+                          const service = customService.trim();
+                          if (service && !data.services.includes(service)) update("services", [...data.services, service]);
+                          setCustomService("");
+                        }}
+                        placeholder="Create a service"
+                        className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-black/25 px-3 text-[14px] text-white outline-none placeholder:text-white/30 focus:border-rose-500/60"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const service = customService.trim();
+                          if (service && !data.services.includes(service)) update("services", [...data.services, service]);
+                          setCustomService("");
+                        }}
+                        disabled={!customService.trim()}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white disabled:opacity-35 active:scale-95"
+                        aria-label="Add service"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
                       {PRESET_SERVICES.map((s) => {
                         const active = data.services.includes(s);
                         return (
                           <button
                             key={s}
                             type="button"
-                            onClick={() =>
-                              update("services", active ? data.services.filter((x) => x !== s) : [...data.services, s])
-                            }
+                            onClick={() => update("services", active ? data.services.filter((x) => x !== s) : [...data.services, s])}
                             className={cn(
-                              "rounded-full border px-4 py-2 text-xs font-medium transition-all active:scale-95",
-                              active
-                                ? "border-transparent bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
-                                : "border-white/10 bg-white/5 text-white/60 hover:text-white"
+                              "rounded-full border px-3 py-2 text-[11px] font-semibold transition-all active:scale-95",
+                              active ? "border-rose-400/40 bg-rose-500 text-white" : "border-white/[0.08] bg-white/[0.05] text-white/60"
                             )}
                           >
-                            {s}
+                            {active && <Check className="mr-1 inline h-3 w-3" />}{s}
                           </button>
                         );
                       })}
                     </div>
+                    {data.services.some((service) => !PRESET_SERVICES.includes(service)) && (
+                      <div className="mt-3 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">
+                        {data.services.filter((service) => !PRESET_SERVICES.includes(service)).map((service) => (
+                          <button
+                            key={service}
+                            type="button"
+                            onClick={() => update("services", data.services.filter((item) => item !== service))}
+                            className="flex items-center gap-1 rounded-full bg-white/[0.08] px-3 py-2 text-[11px] font-medium text-white"
+                          >
+                            {service}<X className="h-3 w-3 text-white/50" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-3 pt-2">
-                    <Label className="text-xs uppercase tracking-wider text-white/50 flex items-center gap-2">
-                      <Calendar className="h-4 w-4" /> Working days
-                    </Label>
-                    <div className="grid grid-cols-7 gap-2">
+                  <div className="rounded-[24px] border border-white/[0.08] bg-[#1c1c1e] p-4 shadow-2xl shadow-black/20">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-[15px] font-semibold text-white">Booking hours</p>
+                        <p className="text-[11px] text-white/40">Your weekly availability</p>
+                      </div>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400">
+                        <Calendar className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1.5">
                       {DAYS.map((d) => {
                         const active = data.workingDays.includes(d.n);
                         return (
                           <button
                             key={d.n}
                             type="button"
-                            onClick={() =>
-                              update(
-                                "workingDays",
-                                active ? data.workingDays.filter((x) => x !== d.n) : [...data.workingDays, d.n].sort()
-                              )
-                            }
+                            onClick={() => update("workingDays", active ? data.workingDays.filter((x) => x !== d.n) : [...data.workingDays, d.n].sort())}
                             className={cn(
-                              "h-10 rounded-xl text-[11px] font-semibold transition-all active:scale-95",
-                              active
-                                ? "bg-gradient-to-r from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-900/30"
-                                : "bg-white/5 text-white/50 border border-white/10"
+                              "flex aspect-square items-center justify-center rounded-full text-[10px] font-semibold transition-all active:scale-90",
+                              active ? "bg-white text-black shadow-sm" : "bg-white/[0.05] text-white/35"
                             )}
                           >
-                            {d.l}
+                            {d.l.slice(0, 1)}
                           </button>
                         );
                       })}
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <Field label="Opens">
-                      <DarkInput type="time" value={data.startHour} onChange={(e) => update("startHour", e.target.value)} />
-                    </Field>
-                    <Field label="Closes">
-                      <DarkInput type="time" value={data.endHour} onChange={(e) => update("endHour", e.target.value)} />
-                    </Field>
+                    <div className="mt-4 rounded-2xl bg-black/20 px-3">
+                      <label className="flex min-h-14 items-center gap-3 border-b border-white/[0.06]">
+                        <Clock className="h-4 w-4 text-green-400" />
+                        <span className="flex-1 text-[13px] font-medium text-white">Opens</span>
+                        <input type="time" value={data.startHour} onChange={(e) => update("startHour", e.target.value)} className="bg-transparent text-[15px] font-semibold text-white outline-none [color-scheme:dark]" />
+                      </label>
+                      <label className="flex min-h-14 items-center gap-3">
+                        <Clock className="h-4 w-4 text-rose-400" />
+                        <span className="flex-1 text-[13px] font-medium text-white">Closes</span>
+                        <input type="time" value={data.endHour} onChange={(e) => update("endHour", e.target.value)} className="bg-transparent text-[15px] font-semibold text-white outline-none [color-scheme:dark]" />
+                      </label>
+                    </div>
+                    {data.startHour >= data.endHour && <p className="mt-2 text-[11px] text-rose-400">Closing time must be later than opening time.</p>}
                   </div>
                 </>
               )}
