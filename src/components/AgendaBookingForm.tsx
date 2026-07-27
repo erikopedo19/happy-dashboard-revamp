@@ -351,13 +351,11 @@ const AgendaBookingForm = ({
               </div>
             </div>
           </div>
-          <Button
+          <BookingButton
+            text={copy.bookAnother}
             onClick={() => window.location.reload()}
-            className="h-12 px-8 rounded-full font-semibold text-white"
-            style={buttonStyle}
-          >
-            {copy.bookAnother}
-          </Button>
+            className="w-auto px-8"
+          />
         </motion.div>
       </div>
     );
