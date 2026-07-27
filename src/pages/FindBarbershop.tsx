@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { Seo } from "@/components/Seo";
+import { NotificationBell } from "@/components/NotificationBell";
 
 type SoloShop = {
   kind: "solo";
@@ -175,9 +176,12 @@ const FindBarbershop = () => {
                 </p>
               </div>
 
-              <div className="hidden rounded-3xl bg-[#F2F2F7] px-4 py-3 text-right dark:bg-[#2C2C2E] sm:block">
-                <div className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{shops.length}</div>
-                <div className="text-[11px] uppercase tracking-wide text-[#8E8E93]">matches</div>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <div className="hidden rounded-3xl bg-[#F2F2F7] px-4 py-3 text-right dark:bg-[#2C2C2E] sm:block">
+                  <div className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{shops.length}</div>
+                  <div className="text-[11px] uppercase tracking-wide text-[#8E8E93]">matches</div>
+                </div>
               </div>
             </div>
 

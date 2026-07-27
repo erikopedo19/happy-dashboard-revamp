@@ -173,6 +173,7 @@ const HeaderActions = () => {
   // Pages that already render their own notification bell in the header
   const hasOwnBell =
     location.pathname === "/admin" ||
+    location.pathname === "/find-barbershop" ||
     (isMobile && location.pathname.startsWith("/find-barber"));
   if (hasOwnBell) return null;
   return (
