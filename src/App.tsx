@@ -164,6 +164,8 @@ function AnimatedRoutes() {
 const HeaderActions = () => {
   const { user } = useAuth();
   if (!user) return null;
+  const role = (user?.user_metadata as any)?.role;
+  if (role !== "client") return null;
   return (
     <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50">
       <NotificationBell />
