@@ -5,6 +5,7 @@ import { GlimmProvider } from "glimm/react";
 import { accentChain } from "glimm";
 import { GlimmIntercept } from "./components/GlimmIntercept";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Custom blue → rose → purple sweep palette
 const SWEEP_PALETTE = accentChain(["#2E70FF", "#FF3D7F", "#D33CFF"]);

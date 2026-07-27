@@ -165,7 +165,7 @@ export function AppSidebar() {
         {isMobile && (
           ((user?.user_metadata as any)?.role === "client"
             ? <SidebarTrigger className="lg:hidden mb-2" />
-            : <NotificationBell className="mb-2" />
+            : <div className="mb-2"><NotificationBell /></div>
           )
         )}
         {sidebar.state !== "collapsed" && (
