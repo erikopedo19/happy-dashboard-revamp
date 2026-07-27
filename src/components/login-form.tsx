@@ -80,6 +80,8 @@ export function LoginForm() {
         toast({ title: "Account created", description: "Check your email to verify." });
         switchMode("signin");
       }
+    } catch (err: any) {
+      toast({ title: "Something went wrong", description: err?.message || "Please try again.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -91,10 +93,15 @@ export function LoginForm() {
       return;
     }
     setResetting(true);
-    const { error } = await resetPassword(email.trim());
-    setResetting(false);
-    if (error) toast({ title: "Reset failed", description: error.message, variant: "destructive" });
-    else toast({ title: "Reset email sent", description: "Check your inbox." });
+    try {
+      const { error } = await resetPassword(email.trim());
+      if (error) toast({ title: "Reset failed", description: error.message, variant: "destructive" });
+      else toast({ title: "Reset email sent", description: "Check your inbox." });
+    } catch (err: any) {
+      toast({ title: "Something went wrong", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setResetting(false);
+    }
   };
 
   const isSignup = mode === "signup";

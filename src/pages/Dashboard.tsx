@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDashboardIOS } from "@/components/MobileDashboardIOS";
 import { OnboardingSetup } from "@/components/OnboardingSetup";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { PWAInstallDrawer } from "@/components/PWAInstallDrawer";
+import { NotificationBell } from "@/components/NotificationBell";
 
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -202,7 +203,7 @@ function MobileDashboard() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="h-10 w-10 rounded-full bg-white/[0.06] border border-white/[0.08] text-white/70 hover:bg-white/[0.1]" />
+          <NotificationBell />
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-500 to-amber-400 flex items-center justify-center text-white text-sm font-bold">
             {(profileInitial || "C")}
           </div>

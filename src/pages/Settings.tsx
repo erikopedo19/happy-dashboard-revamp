@@ -23,6 +23,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { NotificationBell } from "@/components/NotificationBell";
 import { MobileDock } from "@/components/MobileDock";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -568,14 +569,16 @@ const Settings = () => {
                 </motion.h1>
               </div>
 
-              <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.02 }}>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending || isLoading}
-                  className="rounded-full h-9 px-5 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
-                >
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.02 }}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => saveMutation.mutate()}
+                    disabled={saveMutation.isPending || isLoading}
+                    className="rounded-full h-9 px-5 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
+                  >
                   {saveMutation.isPending ? (
                     <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
                   ) : (
@@ -584,6 +587,7 @@ const Settings = () => {
                   {saveMutation.isPending ? "Saving" : "Save"}
                 </Button>
               </motion.div>
+            </div>
             </div>
           </div>
 

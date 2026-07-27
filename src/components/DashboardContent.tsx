@@ -10,6 +10,7 @@ import { format, parseISO, isToday, subDays, isAfter, addDays } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -212,9 +213,7 @@ export function DashboardContent() {
                   className="pl-10 h-9 bg-[#22222A] border-white/[0.06] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#f43f5e]/30"
                 />
               </div>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white/70 hover:text-white hover:bg-[#22222A]">
-                <Bell className="h-4 w-4" />
-              </Button>
+              <NotificationBell />
               <Button
                 onClick={() => navigate('/agenda')}
                 className="h-9 rounded-xl bg-[#f43f5e] hover:bg-[#f43f5e]/90 text-white text-sm font-semibold px-4 shadow-none"
