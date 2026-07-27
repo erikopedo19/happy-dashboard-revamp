@@ -81,7 +81,7 @@ function MapPoster() {
   }
   return (
     <img
-      src="/images/map-poster.jpg"
+      src="/images/map-poster.png"
       alt="Map feature coming soon"
       className="w-full rounded-[24px] object-cover min-h-[62vh] max-h-[620px]"
       onError={() => setMissing(true)}
