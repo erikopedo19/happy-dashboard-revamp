@@ -501,7 +501,7 @@ const AgendaBookingForm = ({
             {/* Right panel — booking flow */}
             <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-none md:rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
               {step === "service" && (
-                <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="mb-6">
                     <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
                     <h2 className="text-2xl font-semibold text-white">{copy.service}</h2>
@@ -563,7 +563,7 @@ const AgendaBookingForm = ({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={spring}
-                      className="mt-6 pt-4 border-t border-white/[0.06]"
+                      className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]"
                     >
                       <BookingButton
                         text={copy.continue}
@@ -576,7 +576,7 @@ const AgendaBookingForm = ({
               )}
 
               {step === "datetime" && selectedService && (
-                <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 2 of 3</p>
@@ -732,12 +732,13 @@ const AgendaBookingForm = ({
                         )}
                       </div>
                       {selectedDate && availableTimeSlots.length > 0 && (
-                        <BookingButton
-                          text={copy.continue}
-                          onClick={handleContinue}
-                          disabled={!selectedTime}
-                          className="mt-4"
-                        />
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
+                          <BookingButton
+                            text={copy.continue}
+                            onClick={handleContinue}
+                            disabled={!selectedTime}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
