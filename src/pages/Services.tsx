@@ -234,66 +234,76 @@ const Services = () => {
                     New
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[440px] rounded-2xl">
-                  <DialogHeader>
-                    <DialogTitle>{editingService ? "Edit Service" : "New Service"}</DialogTitle>
-                    <DialogDescription>
-                      {editingService ? "Update your service details." : "Add a new service to your menu."}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="name">Name</Label>
-                      <Input id="name" value={formData.name}
-                        onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                        placeholder="e.g. Haircut" required className="h-11 rounded-xl" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="duration">Duration (min)</Label>
-                        <Input id="duration" type="number" min={5} max={480} step={5}
-                          value={formData.duration}
-                          onChange={(e) => setFormData((p) => ({ ...p, duration: e.target.value }))}
-                          required className="no-spinner h-11 rounded-xl" />
+                <DialogContent className="sm:max-w-[440px] rounded-[28px] border border-white/[0.08] bg-[#15151A] p-0 overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 360, damping: 34 }}
+                    className="p-6"
+                  >
+                    <DialogHeader className="mb-5">
+                      <DialogTitle className="text-xl font-bold text-white">{editingService ? "Edit Service" : "New Service"}</DialogTitle>
+                      <DialogDescription className="text-[#8E8E93]">
+                        {editingService ? "Update your service details." : "Add a new service to your menu."}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Name</Label>
+                        <Input id="name" value={formData.name}
+                          onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                          placeholder="e.g. Haircut" required
+                          className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="price">Price ($)</Label>
-                        <Input id="price" type="number" min={0} step={0.5}
-                          value={formData.price}
-                          onChange={(e) => setFormData((p) => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
-                          className="h-11 rounded-xl" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="duration" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Duration (min)</Label>
+                          <Input id="duration" type="number" min={5} max={480} step={5}
+                            value={formData.duration}
+                            onChange={(e) => setFormData((p) => ({ ...p, duration: e.target.value }))}
+                            required
+                            className="no-spinner h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="price" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Price ({currencySymbol})</Label>
+                          <Input id="price" type="number" min={0} step={0.5}
+                            value={formData.price}
+                            onChange={(e) => setFormData((p) => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
+                            className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Icon</Label>
-                      <IconPicker value={formData.icon}
-                        onChange={(icon) => setFormData((p) => ({ ...p, icon }))} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Color</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {PALETTE.map((c) => (
-                          <button key={c.value} type="button"
-                            onClick={() => setFormData((p) => ({ ...p, color: c.value }))}
-                            aria-label={c.label}
-                            className={cn(
-                              "w-9 h-9 rounded-full transition-transform",
-                              formData.color === c.value ? "ring-2 ring-offset-2 ring-[#1C1C1E] dark:ring-white scale-105" : "hover:scale-105"
-                            )}
-                            style={{ background: c.hex }}
-                          />
-                        ))}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Icon</Label>
+                        <IconPicker value={formData.icon}
+                          onChange={(icon) => setFormData((p) => ({ ...p, icon }))} />
                       </div>
-                    </div>
-                    <DialogFooter className="pt-2">
-                      <Button type="button" variant="outline" onClick={closeDialog} className="rounded-full">
-                        Cancel
-                      </Button>
-                      <Button type="submit" className="rounded-full text-white border-0" style={{ background: ROSE }}>
-                        {editingService ? "Save" : "Create"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Color</Label>
+                        <div className="flex flex-wrap gap-2.5">
+                          {PALETTE.map((c) => (
+                            <button key={c.value} type="button"
+                              onClick={() => setFormData((p) => ({ ...p, color: c.value }))}
+                              aria-label={c.label}
+                              className={cn(
+                                "w-10 h-10 rounded-full transition-transform ring-2 ring-offset-2 ring-offset-[#15151A]",
+                                formData.color === c.value ? "ring-white scale-110" : "ring-transparent hover:scale-105"
+                              )}
+                              style={{ background: c.hex }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <DialogFooter className="pt-2 gap-3">
+                        <Button type="button" variant="outline" onClick={closeDialog}
+                          className="h-12 rounded-[18px] flex-1 border-white/10 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-12 rounded-[18px] flex-1 text-white border-0" style={{ background: ROSE }}>
+                          {editingService ? "Save" : "Create"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </motion.div>
                 </DialogContent>
               </Dialog>
             </div>
