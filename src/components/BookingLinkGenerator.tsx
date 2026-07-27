@@ -280,14 +280,6 @@ const BookingLinkGenerator = () => {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => navigate('/booking-page?tab=qr')}
-        disabled={!bookingUrl}
-        className="w-full h-12 rounded-2xl bg-white/[0.05] border border-white/10 text-white text-[14px] font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-40"
-      >
-        <QrCode className="h-4 w-4" /> QR Code Flyer
-      </button>
 
       {/* Slug editor */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
@@ -339,47 +331,6 @@ const BookingLinkGenerator = () => {
         )}
       </div>
 
-      {/* Options */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 divide-y divide-white/5 overflow-hidden">
-        <OptionRow
-          label="Ask phone number"
-          checked={askPhone}
-          onChange={setAskPhone}
-        />
-        <OptionRow
-          label="Ask notes"
-          checked={askNotes}
-          onChange={setAskNotes}
-        />
-      </div>
-
-      {/* Language */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3 space-y-2">
-        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40 px-1">
-          Language
-        </Label>
-        <div className="grid grid-cols-3 gap-2">
-          {LANGS.map((lang) => {
-            const active = bookingLocale === lang.value;
-            return (
-              <button
-                key={lang.value}
-                type="button"
-                onClick={() => setBookingLocale(lang.value)}
-                className={cn(
-                  "h-10 rounded-xl text-[12.5px] font-medium border transition flex items-center justify-center gap-1.5",
-                  active
-                    ? "bg-white text-black border-white"
-                    : "bg-white/[0.03] text-white/60 border-white/10 hover:bg-white/[0.06]"
-                )}
-              >
-                <span className="text-sm leading-none">{lang.flag}</span>
-                {lang.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Theme */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
