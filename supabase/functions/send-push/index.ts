@@ -108,6 +108,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "no recent matching notification" }), { status: 401, headers: corsHeaders });
     }
 
+    // Pick the click-through URL based on the recipient's role.
+    let url = "/admin";
+    try {
+      const { data: profile } = await sb.from("profiles").select("role, booking_link").eq("id", user_id).maybeSingle();
+      if (profile?.role === "client") {
+        url = "/my-bookings";
+      } else if (profile?.booking_link) {
+        url = "/admin";
+      }
+    } catch (_) {
+      // keep default
+    }
+
     const vapidPub = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPriv = Deno.env.get("VAPID_PRIVATE_KEY");
     const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:xmaxerikopedo19@gmail.com";
@@ -122,7 +135,7 @@ Deno.serve(async (req) => {
         title,
         body,
         tag: appointment_id ?? type ?? "booking",
-        url: "/admin",
+        url,
       });
       webResults = await Promise.all((subs ?? []).map(async (s: any) => {
         try {
