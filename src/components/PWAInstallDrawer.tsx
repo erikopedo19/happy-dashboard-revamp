@@ -57,7 +57,7 @@ export function PWAInstallDrawer() {
     }
   };
 
-  if (!platform) return null;
+  if (!platform || dismissed) return null;
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
