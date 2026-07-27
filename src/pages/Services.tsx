@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -64,6 +65,20 @@ const Services = () => {
   const requireAuth = useRequireAuth();
   const queryClient = useQueryClient();
   const { isPremium } = usePremium();
+
+  const { data: profile } = useQuery<{ currency?: string | null } | null>({
+    queryKey: ["services-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await db.from("profiles").select("currency").eq("id", user.id).maybeSingle();
+      if (error) throw error;
+      return data as { currency?: string | null } | null;
+    },
+    enabled: !!user,
+  });
+
+  const currency = profile?.currency || "EUR";
+  const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
 
   const { data: services = [], isLoading } = useQuery<Service[]>({
     queryKey: ["services", user?.id],
@@ -285,22 +300,25 @@ const Services = () => {
 
             {/* Empty state */}
             {!isLoading && services.length === 0 && (
-              <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-10 text-center">
-                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                className="rounded-[28px] bg-[#15151A] border border-white/[0.08] p-10 text-center shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
+              >
+                <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
                   style={{ background: `${ROSE}15` }}>
-                  <Scissors className="h-6 w-6" style={{ color: ROSE }} />
+                  <Scissors className="h-7 w-7" style={{ color: ROSE }} />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-white mb-1">
-                  No services yet
-                </h3>
-                <p className="text-sm text-[#8E8E93] mb-5">
+                <h3 className="text-xl font-bold text-white mb-1">No services yet</h3>
+                <p className="text-[15px] text-[#8E8E93] mb-6">
                   Create your first service to start taking bookings.
                 </p>
                 <Button onClick={() => setIsDialogOpen(true)}
-                  className="rounded-full text-white border-0" style={{ background: ROSE }}>
+                  className="h-12 rounded-[18px] bg-white text-black text-[14px] font-semibold px-6 hover:bg-white/90 border-0">
                   <Plus className="h-4 w-4 mr-1.5" /> Add Service
                 </Button>
-              </div>
+              </motion.div>
             )}
 
             {/* Loading */}
