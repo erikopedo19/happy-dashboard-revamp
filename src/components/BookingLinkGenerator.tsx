@@ -280,14 +280,6 @@ const BookingLinkGenerator = () => {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => navigate('/booking-page?tab=qr')}
-        disabled={!bookingUrl}
-        className="w-full h-12 rounded-2xl bg-white/[0.05] border border-white/10 text-white text-[14px] font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-40"
-      >
-        <QrCode className="h-4 w-4" /> QR Code Flyer
-      </button>
 
       {/* Slug editor */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
