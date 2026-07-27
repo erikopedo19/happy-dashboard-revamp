@@ -16,8 +16,8 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -146,7 +146,7 @@ export function MobileDashboardIOS() {
             <h1 className="mt-0.5 truncate text-[29px] font-bold tracking-[-0.035em]">Hi, {greetName}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <SidebarTrigger className="h-11 w-11 rounded-full border-0 bg-[#1C1C1E] text-white shadow-none hover:bg-[#2C2C2E]" />
+            <NotificationBell />
             <button
               type="button"
               aria-label="Open profile settings"
