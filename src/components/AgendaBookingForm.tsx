@@ -93,7 +93,7 @@ const AgendaBookingForm = ({
   const buttonStyle = isPremiumTheme
     ? { backgroundColor: accentColor, boxShadow: `0 12px 32px -8px ${accentColor}` }
     : { backgroundColor: accentColor };
-  const buttonClass = "w-full h-12 rounded-full font-semibold text-white border-0 flex items-center justify-center gap-2";
+  const buttonClass = "w-full h-12 rounded-[18px] font-semibold text-white border-0 flex items-center justify-center gap-2";
 
   const BookingButton = ({
     text,
@@ -369,19 +369,19 @@ const AgendaBookingForm = ({
   const spring = { type: "spring" as const, stiffness: 380, damping: 34 };
 
   const MobileSummary = () => (
-    <div className="lg:hidden mb-4 px-4 pt-4">
-      <div className="rounded-3xl bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-        <div className="h-32 w-full relative">
+    <div className="lg:hidden mb-5 px-4 pt-4">
+      <div className="rounded-[28px] bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+        <div className="h-28 w-full relative">
           {bannerUrl ? (
             <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}40 0%, #E5E5EA 100%)` }} />
+            <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
         </div>
-        <div className="px-4 pb-4 -mt-8 relative">
-          <div className="flex items-end gap-3 mb-3">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden ring-4 ring-[#141416] bg-[#2C2C2E]">
+        <div className="px-4 pb-5 -mt-7 relative">
+          <div className="flex items-end gap-3 mb-4">
+            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-[#141416] bg-[#2C2C2E]">
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
             <div className="pb-1 min-w-0">
@@ -397,11 +397,7 @@ const AgendaBookingForm = ({
           </div>
 
           {selectedService && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-[#1C1C1E] border border-white/[0.06] p-4 space-y-3"
-            >
+            <div className="rounded-[20px] bg-[#1C1C1E] border border-white/[0.06] p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
@@ -432,7 +428,7 @@ const AgendaBookingForm = ({
                 <span className="text-sm font-medium text-white">{copy.total}</span>
                 <span className="text-lg font-bold text-white">€{totalPrice}</span>
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
@@ -533,35 +529,39 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-none md:rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-t-[32px] md:rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
               {step === "service" && (
-                <div className="h-full flex flex-col pb-24 sm:pb-0">
+                <div className="h-full flex flex-col pb-28 sm:pb-0">
                   <div className="mb-6">
-                    <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
-                    <h2 className="text-2xl font-semibold text-white">{copy.service}</h2>
+                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#8E8E93] font-semibold mb-2">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
+                    <h2 className="text-[28px] font-semibold tracking-tight text-white">{copy.service}</h2>
                   </div>
-                  <div className="grid gap-3">
-                    {services.map((service, i) => {
+                  <div className="grid gap-4">
+                    {services.map((service) => {
                       const active = selectedServiceIds.includes(service.id);
+                      const swatch = service.color || accentColor;
                       return (
-                        <motion.button
+                        <button
                           key={service.id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ ...spring, delay: i * 0.04 }}
-                          whileTap={{ scale: 0.98 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-4 rounded-2xl border text-left transition-colors bg-[#1a1a1d]",
+                            "w-full p-5 rounded-[24px] border text-left transition-all bg-[#1C1C1E]",
                             active
                               ? "border-transparent"
-                              : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#1f1f22]"
+                              : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#232326]"
                           )}
-                          style={active ? { borderColor: `${accentColor}60`, backgroundColor: `${accentColor}15` } : {}}
+                          style={active ? { borderColor: `${swatch}45`, backgroundColor: `${swatch}12` } : {}}
                         >
-                          <div className="flex justify-between items-start gap-4">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner"
+                              style={{ backgroundColor: swatch }}
+                            />
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-white text-[15px]">{service.name}</p>
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="font-semibold text-white text-[16px]">{service.name}</p>
+                                <p className="text-lg font-bold text-white tabular-nums">€{service.price}</p>
+                              </div>
                               {service.description && (
                                 <p className="text-sm text-[#8E8E93] mt-1 line-clamp-2">{service.description}</p>
                               )}
@@ -570,40 +570,23 @@ const AgendaBookingForm = ({
                                 <span>{service.duration} mins</span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <AnimatePresence>
-                                {active && (
-                                  <motion.div
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0, opacity: 0 }}
-                                    transition={spring}
-                                    className="w-5 h-5 rounded-full flex items-center justify-center text-white"
-                                    style={{ backgroundColor: accentColor }}
-                                  >
-                                    <Check className="w-3 h-3" />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                              <p className="text-lg font-bold text-white tabular-nums">€{service.price}</p>
-                            </div>
+                            {active && (
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0" style={{ backgroundColor: accentColor }}>
+                                <Check className="w-3.5 h-3.5" />
+                              </div>
+                            )}
                           </div>
-                        </motion.button>
+                        </button>
                       );
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={spring}
-                      className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]"
-                    >
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
                       <BookingButton
                         text={copy.continue}
                         onClick={handleServiceContinue}
                       />
-                    </motion.div>
+                    </div>
                   )}
 
                 </div>
