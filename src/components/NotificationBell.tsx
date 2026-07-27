@@ -52,8 +52,9 @@ export function NotificationBell() {
     };
     load();
 
-    const channel = (supabase as any)
-      .channel(`notif:${user.id}`)
+    const uid = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    const channel = (supabase as any).channel(`notif:${user.id}:${uid}`);
+    channel
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         (payload: any) => {
@@ -66,7 +67,8 @@ export function NotificationBell() {
               .catch(() => {});
           }
         }
-      ).subscribe();
+      )
+      .subscribe();
 
     return () => { active = false; (supabase as any).removeChannel(channel); };
   }, [user, hidden]);
