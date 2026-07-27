@@ -161,6 +161,7 @@ function AnimatedRoutes() {
       <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </PageTransition>
   );
 }
 
