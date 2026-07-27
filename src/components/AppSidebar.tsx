@@ -1,5 +1,6 @@
 import { Calendar, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark, Crown, AlertCircle } from "lucide-react";
 import logoMark from "@/assets/logo-mark.webp";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   Sidebar,
   SidebarContent,
@@ -161,7 +162,12 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className="p-2 border-b border-sidebar-border">
-        {isMobile && <SidebarTrigger className="lg:hidden mb-2" />}
+        {isMobile && (
+          ((user?.user_metadata as any)?.role === "client"
+            ? <SidebarTrigger className="lg:hidden mb-2" />
+            : <NotificationBell className="mb-2" />
+          )
+        )}
         {sidebar.state !== "collapsed" && (
           <div className="px-2 py-2 rounded-xl bg-sidebar-accent/50 border border-sidebar-border transition-all duration-200 flex items-center gap-2 min-h-[42px]">
             <img src={logoMark} alt="Logo" className="h-8 w-8 rounded-lg object-contain shrink-0" />
