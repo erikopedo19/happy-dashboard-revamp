@@ -14,9 +14,15 @@ export function PushToggle() {
     if (busy) return;
     setBusy(true);
     if (next) {
+      if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+        toast({ title: "Notifications blocked", description: "Enable notifications in your browser/site settings to receive alerts." });
+        setBusy(false);
+        return;
+      }
       const r = await enableBookingPush();
       if (!r.ok) {
-        toast({ title: "Couldn't enable push", description: r.reason, variant: "destructive" });
+        const isPermission = (r.reason || "").toLowerCase().includes("permission") || (r.reason || "").toLowerCase().includes("blocked");
+        toast({ title: isPermission ? "Notifications blocked" : "Couldn't enable push", description: r.reason, variant: isPermission ? "default" : "destructive" });
       } else {
         setEnabled(true);
         toast({ title: "Push enabled", description: "You'll get an alert for new bookings." });

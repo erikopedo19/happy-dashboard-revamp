@@ -550,8 +550,6 @@ const Settings = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-
-        <SidebarProvider defaultOpen={!isMobile}>
           <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] text-[#1C1C1E] dark:text-[#F2F2F7] overflow-hidden relative">
         <AppSidebar />
 
