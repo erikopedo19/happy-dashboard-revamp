@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BarbershopMap } from "@/components/BarbershopMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,7 +26,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { ClientMobileDockInner } from "@/components/ClientMobileDock";
 import { Seo } from "@/components/Seo";
 import { NotificationBell } from "@/components/NotificationBell";
 
@@ -65,6 +64,30 @@ type ShopTypeFilter = "all" | "solo" | "team";
 type ShopSort = "distance" | "rating" | "name";
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
+
+function MapPoster() {
+  const [missing, setMissing] = useState(false);
+  if (missing) {
+    return (
+      <div className="flex min-h-[62vh] max-h-[620px] flex-col items-center justify-center rounded-[24px] bg-gradient-to-br from-pink-500 via-rose-500 to-amber-400 p-6 text-center text-white">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20">
+          <MapPin className="h-8 w-8" />
+        </div>
+        <h2 className="text-3xl font-black tracking-tight">MAP FEATURE</h2>
+        <p className="mt-2 text-lg font-semibold uppercase tracking-widest">Coming Soon</p>
+        <p className="mt-4 max-w-xs text-sm text-white/80">A brand new map experience for finding the best barbershops near you.</p>
+      </div>
+    );
+  }
+  return (
+    <img
+      src="/images/map-poster.jpg"
+      alt="Map feature coming soon"
+      className="w-full rounded-[24px] object-cover min-h-[62vh] max-h-[620px]"
+      onError={() => setMissing(true)}
+    />
+  );
+}
 
 const FindBarbershop = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -298,13 +321,7 @@ const FindBarbershop = () => {
 
           <div className="overflow-hidden rounded-[28px] border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-[#1C1C1E]">
             <div className="p-3 sm:p-4">
-              <BarbershopMap
-                barbershops={mapPins as any}
-                userLocation={userLocation || undefined}
-                height="min(62vh, 620px)"
-                showControls={false}
-                onBarbershopClick={(shop: any) => setSelectedId(shop.id)}
-              />
+              <MapPoster />
             </div>
           </div>
 
@@ -489,7 +506,7 @@ const FindBarbershop = () => {
         </DrawerContent>
       </Drawer>
 
-      <ClientMobileDock />
+      <ClientMobileDockInner />
     </div>
   );
 };

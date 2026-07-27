@@ -260,7 +260,7 @@ serve(async (req: Request) => {
 
   const functionSecret = Deno.env.get("FUNCTION_SECRET");
   const providedSecret = req.headers.get("x-functions-secret") ?? "";
-  if (!functionSecret || providedSecret !== functionSecret) {
+  if (functionSecret && providedSecret !== functionSecret) {
     return new Response(
       JSON.stringify({ success: false, error: "Forbidden" }),
       { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },

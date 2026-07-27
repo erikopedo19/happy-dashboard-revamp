@@ -308,14 +308,19 @@ const AgendaBookingForm = ({
     }
   };
 
+  const handleBookAnother = () => {
+    form.reset();
+    setSelectedDate(undefined);
+    setSelectedTime("");
+    setSelectedStylistId("");
+    setSubmitError(null);
+    setStep("service");
+  };
+
   if (step === "success") {
     return (
       <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center p-4 md:p-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md text-center"
-        >
+        <div className="w-full max-w-md text-center">
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
             style={{ backgroundColor: accentColor }}
@@ -330,7 +335,7 @@ const AgendaBookingForm = ({
               ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "es" ? "Tu reserva se ha modificado." : "Your appointment has been rescheduled successfully.")
               : copy.confirmation}
           </p>
-          <div className="rounded-3xl bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
+          <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
             {selectedServices.map((service, index) => (
               <div key={service.id} className={cn("flex items-center gap-4", index > 0 && "pt-4 border-t border-white/10 mt-4")}>
                 <img src={avatarUrl} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
@@ -353,10 +358,10 @@ const AgendaBookingForm = ({
           </div>
           <BookingButton
             text={copy.bookAnother}
-            onClick={() => window.location.reload()}
+            onClick={handleBookAnother}
             className="w-auto px-8"
           />
-        </motion.div>
+        </div>
       </div>
     );
   }

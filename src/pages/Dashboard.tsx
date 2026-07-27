@@ -3,11 +3,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDashboardIOS } from "@/components/MobileDashboardIOS";
-import { FirstLoginOnboarding } from "@/components/FirstLoginOnboarding";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { PWAInstallDrawer } from "@/components/PWAInstallDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
-
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,8 +15,12 @@ import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, is
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, lazy, Suspense } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+
+const FirstLoginOnboarding = lazy(() =>
+  import("@/components/FirstLoginOnboarding").then((module) => ({ default: module.FirstLoginOnboarding }))
+);
 
 const db = supabase as any;
 
@@ -72,7 +74,9 @@ const Dashboard = () => {
         <main className="relative flex-1 bg-[#0A0A0C] text-white flex flex-col overflow-hidden">
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
             {showOnboarding ? (
-              <FirstLoginOnboarding onComplete={() => {}} />
+              <Suspense fallback={<div className="flex-1 bg-[#0A0A0C]" />}>
+                <FirstLoginOnboarding onComplete={() => {}} />
+              </Suspense>
             ) : isMobile ? (
               <MobileDashboardIOS />
             ) : (

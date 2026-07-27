@@ -76,8 +76,10 @@ export type Database = {
           created_at: string
           customer_id: string
           id: string
+          discount_percent: number | null
           notes: string | null
           org_id: string | null
+          original_price: number | null
           price: number | null
           review_email_sent_at: string | null
           service_id: string
@@ -93,8 +95,10 @@ export type Database = {
           created_at?: string
           customer_id: string
           id?: string
+          discount_percent?: number | null
           notes?: string | null
           org_id?: string | null
+          original_price?: number | null
           price?: number | null
           review_email_sent_at?: string | null
           service_id: string
@@ -110,8 +114,10 @@ export type Database = {
           created_at?: string
           customer_id?: string
           id?: string
+          discount_percent?: number | null
           notes?: string | null
           org_id?: string | null
+          original_price?: number | null
           price?: number | null
           review_email_sent_at?: string | null
           service_id?: string
@@ -772,6 +778,8 @@ export type Database = {
           is_public: boolean | null
           latitude: number | null
           longitude: number | null
+          loyalty_discount_enabled: boolean | null
+          loyalty_discount_percent: number | null
           notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
           phone: string | null
@@ -811,6 +819,8 @@ export type Database = {
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          loyalty_discount_enabled?: boolean | null
+          loyalty_discount_percent?: number | null
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
@@ -850,6 +860,8 @@ export type Database = {
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          loyalty_discount_enabled?: boolean | null
+          loyalty_discount_percent?: number | null
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { gsap } from "gsap";
 import {
   ArrowLeft,
@@ -6,17 +6,21 @@ import {
   BellRing,
   Check,
   Clock3,
+  Crown,
+  Heart,
   Languages,
   Link2,
   Loader2,
   Scissors,
   Sparkles,
+  Star,
   Tag,
   UserRound,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOnboardingVisibility } from "@/contexts/OnboardingContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -34,9 +38,30 @@ const STEPS = [
   { title: "Choose your language", subtitle: "This sets the app and public booking language.", icon: Languages },
   { title: "Create your booking link", subtitle: "Keep it short. This is the link you will share with clients.", icon: Link2 },
   { title: "Add your stylist", subtitle: "Add the first person clients can book. You can add more later.", icon: UserRound },
-  { title: "Create your first service", subtitle: "Set the name, duration and regular price.", icon: Scissors },
+  { title: "Create your first service", subtitle: "Set the name, duration, price, icon and color.", icon: Scissors },
   { title: "Set your working hours", subtitle: "Choose the days and times clients can book.", icon: Clock3 },
   { title: "Turn on smart features", subtitle: "Small automations that protect your time and reward regulars.", icon: Sparkles },
+];
+
+const SERVICE_ICONS = [
+  { name: "Scissors", Icon: Scissors },
+  { name: "Sparkles", Icon: Sparkles },
+  { name: "Crown", Icon: Crown },
+  { name: "Star", Icon: Star },
+  { name: "Heart", Icon: Heart },
+  { name: "Tag", Icon: Tag },
+  { name: "Clock3", Icon: Clock3 },
+];
+
+const SERVICE_COLORS = [
+  "#FF2D55",
+  "#34C759",
+  "#5856D6",
+  "#FF9500",
+  "#AF52DE",
+  "#0A84FF",
+  "#FF3B30",
+  "#FFCC00",
 ];
 
 const cleanSlug = (value: string) =>
@@ -55,11 +80,19 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const [serviceName, setServiceName] = useState("Haircut");
   const [serviceDuration, setServiceDuration] = useState(30);
   const [servicePrice, setServicePrice] = useState(25);
+  const [serviceIcon, setServiceIcon] = useState("Scissors");
+  const [serviceColor, setServiceColor] = useState("#FF2D55");
   const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]);
   const [startHour, setStartHour] = useState("09:00");
   const [endHour, setEndHour] = useState("18:00");
   const [cancellationAlerts, setCancellationAlerts] = useState(true);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(true);
+  const { setIsOpen } = useOnboardingVisibility();
+
+  useEffect(() => {
+    setIsOpen(true);
+    return () => setIsOpen(false);
+  }, [setIsOpen]);
 
   useLayoutEffect(() => {
     if (!stageRef.current) return;
@@ -128,6 +161,10 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           name: serviceName.trim(),
           duration: serviceDuration,
           price: servicePrice,
+          icon: serviceIcon,
+          color: serviceColor,
+          border_color: serviceColor,
+          text_color: "#FFFFFF",
         });
         if (error) throw error;
       }
@@ -256,6 +293,50 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                 <div className="grid grid-cols-2 gap-3">
                   <div><FieldLabel>Minutes</FieldLabel><DarkInput type="number" value={serviceDuration.toString()} onChange={(value) => setServiceDuration(Number(value))} /></div>
                   <div><FieldLabel>Price €</FieldLabel><DarkInput type="number" value={servicePrice.toString()} onChange={(value) => setServicePrice(Number(value))} /></div>
+                </div>
+                <div>
+                  <FieldLabel>Icon</FieldLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {SERVICE_ICONS.map(({ name, Icon }) => {
+                      const selected = serviceIcon === name;
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => setServiceIcon(name)}
+                          className={cn(
+                            "h-11 w-11 rounded-xl border transition-all",
+                            selected
+                              ? "border-white/40 bg-white/10 text-white"
+                              : "border-transparent bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                          )}
+                        >
+                          <Icon className="mx-auto h-5 w-5" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <FieldLabel>Color</FieldLabel>
+                  <div className="flex flex-wrap gap-3">
+                    {SERVICE_COLORS.map((color) => {
+                      const selected = serviceColor === color;
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setServiceColor(color)}
+                          className={cn(
+                            "h-10 w-10 rounded-full border-2 transition-transform",
+                            selected ? "border-white scale-110" : "border-transparent hover:scale-105"
+                          )}
+                          style={{ backgroundColor: color }}
+                          aria-label={`Select color ${color}`}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
