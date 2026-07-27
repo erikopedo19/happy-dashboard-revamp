@@ -549,30 +549,8 @@ const Settings = () => {
   }
 
   return (
-    <>
-      <MobileSettings
-        user={user}
-        theme={theme}
-        setTheme={setTheme}
-        profileForm={profileForm}
-        setProfileForm={setProfileForm}
-        brandForm={brandForm}
-        setBrandForm={setBrandForm}
-        agendaForm={agendaForm}
-        setAgendaForm={setAgendaForm}
-        toggleWorkingDay={toggleWorkingDay}
-        notificationPrefs={notificationPrefs}
-        setNotificationPrefs={setNotificationPrefs}
-        notifications={notifications}
-        hasValidHours={hasValidHours}
-        saveMutation={saveMutation}
-        updateDarkModeMutation={updateDarkModeMutation}
-        isLoading={isLoading}
-        navigate={navigate}
-        bannerMaxMB={bannerMaxMB}
-        avatarMaxMB={avatarMaxMB}
-      />
-      {false && (
+    <SidebarProvider defaultOpen={!isMobile}>
+
         <SidebarProvider defaultOpen={!isMobile}>
           <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] text-[#1C1C1E] dark:text-[#F2F2F7] overflow-hidden relative">
         <AppSidebar />
@@ -1467,8 +1445,6 @@ const Settings = () => {
         </main>
       </div>
     </SidebarProvider>
-      )}
-    </>
   );
 };
 
