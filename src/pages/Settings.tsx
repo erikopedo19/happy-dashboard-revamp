@@ -90,6 +90,9 @@ type BrandProfileRecord = {
   description: string;
   years_experience?: number;
   accepts_waitlist?: boolean;
+  notify_cancellation_alerts: boolean;
+  loyalty_discount_enabled: boolean;
+  loyalty_discount_percent: number;
   timezone: string;
   booking_locale: "en" | "el";
   avatar_url?: string;
@@ -138,6 +141,9 @@ const defaultBrandProfile: BrandProfileRecord = {
   description: "",
   years_experience: undefined,
   accepts_waitlist: false,
+  notify_cancellation_alerts: true,
+  loyalty_discount_enabled: true,
+  loyalty_discount_percent: 20,
   timezone: getBrowserTimezone(),
   booking_locale: "en",
   avatar_url: "",
@@ -195,7 +201,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, onboarding_completed, timezone, booking_locale")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, notify_cancellation_alerts, loyalty_discount_enabled, loyalty_discount_percent, onboarding_completed, timezone, booking_locale")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -307,6 +313,9 @@ const Settings = () => {
       description: data.profile?.description ?? "",
       years_experience: data.profile?.years_experience ?? undefined,
       accepts_waitlist: data.profile?.accepts_waitlist ?? false,
+      notify_cancellation_alerts: data.profile?.notify_cancellation_alerts ?? true,
+      loyalty_discount_enabled: data.profile?.loyalty_discount_enabled ?? false,
+      loyalty_discount_percent: data.profile?.loyalty_discount_percent ?? 20,
       timezone: data.profile?.timezone ?? getBrowserTimezone(),
       booking_locale: data.profile?.booking_locale ?? "en",
       avatar_url: data.profile?.avatar_url ?? "",
@@ -401,6 +410,9 @@ const Settings = () => {
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
         accepts_waitlist: brandForm.accepts_waitlist ?? false,
+        notify_cancellation_alerts: brandForm.notify_cancellation_alerts,
+        loyalty_discount_enabled: brandForm.loyalty_discount_enabled,
+        loyalty_discount_percent: brandForm.loyalty_discount_percent,
         timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
         booking_locale: brandForm.booking_locale || "en",
         avatar_url: brandForm.avatar_url?.trim() || null,

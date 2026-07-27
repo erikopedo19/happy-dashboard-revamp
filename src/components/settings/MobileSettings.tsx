@@ -27,6 +27,7 @@ import {
   Calendar as CalendarIcon,
   MapPin,
   Search,
+  Tag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -77,6 +78,7 @@ type Panel =
   | "agenda"
   | "appearance"
   | "notifications"
+  | "loyalty"
   | "messages"
   | "booking"
   | "business"
@@ -316,6 +318,13 @@ export function MobileSettings(props: any) {
             label="Alerts & reviews"
             value={`${Object.values(notificationPrefs).filter(Boolean).length} on`}
             onClick={() => setPanel("notifications")}
+          />
+          <Row
+            icon={Tag}
+            tint="#FF375F"
+            label="Loyal regular discount"
+            value={brandForm.loyalty_discount_enabled ? `${brandForm.loyalty_discount_percent}% next booking` : "Off"}
+            onClick={() => setPanel("loyalty")}
           />
         </Group>
 
@@ -701,6 +710,39 @@ export function MobileSettings(props: any) {
                 <div className="mt-4">
                   <ReviewRequestsCard />
                 </div>
+              </PanelStack>
+            )}
+
+            {panel === "loyalty" && (
+              <PanelStack>
+                <div className="rounded-[28px] bg-[#1C1C1E] p-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[#FF375F]">
+                    <Tag className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="mt-5 text-[21px] font-bold text-white">Reward your regulars</h3>
+                  <p className="mt-2 text-[12px] leading-5 text-[#8E8E93]">
+                    When a customer has more than one booking in seven days, Cutzio automatically gives 20% off their next booking.
+                  </p>
+                  <div className="mt-5 flex items-center justify-between rounded-[20px] bg-[#2C2C2E] px-4 py-4">
+                    <div>
+                      <p className="text-[14px] font-semibold text-white">Automatic loyalty price</p>
+                      <p className="mt-0.5 text-[11px] text-[#8E8E93]">Applied securely when the booking is created</p>
+                    </div>
+                    <Switch
+                      checked={brandForm.loyalty_discount_enabled}
+                      onCheckedChange={(checked) => setBrandForm((previous: any) => ({ ...previous, loyalty_discount_enabled: checked, loyalty_discount_percent: 20 }))}
+                    />
+                  </div>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-[20px] bg-[#FF375F] text-[14px] font-semibold text-white disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save loyalty setting
+                </motion.button>
               </PanelStack>
             )}
 
@@ -1097,6 +1139,8 @@ function titleFor(p: Panel): string {
       return "Appearance";
     case "notifications":
       return "Notifications";
+    case "loyalty":
+      return "Loyal regulars";
     case "messages":
       return "Messages";
     case "booking":

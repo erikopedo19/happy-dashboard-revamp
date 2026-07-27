@@ -3,7 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDashboardIOS } from "@/components/MobileDashboardIOS";
-import { OnboardingSetup } from "@/components/OnboardingSetup";
+import { FirstLoginOnboarding } from "@/components/FirstLoginOnboarding";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { PWAInstallDrawer } from "@/components/PWAInstallDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -63,8 +63,7 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  const hasExistingHours = !!(agendaSettings?.start_hour && agendaSettings?.end_hour);
-  const showOnboarding = profile && profile.onboarding_completed === false && !hasExistingHours;
+  const showOnboarding = !!user && profile?.onboarding_completed !== true;
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
@@ -73,7 +72,7 @@ const Dashboard = () => {
         <main className="relative flex-1 bg-[#0A0A0C] text-white flex flex-col overflow-hidden">
           <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
             {showOnboarding ? (
-              <OnboardingSetup onComplete={() => {}} />
+              <FirstLoginOnboarding onComplete={() => {}} />
             ) : isMobile ? (
               <MobileDashboardIOS />
             ) : (
