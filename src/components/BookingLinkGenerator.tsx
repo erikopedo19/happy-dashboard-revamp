@@ -275,14 +275,14 @@ const BookingLinkGenerator = () => {
           <button
             onClick={shareLink}
             disabled={!bookingUrl}
-            className="h-10 rounded-xl bg-white/[0.06] border border-white/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
+            className="h-10 rounded-[18px] bg-white/[0.06] border border-white/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
           >
             <Share2 className="h-3.5 w-3.5" /> Share
           </button>
           <button
             onClick={openBookingPage}
             disabled={!bookingUrl}
-            className="h-10 rounded-xl bg-white/[0.06] border border-white/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
+            className="h-10 rounded-[18px] bg-white/[0.06] border border-white/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
           >
             <ExternalLink className="h-3.5 w-3.5" /> Open
           </button>
@@ -304,7 +304,7 @@ const BookingLinkGenerator = () => {
             <RefreshCw className="h-3 w-3" /> Reset
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-xl bg-white/[0.04] border border-white/10 px-3 h-12 focus-within:border-white/25 transition">
+        <div className="flex items-center gap-2 rounded-[18px] bg-white/[0.04] border border-white/10 px-3 h-12 focus-within:border-white/25 transition">
           <span className="text-[13px] text-white/40 shrink-0">/book/</span>
           <input
             value={customSlug}
@@ -394,7 +394,7 @@ const BookingLinkGenerator = () => {
                 disabled={disabled}
                 onClick={() => setBookingTheme(c.value)}
                 className={cn(
-                  "h-10 rounded-xl border-2 transition flex items-center justify-center",
+                  "h-10 rounded-[18px] border-2 transition flex items-center justify-center",
                   active ? "border-white" : "border-transparent",
                   disabled && "opacity-50 cursor-not-allowed"
                 )}
@@ -476,13 +476,13 @@ function BookingLinkSkeleton() {
         <div className={cn(bar, "h-2.5 w-16")} />
         <div className={cn(bar, "h-4 w-3/4")} />
         <div className="grid grid-cols-2 gap-2 pt-1">
-          <div className="h-10 rounded-xl bg-white/[0.05] animate-pulse" />
-          <div className="h-10 rounded-xl bg-white/[0.05] animate-pulse" />
+          <div className="h-10 rounded-[18px] bg-white/[0.05] animate-pulse" />
+          <div className="h-10 rounded-[18px] bg-white/[0.05] animate-pulse" />
         </div>
       </div>
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
         <div className={cn(bar, "h-2.5 w-20")} />
-        <div className="h-12 rounded-xl bg-white/[0.05] animate-pulse" />
+        <div className="h-12 rounded-[18px] bg-white/[0.05] animate-pulse" />
       </div>
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 divide-y divide-white/5 overflow-hidden">
         <div className="h-12 animate-pulse bg-white/[0.02]" />
