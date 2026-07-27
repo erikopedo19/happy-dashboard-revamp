@@ -763,6 +763,7 @@ export type Database = {
           business_name: string | null
           created_at: string
           dark_mode: boolean | null
+          deleted_at: string | null
           description: string | null
           email_template_html: string | null
           full_name: string | null
@@ -801,6 +802,7 @@ export type Database = {
           business_name?: string | null
           created_at?: string
           dark_mode?: boolean | null
+          deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
@@ -839,6 +841,7 @@ export type Database = {
           business_name?: string | null
           created_at?: string
           dark_mode?: boolean | null
+          deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
           full_name?: string | null
@@ -1503,6 +1506,10 @@ export type Database = {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
       }
+      is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_org_owner: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
@@ -1546,6 +1553,7 @@ export type Database = {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json
       }
+      soft_delete_account: { Args: { _user_id: string }; Returns: Json }
       submit_review: {
         Args: { _cancel_token: string; _comment?: string; _rating: number }
         Returns: Json

@@ -47,6 +47,7 @@ interface Stylist {
 interface BusinessProfile {
   id: string;
   full_name: string;
+  business_name?: string | null;
   brand_color?: string | null;
   booking_theme?: string | null;
   booking_link?: string;

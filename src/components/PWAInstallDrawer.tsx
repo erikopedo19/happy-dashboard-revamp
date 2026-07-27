@@ -13,13 +13,22 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 
+const DISMISS_KEY = "pwa_install_dismissed_at";
+
 export function PWAInstallDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof navigator === "undefined") return;
+    try {
+      if (localStorage.getItem(DISMISS_KEY)) {
+        setDismissed(true);
+        return;
+      }
+    } catch { /* ignore */ }
     const ua = navigator.userAgent.toLowerCase();
     const isIOS = /iphone|ipad|ipod/.test(ua);
     const isAndroid = /android/.test(ua);
@@ -48,7 +57,7 @@ export function PWAInstallDrawer() {
     }
   };
 
-  if (!platform) return null;
+  if (!platform || dismissed) return null;
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
@@ -103,15 +112,18 @@ export function PWAInstallDrawer() {
           )}
         </div>
         <DrawerFooter>
-          <DrawerClose asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-white/10 text-white hover:bg-white/10"
-            >
-              Maybe later
-            </Button>
-          </DrawerClose>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
+              setIsOpen(false);
+              setDismissed(true);
+            }}
+            className="w-full border-white/10 text-white hover:bg-white/10"
+          >
+            Maybe later
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
