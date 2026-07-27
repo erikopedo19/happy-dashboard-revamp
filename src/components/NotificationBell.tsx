@@ -48,8 +48,10 @@ export function NotificationBell() {
           const n = payload.new as N;
           setItems((prev) => [n, ...prev].slice(0, 20));
           toast({ title: n.title, description: n.body || undefined });
-          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-            try { new Notification(n.title, { body: n.body || "", icon: "/logo.svg" }); } catch {}
+          if (typeof Notification !== "undefined" && Notification.permission === "granted" && "serviceWorker" in navigator) {
+            navigator.serviceWorker.ready
+              .then((reg) => reg.showNotification(n.title, { body: n.body || "", icon: "/logo.svg", tag: n.id }))
+              .catch(() => {});
           }
         }
       ).subscribe();

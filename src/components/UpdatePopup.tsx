@@ -1,34 +1,34 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 
-const KEY = "cutzio:update-shown-at";
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const KEY = "cutzio:update-shown-v1";
 
 export function UpdatePopup() {
-  const isMobile = useIsMobile() ?? false;
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
+  const role = (user?.user_metadata as any)?.role;
+  const canSee = !!user && (role === "barber" || role === "admin" || role === "owner");
+
   useEffect(() => {
-    if (!isMobile) return;
+    if (!canSee) return;
     try {
-      const raw = localStorage.getItem(KEY);
-      const last = raw ? parseInt(raw, 10) : 0;
-      if (Number.isNaN(last) || Date.now() - last > ONE_DAY_MS) {
+      if (localStorage.getItem(KEY) !== "1") {
         setOpen(true);
       }
     } catch {}
-  }, [isMobile]);
+  }, [canSee]);
 
   const dismiss = () => {
     setOpen(false);
     try {
-      localStorage.setItem(KEY, String(Date.now()));
+      localStorage.setItem(KEY, "1");
     } catch {}
   };
 
-  if (!isMobile || !open) return null;
+  if (!canSee || !open) return null;
 
   return (
     <AnimatePresence>
