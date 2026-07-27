@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const KEY = "cutzio:update-shown-at";
-const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export function UpdatePopup() {
   const isMobile = useIsMobile() ?? false;
@@ -15,7 +15,7 @@ export function UpdatePopup() {
     try {
       const raw = localStorage.getItem(KEY);
       const last = raw ? parseInt(raw, 10) : 0;
-      if (Number.isNaN(last) || Date.now() - last > TEN_DAYS_MS) {
+      if (Number.isNaN(last) || Date.now() - last > ONE_DAY_MS) {
         setOpen(true);
       }
     } catch {}

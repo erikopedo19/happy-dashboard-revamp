@@ -12,7 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 
 type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string };
 
-const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin", "/find-barbershop", "/my-bookings", "/me", "/favorites"];
+const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin", "/my-bookings"];
 
 const typeMeta: Record<string, { icon: typeof Bell; color: string; darkColor: string }> = {
   appointment: { icon: Calendar, color: "text-blue-600 bg-blue-100", darkColor: "text-blue-300 bg-blue-500/20" },
@@ -26,8 +26,7 @@ export function NotificationBell() {
   const location = useLocation();
   const [items, setItems] = useState<N[]>([]);
 
-  const role = (user?.user_metadata as any)?.role;
-  const hidden = !user || role === "client" || HIDE_PREFIX.some((p) => location.pathname === p || location.pathname.startsWith(p)) || location.pathname === "/";
+  const hidden = !user || HIDE_PREFIX.some((p) => location.pathname === p || location.pathname.startsWith(p)) || location.pathname === "/";
 
   useEffect(() => {
     if (!user || hidden) return;

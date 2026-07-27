@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { StoryUploader } from "./StoryUploader";
@@ -83,6 +84,14 @@ export function StoriesRail() {
                   </div>
                 </div>
                 <span className="text-[11px] text-white/70 max-w-[68px] truncate">{g.name}</span>
+                <span className="text-[10px] text-white/50">
+                  {g.latest
+                    ? (() => {
+                        const expiresAt = new Date(Date.parse(g.latest) + 24 * 60 * 60 * 1000);
+                        return `${formatDistanceToNow(expiresAt)} left`;
+                      })()
+                    : ""}
+                </span>
               </button>
             );
           })}

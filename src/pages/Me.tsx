@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
+import { PushToggle } from "@/components/PushToggle";
 
 interface BookingRow {
   id: string;
@@ -251,7 +252,9 @@ const Me = () => {
             </div>
             <Switch checked={waitlistAlerts} onCheckedChange={toggleWaitlistAlerts} disabled={waitlistSaving} />
           </div>
-          <Row icon={<Bell className="w-5 h-5 text-[#FF9500]" />} label="Notifications" disabled />
+          <div className="px-4 border-b border-black/5 dark:border-white/5">
+            <PushToggle />
+          </div>
           <Row icon={<Shield className="w-5 h-5 text-[#34C759]" />} label="Privacy" disabled />
         </motion.div>
 
