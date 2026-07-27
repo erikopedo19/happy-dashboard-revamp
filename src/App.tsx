@@ -170,9 +170,11 @@ const HeaderActions = () => {
   const isMobile = useIsMobile() ?? false;
   const location = useLocation();
   if (!user) return null;
-  const role = (user?.user_metadata as any)?.role;
-  if (role !== "client" && isMobile) return null;
-  if (isMobile && location.pathname.startsWith("/find-barber")) return null;
+  // Pages that already render their own notification bell in the header
+  const hasOwnBell =
+    location.pathname === "/admin" ||
+    (isMobile && location.pathname.startsWith("/find-barber"));
+  if (hasOwnBell) return null;
   return (
     <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50">
       <NotificationBell />

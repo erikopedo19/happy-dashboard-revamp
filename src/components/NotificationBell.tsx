@@ -12,7 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 
 type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string };
 
-const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin", "/my-bookings"];
+const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin"];
 
 const typeMeta: Record<string, { icon: typeof Bell; color: string; darkColor: string }> = {
   appointment: { icon: Calendar, color: "text-blue-600 bg-blue-100", darkColor: "text-blue-300 bg-blue-500/20" },
