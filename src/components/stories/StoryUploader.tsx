@@ -20,7 +20,11 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
     if (file) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = prev; };
+      window.dispatchEvent(new CustomEvent("stories:open"));
+      return () => {
+        document.body.style.overflow = prev;
+        window.dispatchEvent(new CustomEvent("stories:close"));
+      };
     }
   }, [file]);
 

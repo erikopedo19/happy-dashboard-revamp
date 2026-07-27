@@ -28,6 +28,13 @@ export function StoriesRail() {
     return () => window.removeEventListener("stories:viewed", onChange);
   }, []);
 
+  useEffect(() => {
+    if (openUser) {
+      window.dispatchEvent(new CustomEvent("stories:open"));
+      return () => window.dispatchEvent(new CustomEvent("stories:close"));
+    }
+  }, [openUser]);
+
   const { data: groups = [] } = useQuery({
     queryKey: ["stories-active"],
     queryFn: async (): Promise<Group[]> => {

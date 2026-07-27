@@ -25,8 +25,20 @@ export function NotificationBell() {
   const { user } = useAuth();
   const location = useLocation();
   const [items, setItems] = useState<N[]>([]);
+  const [storiesOpen, setStoriesOpen] = useState(0);
 
-  const hidden = !user || HIDE_PREFIX.some((p) => location.pathname === p || location.pathname.startsWith(p)) || location.pathname === "/";
+  useEffect(() => {
+    const onOpen = () => setStoriesOpen((n) => n + 1);
+    const onClose = () => setStoriesOpen((n) => Math.max(0, n - 1));
+    window.addEventListener("stories:open", onOpen);
+    window.addEventListener("stories:close", onClose);
+    return () => {
+      window.removeEventListener("stories:open", onOpen);
+      window.removeEventListener("stories:close", onClose);
+    };
+  }, []);
+
+  const hidden = !user || storiesOpen > 0 || HIDE_PREFIX.some((p) => location.pathname === p || location.pathname.startsWith(p)) || location.pathname === "/";
 
   useEffect(() => {
     if (!user || hidden) return;
