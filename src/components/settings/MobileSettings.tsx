@@ -137,11 +137,14 @@ export function MobileSettings(props: any) {
   };
 
   const handleDeleteAccount = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      toast({ title: "Not signed in", description: "Please sign in again.", variant: "destructive" });
+      return;
+    }
     if (!window.confirm("Permanently delete your account? This cannot be undone.")) return;
     const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
     if (error || !data?.success) {
-      toast({ title: "Could not delete account", description: error?.message || data?.error, variant: "destructive" });
+      toast({ title: "Could not delete account", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
       return;
     }
     toast({ title: "Account deleted" });

@@ -19,6 +19,7 @@ import {
   Sun,
   Search,
   ArrowRight,
+  Trash2,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -179,6 +180,23 @@ const Settings = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const handleDeleteAccount = async () => {
+    if (!user?.id) {
+      toast({ title: "Not signed in", description: "Please sign in again.", variant: "destructive" });
+      return;
+    }
+    if (!window.confirm("Permanently delete your account? This cannot be undone.")) return;
+    const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
+    if (error || !data?.success) {
+      toast({ title: "Could not delete account", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Account deleted" });
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
   const { isPremium } = usePremium();
   const bannerMaxMB = isPremium ? 8 : 2;
   const avatarMaxMB = isPremium ? 5 : 2;
@@ -1451,6 +1469,32 @@ const Settings = () => {
                       >
                         Privacy Policy
                         <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-3xl border-red-200 bg-red-50 shadow-sm dark:border-red-900/40 dark:bg-red-900/20">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+                          <Trash2 className="w-5 h-5 text-red-600 dark:text-red-300" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Danger zone</CardTitle>
+                          <CardDescription className="text-[#8E8E93] dark:text-gray-400">
+                            Delete your account and all data.
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <button
+                        type="button"
+                        onClick={handleDeleteAccount}
+                        className="w-full flex items-center justify-between rounded-2xl border border-red-200 dark:border-red-900/40 bg-white dark:bg-[#1C1C1E] p-4 text-left text-sm font-medium text-red-600 dark:text-red-300 transition hover:opacity-80"
+                      >
+                        Delete account
+                        <ArrowRight className="h-4 w-4 text-red-400" />
                       </button>
                     </CardContent>
                   </Card>

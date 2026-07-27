@@ -247,7 +247,7 @@ const BookingLinkGenerator = () => {
       </div>
 
       {/* URL preview */}
-      <div className="rounded-[24px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
+      <div className="rounded-[28px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
             Your link
@@ -291,7 +291,7 @@ const BookingLinkGenerator = () => {
 
 
       {/* Slug editor */}
-      <div className="rounded-[24px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
+      <div className="rounded-[28px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
             Custom name
@@ -342,7 +342,7 @@ const BookingLinkGenerator = () => {
 
 
       {/* Theme */}
-      <div className="rounded-[24px] bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
+      <div className="rounded-[28px] bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <Crown className="w-3.5 h-3.5 text-rose-400" />
