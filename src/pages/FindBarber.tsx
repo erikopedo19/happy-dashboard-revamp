@@ -27,6 +27,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { QuickBookSheet } from "@/components/QuickBookSheet";
 
 const BarbershopMap = lazy(() => import("@/components/BarbershopMap").then((m) => ({ default: m.BarbershopMap })));
@@ -57,6 +60,7 @@ const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const FindBarber = () => {
   const { user, loading: authLoading } = useAuth();
+  const isMobile = useIsMobile() ?? false;
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get("tab") as TabKey) || "today";
   const [searchTerm, setSearchTerm] = useState("");
@@ -258,7 +262,11 @@ const FindBarber = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#F2F2F7] dark:bg-[#000000] pb-28">
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#000000] overflow-hidden">
+        <AppSidebar />
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="relative min-h-screen bg-[#F2F2F7] dark:bg-[#000000] pb-28">
       <Seo
         title="Cutzio — Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
@@ -351,6 +359,9 @@ const FindBarber = () => {
 
       <ClientMobileDock />
     </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 
@@ -630,16 +641,17 @@ function ExploreList({
   return (
     <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
-        <BarberCard
-          key={b.id}
-          barber={b}
-          index={i}
-          isFavorite={favorites.includes(b.id)}
-          isExpanded={expandedId === b.id}
-          onToggleFavorite={onToggleFavorite}
-          onExpand={onExpand}
-          rateToken={rateableMap?.get(b.id) ?? null}
-        />
+        <React.Fragment key={b.id}>
+          <BarberCard
+            barber={b}
+            index={i}
+            isFavorite={favorites.includes(b.id)}
+            isExpanded={expandedId === b.id}
+            onToggleFavorite={onToggleFavorite}
+            onExpand={onExpand}
+            rateToken={rateableMap?.get(b.id) ?? null}
+          />
+        </React.Fragment>
       ))}
     </motion.div>
   );
@@ -677,16 +689,17 @@ function FavoritesList({
   return (
     <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
-        <BarberCard
-          key={b.id}
-          barber={b}
-          index={i}
-          isFavorite={true}
-          isExpanded={expandedId === b.id}
-          onToggleFavorite={onToggleFavorite}
-          onExpand={onExpand}
-          rateToken={rateableMap?.get(b.id) ?? null}
-        />
+        <React.Fragment key={b.id}>
+          <BarberCard
+            barber={b}
+            index={i}
+            isFavorite={true}
+            isExpanded={expandedId === b.id}
+            onToggleFavorite={onToggleFavorite}
+            onExpand={onExpand}
+            rateToken={rateableMap?.get(b.id) ?? null}
+          />
+        </React.Fragment>
       ))}
     </motion.div>
   );
