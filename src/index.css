@@ -447,6 +447,18 @@ html, body, #root, button, input, textarea, select {
     display: none;
   }
 
+  /* Remove number-input spin buttons */
+  .no-spinner {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+
   /* iOS Safe Area Support */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);

@@ -239,7 +239,7 @@ const Services = () => {
                         <Input id="duration" type="number" min={5} max={480} step={5}
                           value={formData.duration}
                           onChange={(e) => setFormData((p) => ({ ...p, duration: parseInt(e.target.value) || 30 }))}
-                          required className="h-11 rounded-xl" />
+                          required className="no-spinner h-11 rounded-xl" />
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="price">Price ($)</Label>
