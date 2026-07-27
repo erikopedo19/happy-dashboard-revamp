@@ -1,8 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -415,14 +414,11 @@ const Reports = () => {
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
-        <AppSidebar />
-
-        <main className="relative flex-1 flex flex-col overflow-hidden bg-[#0A0A0C] text-white">
+        <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 backdrop-blur-xl border-b border-white/[0.08]">
+          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 backdrop-blur-xl">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <SidebarTrigger className="lg:hidden text-white" />
                 <motion.div
                   className="min-w-0 hidden md:block"
                   initial={{ opacity: 0, y: -8 }}
