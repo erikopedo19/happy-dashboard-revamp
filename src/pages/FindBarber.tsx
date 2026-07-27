@@ -59,6 +59,13 @@ type TabKey = "today" | "map" | "favorites";
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
+const FILTER_OPTIONS = [
+  { key: "default" as const, label: "For you" },
+  { key: "reviews" as const, label: "Most reviewed" },
+  { key: "likes" as const, label: "Most liked" },
+  { key: "bookings" as const, label: "Most bookings this week" },
+];
+
 const FindBarber = () => {
   const { user, loading: authLoading } = useAuth();
   const isMobile = useIsMobile() ?? false;
@@ -66,6 +73,7 @@ const FindBarber = () => {
   const initialTab = (searchParams.get("tab") as TabKey) || "today";
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+  const [sortFilter, setSortFilter] = useState<typeof FILTER_OPTIONS[number]["key"]>();
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -225,10 +233,25 @@ const FindBarber = () => {
 
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    const list = sortedBarbers;
+    let list = sortedBarbers;
+
+    if (sortFilter === "reviews") {
+      list = [...(barbers ?? [])].sort((a, b) =>
+        (b.rating_count ?? 0) - (a.rating_count ?? 0) ||
+        (b.rating ?? 0) - (a.rating ?? 0)
+      );
+    } else if (sortFilter === "likes") {
+      list = [...(barbers ?? [])].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    } else if (sortFilter === "bookings") {
+      const counts = todayCounts ?? new Map<string, number>();
+      list = [...(barbers ?? [])].sort(
+        (a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
+      );
+    }
+
     if (!term) return list;
     return list.filter((b) => b.brandName.toLowerCase().includes(term));
-  }, [sortedBarbers, searchTerm]);
+  }, [sortedBarbers, barbers, searchTerm, sortFilter, todayCounts]);
 
   const favoriteBarbers = sortedBarbers.filter((b) => favorites.includes(b.id));
 
@@ -274,11 +297,6 @@ const FindBarber = () => {
         path="/find-barber"
       />
 
-      {/* Stories rail */}
-      <div className="max-w-5xl mx-auto px-5 pt-4">
-        <StoriesRail />
-      </div>
-
       {/* Sticky minimal header — hides on scroll down, reappears on scroll up */}
       <StickyHeader>
         <div className="backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
@@ -320,6 +338,28 @@ const FindBarber = () => {
 
 
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
+        <div className="mb-4">
+          <StoriesRail />
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4">
+          {FILTER_OPTIONS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setSortFilter(f.key)}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition border",
+                sortFilter === f.key || (f.key === "default" && sortFilter === undefined)
+                  ? "bg-[#1C1C1E] text-white border-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E] dark:border-white"
+                  : "bg-transparent text-[#1C1C1E] border-black/10 hover:bg-black/[0.05] dark:text-white dark:border-white/10 dark:hover:bg-white/5"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

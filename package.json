@@ -52,6 +52,8 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^12.23.25",
+    "gsap": "^3.12.5",
+    "@gsap/react": "^2.1.1",
     "glimm": "^0.1.4",
     "input-otp": "^1.2.4",
     "leaflet": "^1.9.4",

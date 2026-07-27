@@ -54,6 +54,7 @@ import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
+import { PageTransition } from "./components/PageTransition";
 
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
@@ -117,7 +118,8 @@ function AnimatedRoutes() {
     return <Microsite />;
   }
   return (
-    <Routes location={location}>
+    <PageTransition>
+      <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
       <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
       <Route path="/choose-mode" element={<ChooseMode />} />
