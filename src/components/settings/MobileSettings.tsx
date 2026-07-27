@@ -694,6 +694,13 @@ export function MobileSettings(props: any) {
                   <div className="px-4 py-3 border-b border-white/5">
                     <PushToggle />
                   </div>
+                  <ToggleRow
+                    icon={Bell}
+                    label="Cancellation alerts"
+                    desc="Get an instant alert when a client cancels so you can refill the slot."
+                    checked={brandForm.notify_cancellation_alerts}
+                    onChange={(checked) => setBrandForm((previous: any) => ({ ...previous, notify_cancellation_alerts: checked }))}
+                  />
                   {notifications.map((item: any, i: number) => (
                     <ToggleRow
                       key={item.id}
@@ -707,6 +714,15 @@ export function MobileSettings(props: any) {
                     />
                   ))}
                 </ListCard>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-[20px] bg-[#FF375F] text-[14px] font-semibold text-white disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save alert settings
+                </motion.button>
                 <div className="mt-4">
                   <ReviewRequestsCard />
                 </div>
