@@ -365,41 +365,72 @@ const AgendaBookingForm = ({
 
   const MobileSummary = () => (
     <div className="lg:hidden mb-4 px-4 pt-4">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl overflow-hidden ring-2 ring-white/[0.06] bg-[#2C2C2E]">
-          <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+      <div className="rounded-3xl bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+        <div className="h-32 w-full relative">
+          {bannerUrl ? (
+            <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}40 0%, #E5E5EA 100%)` }} />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
         </div>
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight text-white truncate">{displayName}</h1>
-          {businessProfile?.rating != null && (
-            <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
-              <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
-              <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
-              <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
+        <div className="px-4 pb-4 -mt-8 relative">
+          <div className="flex items-end gap-3 mb-3">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden ring-4 ring-[#141416] bg-[#2C2C2E]">
+              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
+            <div className="pb-1 min-w-0">
+              <h1 className="text-lg font-semibold tracking-tight text-white truncate">{displayName}</h1>
+              {businessProfile?.rating != null && (
+                <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
+                  <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
+                  <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
+                  <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {selectedService && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl bg-[#1C1C1E] border border-white/[0.06] p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
+                    {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
+                  </p>
+                  <p className="text-white font-medium truncate">
+                    {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-white font-bold">€{totalPrice}</p>
+                  <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-sm text-[#8E8E93]">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{businessProfile?.address || "In-person"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 shrink-0" />
+                  <span>{formatTzLabel(timezone)}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
+                <span className="text-sm font-medium text-white">{copy.total}</span>
+                <span className="text-lg font-bold text-white">€{totalPrice}</span>
+              </div>
+            </motion.div>
           )}
         </div>
       </div>
-      {selectedService && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-3 rounded-2xl bg-[#1C1C1E] border border-white/[0.06] p-3 flex items-center justify-between"
-        >
-          <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold">
-              {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
-            </p>
-            <p className="text-white font-medium truncate">
-              {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
-            </p>
-          </div>
-          <div className="text-right shrink-0 pl-3">
-            <p className="text-white font-bold">€{totalPrice}</p>
-            <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 
@@ -686,12 +717,13 @@ const AgendaBookingForm = ({
                         <Globe className="w-3 h-3" />
                         <span>Times in {formatTzLabel(timezone)}</span>
                       </div>
-                      <div className="flex-1 overflow-y-auto space-y-2 max-h-[360px] pr-1">
+                      <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-2 max-h-[360px] pr-1">
                         {selectedDate ? (
                           availableTimeSlots.length > 0 ? (
                             availableTimeSlots.map((time, idx) => {
                               const active = selectedTime === time;
                               const showRange = totalDuration > 30;
+                              const isLastOdd = availableTimeSlots.length % 2 === 1 && idx === availableTimeSlots.length - 1;
                               return (
                                 <motion.button
                                   key={time}
@@ -704,7 +736,8 @@ const AgendaBookingForm = ({
                                     "w-full rounded-xl border font-medium text-center py-3 px-4 tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:border-white/[0.14] hover:bg-[#1f1f22]"
+                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:border-white/[0.14] hover:bg-[#1f1f22]",
+                                    isLastOdd && "col-span-2"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >

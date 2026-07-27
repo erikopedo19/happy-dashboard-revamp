@@ -238,7 +238,7 @@ const Services = () => {
                         <Label htmlFor="duration">Duration (min)</Label>
                         <Input id="duration" type="number" min={5} max={480} step={5}
                           value={formData.duration}
-                          onChange={(e) => setFormData((p) => ({ ...p, duration: parseInt(e.target.value) || 30 }))}
+                          onChange={(e) => setFormData((p) => ({ ...p, duration: e.target.value }))}
                           required className="no-spinner h-11 rounded-xl" />
                       </div>
                       <div className="space-y-1.5">
