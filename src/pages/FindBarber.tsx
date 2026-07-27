@@ -272,8 +272,11 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
-      
 
+      {/* Stories rail */}
+      <div className="max-w-5xl mx-auto px-5 pt-4">
+        <StoriesRail />
+      </div>
 
       {/* Sticky minimal header — hides on scroll down, reappears on scroll up */}
       <StickyHeader>
@@ -306,12 +309,6 @@ const FindBarber = () => {
               className="pl-10 h-11 rounded-[14px] border-0 bg-black/[0.05] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15"
             />
           </div>
-
-          {/* Stories rail */}
-          <div className="mt-3">
-            <StoriesRail />
-          </div>
-
 
 
         </div>
