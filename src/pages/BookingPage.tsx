@@ -133,8 +133,8 @@ const BookingPage = () => {
             </div>
 
             {/* iOS segmented control */}
-            <div className="max-w-6xl mx-auto px-4 md:px-8 pb-4">
-              <div className="inline-flex w-full sm:w-auto p-1 rounded-[12px] bg-white/[0.06] gap-0.5">
+            <div className="max-w-2xl mx-auto px-4 md:px-8 pb-4">
+              <div className="inline-flex w-full sm:w-auto p-1 rounded-[14px] bg-white/[0.06] gap-0.5">
                 {visibleTabs.map((t) => {
                   const active = tab === t.value;
                   return (
@@ -162,7 +162,7 @@ const BookingPage = () => {
             </div>
           </div>
 
-          <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-8 space-y-6">
+          <div className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-8 space-y-5">
             {/* Main content */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -171,7 +171,7 @@ const BookingPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={springSoft}
-                className="rounded-[24px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+                className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
               >
                 <div className="p-4 sm:p-6 md:p-8">
                   {tab === "qr" ? (
@@ -193,7 +193,7 @@ const BookingPage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={springSoft}
-              className="rounded-[24px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
+              className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
             >
               <div className="px-5 md:px-6 pt-5 pb-2">
                 <h3 className="text-[17px] font-bold text-white tracking-tight">How it works</h3>

@@ -238,7 +238,7 @@ const BookingLinkGenerator = () => {
       </div>
 
       {/* URL preview */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
+      <div className="rounded-[24px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
             Your link
@@ -282,7 +282,7 @@ const BookingLinkGenerator = () => {
 
 
       {/* Slug editor */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
+      <div className="rounded-[24px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
             Custom name
@@ -333,7 +333,7 @@ const BookingLinkGenerator = () => {
 
 
       {/* Theme */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
+      <div className="rounded-[24px] bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <Crown className="w-3.5 h-3.5 text-rose-400" />
@@ -374,7 +374,7 @@ const BookingLinkGenerator = () => {
           />
         )}
 
-        <div className="grid grid-cols-6 gap-2">
+        <div className="grid grid-cols-7 gap-2">
           {BUTTON_COLORS.map((c) => {
             const active = bookingTheme === c.value;
             const disabled = !isPremium && c.value !== "default";
@@ -419,7 +419,7 @@ const BookingLinkGenerator = () => {
         whileTap={{ scale: 0.98 }}
         onClick={updateSlug}
         disabled={isGenerating || customSlug.trim().length === 0}
-        className="w-full h-12 rounded-2xl bg-white text-black text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+        className="w-full h-12 rounded-[18px] bg-white text-black text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
       >
         {isGenerating ? (
           <>

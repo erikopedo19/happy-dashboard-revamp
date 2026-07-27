@@ -436,7 +436,7 @@ const AgendaBookingForm = ({
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 flex items-center justify-center relative">
+    <div className="min-h-screen overflow-y-auto bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 relative">
       <div className="w-full max-w-5xl mx-auto relative z-10">
         <MobileSummary />
         <AnimatePresence mode="wait">

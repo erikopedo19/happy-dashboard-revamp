@@ -35,7 +35,7 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -65,7 +65,7 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  const showOnboarding = !!user && profile?.onboarding_completed !== true;
+  const showOnboarding = !!user && !profileLoading && profile?.onboarding_completed !== true;
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
