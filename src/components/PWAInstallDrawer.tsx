@@ -112,15 +112,18 @@ export function PWAInstallDrawer() {
           )}
         </div>
         <DrawerFooter>
-          <DrawerClose asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-white/10 text-white hover:bg-white/10"
-            >
-              Maybe later
-            </Button>
-          </DrawerClose>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
+              setIsOpen(false);
+              setDismissed(true);
+            }}
+            className="w-full border-white/10 text-white hover:bg-white/10"
+          >
+            Maybe later
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
