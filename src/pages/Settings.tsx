@@ -882,7 +882,7 @@ const Settings = () => {
                             <Select
                               value={brandForm.booking_locale || "en"}
                               onValueChange={(value) =>
-                                setBrandForm((prev) => ({ ...prev, booking_locale: value as "en" | "el" }))
+                                setBrandForm((prev) => ({ ...prev, booking_locale: value }))
                               }
                             >
                               <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -891,6 +891,8 @@ const Settings = () => {
                               <SelectContent>
                                 <SelectItem value="en">English</SelectItem>
                                 <SelectItem value="el">Greek (Ελληνικά)</SelectItem>
+                                <SelectItem value="es">Spanish (Español)</SelectItem>
+                                <SelectItem value="pl">Polish (Polski)</SelectItem>
                               </SelectContent>
                             </Select>
                             <p className="text-[11px] text-[#8E8E93] mt-1.5">

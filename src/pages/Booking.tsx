@@ -51,6 +51,8 @@ interface BusinessProfile {
   brand_color?: string | null;
   booking_theme?: string | null;
   booking_link?: string;
+  booking_locale?: string | null;
+  currency?: string | null;
   avatar_url?: string | null;
   banner_url?: string | null;
   address?: string | null;
@@ -397,7 +399,7 @@ const Booking = () => {
     const lang = params.get('lang');
     if (theme) setEmailTheme(theme);
     if (accent) setAccentColor(accent);
-    if (lang === 'el' || lang === 'es' || lang === 'en') setLocale(lang);
+    if (lang === 'el' || lang === 'es' || lang === 'en' || lang === 'pl') setLocale(lang);
   }, []);
 
   // Check if a time slot is available

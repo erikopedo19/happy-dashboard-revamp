@@ -64,6 +64,21 @@ const SERVICE_COLORS = [
   "#FFCC00",
 ];
 
+const CURRENCY_BY_LOCALE: Record<string, string> = {
+  en: "GBP",
+  el: "EUR",
+  es: "EUR",
+  pl: "PLN",
+};
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  EUR: "€",
+  USD: "$",
+  PLN: "zł",
+  RON: "lei",
+  GBP: "£",
+};
+
 const cleanSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 
@@ -74,7 +89,9 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const stageRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [language, setLanguage] = useState<"en" | "el">("en");
+  const [language, setLanguage] = useState<"en" | "el" | "es" | "pl">("en");
+  const currency = useMemo(() => CURRENCY_BY_LOCALE[language] || "EUR", [language]);
+  const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
   const [bookingLink, setBookingLink] = useState(() => cleanSlug(user?.email?.split("@")[0] || "my-chair"));
   const [stylistName, setStylistName] = useState("");
   const [serviceName, setServiceName] = useState("Haircut");
@@ -139,6 +156,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
         .from("profiles")
         .update({
           booking_locale: language,
+          currency,
           booking_link: finalSlug,
           notify_cancellation_alerts: cancellationAlerts,
           loyalty_discount_enabled: loyaltyDiscount,
@@ -265,6 +283,8 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
               <div className="grid gap-3">
                 <Choice active={language === "en"} title="English" detail="App and booking pages in English" onClick={() => setLanguage("en")} />
                 <Choice active={language === "el"} title="Ελληνικά" detail="Η εφαρμογή και οι κρατήσεις στα Ελληνικά" onClick={() => setLanguage("el")} />
+                <Choice active={language === "es"} title="Español" detail="La aplicación y las reservas en español" onClick={() => setLanguage("es")} />
+                <Choice active={language === "pl"} title="Polski" detail="Aplikacja i rezerwacje po polsku" onClick={() => setLanguage("pl")} />
               </div>
             )}
 
@@ -292,7 +312,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                 <div><FieldLabel>Service</FieldLabel><DarkInput value={serviceName} onChange={setServiceName} placeholder="Haircut" /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><FieldLabel>Minutes</FieldLabel><DarkInput type="number" value={serviceDuration.toString()} onChange={(value) => setServiceDuration(Number(value))} /></div>
-                  <div><FieldLabel>Price €</FieldLabel><DarkInput type="number" value={servicePrice.toString()} onChange={(value) => setServicePrice(Number(value))} /></div>
+                  <div><FieldLabel>Price {currencySymbol}</FieldLabel><DarkInput type="number" value={servicePrice.toString()} onChange={(value) => setServicePrice(Number(value))} /></div>
                 </div>
                 <div>
                   <FieldLabel>Icon</FieldLabel>

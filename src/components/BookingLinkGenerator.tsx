@@ -44,7 +44,15 @@ const LANGS = [
   { value: "en", label: "English", flag: "🇬🇧" },
   { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
   { value: "es", label: "Español", flag: "��" },
+  { value: "pl", label: "Polski", flag: "🇵🇱" },
 ] as const;
+
+const CURRENCY_BY_LOCALE: Record<string, string> = {
+  en: "GBP",
+  el: "EUR",
+  es: "EUR",
+  pl: "PLN",
+};
 
 const BookingLinkGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -162,6 +170,7 @@ const BookingLinkGenerator = () => {
           ask_phone: askPhone,
           ask_notes: askNotes,
           booking_locale: bookingLocale,
+          currency: CURRENCY_BY_LOCALE[bookingLocale] || "EUR",
           booking_theme: isPremium ? bookingTheme : "default",
           brand_color: isPremium ? brandColor : null,
           updated_at: new Date().toISOString(),

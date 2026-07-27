@@ -49,11 +49,12 @@ interface AgendaBookingFormProps {
     total_bookings?: number | null;
     services_count?: number | null;
     stylists_count?: number | null;
+    currency?: string | null;
   } | null;
   workingDays?: number[];
   timezone?: string;
   rescheduleAppointment?: any;
-  locale?: "en" | "el" | "es";
+  locale?: "en" | "el" | "es" | "pl";
   askPhone?: boolean;
   askNotes?: boolean;
   submitLabel?: string;
@@ -89,6 +90,10 @@ const AgendaBookingForm = ({
 
   const accentColor = businessProfile?.brand_color || "#e11d48";
   const bookingTheme = businessProfile?.booking_theme || "default";
+  const currency = businessProfile?.currency || "EUR";
+  const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
+  const formatCurrency = (amount: number) =>
+    currency === "PLN" ? `${amount} zł` : currency === "RON" ? `${amount} lei` : `${currencySymbol}${amount}`;
   const isPremiumTheme = bookingTheme !== "default";
   const buttonStyle = isPremiumTheme
     ? { backgroundColor: accentColor, boxShadow: `0 12px 32px -8px ${accentColor}` }
@@ -341,7 +346,7 @@ const AgendaBookingForm = ({
                 <img src={avatarUrl} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-medium truncate">{service.name}</p>
-                  <p className="text-[#8E8E93] text-sm">{service.duration} mins · €{service.price}</p>
+                  <p className="text-[#8E8E93] text-sm">{service.duration} mins · {formatCurrency(service.price)}</p>
                 </div>
               </div>
             ))}
@@ -408,7 +413,7 @@ const AgendaBookingForm = ({
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-white font-bold">€{totalPrice}</p>
+                  <p className="text-white font-bold">{formatCurrency(totalPrice)}</p>
                   <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
                 </div>
               </div>
@@ -426,7 +431,7 @@ const AgendaBookingForm = ({
 
               <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                 <span className="text-sm font-medium text-white">{copy.total}</span>
-                <span className="text-lg font-bold text-white">€{totalPrice}</span>
+                <span className="text-lg font-bold text-white">{formatCurrency(totalPrice)}</span>
               </div>
             </div>
           )}
@@ -517,7 +522,7 @@ const AgendaBookingForm = ({
                       <div className="pt-4 border-t border-white/[0.08]">
                         <div className="flex items-center justify-between">
                           <span className="text-[#8E8E93]">{copy.total}</span>
-                          <span className="text-xl font-bold text-white">€{totalPrice}</span>
+                          <span className="text-xl font-bold text-white">{formatCurrency(totalPrice)}</span>
                         </div>
                       </div>
                     </div>
@@ -560,7 +565,7 @@ const AgendaBookingForm = ({
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-3">
                                 <p className="font-semibold text-white text-[16px]">{service.name}</p>
-                                <p className="text-lg font-bold text-white tabular-nums">€{service.price}</p>
+                                <p className="text-lg font-bold text-white tabular-nums">{formatCurrency(service.price)}</p>
                               </div>
                               {service.description && (
                                 <p className="text-sm text-[#8E8E93] mt-1 line-clamp-2">{service.description}</p>

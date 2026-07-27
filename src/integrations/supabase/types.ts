@@ -810,6 +810,7 @@ export type Database = {
           brand_color?: string | null
           business_name?: string | null
           created_at?: string
+          currency?: string
           dark_mode?: boolean | null
           deleted_at?: string | null
           description?: string | null
@@ -851,6 +852,7 @@ export type Database = {
           brand_color?: string | null
           business_name?: string | null
           created_at?: string
+          currency?: string
           dark_mode?: boolean | null
           deleted_at?: string | null
           description?: string | null
