@@ -165,9 +165,11 @@ function AnimatedRoutes() {
 const HeaderActions = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile() ?? false;
+  const location = useLocation();
   if (!user) return null;
   const role = (user?.user_metadata as any)?.role;
   if (role !== "client" && isMobile) return null;
+  if (isMobile && location.pathname.startsWith("/find-barber")) return null;
   return (
     <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50">
       <NotificationBell />
