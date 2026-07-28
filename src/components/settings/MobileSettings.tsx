@@ -35,7 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PushToggle } from "@/components/PushToggle";
+import { enableBookingPush } from "@/lib/push";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
@@ -697,15 +697,21 @@ export function MobileSettings(props: any) {
             {panel === "notifications" && (
               <PanelStack>
                 <ListCard>
-                  <div className="px-4 py-3 border-b border-white/5">
-                    <PushToggle />
-                  </div>
                   <ToggleRow
                     icon={Bell}
                     label="Cancellation alerts"
                     desc="Get an instant alert when a client cancels so you can refill the slot."
                     checked={brandForm.notify_cancellation_alerts}
-                    onChange={(checked) => setBrandForm((previous: any) => ({ ...previous, notify_cancellation_alerts: checked }))}
+                    onChange={async (checked: boolean) => {
+                      if (checked) {
+                        const r = await enableBookingPush();
+                        if (!r.ok) {
+                          toast({ title: "Notifications blocked", description: r.reason, variant: "destructive" });
+                          return;
+                        }
+                      }
+                      setBrandForm((previous: any) => ({ ...previous, notify_cancellation_alerts: checked }));
+                    }}
                   />
                   {notifications.map((item: any, i: number) => (
                     <ToggleRow

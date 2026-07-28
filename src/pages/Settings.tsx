@@ -32,7 +32,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { PushToggle } from "@/components/PushToggle";
+import { enableBookingPush } from "@/lib/push";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -1029,8 +1029,6 @@ const Settings = () => {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                          <PushToggle />
-                          <Separator className="bg-[#C6C6C8] dark:bg-[#2C2C2E]" />
                           {notifications.map((item, index) => (
                             <div key={item.id}>
                               <div className="flex items-center justify-between gap-4 py-3">
@@ -1040,12 +1038,19 @@ const Settings = () => {
                                 </div>
                                 <Switch
                                   checked={notificationPrefs[item.id]}
-                                  onCheckedChange={(checked) =>
+                                  onCheckedChange={async (checked) => {
+                                    if (item.id === "cancellations" && checked) {
+                                      const r = await enableBookingPush();
+                                      if (!r.ok) {
+                                        toast({ title: "Notifications blocked", description: r.reason, variant: "destructive" });
+                                        return;
+                                      }
+                                    }
                                     setNotificationPrefs((prev) => ({
                                       ...prev,
                                       [item.id]: checked,
-                                    }))
-                                  }
+                                    }));
+                                  }}
                                 />
                               </div>
                               {index < notifications.length - 1 && <Separator className="bg-[#C6C6C8] dark:bg-[#2C2C2E]" />}
