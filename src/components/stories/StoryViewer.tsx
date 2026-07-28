@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -205,12 +206,12 @@ export function StoryViewer({
   if (!story) return null;
   const mediaSrc = signedSrc ?? publicUrl(story.media_path);
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] bg-black"
+      className="fixed inset-0 z-[99999] bg-black"
       style={{ height: "100dvh" }}
     >
       <div className="relative w-full h-full overflow-hidden bg-black">
@@ -353,6 +354,7 @@ export function StoryViewer({
           <ChevronRight className="w-6 h-6" />
         </button>
       </div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
