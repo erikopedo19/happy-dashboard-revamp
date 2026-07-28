@@ -192,7 +192,7 @@ const Booking = () => {
   });
 
   // Fetch services for this business
-  const { data: services = [], error: servicesError } = useQuery<Service[]>({
+  const { data: services = [], error: servicesError, isLoading: servicesLoading } = useQuery<Service[]>({
     queryKey: ['public-services', businessProfile?.id],
     queryFn: async () => {
       if (!businessProfile?.id) return [];
@@ -682,7 +682,7 @@ const Booking = () => {
   };
 
   // Show loading state (also while bookingLink is missing or query is fetching)
-  if (!bookingLink || profileLoading || profileFetching || (!businessProfile && !profileError)) {
+  if (!bookingLink || profileLoading || servicesLoading || (!businessProfile && !profileError)) {
     return (
       <div className="min-h-screen bg-[#0c0c0c] flex items-center justify-center">
         <div className="text-center">
@@ -731,7 +731,7 @@ const Booking = () => {
   // Show warning if no services available
   const isOwner = user?.id === businessProfile?.id;
 
-  if (services.length === 0 && !servicesError) {
+  if (services.length === 0 && !servicesLoading && !servicesError) {
     return (
       <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center p-6 relative overflow-hidden">
         <div className="pointer-events-none absolute -top-20 -left-20 h-80 w-80 rounded-full bg-[#FF2D6F]/20 blur-[120px]" />
