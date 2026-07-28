@@ -80,6 +80,8 @@ export function StoryViewer({
   const [triedSigned, setTriedSigned] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [viewCount, setViewCount] = useState(0);
+  const [closing, setClosing] = useState(false);
+  const closeViewer = () => setClosing(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -146,7 +148,7 @@ export function StoryViewer({
     else if (gIdx < groups.length - 1) {
       setGIdx(gIdx + 1);
       setSIdx(0);
-    } else onClose();
+    } else closeViewer();
   };
   const prev = () => {
     if (sIdx > 0) setSIdx(sIdx - 1);
@@ -171,7 +173,7 @@ export function StoryViewer({
       }
       await qc.invalidateQueries({ queryKey: ["stories-active"] });
       toast({ title: "Story deleted" });
-      onClose();
+      closeViewer();
     } catch (e: any) {
       toast({ title: "Could not delete story", description: e?.message, variant: "destructive" });
     } finally {
@@ -211,17 +213,20 @@ export function StoryViewer({
   const mediaSrc = signedSrc ?? publicUrl(story.media_path);
 
   return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className={
-        minimized
-          ? "fixed bottom-4 right-4 z-[99999] w-[120px] h-[170px] rounded-[20px] overflow-hidden bg-black shadow-2xl pointer-events-auto"
-          : "fixed inset-0 z-[99999] bg-black"
-      }
-      style={minimized ? {} : { height: "100dvh" }}
-    >
+    <AnimatePresence mode="wait" onExitComplete={onClose}>
+      {!closing && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.25 }}
+          className={
+            minimized
+              ? "fixed bottom-4 right-4 z-[99999] w-[120px] h-[170px] rounded-[20px] overflow-hidden bg-black shadow-2xl pointer-events-auto"
+              : "fixed inset-0 z-[99999] bg-black"
+          }
+          style={minimized ? {} : { height: "100dvh" }}
+        >
       <div className="relative w-full h-full overflow-hidden bg-black">
         {/* Progress */}
         {!minimized && (
@@ -263,7 +268,7 @@ export function StoryViewer({
               <Maximize2 className="w-3 h-3" />
             </button>
             <button
-              onClick={onClose}
+              onClick={closeViewer}
               className="p-1 rounded-full bg-black/40 text-white backdrop-blur"
               aria-label="close"
             >
@@ -313,7 +318,7 @@ export function StoryViewer({
               </button>
             )}
             <button
-              onClick={onClose}
+              onClick={closeViewer}
               className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
               aria-label="close"
             >
@@ -398,7 +403,9 @@ export function StoryViewer({
           </>
         )}
       </div>
-    </motion.div>,
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }
