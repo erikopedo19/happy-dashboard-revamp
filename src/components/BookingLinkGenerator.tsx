@@ -268,7 +268,7 @@ const BookingLinkGenerator = () => {
             )}
           </button>
         </div>
-        <p className="text-[14px] text-white font-medium break-all leading-snug select-all">
+        <p className="text-[14px] text-white font-medium break-all leading-snug select-all max-w-full">
           {displayUrl || <span className="text-white/30">set a name below</span>}
         </p>
         <div className="grid grid-cols-2 gap-2 pt-1">
@@ -359,12 +359,14 @@ const BookingLinkGenerator = () => {
 
         {isPremium && (
           <>
-            <TypewriterLoop
-              LeadText="Button"
-              morphingText={BUTTON_COLORS.map((c) => c.label)}
-              className="text-2xl md:text-4xl !justify-start"
-              interval={3500}
-            />
+            <div className="max-w-full overflow-hidden">
+              <TypewriterLoop
+                LeadText="Button"
+                morphingText={BUTTON_COLORS.map((c) => c.label)}
+                className="text-2xl md:text-4xl !justify-start max-w-full"
+                interval={3500}
+              />
+            </div>
 
             {bookingTheme === "default" ? (
               <button
@@ -383,7 +385,7 @@ const BookingLinkGenerator = () => {
               />
             )}
 
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
               {BUTTON_COLORS.map((c) => {
                 const active = bookingTheme === c.value;
                 return (
