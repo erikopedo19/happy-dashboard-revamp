@@ -118,7 +118,7 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center sm:p-4"
+            className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-xl flex items-end justify-center p-0"
             style={{ height: "100dvh" }}
           >
             <motion.div
