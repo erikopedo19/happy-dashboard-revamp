@@ -357,54 +357,53 @@ const BookingLinkGenerator = () => {
           )}
         </div>
 
-        <TypewriterLoop
-          LeadText="Button"
-          morphingText={BUTTON_COLORS.map((c) => c.label)}
-          className="text-2xl md:text-4xl !justify-start"
-          interval={3500}
-        />
+        {isPremium && (
+          <>
+            <TypewriterLoop
+              LeadText="Button"
+              morphingText={BUTTON_COLORS.map((c) => c.label)}
+              className="text-2xl md:text-4xl !justify-start"
+              interval={3500}
+            />
 
-        {bookingTheme === "default" ? (
-          <button
-            type="button"
-            disabled={!isPremium}
-            className="w-full h-12 rounded-full font-semibold text-white flex items-center justify-center"
-            style={{ backgroundColor: brandColor }}
-          >
-            {bookingUrl ? "Book now" : "Preview"}
-          </button>
-        ) : (
-          <PulseButton
-            text={bookingUrl ? "Book now" : "Preview"}
-            color={(BUTTON_COLORS.find((c) => c.value === bookingTheme)?.value as ButtonColor) || "pink"}
-            size="md"
-            className="w-full"
-            disabled={!isPremium && bookingTheme !== "default"}
-          />
-        )}
-
-        <div className="grid grid-cols-7 gap-2">
-          {BUTTON_COLORS.map((c) => {
-            const active = bookingTheme === c.value;
-            const disabled = !isPremium && c.value !== "default";
-            return (
+            {bookingTheme === "default" ? (
               <button
-                key={c.value}
                 type="button"
-                disabled={disabled}
-                onClick={() => setBookingTheme(c.value)}
-                className={cn(
-                  "h-10 rounded-[18px] border-2 transition flex items-center justify-center",
-                  active ? "border-white" : "border-transparent",
-                  disabled && "opacity-50 cursor-not-allowed"
-                )}
-                title={c.label}
+                className="w-full h-12 rounded-full font-semibold text-white flex items-center justify-center"
+                style={{ backgroundColor: brandColor }}
               >
-                <div className={cn("w-6 h-6 rounded-full", c.tw)} />
+                {bookingUrl ? "Book now" : "Preview"}
               </button>
-            );
-          })}
-        </div>
+            ) : (
+              <PulseButton
+                text={bookingUrl ? "Book now" : "Preview"}
+                color={(BUTTON_COLORS.find((c) => c.value === bookingTheme)?.value as ButtonColor) || "pink"}
+                size="md"
+                className="w-full"
+              />
+            )}
+
+            <div className="grid grid-cols-7 gap-2">
+              {BUTTON_COLORS.map((c) => {
+                const active = bookingTheme === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setBookingTheme(c.value)}
+                    className={cn(
+                      "h-10 rounded-[18px] border-2 transition flex items-center justify-center",
+                      active ? "border-white" : "border-transparent"
+                    )}
+                    title={c.label}
+                  >
+                    <div className={cn("w-6 h-6 rounded-full", c.tw)} />
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {isPremium ? (
           <div className="flex items-center gap-2 px-1">

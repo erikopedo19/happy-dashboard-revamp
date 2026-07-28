@@ -600,12 +600,12 @@ const AgendaBookingForm = ({
                           whileTap={{ scale: 0.985 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-[24px] border text-left transition-all bg-[#1C1C1E]",
+                            "w-full p-5 rounded-[24px] border-2 text-left transition-all bg-[#1C1C1E]",
                             active
-                              ? "border-transparent ring-2 ring-white/20 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
+                              ? "ring-2 ring-white/30 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
                               : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#232326]"
                           )}
-                          style={active ? { borderColor: `${swatch}55`, backgroundColor: `${swatch}14` } : {}}
+                          style={active ? { borderColor: swatch, backgroundColor: `${swatch}14` } : {}}
                         >
                           <div className="flex items-center gap-4">
                             <div
@@ -849,10 +849,10 @@ const AgendaBookingForm = ({
                             key={stylist.id}
                             onClick={() => handleStylistSelect(stylist.id)}
                             className={cn(
-                              "w-full p-4 rounded-2xl border text-left transition-all bg-[#1C1C1E] flex items-center gap-4",
-                              active ? "border-transparent" : "border-white/[0.06] hover:border-white/[0.12]"
+                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-[#1C1C1E] flex items-center gap-4",
+                              active ? "ring-2 ring-white/30" : "border-white/[0.06] hover:border-white/[0.12]"
                             )}
-                            style={active ? { borderColor: `${accentColor}60`, backgroundColor: `${accentColor}12` } : {}}
+                            style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12` } : {}}
                           >
                             <div className="h-12 w-12 rounded-full bg-[#2C2C2E] overflow-hidden flex items-center justify-center text-lg font-semibold text-white shrink-0">
                               {stylist.avatar_url ? (
@@ -997,9 +997,10 @@ const AgendaBookingForm = ({
 
                       <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
-                          type="submit"
+                          type="button"
                           text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : submitLabel || copy.book}
                           disabled={isLoading}
+                          onClick={() => { form.handleSubmit(handleSubmit)(); }}
                         />
                       </div>
                     </form>
