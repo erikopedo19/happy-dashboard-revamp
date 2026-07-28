@@ -20,6 +20,7 @@ import {
   Search,
   ArrowRight,
   Trash2,
+  LogOut,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -180,6 +181,22 @@ const Settings = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const [agreed, setAgreed] = useState(true);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
+  const handleAgreeToggle = (checked: boolean) => {
+    if (!checked) {
+      const confirmed = confirm("You must agree to the Terms and Privacy Policy to use the app. If you decline, you will be signed out.");
+      if (!confirmed) return;
+      handleSignOut();
+      return;
+    }
+    setAgreed(checked);
+  };
 
   const handleDeleteAccount = async () => {
     if (!user?.id) {
@@ -1477,6 +1494,20 @@ const Settings = () => {
                         Privacy Policy
                         <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
                       </button>
+
+                      <div className="flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4">
+                        <span className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">Agree to Terms & Privacy</span>
+                        <Switch checked={agreed} onCheckedChange={handleAgreeToggle} />
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSignOut}
+                        className="w-full rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:opacity-80"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" /> Sign out
+                      </Button>
                     </CardContent>
                   </Card>
 

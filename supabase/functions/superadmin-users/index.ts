@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
       const ids = all.map((u) => u.id);
 
       const [{ data: profiles }, { data: subs }, { data: authSettings }, { data: fakeShopsSettings }, { data: totalBookingsData }, { count: fakeShopsCount }] = await Promise.all([
-        admin.from("profiles").select("id, full_name, business_name, avatar_url, role").in("id", ids),
+        admin.from("profiles").select("id, full_name, business_name, avatar_url, role, website_design_requested").in("id", ids),
         admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, updated_at"),
         admin.from("app_settings").select("value").eq("key", "auth").maybeSingle(),
         admin.from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),

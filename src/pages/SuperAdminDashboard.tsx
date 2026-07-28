@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar, Sparkles } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar, Sparkles, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { OffersPanel } from "@/components/OffersPanel";
@@ -37,6 +37,7 @@ type Row = {
   business_name: string | null;
   avatar_url: string | null;
   role: string | null;
+  website_design_requested?: boolean;
   subscription: Sub;
 };
 
@@ -359,6 +360,11 @@ export default function SuperAdminDashboard() {
                         {r.email}
                         {r.subscription?.subscription_end ? ` · until ${new Date(r.subscription.subscription_end).toLocaleDateString()}` : ""}
                       </div>
+                      {r.website_design_requested && (
+                        <Badge variant="outline" className="mt-1 w-fit text-[10px] border-rose-500/30 text-rose-500 flex items-center gap-1">
+                          <Globe className="w-3 h-3" /> Website requested
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">

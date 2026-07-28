@@ -113,7 +113,18 @@ export function MobileSettings(props: any) {
   const queryClient = useQueryClient();
   const [panel, setPanel] = useState<Panel>(null);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const [agreed, setAgreed] = useState(true);
   const currentRole = user?.user_metadata?.role ?? "client";
+
+  const handleAgreeToggle = () => {
+    if (agreed) {
+      const confirmed = confirm("You must agree to the Terms and Privacy Policy to use the app. If you decline, you will be signed out.");
+      if (!confirmed) return;
+      supabase.auth.signOut().then(() => { window.location.href = "/login"; });
+      return;
+    }
+    setAgreed(true);
+  };
   const { setRole } = useRoleSwitch();
 
   useEffect(() => {
@@ -334,21 +345,6 @@ export function MobileSettings(props: any) {
           />
         </Group>
 
-        {user && (
-          <Group label="Session">
-            <Row
-              icon={LogOut}
-              tint="#ef4444"
-              label="Sign out"
-              danger
-              onClick={async () => {
-                await supabase.auth.signOut();
-                window.location.href = "/login";
-              }}
-            />
-          </Group>
-        )}
-
         <Group label="Legal">
           <Row
             icon={FileText}
@@ -362,6 +358,27 @@ export function MobileSettings(props: any) {
             label="Privacy Policy"
             onClick={() => navigate("/privacy")}
           />
+          {user && (
+            <>
+              <Row
+                icon={Check}
+                tint={agreed ? "#22c55e" : "#ef4444"}
+                label="Agree to Terms & Privacy"
+                value={agreed ? "On" : "Off"}
+                onClick={handleAgreeToggle}
+              />
+              <Row
+                icon={LogOut}
+                tint="#ef4444"
+                label="Sign out"
+                danger
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/login";
+                }}
+              />
+            </>
+          )}
         </Group>
 
         {user && (

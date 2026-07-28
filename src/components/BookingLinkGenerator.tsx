@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import {
   Check,
   Crown,
   QrCode,
+  Globe,
+  Mail,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +65,8 @@ const BookingLinkGenerator = () => {
   const [copied, setCopied] = useState(false);
   const [bookingTheme, setBookingTheme] = useState<string>("default");
   const [brandColor, setBrandColor] = useState<string>("#e11d48");
+  const [showWebsiteInfo, setShowWebsiteInfo] = useState(false);
+  const [websiteRequested, setWebsiteRequested] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { isPremium } = usePremium();
@@ -125,6 +129,7 @@ const BookingLinkGenerator = () => {
     setBookingLocale((profile as any)?.booking_locale ?? "en");
     setBookingTheme((profile as any)?.booking_theme || "default");
     setBrandColor((profile as any)?.brand_color || "#e11d48");
+    setWebsiteRequested((profile as any)?.website_design_requested ?? false);
   }, [profile, suggestedSlug]);
 
   const getBookingUrl = () => {
@@ -225,16 +230,41 @@ const BookingLinkGenerator = () => {
     if (bookingUrl) window.open(bookingUrl, "_blank");
   };
 
+  const requestWebsiteDesign = async () => {
+    setShowWebsiteInfo((s) => !s);
+    if (!user || websiteRequested) return;
+    try {
+      const { error } = await (supabase as any)
+        .from("profiles")
+        .update({
+          website_design_requested: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+      if (error) throw error;
+      setWebsiteRequested(true);
+      await queryClient.invalidateQueries({ queryKey: ["profile-booking-link"] });
+      toast({ title: "Request sent", description: "Our team will email you soon." });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   if (isLoading) return <BookingLinkSkeleton />;
 
   const displayUrl = bookingUrl.replace(/^https?:\/\//, "");
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 px-1">
-        <span className="h-10 w-10 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
-          <LinkIcon className="h-4 w-4 text-white/80" />
+        <span className="h-10 w-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+          <LinkIcon className="h-4 w-4" />
         </span>
         <div className="min-w-0">
           <p className="text-[15px] font-semibold text-white leading-tight">
@@ -247,7 +277,7 @@ const BookingLinkGenerator = () => {
       </div>
 
       {/* URL preview */}
-      <div className="rounded-[28px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
             Your link
@@ -275,14 +305,14 @@ const BookingLinkGenerator = () => {
           <button
             onClick={shareLink}
             disabled={!bookingUrl}
-            className="h-10 rounded-[18px] bg-white/[0.06] border border-white/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
+            className="h-10 rounded-[18px] bg-[#2C2C2E] border border-rose-500/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
           >
-            <Share2 className="h-3.5 w-3.5" /> Share
+            <Share2 className="h-3.5 w-3.5 text-rose-400" /> Share
           </button>
           <button
             onClick={openBookingPage}
             disabled={!bookingUrl}
-            className="h-10 rounded-[18px] bg-white/[0.06] border border-white/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
+            className="h-10 rounded-[18px] bg-rose-500 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
           >
             <ExternalLink className="h-3.5 w-3.5" /> Open
           </button>
@@ -291,7 +321,7 @@ const BookingLinkGenerator = () => {
 
 
       {/* Slug editor */}
-      <div className="rounded-[28px] bg-white/[0.04] border border-white/10 p-4 space-y-3">
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
             Custom name
@@ -304,7 +334,7 @@ const BookingLinkGenerator = () => {
             <RefreshCw className="h-3 w-3" /> Reset
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-[18px] bg-white/[0.04] border border-white/10 px-3 h-12 focus-within:border-white/25 transition">
+        <div className="flex items-center gap-2 rounded-[18px] bg-[#2C2C2E] border border-rose-500/10 px-3 h-12 focus-within:border-rose-500/40 transition">
           <span className="text-[13px] text-white/40 shrink-0">/book/</span>
           <input
             value={customSlug}
@@ -342,7 +372,7 @@ const BookingLinkGenerator = () => {
 
 
       {/* Theme */}
-      <div className="rounded-[28px] bg-white/[0.04] border border-white/10 p-4 space-y-4 overflow-hidden">
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-4 overflow-hidden">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <Crown className="w-3.5 h-3.5 text-rose-400" />
@@ -395,7 +425,7 @@ const BookingLinkGenerator = () => {
                     onClick={() => setBookingTheme(c.value)}
                     className={cn(
                       "h-10 rounded-[18px] border-2 transition flex items-center justify-center",
-                      active ? "border-white" : "border-transparent"
+                      active ? "border-rose-500" : "border-transparent"
                     )}
                     title={c.label}
                   >
@@ -414,7 +444,7 @@ const BookingLinkGenerator = () => {
               type="color"
               value={brandColor}
               onChange={(e) => setBrandColor(e.target.value)}
-              className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 bg-transparent cursor-pointer"
+              className="w-8 h-8 rounded-full overflow-hidden border border-rose-500/20 bg-transparent cursor-pointer"
             />
           </div>
         ) : (
@@ -429,7 +459,7 @@ const BookingLinkGenerator = () => {
         whileTap={{ scale: 0.98 }}
         onClick={updateSlug}
         disabled={isGenerating || customSlug.trim().length === 0}
-        className="w-full h-12 rounded-[18px] bg-white text-black text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+        className="w-full h-12 rounded-full bg-rose-500 text-white text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
       >
         {isGenerating ? (
           <>
@@ -441,7 +471,54 @@ const BookingLinkGenerator = () => {
           </>
         )}
       </motion.button>
-    </div>
+
+      {/* Website design request */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="h-10 w-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+              <Globe className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-[15px] font-semibold text-white">Need a full website?</p>
+              <p className="text-[12px] text-white/45">Request a custom design for your brand.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={requestWebsiteDesign}
+            className="h-9 px-4 rounded-full bg-rose-500 text-white text-[13px] font-semibold active:scale-[0.98] transition"
+          >
+            {showWebsiteInfo ? "Hide" : "Request"}
+          </button>
+        </div>
+        <AnimatePresence>
+          {showWebsiteInfo && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-3 border-t border-white/10">
+                <p className="text-[13px] text-white/70">Send your details to</p>
+                <a
+                  href="mailto:hello@cutzioo.com?subject=Website%20design%20request"
+                  className="mt-1 inline-flex items-center gap-2 text-[14px] font-medium text-rose-400 hover:text-rose-300 transition"
+                >
+                  <Mail className="h-4 w-4" /> hello@cutzioo.com
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 };
 
