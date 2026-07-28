@@ -89,7 +89,7 @@ const AgendaBookingForm = ({
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
   const accentColor = businessProfile?.brand_color || "#e11d48";
-  const bookingTheme = businessProfile?.booking_theme || "default";
+  
   const currency = businessProfile?.currency || "EUR";
   const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
   const formatCurrency = (amount: number) =>
