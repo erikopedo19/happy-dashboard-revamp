@@ -1,4 +1,4 @@
-import { Calendar, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark, Crown, AlertCircle } from "lucide-react";
+import { Calendar, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Crown, AlertCircle } from "lucide-react";
 import logoMark from "@/assets/logo-mark.webp";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
@@ -212,13 +212,17 @@ export function AppSidebar() {
         {/* Remember Me Indicator */}
         {sidebar.state !== "collapsed" && (
           <div className="flex items-center gap-2 px-2 py-1.5 mb-2 text-xs text-muted-foreground">
-            <Bookmark className="h-3 w-3" />
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-black/60 shrink-0">
+              <img src="/ios-checkmark.svg" alt="" className="h-3 w-3 invert" />
+            </span>
             <span>Remember: {localStorage.getItem('rememberMe') === 'true' ? 'On' : 'Off'}</span>
           </div>
         )}
         {sidebar.state === "collapsed" && localStorage.getItem('rememberMe') === 'true' && (
           <div className="flex justify-center mb-2">
-            <Bookmark className="h-3 w-3 text-green-500" />
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-black/60">
+              <img src="/ios-checkmark.svg" alt="" className="h-3 w-3 invert" />
+            </span>
           </div>
         )}
         {sidebar.state !== "collapsed" ? (
