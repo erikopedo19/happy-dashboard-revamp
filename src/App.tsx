@@ -29,6 +29,7 @@ import SuperAdminLogin from "./pages/SuperAdminLogin";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
+import { PhoneAlerts, PhoneAlertsProvider } from "@/components/PhoneAlerts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Brand from "./pages/Brand";
 import Booking from "./pages/Booking";
@@ -207,22 +208,25 @@ function App() {
                 </div>
               </div>
             )}
-          <BrowserRouter>
-            <OnboardingProvider>
-              <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
-                <GlimmIntercept />
-                <GlobalBanner />
-                <UpdatePopup />
-                <AnimatedRoutes />
-                <HeaderActions />
-                
-                <PersistentDock />
-                <Toaster />
-                <Sonner />
+          <PhoneAlertsProvider>
+            <BrowserRouter>
+              <OnboardingProvider>
+                <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
+                  <GlimmIntercept />
+                  <GlobalBanner />
+                  <UpdatePopup />
+                  <AnimatedRoutes />
+                  <HeaderActions />
 
-              </GlimmProvider>
-            </OnboardingProvider>
-          </BrowserRouter>
+                  <PersistentDock />
+                  <Toaster />
+                  <Sonner />
+                  <PhoneAlerts />
+
+                </GlimmProvider>
+              </OnboardingProvider>
+            </BrowserRouter>
+          </PhoneAlertsProvider>
         </div>
       </AuthProvider>
     </ThemeProvider>
