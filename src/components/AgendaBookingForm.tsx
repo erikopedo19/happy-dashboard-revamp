@@ -94,12 +94,7 @@ const AgendaBookingForm = ({
   const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
   const formatCurrency = (amount: number) =>
     currency === "PLN" ? `${amount} zł` : currency === "RON" ? `${amount} lei` : `${currencySymbol}${amount}`;
-  const isPremiumTheme = bookingTheme !== "default";
-  const buttonStyle = isPremiumTheme
-    ? { backgroundColor: accentColor, boxShadow: `0 12px 32px -8px ${accentColor}` }
-    : { backgroundColor: accentColor };
-  const buttonClass = "w-full h-12 rounded-[18px] font-semibold text-white border-0 flex items-center justify-center gap-2";
-
+  // Flat iOS-style buttons — no glow, no outer bloom.
   const BookingButton = ({
     text,
     onClick,
@@ -112,28 +107,25 @@ const AgendaBookingForm = ({
     disabled?: boolean;
     type?: "button" | "submit";
     className?: string;
-  }) =>
-    isPremiumTheme ? (
-      <PulseButton
-        text={text}
-        onClick={onClick}
-        disabled={disabled}
-        type={type}
-        color={bookingTheme as ButtonColor}
-        size="md"
-        className={cn("w-full h-12", className)}
-      />
-    ) : (
-      <Button
-        type={type}
-        onClick={onClick}
-        disabled={disabled}
-        className={cn(buttonClass, className)}
-        style={buttonStyle}
-      >
-        {text}
-      </Button>
-    );
+  }) => (
+    <motion.button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      whileTap={disabled ? undefined : { scale: 0.975 }}
+      transition={{ type: "spring", stiffness: 520, damping: 32 }}
+      className={cn(
+        "w-full h-[52px] rounded-[16px] font-semibold text-[16px] text-white border-0",
+        "flex items-center justify-center gap-2 select-none",
+        "disabled:opacity-40 disabled:cursor-not-allowed",
+        className
+      )}
+      style={{ backgroundColor: accentColor }}
+    >
+      {text}
+    </motion.button>
+  );
+
   const displayName = useMemo(() => {
     if (businessProfile?.full_name && businessProfile.full_name.trim()) return businessProfile.full_name.trim();
     if (typeof window === "undefined") return "Book an Appointment";
