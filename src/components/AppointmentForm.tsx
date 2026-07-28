@@ -241,11 +241,11 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     if (!services.length) return;
 
     const hasSelectedService = services.some((service: Service) => service.id === serviceId);
-    if (!hasSelectedService) {
-      const preferredServiceId = initialServiceId && services.some((service: Service) => service.id === initialServiceId)
+    if (!hasSelectedService && initialServiceId) {
+      const preferredServiceId = services.some((service: Service) => service.id === initialServiceId)
         ? initialServiceId
-        : services[0].id;
-      setServiceId(preferredServiceId);
+        : services[0]?.id;
+      if (preferredServiceId) setServiceId(preferredServiceId);
     }
   }, [services, serviceId, initialServiceId]);
 
@@ -514,7 +514,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       <DialogContent className={cn(
         "overflow-hidden shadow-2xl",
         isMobile
-          ? "w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300 p-0 border-0"
+          ? "w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] p-0 border-0"
           : "sm:w-[92vw] sm:max-w-[940px] sm:max-h-[86vh] sm:rounded-[20px] sm:p-0 sm:border sm:border-white/[0.08] bg-[#0e0e10]"
       )}>
         <DialogTitle className="sr-only">Book Appointment</DialogTitle>
