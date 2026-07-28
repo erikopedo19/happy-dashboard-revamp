@@ -299,6 +299,13 @@ const Stylists = () => {
                 </Button>
               </div>
 
+              <div className="flex lg:hidden items-center justify-between gap-4 mb-4">
+                <h1 className="text-2xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full px-4 h-9 bg-[#FF2D6F] hover:bg-[#e0205e] text-white text-sm">
+                  <Plus className="h-4 w-4 mr-1.5" /> Add stylist
+                </Button>
+              </div>
+
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <StatPill label="Total" value={stylists.length} />
@@ -438,13 +445,6 @@ const Stylists = () => {
               )}
             </div>
           </div>
-          <button
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="fixed bottom-20 right-4 z-50 lg:hidden w-14 h-14 rounded-full bg-[#FF2D6F] text-white shadow-2xl flex items-center justify-center active:scale-95 transition"
-            aria-label="Add stylist"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
         </main>
       </div>
 
