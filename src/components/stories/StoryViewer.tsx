@@ -15,6 +15,7 @@ type Story = {
   music_preview_url: string | null;
   music_artwork_url: string | null;
   duration_seconds: number | null;
+  views_count?: number | null;
 };
 
 type Group = {
@@ -26,14 +27,18 @@ type Group = {
 
 const VIEWED_KEY = "cutzio.stories.viewed.v1";
 
-export function markStoryViewed(storyId: string) {
+export function markStoryViewed(storyId: string): boolean {
   try {
     const raw = localStorage.getItem(VIEWED_KEY);
     const set = new Set<string>(raw ? JSON.parse(raw) : []);
+    if (set.has(storyId)) return false;
     set.add(storyId);
     localStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
     window.dispatchEvent(new Event("stories:viewed"));
-  } catch {}
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function getViewedStories(): Set<string> {
@@ -69,12 +74,30 @@ export function StoryViewer({
   const [signedSrc, setSignedSrc] = useState<string | null>(null);
   const [triedSigned, setTriedSigned] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [viewCount, setViewCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const group = groups[gIdx];
   const story = group?.stories[sIdx];
   const duration = (story?.duration_seconds ?? 5) * 1000;
+
+  // Track and display view count
+  useEffect(() => {
+    if (!story) return;
+    const initial = story.views_count ?? 0;
+    setViewCount(initial);
+    const newly = markStoryViewed(story.id);
+    if (newly) {
+      supabase.rpc("increment_story_views", { _story_id: story.id }).then(({ data, error }) => {
+        if (!error && data?.views_count != null) {
+          setViewCount(data.views_count);
+        } else {
+          setViewCount((c) => c + 1);
+        }
+      });
+    }
+  }, [story?.id]);
 
   // Advance only after media loaded
   useEffect(() => {
@@ -83,11 +106,6 @@ export function StoryViewer({
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gIdx, sIdx, loaded]);
-
-  // Mark viewed on open
-  useEffect(() => {
-    if (story) markStoryViewed(story.id);
-  }, [story?.id]);
 
   // Preload next story image for snappy transitions
   useEffect(() => {
@@ -232,7 +250,10 @@ export function StoryViewer({
           ) : (
             <div className="w-8 h-8 rounded-full bg-white/20" />
           )}
-          <span className="text-white text-sm font-semibold flex-1 truncate drop-shadow">{group.name}</span>
+          <div className="flex-1 min-w-0">
+            <span className="text-white text-sm font-semibold truncate drop-shadow block">{group.name}</span>
+            <span className="text-white/60 text-[11px]">{viewCount} view{viewCount !== 1 ? 's' : ''}</span>
+          </div>
           <button
             onClick={() => setMuted((m) => !m)}
             className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"

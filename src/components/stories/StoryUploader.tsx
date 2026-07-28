@@ -126,7 +126,7 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 30 }}
-              className="w-full sm:max-w-sm bg-[#141418] rounded-3xl overflow-hidden border border-white/10 flex flex-col h-[92dvh] sm:h-auto sm:max-h-[90dvh]"
+              className="w-full sm:max-w-md bg-[#141418] rounded-t-[28px] sm:rounded-t-[32px] overflow-hidden border border-t-0 border-x border-b border-white/10 flex flex-col h-[92dvh] sm:h-auto sm:max-h-[90dvh]"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
                 <h3 className="text-sm font-semibold text-white">New story</h3>
