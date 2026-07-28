@@ -635,19 +635,19 @@ const AgendaBookingForm = ({
 
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 2 of 3</p>
-                      <h2 className="text-2xl font-semibold text-white">Select date & time</h2>
-                    </div>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-[26px] font-semibold tracking-tight text-white">
+                      {locale === "el" ? "Ημερομηνία & ώρα" : "Date & time"}
+                    </h2>
                     <button
                       onClick={handleBack}
                       className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {locale === "el" ? "Πίσω" : "Back"}
                     </button>
                   </div>
+
 
                   <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6 md:gap-8">
                     {/* Calendar */}
