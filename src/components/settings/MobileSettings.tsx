@@ -751,11 +751,11 @@ export function MobileSettings(props: any) {
                   <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[#FF375F]">
                     <Tag className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className="mt-5 text-[21px] font-bold text-white">Reward your regulars</h3>
-                  <p className="mt-2 text-[12px] leading-5 text-[#8E8E93]">
+                  <h3 className="mt-4 text-[21px] font-bold text-white">Reward your regulars</h3>
+                  <p className="mt-1.5 text-[12px] leading-5 text-[#8E8E93]">
                     When a customer has more than one booking in seven days, Cutzio automatically gives 20% off their next booking.
                   </p>
-                  <div className="mt-5 flex items-center justify-between rounded-[20px] bg-[#2C2C2E] px-4 py-4">
+                  <div className="mt-4 flex items-center justify-between rounded-[20px] bg-[#2C2C2E] px-4 py-4">
                     <div>
                       <p className="text-[14px] font-semibold text-white">Automatic loyalty price</p>
                       <p className="mt-0.5 text-[11px] text-[#8E8E93]">Applied securely when the booking is created</p>
@@ -1096,7 +1096,7 @@ function Sheet({
           <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
         </header>
         <div
-          className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 pb-16"
+          className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 pb-8"
           style={{ WebkitOverflowScrolling: "touch" as any }}
         >
           {children}
@@ -1108,7 +1108,7 @@ function Sheet({
 
 
 function PanelStack({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-5 md:max-w-2xl md:mx-auto">{children}</div>;
+  return <div className="space-y-4 md:max-w-2xl md:mx-auto">{children}</div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
