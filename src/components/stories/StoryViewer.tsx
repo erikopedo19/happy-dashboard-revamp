@@ -282,7 +282,9 @@ export function StoryViewer({
             )}
             <div className="flex-1 min-w-0">
               <span className="text-white text-sm font-semibold truncate drop-shadow block">{group.name}</span>
-              <span className="text-white/60 text-[11px]">{viewCount} view{viewCount !== 1 ? 's' : ''}</span>
+              {user?.id === group?.user_id && (
+                <span className="text-white/60 text-[11px]">{viewCount} view{viewCount !== 1 ? 's' : ''}</span>
+              )}
             </div>
             <button
               onClick={() => setMuted((m) => !m)}
