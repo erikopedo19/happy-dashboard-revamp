@@ -334,18 +334,20 @@ export function MobileSettings(props: any) {
           />
         </Group>
 
-        <Group label="Session">
-          <Row
-            icon={LogOut}
-            tint="#ef4444"
-            label="Sign out"
-            danger
-            onClick={async () => {
-              await supabase.auth.signOut();
-              window.location.href = "/login";
-            }}
-          />
-        </Group>
+        {user && (
+          <Group label="Session">
+            <Row
+              icon={LogOut}
+              tint="#ef4444"
+              label="Sign out"
+              danger
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/login";
+              }}
+            />
+          </Group>
+        )}
 
         <Group label="Legal">
           <Row
@@ -362,16 +364,18 @@ export function MobileSettings(props: any) {
           />
         </Group>
 
-        <Group label="Danger zone">
-          <Row
-            icon={Trash2}
-            tint="#ef4444"
-            label="Delete account"
-            value="Permanently remove"
-            danger
-            onClick={handleDeleteAccount}
-          />
-        </Group>
+        {user && (
+          <Group label="Danger zone" className="border-2 border-rose-500/40">
+            <Row
+              icon={Trash2}
+              tint="#ef4444"
+              label="Delete account"
+              value="Permanently remove"
+              danger
+              onClick={handleDeleteAccount}
+            />
+          </Group>
+        )}
 
         <p className="text-center text-[11px] text-white/30 pt-2">
           Cutzio · v1.0
@@ -974,13 +978,13 @@ export function MobileSettings(props: any) {
 
 /* ---------- atoms ---------- */
 
-function Group({ label, children }: { label: string; children: React.ReactNode }) {
+function Group({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div>
       <p className="text-white/35 text-[11px] uppercase tracking-[0.18em] font-bold px-2 mb-2">
         {label}
       </p>
-      <div className="rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 overflow-hidden divide-y divide-white/5">
+      <div className={cn("rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 overflow-hidden divide-y divide-white/5", className)}>
         {children}
       </div>
     </div>

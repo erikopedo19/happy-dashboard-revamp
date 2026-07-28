@@ -248,11 +248,15 @@ export function AppSidebar() {
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-[#e11d48] focus:text-[#e11d48]">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
+              {user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-[#e11d48] focus:text-[#e11d48]">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
@@ -263,12 +267,14 @@ export function AppSidebar() {
                 {userInitials}
               </AvatarFallback>
             </Avatar>
-            <button
-              onClick={handleSignOut}
-              className="w-full flex justify-center p-2 rounded-md text-[#e11d48] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {user && (
+              <button
+                onClick={handleSignOut}
+                className="w-full flex justify-center p-2 rounded-md text-[#e11d48] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </SidebarFooter>

@@ -1480,7 +1480,7 @@ const Settings = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-3xl border-red-200 bg-red-50 shadow-sm dark:border-red-900/40 dark:bg-red-900/20">
+                  <Card className="rounded-3xl border-2 border-red-500/30 bg-red-50 shadow-sm dark:border-red-500/30 dark:bg-red-900/20">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
@@ -1498,7 +1498,7 @@ const Settings = () => {
                       <button
                         type="button"
                         onClick={handleDeleteAccount}
-                        className="w-full flex items-center justify-between rounded-2xl border border-red-200 dark:border-red-900/40 bg-white dark:bg-[#1C1C1E] p-4 text-left text-sm font-medium text-red-600 dark:text-red-300 transition hover:opacity-80"
+                        className="w-full flex items-center justify-between rounded-2xl border-2 border-red-500/40 dark:border-red-500/40 bg-white dark:bg-[#1C1C1E] p-4 text-left text-sm font-medium text-red-600 dark:text-red-300 transition hover:opacity-80"
                       >
                         Delete account
                         <ArrowRight className="h-4 w-4 text-red-400" />
