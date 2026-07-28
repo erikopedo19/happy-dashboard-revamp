@@ -224,31 +224,33 @@ export function StoryViewer({
     >
       <div className="relative w-full h-full overflow-hidden bg-black">
         {/* Progress */}
-        <div
-          className="absolute left-2 right-2 flex gap-1 z-30"
-          style={{ top: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
-        >
-          {group.stories.map((_, i) => (
-            <div key={i} className="flex-1 h-0.5 bg-white/25 rounded-full overflow-hidden">
-              <motion.div
-                key={`${gIdx}-${sIdx}-${i}-${loaded ? 1 : 0}`}
-                className="h-full bg-white"
-                initial={{ width: i < sIdx ? "100%" : "0%" }}
-                animate={{
-                  width:
-                    i < sIdx
-                      ? "100%"
-                      : i === sIdx
-                        ? loaded
-                          ? "100%"
-                          : "0%"
-                        : "0%",
-                }}
-                transition={{ duration: i === sIdx && loaded ? duration / 1000 : 0, ease: "linear" }}
-              />
-            </div>
-          ))}
-        </div>
+        {!minimized && (
+          <div
+            className="absolute left-2 right-2 flex gap-1 z-30"
+            style={{ top: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+          >
+            {group.stories.map((_, i) => (
+              <div key={i} className="flex-1 h-0.5 bg-white/25 rounded-full overflow-hidden">
+                <motion.div
+                  key={`${gIdx}-${sIdx}-${i}-${loaded ? 1 : 0}`}
+                  className="h-full bg-white"
+                  initial={{ width: i < sIdx ? "100%" : "0%" }}
+                  animate={{
+                    width:
+                      i < sIdx
+                        ? "100%"
+                        : i === sIdx
+                          ? loaded
+                            ? "100%"
+                            : "0%"
+                          : "0%",
+                  }}
+                  transition={{ duration: i === sIdx && loaded ? duration / 1000 : 0, ease: "linear" }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Header / controls */}
         {minimized ? (
@@ -332,7 +334,7 @@ export function StoryViewer({
               <video
                 ref={videoRef}
                 src={mediaSrc}
-                className="w-full h-full object-contain"
+                className={minimized ? "w-full h-full object-cover" : "w-full h-full object-contain"}
                 autoPlay
                 muted={muted}
                 playsInline
@@ -342,7 +344,7 @@ export function StoryViewer({
             ) : (
               <img
                 src={mediaSrc}
-                className="w-full h-full object-contain"
+                className={minimized ? "w-full h-full object-cover" : "w-full h-full object-contain"}
                 alt=""
                 onLoad={() => setLoaded(true)}
                 onError={handleMediaError}
@@ -359,7 +361,7 @@ export function StoryViewer({
         )}
 
         {/* Music badge */}
-        {story.music_title && (
+        {!minimized && story.music_title && (
           <div
             className="absolute left-3 right-16 z-20 flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur"
             style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}
@@ -375,20 +377,24 @@ export function StoryViewer({
         )}
 
         {/* Tap zones */}
-        <button
-          onClick={prev}
-          className="absolute inset-y-0 left-0 w-1/3 z-20 flex items-center justify-start pl-2 text-white/0 hover:text-white/70"
-          aria-label="Previous"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button
-          onClick={next}
-          className="absolute inset-y-0 right-0 w-1/3 z-20 flex items-center justify-end pr-2 text-white/0 hover:text-white/70"
-          aria-label="Next"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
+        {!minimized && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute inset-y-0 left-0 w-1/3 z-20 flex items-center justify-start pl-2 text-white/0 hover:text-white/70"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={next}
+              className="absolute inset-y-0 right-0 w-1/3 z-20 flex items-center justify-end pr-2 text-white/0 hover:text-white/70"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
+        )}
       </div>
     </motion.div>,
     document.body

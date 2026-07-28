@@ -20,6 +20,7 @@ export function StoriesRail() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [openUser, setOpenUser] = useState<string | null>(null);
+  const [minimized, setMinimized] = useState(false);
   const [viewed, setViewed] = useState<Set<string>>(() => getViewedStories());
 
   useEffect(() => {
@@ -114,7 +115,9 @@ export function StoriesRail() {
         <StoryViewer
           groups={groups}
           startUserId={openUser}
-          onClose={() => setOpenUser(null)}
+          minimized={minimized}
+          onToggle={() => setMinimized((m) => !m)}
+          onClose={() => { setOpenUser(null); setMinimized(false); }}
         />
       )}
     </>
