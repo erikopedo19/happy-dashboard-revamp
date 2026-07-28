@@ -8,7 +8,7 @@ import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { formatTzLabel } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
-import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+
 
 interface Service {
   id: string;
@@ -89,17 +89,12 @@ const AgendaBookingForm = ({
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
   const accentColor = businessProfile?.brand_color || "#e11d48";
-  const bookingTheme = businessProfile?.booking_theme || "default";
+  
   const currency = businessProfile?.currency || "EUR";
   const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
   const formatCurrency = (amount: number) =>
     currency === "PLN" ? `${amount} zł` : currency === "RON" ? `${amount} lei` : `${currencySymbol}${amount}`;
-  const isPremiumTheme = bookingTheme !== "default";
-  const buttonStyle = isPremiumTheme
-    ? { backgroundColor: accentColor, boxShadow: `0 12px 32px -8px ${accentColor}` }
-    : { backgroundColor: accentColor };
-  const buttonClass = "w-full h-12 rounded-[18px] font-semibold text-white border-0 flex items-center justify-center gap-2";
-
+  // Flat iOS-style buttons — no glow, no outer bloom.
   const BookingButton = ({
     text,
     onClick,
@@ -112,28 +107,25 @@ const AgendaBookingForm = ({
     disabled?: boolean;
     type?: "button" | "submit";
     className?: string;
-  }) =>
-    isPremiumTheme ? (
-      <PulseButton
-        text={text}
-        onClick={onClick}
-        disabled={disabled}
-        type={type}
-        color={bookingTheme as ButtonColor}
-        size="md"
-        className={cn("w-full h-12", className)}
-      />
-    ) : (
-      <Button
-        type={type}
-        onClick={onClick}
-        disabled={disabled}
-        className={cn(buttonClass, className)}
-        style={buttonStyle}
-      >
-        {text}
-      </Button>
-    );
+  }) => (
+    <motion.button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      whileTap={disabled ? undefined : { scale: 0.975 }}
+      transition={{ type: "spring", stiffness: 520, damping: 32 }}
+      className={cn(
+        "w-full h-[52px] rounded-[16px] font-semibold text-[16px] text-white border-0",
+        "flex items-center justify-center gap-2 select-none",
+        "disabled:opacity-40 disabled:cursor-not-allowed",
+        className
+      )}
+      style={{ backgroundColor: accentColor }}
+    >
+      {text}
+    </motion.button>
+  );
+
   const displayName = useMemo(() => {
     if (businessProfile?.full_name && businessProfile.full_name.trim()) return businessProfile.full_name.trim();
     if (typeof window === "undefined") return "Book an Appointment";
@@ -373,6 +365,22 @@ const AgendaBookingForm = ({
 
   const spring = { type: "spring" as const, stiffness: 380, damping: 34 };
 
+  const activeTabKey = step === "stylist" ? "datetime" : step;
+  const stepTabs = [
+    { key: "service", label: locale === "el" ? "Υπηρεσία" : locale === "es" ? "Servicio" : "Service", enabled: true },
+    {
+      key: "datetime",
+      label: locale === "el" ? "Ώρα" : locale === "es" ? "Hora" : "Time",
+      enabled: selectedServiceIds.length > 0,
+    },
+    {
+      key: "details",
+      label: locale === "el" ? "Στοιχεία" : locale === "es" ? "Datos" : "Details",
+      enabled: selectedServiceIds.length > 0 && !!selectedTime,
+    },
+  ];
+
+
   const MobileSummary = () => (
     <div className="lg:hidden mb-5 px-4 pt-4">
       <div className="rounded-[28px] bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
@@ -534,59 +542,86 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-t-[32px] md:rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-t-[32px] md:rounded-[28px]">
+              {/* Equal-width segmented step tabs (cal.com inspired) */}
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-[#1C1C1E] mb-6">
+                {stepTabs.map((tab) => {
+                  const active = tab.key === activeTabKey;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => tab.enabled && setStep(tab.key as any)}
+                      disabled={!tab.enabled}
+                      className={cn(
+                        "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
+                        active ? "text-white" : tab.enabled ? "text-[#8E8E93] hover:text-white" : "text-[#48484A] cursor-not-allowed"
+                      )}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="booking-tab"
+                          transition={{ type: "spring", stiffness: 480, damping: 38 }}
+                          className="absolute inset-0 rounded-[12px] bg-[#2C2C2E]"
+                        />
+                      )}
+                      <span className="relative z-10">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
-                  <div className="mb-6">
-                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#8E8E93] font-semibold mb-2">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
-                    <h2 className="text-[28px] font-semibold tracking-tight text-white">{copy.service}</h2>
+                  <div className="mb-5">
+                    <h2 className="text-[26px] font-semibold tracking-tight text-white">{copy.service}</h2>
                   </div>
-                  <div className="grid gap-4">
-                    {services.map((service) => {
+                  <div className="grid gap-3">
+                    {services.map((service, idx) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
                       return (
-                        <button
+                        <motion.button
                           key={service.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.035, 0.25) }}
+                          whileTap={{ scale: 0.985 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-[24px] border text-left transition-all bg-[#1C1C1E]",
-                            active
-                              ? "border-transparent"
-                              : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#232326]"
+                            "w-full min-h-[84px] px-4 py-4 rounded-[20px] border text-left transition-colors bg-[#1C1C1E]",
+                            active ? "border-transparent" : "border-white/[0.06] hover:bg-[#232326]"
                           )}
-                          style={active ? { borderColor: `${swatch}45`, backgroundColor: `${swatch}12` } : {}}
+                          style={active ? { borderColor: `${swatch}55`, backgroundColor: `${swatch}14` } : {}}
                         >
-                          <div className="flex items-center gap-4">
-                            <div
-                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner"
-                              style={{ backgroundColor: swatch }}
-                            />
+                          <div className="flex items-center gap-3.5">
+                            <div className="h-11 w-11 rounded-[14px] shrink-0" style={{ backgroundColor: swatch }} />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-3">
-                                <p className="font-semibold text-white text-[16px]">{service.name}</p>
-                                <p className="text-lg font-bold text-white tabular-nums">{formatCurrency(service.price)}</p>
+                                <p className="font-semibold text-white text-[16px] truncate">{service.name}</p>
+                                <p className="text-[16px] font-semibold text-white tabular-nums shrink-0">{formatCurrency(service.price)}</p>
                               </div>
-                              {service.description && (
-                                <p className="text-sm text-[#8E8E93] mt-1 line-clamp-2">{service.description}</p>
-                              )}
-                              <div className="flex items-center gap-2 text-[#8E8E93] text-sm mt-2">
+                              <div className="flex items-center gap-1.5 text-[#8E8E93] text-[13px] mt-1">
                                 <Clock className="w-3.5 h-3.5" />
-                                <span>{service.duration} mins</span>
+                                <span className="tabular-nums">{service.duration} min</span>
                               </div>
                             </div>
-                            {active && (
-                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0" style={{ backgroundColor: accentColor }}>
-                                <Check className="w-3.5 h-3.5" />
-                              </div>
-                            )}
+                            <div
+                              className={cn(
+                                "w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-opacity",
+                                active ? "opacity-100" : "opacity-0"
+                              )}
+                              style={{ backgroundColor: accentColor }}
+                            >
+                              <Check className="w-3.5 h-3.5 text-white" />
+                            </div>
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
+                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
                       <BookingButton
                         text={copy.continue}
                         onClick={handleServiceContinue}
@@ -597,21 +632,22 @@ const AgendaBookingForm = ({
                 </div>
               )}
 
+
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 2 of 3</p>
-                      <h2 className="text-2xl font-semibold text-white">Select date & time</h2>
-                    </div>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-[26px] font-semibold tracking-tight text-white">
+                      {locale === "el" ? "Ημερομηνία & ώρα" : "Date & time"}
+                    </h2>
                     <button
                       onClick={handleBack}
                       className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {locale === "el" ? "Πίσω" : "Back"}
                     </button>
                   </div>
+
 
                   <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6 md:gap-8">
                     {/* Calendar */}
@@ -710,13 +746,12 @@ const AgendaBookingForm = ({
                         <Globe className="w-3 h-3" />
                         <span>Times in {formatTzLabel(timezone)}</span>
                       </div>
-                      <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-2 max-h-[360px] pr-1">
+                      <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-2 max-h-[360px] pr-1 auto-rows-[52px]">
                         {selectedDate ? (
                           availableTimeSlots.length > 0 ? (
                             availableTimeSlots.map((time, idx) => {
                               const active = selectedTime === time;
                               const showRange = totalDuration > 30;
-                              const isLastOdd = availableTimeSlots.length % 2 === 1 && idx === availableTimeSlots.length - 1;
                               return (
                                 <motion.button
                                   key={time}
@@ -726,17 +761,16 @@ const AgendaBookingForm = ({
                                   whileTap={{ scale: 0.97 }}
                                   onClick={() => handleTimeSelect(time)}
                                   className={cn(
-                                    "w-full rounded-xl border font-medium text-center py-3 px-4 tabular-nums transition-colors",
+                                    "w-full h-[52px] rounded-[14px] border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:border-white/[0.14] hover:bg-[#1f1f22]",
-                                    isLastOdd && "col-span-2"
+                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:bg-[#1f1f22]"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >
-                                  <span>{formatTime(time)}</span>
+                                  <span className="leading-none">{formatTime(time)}</span>
                                   {showRange && (
-                                    <span className="text-xs ml-1 opacity-80">
+                                    <span className="text-[11px] mt-1 leading-none opacity-70">
                                       → {formatTime(getEndTime(time, totalDuration))}
                                     </span>
                                   )}
@@ -745,12 +779,13 @@ const AgendaBookingForm = ({
                             })
 
                           ) : (
-                            <div className="text-center text-[#8E8E93] py-8 text-sm">
+
+                            <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
                               No available times
                             </div>
                           )
                         ) : (
-                          <div className="text-center text-[#8E8E93] py-8 text-sm">
+                          <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
                             Select a date to see times
                           </div>
                         )}
@@ -773,7 +808,6 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 2 of 3</p>
                       <h2 className="text-2xl font-semibold text-white">Select stylist</h2>
                     </div>
                     <button
@@ -841,7 +875,6 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 3 of 3</p>
                       <h2 className="text-2xl font-semibold text-white">Your details</h2>
                     </div>
                     <button

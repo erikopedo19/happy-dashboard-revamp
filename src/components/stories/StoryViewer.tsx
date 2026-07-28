@@ -90,8 +90,9 @@ export function StoryViewer({
     const newly = markStoryViewed(story.id);
     if (newly) {
       supabase.rpc("increment_story_views", { _story_id: story.id }).then(({ data, error }) => {
-        if (!error && data?.views_count != null) {
-          setViewCount(data.views_count);
+        const res = data as { views_count?: number } | null;
+        if (!error && res?.views_count != null) {
+          setViewCount(res.views_count);
         } else {
           setViewCount((c) => c + 1);
         }

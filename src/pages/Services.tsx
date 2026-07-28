@@ -260,7 +260,7 @@ const Services = () => {
                           <Label htmlFor="duration" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Duration (min)</Label>
                           <Input id="duration" type="number" min={5} max={480} step={5}
                             value={formData.duration}
-                            onChange={(e) => setFormData((p) => ({ ...p, duration: e.target.value }))}
+                            onChange={(e) => setFormData((p) => ({ ...p, duration: Number(e.target.value) }))}
                             required
                             className="no-spinner h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
                         </div>
