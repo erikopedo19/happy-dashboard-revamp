@@ -365,6 +365,22 @@ const AgendaBookingForm = ({
 
   const spring = { type: "spring" as const, stiffness: 380, damping: 34 };
 
+  const activeTabKey = step === "stylist" ? "datetime" : step;
+  const stepTabs = [
+    { key: "service", label: locale === "el" ? "Υπηρεσία" : locale === "es" ? "Servicio" : "Service", enabled: true },
+    {
+      key: "datetime",
+      label: locale === "el" ? "Ώρα" : locale === "es" ? "Hora" : "Time",
+      enabled: selectedServiceIds.length > 0,
+    },
+    {
+      key: "details",
+      label: locale === "el" ? "Στοιχεία" : locale === "es" ? "Datos" : "Details",
+      enabled: selectedServiceIds.length > 0 && !!selectedTime,
+    },
+  ];
+
+
   const MobileSummary = () => (
     <div className="lg:hidden mb-5 px-4 pt-4">
       <div className="rounded-[28px] bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
