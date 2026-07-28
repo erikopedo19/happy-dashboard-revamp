@@ -526,59 +526,86 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-t-[32px] md:rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-t-[32px] md:rounded-[28px]">
+              {/* Equal-width segmented step tabs (cal.com inspired) */}
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-[#1C1C1E] mb-6">
+                {stepTabs.map((tab) => {
+                  const active = tab.key === activeTabKey;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => tab.enabled && setStep(tab.key as any)}
+                      disabled={!tab.enabled}
+                      className={cn(
+                        "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
+                        active ? "text-white" : tab.enabled ? "text-[#8E8E93] hover:text-white" : "text-[#48484A] cursor-not-allowed"
+                      )}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="booking-tab"
+                          transition={{ type: "spring", stiffness: 480, damping: 38 }}
+                          className="absolute inset-0 rounded-[12px] bg-[#2C2C2E]"
+                        />
+                      )}
+                      <span className="relative z-10">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
-                  <div className="mb-6">
-                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#8E8E93] font-semibold mb-2">{locale === "el" ? "Βήμα 1 από 3" : "Step 1 of 3"}</p>
-                    <h2 className="text-[28px] font-semibold tracking-tight text-white">{copy.service}</h2>
+                  <div className="mb-5">
+                    <h2 className="text-[26px] font-semibold tracking-tight text-white">{copy.service}</h2>
                   </div>
-                  <div className="grid gap-4">
-                    {services.map((service) => {
+                  <div className="grid gap-3">
+                    {services.map((service, idx) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
                       return (
-                        <button
+                        <motion.button
                           key={service.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.035, 0.25) }}
+                          whileTap={{ scale: 0.985 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-[24px] border text-left transition-all bg-[#1C1C1E]",
-                            active
-                              ? "border-transparent"
-                              : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#232326]"
+                            "w-full min-h-[84px] px-4 py-4 rounded-[20px] border text-left transition-colors bg-[#1C1C1E]",
+                            active ? "border-transparent" : "border-white/[0.06] hover:bg-[#232326]"
                           )}
-                          style={active ? { borderColor: `${swatch}45`, backgroundColor: `${swatch}12` } : {}}
+                          style={active ? { borderColor: `${swatch}55`, backgroundColor: `${swatch}14` } : {}}
                         >
-                          <div className="flex items-center gap-4">
-                            <div
-                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner"
-                              style={{ backgroundColor: swatch }}
-                            />
+                          <div className="flex items-center gap-3.5">
+                            <div className="h-11 w-11 rounded-[14px] shrink-0" style={{ backgroundColor: swatch }} />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-3">
-                                <p className="font-semibold text-white text-[16px]">{service.name}</p>
-                                <p className="text-lg font-bold text-white tabular-nums">{formatCurrency(service.price)}</p>
+                                <p className="font-semibold text-white text-[16px] truncate">{service.name}</p>
+                                <p className="text-[16px] font-semibold text-white tabular-nums shrink-0">{formatCurrency(service.price)}</p>
                               </div>
-                              {service.description && (
-                                <p className="text-sm text-[#8E8E93] mt-1 line-clamp-2">{service.description}</p>
-                              )}
-                              <div className="flex items-center gap-2 text-[#8E8E93] text-sm mt-2">
+                              <div className="flex items-center gap-1.5 text-[#8E8E93] text-[13px] mt-1">
                                 <Clock className="w-3.5 h-3.5" />
-                                <span>{service.duration} mins</span>
+                                <span className="tabular-nums">{service.duration} min</span>
                               </div>
                             </div>
-                            {active && (
-                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0" style={{ backgroundColor: accentColor }}>
-                                <Check className="w-3.5 h-3.5" />
-                              </div>
-                            )}
+                            <div
+                              className={cn(
+                                "w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-opacity",
+                                active ? "opacity-100" : "opacity-0"
+                              )}
+                              style={{ backgroundColor: accentColor }}
+                            >
+                              <Check className="w-3.5 h-3.5 text-white" />
+                            </div>
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
+                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
                       <BookingButton
                         text={copy.continue}
                         onClick={handleServiceContinue}
@@ -588,6 +615,7 @@ const AgendaBookingForm = ({
 
                 </div>
               )}
+
 
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
