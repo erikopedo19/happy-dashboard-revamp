@@ -780,12 +780,12 @@ const AgendaBookingForm = ({
 
                           ) : (
 
-                            <div className="text-center text-[#8E8E93] py-8 text-sm">
+                            <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
                               No available times
                             </div>
                           )
                         ) : (
-                          <div className="text-center text-[#8E8E93] py-8 text-sm">
+                          <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
                             Select a date to see times
                           </div>
                         )}
