@@ -793,23 +793,19 @@ function FullScreenMap({
       </div>
 
       {/* Coming Soon overlay */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="mx-5 max-w-sm rounded-[28px] bg-white dark:bg-[#1C1C1E] p-6 text-center shadow-2xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10">
-            <MapIcon className="h-6 w-6 text-rose-500" />
-          </div>
-          <h2 className="mt-4 text-[18px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Map coming soon</h2>
-          <p className="mt-2 text-[13px] text-[#8E8E93]">
-            Barbers will appear here as they add their shop locations.
-          </p>
-          <button
-            type="button"
-            onClick={onBack}
-            className="mt-5 h-11 w-full rounded-full bg-rose-500 text-[13px] font-semibold text-white active:scale-95 transition-transform"
-          >
-            Browse barbers
-          </button>
-        </div>
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black px-5">
+        <img
+          src="/Frame 316.png"
+          alt="Map feature coming soon"
+          className="w-full max-w-md object-contain rounded-3xl"
+        />
+        <button
+          type="button"
+          onClick={onBack}
+          className="mt-6 h-12 w-full max-w-md rounded-full bg-rose-500 text-[15px] font-semibold text-white active:scale-95 transition-transform"
+        >
+          Browse barbers
+        </button>
       </div>
 
       {/* Top floating search + filters */}
