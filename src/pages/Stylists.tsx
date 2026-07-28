@@ -585,9 +585,9 @@ const Stylists = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 32, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              className="fixed z-[121] left-1/2 bottom-6 sm:bottom-auto sm:top-1/2 -translate-x-1/2 sm:-translate-y-1/2 w-[calc(100%-2rem)] max-w-sm"
+              className="fixed z-[121] left-0 right-0 bottom-0 sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto -translate-x-0 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-auto sm:max-w-sm"
             >
-              <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.22)] overflow-hidden">
+              <div className="rounded-t-[28px] sm:rounded-[28px] pb-[env(safe-area-inset-bottom,0px)] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.22)] overflow-hidden">
                 {/* Header */}
                 <div className="px-6 pt-6 pb-4 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-[16px] bg-rose-500/10 flex items-center justify-center shrink-0">
