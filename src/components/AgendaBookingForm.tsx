@@ -746,13 +746,12 @@ const AgendaBookingForm = ({
                         <Globe className="w-3 h-3" />
                         <span>Times in {formatTzLabel(timezone)}</span>
                       </div>
-                      <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-2 max-h-[360px] pr-1">
+                      <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-2 max-h-[360px] pr-1 auto-rows-[52px]">
                         {selectedDate ? (
                           availableTimeSlots.length > 0 ? (
                             availableTimeSlots.map((time, idx) => {
                               const active = selectedTime === time;
                               const showRange = totalDuration > 30;
-                              const isLastOdd = availableTimeSlots.length % 2 === 1 && idx === availableTimeSlots.length - 1;
                               return (
                                 <motion.button
                                   key={time}
@@ -762,17 +761,16 @@ const AgendaBookingForm = ({
                                   whileTap={{ scale: 0.97 }}
                                   onClick={() => handleTimeSelect(time)}
                                   className={cn(
-                                    "w-full rounded-xl border font-medium text-center py-3 px-4 tabular-nums transition-colors",
+                                    "w-full h-[52px] rounded-[14px] border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:border-white/[0.14] hover:bg-[#1f1f22]",
-                                    isLastOdd && "col-span-2"
+                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:bg-[#1f1f22]"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >
-                                  <span>{formatTime(time)}</span>
+                                  <span className="leading-none">{formatTime(time)}</span>
                                   {showRange && (
-                                    <span className="text-xs ml-1 opacity-80">
+                                    <span className="text-[11px] mt-1 leading-none opacity-70">
                                       → {formatTime(getEndTime(time, totalDuration))}
                                     </span>
                                   )}
@@ -781,6 +779,7 @@ const AgendaBookingForm = ({
                             })
 
                           ) : (
+
                             <div className="text-center text-[#8E8E93] py-8 text-sm">
                               No available times
                             </div>
