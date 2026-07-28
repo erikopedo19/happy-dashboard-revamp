@@ -250,45 +250,73 @@ export function StoryViewer({
           ))}
         </div>
 
-        {/* Header */}
-        <div
-          className="absolute left-3 right-3 flex items-center gap-2 z-30"
-          style={{ top: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
-        >
-          {group.avatar_url ? (
-            <img src={group.avatar_url} className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-white/20" />
-          )}
-          <div className="flex-1 min-w-0">
-            <span className="text-white text-sm font-semibold truncate drop-shadow block">{group.name}</span>
-            <span className="text-white/60 text-[11px]">{viewCount} view{viewCount !== 1 ? 's' : ''}</span>
-          </div>
-          <button
-            onClick={() => setMuted((m) => !m)}
-            className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
-            aria-label="mute"
-          >
-            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-          {user?.id === group?.user_id && (
+        {/* Header / controls */}
+        {minimized ? (
+          <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-30">
             <button
-              onClick={handleDelete}
-              disabled={busy}
-              className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur disabled:opacity-50"
-              aria-label="Delete story"
+              onClick={onToggle}
+              className="p-1 rounded-full bg-black/40 text-white backdrop-blur"
+              aria-label="expand"
             >
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              <Maximize2 className="w-3 h-3" />
             </button>
-          )}
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
-            aria-label="close"
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full bg-black/40 text-white backdrop-blur"
+              aria-label="close"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ) : (
+          <div
+            className="absolute left-3 right-3 flex items-center gap-2 z-30"
+            style={{ top: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+            {group.avatar_url ? (
+              <img src={group.avatar_url} className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-white/20" />
+            )}
+            <div className="flex-1 min-w-0">
+              <span className="text-white text-sm font-semibold truncate drop-shadow block">{group.name}</span>
+              <span className="text-white/60 text-[11px]">{viewCount} view{viewCount !== 1 ? 's' : ''}</span>
+            </div>
+            <button
+              onClick={() => setMuted((m) => !m)}
+              className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
+              aria-label="mute"
+            >
+              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+            {user?.id === group?.user_id && (
+              <button
+                onClick={handleDelete}
+                disabled={busy}
+                className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur disabled:opacity-50"
+                aria-label="Delete story"
+              >
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              </button>
+            )}
+            {onToggle && (
+              <button
+                onClick={onToggle}
+                className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
+                aria-label="minimize"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur"
+              aria-label="close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Media */}
         <AnimatePresence mode="wait">
