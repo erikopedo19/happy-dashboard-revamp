@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -294,7 +294,7 @@ const Stylists = () => {
                   <h1 className="text-4xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
                   <p className="text-[#8E8E93] mt-1.5">Manage your team, schedules, and specialties.</p>
                 </div>
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 text-white dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90">
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
                   <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                 </Button>
               </div>
@@ -337,7 +337,7 @@ const Stylists = () => {
                   </div>
                   <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">No stylists yet</h3>
                   <p className="text-sm text-[#8E8E93] mt-1 mb-4">Add your first teammate to start assigning bookings.</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
+                  <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
                     <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                   </Button>
                 </motion.div>
@@ -440,7 +440,7 @@ const Stylists = () => {
           </div>
           <button
             onClick={() => setIsCreateDialogOpen(true)}
-            className="fixed bottom-20 right-4 z-50 lg:hidden w-14 h-14 rounded-full bg-white text-[#1C1C1E] shadow-2xl flex items-center justify-center active:scale-95 transition"
+            className="fixed bottom-20 right-4 z-50 lg:hidden w-14 h-14 rounded-full bg-[#FF2D6F] text-white shadow-2xl flex items-center justify-center active:scale-95 transition"
             aria-label="Add stylist"
           >
             <Plus className="w-6 h-6" />
@@ -635,13 +635,14 @@ const Stylists = () => {
         )}
       </AnimatePresence>
 
-      {/* Create Stylist Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[24px] p-0 border-0 bg-white dark:bg-[#1C1C1E] shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-4">
-          <DialogHeader className="px-6 pt-6 pb-2">
-            <DialogTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-lg">Add New Stylist</DialogTitle>
-            <DialogDescription className="text-[#8E8E93]">Add a new stylist to your salon team</DialogDescription>
-          </DialogHeader>
+      {/* Create Stylist Sheet */}
+      <Sheet open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90vh] overflow-y-auto">
+          <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-white/20" />
+          <SheetHeader className="px-6 pt-4 pb-2">
+            <SheetTitle className="text-white text-lg">Add New Stylist</SheetTitle>
+            <SheetDescription className="text-white/60">Add a new stylist to your salon team</SheetDescription>
+          </SheetHeader>
           <div className="space-y-4 px-6">
             <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
@@ -688,24 +689,25 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter className="px-6 pb-6 pt-2 gap-2">
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-[12px] h-12 flex-1">
+          <SheetFooter className="px-6 pb-8 pt-2 gap-2">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
-            <Button onClick={handleCreateStylist} disabled={!formData.name || createStylistMutation.isPending} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
+            <Button onClick={handleCreateStylist} disabled={!formData.name || createStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
               {createStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding…</> : "Add Stylist"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      {/* Edit Stylist Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[24px] p-0 border-0 bg-white dark:bg-[#1C1C1E] shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-4">
-          <DialogHeader className="px-6 pt-6 pb-2">
-            <DialogTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-lg">Edit Stylist</DialogTitle>
-            <DialogDescription className="text-[#8E8E93]">Update stylist information</DialogDescription>
-          </DialogHeader>
+      {/* Edit Stylist Sheet */}
+      <Sheet open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90vh] overflow-y-auto">
+          <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-white/20" />
+          <SheetHeader className="px-6 pt-4 pb-2">
+            <SheetTitle className="text-white text-lg">Edit Stylist</SheetTitle>
+            <SheetDescription className="text-white/60">Update stylist information</SheetDescription>
+          </SheetHeader>
           <div className="space-y-4 px-6">
             <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
@@ -750,16 +752,16 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter className="px-6 pb-6 pt-2 gap-2">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-[12px] h-12 flex-1">
+          <SheetFooter className="px-6 pb-8 pt-2 gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
-            <Button onClick={handleUpdateStylist} disabled={!formData.name || updateStylistMutation.isPending} className="rounded-[12px] h-12 flex-1 bg-[#0A84FF] hover:bg-[#0066d6] text-white">
+            <Button onClick={handleUpdateStylist} disabled={!formData.name || updateStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
               {updateStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : "Update Stylist"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </SidebarProvider>
   );
 };
@@ -809,7 +811,7 @@ function AvatarUploader({
       <div className="flex-1">
         <Label className="text-[#1C1C1E] dark:text-[#F2F2F7]">Profile photo</Label>
         <p className="text-[11px] text-[#8E8E93] mb-2">PNG or JPG, up to 5MB</p>
-        <label className="inline-flex items-center gap-2 h-9 px-3 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] text-[13px] font-medium text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors">
+        <label className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-[#FF2D6F] hover:bg-[#e0205e] text-[13px] font-medium text-white cursor-pointer transition-colors">
           <input
             type="file"
             accept="image/*"

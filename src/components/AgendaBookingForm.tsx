@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { formatTzLabel } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+import { getIconByName } from "@/components/IconPicker";
 
 interface Service {
   id: string;
@@ -17,6 +18,7 @@ interface Service {
   price: number;
   description?: string;
   color?: string;
+  icon?: string;
   text_color?: string;
   border_color?: string;
 }
@@ -88,8 +90,17 @@ const AgendaBookingForm = ({
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
-  const accentColor = businessProfile?.brand_color || "#e11d48";
   const bookingTheme = businessProfile?.booking_theme || "default";
+  const themeColors: Record<string, string> = {
+    pink: "#ff2281",
+    blue: "#0070f3",
+    orange: "#f2994a",
+    yellow: "#f2c94c",
+    green: "#27ae60",
+    purple: "#8e44ad",
+  };
+  const accentColor =
+    (bookingTheme !== "default" && themeColors[bookingTheme]) || businessProfile?.brand_color || "#e11d48";
   const currency = businessProfile?.currency || "EUR";
   const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
   const formatCurrency = (amount: number) =>
@@ -545,6 +556,7 @@ const AgendaBookingForm = ({
                     {services.map((service) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
+                      const ServiceIcon = service.icon ? getIconByName(service.icon) : null;
                       return (
                         <button
                           key={service.id}
@@ -552,16 +564,22 @@ const AgendaBookingForm = ({
                           className={cn(
                             "w-full p-5 rounded-[24px] border text-left transition-all bg-[#1C1C1E]",
                             active
-                              ? "border-transparent"
+                              ? "border-transparent ring-2 ring-white/20 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
                               : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#232326]"
                           )}
                           style={active ? { borderColor: `${swatch}45`, backgroundColor: `${swatch}12` } : {}}
                         >
                           <div className="flex items-center gap-4">
                             <div
-                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner"
+                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner flex items-center justify-center text-white"
                               style={{ backgroundColor: swatch }}
-                            />
+                            >
+                              {ServiceIcon ? (
+                                <ServiceIcon className="w-6 h-6" />
+                              ) : (
+                                <span className="w-3 h-3 rounded-full bg-white/30" />
+                              )}
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-3">
                                 <p className="font-semibold text-white text-[16px]">{service.name}</p>
@@ -942,10 +960,9 @@ const AgendaBookingForm = ({
 
                       <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
-                          type="button"
+                          type="submit"
                           text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : submitLabel || copy.book}
                           disabled={isLoading}
-                          onClick={() => form.handleSubmit(handleSubmit)()}
                         />
                       </div>
                     </form>

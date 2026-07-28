@@ -110,7 +110,7 @@ const BookingPage = () => {
 
         <AppSidebar />
 
-        <main className="flex-1 pb-24 overflow-y-auto relative z-10">
+        <main className="flex-1 overflow-y-auto relative z-10">
           {/* iOS large-title header */}
           <div className="sticky top-0 z-30 bg-[#0A0A0C]/90 backdrop-blur-2xl border-b border-white/[0.08]">
             <div className="max-w-6xl mx-auto px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">

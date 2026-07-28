@@ -186,7 +186,12 @@ const Settings = () => {
       toast({ title: "Not signed in", description: "Please sign in again.", variant: "destructive" });
       return;
     }
-    if (!window.confirm("Permanently delete your account? This cannot be undone.")) return;
+    const confirmation = window.prompt("To permanently delete your account, type 'delete my account' below.");
+    if (confirmation === null) return;
+    if (confirmation.trim().toLowerCase() !== "delete my account") {
+      toast({ title: "Deletion cancelled", description: "The confirmation phrase did not match.", variant: "destructive" });
+      return;
+    }
     const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
     if (error || !data?.success) {
       toast({ title: "Could not delete account", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
@@ -697,10 +702,7 @@ const Settings = () => {
                                   type="button"
                                   onClick={async () => {
                                     if (selected) return;
-                                    await supabase.auth.updateUser({ data: { role: key } });
-                                    await (supabase as any).from("profiles").update({ role: key }).eq("id", user?.id);
-                                    toast({ title: `Switched to ${label}`, description: "Your role has been updated." });
-                                    window.location.reload();
+                                    await setRole(key as "client" | "barber");
                                   }}
                                   className={cn(
                                     "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",

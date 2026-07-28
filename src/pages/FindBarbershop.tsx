@@ -83,7 +83,7 @@ function MapPoster() {
     <img
       src="/images/map-poster.png"
       alt="Map feature coming soon"
-      className="w-full rounded-[24px] object-cover min-h-[62vh] max-h-[620px]"
+      className="w-full rounded-[24px] object-contain max-h-[calc(100vh-220px)] md:max-h-[520px]"
       onError={() => setMissing(true)}
     />
   );
@@ -311,7 +311,7 @@ const FindBarbershop = () => {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-3 py-4 sm:px-4 lg:grid-cols-5 lg:px-4 lg:py-6">
+      <div className="mx-auto grid max-w-7xl gap-6 px-3 py-4 pb-28 sm:px-4 lg:grid-cols-5 lg:px-4 lg:py-6 lg:pb-28">
         <div className="space-y-4 lg:col-span-3">
           <div className="grid grid-cols-3 gap-3 md:hidden">
             <MiniMetric label="Matches" value={String(shops.length)} />
