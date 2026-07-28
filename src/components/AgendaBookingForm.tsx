@@ -808,7 +808,6 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 2 of 3</p>
                       <h2 className="text-2xl font-semibold text-white">Select stylist</h2>
                     </div>
                     <button
@@ -876,7 +875,6 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">Step 3 of 3</p>
                       <h2 className="text-2xl font-semibold text-white">Your details</h2>
                     </div>
                     <button
