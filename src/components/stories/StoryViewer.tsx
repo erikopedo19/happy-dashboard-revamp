@@ -62,10 +62,14 @@ export function StoryViewer({
   groups,
   startUserId,
   onClose,
+  minimized = false,
+  onToggle,
 }: {
   groups: Group[];
   startUserId: string;
   onClose: () => void;
+  minimized?: boolean;
+  onToggle?: () => void;
 }) {
   const startIdx = Math.max(0, groups.findIndex((g) => g.user_id === startUserId));
   const [gIdx, setGIdx] = useState(startIdx);
@@ -211,8 +215,12 @@ export function StoryViewer({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[99999] bg-black"
-      style={{ height: "100dvh" }}
+      className={
+        minimized
+          ? "fixed bottom-4 right-4 z-[99999] w-[120px] h-[170px] rounded-[20px] overflow-hidden bg-black shadow-2xl pointer-events-auto"
+          : "fixed inset-0 z-[99999] bg-black"
+      }
+      style={minimized ? {} : { height: "100dvh" }}
     >
       <div className="relative w-full h-full overflow-hidden bg-black">
         {/* Progress */}
