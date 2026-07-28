@@ -362,17 +362,33 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
             )}
 
             {step === 4 && (
-              <div className="space-y-4 rounded-[28px] bg-[#1C1C1E] p-4">
-                <div className="grid grid-cols-7 gap-1.5">
+              <div className="space-y-5 rounded-[28px] bg-[#1C1C1E] p-5">
+                <div className="grid grid-cols-7 gap-2">
                   {DAYS.map((day, index) => (
-                    <button key={`${day.value}-${index}`} type="button" onClick={() => toggleDay(day.value)} className={cn("aspect-square rounded-full text-[12px] font-bold", workingDays.includes(day.value) ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-white/35")}>{day.label}</button>
+                    <button
+                      key={`${day.value}-${index}`}
+                      type="button"
+                      onClick={() => toggleDay(day.value)}
+                      className={cn(
+                        "flex aspect-square items-center justify-center rounded-full text-[12px] font-bold transition-all active:scale-90",
+                        workingDays.includes(day.value) ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-white/35"
+                      )}
+                    >
+                      {day.label}
+                    </button>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><FieldLabel>Opens</FieldLabel><DarkInput type="time" value={startHour} onChange={setStartHour} /></div>
-                  <div><FieldLabel>Closes</FieldLabel><DarkInput type="time" value={endHour} onChange={setEndHour} /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>Opens</FieldLabel>
+                    <DarkInput type="time" value={startHour} onChange={setStartHour} />
+                  </div>
+                  <div>
+                    <FieldLabel>Closes</FieldLabel>
+                    <DarkInput type="time" value={endHour} onChange={setEndHour} />
+                  </div>
                 </div>
-                {startHour >= endHour && <p className="text-[11px] text-[#FF6B84]">Closing time must be later than opening time.</p>}
+                {startHour >= endHour && <p className="text-[11px] text-[#FF6B84] text-center">Closing time must be later than opening time.</p>}
               </div>
             )}
 

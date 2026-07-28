@@ -439,7 +439,7 @@ export default function Onboarding() {
                         <Calendar className="h-4 w-4" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-7 gap-1.5">
+                    <div className="grid grid-cols-7 gap-2">
                       {DAYS.map((d) => {
                         const active = data.workingDays.includes(d.n);
                         return (
@@ -457,19 +457,28 @@ export default function Onboarding() {
                         );
                       })}
                     </div>
-                    <div className="mt-4 rounded-2xl bg-black/20 px-3">
-                      <label className="flex min-h-14 items-center gap-3 border-b border-white/[0.06]">
-                        <Clock className="h-4 w-4 text-green-400" />
-                        <span className="flex-1 text-[13px] font-medium text-white">Opens</span>
-                        <input type="time" value={data.startHour} onChange={(e) => update("startHour", e.target.value)} className="bg-transparent text-[15px] font-semibold text-white outline-none [color-scheme:dark]" />
-                      </label>
-                      <label className="flex min-h-14 items-center gap-3">
-                        <Clock className="h-4 w-4 text-rose-400" />
-                        <span className="flex-1 text-[13px] font-medium text-white">Closes</span>
-                        <input type="time" value={data.endHour} onChange={(e) => update("endHour", e.target.value)} className="bg-transparent text-[15px] font-semibold text-white outline-none [color-scheme:dark]" />
-                      </label>
+
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-white/35 mb-2 block">Opens</span>
+                        <input
+                          type="time"
+                          value={data.startHour}
+                          onChange={(e) => update("startHour", e.target.value)}
+                          className="h-14 w-full rounded-[16px] bg-white/[0.07] border border-white/[0.06] px-3 text-center text-[15px] font-semibold text-white outline-none focus:ring-2 focus:ring-white/20 [color-scheme:dark]"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-white/35 mb-2 block">Closes</span>
+                        <input
+                          type="time"
+                          value={data.endHour}
+                          onChange={(e) => update("endHour", e.target.value)}
+                          className="h-14 w-full rounded-[16px] bg-white/[0.07] border border-white/[0.06] px-3 text-center text-[15px] font-semibold text-white outline-none focus:ring-2 focus:ring-white/20 [color-scheme:dark]"
+                        />
+                      </div>
                     </div>
-                    {data.startHour >= data.endHour && <p className="mt-2 text-[11px] text-rose-400">Closing time must be later than opening time.</p>}
+                    {data.startHour >= data.endHour && <p className="mt-3 text-[11px] text-rose-400 text-center">Closing time must be later than opening time.</p>}
                   </div>
                 </>
               )}
