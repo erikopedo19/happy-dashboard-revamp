@@ -267,6 +267,11 @@ const AgendaBookingForm = ({
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
     setSelectedStylistId("");
+    if (stylists.length > 0) {
+      setStep("stylist");
+    } else {
+      setStep("details");
+    }
   };
 
   const handleStylistSelect = (stylistId: string) => {
