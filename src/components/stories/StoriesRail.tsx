@@ -31,7 +31,9 @@ export function StoriesRail() {
   useEffect(() => {
     if (openUser) {
       window.dispatchEvent(new CustomEvent("stories:open"));
-      return () => window.dispatchEvent(new CustomEvent("stories:close"));
+      return () => {
+        window.dispatchEvent(new CustomEvent("stories:close"));
+      };
     }
   }, [openUser]);
 

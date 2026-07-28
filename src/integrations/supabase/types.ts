@@ -20,7 +20,7 @@ export type Database = {
           end_hour: string | null
           id: string
           "public.brand_profiles": string | null
-          service_duration: number | null
+          service_duration: number
           start_hour: string | null
           updated_at: string | null
           user_id: string
@@ -31,7 +31,7 @@ export type Database = {
           end_hour?: string | null
           id?: string
           "public.brand_profiles"?: string | null
-          service_duration?: number | null
+          service_duration?: number
           start_hour?: string | null
           updated_at?: string | null
           user_id: string
@@ -42,7 +42,7 @@ export type Database = {
           end_hour?: string | null
           id?: string
           "public.brand_profiles"?: string | null
-          service_duration?: number | null
+          service_duration?: number
           start_hour?: string | null
           updated_at?: string | null
           user_id?: string
@@ -75,8 +75,8 @@ export type Database = {
           cancel_token: string | null
           created_at: string
           customer_id: string
+          discount_percent: number
           id: string
-          discount_percent: number | null
           notes: string | null
           org_id: string | null
           original_price: number | null
@@ -94,8 +94,8 @@ export type Database = {
           cancel_token?: string | null
           created_at?: string
           customer_id: string
+          discount_percent?: number
           id?: string
-          discount_percent?: number | null
           notes?: string | null
           org_id?: string | null
           original_price?: number | null
@@ -113,8 +113,8 @@ export type Database = {
           cancel_token?: string | null
           created_at?: string
           customer_id?: string
+          discount_percent?: number
           id?: string
-          discount_percent?: number | null
           notes?: string | null
           org_id?: string | null
           original_price?: number | null
@@ -779,14 +779,15 @@ export type Database = {
           is_public: boolean | null
           latitude: number | null
           longitude: number | null
-          loyalty_discount_enabled: boolean | null
-          loyalty_discount_percent: number | null
+          loyalty_discount_enabled: boolean
+          loyalty_discount_percent: number
           notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
           phone: string | null
           rating: number | null
           rating_count: number | null
           review_email_delay_hours: number
+          role: string | null
           sender_email: string | null
           sender_name: string | null
           show_public_reviews: boolean | null
@@ -821,14 +822,15 @@ export type Database = {
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
-          loyalty_discount_enabled?: boolean | null
-          loyalty_discount_percent?: number | null
+          loyalty_discount_enabled?: boolean
+          loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
           review_email_delay_hours?: number
+          role?: string | null
           sender_email?: string | null
           sender_name?: string | null
           show_public_reviews?: boolean | null
@@ -863,14 +865,15 @@ export type Database = {
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
-          loyalty_discount_enabled?: boolean | null
-          loyalty_discount_percent?: number | null
+          loyalty_discount_enabled?: boolean
+          loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
           review_email_delay_hours?: number
+          role?: string | null
           sender_email?: string | null
           sender_name?: string | null
           show_public_reviews?: boolean | null
@@ -984,7 +987,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           deleted_at?: string | null
-          duration: number
+          duration?: number
           icon?: string | null
           id?: string
           name: string
@@ -1031,6 +1034,7 @@ export type Database = {
           music_title: string | null
           music_track_id: string | null
           user_id: string
+          views_count: number | null
         }
         Insert: {
           created_at?: string
@@ -1045,6 +1049,7 @@ export type Database = {
           music_title?: string | null
           music_track_id?: string | null
           user_id: string
+          views_count?: number | null
         }
         Update: {
           created_at?: string
@@ -1059,6 +1064,7 @@ export type Database = {
           music_title?: string | null
           music_track_id?: string | null
           user_id?: string
+          views_count?: number | null
         }
         Relationships: []
       }
@@ -1485,8 +1491,10 @@ export type Database = {
           avatar_url: string
           banner_url: string
           booking_link: string
+          booking_locale: string
           booking_theme: string
           brand_color: string
+          currency: string
           description: string
           full_name: string
           id: string
@@ -1496,7 +1504,6 @@ export type Database = {
           services_count: number
           stylists_count: number
           total_bookings: number
-          years_experience: number
         }[]
       }
       get_public_stylist_services: {
@@ -1521,6 +1528,7 @@ export type Database = {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
       }
+      increment_story_views: { Args: { _story_id: string }; Returns: Json }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean

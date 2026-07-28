@@ -902,7 +902,7 @@ const Settings = () => {
                             <Select
                               value={brandForm.booking_locale || "en"}
                               onValueChange={(value) =>
-                                setBrandForm((prev) => ({ ...prev, booking_locale: value }))
+                                setBrandForm((prev) => ({ ...prev, booking_locale: value as "en" | "el" }))
                               }
                             >
                               <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">

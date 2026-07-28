@@ -78,31 +78,42 @@ const slotItemVariants: import("framer-motion").Variants = {
 // Parse hex or named color to rgba with opacity
 function colorToRgba(color: string, opacity: number): string {
   if (!color) return `rgba(100, 200, 150, ${opacity})`;
-  if (color.startsWith('#')) {
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  const raw = color.trim().toLowerCase();
+  if (raw.startsWith('#')) {
+    const hex = raw.replace('#', '');
+    let full = hex;
+    if (hex.length === 3 || hex.length === 4) {
+      // Expand shorthand: #abc -> #aabbcc
+      full = hex.split('').map((c) => c + c).join('');
+    }
+    if (full.length >= 6) {
+      const r = parseInt(full.substring(0, 2), 16);
+      const g = parseInt(full.substring(2, 4), 16);
+      const b = parseInt(full.substring(4, 6), 16);
+      if (!Number.isNaN(r) && !Number.isNaN(g) && !Number.isNaN(b)) {
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      }
+    }
   }
-  // For tailwind bg classes, map to some colors
-  if (color.includes('blue')) return `rgba(59, 130, 246, ${opacity})`;
-  if (color.includes('green')) return `rgba(34, 197, 94, ${opacity})`;
-  if (color.includes('red') || color.includes('rose')) return `rgba(239, 68, 68, ${opacity})`;
-  if (color.includes('purple')) return `rgba(168, 85, 247, ${opacity})`;
-  if (color.includes('orange') || color.includes('amber')) return `rgba(245, 158, 11, ${opacity})`;
-  if (color.includes('pink')) return `rgba(236, 72, 153, ${opacity})`;
-  if (color.includes('cyan') || color.includes('teal')) return `rgba(20, 184, 166, ${opacity})`;
-  if (color.includes('yellow')) return `rgba(234, 179, 8, ${opacity})`;
-  if (color.includes('indigo')) return `rgba(99, 102, 241, ${opacity})`;
+  // For tailwind bg classes and common names
+  if (raw.includes('blue')) return `rgba(59, 130, 246, ${opacity})`;
+  if (raw.includes('green')) return `rgba(34, 197, 94, ${opacity})`;
+  if (raw.includes('red') || raw.includes('rose')) return `rgba(239, 68, 68, ${opacity})`;
+  if (raw.includes('purple')) return `rgba(168, 85, 247, ${opacity})`;
+  if (raw.includes('orange') || raw.includes('amber')) return `rgba(245, 158, 11, ${opacity})`;
+  if (raw.includes('pink')) return `rgba(236, 72, 153, ${opacity})`;
+  if (raw.includes('cyan') || raw.includes('teal')) return `rgba(20, 184, 166, ${opacity})`;
+  if (raw.includes('yellow')) return `rgba(234, 179, 8, ${opacity})`;
+  if (raw.includes('indigo')) return `rgba(99, 102, 241, ${opacity})`;
+  if (raw.includes('black')) return `rgba(120, 120, 120, ${opacity})`;
   return `rgba(100, 200, 150, ${opacity})`;
 }
 
 function getGlassGradient(color: string, isDark: boolean): string {
   if (isDark) {
-    return `linear-gradient(135deg, ${colorToRgba(color, 0.25)} 0%, ${colorToRgba(color, 0.12)} 100%)`;
+    return `linear-gradient(135deg, ${colorToRgba(color, 0.22)} 0%, ${colorToRgba(color, 0.10)} 100%)`;
   }
-  return `linear-gradient(135deg, ${colorToRgba(color, 0.18)} 0%, ${colorToRgba(color, 0.08)} 100%)`;
+  return `linear-gradient(135deg, ${colorToRgba(color, 0.16)} 0%, ${colorToRgba(color, 0.07)} 100%)`;
 }
 
 export const LiquidGlassAgenda = ({
