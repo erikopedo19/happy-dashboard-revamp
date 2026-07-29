@@ -84,6 +84,7 @@ const Dashboard = () => {
             )}
           </div>
           <PWAInstallDrawer />
+          <UpgradeDrawer />
         </main>
       </div>
     </SidebarProvider>
