@@ -323,6 +323,30 @@ export default function Onboarding() {
                       placeholder="e.g. 5"
                     />
                   </Field>
+                  <Field label="Currency" icon={<Globe2 className="h-4 w-4" />}>
+                    <div className="grid grid-cols-3 gap-2">
+                      {CURRENCIES.map((c) => {
+                        const active = data.currency === c.code;
+                        return (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => update("currency", c.code)}
+                            className={cn(
+                              "h-12 rounded-2xl border text-[13px] font-semibold transition-all active:scale-95",
+                              active
+                                ? "border-rose-400/50 bg-rose-500/15 text-white"
+                                : "border-white/[0.08] bg-white/[0.04] text-white/60"
+                            )}
+                          >
+                            <span className="mr-1.5 text-white/80">{c.symbol}</span>
+                            {c.code}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2 text-[11px] text-white/40">Used for your service prices and booking page.</p>
+                  </Field>
                   <Field label="Short bio (optional)">
                     <Textarea
                       value={data.description}
