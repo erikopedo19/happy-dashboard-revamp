@@ -22,6 +22,7 @@ export type OnboardingDraft = {
   workType: "solo" | "team" | null;
   teamInviteCode: string;
   businessName: string;
+  currency: string;
   yearsExperience: string;
   address: string;
   city: string;
@@ -49,6 +50,7 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   workType: null,
   teamInviteCode: "",
   businessName: "",
+  currency: "EUR",
   yearsExperience: "",
   address: "",
   city: "",
@@ -79,6 +81,15 @@ const DAYS = [
 const PRESET_SERVICES = [
   "Haircut", "Beard Trim", "Fade", "Shave",
   "Hair Color", "Kids Cut", "Styling", "Wash",
+];
+
+const CURRENCIES = [
+  { code: "EUR", symbol: "€" },
+  { code: "USD", symbol: "$" },
+  { code: "GBP", symbol: "£" },
+  { code: "PLN", symbol: "zł" },
+  { code: "RON", symbol: "lei" },
+  { code: "CHF", symbol: "Fr" },
 ];
 
 const CLIENT_LOOKING = ["Haircut", "Beard Trim", "Fade", "Shave", "Hair Color", "Styling"];
@@ -320,6 +331,30 @@ export default function Onboarding() {
                       onChange={(e) => update("yearsExperience", e.target.value)}
                       placeholder="e.g. 5"
                     />
+                  </Field>
+                  <Field label="Currency" icon={<Globe2 className="h-4 w-4" />}>
+                    <div className="grid grid-cols-3 gap-2">
+                      {CURRENCIES.map((c) => {
+                        const active = data.currency === c.code;
+                        return (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => update("currency", c.code)}
+                            className={cn(
+                              "h-12 rounded-2xl border text-[13px] font-semibold transition-all active:scale-95",
+                              active
+                                ? "border-rose-400/50 bg-rose-500/15 text-white"
+                                : "border-white/[0.08] bg-white/[0.04] text-white/60"
+                            )}
+                          >
+                            <span className="mr-1.5 text-white/80">{c.symbol}</span>
+                            {c.code}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2 text-[11px] text-white/40">Used for your service prices and booking page.</p>
                   </Field>
                   <Field label="Short bio (optional)">
                     <Textarea

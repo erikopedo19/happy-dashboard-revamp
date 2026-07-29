@@ -120,6 +120,7 @@ export function useFinalizeOnboarding() {
             is_public: true,
             booking_link: finalSlug ?? undefined,
             booking_locale: draft.appLanguage || "en",
+            currency: (draft as any).currency || "EUR",
             accepts_waitlist: !!draft.acceptsWaitlist,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),
