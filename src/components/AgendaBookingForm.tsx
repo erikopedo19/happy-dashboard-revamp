@@ -104,7 +104,8 @@ const AgendaBookingForm = ({
   const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
   const formatCurrency = (amount: number) =>
     currency === "PLN" ? `${amount} zł` : currency === "RON" ? `${amount} lei` : `${currencySymbol}${amount}`;
-  // Flat iOS-style buttons — no glow, no outer bloom.
+  // iOS-style buttons — themed via the barber's premium button theme.
+  const themedButton = bookingTheme !== "default" && !!themeColors[bookingTheme];
   const BookingButton = ({
     text,
     onClick,
@@ -117,24 +118,43 @@ const AgendaBookingForm = ({
     disabled?: boolean;
     type?: "button" | "submit";
     className?: string;
-  }) => (
-    <motion.button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      whileTap={disabled ? undefined : { scale: 0.975 }}
-      transition={{ type: "spring", stiffness: 520, damping: 32 }}
-      className={cn(
-        "w-full h-[52px] rounded-[16px] font-semibold text-[16px] text-white border-0",
-        "flex items-center justify-center gap-2 select-none",
-        "disabled:opacity-40 disabled:cursor-not-allowed",
-        className
-      )}
-      style={{ backgroundColor: accentColor }}
-    >
-      {text}
-    </motion.button>
-  );
+  }) => {
+    if (themedButton) {
+      return (
+        <PulseButton
+          text={text}
+          onClick={onClick}
+          disabled={disabled}
+          type={type}
+          size="md"
+          color={bookingTheme as ButtonColor}
+          className={cn("w-full !h-[54px] !rounded-[16px]", className)}
+        />
+      );
+    }
+    return (
+      <motion.button
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        whileTap={disabled ? undefined : { scale: 0.975 }}
+        transition={{ type: "spring", stiffness: 520, damping: 32 }}
+        className={cn(
+          "w-full h-[54px] rounded-[16px] font-semibold text-[16px] text-white border-0",
+          "flex items-center justify-center gap-2 select-none relative overflow-hidden",
+          "transition-shadow disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
+          className
+        )}
+        style={{
+          backgroundImage: `linear-gradient(180deg, ${accentColor}, ${accentColor}dd)`,
+          boxShadow: disabled ? undefined : `0 8px 24px -10px ${accentColor}b3`,
+        }}
+      >
+        {text}
+      </motion.button>
+    );
+  };
+
 
   const displayName = useMemo(() => {
     if (businessProfile?.full_name && businessProfile.full_name.trim()) return businessProfile.full_name.trim();
