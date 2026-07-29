@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { formatTzLabel } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
 import { getIconByName } from "@/components/IconPicker";
+import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+
 
 interface Service {
   id: string;
