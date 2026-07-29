@@ -83,6 +83,15 @@ const PRESET_SERVICES = [
   "Hair Color", "Kids Cut", "Styling", "Wash",
 ];
 
+const CURRENCIES = [
+  { code: "EUR", symbol: "€" },
+  { code: "USD", symbol: "$" },
+  { code: "GBP", symbol: "£" },
+  { code: "PLN", symbol: "zł" },
+  { code: "RON", symbol: "lei" },
+  { code: "CHF", symbol: "Fr" },
+];
+
 const CLIENT_LOOKING = ["Haircut", "Beard Trim", "Fade", "Shave", "Hair Color", "Styling"];
 const GOALS: { k: OnboardingDraft["goal"]; label: string; desc: string }[] = [
   { k: "grow", label: "Grow my clientele", desc: "Get discovered by new clients." },
