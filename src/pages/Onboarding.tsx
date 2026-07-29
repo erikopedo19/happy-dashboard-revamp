@@ -50,6 +50,7 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   workType: null,
   teamInviteCode: "",
   businessName: "",
+  currency: "EUR",
   yearsExperience: "",
   address: "",
   city: "",
