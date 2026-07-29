@@ -22,6 +22,7 @@ export type OnboardingDraft = {
   workType: "solo" | "team" | null;
   teamInviteCode: string;
   businessName: string;
+  currency: string;
   yearsExperience: string;
   address: string;
   city: string;
