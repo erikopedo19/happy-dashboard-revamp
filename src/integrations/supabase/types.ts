@@ -755,6 +755,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms: boolean | null
           accepts_waitlist: boolean | null
           address: string | null
           ask_notes: boolean | null
@@ -794,10 +795,12 @@ export type Database = {
           timezone: string | null
           updated_at: string
           website: string | null
+          website_design_requested: boolean | null
           welcome_email_sent: boolean
           years_experience: number | null
         }
         Insert: {
+          accepted_terms?: boolean | null
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
@@ -837,10 +840,12 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          website_design_requested?: boolean | null
           welcome_email_sent?: boolean
           years_experience?: number | null
         }
         Update: {
+          accepted_terms?: boolean | null
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
@@ -880,6 +885,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          website_design_requested?: boolean | null
           welcome_email_sent?: boolean
           years_experience?: number | null
         }
@@ -1530,6 +1536,10 @@ export type Database = {
       }
       increment_story_views: { Args: { _story_id: string }; Returns: Json }
       is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_creator: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
