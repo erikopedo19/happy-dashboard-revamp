@@ -199,6 +199,24 @@ export const LiquidGlassAgenda = ({
     enabled: !!user,
   });
 
+  const { data: blockedSlots } = useQuery<
+    { id: string; start_time: string; end_time: string; reason: string | null }[]
+  >({
+    queryKey: ["agenda_blocked_slots", user?.id, format(selectedDay, "yyyy-MM-dd")],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("agenda_blocked_slots")
+        .select("id, start_time, end_time, reason")
+        .eq("user_id", user.id)
+        .eq("blocked_date", format(selectedDay, "yyyy-MM-dd"))
+        .order("start_time", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains('dark'));
