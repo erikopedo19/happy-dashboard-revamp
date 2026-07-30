@@ -95,6 +95,7 @@ type BrandProfileRecord = {
   notify_cancellation_alerts: boolean;
   loyalty_discount_enabled: boolean;
   loyalty_discount_percent: number;
+  freelancer_mode: boolean;
   timezone: string;
   booking_locale: "en" | "el";
   avatar_url?: string;
@@ -146,6 +147,7 @@ const defaultBrandProfile: BrandProfileRecord = {
   notify_cancellation_alerts: true,
   loyalty_discount_enabled: true,
   loyalty_discount_percent: 20,
+  freelancer_mode: false,
   timezone: getBrowserTimezone(),
   booking_locale: "en",
   avatar_url: "",
@@ -241,7 +243,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, notify_cancellation_alerts, loyalty_discount_enabled, loyalty_discount_percent, onboarding_completed, timezone, booking_locale")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, notify_cancellation_alerts, loyalty_discount_enabled, loyalty_discount_percent, freelancer_mode, onboarding_completed, timezone, booking_locale")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -356,6 +358,7 @@ const Settings = () => {
       notify_cancellation_alerts: data.profile?.notify_cancellation_alerts ?? true,
       loyalty_discount_enabled: data.profile?.loyalty_discount_enabled ?? false,
       loyalty_discount_percent: data.profile?.loyalty_discount_percent ?? 20,
+      freelancer_mode: data.profile?.freelancer_mode ?? false,
       timezone: data.profile?.timezone ?? getBrowserTimezone(),
       booking_locale: data.profile?.booking_locale ?? "en",
       avatar_url: data.profile?.avatar_url ?? "",
@@ -453,6 +456,7 @@ const Settings = () => {
         notify_cancellation_alerts: brandForm.notify_cancellation_alerts,
         loyalty_discount_enabled: brandForm.loyalty_discount_enabled,
         loyalty_discount_percent: brandForm.loyalty_discount_percent,
+        freelancer_mode: brandForm.freelancer_mode,
         timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
         booking_locale: brandForm.booking_locale || "en",
         avatar_url: brandForm.avatar_url?.trim() || null,
@@ -1246,6 +1250,24 @@ const Settings = () => {
                               checked={!!brandForm.accepts_waitlist}
                               onCheckedChange={(v) =>
                                 setBrandForm((prev) => ({ ...prev, accepts_waitlist: v }))
+                              }
+                            />
+                          </div>
+
+                          {/* Freelancer mode */}
+                          <div className="rounded-2xl border border-primary/20 bg-muted p-4 flex items-center gap-4">
+                            <div className="flex-1 min-w-0">
+                              <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
+                                Freelancer mode
+                              </Label>
+                              <p className="text-xs text-[#8E8E93] mt-1">
+                                I travel to clients' homes for appointments. A "Mobile" tag will appear on Find Barber.
+                              </p>
+                            </div>
+                            <Switch
+                              checked={!!brandForm.freelancer_mode}
+                              onCheckedChange={(v) =>
+                                setBrandForm((prev) => ({ ...prev, freelancer_mode: v }))
                               }
                             />
                           </div>

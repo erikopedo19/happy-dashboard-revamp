@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Scissors, User as UserIcon, Users, Building2, Briefcase,
   MapPin, Calendar, ArrowRight, ArrowLeft, Check, Sparkles,
-  Link as LinkIcon, Plus, X, UserPlus, Globe2, Clock,
+  Link as LinkIcon, Plus, X, UserPlus, Globe2, Clock, Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MODE_CHOICE_KEY } from "@/pages/ChooseMode";
@@ -35,6 +35,7 @@ export type OnboardingDraft = {
   goal: "grow" | "organize" | "fill_slots" | "solo" | null;
   heardFrom: "instagram" | "tiktok" | "friend" | "search" | "other" | null;
   acceptsWaitlist: boolean;
+  freelancerMode: boolean;
   bookingLink: string;
   stylists: { name: string; title?: string }[];
   // Client extras
@@ -62,6 +63,7 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   goal: null,
   heardFrom: null,
   acceptsWaitlist: true,
+  freelancerMode: false,
   bookingLink: "",
   stylists: [],
   clientLookingFor: [],
@@ -571,6 +573,21 @@ export default function Onboarding() {
                       <div className="text-sm font-medium text-white">Enable cancellation waitlist</div>
                       <div className="text-xs text-white/55 mt-0.5">
                         When a booking cancels, the next client in line gets emailed automatically. Fills empty slots fast.
+                      </div>
+                    </div>
+                  </label>
+
+                  <label className="mt-3 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:border-white/20 transition">
+                    <input
+                      type="checkbox"
+                      checked={data.freelancerMode}
+                      onChange={(e) => update("freelancerMode", e.target.checked)}
+                      className="mt-1 h-4 w-4 accent-rose-500"
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-white">Freelancer mode</div>
+                      <div className="text-xs text-white/55 mt-0.5">
+                        I travel to clients' homes for appointments. Shows a Mobile tag on Find Barber.
                       </div>
                     </div>
                   </label>

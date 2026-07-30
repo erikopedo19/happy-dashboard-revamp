@@ -28,6 +28,7 @@ import {
   MapPin,
   Search,
   Tag,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -304,6 +305,18 @@ export function MobileSettings(props: any) {
             label="Message templates"
             value="WhatsApp & SMS"
             onClick={() => setPanel("messages")}
+          />
+          <Row
+            icon={Home}
+            tint="#22c55e"
+            label="Freelancer mode"
+            value={brandForm.freelancer_mode ? "On" : "Off"}
+            onClick={() =>
+              setBrandForm((previous: any) => ({
+                ...previous,
+                freelancer_mode: !previous.freelancer_mode,
+              }))
+            }
           />
           <Row
             icon={CalendarIcon}

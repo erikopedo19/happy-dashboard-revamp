@@ -22,6 +22,7 @@ import {
   LocateFixed,
   X,
   Image as ImageIcon,
+  Home,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
@@ -52,6 +53,7 @@ interface BarberProfile {
   rating: number | null;
   rating_count: number | null;
   description: string | null;
+  freelancer_mode: boolean;
   brandName: string;
 }
 
@@ -161,6 +163,7 @@ const FindBarber = () => {
         rating: p.rating ?? null,
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
+        freelancer_mode: p.freelancer_mode ?? false,
         brandName: p.business_name || p.full_name || "Barber",
       }));
 
@@ -181,6 +184,7 @@ const FindBarber = () => {
         rating: f.rating,
         rating_count: f.rating_count,
         description: [f.description, [f.city, f.country].filter(Boolean).join(", ")].filter(Boolean).join(" · "),
+        freelancer_mode: false,
         brandName: f.name,
       }));
 
@@ -521,6 +525,11 @@ function BarberCard({
         <h3 className="mt-2 text-[19px] font-semibold leading-tight tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
           {barber.brandName}
         </h3>
+        {barber.freelancer_mode && (
+          <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 text-[10px] font-medium">
+            <Home className="w-3 h-3" /> Mobile / Home visit
+          </div>
+        )}
         {barber.description && !isExpanded && (
           <p className="mt-1 text-[12.5px] text-[#8E8E93] line-clamp-2 leading-relaxed">
             {barber.description}

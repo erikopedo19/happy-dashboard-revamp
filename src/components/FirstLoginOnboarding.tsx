@@ -8,6 +8,7 @@ import {
   Clock3,
   Crown,
   Heart,
+  Home,
   Languages,
   Link2,
   Loader2,
@@ -104,6 +105,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const [endHour, setEndHour] = useState("18:00");
   const [cancellationAlerts, setCancellationAlerts] = useState(true);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(true);
+  const [freelancerMode, setFreelancerMode] = useState(false);
   const { setIsOpen } = useOnboardingVisibility();
 
   useEffect(() => {
@@ -161,6 +163,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           notify_cancellation_alerts: cancellationAlerts,
           loyalty_discount_enabled: loyaltyDiscount,
           loyalty_discount_percent: 20,
+          freelancer_mode: freelancerMode,
           onboarding_completed: true,
           is_public: true,
           updated_at: new Date().toISOString(),
@@ -396,6 +399,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
               <div className="grid gap-3">
                 <FeatureCard icon={BellRing} title="Cancellation alerts" detail="Get an instant notification when a client cancels, so you can refill the slot fast." checked={cancellationAlerts} onChange={setCancellationAlerts} />
                 <FeatureCard icon={Tag} title="Loyal regular discount" detail="Clients with more than one booking in seven days automatically receive 20% off their next booking." checked={loyaltyDiscount} onChange={setLoyaltyDiscount} />
+                <FeatureCard icon={Home} title="Freelancer mode" detail="I travel to clients' homes for appointments." checked={freelancerMode} onChange={setFreelancerMode} />
               </div>
             )}
           </div>
