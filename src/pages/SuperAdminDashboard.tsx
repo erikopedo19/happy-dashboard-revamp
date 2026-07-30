@@ -325,16 +325,17 @@ export default function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {Object.entries(heardStats)
+              {(Object.entries(heardStats) as [string, number][])
                 .filter(([, count]) => count > 0)
                 .sort(([, a], [, b]) => b - a)
                 .map(([source, count]) => (
-                  <StatCard
-                    key={source}
-                    icon={<Globe className="w-4 h-4 text-blue-500" />}
-                    label={source === "Unknown" ? "Unknown" : source.charAt(0).toUpperCase() + source.slice(1)}
-                    value={count}
-                  />
+                  <div key={source}>
+                    <StatCard
+                      icon={<Globe className="w-4 h-4 text-blue-500" />}
+                      label={source === "Unknown" ? "Unknown" : source.charAt(0).toUpperCase() + source.slice(1)}
+                      value={count}
+                    />
+                  </div>
                 ))}
             </div>
           </CardContent>
