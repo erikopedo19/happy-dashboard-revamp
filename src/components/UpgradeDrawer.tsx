@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 const OPENS_KEY = "cutzio_upgrade_opens";
 const SHOWN_KEY = "cutzio_upgrade_shown_count";
 const LAST_KEY = "cutzio_upgrade_last_shown";
+const DISMISSED_KEY = "cutzio_upgrade_dismissed_at";
 
 const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
 
@@ -23,11 +24,18 @@ const PERKS = [
  *  - first time on the 3rd app open
  *  - again after 5 more opens
  *  - after that, at most once every 10 days
+ * Dismissing ("Maybe later" / close) is persisted so it stays hidden
+ * for 10 days across sessions. Pro users never see it.
  */
 export function UpgradeDrawer() {
   const navigate = useNavigate();
   const { loading, isPremium } = usePremium();
   const [open, setOpen] = useState(false);
+
+  // Hide immediately if the user becomes Pro while the drawer is open
+  useEffect(() => {
+    if (isPremium && open) setOpen(false);
+  }, [isPremium, open]);
 
   useEffect(() => {
     if (loading || isPremium) return;
@@ -38,7 +46,11 @@ export function UpgradeDrawer() {
 
     const shown = num(SHOWN_KEY);
     const last = num(LAST_KEY);
+    const dismissedAt = num(DISMISSED_KEY);
     const now = Date.now();
+
+    // A persisted dismissal keeps it hidden for 10 days, whatever the session
+    if (dismissedAt && now - dismissedAt < TEN_DAYS) return;
 
     let due = false;
     if (shown === 0) due = opens >= 3;
@@ -54,15 +66,21 @@ export function UpgradeDrawer() {
     return () => clearTimeout(t);
   }, [loading, isPremium]);
 
-  if (isPremium) return null;
+  const dismiss = () => {
+    localStorage.setItem(DISMISSED_KEY, String(Date.now()));
+    setOpen(false);
+  };
+
+  if (loading || isPremium) return null;
+
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
       <DrawerContent className="border-white/10 bg-[#0f0f12] text-white">
         <div className="mx-auto w-full max-w-md px-5 pb-8 pt-2">
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={dismiss}
             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/50"
             aria-label="Close"
           >
@@ -111,7 +129,7 @@ export function UpgradeDrawer() {
 
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={dismiss}
             className="mt-3 w-full text-center text-[13px] font-medium text-white/40"
           >
             Maybe later

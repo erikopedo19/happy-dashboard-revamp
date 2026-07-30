@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
 
@@ -50,13 +50,6 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
     URL.revokeObjectURL(blobUrl);
   };
 
-  const handleDownload = () => {
-    if (!qrBlob) return;
-    downloadBlob(
-      qrBlob,
-      `cutzioo-qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`
-    );
-  };
 
   const handleShare = async () => {
     if (!qrBlob) return;
@@ -102,13 +95,6 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
       )}
 
       <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={handleDownload}
-          disabled={!qrBlob}
-          className="h-11 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
-        >
-          <Download className="h-4 w-4" /> Download
-        </button>
         <button
           onClick={handleShare}
           disabled={!qrBlob}

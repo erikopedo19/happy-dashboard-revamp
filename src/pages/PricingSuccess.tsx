@@ -23,15 +23,20 @@ export default function PricingSuccess() {
 
   useEffect(() => {
     let tries = 0;
+    const started = Date.now();
     const tick = async () => {
-      if (openRef.current || isPremiumRef.current) return;
-      tries += 1;
-      await refreshRef.current();
-      if (openRef.current || isPremiumRef.current || tries >= 10) {
+      if (openRef.current || isPremiumRef.current) {
         setOpen(true);
         return;
       }
-      timeoutRef.current = setTimeout(tick, 2000);
+      tries += 1;
+      await refreshRef.current();
+      // Never keep the user waiting: show success after ~4s max
+      if (openRef.current || isPremiumRef.current || tries >= 5 || Date.now() - started >= 4000) {
+        setOpen(true);
+        return;
+      }
+      timeoutRef.current = setTimeout(tick, 800);
     };
     tick();
     return () => {

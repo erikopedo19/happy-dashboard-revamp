@@ -149,7 +149,6 @@ const AgendaBookingForm = ({
         )}
         style={{
           backgroundImage: `linear-gradient(180deg, ${accentColor}, ${accentColor}dd)`,
-          boxShadow: disabled ? undefined : `0 8px 24px -10px ${accentColor}b3`,
         }}
       >
         {text}
