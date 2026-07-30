@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
 
