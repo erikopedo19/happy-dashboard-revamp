@@ -50,13 +50,6 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
     URL.revokeObjectURL(blobUrl);
   };
 
-  const handleDownload = () => {
-    if (!qrBlob) return;
-    downloadBlob(
-      qrBlob,
-      `cutzioo-qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`
-    );
-  };
 
   const handleShare = async () => {
     if (!qrBlob) return;
