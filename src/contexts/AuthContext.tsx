@@ -134,11 +134,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signInWithGoogle = async () => {
-    // Preserve the ?next= param across the OAuth round-trip by sending the
-    // user back to /auth, where LoginForm's effect will forward them to `next`.
+    // Preserve the ?next= target in sessionStorage so the redirect URL can stay
+    // exactly /auth, which is easier to add in Supabase Auth redirect allowlist.
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next") || "/";
-    const redirectTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
+    try { sessionStorage.setItem("auth:next", next); } catch { /* ignore */ }
+    const redirectTo = `${window.location.origin}/auth`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

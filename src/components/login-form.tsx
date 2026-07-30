@@ -9,7 +9,16 @@ import { triggerGlimm } from "@/components/GlimmIntercept";
 export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const next = searchParams.get("next") || "/";
+  let next = searchParams.get("next") || "/";
+  if (next === "/") {
+    try {
+      const saved = sessionStorage.getItem("auth:next");
+      if (saved) {
+        next = saved;
+        sessionStorage.removeItem("auth:next");
+      }
+    } catch { /* ignore */ }
+  }
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
 
   const { toast } = useToast();

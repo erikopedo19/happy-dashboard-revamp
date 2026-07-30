@@ -936,7 +936,7 @@ export const LiquidGlassAgenda = ({
                         onPointerLeave={cancelBlockLongPress}
                         disabled={isPastSlot}
                         className={cn(
-                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none",
+                          "relative w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none overflow-hidden",
                           isPastSlot
                             ? "border-gray-200 dark:border-white/5 bg-transparent text-gray-300 dark:text-white/20 cursor-not-allowed"
                             : pressingSlot === hour
@@ -946,8 +946,15 @@ export const LiquidGlassAgenda = ({
                             : "border-gray-300/70 bg-gray-50/60 hover:bg-blue-50 hover:border-blue-300 text-gray-500 active:scale-[0.98]"
                         )}
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span className="text-[12px] font-medium">
+                        <motion.div
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: pressingSlot === hour ? 1 : 0 }}
+                          transition={pressingSlot === hour ? { duration: 2.5, ease: "linear" } : { duration: 0 }}
+                          style={{ originX: 0 }}
+                          className="absolute inset-0 z-0 bg-rose-500/20"
+                        />
+                        <Plus className="w-3.5 h-3.5 relative z-10" />
+                        <span className="relative z-10 text-[12px] font-medium">
                           {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past — ${hour}` : `Tap to book at ${hour}`}
                         </span>
                       </button>
