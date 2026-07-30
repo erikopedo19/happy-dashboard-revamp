@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       provider: "google",
       options: {
         redirectTo,
-        queryParams: { access_type: "offline", prompt: "select_account" },
+        queryParams: { prompt: "select_account" },
       },
     });
     return { error };
