@@ -486,7 +486,7 @@ const AgendaBookingForm = ({
 
   return (
     <div className="min-h-screen overflow-y-auto bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 relative">
-      <div className="w-full max-w-5xl mx-auto relative z-10">
+      <div className="w-full max-w-6xl mx-auto bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden p-4 md:p-6 lg:p-8 relative z-10">
         <MobileSummary />
         <AnimatePresence mode="wait">
           <motion.div
@@ -499,7 +499,7 @@ const AgendaBookingForm = ({
           >
             {/* Left panel — brand + booking info */}
             <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
-              <div className="bg-[#141416] border border-white/[0.06] overflow-hidden rounded-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden rounded-2xl shadow-2xl">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -578,7 +578,7 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#141416] border border-white/[0.06] p-4 md:p-8 min-h-screen md:min-h-[520px] rounded-t-[32px] md:rounded-[28px]">
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-4 md:p-8 min-h-[520px] rounded-2xl">
               {/* Equal-width segmented step tabs (cal.com inspired) */}
               <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-[#1C1C1E] mb-6">
                 {stepTabs.map((tab) => {
@@ -626,10 +626,10 @@ const AgendaBookingForm = ({
                           whileTap={{ scale: 0.985 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-[24px] border-2 text-left transition-all bg-[#1C1C1E]",
+                            "w-full p-5 rounded-2xl border text-left transition-all bg-[#2a2a2a]/30",
                             active
                               ? "ring-2 ring-white/30 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
-                              : "border-white/[0.06] hover:border-white/[0.14] hover:bg-[#232326]"
+                              : "border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#2a2a2a]/50"
                           )}
                           style={active ? { borderColor: swatch, backgroundColor: `${swatch}14` } : {}}
                         >
@@ -746,8 +746,8 @@ const AgendaBookingForm = ({
                                   : !isCurrentMonth
                                   ? "text-[#636366]"
                                   : isToday
-                                  ? "text-white border border-white/[0.12]"
-                                  : "text-white hover:bg-[#2C2C2E] bg-[#1C1C1E]"
+                                  ? "text-white border border-[#3a3a3a]"
+                                  : "text-white hover:bg-[#2a2a2a] bg-[#2a2a2a]/40"
                               )}
                               style={isSelected ? { backgroundColor: accentColor } : {}}
                             >
@@ -794,7 +794,7 @@ const AgendaBookingForm = ({
                         <Globe className="w-3 h-3" />
                         <span>Times in {formatTzLabel(timezone)}</span>
                       </div>
-                      <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-2 max-h-[360px] pr-1 auto-rows-[52px]">
+                      <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-2 max-h-[480px] pr-1 auto-rows-[52px]">
                         {selectedDate ? (
                           availableTimeSlots.length > 0 ? (
                             availableTimeSlots.map((time, idx) => {
@@ -809,10 +809,10 @@ const AgendaBookingForm = ({
                                   whileTap={{ scale: 0.97 }}
                                   onClick={() => handleTimeSelect(time)}
                                   className={cn(
-                                    "w-full h-[52px] rounded-[14px] border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
+                                    "w-full h-[52px] rounded-xl border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-white/[0.06] bg-[#1a1a1d] text-white hover:bg-[#1f1f22]"
+                                      : "border-[#2a2a2a] bg-transparent text-white hover:bg-[#2a2a2a]"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >
