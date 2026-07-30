@@ -331,6 +331,53 @@ export const LiquidGlassAgenda = ({
     setContextMenu({ x, y, appointment });
   };
 
+  const startBlockLongPress = (hour: string) => {
+    isLongPressBlock.current = false;
+    setPressingSlot(hour);
+    const slot = new Date(selectedDay);
+    const [h, m] = hour.split(":").map(Number);
+    slot.setHours(h, m, 0, 0);
+    const start = addMinutes(slot, -45);
+    blockTimerRef.current = window.setTimeout(() => {
+      isLongPressBlock.current = true;
+      setPressingSlot(null);
+      setPendingBlockSlot({ hour, start, end: slot });
+      blockTimerRef.current = null;
+    }, 2500);
+  };
+
+  const cancelBlockLongPress = () => {
+    if (blockTimerRef.current) {
+      window.clearTimeout(blockTimerRef.current);
+      blockTimerRef.current = null;
+    }
+    setPressingSlot(null);
+  };
+
+  const confirmBlockSlot = async () => {
+    if (!pendingBlockSlot || !user) return;
+    const { hour, start } = pendingBlockSlot;
+    const startStr = format(start, "HH:mm");
+    try {
+      const { error } = await (supabase as any).from("agenda_blocked_slots").insert({
+        user_id: user.id,
+        blocked_date: format(selectedDay, "yyyy-MM-dd"),
+        start_time: `${startStr}:00`,
+        end_time: `${hour}:00`,
+        reason: "Buffer before slot",
+      });
+      if (error) throw error;
+      toast({ title: "Slot blocked", description: `${startStr} – ${hour} is now blocked.` });
+      await queryClient.invalidateQueries({ queryKey: ["agenda_blocked_slots"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      toast({ title: "Couldn’t block slot", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setPendingBlockSlot(null);
+      isLongPressBlock.current = false;
+    }
+  };
+
   const handleAppointmentContextMenu = (event: React.MouseEvent, appointment: Appointment) => {
     event.preventDefault();
     event.stopPropagation();
@@ -721,8 +768,16 @@ export const LiquidGlassAgenda = ({
               slotDate.setHours(slotHour, slotMinute, 0, 0);
               const isPastSlot = isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime();
 
+              const isBlocked = (blockedSlots || []).some((b: any) => {
+                const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
+                const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
+                const startMin = sh * 60 + sm;
+                const endMin = eh * 60 + em;
+                return slotStartMin >= startMin && slotStartMin < endMin;
+              });
+
               return (
-                <div key={hour} className={cn("relative", isPastSlot && "opacity-50")}>
+                <div key={hour} className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}>
                   {/* Time label */}
                   <div className="flex items-start gap-3 mb-1">
                     <div className="w-12 flex-shrink-0 pt-0.5">
@@ -861,15 +916,26 @@ export const LiquidGlassAgenda = ({
                   })}
 
                   {/* Empty slot - visible quick-add (disabled if past) */}
-                  {hourAppointments.length === 0 && !isOccupied && (
+                  {hourAppointments.length === 0 && !isOccupied && !isBlocked && (
                     <div className="pl-[60px] mb-1">
                       <button
-                        onClick={() => !isPastSlot && onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), hour)}
+                        onClick={() => {
+                          if (isLongPressBlock.current) {
+                            isLongPressBlock.current = false;
+                            return;
+                          }
+                          if (!isPastSlot) onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), hour);
+                        }}
+                        onPointerDown={() => { if (!isPastSlot) startBlockLongPress(hour); }}
+                        onPointerUp={cancelBlockLongPress}
+                        onPointerLeave={cancelBlockLongPress}
                         disabled={isPastSlot}
                         className={cn(
-                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all",
+                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none",
                           isPastSlot
                             ? "border-gray-200 dark:border-white/5 bg-transparent text-gray-300 dark:text-white/20 cursor-not-allowed"
+                            : pressingSlot === hour
+                            ? "border-rose-500/60 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/40"
                             : isDark
                             ? "border-white/15 bg-white/[0.03] hover:bg-white/[0.07] text-white/60 active:scale-[0.98]"
                             : "border-gray-300/70 bg-gray-50/60 hover:bg-blue-50 hover:border-blue-300 text-gray-500 active:scale-[0.98]"
@@ -877,9 +943,26 @@ export const LiquidGlassAgenda = ({
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span className="text-[12px] font-medium">
-                          {isPastSlot ? `Past — ${hour}` : `Tap to book at ${hour}`}
+                          {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past — ${hour}` : `Tap to book at ${hour}`}
                         </span>
                       </button>
+                    </div>
+                  )}
+
+                  {/* Blocked slot */}
+                  {hourAppointments.length === 0 && !isOccupied && isBlocked && (
+                    <div className="pl-[60px] mb-1">
+                      <div
+                        className={cn(
+                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
+                          isDark
+                            ? "border-red-500/30 bg-red-500/10 text-red-300"
+                            : "border-red-300/70 bg-red-50/60 text-red-600"
+                        )}
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        <span className="text-[12px] font-medium">Blocked</span>
+                      </div>
                     </div>
                   )}
 
@@ -1047,6 +1130,33 @@ export const LiquidGlassAgenda = ({
           </div>
         </>
       )}
+
+      <Dialog open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
+        <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>
+          <DialogHeader>
+            <DialogTitle>Block this 45 min buffer?</DialogTitle>
+            <DialogDescription className={cn(isDark ? "text-white/60" : "text-gray-600")}>
+              {pendingBlockSlot && `${format(pendingBlockSlot.start, "HH:mm")} – ${pendingBlockSlot.hour}`} will be marked as blocked.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => { setPendingBlockSlot(null); isLongPressBlock.current = false; }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-rose-500 hover:bg-rose-600 text-white"
+              onClick={confirmBlockSlot}
+            >
+              Block slot
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
