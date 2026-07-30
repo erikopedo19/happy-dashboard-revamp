@@ -307,18 +307,6 @@ export function MobileSettings(props: any) {
             onClick={() => setPanel("messages")}
           />
           <Row
-            icon={Home}
-            tint="#22c55e"
-            label="Freelancer mode"
-            value={brandForm.freelancer_mode ? "On" : "Off"}
-            onClick={() =>
-              setBrandForm((previous: any) => ({
-                ...previous,
-                freelancer_mode: !previous.freelancer_mode,
-              }))
-            }
-          />
-          <Row
             icon={CalendarIcon}
             tint="#8b5cf6"
             label="Subscription"
@@ -349,12 +337,27 @@ export function MobileSettings(props: any) {
             value={`${Object.values(notificationPrefs).filter(Boolean).length} on`}
             onClick={() => setPanel("notifications")}
           />
+        </Group>
+
+        <Group label="More features">
           <Row
             icon={Tag}
             tint="#FF375F"
             label="Loyal regular discount"
             value={brandForm.loyalty_discount_enabled ? `${brandForm.loyalty_discount_percent}% next booking` : "Off"}
             onClick={() => setPanel("loyalty")}
+          />
+          <Row
+            icon={Home}
+            tint="#22c55e"
+            label="Freelancer mode"
+            value={brandForm.freelancer_mode ? "On" : "Off"}
+            onClick={() =>
+              setBrandForm((previous: any) => ({
+                ...previous,
+                freelancer_mode: !previous.freelancer_mode,
+              }))
+            }
           />
         </Group>
 
