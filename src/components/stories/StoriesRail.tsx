@@ -5,7 +5,7 @@ import { Info, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { StoryUploader } from "./StoryUploader";
-import { StoryViewer, getViewedStories } from "./StoryViewer";
+import { StoryViewer, getViewedStories, publicUrl } from "./StoryViewer";
 
 
 type Group = {
@@ -49,6 +49,30 @@ export function StoriesRail() {
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
+
+  // Preload the first two stories for every group so the viewer opens instantly
+  useEffect(() => {
+    if (!groups.length) return;
+    for (const g of groups) {
+      const stories = (g.stories || []).slice(0, 2);
+      for (const s of stories) {
+        const media = publicUrl(s.media_path);
+        if (s.media_type === "image") {
+          const img = new Image();
+          img.src = media;
+        } else if (s.media_type === "video") {
+          const v = document.createElement("video");
+          v.preload = "auto";
+          v.src = media;
+          v.load();
+        }
+        if (s.music_preview_url) {
+          const a = new Audio(s.music_preview_url);
+          a.preload = "auto";
+        }
+      }
+    }
+  }, [groups]);
 
   useEffect(() => {
     if (groups.length === 0) return;

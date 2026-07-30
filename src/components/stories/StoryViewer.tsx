@@ -51,7 +51,7 @@ export function getViewedStories(): Set<string> {
   }
 }
 
-function publicUrl(path: string | null | undefined) {
+export function publicUrl(path: string | null | undefined) {
   if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const { data } = supabase.storage.from("stories").getPublicUrl(path);
@@ -115,14 +115,25 @@ export function StoryViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gIdx, sIdx, loaded]);
 
-  // Preload next story image for snappy transitions
+  // Preload next story media for snappy transitions
   useEffect(() => {
     const nextStory =
       group?.stories[sIdx + 1] ||
       groups[gIdx + 1]?.stories[0];
-    if (nextStory && nextStory.media_type === "image") {
+    if (!nextStory) return;
+    const media = publicUrl(nextStory.media_path);
+    if (nextStory.media_type === "image") {
       const img = new Image();
-      img.src = publicUrl(nextStory.media_path);
+      img.src = media;
+    } else if (nextStory.media_type === "video") {
+      const v = document.createElement("video");
+      v.preload = "auto";
+      v.src = media;
+      v.load();
+    }
+    if (nextStory.music_preview_url) {
+      const a = new Audio(nextStory.music_preview_url);
+      a.preload = "auto";
     }
   }, [gIdx, sIdx, group, groups]);
 
