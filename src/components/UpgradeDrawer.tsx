@@ -75,12 +75,12 @@ export function UpgradeDrawer() {
 
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
       <DrawerContent className="border-white/10 bg-[#0f0f12] text-white">
         <div className="mx-auto w-full max-w-md px-5 pb-8 pt-2">
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={dismiss}
             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/50"
             aria-label="Close"
           >
