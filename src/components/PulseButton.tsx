@@ -96,7 +96,7 @@ export default function PulseButton({
       )}
       style={{
         background: `linear-gradient(to right, ${theme.glow}, ${theme.primary}, ${theme.glow})`,
-        boxShadow: `0 8px 32px ${theme.shadow}, inset 0 0 0 1.5px rgba(255, 255, 255, 0.3)`,
+        boxShadow: `inset 0 0 0 1px rgba(255, 255, 255, 0.18)`,
         willChange: "transform",
         // @ts-ignore - custom property for focus ring
         "--tw-ring-color": theme.primary,
