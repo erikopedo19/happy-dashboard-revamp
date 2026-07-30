@@ -129,7 +129,7 @@ export function UpgradeDrawer() {
 
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={dismiss}
             className="mt-3 w-full text-center text-[13px] font-medium text-white/40"
           >
             Maybe later
