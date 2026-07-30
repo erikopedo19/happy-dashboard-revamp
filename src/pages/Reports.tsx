@@ -415,6 +415,7 @@ const Reports = () => {
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
+        <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
           {/* iOS large-title header */}
           <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 backdrop-blur-xl">

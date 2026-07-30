@@ -80,6 +80,14 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   GBP: "£",
 };
 
+const HEARD = [
+  { k: "instagram", label: "Instagram" },
+  { k: "tiktok", label: "TikTok" },
+  { k: "friend", label: "A friend" },
+  { k: "search", label: "Google / search" },
+  { k: "other", label: "Other" },
+];
+
 const cleanSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 
@@ -106,6 +114,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const [cancellationAlerts, setCancellationAlerts] = useState(true);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(true);
   const [freelancerMode, setFreelancerMode] = useState(false);
+  const [heardFrom, setHeardFrom] = useState("");
   const { setIsOpen } = useOnboardingVisibility();
 
   useEffect(() => {
@@ -164,6 +173,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           loyalty_discount_enabled: loyaltyDiscount,
           loyalty_discount_percent: 20,
           freelancer_mode: freelancerMode,
+          heard_from: heardFrom || null,
           onboarding_completed: true,
           is_public: true,
           updated_at: new Date().toISOString(),
@@ -396,10 +406,27 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
             )}
 
             {step === 5 && (
-              <div className="grid gap-3">
-                <FeatureCard icon={BellRing} title="Cancellation alerts" detail="Get an instant notification when a client cancels, so you can refill the slot fast." checked={cancellationAlerts} onChange={setCancellationAlerts} />
-                <FeatureCard icon={Tag} title="Loyal regular discount" detail="Clients with more than one booking in seven days automatically receive 20% off their next booking." checked={loyaltyDiscount} onChange={setLoyaltyDiscount} />
-                <FeatureCard icon={Home} title="Freelancer mode" detail="I travel to clients' homes for appointments." checked={freelancerMode} onChange={setFreelancerMode} />
+              <div className="space-y-3">
+                <div className="grid gap-3">
+                  <FeatureCard icon={BellRing} title="Cancellation alerts" detail="Get an instant notification when a client cancels, so you can refill the slot fast." checked={cancellationAlerts} onChange={setCancellationAlerts} />
+                  <FeatureCard icon={Tag} title="Loyal regular discount" detail="Clients with more than one booking in seven days automatically receive 20% off their next booking." checked={loyaltyDiscount} onChange={setLoyaltyDiscount} />
+                  <FeatureCard icon={Home} title="Freelancer mode" detail="I travel to clients' homes for appointments." checked={freelancerMode} onChange={setFreelancerMode} />
+                </div>
+                <div className="rounded-[24px] bg-[#1C1C1E] p-4">
+                  <p className="text-[13px] font-semibold text-white/90 mb-3">How did you hear about us?</p>
+                  <div className="grid gap-2">
+                    {HEARD.map(({ k, label }) => (
+                      <div key={k}>
+                        <Choice
+                          active={heardFrom === k}
+                          title={label}
+                          detail=""
+                          onClick={() => setHeardFrom(k)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

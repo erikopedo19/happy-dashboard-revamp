@@ -38,6 +38,7 @@ type Row = {
   avatar_url: string | null;
   role: string | null;
   website_design_requested?: boolean;
+  heard_from?: string | null;
   subscription: Sub;
 };
 
@@ -135,6 +136,15 @@ export default function SuperAdminDashboard() {
     const active = rows.filter((r) => r.subscription?.active).length;
     const free = total - active;
     return { total, active, free };
+  }, [rows]);
+
+  const heardStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    rows.forEach((r) => {
+      const k = r.heard_from || "Unknown";
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    return counts;
   }, [rows]);
 
   const newcomers = useMemo(() => {
@@ -307,6 +317,28 @@ export default function SuperAdminDashboard() {
           <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Free" value={stats.free} />
           <StatCard icon={<Calendar className="w-4 h-4 text-emerald-500" />} label="Bookings" value={totalBookings} />
         </div>
+
+        <Card className="rounded-3xl">
+          <CardHeader>
+            <CardTitle className="text-base">Where did they hear about us?</CardTitle>
+            <CardDescription>Source breakdown from onboarding answers.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {Object.entries(heardStats)
+                .filter(([, count]) => count > 0)
+                .sort(([, a], [, b]) => b - a)
+                .map(([source, count]) => (
+                  <StatCard
+                    key={source}
+                    icon={<Globe className="w-4 h-4 text-blue-500" />}
+                    label={source === "Unknown" ? "Unknown" : source.charAt(0).toUpperCase() + source.slice(1)}
+                    value={count}
+                  />
+                ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="rounded-3xl">
           <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
