@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Chrome } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -13,10 +13,11 @@ export function LoginForm() {
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
 
   const { toast } = useToast();
-  const { user, signIn, signUp, resetPassword } = useAuth();
+  const { user, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
 
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [loading, setLoading] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
@@ -101,6 +102,15 @@ export function LoginForm() {
       toast({ title: "Something went wrong", description: err?.message || "Please try again.", variant: "destructive" });
     } finally {
       setResetting(false);
+    }
+  };
+
+  const googleSignIn = async () => {
+    setGoogleBusy(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setGoogleBusy(false);
+      toast({ title: "Google sign in failed", description: error.message, variant: "destructive" });
     }
   };
 
@@ -267,6 +277,31 @@ export function LoginForm() {
                     <>
                       {isSignup ? "Create account" : "Sign in"}
                       <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </button>
+
+                <div className="relative mt-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-foreground/10" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white dark:bg-[#141418] px-2 text-foreground/40">or</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={googleSignIn}
+                  disabled={googleBusy}
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-[12px] border border-black/10 bg-white px-4 text-[15px] font-semibold text-[#0a0a0c] shadow-sm transition hover:scale-[0.99] active:scale-[0.985] disabled:opacity-50"
+                >
+                  {googleBusy ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Chrome className="h-5 w-5" />
+                      Continue with Google
                     </>
                   )}
                 </button>
