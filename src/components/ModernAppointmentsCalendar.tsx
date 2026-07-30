@@ -571,9 +571,20 @@ export const ModernAppointmentsCalendar = ({
     setContextMenu({ x: e.clientX, y: e.clientY, appointment });
   };
 
+  const isPastDateTime = (date: Date, time: string) => {
+    const [h, m] = time.split(':').map(Number);
+    const slot = new Date(date);
+    slot.setHours(h, m, 0, 0);
+    return slot.getTime() < Date.now();
+  };
+
   // Handle right click for quick booking
   const handleSlotRightClick = (e: React.MouseEvent, date: Date, time: string) => {
     e.preventDefault();
+    if (isPastDateTime(date, time)) {
+      toast({ title: "Past slot", description: "You can't quick-book a time that has already passed." });
+      return;
+    }
     const appointments = getAppointmentsForDateTime(date, time);
     if (appointments.length === 0 && !isBreakSlot(date, time)) {
       setQuickBookingDate(format(date, 'yyyy-MM-dd'));
@@ -584,6 +595,11 @@ export const ModernAppointmentsCalendar = ({
 
   // Quick booking submission
   const handleQuickBooking = async (data: { customerName: string; serviceId: string }) => {
+    const slot = new Date(`${quickBookingDate}T${quickBookingTime}`);
+    if (slot.getTime() < Date.now()) {
+      toast({ title: "Past slot", description: "You can't book a time that has already passed.", variant: "destructive" });
+      return;
+    }
     try {
       // First create or find customer
       const { data: existingCustomer } = await (supabase as any)

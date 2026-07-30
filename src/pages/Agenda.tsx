@@ -299,6 +299,15 @@ const Agenda = () => {
       toast({ title: "Past day — view only", description: "You can see appointments but can't add new ones on past dates." });
       return;
     }
+    if (date === today) {
+      const [h, m] = time.split(':').map(Number);
+      const slot = new Date();
+      slot.setHours(h, m, 0, 0);
+      if (slot.getTime() < Date.now()) {
+        toast({ title: "Past slot", description: "You can't book a time that has already passed." });
+        return;
+      }
+    }
     setSelectedTimeSlot({ date, time });
     setIsSlotBooking(true);
     setIsAppointmentFormOpen(true);

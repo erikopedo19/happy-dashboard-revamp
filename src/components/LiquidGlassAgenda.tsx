@@ -762,11 +762,16 @@ export const LiquidGlassAgenda = ({
                 return aptStartMin < slotStartMin && aptEndMin > slotStartMin;
               });
 
-              // Past slot detection: same day + slot start time already passed
+              // Past slot detection: past day, or today + slot start time already passed
               const now = new Date();
+              const startOfToday = new Date(now);
+              startOfToday.setHours(0, 0, 0, 0);
+              const startOfSelected = new Date(selectedDay);
+              startOfSelected.setHours(0, 0, 0, 0);
+              const isPastDay = startOfSelected.getTime() < startOfToday.getTime();
               const slotDate = new Date(selectedDay);
               slotDate.setHours(slotHour, slotMinute, 0, 0);
-              const isPastSlot = isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime();
+              const isPastSlot = isPastDay || (isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime());
 
               const isBlocked = (blockedSlots || []).some((b: any) => {
                 const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
