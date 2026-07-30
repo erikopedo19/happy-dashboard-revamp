@@ -136,6 +136,10 @@ export const LiquidGlassAgenda = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [pressingSlot, setPressingSlot] = useState<string | null>(null);
+  const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
+  const blockTimerRef = useRef<number | null>(null);
+  const isLongPressBlock = useRef(false);
 
   const isAppointmentPast = (apt: Appointment) => {
     const [hh, mm] = (apt.appointment_time || "00:00").split(":").map(Number);
