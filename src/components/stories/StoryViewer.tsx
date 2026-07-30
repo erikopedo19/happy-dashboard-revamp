@@ -216,16 +216,16 @@ export function StoryViewer({
     <AnimatePresence mode="wait" onExitComplete={onClose}>
       {!closing && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.96 }}
-          transition={{ duration: 0.25 }}
+          initial={{ opacity: 0, scale: 0.28, y: 120, borderRadius: 44 }}
+          animate={{ opacity: 1, scale: 1, y: 0, borderRadius: minimized ? 20 : 0 }}
+          exit={{ opacity: 0, scale: 0.28, y: 120, borderRadius: 44 }}
+          transition={{ type: "spring", stiffness: 320, damping: 34, mass: 0.9 }}
           className={
             minimized
               ? "fixed bottom-4 right-4 z-[99999] w-[120px] h-[170px] rounded-[20px] overflow-hidden bg-black shadow-2xl pointer-events-auto"
-              : "fixed inset-0 z-[99999] bg-black"
+              : "fixed inset-0 z-[99999] bg-black overflow-hidden"
           }
-          style={minimized ? {} : { height: "100dvh" }}
+          style={minimized ? {} : { height: "100dvh", transformOrigin: "50% 85%" }}
         >
       <div className="relative w-full h-full overflow-hidden bg-black">
         {/* Progress */}
