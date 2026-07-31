@@ -10,6 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { haptic } from "@/lib/haptics";
+import { TimeOffDrawer } from "@/components/TimeOffDrawer";
+
 
 interface Service {
   id: string;
