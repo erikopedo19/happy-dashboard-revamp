@@ -735,7 +735,7 @@ const AgendaBookingForm = ({
                           const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                           const isCurrentMonth = isSameMonth(day, currentMonth);
                           const isToday = isSameDay(day, new Date());
-                          const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day));
+                          const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day)) || disabledDates.includes(format(day, 'yyyy-MM-dd'));
                           return (
                             <button
                               key={day.toISOString()}
