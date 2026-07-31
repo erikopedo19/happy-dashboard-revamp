@@ -55,6 +55,8 @@ interface AgendaBookingFormProps {
     currency?: string | null;
   } | null;
   workingDays?: number[];
+  disabledDates?: string[];
+
   timezone?: string;
   rescheduleAppointment?: any;
   locale?: "en" | "el" | "es" | "pl";
