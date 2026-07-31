@@ -199,6 +199,7 @@ export const LiquidGlassAgenda = ({
   const cancelAppointment = async (id: string) => {
     const target = appointments.find((a) => a.id === id);
     if (target && isAppointmentPast(target)) {
+      haptic("error");
       toast({
         title: "Can't cancel past appointments",
         description: "This booking has already passed.",
@@ -207,6 +208,7 @@ export const LiquidGlassAgenda = ({
       setContextMenu(null);
       return;
     }
+    haptic("warning");
     setCancellingId(id);
     try {
       const { error } = await (supabase as any)
@@ -214,12 +216,15 @@ export const LiquidGlassAgenda = ({
         .update({ status: "cancelled", updated_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
+      haptic("success");
       toast({ title: "Appointment cancelled", description: "The booking was marked as cancelled." });
       setContextMenu(null);
       await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       window.dispatchEvent(new Event("appointmentUpdated"));
     } catch (e: any) {
+      haptic("error");
       toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
+
     } finally {
       setCancellingId(null);
     }
