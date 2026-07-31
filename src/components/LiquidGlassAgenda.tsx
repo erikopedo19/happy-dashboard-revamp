@@ -506,14 +506,25 @@ export const LiquidGlassAgenda = ({
               return (
                 <button
                   key={day.toISOString()}
-                  onClick={() => setSelectedDay(day)}
+                  onClick={() => {
+                    if (dayLongPressFired.current) { dayLongPressFired.current = false; return; }
+                    haptic("selection");
+                    setSelectedDay(day);
+                  }}
+                  onPointerDown={() => startDayLongPress(day)}
+                  onPointerUp={clearDayLongPress}
+                  onPointerLeave={clearDayLongPress}
+                  onPointerCancel={clearDayLongPress}
+                  onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
-                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all",
+                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all select-none touch-manipulation active:scale-95",
                     isSelected
                       ? "bg-gray-900 dark:bg-white"
-                      : "hover:bg-gray-100 dark:hover:bg-white/5"
+                      : "hover:bg-gray-100 dark:hover:bg-white/5",
+                    timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected && "ring-1 ring-rose-400/60"
                   )}
                 >
+
                   <span className={cn(
                     "text-[10px] font-semibold uppercase",
                     isSelected
