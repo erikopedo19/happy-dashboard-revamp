@@ -80,6 +80,8 @@ const AgendaBookingForm = ({
   isLoading,
   businessProfile,
   workingDays = [0, 1, 2, 3, 4, 5, 6],
+  disabledDates = [],
+
   timezone = "UTC",
   rescheduleAppointment,
   locale = "en",
