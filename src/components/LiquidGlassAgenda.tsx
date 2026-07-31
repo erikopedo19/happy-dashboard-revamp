@@ -392,9 +392,11 @@ export const LiquidGlassAgenda = ({
     blockTimerRef.current = window.setTimeout(() => {
       isLongPressBlock.current = true;
       setPressingSlot(null);
+      haptic("heavy");
       setPendingBlockSlot({ hour, start, end: slot });
       blockTimerRef.current = null;
-    }, 2500);
+    }, 600);
+
   };
 
   const cancelBlockLongPress = () => {
