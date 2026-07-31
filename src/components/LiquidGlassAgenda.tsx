@@ -142,6 +142,49 @@ export const LiquidGlassAgenda = ({
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
   const blockTimerRef = useRef<number | null>(null);
   const isLongPressBlock = useRef(false);
+  const [timeOffOpen, setTimeOffOpen] = useState(false);
+  const [timeOffDate, setTimeOffDate] = useState<Date | undefined>(undefined);
+  const dayLongPressTimer = useRef<number | null>(null);
+  const dayLongPressFired = useRef(false);
+
+  const { data: timeOffRows = [] } = useQuery<{ off_date: string }[]>({
+    queryKey: ["time_off", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("time_off")
+        .select("off_date")
+        .eq("user_id", user.id);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!user,
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffRows.map((r) => r.off_date)), [timeOffRows]);
+
+  const openTimeOff = (day: Date) => {
+    haptic("heavy");
+    setTimeOffDate(day);
+    setTimeOffOpen(true);
+  };
+
+  const clearDayLongPress = () => {
+    if (dayLongPressTimer.current) {
+      window.clearTimeout(dayLongPressTimer.current);
+      dayLongPressTimer.current = null;
+    }
+  };
+
+  const startDayLongPress = (day: Date) => {
+    clearDayLongPress();
+    dayLongPressFired.current = false;
+    dayLongPressTimer.current = window.setTimeout(() => {
+      dayLongPressFired.current = true;
+      openTimeOff(day);
+      dayLongPressTimer.current = null;
+    }, 480);
+  };
+
 
   const isAppointmentPast = (apt: Appointment) => {
     const [hh, mm] = (apt.appointment_time || "00:00").split(":").map(Number);
