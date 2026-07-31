@@ -55,6 +55,8 @@ interface AgendaBookingFormProps {
     currency?: string | null;
   } | null;
   workingDays?: number[];
+  disabledDates?: string[];
+
   timezone?: string;
   rescheduleAppointment?: any;
   locale?: "en" | "el" | "es" | "pl";
@@ -78,6 +80,8 @@ const AgendaBookingForm = ({
   isLoading,
   businessProfile,
   workingDays = [0, 1, 2, 3, 4, 5, 6],
+  disabledDates = [],
+
   timezone = "UTC",
   rescheduleAppointment,
   locale = "en",
@@ -731,7 +735,7 @@ const AgendaBookingForm = ({
                           const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                           const isCurrentMonth = isSameMonth(day, currentMonth);
                           const isToday = isSameDay(day, new Date());
-                          const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day));
+                          const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day)) || disabledDates.includes(format(day, 'yyyy-MM-dd'));
                           return (
                             <button
                               key={day.toISOString()}

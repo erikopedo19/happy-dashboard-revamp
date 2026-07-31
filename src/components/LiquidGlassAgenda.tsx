@@ -10,6 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { haptic } from "@/lib/haptics";
+import { TimeOffDrawer } from "@/components/TimeOffDrawer";
+
 
 interface Service {
   id: string;
@@ -142,6 +145,49 @@ export const LiquidGlassAgenda = ({
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
   const blockTimerRef = useRef<number | null>(null);
   const isLongPressBlock = useRef(false);
+  const [timeOffOpen, setTimeOffOpen] = useState(false);
+  const [timeOffDate, setTimeOffDate] = useState<Date | undefined>(undefined);
+  const dayLongPressTimer = useRef<number | null>(null);
+  const dayLongPressFired = useRef(false);
+
+  const { data: timeOffRows = [] } = useQuery<{ off_date: string }[]>({
+    queryKey: ["time_off", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("time_off")
+        .select("off_date")
+        .eq("user_id", user.id);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!user,
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffRows.map((r) => r.off_date)), [timeOffRows]);
+
+  const openTimeOff = (day: Date) => {
+    haptic("heavy");
+    setTimeOffDate(day);
+    setTimeOffOpen(true);
+  };
+
+  const clearDayLongPress = () => {
+    if (dayLongPressTimer.current) {
+      window.clearTimeout(dayLongPressTimer.current);
+      dayLongPressTimer.current = null;
+    }
+  };
+
+  const startDayLongPress = (day: Date) => {
+    clearDayLongPress();
+    dayLongPressFired.current = false;
+    dayLongPressTimer.current = window.setTimeout(() => {
+      dayLongPressFired.current = true;
+      openTimeOff(day);
+      dayLongPressTimer.current = null;
+    }, 480);
+  };
+
 
   const isAppointmentPast = (apt: Appointment) => {
     const [hh, mm] = (apt.appointment_time || "00:00").split(":").map(Number);
@@ -153,6 +199,7 @@ export const LiquidGlassAgenda = ({
   const cancelAppointment = async (id: string) => {
     const target = appointments.find((a) => a.id === id);
     if (target && isAppointmentPast(target)) {
+      haptic("error");
       toast({
         title: "Can't cancel past appointments",
         description: "This booking has already passed.",
@@ -161,6 +208,7 @@ export const LiquidGlassAgenda = ({
       setContextMenu(null);
       return;
     }
+    haptic("warning");
     setCancellingId(id);
     try {
       const { error } = await (supabase as any)
@@ -168,12 +216,15 @@ export const LiquidGlassAgenda = ({
         .update({ status: "cancelled", updated_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
+      haptic("success");
       toast({ title: "Appointment cancelled", description: "The booking was marked as cancelled." });
       setContextMenu(null);
       await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       window.dispatchEvent(new Event("appointmentUpdated"));
     } catch (e: any) {
+      haptic("error");
       toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
+
     } finally {
       setCancellingId(null);
     }
@@ -341,9 +392,11 @@ export const LiquidGlassAgenda = ({
     blockTimerRef.current = window.setTimeout(() => {
       isLongPressBlock.current = true;
       setPressingSlot(null);
+      haptic("heavy");
       setPendingBlockSlot({ hour, start, end: slot });
       blockTimerRef.current = null;
-    }, 2500);
+    }, 600);
+
   };
 
   const cancelBlockLongPress = () => {
@@ -506,14 +559,25 @@ export const LiquidGlassAgenda = ({
               return (
                 <button
                   key={day.toISOString()}
-                  onClick={() => setSelectedDay(day)}
+                  onClick={() => {
+                    if (dayLongPressFired.current) { dayLongPressFired.current = false; return; }
+                    haptic("selection");
+                    setSelectedDay(day);
+                  }}
+                  onPointerDown={() => startDayLongPress(day)}
+                  onPointerUp={clearDayLongPress}
+                  onPointerLeave={clearDayLongPress}
+                  onPointerCancel={clearDayLongPress}
+                  onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
-                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all",
+                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all select-none touch-manipulation active:scale-95",
                     isSelected
                       ? "bg-gray-900 dark:bg-white"
-                      : "hover:bg-gray-100 dark:hover:bg-white/5"
+                      : "hover:bg-gray-100 dark:hover:bg-white/5",
+                    timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected && "ring-1 ring-rose-400/60"
                   )}
                 >
+
                   <span className={cn(
                     "text-[10px] font-semibold uppercase",
                     isSelected
@@ -1142,6 +1206,9 @@ export const LiquidGlassAgenda = ({
           </div>
         </>
       )}
+
+      <TimeOffDrawer open={timeOffOpen} onOpenChange={setTimeOffOpen} initialDate={timeOffDate} />
+
 
       <Dialog open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
         <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>

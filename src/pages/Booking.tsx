@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -351,6 +351,19 @@ const Booking = () => {
     enabled: !!businessProfile?.id,
   });
 
+  // Days the barber marked as off (vacation etc.) — never bookable
+  const { data: timeOffDates = [] } = useQuery<string[]>({
+    queryKey: ['public-time-off', businessProfile?.id],
+    queryFn: async () => {
+      if (!businessProfile?.id) return [];
+      const { data, error } = await (supabase as any).rpc('get_time_off_dates', { _user_id: businessProfile.id });
+      if (error) return [];
+      return (data || []).map((r: any) => r.off_date as string);
+    },
+    enabled: !!businessProfile?.id,
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffDates), [timeOffDates]);
+
   // Effective open/close for the currently selected date (falls back to agenda settings)
   const effectiveHoursForDate = (date: Date | undefined) => {
     const fallback = {
@@ -359,6 +372,7 @@ const Booking = () => {
       closed: false,
     };
     if (!date) return fallback;
+    if (timeOffSet.has(format(date, 'yyyy-MM-dd'))) return { ...fallback, closed: true };
     const row = businessHours.find((h) => h.day_of_week === date.getDay());
     if (!row) return fallback;
     if (row.is_closed) return { ...fallback, closed: true };
@@ -368,6 +382,7 @@ const Booking = () => {
       closed: false,
     };
   };
+
 
   useEffect(() => {
     if (settings) {
@@ -818,6 +833,8 @@ const Booking = () => {
       isLoading={isLoading}
       businessProfile={businessProfile}
       workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
+      disabledDates={timeOffDates}
+
       timezone={settings?.timezone || getBrowserTimezone()}
       locale={locale}
       askPhone={showPhone}
