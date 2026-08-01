@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   addMonths,
@@ -72,12 +72,44 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
 
   const today = startOfDay(new Date());
 
-  const toggleDay = (day: Date) => {
-    if (isBefore(day, today)) return;
-    haptic("selection");
-    const key = toKey(day);
-    setSelected((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  const dragging = useRef(false);
+  const dragMode = useRef<"add" | "remove">("add");
+  const lastKey = useRef<string | null>(null);
+
+  const applyDay = (key: string) => {
+    setSelected((prev) => {
+      const has = prev.includes(key);
+      if (dragMode.current === "add") return has ? prev : [...prev, key];
+      return has ? prev.filter((k) => k !== key) : prev;
+    });
   };
+
+  const startDrag = (day: Date) => {
+    if (isBefore(day, today)) return;
+    const key = toKey(day);
+    dragging.current = true;
+    dragMode.current = selected.includes(key) ? "remove" : "add";
+    lastKey.current = key;
+    haptic("selection");
+    applyDay(key);
+  };
+
+  const onGridPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+    const cell = el?.closest?.("[data-daykey]") as HTMLElement | null;
+    const key = cell?.dataset.daykey;
+    if (!key || key === lastKey.current || cell?.dataset.past === "1") return;
+    lastKey.current = key;
+    haptic("selection");
+    applyDay(key);
+  };
+
+  const endDrag = () => {
+    dragging.current = false;
+    lastKey.current = null;
+  };
+
 
   const save = async () => {
     if (!user || selected.length === 0) return;
@@ -122,7 +154,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
             </div>
             <div>
               <h2 className="text-[17px] font-semibold leading-tight">Days off</h2>
-              <p className="text-[13px] text-white/50">Pick days you're away — they're hidden from booking</p>
+              <p className="text-[13px] text-white/50">Tap or drag across days — they are hidden from booking</p>
             </div>
           </div>
 
@@ -156,7 +188,11 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18 }}
-              className="grid grid-cols-7 gap-1"
+              className="grid grid-cols-7 gap-1 touch-none select-none"
+              onPointerMove={onGridPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onPointerLeave={endDrag}
             >
               {grid.map((day) => {
                 const key = toKey(day);
@@ -167,7 +203,9 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
                 return (
                   <button
                     key={key}
-                    onClick={() => toggleDay(day)}
+                    data-daykey={key}
+                    data-past={past ? "1" : "0"}
+                    onPointerDown={(e) => { (e.target as HTMLElement).releasePointerCapture?.(e.pointerId); startDrag(day); }}
                     disabled={past}
                     className={cn(
                       "aspect-square rounded-2xl text-[14px] font-medium flex flex-col items-center justify-center transition-all active:scale-95",
