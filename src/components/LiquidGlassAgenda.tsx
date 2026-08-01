@@ -630,7 +630,7 @@ export const LiquidGlassAgenda = ({
                 </button>
               );
             })}
-          </div>
+          </motion.div>
 
           {/* Completion ring */}
           <div className="w-9 h-9 flex items-center justify-center relative">
