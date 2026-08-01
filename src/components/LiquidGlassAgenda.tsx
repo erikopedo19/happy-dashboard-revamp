@@ -657,6 +657,21 @@ export const LiquidGlassAgenda = ({
             </span>
           </div>
         </div>
+
+        <AnimatePresence>
+          {showDaysOffHint && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="mt-2 flex justify-center"
+            >
+              <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-rose-500/10 text-rose-500 dark:text-rose-300">
+                Tip: hold a date to mark it as a day off 🏝️
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Scrollable Timeline */}
