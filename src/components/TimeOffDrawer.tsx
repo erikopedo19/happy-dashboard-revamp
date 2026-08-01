@@ -188,7 +188,11 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18 }}
-              className="grid grid-cols-7 gap-1"
+              className="grid grid-cols-7 gap-1 touch-none select-none"
+              onPointerMove={onGridPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onPointerLeave={endDrag}
             >
               {grid.map((day) => {
                 const key = toKey(day);
@@ -199,7 +203,9 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
                 return (
                   <button
                     key={key}
-                    onClick={() => toggleDay(day)}
+                    data-daykey={key}
+                    data-past={past ? "1" : "0"}
+                    onPointerDown={(e) => { (e.target as HTMLElement).releasePointerCapture?.(e.pointerId); startDrag(day); }}
                     disabled={past}
                     className={cn(
                       "aspect-square rounded-2xl text-[14px] font-medium flex flex-col items-center justify-center transition-all active:scale-95",
