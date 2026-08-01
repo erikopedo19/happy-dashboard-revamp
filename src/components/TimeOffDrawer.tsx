@@ -72,12 +72,44 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
 
   const today = startOfDay(new Date());
 
-  const toggleDay = (day: Date) => {
-    if (isBefore(day, today)) return;
-    haptic("selection");
-    const key = toKey(day);
-    setSelected((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  const dragging = useRef(false);
+  const dragMode = useRef<"add" | "remove">("add");
+  const lastKey = useRef<string | null>(null);
+
+  const applyDay = (key: string) => {
+    setSelected((prev) => {
+      const has = prev.includes(key);
+      if (dragMode.current === "add") return has ? prev : [...prev, key];
+      return has ? prev.filter((k) => k !== key) : prev;
+    });
   };
+
+  const startDrag = (day: Date) => {
+    if (isBefore(day, today)) return;
+    const key = toKey(day);
+    dragging.current = true;
+    dragMode.current = selected.includes(key) ? "remove" : "add";
+    lastKey.current = key;
+    haptic("selection");
+    applyDay(key);
+  };
+
+  const onGridPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+    const cell = el?.closest?.("[data-daykey]") as HTMLElement | null;
+    const key = cell?.dataset.daykey;
+    if (!key || key === lastKey.current || cell?.dataset.past === "1") return;
+    lastKey.current = key;
+    haptic("selection");
+    applyDay(key);
+  };
+
+  const endDrag = () => {
+    dragging.current = false;
+    lastKey.current = null;
+  };
+
 
   const save = async () => {
     if (!user || selected.length === 0) return;
