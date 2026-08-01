@@ -546,12 +546,21 @@ export const LiquidGlassAgenda = ({
             </div>
           )}
 
-          <button
-            onClick={() => onWeekChange(addDays(currentWeek, 7))}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
+              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-rose-500/10 text-rose-500 dark:text-rose-300 hover:bg-rose-500/15 transition-colors active:scale-95"
+            >
+              <Palmtree className="w-3.5 h-3.5" />
+              Days off
+            </button>
+            <button
+              onClick={() => onWeekChange(addDays(currentWeek, 7))}
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Day Selector Row */}
@@ -565,7 +574,11 @@ export const LiquidGlassAgenda = ({
           </button>
 
           {/* Scrollable day strip */}
-          <div className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 pr-1">
+          <motion.div
+            animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
+            transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
+            className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 pr-1"
+          >
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
