@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -149,6 +149,21 @@ export const LiquidGlassAgenda = ({
   const [timeOffDate, setTimeOffDate] = useState<Date | undefined>(undefined);
   const dayLongPressTimer = useRef<number | null>(null);
   const dayLongPressFired = useRef(false);
+  const [showDaysOffHint, setShowDaysOffHint] = useState(false);
+
+  // Show the "hold a date" hint only for the first 3 agenda visits ever
+  useEffect(() => {
+    try {
+      const KEY = "agenda_daysoff_hint_count";
+      const count = parseInt(localStorage.getItem(KEY) || "0", 10);
+      if (count < 3) {
+        localStorage.setItem(KEY, String(count + 1));
+        setShowDaysOffHint(true);
+        const t = window.setTimeout(() => setShowDaysOffHint(false), 4200);
+        return () => window.clearTimeout(t);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const { data: timeOffRows = [] } = useQuery<{ off_date: string }[]>({
     queryKey: ["time_off", user?.id],
