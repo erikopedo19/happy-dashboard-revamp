@@ -207,9 +207,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       timezone: tzProfile?.timezone,
       stylistId: stylistId || null,
       allowPastSlots: false,
-
+      timeOffDates: timeOffSet,
     });
-  }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId]);
+  }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId, timeOffSet]);
 
   // Realtime sync — agenda hours + bookings + stylists updated instantly on this form
   useEffect(() => {
