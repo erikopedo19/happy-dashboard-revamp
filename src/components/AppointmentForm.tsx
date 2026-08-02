@@ -830,7 +830,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         const isPast = dayStr < todayStr;
                         const isToday = dayStr === todayStr;
                         const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
-                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay;
+                        const isDayOff = timeOffSet.has(dayStr);
+                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
                         const showDot = !isDisabled && !isSelected;
 
                         return (
