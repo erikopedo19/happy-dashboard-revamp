@@ -176,6 +176,17 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     staleTime: 0,
   });
 
+  // Days the barber marked off — never bookable from anywhere
+  const { data: timeOffDates = [] } = useQuery<string[]>({
+    queryKey: ['time-off-dates', user?.id],
+    enabled: !!user && isOpen,
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user!.id });
+      return (data || []).map((r: any) => r.off_date as string);
+    },
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffDates), [timeOffDates]);
+
   const selectedService = services.find((s: Service) => s.id === serviceId);
 
   const availableTimeSlots = useMemo(() => {
