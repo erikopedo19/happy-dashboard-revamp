@@ -176,6 +176,17 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     staleTime: 0,
   });
 
+  // Days the barber marked off — never bookable from anywhere
+  const { data: timeOffDates = [] } = useQuery<string[]>({
+    queryKey: ['time-off-dates', user?.id],
+    enabled: !!user && isOpen,
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user!.id });
+      return (data || []).map((r: any) => r.off_date as string);
+    },
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffDates), [timeOffDates]);
+
   const selectedService = services.find((s: Service) => s.id === serviceId);
 
   const availableTimeSlots = useMemo(() => {
@@ -196,9 +207,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       timezone: tzProfile?.timezone,
       stylistId: stylistId || null,
       allowPastSlots: false,
-
+      timeOffDates: timeOffSet,
     });
-  }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId]);
+  }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId, timeOffSet]);
 
   // Realtime sync — agenda hours + bookings + stylists updated instantly on this form
   useEffect(() => {
@@ -819,7 +830,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         const isPast = dayStr < todayStr;
                         const isToday = dayStr === todayStr;
                         const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
-                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay;
+                        const isDayOff = timeOffSet.has(dayStr);
+                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
                         const showDot = !isDisabled && !isSelected;
 
                         return (
