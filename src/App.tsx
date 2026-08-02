@@ -175,6 +175,7 @@ const HeaderActions = () => {
   const hasOwnBell =
     location.pathname === "/admin" ||
     location.pathname === "/find-barbershop" ||
+    location.pathname === "/settings" ||
     (isMobile && location.pathname.startsWith("/find-barber"));
   if (hasOwnBell) return null;
   return (

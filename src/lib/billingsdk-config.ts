@@ -29,6 +29,15 @@ export interface CurrentPlan {
 export const STRIPE_PAYMENT_LINK =
   "https://buy.stripe.com/3cI3cn7lodSC9ODcvq2ZO04";
 
+// Stripe Payment Link for Pro Yearly. Leave empty until a yearly link exists in
+// Stripe — the pricing page hides the yearly option while this is empty so we
+// never send a yearly selection to the monthly checkout.
+export const STRIPE_PAYMENT_LINK_YEARLY = "";
+
+// Set to true only when the Stripe payment link itself has a free trial
+// configured (trials cannot be added via URL parameters).
+export const STRIPE_TRIAL_ENABLED = false;
+
 // Stripe-hosted Customer Portal login link — used to cancel / pause / update card.
 // Get yours at: Stripe Dashboard → Settings → Billing → Customer portal → "Login link".
 // Leave empty until configured; users will fall back to /pricing.

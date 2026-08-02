@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Check, Sparkles, Crown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { STRIPE_PAYMENT_LINK } from "@/lib/billingsdk-config";
+import { STRIPE_PAYMENT_LINK, STRIPE_PAYMENT_LINK_YEARLY, STRIPE_TRIAL_ENABLED } from "@/lib/billingsdk-config";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
@@ -19,20 +19,26 @@ const PERKS = [
 
 type PlanKey = "yearly" | "monthly";
 
-const OPTIONS: { key: PlanKey; title: string; price: string; sub: string; badge?: string }[] = [
+const ALL_OPTIONS: { key: PlanKey; title: string; price: string; sub: string; badge?: string }[] = [
   { key: "yearly", title: "Yearly Access", price: "€89.90/yr", sub: "€7.49/mo · save 17%", badge: "BEST OFFER" },
   { key: "monthly", title: "Monthly Access", price: "€8.99/mo", sub: "Cancel anytime" },
 ];
 
+// Only offer plans that have a real Stripe checkout link behind them.
+const OPTIONS = ALL_OPTIONS.filter((o) => (o.key === "yearly" ? !!STRIPE_PAYMENT_LINK_YEARLY : !!STRIPE_PAYMENT_LINK));
+
 export default function Pricing() {
   const navigate = useNavigate();
-  const [plan, setPlan] = useState<PlanKey>("yearly");
-  const [freeTrial, setFreeTrial] = useState(true);
+  const [plan, setPlan] = useState<PlanKey>(OPTIONS[0]?.key ?? "monthly");
+  const [freeTrial, setFreeTrial] = useState(STRIPE_TRIAL_ENABLED);
 
   async function handleContinue() {
     haptic("medium");
     const { data: { user } } = await supabase.auth.getUser();
-    const url = new URL(STRIPE_PAYMENT_LINK);
+    const link = plan === "yearly" && STRIPE_PAYMENT_LINK_YEARLY
+      ? STRIPE_PAYMENT_LINK_YEARLY
+      : STRIPE_PAYMENT_LINK;
+    const url = new URL(link);
     if (user?.email) url.searchParams.set("prefilled_email", user.email);
     if (user?.id) url.searchParams.set("client_reference_id", user.id);
     url.searchParams.set("success_url", `${window.location.origin}/pricing/success`);
@@ -85,6 +91,7 @@ export default function Pricing() {
           ))}
         </ul>
 
+        {STRIPE_TRIAL_ENABLED && (
         <div className="mt-8 rounded-3xl bg-white/[0.05] px-5 py-4 flex items-center justify-between">
           <div>
             <div className="text-[15px] font-semibold">Enable Free Trial</div>
@@ -96,6 +103,7 @@ export default function Pricing() {
             className="data-[state=checked]:bg-rose-500"
           />
         </div>
+        )}
 
         <div className="mt-4 space-y-3">
           {OPTIONS.map((o) => {

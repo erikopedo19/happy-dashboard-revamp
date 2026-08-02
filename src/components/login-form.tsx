@@ -9,16 +9,19 @@ import { triggerGlimm } from "@/components/GlimmIntercept";
 export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  let next = searchParams.get("next") || "/";
-  if (next === "/") {
+  // Resolve once on mount so an async auth re-render can't lose the target.
+  const [next] = useState(() => {
+    const fromQuery = searchParams.get("next");
+    if (fromQuery) return fromQuery;
     try {
       const saved = sessionStorage.getItem("auth:next");
       if (saved) {
-        next = saved;
         sessionStorage.removeItem("auth:next");
+        return saved;
       }
     } catch { /* ignore */ }
-  }
+    return "/";
+  });
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
 
   const { toast } = useToast();
