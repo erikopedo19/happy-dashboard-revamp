@@ -154,6 +154,16 @@ export function QuickBookSheet({
     return () => { supabase.removeChannel(channel); };
   }, [open, barberId, qc]);
 
+  const { data: timeOffDates = [] } = useQuery<string[]>({
+    queryKey: ["quickbook-timeoff", barberId],
+    enabled: open && !!barberId,
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc("get_time_off_dates", { _user_id: barberId });
+      return (data || []).map((r: any) => r.off_date as string);
+    },
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffDates), [timeOffDates]);
+
   const allSlots = useMemo(() => {
     if (!settings) return [];
     return generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
@@ -168,11 +178,11 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     const today = new Date();
     for (let i = 0; i < 14; i++) {
       const d = addDays(today, i);
-      if (workingDays.includes(d.getDay())) out.push(d);
+      if (workingDays.includes(d.getDay()) && !timeOffSet.has(format(d, "yyyy-MM-dd"))) out.push(d);
       if (out.length >= 7) break;
     }
     return out;
-  }, [workingDays]);
+  }, [workingDays, timeOffSet]);
 
   const availableSlots = useMemo(() => {
     if (!selectedService || !settings) return [];
@@ -186,8 +196,9 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       bookedSlots: booked,
       workingDays,
       timezone: settings.timezone,
+      timeOffDates: timeOffSet,
     });
-  }, [allSlots, booked, selectedService, settings, date]);
+  }, [allSlots, booked, selectedService, settings, date, workingDays, timeOffSet]);
 
   const canContinue = serviceId && time;
   const canConfirm = name.trim() && /\S+@\S+\.\S+/.test(email);
