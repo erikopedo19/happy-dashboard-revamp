@@ -202,7 +202,7 @@ export default function Pricing() {
           </p>
           <button
             onClick={handleContinue}
-            className="w-full h-14 rounded-full bg-white text-black text-[16px] font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition"
+            className="w-full h-14 rounded-full bg-black text-white text-[16px] font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition border border-black/10"
           >
             <Sparkles className="w-4 h-4" />
             Continue
