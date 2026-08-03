@@ -238,9 +238,19 @@ const AgendaBookingForm = ({
   const totalDuration = useMemo(() => selectedServices.reduce((sum, s) => sum + s.duration, 0), [selectedServices]);
   const totalPrice = useMemo(() => selectedServices.reduce((sum, s) => sum + s.price, 0), [selectedServices]);
 
-  const availableTimeSlots = selectedDate
-    ? timeSlots.filter(time => isTimeSlotAvailable(time))
-    : [];
+  // Hard guard: never offer a time that has already passed today (business timezone).
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedDate) return [];
+    const tz = timezone || getBrowserTimezone();
+    const dayKey = format(selectedDate, "yyyy-MM-dd");
+    const isToday = dayKey === dateStrInTz(new Date(), tz);
+    const nowMin = minutesInTz(new Date(), tz);
+    return timeSlots.filter((time) => {
+      if (isToday && timeStrToMinutes(time.slice(0, 5)) <= nowMin) return false;
+      return isTimeSlotAvailable(time);
+    });
+  }, [selectedDate, timeSlots, isTimeSlotAvailable, timezone]);
+
 
   const availableStylistsForTime = selectedTime && getAvailableStylistsForTime
     ? getAvailableStylistsForTime(selectedTime)
