@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { formatTzLabel } from "@/lib/tz";
+import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
 import { getIconByName } from "@/components/IconPicker";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
