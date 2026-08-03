@@ -91,49 +91,80 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
       key="editor"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-      className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-xl flex items-end justify-center p-0"
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-2xl flex items-end sm:items-center justify-center"
       style={{ height: "100dvh", top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <motion.div
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 320, damping: 30 }}
-        className="w-full sm:max-w-md bg-[#141418] rounded-t-[28px] sm:rounded-t-[32px] overflow-hidden border border-t-0 border-x border-b border-white/10 flex flex-col h-[92dvh] sm:h-auto sm:max-h-[90dvh]"
+        initial={{ y: 60, opacity: 0, scale: 0.98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="w-full sm:max-w-sm bg-[#0E0E11] rounded-t-[32px] sm:rounded-[32px] overflow-hidden border border-white/10 flex flex-col h-[94dvh] sm:h-auto sm:max-h-[88dvh]"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
-          <h3 className="text-sm font-semibold text-white">New story</h3>
-          <button onClick={reset} className="p-1 rounded-full hover:bg-white/10">
-            <X className="w-5 h-5 text-white" />
+        {/* Grab handle + header */}
+        <div className="shrink-0 pt-2.5 pb-1 flex justify-center sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-white/15" />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3 shrink-0">
+          <div>
+            <h3 className="text-[17px] font-semibold text-white leading-tight">New story</h3>
+            <p className="text-[12px] text-white/40">Live for 24 hours</p>
+          </div>
+          <button
+            onClick={reset}
+            className="w-9 h-9 rounded-full bg-white/[0.07] flex items-center justify-center active:scale-95 transition"
+          >
+            <X className="w-4.5 h-4.5 text-white/80" />
           </button>
         </div>
-        <div className="flex-1 overflow-hidden min-h-0 bg-black">
-          <div className="w-full h-full flex items-center justify-center bg-black">
+
+        {/* Media preview card */}
+        <div className="flex-1 min-h-0 px-4 pb-3">
+          <div className="relative h-full w-full rounded-[24px] overflow-hidden bg-black ring-1 ring-white/10">
             {file.type.startsWith("video") ? (
-              <video src={preview!} className="w-full h-full object-contain" controls playsInline />
+              <video src={preview!} className="absolute inset-0 w-full h-full object-contain" controls playsInline />
             ) : (
-              <img src={preview!} alt="preview" className="w-full h-full object-contain" />
+              <img src={preview!} alt="Story preview" className="absolute inset-0 w-full h-full object-contain" />
             )}
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur px-3 py-1.5">
+              {file.type.startsWith("video") ? (
+                <Film className="w-3.5 h-3.5 text-white/80" />
+              ) : (
+                <ImageIcon className="w-3.5 h-3.5 text-white/80" />
+              )}
+              <span className="text-[11px] font-medium text-white/80 tabular-nums">
+                {(file.size / (1024 * 1024)).toFixed(1)} MB
+              </span>
+            </div>
+            <button
+              onClick={() => inputRef.current?.click()}
+              className="absolute bottom-3 right-3 rounded-full bg-white/90 text-black text-[12px] font-semibold px-3.5 py-2 active:scale-95 transition"
+            >
+              Replace
+            </button>
           </div>
         </div>
-        <div className="p-4 space-y-3 shrink-0 bg-[#141418] border-t border-white/10" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={reset}
-              disabled={busy}
-              className="w-full h-11 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={publish}
-              disabled={busy}
-              className="w-full h-11 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-semibold"
-            >
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish story"}
-            </Button>
-          </div>
-          <p className="text-center text-[11px] text-white/40">Max 20 MB · Auto-deletes in 24 hours</p>
+
+        {/* Actions */}
+        <div
+          className="px-4 pt-1 pb-4 space-y-2.5 shrink-0"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
+        >
+          <Button
+            onClick={publish}
+            disabled={busy}
+            className="w-full h-[52px] rounded-2xl bg-white text-black hover:bg-white/90 text-[16px] font-semibold"
+          >
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Share story"}
+          </Button>
+          <Button
+            onClick={reset}
+            disabled={busy}
+            variant="ghost"
+            className="w-full h-11 rounded-2xl text-white/60 hover:text-white hover:bg-white/[0.06] text-[15px] font-medium"
+          >
+            Cancel
+          </Button>
         </div>
       </motion.div>
     </motion.div>
@@ -152,16 +183,18 @@ export function StoryUploader({ onDone }: { onDone?: () => void }) {
         type="button"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
+        whileTap={{ scale: 0.94 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
         onClick={() => inputRef.current?.click()}
         className="flex flex-col items-center gap-1 shrink-0"
       >
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-600 flex items-center justify-center ring-2 ring-white/10">
-          <Plus className="w-6 h-6 text-white" />
+        <div className="w-16 h-16 rounded-full bg-white/[0.06] border border-dashed border-white/25 flex items-center justify-center">
+          <Plus className="w-6 h-6 text-white/70" />
         </div>
-        <span className="text-[11px] text-white/70">Your story</span>
+        <span className="text-[11px] text-white/60">Your story</span>
       </motion.button>
       {file && createPortal(Editor, document.body)}
     </>
   );
 }
+
