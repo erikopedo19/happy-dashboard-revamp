@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, X } from "lucide-react";
+import { Film, Image as ImageIcon, Loader2, Plus, X } from "lucide-react";
 
 const MAX_SIZE = 20 * 1024 * 1024;
 
