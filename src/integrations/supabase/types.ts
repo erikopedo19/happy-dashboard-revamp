@@ -1328,6 +1328,30 @@ export type Database = {
           },
         ]
       }
+      time_off: {
+        Row: {
+          created_at: string
+          id: string
+          off_date: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          off_date: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          off_date?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       brand_profiles: {
@@ -1527,6 +1551,12 @@ export type Database = {
           id: string
           rating: number
           reviewer_name: string
+        }[]
+      }
+      get_time_off_dates: {
+        Args: { _user_id: string }
+        Returns: {
+          off_date: string
         }[]
       }
       get_total_bookings: { Args: never; Returns: number }

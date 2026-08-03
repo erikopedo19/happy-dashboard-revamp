@@ -64,6 +64,7 @@ export const getAvailableBookingSlots = ({
   timezone,
   stylistId,
   allowPastSlots = false,
+  timeOffDates,
 }: {
   date: Date;
   allSlots: string[];
@@ -76,12 +77,18 @@ export const getAvailableBookingSlots = ({
   timezone?: string | null;
   stylistId?: string | null;
   allowPastSlots?: boolean;
+  /** Dates (yyyy-MM-dd) the business marked as days off — never bookable. */
+  timeOffDates?: string[] | Set<string> | null;
 }) => {
   const days = workingDays ?? [0, 1, 2, 3, 4, 5, 6];
   if (!days.includes(date.getDay())) return [];
 
   const tz = timezone || getBrowserTimezone();
   const selectedDate = dateKey(date);
+
+  const offSet = timeOffDates instanceof Set ? timeOffDates : new Set(timeOffDates ?? []);
+  if (offSet.has(selectedDate)) return [];
+
   const today = dateStrInTz(new Date(), tz);
   if (!allowPastSlots && selectedDate < today) return [];
 

@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { haptic } from "@/lib/haptics";
+import { TimeOffDrawer } from "@/components/TimeOffDrawer";
+
 
 interface Service {
   id: string;
@@ -142,6 +145,64 @@ export const LiquidGlassAgenda = ({
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
   const blockTimerRef = useRef<number | null>(null);
   const isLongPressBlock = useRef(false);
+  const [timeOffOpen, setTimeOffOpen] = useState(false);
+  const [timeOffDate, setTimeOffDate] = useState<Date | undefined>(undefined);
+  const dayLongPressTimer = useRef<number | null>(null);
+  const dayLongPressFired = useRef(false);
+  const [showDaysOffHint, setShowDaysOffHint] = useState(false);
+
+  // Show the "hold a date" hint only for the first 3 agenda visits ever
+  useEffect(() => {
+    try {
+      const KEY = "agenda_daysoff_hint_count";
+      const count = parseInt(localStorage.getItem(KEY) || "0", 10);
+      if (count < 3) {
+        localStorage.setItem(KEY, String(count + 1));
+        setShowDaysOffHint(true);
+        const t = window.setTimeout(() => setShowDaysOffHint(false), 4200);
+        return () => window.clearTimeout(t);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const { data: timeOffRows = [] } = useQuery<{ off_date: string }[]>({
+    queryKey: ["time_off", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("time_off")
+        .select("off_date")
+        .eq("user_id", user.id);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!user,
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffRows.map((r) => r.off_date)), [timeOffRows]);
+
+  const openTimeOff = (day: Date) => {
+    haptic("heavy");
+    setTimeOffDate(day);
+    setTimeOffOpen(true);
+  };
+
+  const clearDayLongPress = () => {
+    if (dayLongPressTimer.current) {
+      window.clearTimeout(dayLongPressTimer.current);
+      dayLongPressTimer.current = null;
+    }
+  };
+
+  const startDayLongPress = (day: Date) => {
+    clearDayLongPress();
+    dayLongPressFired.current = false;
+    dayLongPressTimer.current = window.setTimeout(() => {
+      dayLongPressFired.current = true;
+      openTimeOff(day);
+      dayLongPressTimer.current = null;
+    }, 480);
+  };
+
 
   const isAppointmentPast = (apt: Appointment) => {
     const [hh, mm] = (apt.appointment_time || "00:00").split(":").map(Number);
@@ -153,6 +214,7 @@ export const LiquidGlassAgenda = ({
   const cancelAppointment = async (id: string) => {
     const target = appointments.find((a) => a.id === id);
     if (target && isAppointmentPast(target)) {
+      haptic("error");
       toast({
         title: "Can't cancel past appointments",
         description: "This booking has already passed.",
@@ -161,6 +223,7 @@ export const LiquidGlassAgenda = ({
       setContextMenu(null);
       return;
     }
+    haptic("warning");
     setCancellingId(id);
     try {
       const { error } = await (supabase as any)
@@ -168,12 +231,15 @@ export const LiquidGlassAgenda = ({
         .update({ status: "cancelled", updated_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
+      haptic("success");
       toast({ title: "Appointment cancelled", description: "The booking was marked as cancelled." });
       setContextMenu(null);
       await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       window.dispatchEvent(new Event("appointmentUpdated"));
     } catch (e: any) {
+      haptic("error");
       toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
+
     } finally {
       setCancellingId(null);
     }
@@ -341,9 +407,11 @@ export const LiquidGlassAgenda = ({
     blockTimerRef.current = window.setTimeout(() => {
       isLongPressBlock.current = true;
       setPressingSlot(null);
+      haptic("heavy");
       setPendingBlockSlot({ hour, start, end: slot });
       blockTimerRef.current = null;
-    }, 2500);
+    }, 600);
+
   };
 
   const cancelBlockLongPress = () => {
@@ -478,12 +546,21 @@ export const LiquidGlassAgenda = ({
             </div>
           )}
 
-          <button
-            onClick={() => onWeekChange(addDays(currentWeek, 7))}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
+              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-rose-500/10 text-rose-500 dark:text-rose-300 hover:bg-rose-500/15 transition-colors active:scale-95"
+            >
+              <Palmtree className="w-3.5 h-3.5" />
+              Days off
+            </button>
+            <button
+              onClick={() => onWeekChange(addDays(currentWeek, 7))}
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Day Selector Row */}
@@ -497,7 +574,11 @@ export const LiquidGlassAgenda = ({
           </button>
 
           {/* Scrollable day strip */}
-          <div className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 pr-1">
+          <motion.div
+            animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
+            transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
+            className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 pr-1"
+          >
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
@@ -506,14 +587,25 @@ export const LiquidGlassAgenda = ({
               return (
                 <button
                   key={day.toISOString()}
-                  onClick={() => setSelectedDay(day)}
+                  onClick={() => {
+                    if (dayLongPressFired.current) { dayLongPressFired.current = false; return; }
+                    haptic("selection");
+                    setSelectedDay(day);
+                  }}
+                  onPointerDown={() => startDayLongPress(day)}
+                  onPointerUp={clearDayLongPress}
+                  onPointerLeave={clearDayLongPress}
+                  onPointerCancel={clearDayLongPress}
+                  onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
-                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all",
+                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all select-none touch-manipulation active:scale-95",
                     isSelected
                       ? "bg-gray-900 dark:bg-white"
-                      : "hover:bg-gray-100 dark:hover:bg-white/5"
+                      : "hover:bg-gray-100 dark:hover:bg-white/5",
+                    timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected && "ring-1 ring-rose-400/60"
                   )}
                 >
+
                   <span className={cn(
                     "text-[10px] font-semibold uppercase",
                     isSelected
@@ -538,7 +630,7 @@ export const LiquidGlassAgenda = ({
                 </button>
               );
             })}
-          </div>
+          </motion.div>
 
           {/* Completion ring */}
           <div className="w-9 h-9 flex items-center justify-center relative">
@@ -565,6 +657,21 @@ export const LiquidGlassAgenda = ({
             </span>
           </div>
         </div>
+
+        <AnimatePresence>
+          {showDaysOffHint && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="mt-2 flex justify-center"
+            >
+              <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-rose-500/10 text-rose-500 dark:text-rose-300">
+                Tip: hold a date to mark it as a day off 🏝️
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Scrollable Timeline */}
@@ -1142,6 +1249,9 @@ export const LiquidGlassAgenda = ({
           </div>
         </>
       )}
+
+      <TimeOffDrawer open={timeOffOpen} onOpenChange={setTimeOffOpen} initialDate={timeOffDate} />
+
 
       <Dialog open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
         <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>
