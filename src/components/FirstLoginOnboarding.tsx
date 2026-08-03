@@ -263,7 +263,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   };
 
   const next = () => {
-    if (!canContinue) return;
+    if (!canContinue || saving) return;
     if (step === STEPS.length - 1) finish();
     else setStep((current) => current + 1);
   };

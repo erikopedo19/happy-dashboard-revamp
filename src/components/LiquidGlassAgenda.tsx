@@ -159,13 +159,12 @@ export const LiquidGlassAgenda = ({
   const [showDaysOffHint, setShowDaysOffHint] = useState(false);
   const isMobile = useIsMobile() ?? false;
 
-  // Show the "hold a date" hint only for the first 3 agenda visits ever
+  // Show the "hold a date" hint only once, the very first time the agenda opens
   useEffect(() => {
     try {
-      const KEY = "agenda_daysoff_hint_count";
-      const count = parseInt(localStorage.getItem(KEY) || "0", 10);
-      if (count < 3) {
-        localStorage.setItem(KEY, String(count + 1));
+      const KEY = "agenda_daysoff_hint_seen";
+      if (localStorage.getItem(KEY) !== "1") {
+        localStorage.setItem(KEY, "1");
         setShowDaysOffHint(true);
         const t = window.setTimeout(() => setShowDaysOffHint(false), 4200);
         return () => window.clearTimeout(t);
@@ -1085,7 +1084,7 @@ export const LiquidGlassAgenda = ({
                         <motion.div
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: pressingSlot === hour ? 1 : 0 }}
-                          transition={pressingSlot === hour ? { duration: 2.5, ease: "linear" } : { duration: 0 }}
+                          transition={pressingSlot === hour ? { duration: 0.6, ease: "linear" } : { duration: 0 }}
                           style={{ originX: 0 }}
                           className="absolute inset-0 z-0 bg-rose-500/20"
                         />
