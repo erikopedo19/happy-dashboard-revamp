@@ -169,8 +169,9 @@ const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") || "general";
+  const initialTab = searchParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [settingsSearch, setSettingsSearch] = useState("");
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
   const [brandForm, setBrandForm] = useState<BrandProfileRecord>(defaultBrandProfile);
@@ -661,7 +662,8 @@ const Settings = () => {
                   >
                     <TabsList className="grid w-full grid-cols-5 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
                       {[
-                        { v: "general", icon: Settings2, label: "General" },
+                        { v: "overview", icon: Settings2, label: "Overview" },
+                        { v: "general", icon: User, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
                         { v: "messages", icon: Sparkles, label: "Messages" },
                         { v: "notifications", icon: Bell, label: "Alerts", badge: "New" },
@@ -688,6 +690,48 @@ const Settings = () => {
                         </TabsTrigger>
                       ))}
                     </TabsList>
+
+                    <TabsContent value="overview" className="mt-0 space-y-6 animate-fade-in">
+                      <div className="relative max-w-md">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
+                        <Input
+                          type="text"
+                          placeholder="Search settings..."
+                          value={settingsSearch}
+                          onChange={(e) => setSettingsSearch(e.target.value)}
+                          className="w-full h-11 pl-10 rounded-2xl bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93]"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[
+                          { v: "general", icon: User, label: "General", desc: "Profile, language, timezone and preferences." },
+                          { v: "booking", icon: Link2, label: "Booking", desc: "Your public booking link and page options." },
+                          { v: "messages", icon: Sparkles, label: "Messages", desc: "Email and SMS message templates." },
+                          { v: "notifications", icon: Bell, label: "Alerts", desc: "Push and cancellation alerts." },
+                          { v: "business", icon: Store, label: "Business", desc: "Working hours, services and brand identity." },
+                        ]
+                          .filter((c) => c.label.toLowerCase().includes(settingsSearch.toLowerCase()) || c.desc.toLowerCase().includes(settingsSearch.toLowerCase()))
+                          .map((c) => (
+                            <Card
+                              key={c.v}
+                              onClick={() => { setActiveTab(c.v); setSearchParams({ tab: c.v }, { replace: true }); }}
+                              className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-sm cursor-pointer hover:shadow-md transition-shadow group"
+                            >
+                              <CardHeader className="pb-2">
+                                <div className="w-10 h-10 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center mb-3 group-hover:bg-[#0A84FF]/10 transition-colors">
+                                  <c.icon className="w-5 h-5 text-[#0A84FF]" />
+                                </div>
+                                <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-base font-semibold flex items-center justify-between">
+                                  {c.label}
+                                  <ArrowRight className="w-4 h-4 text-[#8E8E93] group-hover:text-[#0A84FF] transition-colors" />
+                                </CardTitle>
+                                <CardDescription className="text-[#8E8E93] text-sm">{c.desc}</CardDescription>
+                              </CardHeader>
+                            </Card>
+                          ))}
+                      </div>
+                    </TabsContent>
 
                     <TabsContent value="messages" className="mt-0 space-y-6 animate-fade-in">
                       <MessageTemplates />
