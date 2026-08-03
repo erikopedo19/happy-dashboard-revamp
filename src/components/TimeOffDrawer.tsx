@@ -236,7 +236,8 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           </AnimatePresence>
 
           {/* Reasons */}
-          <div className="flex flex-wrap gap-2 mt-5">
+          <p className="text-[12px] uppercase tracking-wider text-white/35 mt-6 mb-2">Reason</p>
+          <div className="flex flex-wrap gap-2">
             {REASONS.map((r) => (
               <button
                 key={r.key}
@@ -251,6 +252,26 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
             ))}
           </div>
 
+          <AnimatePresence initial={false}>
+            {reason === "custom" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <input
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  maxLength={60}
+                  autoFocus
+                  placeholder="e.g. Family event, training day…"
+                  className="mt-3 w-full h-12 rounded-2xl bg-white/[0.06] px-4 text-[15px] text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/30"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <Button
             onClick={save}
             disabled={selected.length === 0 || saving}
@@ -258,6 +279,29 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : `Mark ${selected.length || ""} day${selected.length === 1 ? "" : "s"} off`}
           </Button>
+
+          {/* Rest of the day — distinct amber treatment */}
+          <div className="mt-4 rounded-3xl border border-amber-400/25 bg-amber-400/[0.07] p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-amber-400/15 flex items-center justify-center shrink-0">
+                <Sunset className="w-4.5 h-4.5 text-amber-300" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[15px] font-semibold text-amber-100">Rest of the day</div>
+                <p className="text-[12.5px] leading-snug text-amber-100/60">
+                  Stop taking bookings for the remaining hours of today. Past hours stay closed automatically.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={blockRestOfToday}
+              disabled={saving}
+              className="mt-3 w-full h-11 rounded-2xl bg-amber-400 text-black text-[14px] font-semibold active:scale-[0.98] transition disabled:opacity-40"
+            >
+              Block rest of today · {resolvedReason}
+            </button>
+          </div>
+
 
           {daysOff.length > 0 && (
             <div className="mt-6">
