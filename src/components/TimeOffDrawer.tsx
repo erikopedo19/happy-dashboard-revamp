@@ -114,17 +114,17 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
   };
 
 
-  const save = async () => {
-    if (!user || selected.length === 0) return;
+  const persist = async (dates: string[], successCopy: string) => {
+    if (!user || dates.length === 0) return;
     setSaving(true);
     try {
-      const rows = selected.map((off_date) => ({ user_id: user.id, off_date, reason }));
+      const rows = dates.map((off_date) => ({ user_id: user.id, off_date, reason: resolvedReason }));
       const { error } = await (supabase as any)
         .from("time_off")
         .upsert(rows, { onConflict: "user_id,off_date" });
       if (error) throw error;
       haptic("success");
-      toast({ title: "Days off saved", description: "These days won't appear on your booking forms." });
+      toast({ title: successCopy, description: `Reason: ${resolvedReason}. Hidden from every booking form.` });
       setSelected([]);
       await refetch();
       queryClient.invalidateQueries({ queryKey: ["public-time-off"] });
@@ -135,6 +135,10 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
       setSaving(false);
     }
   };
+
+  const save = () => persist(selected, "Days off saved");
+  const blockRestOfToday = () => persist([toKey(new Date())], "Rest of today blocked");
+
 
   const removeDay = async (id: string) => {
     haptic("warning");
