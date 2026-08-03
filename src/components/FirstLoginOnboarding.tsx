@@ -37,7 +37,7 @@ const DAYS = [
 
 const STEPS = [
   { title: "Choose your language", subtitle: "This sets the app and public booking language.", icon: Languages },
-  { title: "Create your booking link", subtitle: "Keep it short. This is the link you will share with clients.", icon: Link2 },
+  { title: "Add your details", subtitle: "Set up your personal account and claim your booking link.", icon: UserRound },
   { title: "Add your stylist", subtitle: "Add the first person clients can book. You can add more later.", icon: UserRound },
   { title: "Create your first service", subtitle: "Set the name, duration, price, icon and color.", icon: Scissors },
   { title: "Set your working hours", subtitle: "Choose the days and times clients can book.", icon: Clock3 },
@@ -102,6 +102,8 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const currency = useMemo(() => CURRENCY_BY_LOCALE[language] || "EUR", [language]);
   const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
   const [bookingLink, setBookingLink] = useState(() => cleanSlug(user?.email?.split("@")[0] || "my-chair"));
+  const [fullName, setFullName] = useState(() => (user?.user_metadata?.full_name as string) || "");
+  const [bio, setBio] = useState("");
   const [stylistName, setStylistName] = useState("");
   const [serviceName, setServiceName] = useState("Haircut");
   const [serviceDuration, setServiceDuration] = useState(30);
@@ -135,11 +137,11 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   }, [step]);
 
   const canContinue = useMemo(() => {
-    if (step === 1) return bookingLink.length >= 2;
+    if (step === 1) return fullName.trim().length >= 2 && bookingLink.length >= 2;
     if (step === 3) return serviceName.trim().length >= 2 && serviceDuration >= 5 && servicePrice >= 0;
     if (step === 4) return workingDays.length > 0 && startHour < endHour;
     return true;
-  }, [step, bookingLink, serviceName, serviceDuration, servicePrice, workingDays, startHour, endHour]);
+  }, [step, fullName, bookingLink, serviceName, serviceDuration, servicePrice, workingDays, startHour, endHour]);
 
   const toggleDay = (day: number) => {
     setWorkingDays((current) =>
@@ -168,6 +170,8 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
         .update({
           booking_locale: language,
           currency,
+          full_name: fullName.trim(),
+          description: bio.trim() || null,
           booking_link: finalSlug,
           notify_cancellation_alerts: cancellationAlerts,
           loyalty_discount_enabled: loyaltyDiscount,
@@ -268,7 +272,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
 
   return (
     <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col overflow-hidden bg-[#09090B] text-white">
-      <header className="mx-auto w-full max-w-lg px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]">
+      <header className={cn("mx-auto w-full px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]", step === 1 ? "max-w-6xl" : "max-w-lg")}>
         <div className="flex items-center justify-between">
           <div className="flex h-10 w-10 items-center justify-center rounded-[15px] bg-[#FF375F]">
             <Icon className="h-5 w-5" />
@@ -284,7 +288,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
         </div>
       </header>
 
-      <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto px-5 pb-5 pt-5">
+      <main className={cn("mx-auto min-h-0 w-full flex-1 overflow-y-auto px-5 pb-5 pt-5", step === 1 ? "max-w-6xl" : "max-w-lg")}>
         <div ref={stageRef}>
           <div data-onboarding-item>
             <h1 className="max-w-sm text-[32px] font-bold leading-[1.04] tracking-[-0.04em]">{STEPS[step].title}</h1>
@@ -302,13 +306,90 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
             )}
 
             {step === 1 && (
-              <div className="rounded-[28px] bg-[#1C1C1E] p-4">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Your public URL</label>
-                <div className="mt-3 flex h-14 items-center rounded-[18px] bg-[#2C2C2E] px-4">
-                  <span className="text-[13px] text-white/35">cutzioo.com/book/</span>
-                  <input value={bookingLink} onChange={(event) => setBookingLink(cleanSlug(event.target.value))} className="min-w-0 flex-1 bg-transparent text-[15px] font-semibold text-white outline-none" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-5 rounded-[28px] bg-[#1C1C1E] p-5">
+                  <div>
+                    <FieldLabel>Profile picture</FieldLabel>
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-full bg-[#34C759] flex items-center justify-center text-white text-xl font-bold">
+                        {fullName
+                          ? fullName.trim().split(/\s+/).map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+                          : "X"}
+                      </div>
+                      <button type="button" className="h-10 px-4 rounded-full bg-[#2C2C2E] text-[13px] font-semibold text-white hover:bg-[#3C3C3C] transition">
+                        Upload
+                      </button>
+                    </div>
+                    <p className="mt-2 text-[11px] text-white/35">Recommended size 64x64px, max 5MB.</p>
+                  </div>
+
+                  <div>
+                    <FieldLabel>Your name</FieldLabel>
+                    <DarkInput value={fullName} onChange={setFullName} placeholder="Erik..." />
+                  </div>
+
+                  <div>
+                    <FieldLabel>Username</FieldLabel>
+                    <div className="flex h-14 items-center rounded-[18px] bg-[#2C2C2E] px-4">
+                      <span className="text-[13px] text-white/35 shrink-0">cutzioo.com/book/</span>
+                      <input value={bookingLink} onChange={(event) => setBookingLink(cleanSlug(event.target.value))} className="min-w-0 flex-1 bg-transparent text-[15px] font-semibold text-white outline-none" />
+                    </div>
+                    <p className="mt-2 text-[11px] text-white/35">Only letters, numbers and dashes. We add a number if the link is taken.</p>
+                  </div>
+
+                  <div>
+                    <FieldLabel>Bio</FieldLabel>
+                    <textarea
+                      value={bio}
+                      onChange={(event) => setBio(event.target.value)}
+                      placeholder="Add your bio here"
+                      className="min-h-[120px] w-full rounded-[18px] border-0 bg-[#2C2C2E] px-4 py-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/25 focus:ring-2 focus:ring-[#FF375F] [color-scheme:dark] resize-none"
+                    />
+                  </div>
                 </div>
-                <p className="mt-3 text-[11px] text-white/35">Only letters, numbers and dashes. We add a number if the link is taken.</p>
+
+                <div className="rounded-[24px] border border-white/[0.08] bg-[#15151A] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.08] bg-[#0f0f12]">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+                    </div>
+                    <div className="flex-1 mx-2 h-7 rounded-lg bg-[#2C2C2E] flex items-center px-3 text-[11px] text-white/50 truncate">
+                      cutzioo.com/book/{bookingLink || "..."}
+                    </div>
+                  </div>
+
+                  <div className="p-5 space-y-5">
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-full bg-[#34C759] flex items-center justify-center text-white text-lg font-bold">
+                        {fullName
+                          ? fullName.trim().split(/\s+/).map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+                          : "X"}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">{fullName || "Your name"}</h3>
+                        <p className="text-[12px] text-white/50">{bio || "Add your bio here"}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {[
+                        { name: "Haircut", duration: 30, desc: "Classic cut and style." },
+                        { name: "Beard trim", duration: 15, desc: "Shape up your beard." },
+                        { name: "Full combo", duration: 45, desc: "Haircut + beard trim." },
+                      ].map((svc) => (
+                        <div key={svc.name} className="flex items-center justify-between p-3 rounded-[16px] bg-[#1C1C1E]">
+                          <div>
+                            <p className="text-sm font-semibold text-white">{svc.name} <span className="text-white/40 font-normal">{currencySymbol}{servicePrice} · {svc.duration} min</span></p>
+                            <p className="text-[11px] text-white/40">{svc.desc}</p>
+                          </div>
+                          <button type="button" className="h-8 px-3 rounded-full bg-white text-black text-[11px] font-semibold">Book now</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
