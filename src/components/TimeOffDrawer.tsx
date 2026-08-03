@@ -13,7 +13,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Loader2, Palmtree, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Palmtree, Sunset, Trash2 } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
