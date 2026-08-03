@@ -528,7 +528,16 @@ export const LiquidGlassAgenda = ({
         "sticky top-0 z-30"
       )}>
         <div className="flex items-center justify-between gap-3 mb-3">
-          {shouldShowViewToggle && (
+          {isMobile ? (
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-white/45">
+                {format(selectedDay, 'EEEE')}
+              </span>
+              <span className="text-[20px] font-bold text-gray-900 dark:text-white">
+                {format(selectedDay, 'dd MMM')}
+              </span>
+            </div>
+          ) : shouldShowViewToggle ? (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onViewModeChange('week')}
@@ -553,6 +562,8 @@ export const LiquidGlassAgenda = ({
                 Day
               </button>
             </div>
+          ) : (
+            <div />
           )}
 
           <div className="flex items-center gap-2">
@@ -575,12 +586,14 @@ export const LiquidGlassAgenda = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <button
-              onClick={() => onWeekChange(addDays(currentWeek, 7))}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            {!isMobile && (
+              <button
+                onClick={() => onWeekChange(addDays(currentWeek, 7))}
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -1103,9 +1116,14 @@ export const LiquidGlassAgenda = ({
                         className={cn(
                           "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
                           isDark
-                            ? "border-red-500/30 bg-red-500/10 text-red-300"
-                            : "border-red-300/70 bg-red-50/60 text-red-600"
+                            ? "border-white/10 text-white/40"
+                            : "border-gray-300/60 text-gray-500"
                         )}
+                        style={{
+                          backgroundImage: isDark
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
+                            : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
+                        }}
                       >
                         <Ban className="w-3.5 h-3.5" />
                         <span className="text-[12px] font-medium">Blocked</span>
