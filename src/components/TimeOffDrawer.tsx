@@ -46,7 +46,9 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
   const [month, setMonth] = useState<Date>(startOfMonth(initialDate ?? new Date()));
   const [selected, setSelected] = useState<string[]>(initialDate ? [toKey(initialDate)] : []);
   const [reason, setReason] = useState<string>("vacation");
+  const [customReason, setCustomReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const resolvedReason = reason === "custom" ? customReason.trim() || "Closed" : reason;
 
   const { data: daysOff = [], refetch } = useQuery<{ id: string; off_date: string; reason: string | null }[]>({
     queryKey: ["time_off", user?.id],
