@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { haptic } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
+import { NotificationBell } from "@/components/NotificationBell";
 
 
 interface Service {
@@ -123,9 +124,9 @@ function colorToRgba(color: string, opacity: number): string {
 
 function getGlassGradient(color: string, isDark: boolean): string {
   if (isDark) {
-    return `linear-gradient(135deg, ${colorToRgba(color, 0.22)} 0%, ${colorToRgba(color, 0.10)} 100%)`;
+    return `linear-gradient(135deg, ${colorToRgba(color, 0.32)} 0%, ${colorToRgba(color, 0.14)} 100%)`;
   }
-  return `linear-gradient(135deg, ${colorToRgba(color, 0.16)} 0%, ${colorToRgba(color, 0.07)} 100%)`;
+  return `linear-gradient(135deg, ${colorToRgba(color, 0.22)} 0%, ${colorToRgba(color, 0.10)} 100%)`;
 }
 
 export const LiquidGlassAgenda = ({
@@ -527,16 +528,24 @@ export const LiquidGlassAgenda = ({
         "border-b border-gray-200/50 dark:border-white/5",
         "sticky top-0 z-30"
       )}>
-        <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center justify-between gap-3 mb-1.5">
           {isMobile ? (
-            <div className="flex flex-col leading-tight">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-white/45">
-                {format(selectedDay, 'EEEE')}
-              </span>
-              <span className="text-[20px] font-bold text-gray-900 dark:text-white">
-                {format(selectedDay, 'dd MMM')}
-              </span>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 text-[15px] font-semibold text-gray-900 dark:text-white active:opacity-60 transition-opacity">
+                  {viewMode === 'week' ? 'Week' : 'Day'}
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-white/40" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
+                <DropdownMenuItem onClick={() => onViewModeChange('week')} className="cursor-pointer">
+                  Week
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onViewModeChange('day')} className="cursor-pointer">
+                  Day
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : shouldShowViewToggle ? (
             <div className="flex items-center gap-2">
               <button
@@ -594,8 +603,26 @@ export const LiquidGlassAgenda = ({
                 <ChevronRight className="w-4 h-4" />
               </button>
             )}
+            {isMobile && (
+              <div className="scale-[0.8]">
+                <NotificationBell />
+              </div>
+            )}
           </div>
         </div>
+
+        {isMobile && (
+          <div className="flex justify-end mb-2 -mt-1">
+            <div className="flex flex-col items-end leading-tight">
+              <span className="text-[15px] font-bold text-gray-900 dark:text-white">
+                {format(selectedDay, 'MMM dd')}
+              </span>
+              <span className="text-[11px] text-gray-400 dark:text-white/40">
+                {format(selectedDay, 'yyyy')}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Day Selector Row */}
         <div className="flex items-center gap-1">
@@ -632,32 +659,60 @@ export const LiquidGlassAgenda = ({
                   onPointerCancel={!isMobile ? clearDayLongPress : undefined}
                   onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
-                    "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all select-none touch-manipulation active:scale-95",
-                    isSelected
-                      ? "bg-gray-900 dark:bg-white"
-                      : "hover:bg-gray-100 dark:hover:bg-white/5",
+                    "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
+                    isMobile
+                      ? "py-1 px-2.5 rounded-xl"
+                      : cn(
+                          "py-1.5 px-2 rounded-xl",
+                          isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
+                        ),
                     timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected && "ring-1 ring-rose-400/60"
                   )}
                 >
-
-                  <span className={cn(
-                    "text-[10px] font-semibold uppercase",
-                    isSelected
-                      ? "text-white dark:text-black"
-                      : "text-gray-400 dark:text-gray-500"
-                  )}>
-                    {format(day, 'EEEEE')}
-                  </span>
-                  <span className={cn(
-                    "text-[15px] font-semibold mt-0.5",
-                    isSelected
-                      ? "text-white dark:text-black"
-                      : isToday
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-800 dark:text-gray-200"
-                  )}>
-                    {format(day, 'd')}
-                  </span>
+                  {isMobile ? (
+                    <>
+                      <div className="h-1.5 flex items-center justify-center">
+                        {isSelected && <div className="w-1 h-1 rounded-full bg-gray-900 dark:bg-white" />}
+                      </div>
+                      <span className={cn(
+                        "font-semibold transition-all",
+                        isSelected
+                          ? "text-[19px] text-gray-900 dark:text-white"
+                          : isToday
+                            ? "text-[15px] text-blue-600 dark:text-blue-400"
+                            : "text-[15px] text-gray-400 dark:text-gray-500"
+                      )}>
+                        {format(day, 'd')}
+                      </span>
+                      <span className={cn(
+                        "text-[10px] font-medium uppercase mt-0.5",
+                        isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
+                      )}>
+                        {format(day, 'EEE')}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={cn(
+                        "text-[10px] font-semibold uppercase",
+                        isSelected
+                          ? "text-white dark:text-black"
+                          : "text-gray-400 dark:text-gray-500"
+                      )}>
+                        {format(day, 'EEEEE')}
+                      </span>
+                      <span className={cn(
+                        "text-[15px] font-semibold mt-0.5",
+                        isSelected
+                          ? "text-white dark:text-black"
+                          : isToday
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-gray-800 dark:text-gray-200"
+                      )}>
+                        {format(day, 'd')}
+                      </span>
+                    </>
+                  )}
                   {timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected ? (
                     <span
                       title={timeOffReason.get(format(day, 'yyyy-MM-dd')) || 'Day off'}
@@ -665,7 +720,7 @@ export const LiquidGlassAgenda = ({
                     >
                       <Palmtree className="w-3.5 h-3.5" />
                     </span>
-                  ) : hasAppointments && !isSelected ? (
+                  ) : hasAppointments && !isSelected && !isMobile ? (
                     <div className="w-1 h-1 rounded-full bg-blue-500 mt-0.5" />
                   ) : null}
                 </button>
@@ -984,6 +1039,7 @@ export const LiquidGlassAgenda = ({
                               : getGlassGradient(serviceColor, isDark),
                             backdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
                             WebkitBackdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
+                            borderLeft: isCancelled ? undefined : `3px solid ${colorToRgba(serviceColor, 0.9)}`,
                           }}
                         >
                           {/* Glass shine effect */}

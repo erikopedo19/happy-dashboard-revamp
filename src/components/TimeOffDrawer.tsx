@@ -275,7 +275,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           <Button
             onClick={save}
             disabled={selected.length === 0 || saving}
-            className="w-full h-12 mt-5 rounded-2xl bg-[#1C1C1E] text-white hover:bg-[#1C1C1E]/90 dark:bg-white dark:text-black dark:hover:bg-white/90 text-[15px] font-semibold disabled:opacity-40"
+            className="w-full h-14 mt-5 rounded-full bg-black text-white hover:bg-black/90 text-[15px] font-semibold disabled:opacity-40"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : `Mark ${selected.length || ""} day${selected.length === 1 ? "" : "s"} off`}
           </Button>
@@ -296,7 +296,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
             <button
               onClick={blockRestOfToday}
               disabled={saving}
-              className="mt-3 w-full h-11 rounded-2xl bg-amber-400 text-black text-[14px] font-semibold active:scale-[0.98] transition disabled:opacity-40"
+              className="mt-3 w-full h-11 rounded-full bg-amber-400 text-black text-[14px] font-semibold active:scale-[0.98] transition disabled:opacity-40"
             >
               Block rest of today · {resolvedReason}
             </button>

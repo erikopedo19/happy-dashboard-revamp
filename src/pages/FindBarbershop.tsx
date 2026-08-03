@@ -487,19 +487,19 @@ const FindBarbershop = () => {
                     );
                   }
                 }}
-                className="h-12 rounded-2xl"
+                className="h-12 rounded-full"
               >
                 <LocateFixed className="mr-2 h-4 w-4" />
                 Use location
               </Button>
-              <Button type="button" onClick={resetFilters} className="h-12 rounded-2xl bg-[#1C1C1E] text-white">
+              <Button type="button" onClick={resetFilters} className="h-12 rounded-full bg-[#1C1C1E] text-white">
                 Clear all
               </Button>
             </div>
           </div>
 
           <DrawerFooter className="px-0 pb-0 pt-2">
-            <Button type="button" onClick={() => setFiltersOpen(false)} className="h-12 rounded-2xl bg-[#FF2D55] text-white hover:bg-[#FF1744]">
+            <Button type="button" onClick={() => setFiltersOpen(false)} className="h-14 rounded-full bg-black text-white hover:bg-black/90">
               Show {shops.length} results
             </Button>
           </DrawerFooter>

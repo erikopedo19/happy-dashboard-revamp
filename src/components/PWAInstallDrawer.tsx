@@ -105,7 +105,7 @@ export function PWAInstallDrawer() {
             <Button
               type="button"
               onClick={handleInstall}
-              className="w-full h-12 rounded-full bg-white text-black font-semibold"
+              className="w-full h-14 rounded-full bg-black text-white font-semibold"
             >
               <Download className="w-4 h-4 mr-2" /> Install now
             </Button>

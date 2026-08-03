@@ -176,7 +176,8 @@ const HeaderActions = () => {
     location.pathname === "/admin" ||
     location.pathname === "/find-barbershop" ||
     location.pathname === "/settings" ||
-    (isMobile && location.pathname.startsWith("/find-barber"));
+    (isMobile && location.pathname.startsWith("/find-barber")) ||
+    (isMobile && location.pathname === "/agenda");
   if (hasOwnBell) return null;
   return (
     <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50">
