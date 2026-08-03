@@ -73,7 +73,7 @@ const ModernBookingForm = ({
   timezone = "UTC",
   rescheduleAppointment
 }: ModernBookingFormProps) => {
-  const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
+  const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "review" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
@@ -234,7 +234,12 @@ const ModernBookingForm = ({
     return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleGoToReview = (values: any) => {
+    setAnimationDirection("forward");
+    setStep("review");
+  };
+
+  const handleConfirmBooking = async (values: any) => {
     // Always inject current state into form values before submit
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) {
@@ -301,6 +306,96 @@ const ModernBookingForm = ({
           >
             Νέα Κράτηση
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "review") {
+    const customer = form.getValues();
+    const stylist = stylists.find((s: any) => s.id === selectedStylistId);
+    return (
+      <div className={`min-h-screen ${getBgClass()} flex items-center justify-center p-4`}>
+        <div className={`w-full max-w-md ${getCardBgClass()} rounded-2xl border ${getBorderClass()} p-6`}>
+          <h2 className={`text-2xl font-bold ${getTextClass()} text-center mb-2`}>
+            {rescheduleAppointment ? "Confirm your change" : "Confirm your booking"}
+          </h2>
+          <p className={`text-center ${getTextMutedClass()} text-sm mb-6`}>
+            Please review all details before we finalize.
+          </p>
+
+          <div className={`${getCardBgClassSecondary()} rounded-xl p-4 space-y-3`}>
+            {selectedServices.map((service: any) => (
+              <div key={service.id} className="flex justify-between text-sm">
+                <span className={getTextClass()}>{service.name}</span>
+                <span className={getTextSecondaryClass()}>€{service.price}</span>
+              </div>
+            ))}
+            <div className={`border-t ${getBorderClass()} pt-3 flex justify-between`}>
+              <span className={getTextMutedClass()}>Total</span>
+              <span className={getTextClass()}>€{totalPrice} · {totalDuration} min</span>
+            </div>
+          </div>
+
+          <div className={`mt-4 ${getCardBgClassSecondary()} rounded-xl p-4 space-y-2 text-sm`}>
+            <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+              <CalendarIcon className="w-4 h-4" />
+              <span className={getTextClass()}>{selectedDate && format(selectedDate, 'EEEE d MMMM yyyy')}</span>
+            </div>
+            <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+              <Clock className="w-4 h-4" />
+              <span className={getTextClass()}>{selectedTime}</span>
+            </div>
+            {selectedStylistId && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <User className="w-4 h-4" />
+                <span className={getTextClass()}>{stylist?.name || "Selected stylist"}</span>
+              </div>
+            )}
+            {customer.customer_name && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <User className="w-4 h-4" />
+                <span className={getTextClass()}>{customer.customer_name}</span>
+              </div>
+            )}
+            {customer.customer_email && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <span className={getTextClass()}>{customer.customer_email}</span>
+              </div>
+            )}
+            {customer.customer_phone && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <span className={getTextClass()}>{customer.customer_phone}</span>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={form.handleSubmit(handleConfirmBooking)} className="mt-6 space-y-3">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 px-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-sm"
+              style={accentStyle}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {rescheduleAppointment ? "Confirm Change" : "Confirm booking"}
+                </>
+              )}
+            </Button>
+            <button
+              type="button"
+              onClick={() => { setAnimationDirection("backward"); setStep("details"); }}
+              className={`w-full text-center text-sm py-2 ${getTextMutedClass()} hover:${getTextClass()} transition-colors`}
+            >
+              Back to details
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -878,7 +973,7 @@ const ModernBookingForm = ({
                 <h4 className={`text-sm font-medium ${getTextClass()} mb-4`}>Your Details</h4>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 flex-1">
+                  <form onSubmit={form.handleSubmit(handleGoToReview)} className="space-y-4 flex-1">
                     <FormField
                       control={form.control}
                       name="customer_name"
@@ -950,7 +1045,7 @@ const ModernBookingForm = ({
                           </>
                         ) : (
                           <>
-                            {rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
+                            {rescheduleAppointment ? "Review Change" : "Review booking"}
                           </>
                         )}
                       </Button>
