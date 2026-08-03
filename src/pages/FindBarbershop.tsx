@@ -399,7 +399,7 @@ const FindBarbershop = () => {
       </div>
 
       <Drawer open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <DrawerContent className="border-t border-black/5 bg-white px-4 pb-[max(env(safe-area-inset-bottom),1rem)] dark:border-white/10 dark:bg-[#1C1C1E]">
+        <DrawerContent className="px-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
           <DrawerHeader className="px-0 text-left">
             <DrawerTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Search & filters</DrawerTitle>
             <DrawerDescription className="text-[#8E8E93]">

@@ -76,10 +76,8 @@ export function UpgradeDrawer() {
 
   return (
     <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
-      <DrawerContent className="rounded-t-[32px] border-white/10 bg-[#0A0A0A] text-white">
+      <DrawerContent>
         <div className="mx-auto w-full max-w-md px-6 pb-8 pt-2">
-          <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-white/20" />
-
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -89,8 +87,8 @@ export function UpgradeDrawer() {
             <Crown className="h-8 w-8 text-[#1C1C1E]" />
           </motion.div>
 
-          <h2 className="text-center text-[22px] font-bold tracking-tight">Go Pro</h2>
-          <p className="mx-auto mt-1 max-w-[280px] text-center text-[13px] text-white/50">
+          <h2 className="text-center text-[22px] font-bold tracking-tight text-[#1C1C1E] dark:text-white">Go Pro</h2>
+          <p className="mx-auto mt-1 max-w-[280px] text-center text-[13px] text-[#8E8E93] dark:text-white/50">
             Unlock the tools that keep your chair full.
           </p>
 
@@ -98,12 +96,12 @@ export function UpgradeDrawer() {
             {PERKS.map((p) => (
               <div
                 key={p}
-                className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.04] px-4 py-3"
+                className="flex items-center gap-3 rounded-2xl border border-black/[0.05] bg-black/[0.03] dark:border-white/[0.06] dark:bg-white/[0.04] px-4 py-3"
               >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-500 dark:text-amber-300">
                   <Check className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-[14px] text-white/80">{p}</span>
+                <span className="text-[14px] text-[#1C1C1E]/80 dark:text-white/80">{p}</span>
               </div>
             ))}
           </div>
@@ -123,7 +121,7 @@ export function UpgradeDrawer() {
           <button
             type="button"
             onClick={dismiss}
-            className="mt-3 w-full text-center text-[13px] font-medium text-white/40"
+            className="mt-3 w-full text-center text-[13px] font-medium text-[#8E8E93] dark:text-white/40"
           >
             Maybe later
           </button>

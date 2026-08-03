@@ -70,16 +70,16 @@ export function PWAInstallDrawer() {
           <Smartphone className="w-4 h-4" /> Install app
         </Button>
       </div>
-      <DrawerContent className="bg-[#0a0a0c] border-white/10 text-white">
+      <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle className="text-white">Install Cutzioo</DrawerTitle>
-          <DrawerDescription className="text-white/60">
+          <DrawerTitle>Install Cutzioo</DrawerTitle>
+          <DrawerDescription>
             Add this app to your home screen for quick access.
           </DrawerDescription>
         </DrawerHeader>
         <div className="px-4 py-2 space-y-4">
           {platform === "ios" ? (
-            <ol className="list-decimal list-inside text-sm text-white/80 space-y-2">
+            <ol className="list-decimal list-inside text-sm text-[#1C1C1E]/80 dark:text-white/80 space-y-2">
               <li>
                 Tap the <Share className="inline w-4 h-4 mx-1 align-text-bottom" /> Share button in Safari.
               </li>
@@ -91,7 +91,7 @@ export function PWAInstallDrawer() {
               </li>
             </ol>
           ) : (
-            <ol className="list-decimal list-inside text-sm text-white/80 space-y-2">
+            <ol className="list-decimal list-inside text-sm text-[#1C1C1E]/80 dark:text-white/80 space-y-2">
               <li>
                 Tap the <MoreVertical className="inline w-4 h-4 mx-1 align-text-bottom" /> menu in Chrome.
               </li>
@@ -120,7 +120,7 @@ export function PWAInstallDrawer() {
               setIsOpen(false);
               setDismissed(true);
             }}
-            className="w-full border-white/10 text-white hover:bg-white/10"
+            className="w-full border-black/10 dark:border-white/10 text-[#1C1C1E] dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
           >
             Maybe later
           </Button>

@@ -153,15 +153,15 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="border-white/10 bg-[#0f0f12] text-white max-h-[92vh]">
+      <DrawerContent className="max-h-[92vh]">
         <div className="mx-auto w-full max-w-md px-5 pb-8 pt-2 overflow-y-auto">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
-              <Palmtree className="w-5 h-5 text-white/80" />
+            <div className="w-10 h-10 rounded-2xl bg-black/[0.05] dark:bg-white/10 flex items-center justify-center">
+              <Palmtree className="w-5 h-5 text-[#1C1C1E]/80 dark:text-white/80" />
             </div>
             <div>
-              <h2 className="text-[17px] font-semibold leading-tight">Days off</h2>
-              <p className="text-[13px] text-white/50">Tap or drag across days — they are hidden from booking</p>
+              <h2 className="text-[17px] font-semibold leading-tight text-[#1C1C1E] dark:text-white">Days off</h2>
+              <p className="text-[13px] text-[#8E8E93] dark:text-white/50">Tap or drag across days — they are hidden from booking</p>
             </div>
           </div>
 
@@ -169,14 +169,14 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => { haptic("light"); setMonth(addMonths(month, -1)); }}
-              className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition text-[#1C1C1E] dark:text-white"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-[15px] font-semibold">{format(month, "MMMM yyyy")}</span>
+            <span className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">{format(month, "MMMM yyyy")}</span>
             <button
               onClick={() => { haptic("light"); setMonth(addMonths(month, 1)); }}
-              className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition text-[#1C1C1E] dark:text-white"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -184,7 +184,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
 
           <div className="grid grid-cols-7 gap-1 mb-1">
             {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-              <div key={i} className="text-center text-[11px] font-medium text-white/35 py-1">{d}</div>
+              <div key={i} className="text-center text-[11px] font-medium text-[#8E8E93] dark:text-white/35 py-1">{d}</div>
             ))}
           </div>
 
@@ -219,15 +219,15 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
                       !inMonth && "opacity-25",
                       past && "opacity-20",
                       isSelected
-                        ? "bg-white text-black"
+                        ? "bg-[#1C1C1E] text-white dark:bg-white dark:text-black"
                         : isOff
-                          ? "bg-rose-500/20 text-rose-300"
-                          : "bg-white/[0.04] text-white/80"
+                          ? "bg-rose-500/15 text-rose-500 dark:bg-rose-500/20 dark:text-rose-300"
+                          : "bg-black/[0.03] text-[#1C1C1E]/80 dark:bg-white/[0.04] dark:text-white/80"
                     )}
                   >
                     {format(day, "d")}
                     {isSameDay(day, today) && (
-                      <span className={cn("w-1 h-1 rounded-full mt-0.5", isSelected ? "bg-black" : "bg-white/60")} />
+                      <span className={cn("w-1 h-1 rounded-full mt-0.5", isSelected ? "bg-white dark:bg-black" : "bg-[#1C1C1E]/50 dark:bg-white/60")} />
                     )}
                   </button>
                 );
@@ -236,7 +236,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           </AnimatePresence>
 
           {/* Reasons */}
-          <p className="text-[12px] uppercase tracking-wider text-white/35 mt-6 mb-2">Reason</p>
+          <p className="text-[12px] uppercase tracking-wider text-[#8E8E93] dark:text-white/35 mt-6 mb-2">Reason</p>
           <div className="flex flex-wrap gap-2">
             {REASONS.map((r) => (
               <button
@@ -244,7 +244,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
                 onClick={() => { haptic("selection"); setReason(r.key); }}
                 className={cn(
                   "px-3.5 h-9 rounded-full text-[13px] font-medium transition-all active:scale-95",
-                  reason === r.key ? "bg-white text-black" : "bg-white/[0.06] text-white/70"
+                  reason === r.key ? "bg-[#1C1C1E] text-white dark:bg-white dark:text-black" : "bg-black/[0.05] text-[#1C1C1E]/70 dark:bg-white/[0.06] dark:text-white/70"
                 )}
               >
                 {r.label}
@@ -266,7 +266,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
                   maxLength={60}
                   autoFocus
                   placeholder="e.g. Family event, training day…"
-                  className="mt-3 w-full h-12 rounded-2xl bg-white/[0.06] px-4 text-[15px] text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/30"
+                  className="mt-3 w-full h-12 rounded-2xl bg-black/[0.05] dark:bg-white/[0.06] px-4 text-[15px] text-[#1C1C1E] dark:text-white placeholder:text-[#8E8E93] dark:placeholder:text-white/30 outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/30"
                 />
               </motion.div>
             )}
@@ -275,7 +275,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           <Button
             onClick={save}
             disabled={selected.length === 0 || saving}
-            className="w-full h-12 mt-5 rounded-2xl bg-white text-black hover:bg-white/90 text-[15px] font-semibold disabled:opacity-40"
+            className="w-full h-12 mt-5 rounded-2xl bg-[#1C1C1E] text-white hover:bg-[#1C1C1E]/90 dark:bg-white dark:text-black dark:hover:bg-white/90 text-[15px] font-semibold disabled:opacity-40"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : `Mark ${selected.length || ""} day${selected.length === 1 ? "" : "s"} off`}
           </Button>
@@ -305,19 +305,19 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
 
           {daysOff.length > 0 && (
             <div className="mt-6">
-              <p className="text-[12px] uppercase tracking-wider text-white/35 mb-2">Upcoming days off</p>
+              <p className="text-[12px] uppercase tracking-wider text-[#8E8E93] dark:text-white/35 mb-2">Upcoming days off</p>
               <div className="space-y-2">
                 {daysOff.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3">
+                  <div key={d.id} className="flex items-center justify-between rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3">
                     <div>
-                      <div className="text-[14px] font-medium">{format(new Date(d.off_date), "EEE, MMM d")}</div>
-                      <div className="text-[12px] text-white/40 capitalize">{d.reason || "closed"}</div>
+                      <div className="text-[14px] font-medium text-[#1C1C1E] dark:text-white">{format(new Date(d.off_date), "EEE, MMM d")}</div>
+                      <div className="text-[12px] text-[#8E8E93] dark:text-white/40 capitalize">{d.reason || "closed"}</div>
                     </div>
                     <button
                       onClick={() => removeDay(d.id)}
-                      className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center active:scale-95 transition"
+                      className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition"
                     >
-                      <Trash2 className="w-4 h-4 text-white/60" />
+                      <Trash2 className="w-4 h-4 text-[#8E8E93] dark:text-white/60" />
                     </button>
                   </div>
                 ))}
