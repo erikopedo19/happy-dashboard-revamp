@@ -28,6 +28,7 @@ const REASONS = [
   { key: "sick", label: "Sick 🤒" },
   { key: "personal", label: "Personal 🙌" },
   { key: "closed", label: "Closed 🔒" },
+  { key: "custom", label: "Write reason ✍️" },
 ];
 
 const toKey = (d: Date) => format(d, "yyyy-MM-dd");
