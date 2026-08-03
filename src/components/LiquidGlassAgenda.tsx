@@ -1,13 +1,20 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { haptic } from "@/lib/haptics";
@@ -150,6 +157,7 @@ export const LiquidGlassAgenda = ({
   const dayLongPressTimer = useRef<number | null>(null);
   const dayLongPressFired = useRef(false);
   const [showDaysOffHint, setShowDaysOffHint] = useState(false);
+  const isMobile = useIsMobile() ?? false;
 
   // Show the "hold a date" hint only for the first 3 agenda visits ever
   useEffect(() => {
@@ -165,20 +173,22 @@ export const LiquidGlassAgenda = ({
     } catch { /* ignore */ }
   }, []);
 
-  const { data: timeOffRows = [] } = useQuery<{ off_date: string }[]>({
+  const { data: timeOffRows = [] } = useQuery<{ off_date: string; reason: string | null }[]>({
     queryKey: ["time_off", user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await (supabase as any)
         .from("time_off")
-        .select("off_date")
-        .eq("user_id", user.id);
+        .select("off_date, reason")
+        .eq("user_id", user.id)
+        .order("off_date", { ascending: true });
       if (error) return [];
       return data || [];
     },
     enabled: !!user,
   });
   const timeOffSet = useMemo(() => new Set(timeOffRows.map((r) => r.off_date)), [timeOffRows]);
+  const timeOffReason = useMemo(() => new Map(timeOffRows.map((r) => [r.off_date, r.reason])), [timeOffRows]);
 
   const openTimeOff = (day: Date) => {
     haptic("heavy");
@@ -547,13 +557,25 @@ export const LiquidGlassAgenda = ({
           )}
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
-              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-rose-500/10 text-rose-500 dark:text-rose-300 hover:bg-rose-500/15 transition-colors active:scale-95"
-            >
-              <Palmtree className="w-3.5 h-3.5" />
-              Days off
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
+                >
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                  More features
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
+                <DropdownMenuItem
+                  onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
+                  className="text-rose-500 dark:text-rose-300 focus:bg-rose-500/10 cursor-pointer"
+                >
+                  <Palmtree className="w-4 h-4 mr-2" />
+                  Days off
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <button
               onClick={() => onWeekChange(addDays(currentWeek, 7))}
               className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
@@ -592,10 +614,10 @@ export const LiquidGlassAgenda = ({
                     haptic("selection");
                     setSelectedDay(day);
                   }}
-                  onPointerDown={() => startDayLongPress(day)}
-                  onPointerUp={clearDayLongPress}
-                  onPointerLeave={clearDayLongPress}
-                  onPointerCancel={clearDayLongPress}
+                  onPointerDown={!isMobile ? () => startDayLongPress(day) : undefined}
+                  onPointerUp={!isMobile ? clearDayLongPress : undefined}
+                  onPointerLeave={!isMobile ? clearDayLongPress : undefined}
+                  onPointerCancel={!isMobile ? clearDayLongPress : undefined}
                   onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
                     "snap-start shrink-0 flex flex-col items-center py-1.5 px-2 rounded-xl transition-all select-none touch-manipulation active:scale-95",
@@ -624,9 +646,16 @@ export const LiquidGlassAgenda = ({
                   )}>
                     {format(day, 'd')}
                   </span>
-                  {hasAppointments && !isSelected && (
+                  {timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected ? (
+                    <span
+                      title={timeOffReason.get(format(day, 'yyyy-MM-dd')) || 'Day off'}
+                      className="mt-0.5 text-rose-400"
+                    >
+                      <Palmtree className="w-3.5 h-3.5" />
+                    </span>
+                  ) : hasAppointments && !isSelected ? (
                     <div className="w-1 h-1 rounded-full bg-blue-500 mt-0.5" />
-                  )}
+                  ) : null}
                 </button>
               );
             })}
