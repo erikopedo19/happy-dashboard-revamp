@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -614,11 +615,13 @@ const ModernBookingForm = ({
         <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
           <div className="w-full max-w-6xl">
         {/* Main 3-Panel Layout with Animation */}
-        <div 
+        <motion.div
           className={cn(
-            `flex flex-col lg:flex-row min-h-[600px] ${getCardBgClass()} rounded-2xl overflow-hidden transition-all duration-300 ease-out`,
-            animationDirection === "forward" ? "animate-in slide-in-from-right-4" : "animate-in slide-in-from-left-4"
+            `flex flex-col lg:flex-row min-h-[600px] ${getCardBgClass()} rounded-2xl overflow-hidden`,
           )}
+          initial={{ opacity: 0, x: animationDirection === "forward" ? 24 : -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           key={step}
         >
           
@@ -855,7 +858,7 @@ const ModernBookingForm = ({
                 </div>
 
                 {/* Time slots */}
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent pr-1">
                   {selectedDate ? (
                     availableTimeSlots.length > 0 ? (
                       availableTimeSlots.map((time) => {
@@ -1063,7 +1066,7 @@ const ModernBookingForm = ({
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
       )}
