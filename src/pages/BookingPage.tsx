@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
+import { useIsMobile } from "@/hooks/use-mobile";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BookingQR } from "@/components/BookingQR";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -44,6 +45,7 @@ const STEPS = [
 const BookingPage = () => {
   const { user } = useAuth();
   const { isPremium } = usePremium();
+  const isMobile = useIsMobile() ?? false;
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") === "qr" ? "qr" : "link";
   const setTab = (value: (typeof TABS)[number]["value"]) => {
@@ -94,8 +96,8 @@ const BookingPage = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#0A0A0C] font-geist relative overflow-hidden">
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="h-screen flex w-full bg-[#0A0A0C] font-geist relative overflow-hidden">
         {/* Ambient glow */}
         <div
           aria-hidden
