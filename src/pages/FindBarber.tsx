@@ -23,6 +23,7 @@ import {
   X,
   Image as ImageIcon,
   Home,
+  MapPin,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
@@ -755,6 +756,30 @@ function EmptyState({
   );
 }
 
+function MapPoster() {
+  const [missing, setMissing] = useState(false);
+  if (missing) {
+    return (
+      <div className="flex min-h-[62vh] max-h-[620px] flex-col items-center justify-center rounded-[24px] bg-gradient-to-br from-pink-500 via-rose-500 to-amber-400 p-6 text-center text-white">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20">
+          <MapPin className="h-8 w-8" />
+        </div>
+        <h2 className="text-3xl font-black tracking-tight">MAP FEATURE</h2>
+        <p className="mt-2 text-lg font-semibold uppercase tracking-widest">Coming Soon</p>
+        <p className="mt-4 max-w-xs text-sm text-white/80">A brand new map experience for finding the best barbers near you.</p>
+      </div>
+    );
+  }
+  return (
+    <img
+      src="/Frame 316.png"
+      alt="Map feature coming soon"
+      className="w-full max-w-md object-contain rounded-3xl"
+      onError={() => setMissing(true)}
+    />
+  );
+}
+
 function FullScreenMap({
   barbers,
   userLocation,
@@ -803,11 +828,7 @@ function FullScreenMap({
 
       {/* Coming Soon overlay */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black px-5">
-        <img
-          src="/Frame 316.png"
-          alt="Map feature coming soon"
-          className="w-full max-w-md object-contain rounded-3xl"
-        />
+        <MapPoster />
         <button
           type="button"
           onClick={onBack}
