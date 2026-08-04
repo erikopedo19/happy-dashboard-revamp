@@ -50,12 +50,21 @@ export function StoriesRail() {
     refetchInterval: 60_000,
   });
 
-  // Preload the first two stories for every group so the viewer opens instantly
+  // Preload the first 10 stories total across all groups for faster initial load
   useEffect(() => {
     if (!groups.length) return;
+    let count = 0;
+    const MAX_PRELOAD = 10;
     for (const g of groups) {
-      const stories = (g.stories || []).slice(0, 2);
+      if (count >= MAX_PRELOAD) break;
+      // Preload avatar
+      if (g.avatar_url) {
+        const avatarImg = new Image();
+        avatarImg.src = g.avatar_url;
+      }
+      const stories = (g.stories || []);
       for (const s of stories) {
+        if (count >= MAX_PRELOAD) break;
         const media = publicUrl(s.media_path);
         if (s.media_type === "image") {
           const img = new Image();
@@ -70,6 +79,7 @@ export function StoriesRail() {
           const a = new Audio(s.music_preview_url);
           a.preload = "auto";
         }
+        count++;
       }
     }
   }, [groups]);
