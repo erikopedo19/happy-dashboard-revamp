@@ -1,7 +1,18 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal, Thermometer, Lock, Sunset } from "lucide-react";
+
+// Maps a stored day-off reason to a small icon shown on the date chip
+const reasonIcon = (reason: string) => {
+  const r = (reason || "").toLowerCase();
+  if (r.includes("sick")) return Thermometer;
+  if (r.includes("closed")) return Lock;
+  if (r.includes("personal")) return User;
+  if (r.includes("rest of")) return Sunset;
+  if (r.includes("vacation") || r.includes("day off") || !r) return Palmtree;
+  return Ban;
+};
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -158,6 +169,7 @@ export const LiquidGlassAgenda = ({
   const dayLongPressTimer = useRef<number | null>(null);
   const dayLongPressFired = useRef(false);
   const [showDaysOffHint, setShowDaysOffHint] = useState(false);
+  const [showCompletionCircle, setShowCompletionCircle] = useState(false);
   const isMobile = useIsMobile() ?? false;
 
   // Show the "hold a date" hint only once, the very first time the agenda opens
@@ -172,6 +184,17 @@ export const LiquidGlassAgenda = ({
       }
     } catch { /* ignore */ }
   }, []);
+
+  // Trigger completion circle animation on mount/page change if appointments exist
+  useEffect(() => {
+    if (appointments.length > 0) {
+      setShowCompletionCircle(true);
+      const hideTimer = window.setTimeout(() => {
+        setShowCompletionCircle(false);
+      }, 2700);
+      return () => window.clearTimeout(hideTimer);
+    }
+  }, [appointments.length]);
 
   const { data: timeOffRows = [] } = useQuery<{ off_date: string; reason: string | null }[]>({
     queryKey: ["time_off", user?.id],
@@ -196,22 +219,37 @@ export const LiquidGlassAgenda = ({
     setTimeOffOpen(true);
   };
 
+  const dayPressOrigin = useRef<{ x: number; y: number } | null>(null);
+
   const clearDayLongPress = () => {
+    dayPressOrigin.current = null;
     if (dayLongPressTimer.current) {
       window.clearTimeout(dayLongPressTimer.current);
       dayLongPressTimer.current = null;
     }
   };
 
-  const startDayLongPress = (day: Date) => {
+  // Cancel the hold if the finger moves (so horizontal scrolling still works)
+  const clearDayLongPressOnMove = (e: React.PointerEvent) => {
+    const origin = dayPressOrigin.current;
+    if (!origin) return;
+    if (Math.abs(e.clientX - origin.x) > 8 || Math.abs(e.clientY - origin.y) > 8) {
+      clearDayLongPress();
+    }
+  };
+
+  const startDayLongPress = (day: Date, e?: React.PointerEvent) => {
     clearDayLongPress();
+    if (e) dayPressOrigin.current = { x: e.clientX, y: e.clientY };
     dayLongPressFired.current = false;
     dayLongPressTimer.current = window.setTimeout(() => {
       dayLongPressFired.current = true;
+      haptic("medium");
       openTimeOff(day);
       dayLongPressTimer.current = null;
-    }, 480);
+    }, 650);
   };
+
 
 
   const isAppointmentPast = (apt: Appointment) => {
@@ -612,17 +650,16 @@ export const LiquidGlassAgenda = ({
         </div>
 
         {isMobile && (
-          <div className="flex justify-end mb-2 -mt-1">
-            <div className="flex flex-col items-end leading-tight">
-              <span className="text-[15px] font-bold text-gray-900 dark:text-white">
-                {format(selectedDay, 'MMM dd')}
-              </span>
-              <span className="text-[11px] text-gray-400 dark:text-white/40">
-                {format(selectedDay, 'yyyy')}
-              </span>
-            </div>
+          <div className="flex items-baseline gap-1.5 mb-1.5 -mt-1">
+            <span className="text-[15px] font-bold text-gray-900 dark:text-white leading-none">
+              {format(selectedDay, 'MMM d')}
+            </span>
+            <span className="text-[11px] text-gray-400 dark:text-white/40 leading-none">
+              {format(selectedDay, 'yyyy')}
+            </span>
           </div>
         )}
+
 
         {/* Day Selector Row */}
         <div className="flex items-center gap-1">
@@ -638,12 +675,16 @@ export const LiquidGlassAgenda = ({
           <motion.div
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
-            className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 pr-1"
+            className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1"
           >
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
               const hasAppointments = appointments.some(apt => isSameDay(parseISO(apt.appointment_date), day));
+              const dayKey = format(day, 'yyyy-MM-dd');
+              const isOff = timeOffSet.has(dayKey);
+              const offReason = timeOffReason.get(dayKey) || 'Day off';
+              const OffIcon = reasonIcon(offReason);
 
               return (
                 <button
@@ -653,10 +694,11 @@ export const LiquidGlassAgenda = ({
                     haptic("selection");
                     setSelectedDay(day);
                   }}
-                  onPointerDown={!isMobile ? () => startDayLongPress(day) : undefined}
-                  onPointerUp={!isMobile ? clearDayLongPress : undefined}
-                  onPointerLeave={!isMobile ? clearDayLongPress : undefined}
-                  onPointerCancel={!isMobile ? clearDayLongPress : undefined}
+                  onPointerDown={(e) => startDayLongPress(day, e)}
+                  onPointerUp={clearDayLongPress}
+                  onPointerLeave={clearDayLongPress}
+                  onPointerMove={clearDayLongPressOnMove}
+                  onPointerCancel={clearDayLongPress}
                   onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
                     "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
@@ -666,27 +708,32 @@ export const LiquidGlassAgenda = ({
                           "py-1.5 px-2 rounded-xl",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
                         ),
-                    timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected && "ring-1 ring-rose-400/60"
+                    isOff && !isSelected && "bg-rose-500/10 ring-1 ring-rose-500/40",
+                    isOff && isSelected && !isMobile && "!bg-rose-500"
                   )}
                 >
                   {isMobile ? (
                     <>
                       <div className="h-1.5 flex items-center justify-center">
-                        {isSelected && <div className="w-1 h-1 rounded-full bg-gray-900 dark:bg-white" />}
+                        {isSelected && <div className={cn("w-1 h-1 rounded-full", isOff ? "bg-rose-500" : "bg-gray-900 dark:bg-white")} />}
                       </div>
                       <span className={cn(
                         "font-semibold transition-all",
-                        isSelected
-                          ? "text-[19px] text-gray-900 dark:text-white"
-                          : isToday
-                            ? "text-[15px] text-blue-600 dark:text-blue-400"
-                            : "text-[15px] text-gray-400 dark:text-gray-500"
+                        isOff
+                          ? cn("text-rose-500 dark:text-rose-400", isSelected ? "text-[19px]" : "text-[15px]")
+                          : isSelected
+                            ? "text-[19px] text-gray-900 dark:text-white"
+                            : isToday
+                              ? "text-[15px] text-blue-600 dark:text-blue-400"
+                              : "text-[15px] text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
                       <span className={cn(
                         "text-[10px] font-medium uppercase mt-0.5",
-                        isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
+                        isOff
+                          ? "text-rose-400/80"
+                          : isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
@@ -695,30 +742,34 @@ export const LiquidGlassAgenda = ({
                     <>
                       <span className={cn(
                         "text-[10px] font-semibold uppercase",
-                        isSelected
-                          ? "text-white dark:text-black"
-                          : "text-gray-400 dark:text-gray-500"
+                        isOff && !isSelected
+                          ? "text-rose-400"
+                          : isSelected
+                            ? "text-white dark:text-black"
+                            : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEEEE')}
                       </span>
                       <span className={cn(
                         "text-[15px] font-semibold mt-0.5",
-                        isSelected
-                          ? "text-white dark:text-black"
-                          : isToday
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-gray-800 dark:text-gray-200"
+                        isOff && !isSelected
+                          ? "text-rose-500 dark:text-rose-400"
+                          : isSelected
+                            ? "text-white dark:text-black"
+                            : isToday
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-800 dark:text-gray-200"
                       )}>
                         {format(day, 'd')}
                       </span>
                     </>
                   )}
-                  {timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected ? (
+                  {isOff ? (
                     <span
-                      title={timeOffReason.get(format(day, 'yyyy-MM-dd')) || 'Day off'}
-                      className="mt-0.5 text-rose-400"
+                      title={offReason}
+                      className={cn("mt-0.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
                     >
-                      <Palmtree className="w-3.5 h-3.5" />
+                      <OffIcon className="w-3.5 h-3.5" />
                     </span>
                   ) : hasAppointments && !isSelected && !isMobile ? (
                     <div className="w-1 h-1 rounded-full bg-blue-500 mt-0.5" />
@@ -726,32 +777,53 @@ export const LiquidGlassAgenda = ({
                 </button>
               );
             })}
+
           </motion.div>
 
+          {/* Right arrow for mobile */}
+          {isMobile && (
+            <button
+              onClick={() => onWeekChange(addDays(currentWeek, 7))}
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+
           {/* Completion ring */}
-          <div className="w-9 h-9 flex items-center justify-center relative">
-            <svg viewBox="0 0 36 36" className="w-8 h-8">
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className="text-gray-200 dark:text-gray-700"
-              />
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeDasharray={`${completionPct}, 100`}
-                strokeLinecap="round"
-                className="text-green-500 dark:text-green-400"
-              />
-            </svg>
-            <span className="absolute text-[8px] font-bold text-gray-700 dark:text-gray-200">
-              {completionPct}
-            </span>
-          </div>
+          <AnimatePresence>
+            {showCompletionCircle && (
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="w-9 h-9 flex items-center justify-center relative"
+              >
+                <svg viewBox="0 0 36 36" className="w-8 h-8">
+                  <path
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    className="text-gray-200 dark:text-gray-700"
+                  />
+                  <path
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeDasharray={`${completionPct}, 100`}
+                    strokeLinecap="round"
+                    className="text-green-500 dark:text-green-400"
+                  />
+                </svg>
+                <span className="absolute text-[8px] font-bold text-gray-700 dark:text-gray-200">
+                  {completionPct}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <AnimatePresence>

@@ -38,10 +38,10 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
       )}
     >
       <motion.div
-        initial={{ y: 20 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 200, damping: 24 }}
-        className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around rounded-full px-5 py-2.5"
+        initial={{ y: 28, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.8 }}
+        className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around overflow-hidden rounded-[30px] px-4 py-2"
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -59,6 +59,12 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
             background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)",
           }}
         />
+        {/* Specular top highlight — SwiftUI glass material */}
+        <div
+          className="pointer-events-none absolute inset-x-6 top-0 h-px rounded-full"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }}
+        />
+
         {items.map((item, i) => {
           const Icon = item.icon;
           const isActive = activeIndex === i;
@@ -108,8 +114,9 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
               onClick={handleClick}
               onHoverStart={() => setHovered(i)}
               onHoverEnd={() => setHovered(null)}
-              whileTap={{ scale: 0.85 }}
-              className="relative flex cursor-pointer flex-col items-center gap-[3px] px-3 py-1"
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 500, damping: 28 }}
+              className="relative flex cursor-pointer flex-col items-center gap-[3px] rounded-[20px] px-3 py-1.5"
             >
               {isActive && (
                 <motion.div
@@ -136,6 +143,7 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
               {content}
             </motion.button>
           );
+
         })}
       </motion.div>
     </div>
