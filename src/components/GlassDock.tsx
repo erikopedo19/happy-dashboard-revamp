@@ -43,14 +43,21 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
         transition={{ type: "spring", stiffness: 200, damping: 24 }}
         className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around rounded-full px-5 py-2.5"
         style={{
-          background: "rgba(28, 28, 30, 0.72)",
-          border: "1px solid rgba(255, 255, 255, 0.11)",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)",
+          background: "rgba(28, 28, 30, 0.65)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.08)",
         }}
       >
         <div
           className="pointer-events-none absolute inset-0 z-[-1] rounded-full"
-          style={{ backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)" }}
+          style={{ backdropFilter: "blur(32px) saturate(2.2)", WebkitBackdropFilter: "blur(32px) saturate(2.2)" }}
+        />
+        {/* Inner shine gradient for liquid glass effect */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[-1] rounded-full opacity-40"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)",
+          }}
         />
         {items.map((item, i) => {
           const Icon = item.icon;
@@ -108,15 +115,23 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
                 <motion.div
                   layoutId="tab-glow"
                   className={cn(
-                    "absolute -inset-y-1 rounded-full",
+                    "absolute -inset-y-1 rounded-full overflow-hidden",
                     i === 0 ? "-left-5 -right-3" : i === items.length - 1 ? "-left-3 -right-5" : "-inset-x-3"
                   )}
                   style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.06)",
                   }}
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
+                >
+                  {/* Subtle inner shine for active tab */}
+                  <div
+                    className="absolute inset-0 opacity-50"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%)",
+                    }}
+                  />
+                </motion.div>
               )}
               {content}
             </motion.button>
