@@ -1,7 +1,18 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal, Thermometer, Lock, Sunset } from "lucide-react";
+
+// Maps a stored day-off reason to a small icon shown on the date chip
+const reasonIcon = (reason: string) => {
+  const r = (reason || "").toLowerCase();
+  if (r.includes("sick")) return Thermometer;
+  if (r.includes("closed")) return Lock;
+  if (r.includes("personal")) return User;
+  if (r.includes("rest of")) return Sunset;
+  if (r.includes("vacation") || r.includes("day off") || !r) return Palmtree;
+  return Ban;
+};
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
