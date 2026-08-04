@@ -109,26 +109,28 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
               onClick={handleClick}
               onHoverStart={() => setHovered(i)}
               onHoverEnd={() => setHovered(null)}
-              whileTap={{ scale: 0.85 }}
-              className="relative flex cursor-pointer flex-col items-center gap-[3px] px-3 py-1"
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 500, damping: 28 }}
+              className="relative flex cursor-pointer flex-col items-center gap-[3px] rounded-[20px] px-3 py-1.5"
             >
               {isActive && (
                 <motion.div
                   layoutId="tab-glow"
-                  className={cn(
-                    "absolute -inset-y-1 rounded-full",
-                    i === 0 ? "-left-5 -right-3" : i === items.length - 1 ? "-left-3 -right-5" : "-inset-x-3"
-                  )}
+                  className="absolute inset-y-0 -inset-x-1 rounded-[20px]"
                   style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.09) 100%)",
+                    border: "0.5px solid rgba(255,255,255,0.22)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,255,255,0.28), 0 4px 12px -4px rgba(0,0,0,0.5)",
                   }}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.7 }}
                 />
               )}
               {content}
             </motion.button>
           );
+
         })}
       </motion.div>
     </div>
