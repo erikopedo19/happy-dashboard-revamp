@@ -196,22 +196,37 @@ export const LiquidGlassAgenda = ({
     setTimeOffOpen(true);
   };
 
+  const dayPressOrigin = useRef<{ x: number; y: number } | null>(null);
+
   const clearDayLongPress = () => {
+    dayPressOrigin.current = null;
     if (dayLongPressTimer.current) {
       window.clearTimeout(dayLongPressTimer.current);
       dayLongPressTimer.current = null;
     }
   };
 
-  const startDayLongPress = (day: Date) => {
+  // Cancel the hold if the finger moves (so horizontal scrolling still works)
+  const clearDayLongPressOnMove = (e: React.PointerEvent) => {
+    const origin = dayPressOrigin.current;
+    if (!origin) return;
+    if (Math.abs(e.clientX - origin.x) > 8 || Math.abs(e.clientY - origin.y) > 8) {
+      clearDayLongPress();
+    }
+  };
+
+  const startDayLongPress = (day: Date, e?: React.PointerEvent) => {
     clearDayLongPress();
+    if (e) dayPressOrigin.current = { x: e.clientX, y: e.clientY };
     dayLongPressFired.current = false;
     dayLongPressTimer.current = window.setTimeout(() => {
       dayLongPressFired.current = true;
+      haptic("medium");
       openTimeOff(day);
       dayLongPressTimer.current = null;
-    }, 480);
+    }, 650);
   };
+
 
 
   const isAppointmentPast = (apt: Appointment) => {
