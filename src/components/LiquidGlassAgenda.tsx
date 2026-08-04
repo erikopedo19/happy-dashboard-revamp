@@ -682,7 +682,7 @@ export const LiquidGlassAgenda = ({
                     haptic("selection");
                     setSelectedDay(day);
                   }}
-                  onPointerDown={() => startDayLongPress(day)}
+                  onPointerDown={(e) => startDayLongPress(day, e)}
                   onPointerUp={clearDayLongPress}
                   onPointerLeave={clearDayLongPress}
                   onPointerMove={clearDayLongPressOnMove}
