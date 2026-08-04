@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Sparkles, Check, X } from "lucide-react";
+import { Crown, Sparkles, Check, X, BarChart3, TrendingUp, Mail, Image, Headphones } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { usePremium } from "@/hooks/use-premium";
 import { motion } from "framer-motion";
@@ -13,10 +13,12 @@ const DISMISSED_KEY = "cutzio_upgrade_dismissed_at";
 const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
 
 const PERKS = [
-  "Animated premium button themes",
-  "Automatic review request emails",
-  "Bigger banner & photo uploads",
-  "Priority support from the team",
+  { label: "Reports", path: "/reports", icon: "BarChart3" },
+  { label: "Revenue Tracker", path: "/reports", icon: "TrendingUp" },
+  { label: "Animated premium button themes", path: "/settings", icon: "Sparkles" },
+  { label: "Automatic review request emails", path: "/settings?tab=messages", icon: "Mail" },
+  { label: "Bigger banner & photo uploads", path: "/settings?tab=booking", icon: "Image" },
+  { label: "Priority support from the team", path: "/settings?tab=general", icon: "Headphones" },
 ];
 
 /**
@@ -93,17 +95,32 @@ export function UpgradeDrawer() {
           </p>
 
           <div className="mt-5 grid grid-cols-1 gap-2">
-            {PERKS.map((p) => (
-              <div
-                key={p}
-                className="flex items-center gap-3 rounded-2xl border border-black/[0.05] bg-black/[0.03] dark:border-white/[0.06] dark:bg-white/[0.04] px-4 py-3"
-              >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-500 dark:text-amber-300">
-                  <Check className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-[14px] text-[#1C1C1E]/80 dark:text-white/80">{p}</span>
-              </div>
-            ))}
+            {PERKS.map((p) => {
+              const IconComponent = {
+                BarChart3,
+                TrendingUp,
+                Sparkles,
+                Mail,
+                Image,
+                Headphones,
+              }[p.icon] as any;
+              return (
+                <motion.button
+                  key={p.label}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setOpen(false);
+                    navigate(p.path);
+                  }}
+                  className="flex items-center gap-3 rounded-2xl border border-black/[0.05] bg-black/[0.03] dark:border-white/[0.06] dark:bg-white/[0.04] px-4 py-3 text-left"
+                >
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-500 dark:text-amber-300">
+                    {IconComponent ? <IconComponent className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+                  </div>
+                  <span className="text-[14px] text-[#1C1C1E]/80 dark:text-white/80">{p.label}</span>
+                </motion.button>
+              );
+            })}
           </div>
 
           <motion.button
