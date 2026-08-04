@@ -643,6 +643,10 @@ export const LiquidGlassAgenda = ({
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
               const hasAppointments = appointments.some(apt => isSameDay(parseISO(apt.appointment_date), day));
+              const dayKey = format(day, 'yyyy-MM-dd');
+              const isOff = timeOffSet.has(dayKey);
+              const offReason = timeOffReason.get(dayKey) || 'Day off';
+              const OffIcon = reasonIcon(offReason);
 
               return (
                 <button
@@ -652,10 +656,11 @@ export const LiquidGlassAgenda = ({
                     haptic("selection");
                     setSelectedDay(day);
                   }}
-                  onPointerDown={!isMobile ? () => startDayLongPress(day) : undefined}
-                  onPointerUp={!isMobile ? clearDayLongPress : undefined}
-                  onPointerLeave={!isMobile ? clearDayLongPress : undefined}
-                  onPointerCancel={!isMobile ? clearDayLongPress : undefined}
+                  onPointerDown={() => startDayLongPress(day)}
+                  onPointerUp={clearDayLongPress}
+                  onPointerLeave={clearDayLongPress}
+                  onPointerMove={clearDayLongPressOnMove}
+                  onPointerCancel={clearDayLongPress}
                   onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
                     "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
@@ -665,27 +670,32 @@ export const LiquidGlassAgenda = ({
                           "py-1.5 px-2 rounded-xl",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
                         ),
-                    timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected && "ring-1 ring-rose-400/60"
+                    isOff && !isSelected && "bg-rose-500/10 ring-1 ring-rose-500/40",
+                    isOff && isSelected && !isMobile && "!bg-rose-500"
                   )}
                 >
                   {isMobile ? (
                     <>
                       <div className="h-1.5 flex items-center justify-center">
-                        {isSelected && <div className="w-1 h-1 rounded-full bg-gray-900 dark:bg-white" />}
+                        {isSelected && <div className={cn("w-1 h-1 rounded-full", isOff ? "bg-rose-500" : "bg-gray-900 dark:bg-white")} />}
                       </div>
                       <span className={cn(
                         "font-semibold transition-all",
-                        isSelected
-                          ? "text-[19px] text-gray-900 dark:text-white"
-                          : isToday
-                            ? "text-[15px] text-blue-600 dark:text-blue-400"
-                            : "text-[15px] text-gray-400 dark:text-gray-500"
+                        isOff
+                          ? cn("text-rose-500 dark:text-rose-400", isSelected ? "text-[19px]" : "text-[15px]")
+                          : isSelected
+                            ? "text-[19px] text-gray-900 dark:text-white"
+                            : isToday
+                              ? "text-[15px] text-blue-600 dark:text-blue-400"
+                              : "text-[15px] text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
                       <span className={cn(
                         "text-[10px] font-medium uppercase mt-0.5",
-                        isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
+                        isOff
+                          ? "text-rose-400/80"
+                          : isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
@@ -694,30 +704,34 @@ export const LiquidGlassAgenda = ({
                     <>
                       <span className={cn(
                         "text-[10px] font-semibold uppercase",
-                        isSelected
-                          ? "text-white dark:text-black"
-                          : "text-gray-400 dark:text-gray-500"
+                        isOff && !isSelected
+                          ? "text-rose-400"
+                          : isSelected
+                            ? "text-white dark:text-black"
+                            : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEEEE')}
                       </span>
                       <span className={cn(
                         "text-[15px] font-semibold mt-0.5",
-                        isSelected
-                          ? "text-white dark:text-black"
-                          : isToday
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-gray-800 dark:text-gray-200"
+                        isOff && !isSelected
+                          ? "text-rose-500 dark:text-rose-400"
+                          : isSelected
+                            ? "text-white dark:text-black"
+                            : isToday
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-800 dark:text-gray-200"
                       )}>
                         {format(day, 'd')}
                       </span>
                     </>
                   )}
-                  {timeOffSet.has(format(day, 'yyyy-MM-dd')) && !isSelected ? (
+                  {isOff ? (
                     <span
-                      title={timeOffReason.get(format(day, 'yyyy-MM-dd')) || 'Day off'}
-                      className="mt-0.5 text-rose-400"
+                      title={offReason}
+                      className={cn("mt-0.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
                     >
-                      <Palmtree className="w-3.5 h-3.5" />
+                      <OffIcon className="w-3.5 h-3.5" />
                     </span>
                   ) : hasAppointments && !isSelected && !isMobile ? (
                     <div className="w-1 h-1 rounded-full bg-blue-500 mt-0.5" />
@@ -725,6 +739,7 @@ export const LiquidGlassAgenda = ({
                 </button>
               );
             })}
+
           </motion.div>
 
           {/* Completion ring */}
