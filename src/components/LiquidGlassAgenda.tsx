@@ -612,17 +612,16 @@ export const LiquidGlassAgenda = ({
         </div>
 
         {isMobile && (
-          <div className="flex justify-end mb-2 -mt-1">
-            <div className="flex flex-col items-end leading-tight">
-              <span className="text-[15px] font-bold text-gray-900 dark:text-white">
-                {format(selectedDay, 'MMM dd')}
-              </span>
-              <span className="text-[11px] text-gray-400 dark:text-white/40">
-                {format(selectedDay, 'yyyy')}
-              </span>
-            </div>
+          <div className="flex items-baseline gap-1.5 mb-1.5 -mt-1">
+            <span className="text-[15px] font-bold text-gray-900 dark:text-white leading-none">
+              {format(selectedDay, 'MMM d')}
+            </span>
+            <span className="text-[11px] text-gray-400 dark:text-white/40 leading-none">
+              {format(selectedDay, 'yyyy')}
+            </span>
           </div>
         )}
+
 
         {/* Day Selector Row */}
         <div className="flex items-center gap-1">
