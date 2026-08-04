@@ -1,10 +1,9 @@
 import { useLocation } from 'react-router-dom';
-import { Search, Calendar, Heart, User, Map as MapIcon } from 'lucide-react';
+import { Search, Calendar, Heart, User } from 'lucide-react';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
 
 const navItems: DockItem[] = [
   { label: 'Explore', icon: Search, to: '/find-barber' },
-  { label: 'Map', icon: MapIcon, to: '/find-barber?tab=map' },
   { label: 'Bookings', icon: Calendar, to: '/my-bookings' },
   { label: 'Favorites', icon: Heart, to: '/favorites' },
   { label: 'Profile', icon: User, to: '/me' },
