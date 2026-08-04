@@ -38,20 +38,28 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
       )}
     >
       <motion.div
-        initial={{ y: 20 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 200, damping: 24 }}
-        className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around rounded-full px-5 py-2.5"
+        initial={{ y: 28, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.8 }}
+        className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around overflow-hidden rounded-[30px] px-4 py-2"
         style={{
-          background: "rgba(28, 28, 30, 0.72)",
-          border: "1px solid rgba(255, 255, 255, 0.11)",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)",
+          background:
+            "linear-gradient(180deg, rgba(58,58,64,0.62) 0%, rgba(20,20,24,0.72) 100%)",
+          border: "0.5px solid rgba(255,255,255,0.16)",
+          boxShadow:
+            "0 18px 40px -12px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.05)",
         }}
       >
         <div
-          className="pointer-events-none absolute inset-0 z-[-1] rounded-full"
-          style={{ backdropFilter: "blur(24px) saturate(1.8)", WebkitBackdropFilter: "blur(24px) saturate(1.8)" }}
+          className="pointer-events-none absolute inset-0 z-[-1] rounded-[30px]"
+          style={{ backdropFilter: "blur(40px) saturate(2.2)", WebkitBackdropFilter: "blur(40px) saturate(2.2)" }}
         />
+        {/* Specular top highlight — SwiftUI glass material */}
+        <div
+          className="pointer-events-none absolute inset-x-6 top-0 h-px rounded-full"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }}
+        />
+
         {items.map((item, i) => {
           const Icon = item.icon;
           const isActive = activeIndex === i;
@@ -101,26 +109,28 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
               onClick={handleClick}
               onHoverStart={() => setHovered(i)}
               onHoverEnd={() => setHovered(null)}
-              whileTap={{ scale: 0.85 }}
-              className="relative flex cursor-pointer flex-col items-center gap-[3px] px-3 py-1"
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 500, damping: 28 }}
+              className="relative flex cursor-pointer flex-col items-center gap-[3px] rounded-[20px] px-3 py-1.5"
             >
               {isActive && (
                 <motion.div
                   layoutId="tab-glow"
-                  className={cn(
-                    "absolute -inset-y-1 rounded-full",
-                    i === 0 ? "-left-5 -right-3" : i === items.length - 1 ? "-left-3 -right-5" : "-inset-x-3"
-                  )}
+                  className="absolute inset-y-0 -inset-x-1 rounded-[20px]"
                   style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.09) 100%)",
+                    border: "0.5px solid rgba(255,255,255,0.22)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,255,255,0.28), 0 4px 12px -4px rgba(0,0,0,0.5)",
                   }}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.7 }}
                 />
               )}
               {content}
             </motion.button>
           );
+
         })}
       </motion.div>
     </div>
