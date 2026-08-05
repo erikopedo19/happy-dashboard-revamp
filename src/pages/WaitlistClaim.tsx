@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Loader2, CheckCircle2, XCircle, Sparkles, Clock } from "lucide-react";
 
 export default function WaitlistClaim() {
@@ -103,7 +103,7 @@ export default function WaitlistClaim() {
               </div>
             )}
             <Button
-              onClick={claim}
+              onPress={claim}
               className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold border-0 hover:opacity-90"
             >
               Claim this slot
@@ -118,7 +118,7 @@ export default function WaitlistClaim() {
             <p className="text-sm text-zinc-600">
               The barber has been notified. They'll reach out to confirm the booking.
             </p>
-            <Button onClick={() => navigate("/my-bookings")} className="rounded-2xl">
+            <Button onPress={() => navigate("/my-bookings")} className="rounded-2xl">
               View my bookings
             </Button>
           </div>
@@ -129,7 +129,7 @@ export default function WaitlistClaim() {
             <XCircle className="w-16 h-16 mx-auto text-rose-500" />
             <h1 className="text-xl font-bold text-zinc-900">Unavailable</h1>
             <p className="text-sm text-zinc-600">{error}</p>
-            <Button variant="outline" onClick={() => navigate("/find-barber")} className="rounded-2xl">
+            <Button variant="bordered" onPress={() => navigate("/find-barber")} className="rounded-2xl">
               Find another barber
             </Button>
           </div>
