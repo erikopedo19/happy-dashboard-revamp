@@ -25,7 +25,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppointmentForm } from "@/components/AppointmentForm";
 import { ModernAppointmentsCalendar } from "@/components/ModernAppointmentsCalendar";
 import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -496,25 +496,25 @@ const Agenda = () => {
                     <SidebarTrigger className="lg:hidden text-white" />
                     <div className="flex items-center bg-[#22222A] border border-white/[0.08] rounded-xl p-1">
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handlePreviousWeek}
+                        variant="light"
+                        size="sm"
+                        onPress={handlePreviousWeek}
                         className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="light"
                         size="sm"
-                        onClick={handleToday}
+                        onPress={handleToday}
                         className="h-8 px-3 rounded-lg hover:bg-[#15151A] text-xs font-medium text-white/70 hover:text-white"
                       >
                         Today
                       </Button>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleNextWeek}
+                        variant="light"
+                        size="sm"
+                        onPress={handleNextWeek}
                         className="h-8 w-8 rounded-lg hover:bg-[#15151A] text-white/70 hover:text-white"
                       >
                         <ChevronRight className="h-4 w-4" />
@@ -568,22 +568,22 @@ const Agenda = () => {
                       />
                     </div>
                     <Button
-                      variant="ghost"
-                      size="icon"
+                      variant="light"
+                      size="sm"
                       className="h-9 w-9 rounded-xl text-white/70 hover:text-white hover:bg-[#22222A]"
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
                     <Button
-                      onClick={handleNewAppointment}
+                      onPress={handleNewAppointment}
                       className="h-9 rounded-xl bg-[#FF375F] hover:bg-[#FF375F]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
                     >
                       <Plus className="h-4 w-4 md:mr-1.5" />
                       <span className="hidden md:inline">New</span>
                     </Button>
                     <Button
-                      onClick={handleToggleFilters}
-                      variant={showFilters ? "secondary" : "ghost"}
+                      onPress={handleToggleFilters}
+                      variant={showFilters ? "secondary" : "light"}
                       size="sm"
                       className={cn(
                         "h-9 rounded-xl px-3",
