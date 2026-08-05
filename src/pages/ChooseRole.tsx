@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -165,9 +165,9 @@ const ChooseRole = () => {
                     </div>
 
                     <div className="ml-16">
-                        <Button 
+                        <Button
                             className="bg-[#9f1239] hover:bg-[#881337] text-white rounded-[14px] px-6 py-5 w-full md:w-auto font-semibold shadow-lg shadow-rose-900/10 transition-all hover:translate-y-[-1px]"
-                            disabled={isSaving && selectedRole === 'client'}
+                            isDisabled={isSaving && selectedRole === 'client'}
                         >
                              {isSaving && selectedRole === 'client' ? "Setting up..." : "Continue as Client"}
                         </Button>
