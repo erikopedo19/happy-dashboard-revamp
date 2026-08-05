@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -366,7 +366,7 @@ const Teams = () => {
                 </p>
               </div>
               <Button
-                onClick={() => setIsCreateDialogOpen(true)}
+                onPress={() => setIsCreateDialogOpen(true)}
                 className="h-10 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:hover:bg-white/90 px-5 font-medium text-sm"
               >
                 <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
@@ -388,7 +388,7 @@ const Teams = () => {
                   Create a team to group stylists, share schedules, and track performance together.
                 </p>
                 <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
+                  onPress={() => setIsCreateDialogOpen(true)}
                   className="mt-6 h-10 rounded-full bg-[#e11d48] hover:bg-[#e11d48]/90 text-white px-5"
                 >
                   <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
@@ -464,9 +464,9 @@ const Teams = () => {
                           </div>
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="light"
                             className="h-8 rounded-full text-xs font-medium text-[#1C1C1E] dark:text-white hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E]"
-                            onClick={() => {
+                            onPress={() => {
                               setSelectedTeam(team);
                               setIsAddMemberDialogOpen(true);
                             }}
@@ -504,7 +504,7 @@ const Teams = () => {
                 <p className="text-sm font-medium">{selectedTeam?.name || "Select a team"}</p>
                 <p className="text-xs text-muted-foreground">Pending invites will show in Settings → Notifications.</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setIsInviteDialogOpen(true)}>
+              <Button variant="bordered" size="sm" onPress={() => setIsInviteDialogOpen(true)}>
                 Invite by email
               </Button>
             </div>
@@ -553,10 +553,10 @@ const Teams = () => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(false)}>
+            <Button variant="bordered" onPress={() => setIsAddMemberDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddMembers} disabled={!selectedTeam || selectedStylistIds.length === 0 || addMembersMutation.isPending}>
+            <Button onPress={handleAddMembers} isDisabled={!selectedTeam || selectedStylistIds.length === 0 || addMembersMutation.isPending}>
               {addMembersMutation.isPending ? "Adding..." : "Add selected"}
             </Button>
           </DialogFooter>
@@ -612,10 +612,10 @@ const Teams = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="bordered" onPress={() => setIsCreateDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateTeam} disabled={!formData.name}>
+            <Button onPress={handleCreateTeam} isDisabled={!formData.name}>
               Create Team
             </Button>
           </DialogFooter>
@@ -666,10 +666,10 @@ const Teams = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="bordered" onPress={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateTeam} disabled={!formData.name}>
+            <Button onPress={handleUpdateTeam} isDisabled={!formData.name}>
               Update Team
             </Button>
           </DialogFooter>
