@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -226,7 +226,7 @@ const Services = () => {
               <Dialog open={isDialogOpen} onOpenChange={(o) => (o ? setIsDialogOpen(true) : closeDialog())}>
                 <DialogTrigger asChild>
                   <Button
-                    onClick={() => setEditingService(null)}
+                    onPress={() => setEditingService(null)}
                     className="h-10 rounded-full px-4 text-white border-0"
                     style={{ background: ROSE }}
                   >
@@ -294,7 +294,7 @@ const Services = () => {
                         </div>
                       </div>
                       <DialogFooter className="pt-2 gap-3">
-                        <Button type="button" variant="outline" onClick={closeDialog}
+                        <Button variant="bordered" onPress={closeDialog}
                           className="h-12 rounded-[18px] flex-1 border-white/10 bg-transparent text-white hover:bg-white/10 hover:text-white">
                           Cancel
                         </Button>
@@ -324,7 +324,7 @@ const Services = () => {
                 <p className="text-[15px] text-[#8E8E93] mb-6">
                   Create your first service to start taking bookings.
                 </p>
-                <Button onClick={() => setIsDialogOpen(true)}
+                <Button onPress={() => setIsDialogOpen(true)}
                   className="h-12 rounded-[18px] bg-white text-black text-[14px] font-semibold px-6 hover:bg-white/90 border-0">
                   <Plus className="h-4 w-4 mr-1.5" /> Add Service
                 </Button>
@@ -427,7 +427,7 @@ const Services = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete}
+              <AlertDialogAction onPress={confirmDelete}
                 className="rounded-full text-white border-0" style={{ background: ROSE }}>
                 {serviceToDelete && futureCountFor(serviceToDelete) > 0 ? "Schedule deletion" : "Delete"}
               </AlertDialogAction>
