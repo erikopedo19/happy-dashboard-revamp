@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -735,16 +735,16 @@ export default function Onboarding() {
         <div className="mt-3 flex items-center gap-2 pt-2 pb-3 sm:mt-4">
           {step > (presetRole ? 1 : 0) && (
             <Button
-              variant="ghost"
-              onClick={() => setStep(step - 1)}
+              variant="light"
+              onPress={() => setStep(step - 1)}
               className="text-white/70 hover:text-white hover:bg-white/10 h-11"
             >
               <ArrowLeft className="mr-1 h-4 w-4" /> Back
             </Button>
           )}
           <Button
-            onClick={handleNext}
-            disabled={!canNext()}
+            onPress={handleNext}
+            isDisabled={!canNext()}
             className="ml-auto flex-1 h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-sm font-semibold shadow-lg shadow-rose-900/40"
           >
             {step === steps - 1 ? (
