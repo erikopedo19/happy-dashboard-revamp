@@ -1165,3 +1165,384 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Center Panel - Calendar */}
           <div className="flex-1 p-6 overflow-y-auto bg-[#0e0e10]">
             <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+            {step === "datetime" ? (
+              <div className="h-full flex flex-col">
+                {/* Month Navigation */}
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-white tracking-tight">
+                    {format(currentMonth, 'MMMM yyyy')}
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Service Selection */}
+                {showServiceSelection && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-400 mb-3">Select Service</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {services.map((service: Service) => (
+                        <button
+                          key={service.id}
+                          onClick={() => setServiceId(service.id)}
+                          className={cn(
+                            "flex items-center justify-between p-4 rounded-xl border transition-all text-left",
+                            serviceId === service.id
+                              ? "border-[#0A84FF] bg-white/[0.06]"
+                              : "border-white/[0.06] hover:border-gray-600"
+                          )}
+                        >
+                          <div>
+                            <p className="font-medium text-white">{service.name}</p>
+                            <p className="text-sm text-gray-500">{service.duration} mins</p>
+                          </div>
+                          <p className="font-bold text-white">${service.price}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stylist Selection */}
+                {selectedService && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-medium text-gray-400">
+                        Stylist <span className="text-gray-600">(optional)</span>
+                      </label>
+                      {stylists.length > 0 && stylistId && (
+                        <button
+                          type="button"
+                          onClick={() => setStylistId("")}
+                          className="text-xs text-gray-500 hover:text-white"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
+                      {stylists.length === 0 ? (
+                        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
+                          <p className="text-sm text-gray-400">
+                            No stylists yet — book without one, or add your team.
+                          </p>
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/stylists"); }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              + Add stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/teams"); }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              Invite worker
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {stylists.map((stylist: any) => (
+                            <button
+                              key={stylist.id}
+                              type="button"
+                              onClick={() => setStylistId(stylist.id)}
+                              className={cn(
+                                "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                stylistId === stylist.id
+                                  ? "border-[#0A84FF] bg-white/[0.06]"
+                                  : "border-white/[0.06] hover:border-gray-600"
+                              )}
+                            >
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
+                                {stylist.avatar_url ? (
+                                  <img src={stylist.avatar_url} alt={stylist.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-white">{stylist.name}</p>
+                                <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
+                              </div>
+                              {stylistId === stylist.id && (
+                                <Check className="w-5 h-5 text-[#0A84FF]" />
+                              )}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setStylistId("")}
+                            className={cn(
+                              "h-8 px-3 rounded-full text-xs font-medium border transition-all mt-2",
+                              !stylistId
+                                ? "bg-white/[0.08] border-white/20 text-white"
+                                : "bg-transparent border-white/[0.08] text-gray-400 hover:text-white"
+                            )}
+                          >
+                            Skip / any stylist
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {showCalendarSelection && (
+                  <>
+                    {/* Week days header */}
+                    <div className="grid grid-cols-7 mb-1 gap-2">
+                      {weekDays.map(day => (
+                        <div key={day} className="text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500 py-2">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Calendar grid */}
+                    <div className="grid grid-cols-7 gap-2">
+                      {calendarDays.map((day) => {
+                        const isSelected = isSameDay(day, selectedDateObj);
+                        const isCurrentMonth = isSameMonth(day, currentMonth);
+                        const tz = tzProfile?.timezone || getBrowserTimezone();
+                        const todayStr = dateStrInTz(new Date(), tz);
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const isPast = dayStr < todayStr;
+                        const isToday = dayStr === todayStr;
+                        const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
+                        const isDayOff = timeOffSet.has(dayStr);
+                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
+                        const showDot = !isDisabled && !isSelected;
+
+                        return (
+                          <button
+                            key={day.toISOString()}
+                            onClick={() => handleDateSelect(day)}
+                            disabled={isDisabled}
+                            className={cn(
+                              "relative aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all",
+                              isSelected
+                                ? "bg-white text-[#0e0e10] shadow-[0_4px_14px_rgba(255,255,255,0.18)]"
+                                : isDisabled
+                                ? "text-gray-700"
+                                : isToday
+                                ? "bg-white/[0.10] text-white hover:bg-white/[0.16]"
+                                : "text-white hover:bg-white/[0.06]"
+                            )}
+                          >
+                            {format(day, 'd')}
+                            {showDot && (
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#0A84FF]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : step === "details" ? (
+              <div className="h-full flex flex-col">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Enter Your Details
+                </h3>
+
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="John Doe"
+                        required
+                        className="w-full pl-12 pr-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="john@example.com"
+                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      We'll send a confirmation email to this address.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+1 555 123 4567"
+                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional — we'll send an SMS confirmation if provided.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Notes
+                    </label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Add any appointment notes"
+                      rows={3}
+                      className="w-full px-4 py-3 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="mt-auto pt-6">
+                    <button
+                      type="submit"
+                      disabled={isLoading || !customerName}
+                      className={cn(
+                        "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                        customerName && !isLoading
+                          ? "bg-[#0A84FF] hover:bg-[#0066d6]"
+                          : "bg-gray-600 cursor-not-allowed"
+                      )}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Booking...
+                        </>
+                      ) : (
+                        <>
+                          Book Appointment
+                          <ArrowRight className="w-5 h-5" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-[#0A84FF] flex items-center justify-center mb-6">
+                  <Check className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">You're Booked!</h3>
+                <p className="text-gray-400 mb-6">
+                  Your appointment for {format(selectedDateObj, 'MMMM d')} at {selectedTimeSlot} is confirmed.
+                </p>
+                <button
+                  onClick={handleClose}
+                  className="px-8 py-3 bg-[#0A84FF] hover:bg-[#0066d6] text-white rounded-xl font-medium transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+            </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Panel - Time Slots */}
+          {(step === "datetime" && showTimeSelection && selectedService) && (
+            <div className="w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06] bg-[#0e0e10]">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-[15px] font-semibold text-white tracking-tight">
+                  {format(selectedDateObj, 'EEE, MMM d')}
+                </h4>
+                <div className="inline-flex p-0.5 rounded-full bg-white/[0.06]">
+                  {(["12h", "24h"] as const).map((tf) => (
+                    <button
+                      key={tf}
+                      onClick={() => setTimeFormat(tf)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors",
+                        timeFormat === tf ? "bg-white text-[#0e0e10]" : "text-gray-400 hover:text-white"
+                      )}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="max-h-[360px] flex flex-col gap-1.5 pr-1 overflow-y-auto">
+                {availableTimeSlots.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeSelect(time)}
+                    className={cn(
+                      "py-3 px-3 rounded-xl border text-sm font-semibold transition-all text-center",
+                      selectedTimeSlot === time
+                        ? "border-[#0A84FF] bg-[#0A84FF] text-white"
+                        : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.07] text-white"
+                    )}
+                  >
+                    {formatTime(time)}
+                  </button>
+                ))}
+                {availableTimeSlots.length === 0 && (
+                  <div className="rounded-xl border border-white/[0.06] p-4 text-center text-sm text-gray-500">
+                    No available times for this service.
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={handleContinue}
+                  disabled={!selectedTimeSlot}
+                  className={cn(
+                    "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all",
+                    selectedTimeSlot
+                      ? "bg-[#0A84FF] hover:bg-[#0066d6]"
+                      : "bg-gray-600 cursor-not-allowed"
+                  )}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
