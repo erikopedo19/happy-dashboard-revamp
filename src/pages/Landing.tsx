@@ -37,6 +37,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@heroui/react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -366,31 +367,295 @@ export default function Landing() {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {features.map((f, i) => (
+          <Tabs defaultValue="management" className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8">
+              <TabsTrigger value="management">Management</TabsTrigger>
+              <TabsTrigger value="booking">Booking</TabsTrigger>
+              <TabsTrigger value="growth">Growth</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="management" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {features.slice(0, 4).map((f, i) => (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.5, delay: i * 0.05 }}
+                  >
+                    <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:border-white/[0.14] transition-all duration-300">
+                      <CardHeader>
+                        <div className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center mb-2",
+                          f.accent
+                        )}>
+                          <f.icon className="h-5 w-5" />
+                        </div>
+                        <CardTitle className="text-base">{f.title}</CardTitle>
+                        <CardDescription className="text-sm leading-relaxed">{f.desc}</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="booking" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {features.slice(4, 8).map((f, i) => (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.5, delay: i * 0.05 }}
+                  >
+                    <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:border-white/[0.14] transition-all duration-300">
+                      <CardHeader>
+                        <div className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center mb-2",
+                          f.accent
+                        )}>
+                          <f.icon className="h-5 w-5" />
+                        </div>
+                        <CardTitle className="text-base">{f.title}</CardTitle>
+                        <CardDescription className="text-sm leading-relaxed">{f.desc}</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="growth" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {features.slice(8).map((f, i) => (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.5, delay: i * 0.05 }}
+                  >
+                    <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:border-white/[0.14] transition-all duration-300">
+                      <CardHeader>
+                        <div className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center mb-2",
+                          f.accent
+                        )}>
+                          <f.icon className="h-5 w-5" />
+                        </div>
+                        <CardTitle className="text-base">{f.title}</CardTitle>
+                        <CardDescription className="text-sm leading-relaxed">{f.desc}</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="px-6 py-16 bg-white/[0.02]">
+        <div className="mx-auto max-w-6xl">
+          <motion.div {...fadeUp} className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Live in 4 steps</h2>
+            <p className="mt-4 text-muted-foreground">From zero to fully booked — no tech skills needed.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {howItWorks.map((s, i) => (
               <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 20 }}
+                key={s.step}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="relative"
               >
-                <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:border-white/[0.14] transition-all duration-300">
-                  <CardHeader>
-                    <div className={cn(
-                      "h-10 w-10 rounded-xl flex items-center justify-center mb-2",
-                      f.accent
-                    )}>
-                      <f.icon className="h-5 w-5" />
+                <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="h-10 w-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                        <s.icon className="h-5 w-5 text-rose-500" />
+                      </div>
+                      <span className="text-3xl font-bold text-white/[0.07] tracking-tight tabular-nums select-none">
+                        {s.step}
+                      </span>
                     </div>
-                    <CardTitle className="text-base">{f.title}</CardTitle>
-                    <CardDescription className="text-sm leading-relaxed">{f.desc}</CardDescription>
-                  </CardHeader>
+                    <p className="font-semibold text-base">{s.title}</p>
+                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{s.desc}</p>
+                  </CardContent>
                 </Card>
               </motion.div>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="px-6 py-16">
+        <div className="mx-auto max-w-4xl">
+          <motion.div {...fadeUp} className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Simple, honest pricing</h2>
+            <p className="mt-4 text-muted-foreground">Start free. Upgrade when your chair is full.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {plans.map((p, i) => (
+              <motion.div
+                key={p.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <Card className={cn(
+                  "h-full relative overflow-hidden transition-all duration-300",
+                  p.highlight
+                    ? "border-rose-500/50 bg-gradient-to-b from-rose-500/10 to-card"
+                    : "border-white/[0.08] bg-card/60"
+                )}>
+                  {p.highlight && (
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent" />
+                  )}
+                  <CardHeader>
+                    {p.highlight && (
+                      <Badge className="w-fit mb-2 rounded-full bg-rose-500">Most popular</Badge>
+                    )}
+                    <CardTitle className="text-xl">{p.name}</CardTitle>
+                    <CardDescription>{p.desc}</CardDescription>
+                    <div className="flex items-baseline gap-1 pt-3">
+                      <span className="text-5xl font-bold tracking-tight">{p.price}</span>
+                      {p.suffix && <span className="text-muted-foreground">{p.suffix}</span>}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {p.features.map((feat) => (
+                        <li key={feat} className="flex items-center gap-2.5 text-sm">
+                          <div className="h-5 w-5 rounded-full bg-rose-500/15 flex items-center justify-center shrink-0">
+                            <Check className="h-3 w-3 text-rose-500" />
+                          </div>
+                          {feat}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      className="w-full rounded-full h-11"
+                      variant={p.highlight ? "solid" : "bordered"}
+                      color={p.highlight ? "rose" : "default"}
+                      onPress={() => navigate("/auth")}
+                    >
+                      {p.cta}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="reviews" className="px-6 py-16 bg-white/[0.02]">
+        <div className="mx-auto max-w-6xl">
+          <motion.div {...fadeUp} className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">
+              Loved by barbers everywhere
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+              >
+                <Card className="h-full border-white/[0.08] bg-card/60 backdrop-blur-sm hover:border-white/[0.12] transition-colors">
+                  <CardContent className="pt-6">
+                    <div className="flex gap-0.5 mb-4">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className="h-4 w-4 fill-rose-500 text-rose-500" />
+                      ))}
+                    </div>
+                    <p className="text-sm leading-relaxed text-foreground/90">
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                    <div className="mt-6 flex items-center gap-3">
+                      <Avatar
+                        name={t.initials}
+                        className="h-9 w-9"
+                      />
+                      <div>
+                        <p className="font-medium text-sm">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="px-6 py-16">
+        <div className="mx-auto max-w-3xl">
+          <motion.div {...fadeUp} className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Questions, answered</h2>
+          </motion.div>
+
+          <motion.div {...fadeUp}>
+            <Accordion type="single" collapsible className="space-y-3">
+              {faqs.map((f, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="rounded-2xl border border-white/[0.08] bg-card/60 backdrop-blur-sm px-5 data-[state=open]:border-rose-500/25 transition-colors"
+                >
+                  <AccordionTrigger className="text-left text-[15px] font-semibold hover:no-underline py-5">
+                    {f.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5">
+                    {f.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="px-6 py-16 bg-white/[0.02]">
+        <motion.div {...fadeUp} className="mx-auto max-w-3xl">
+          <Card className="relative overflow-hidden border-white/[0.1] bg-gradient-to-br from-rose-500/15 via-card to-card text-center">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--rose)/0.15),transparent_60%)]" />
+            <CardHeader className="relative pb-2">
+              <CardTitle className="text-3xl md:text-5xl font-bold tracking-tight">
+                Ready to fill your chair?
+              </CardTitle>
+              <CardDescription className="text-base mt-3 max-w-md mx-auto">
+                Join thousands of barbers who run their day with Cutzioo. Free to start, no credit card needed.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="relative justify-center pb-8 pt-4">
+              <Button size="lg" className="rounded-full h-12 px-8 bg-rose-500" onPress={() => navigate("/auth")}>
+                Start free <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
       </section>
 
       {/* Footer */}
