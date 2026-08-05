@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -274,7 +274,7 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="sticky top-0 z-10 backdrop-blur-xl bg-background/80 border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="light" size="sm" onPress={() => navigate("/")}>
             <ArrowLeft className="w-4 h-4 mr-1" /> Home
           </Button>
           <div className="flex items-center gap-2">
@@ -282,7 +282,7 @@ export default function SuperAdminDashboard() {
             <span className="font-semibold">Super Admin</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={load} disabled={busy}>
+            <Button variant="bordered" size="sm" onPress={load} isDisabled={busy}>
               <RefreshCcw className={`w-3.5 h-3.5 mr-1.5 ${busy ? "animate-spin" : ""}`} /> Refresh
             </Button>
           </div>
@@ -404,7 +404,7 @@ export default function SuperAdminDashboard() {
                         {active ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
                         <Switch checked={!!r.subscription?.subscribed} onCheckedChange={(v) => quickToggle(r, v)} />
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => setEditing(r)}>Edit</Button>
+                      <Button size="sm" variant="bordered" onPress={() => setEditing(r)}>Edit</Button>
                     </div>
                   </div>
                 );
@@ -467,7 +467,7 @@ export default function SuperAdminDashboard() {
                   </div>
                 )}
               </div>
-              <Button onClick={giftNewcomers} disabled={saving || newcomers.length === 0} className="rounded-full bg-white text-black hover:bg-white/90">
+              <Button onPress={giftNewcomers} isDisabled={saving || newcomers.length === 0} className="rounded-full bg-white text-black hover:bg-white/90">
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Gift className="w-4 h-4 mr-2" />}
                 Gift 10 days to all newcomers
               </Button>
@@ -516,17 +516,17 @@ export default function SuperAdminDashboard() {
                     className="w-24 h-9 rounded-full"
                   />
                   <Button
-                    onClick={generateFakeShops}
-                    disabled={fakeShopsBusy}
+                    onPress={generateFakeShops}
+                    isDisabled={fakeShopsBusy}
                     className="rounded-full bg-white text-black hover:bg-white/90"
                   >
                     {fakeShopsBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                     Generate now
                   </Button>
                   <Button
-                    onClick={clearFakeShops}
-                    disabled={fakeShopsBusy || fakeShopsCount === 0}
-                    variant="outline"
+                    onPress={clearFakeShops}
+                    isDisabled={fakeShopsBusy || fakeShopsCount === 0}
+                    variant="bordered"
                     className="rounded-full"
                   >
                     Clear all
@@ -743,15 +743,15 @@ function EditDialog({ row, onClose, onSave, saving }: {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="secondary" onClick={() => setDuration(30)}>+1 month</Button>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setDuration(90)}>+3 months</Button>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setDuration(365)}>+1 year</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEnd("")}>No end</Button>
+            <Button size="sm" variant="flat" onPress={() => setDuration(30)}>+1 month</Button>
+            <Button size="sm" variant="flat" onPress={() => setDuration(90)}>+3 months</Button>
+            <Button size="sm" variant="flat" onPress={() => setDuration(365)}>+1 year</Button>
+            <Button size="sm" variant="light" onPress={() => setEnd("")}>No end</Button>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onSave({ subscribed, subscription_tier: tier, subscription_end: end })} disabled={saving}>
+          <Button variant="bordered" onPress={onClose}>Cancel</Button>
+          <Button onPress={() => onSave({ subscribed, subscription_tier: tier, subscription_end: end })} isDisabled={saving}>
             {saving && <Loader2 className="w-3 h-3 mr-1 animate-spin" />} Save
           </Button>
         </DialogFooter>
