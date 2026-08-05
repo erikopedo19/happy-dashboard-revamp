@@ -1034,11 +1034,7 @@ function BarberExpandedDetails({
           .select("day_of_week, open_time, close_time, is_closed")
           .eq("user_id", barberId)
           .order("day_of_week", { ascending: true }),
-        (supabase as any)
-          .from("agenda_settings")
-          .select("start_hour, end_hour, working_days")
-          .eq("user_id", barberId)
-          .maybeSingle(),
+        (supabase as any).rpc("get_public_agenda_settings", { _user_id: barberId }),
         (supabase as any)
           .from("microsites")
           .select("gallery")
@@ -1052,7 +1048,7 @@ function BarberExpandedDetails({
 
       // Derive hours from agenda_settings (the source of truth used by the
       // booking form) so Find Barber, agenda and booking link always match.
-      const agenda = agendaRes?.data;
+      const agenda = Array.isArray(agendaRes?.data) ? agendaRes.data[0] : agendaRes?.data;
       let hours: Array<{ day_of_week: number; open_time: string; close_time: string; is_closed: boolean }> = [];
       if (agenda?.start_hour && agenda?.end_hour) {
         const workingDays: number[] = agenda.working_days ?? [0, 1, 2, 3, 4, 5, 6];

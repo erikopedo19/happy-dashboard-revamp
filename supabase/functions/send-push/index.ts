@@ -103,8 +103,10 @@ Deno.serve(async (req) => {
       title = notif.title ?? title;
       body = notif.body ?? body;
       type = notif.type ?? type;
-    } else if (!reqTitle || !reqBody) {
-      // Trigger always sends title/body; if missing and no recent DB row, reject.
+    } else {
+      // Only the DB trigger (which inserts the notification row first) may send pushes.
+      // Without a matching, freshly-created notification row the request is rejected,
+      // so caller-supplied title/body can never be delivered on their own.
       return new Response(JSON.stringify({ error: "no recent matching notification" }), { status: 401, headers: corsHeaders });
     }
 

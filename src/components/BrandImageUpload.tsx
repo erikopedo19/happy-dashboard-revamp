@@ -50,7 +50,10 @@ export function BrandImageUpload({
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${folder}_${Date.now()}.${fileExt}`;
+      const { data: authData } = await supabase.auth.getUser();
+      const uid = authData?.user?.id;
+      if (!uid) throw new Error("You must be signed in to upload images.");
+      const fileName = `${uid}/${folder}_${Date.now()}.${fileExt}`;
       const { data, error } = await supabase.storage
         .from("brand-images")
         .upload(fileName, file, { upsert: true });

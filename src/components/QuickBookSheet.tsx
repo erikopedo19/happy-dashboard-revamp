@@ -99,18 +99,14 @@ export function QuickBookSheet({
     enabled: open && !!barberId,
     queryFn: async () => {
       const [agendaRes, profileRes] = await Promise.all([
-        (supabase as any)
-          .from("agenda_settings")
-          .select("start_hour, end_hour, service_duration, working_days")
-          .eq("user_id", barberId)
-          .maybeSingle(),
+        (supabase as any).rpc("get_public_agenda_settings", { _user_id: barberId }),
         (supabase as any)
           .from("profiles")
           .select("timezone")
           .eq("id", barberId)
           .maybeSingle(),
       ]);
-      const base = agendaRes?.data || {
+      const base = (Array.isArray(agendaRes?.data) ? agendaRes.data[0] : agendaRes?.data) || {
         start_hour: "09:00",
         end_hour: "18:00",
         service_duration: 30,
