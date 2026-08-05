@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Smartphone, Download, Share, MoreVertical } from "lucide-react";
+import { Button } from "@heroui/react";
 import {
   Drawer,
   DrawerClose,
@@ -11,7 +12,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
 
 const DISMISS_KEY = "pwa_install_dismissed_at";
 
@@ -63,8 +63,7 @@ export function PWAInstallDrawer() {
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <div className="fixed bottom-20 left-4 right-4 z-40">
         <Button
-          type="button"
-          onClick={() => setIsOpen(true)}
+          onPress={() => setIsOpen(true)}
           className="w-full h-12 rounded-full bg-white text-black font-semibold shadow-lg flex items-center justify-center gap-2"
         >
           <Smartphone className="w-4 h-4" /> Install app
@@ -103,8 +102,7 @@ export function PWAInstallDrawer() {
           )}
           {platform === "android" && deferredPrompt && (
             <Button
-              type="button"
-              onClick={handleInstall}
+              onPress={handleInstall}
               className="w-full h-14 rounded-full bg-black text-white font-semibold"
             >
               <Download className="w-4 h-4 mr-2" /> Install now
@@ -113,9 +111,8 @@ export function PWAInstallDrawer() {
         </div>
         <DrawerFooter>
           <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
+            variant="bordered"
+            onPress={() => {
               try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
               setIsOpen(false);
               setDismissed(true);

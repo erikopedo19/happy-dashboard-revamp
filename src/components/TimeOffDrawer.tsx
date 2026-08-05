@@ -14,8 +14,8 @@ import {
   startOfWeek,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Loader2, Palmtree, Sunset, Trash2 } from "lucide-react";
+import { Button } from "@heroui/react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -273,8 +273,8 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
           </AnimatePresence>
 
           <Button
-            onClick={save}
-            disabled={selected.length === 0 || saving}
+            onPress={save}
+            isDisabled={selected.length === 0 || saving}
             className="w-full h-14 mt-5 rounded-full bg-black text-white hover:bg-black/90 text-[15px] font-semibold disabled:opacity-40"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : `Mark ${selected.length || ""} day${selected.length === 1 ? "" : "s"} off`}
