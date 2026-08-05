@@ -185,16 +185,8 @@ export const LiquidGlassAgenda = ({
     } catch { /* ignore */ }
   }, []);
 
-  // Trigger completion circle animation on mount/page change if appointments exist
-  useEffect(() => {
-    if (appointments.length > 0) {
-      setShowCompletionCircle(true);
-      const hideTimer = window.setTimeout(() => {
-        setShowCompletionCircle(false);
-      }, 2700);
-      return () => window.clearTimeout(hideTimer);
-    }
-  }, [appointments.length]);
+
+
 
   const { data: timeOffRows = [] } = useQuery<{ off_date: string; reason: string | null }[]>({
     queryKey: ["time_off", user?.id],
