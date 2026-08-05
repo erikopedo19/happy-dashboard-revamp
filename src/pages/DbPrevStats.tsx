@@ -37,21 +37,29 @@ interface StatsData {
 }
 
 const DbPrevStats = () => {
-  const [accessCode, setAccessCode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const checkAccess = () => {
-    if (accessCode === "1900") {
-      setIsAuthorized(true);
-      fetchStats();
-    } else {
-      toast.error("Invalid access code");
-    }
-  };
+  // Server-side admin check — no client-side passcode.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any).rpc("is_super_admin");
+      if (cancelled) return;
+      setIsAuthorized(data === true);
+      setCheckingAccess(false);
+      if (data === true) fetchStats();
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
 
   const fetchStats = async () => {
     setIsLoading(true);
