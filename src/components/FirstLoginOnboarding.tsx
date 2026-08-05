@@ -103,6 +103,34 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
   const [bookingLink, setBookingLink] = useState(() => cleanSlug(user?.email?.split("@")[0] || "my-chair"));
   const [fullName, setFullName] = useState(() => (user?.user_metadata?.full_name as string) || "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>((user?.user_metadata?.avatar_url as string) || null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Please upload an image under 5MB.", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `avatar_${user.id}_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("brand-images").upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("brand-images").getPublicUrl(fileName);
+      setAvatarUrl(data.publicUrl);
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
+
   const [bio, setBio] = useState("");
   const [stylistName, setStylistName] = useState("");
   const [serviceName, setServiceName] = useState("Haircut");
