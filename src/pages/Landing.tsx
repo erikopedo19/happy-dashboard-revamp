@@ -179,7 +179,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$19",
+    price: "$9",
     suffix: "/mo",
     desc: "For busy chairs and growing shops.",
     features: ["Unlimited stylists", "Unlimited bookings", "Advanced analytics", "Custom branding", "Priority support"],
