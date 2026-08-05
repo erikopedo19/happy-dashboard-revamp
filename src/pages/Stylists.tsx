@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { Plus, Search, Edit, Trash2, UserCheck, X, Star, Clock, Briefcase, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -383,12 +383,12 @@ const Stylists = () => {
 
                         <div className="flex items-start gap-3.5">
                           <div className="relative">
-                            <Avatar className="h-14 w-14 ring-2 ring-white dark:ring-[#1C1C1E] shadow-sm">
-                              <AvatarImage src={stylist.avatar_url || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
+                            <Avatar
+                              src={stylist.avatar_url || undefined}
+                              name={initials}
+                              className="h-14 w-14"
+                              isBordered
+                            />
                             <span className={cn("absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-[#1C1C1E]", statusDot(stylist.status))} />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -466,12 +466,12 @@ const Stylists = () => {
             {/* Header */}
             <div className="p-4 border-b border-black/[0.05] dark:border-white/[0.08]">
               <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12 ring-2 ring-black/[0.05] dark:ring-white/[0.08]">
-                  <AvatarImage src={contextMenu.stylist.avatar_url || undefined} />
-                  <AvatarFallback className="bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-lg">
-                    {contextMenu.stylist.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  src={contextMenu.stylist.avatar_url || undefined}
+                  name={contextMenu.stylist.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                  className="h-12 w-12"
+                  isBordered
+                />
                 <div className="flex-1 min-w-0">
                   <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{contextMenu.stylist.name}</h3>
                   {contextMenu.stylist.title && (
@@ -796,12 +796,12 @@ function AvatarUploader({
   return (
     <div className="flex items-center gap-4">
       <div className="relative">
-        <Avatar className="h-16 w-16 ring-2 ring-black/[0.05] dark:ring-white/10">
-          <AvatarImage src={value || undefined} />
-          <AvatarFallback className="bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <Avatar
+          src={value || undefined}
+          name={initials}
+          className="h-16 w-16"
+          isBordered
+        />
         {uploading && (
           <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
             <Loader2 className="w-4 h-4 text-white animate-spin" />

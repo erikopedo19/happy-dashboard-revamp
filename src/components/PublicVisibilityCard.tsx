@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Globe, Users, Image as ImageIcon, Loader2, Lock, UserCircle2 } from "lucide-react";
@@ -141,10 +141,12 @@ export const PublicVisibilityCard = ({ userId }: { userId: string }) => {
             {banner && <img src={banner} alt="" className="absolute inset-0 w-full h-full object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute -bottom-6 left-4">
-              <Avatar className="h-16 w-16 ring-4 ring-white dark:ring-[#1C1C1E]">
-                <AvatarImage src={avatar || undefined} />
-                <AvatarFallback style={{ background: accent }}>{name?.[0] || "?"}</AvatarFallback>
-              </Avatar>
+              <Avatar
+                src={avatar || undefined}
+                name={name?.[0] || "?"}
+                className="h-16 w-16"
+                isBordered
+              />
             </div>
           </div>
           <div className="pt-8 pb-4 px-4 bg-[#F8F8FA] dark:bg-[#0E0E10]">
@@ -153,10 +155,11 @@ export const PublicVisibilityCard = ({ userId }: { userId: string }) => {
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {membership.stylists.slice(0, 5).map((s: any) => (
                   <div key={s.id} className="flex items-center gap-1 bg-white dark:bg-[#1C1C1E] rounded-full px-2 py-0.5 border border-black/5 dark:border-white/10">
-                    <Avatar className="h-5 w-5">
-                      <AvatarImage src={s.avatar_url || undefined} />
-                      <AvatarFallback className="text-[10px]">{s.name?.[0]}</AvatarFallback>
-                    </Avatar>
+                    <Avatar
+                      src={s.avatar_url || undefined}
+                      name={s.name?.[0]}
+                      className="h-5 w-5"
+                    />
                     <span className="text-xs">{s.name}</span>
                   </div>
                 ))}
@@ -193,10 +196,11 @@ export const PublicVisibilityCard = ({ userId }: { userId: string }) => {
                 <UserCircle2 className="h-4 w-4" /> {mode === "team" ? "Team logo" : "Profile photo"}
               </Label>
               <div className="flex items-center gap-3">
-                <Avatar className="h-14 w-14">
-                  <AvatarImage src={avatar || undefined} />
-                  <AvatarFallback style={{ background: accent }}>{name?.[0] || "?"}</AvatarFallback>
-                </Avatar>
+                <Avatar
+                  src={avatar || undefined}
+                  name={name?.[0] || "?"}
+                  className="h-14 w-14"
+                />
                 <Input
                   type="file"
                   accept="image/*"

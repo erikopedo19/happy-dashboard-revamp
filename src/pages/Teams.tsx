@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
 
 interface Team {
@@ -445,12 +445,13 @@ const Teams = () => {
                             {teamMembers.length > 0 ? (
                               <div className="flex -space-x-2">
                                 {teamMembers.map((m) => (
-                                  <Avatar key={m.id} className="h-7 w-7 border-2 border-white dark:border-[#1C1C1E]">
-                                    <AvatarImage src={m.stylist?.avatar_url || undefined} />
-                                    <AvatarFallback className="text-[10px] bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white">
-                                      {m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
-                                    </AvatarFallback>
-                                  </Avatar>
+                                  <Avatar
+                                    key={m.id}
+                                    src={m.stylist?.avatar_url || undefined}
+                                    name={m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
+                                    className="h-7 w-7"
+                                    isBordered
+                                  />
                                 ))}
                                 {memberCount > teamMembers.length && (
                                   <div className="h-7 w-7 rounded-full bg-[#F5F5F7] dark:bg-[#2C2C2E] border-2 border-white dark:border-[#1C1C1E] flex items-center justify-center text-[10px] font-semibold text-[#8E8E93]">
@@ -533,10 +534,11 @@ const Teams = () => {
                           );
                         }}
                       />
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={stylist.avatar_url || undefined} alt={stylist.name} />
-                        <AvatarFallback>{stylist.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
+                      <Avatar
+                        src={stylist.avatar_url || undefined}
+                        name={stylist.name?.slice(0, 2).toUpperCase()}
+                        className="h-8 w-8"
+                      />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{stylist.name}</p>
                         <p className="text-xs text-muted-foreground">{stylist.title || "Stylist"}</p>

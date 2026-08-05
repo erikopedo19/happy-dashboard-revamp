@@ -17,7 +17,7 @@ import {
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -229,12 +229,12 @@ export function AppSidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/40 border border-sidebar-border cursor-pointer hover:bg-sidebar-accent/60 transition-colors">
-                <Avatar className="h-7 w-7 border border-sidebar-border">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-sidebar-ring/80 text-white font-semibold">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  src={user?.user_metadata?.avatar_url}
+                  name={userInitials}
+                  className="h-7 w-7"
+                  isBordered
+                />
                 <div className="flex-1 overflow-hidden">
                   {userName && <p className="font-medium text-sm text-foreground truncate">{userName}</p>}
                   {user?.email && (
@@ -265,12 +265,12 @@ export function AppSidebar() {
           </DropdownMenu>
         ) : (
           <div className="space-y-3">
-            <Avatar className="h-8 w-8 mx-auto border border-blue-100">
-              <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-rose-100 text-rose-600 font-semibold text-xs">
-                {userInitials}
-              </AvatarFallback>
-            </Avatar>
+            <Avatar
+              src={user?.user_metadata?.avatar_url}
+              name={userInitials}
+              className="h-8 w-8 mx-auto"
+              isBordered
+            />
             {user && (
               <button
                 onClick={handleSignOut}

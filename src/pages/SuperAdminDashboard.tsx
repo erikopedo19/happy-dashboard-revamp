@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@heroui/react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -373,10 +373,11 @@ export default function SuperAdminDashboard() {
                 const active = !!r.subscription?.active;
                 return (
                   <div key={r.id} className="flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={r.avatar_url ?? undefined} />
-                      <AvatarFallback className="bg-muted">{initials}</AvatarFallback>
-                    </Avatar>
+                    <Avatar
+                      src={r.avatar_url ?? undefined}
+                      name={initials}
+                      className="w-10 h-10"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium truncate">{r.full_name || r.business_name || r.email}</span>

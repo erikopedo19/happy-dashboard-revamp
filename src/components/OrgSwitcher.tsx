@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 
 interface OrgSwitcherProps {
@@ -22,12 +22,11 @@ export function OrgSwitcher({ collapsed = false }: OrgSwitcherProps) {
       "flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors",
       collapsed && "justify-center"
     )}>
-      <Avatar className="h-8 w-8">
-        <AvatarImage src={user?.user_metadata?.avatar_url} />
-        <AvatarFallback className="bg-primary/10 text-primary text-xs">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      <Avatar
+        src={user?.user_metadata?.avatar_url}
+        name={initials}
+        className="h-8 w-8"
+      />
       {!collapsed && (
         <div className="flex flex-col min-w-0">
           <span className="text-sm font-medium text-sidebar-foreground truncate">

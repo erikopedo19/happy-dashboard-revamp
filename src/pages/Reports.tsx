@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChartContainer,
@@ -999,14 +999,10 @@ function TopCustomersSection({
                 whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 className="flex items-center gap-3.5 px-4 py-3.5"
               >
-                <Avatar className="h-10 w-10 rounded-[12px]">
-                  <AvatarFallback
-                    className="rounded-[12px] text-xs font-bold"
-                    style={{ backgroundColor: `${tint}28`, color: tint }}
-                  >
-                    {c.initials || "?"}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  name={c.initials || "?"}
+                  className="h-10 w-10 rounded-[12px]"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
@@ -1763,14 +1759,10 @@ function MobileReportsView({
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
                   className="flex items-center gap-3.5 py-3.5 first:pt-0"
                 >
-                  <Avatar className="h-10 w-10 rounded-full">
-                    <AvatarFallback
-                      className="rounded-full text-xs font-bold"
-                      style={{ backgroundColor: `${tint}28`, color: tint }}
-                    >
-                      {c.initials || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Avatar
+                    name={c.initials || "?"}
+                    className="h-10 w-10 rounded-full"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>

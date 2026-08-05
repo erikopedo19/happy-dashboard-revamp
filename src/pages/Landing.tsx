@@ -40,7 +40,7 @@ import {
 import { Button } from "@heroui/react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
 
@@ -370,11 +370,12 @@ export default function Landing() {
             <div className="mt-10 flex items-center gap-4">
               <div className="flex -space-x-2">
                 {["MR", "SL", "DK", "AL"].map((initials) => (
-                  <Avatar key={initials} className="h-8 w-8 border-2 border-background">
-                    <AvatarFallback className="text-[10px] font-semibold bg-primary/20 text-primary">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Avatar
+                    key={initials}
+                    name={initials}
+                    className="h-8 w-8"
+                    isBordered
+                  />
                 ))}
               </div>
               <div>
@@ -685,11 +686,10 @@ export default function Landing() {
                       &ldquo;{t.quote}&rdquo;
                     </p>
                     <div className="mt-6 flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback className="text-xs font-semibold bg-primary/15 text-primary">
-                          {t.initials}
-                        </AvatarFallback>
-                      </Avatar>
+                      <Avatar
+                        name={t.initials}
+                        className="h-9 w-9"
+                      />
                       <div>
                         <p className="font-medium text-sm">{t.name}</p>
                         <p className="text-xs text-muted-foreground">{t.role}</p>
