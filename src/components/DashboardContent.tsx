@@ -228,31 +228,6 @@ export function DashboardContent() {
           <main className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
             <ReviewAnnouncement />
 
-            {/* Welcome */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">Welcome back!</h1>
-                <p className="text-sm text-white/50 mt-0.5">Here is what is happening today</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/agenda')}
-                  className="h-9 gap-1.5 bg-[#16161A] hover:bg-[#22222A] border-white/[0.06] text-white"
-                >
-                  <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Agenda</span>
-                </Button>
-                <Button
-                  onClick={() => navigate('/agenda')}
-                  className="h-9 gap-1.5 bg-[#f43f5e] hover:bg-[#f43f5e]/90 text-white shadow-none"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">New booking</span>
-                </Button>
-              </div>
-            </div>
-
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard title="Revenue" value={`€${stats.last30Revenue.toFixed(0)}`} change={stats.revenueTrend} icon={DollarSign} tone="rose" />
