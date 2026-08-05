@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, CalendarCheck, Check, Clock, Sparkles, Star, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -184,8 +184,8 @@ export default function PromoteOnboarding() {
             </AnimatePresence>
 
             <div className="mt-8 flex items-center justify-between gap-3">
-              <Button variant="ghost" onClick={back} disabled={step === 0} className="rounded-full text-white hover:bg-white/10 hover:text-white">Back</Button>
-              <Button onClick={next} className="rounded-full bg-white px-6 text-black hover:bg-white/90">
+              <Button variant="light" onPress={back} isDisabled={step === 0} className="rounded-full text-white hover:bg-white/10 hover:text-white">Back</Button>
+              <Button onPress={next} className="rounded-full bg-white px-6 text-black hover:bg-white/90">
                 {step === 2 ? "Continue to booking" : "Continue"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
