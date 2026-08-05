@@ -19,7 +19,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
 
 const upload = async (file: File, folder: string) => {
   const ext = file.name.split(".").pop();
-  const name = `microsite/${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { data: authData } = await supabase.auth.getUser();
+  const uid = authData?.user?.id;
+  if (!uid) throw new Error("You must be signed in to upload images.");
+  const name = `${uid}/microsite/${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage.from("brand-images").upload(name, file, { upsert: true });
   if (error) throw error;
   return supabase.storage.from("brand-images").getPublicUrl(name).data.publicUrl;

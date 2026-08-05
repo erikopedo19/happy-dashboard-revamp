@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type ChangeEvent } from "react";
 import { gsap } from "gsap";
 import {
   ArrowLeft,
@@ -103,6 +103,34 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
   const [bookingLink, setBookingLink] = useState(() => cleanSlug(user?.email?.split("@")[0] || "my-chair"));
   const [fullName, setFullName] = useState(() => (user?.user_metadata?.full_name as string) || "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>((user?.user_metadata?.avatar_url as string) || null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Please upload an image under 5MB.", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `${user.id}/avatar_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("brand-images").upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("brand-images").getPublicUrl(fileName);
+      setAvatarUrl(data.publicUrl);
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
+
   const [bio, setBio] = useState("");
   const [stylistName, setStylistName] = useState("");
   const [serviceName, setServiceName] = useState("Haircut");
@@ -171,6 +199,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           booking_locale: language,
           currency,
           full_name: fullName.trim(),
+          avatar_url: avatarUrl,
           description: bio.trim() || null,
           booking_link: finalSlug,
           notify_cancellation_alerts: cancellationAlerts,
@@ -311,13 +340,21 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                   <div>
                     <FieldLabel>Profile picture</FieldLabel>
                     <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-full bg-[#34C759] flex items-center justify-center text-white text-xl font-bold">
-                        {fullName
+                      <div className="h-16 w-16 rounded-full bg-[#34C759] flex items-center justify-center text-white text-xl font-bold overflow-hidden">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Profile" className="h-16 w-16 object-cover" />
+                        ) : fullName
                           ? fullName.trim().split(/\s+/).map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
                           : "X"}
                       </div>
-                      <button type="button" className="h-10 px-4 rounded-full bg-[#2C2C2E] text-[13px] font-semibold text-white hover:bg-[#3C3C3C] transition">
-                        Upload
+                      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                      <button
+                        type="button"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={avatarUploading}
+                        className="h-10 px-4 rounded-full bg-[#2C2C2E] text-[13px] font-semibold text-white hover:bg-[#3C3C3C] transition disabled:opacity-50"
+                      >
+                        {avatarUploading ? "Uploading..." : avatarUrl ? "Change" : "Upload"}
                       </button>
                     </div>
                     <p className="mt-2 text-[11px] text-white/35">Recommended size 64x64px, max 5MB.</p>
