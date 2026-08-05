@@ -1512,6 +1512,16 @@ export type Database = {
           service_name: string
         }[]
       }
+      get_public_agenda_settings: {
+        Args: { _user_id: string }
+        Returns: {
+          end_hour: string
+          service_duration: number
+          start_hour: string
+          user_id: string
+          working_days: number[]
+        }[]
+      }
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
