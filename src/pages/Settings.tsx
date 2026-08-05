@@ -666,7 +666,7 @@ const Settings = () => {
                     }}
                     className="space-y-6"
                   >
-                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
+                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
                       {[
                         { v: "overview", icon: Settings2, label: "Overview" },
                         { v: "general", icon: User, label: "General" },

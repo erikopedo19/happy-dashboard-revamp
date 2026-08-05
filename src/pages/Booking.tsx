@@ -234,17 +234,14 @@ const Booking = () => {
       if (!businessProfile?.id) return null;
 
       const [agendaRes, profileRes] = await Promise.all([
-        (supabase.from('agenda_settings' as any).select('*') as any)
-          .eq('user_id', businessProfile.id)
-          .maybeSingle(),
+        (supabase as any).rpc('get_public_agenda_settings', { _user_id: businessProfile.id }),
         (supabase.from('profiles' as any).select('timezone') as any)
           .eq('id', businessProfile.id)
           .maybeSingle(),
       ]);
 
-      const base = (agendaRes?.error && agendaRes.error.code !== 'PGRST116')
-        ? { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] }
-        : (agendaRes?.data || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] });
+      const agendaRow = Array.isArray(agendaRes?.data) ? agendaRes.data[0] : agendaRes?.data;
+      const base = agendaRow || { start_hour: '08:00', end_hour: '18:00', service_duration: 30, working_days: [0,1,2,3,4,5,6] };
 
       return { ...base, timezone: profileRes?.data?.timezone || null } as AgendaSettings;
     },

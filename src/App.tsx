@@ -7,6 +7,20 @@ import { GlimmIntercept } from "./components/GlimmIntercept";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Scroll to top on route change for mobile
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const isMobile = useIsMobile() ?? false;
+
+  useEffect(() => {
+    if (isMobile) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, isMobile]);
+
+  return null;
+}
+
 // Custom blue → rose → purple sweep palette
 const SWEEP_PALETTE = accentChain(["#2E70FF", "#FF3D7F", "#D33CFF"]);
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -217,6 +231,7 @@ function App() {
                   <GlimmIntercept />
                   <GlobalBanner />
                   <UpdatePopup />
+                  <ScrollToTop />
                   <AnimatedRoutes />
                   <HeaderActions />
 
