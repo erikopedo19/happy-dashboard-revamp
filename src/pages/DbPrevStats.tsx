@@ -140,29 +140,26 @@ const DbPrevStats = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Access Required
+              {checkingAccess ? "Checking access…" : "Access Required"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Enter access code"
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value)}
-              className="text-lg tracking-wider"
-            />
-            <Button 
-              className="w-full" 
-              onClick={checkAccess}
-              size="lg"
-            >
-              Continue
-            </Button>
+            <p className="text-sm text-muted-foreground">
+              {checkingAccess
+                ? "Verifying your administrator permissions."
+                : "This page is restricted to platform administrators."}
+            </p>
+            {!checkingAccess && (
+              <Button className="w-full" size="lg" onClick={() => navigate("/")}>
+                Go back
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen w-full bg-[#f8f9fa] p-6 md:p-8">
