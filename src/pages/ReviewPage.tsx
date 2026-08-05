@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Loader2, Star, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -230,8 +230,8 @@ export default function ReviewPage() {
           )}
 
           <Button
-            onClick={handleSubmit}
-            disabled={submitting || rating === 0}
+            onPress={handleSubmit}
+            isDisabled={submitting || rating === 0}
             className="w-full h-14 rounded-2xl text-base font-semibold border-0 text-[#0A0A0B]"
             style={{ background: accent }}
           >
