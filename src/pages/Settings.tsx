@@ -46,7 +46,7 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { usePremium } from "@/hooks/use-premium";
@@ -637,10 +637,9 @@ const Settings = () => {
                 <NotificationBell />
                 <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.02 }}>
                   <Button
-                    type="button"
                     size="sm"
-                    onClick={() => saveMutation.mutate()}
-                    disabled={saveMutation.isPending || isLoading}
+                    onPress={() => saveMutation.mutate()}
+                    isDisabled={saveMutation.isPending || isLoading}
                     className="rounded-full h-9 px-5 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
                   >
                   {saveMutation.isPending ? (
@@ -817,9 +816,8 @@ const Settings = () => {
                           </CardHeader>
                           <CardContent>
                             <Button
-                              type="button"
-                              disabled={switchingRole}
-                              onClick={() => setRole(role === "client" ? "barber" : "client")}
+                              isDisabled={switchingRole}
+                              onPress={() => setRole(role === "client" ? "barber" : "client")}
                               className={cn(
                                 "w-full h-12 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] disabled:opacity-60",
                                 role === "client"
@@ -1574,9 +1572,8 @@ const Settings = () => {
                       </div>
 
                       <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleSignOut}
+                        variant="bordered"
+                        onPress={handleSignOut}
                         className="w-full rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:opacity-80"
                       >
                         <LogOut className="h-4 w-4 mr-2" /> Sign out
