@@ -791,40 +791,36 @@ export const LiquidGlassAgenda = ({
           )}
 
           {/* Completion ring */}
-          <AnimatePresence>
-            {showCompletionCircle && (
-              <motion.div
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -20, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="w-9 h-9 flex items-center justify-center relative"
-              >
-                <svg viewBox="0 0 36 36" className="w-8 h-8">
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    className="text-gray-200 dark:text-gray-700"
-                  />
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeDasharray={`${completionPct}, 100`}
-                    strokeLinecap="round"
-                    className="text-green-500 dark:text-green-400"
-                  />
-                </svg>
-                <span className="absolute text-[8px] font-bold text-gray-700 dark:text-gray-200">
-                  {completionPct}
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="w-9 h-9 flex items-center justify-center relative"
+          >
+            <svg viewBox="0 0 36 36" className="w-8 h-8">
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className="text-gray-200 dark:text-gray-700"
+              />
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeDasharray={`${completionPct}, 100`}
+                strokeLinecap="round"
+                className="text-green-500 dark:text-green-400"
+              />
+            </svg>
+            <span className="absolute text-[8px] font-bold text-gray-700 dark:text-gray-200">
+              {completionPct}
+            </span>
+          </motion.div>
         </div>
+
 
         <AnimatePresence>
           {showDaysOffHint && (
