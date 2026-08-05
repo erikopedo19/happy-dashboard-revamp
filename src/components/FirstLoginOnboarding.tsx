@@ -118,7 +118,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
     setAvatarUploading(true);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const fileName = `avatar_${user.id}_${Date.now()}.${ext}`;
+      const fileName = `${user.id}/avatar_${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("brand-images").upload(fileName, file, { upsert: true });
       if (error) throw error;
       const { data } = supabase.storage.from("brand-images").getPublicUrl(fileName);
