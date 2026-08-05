@@ -43,6 +43,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const features = [
   {
@@ -50,70 +53,70 @@ const features = [
     title: "Smart Agenda",
     desc: "Drag, drop and never double-book. Your whole day at a glance.",
     className: "md:col-span-2",
-    accent: "from-blue-500/20 to-blue-600/5",
+    accent: "from-rose-500/20 to-rose-600/5",
   },
   {
     icon: Users,
     title: "Client CRM",
     desc: "Every haircut, preference and birthday — remembered automatically.",
     className: "",
-    accent: "from-indigo-500/20 to-indigo-600/5",
+    accent: "from-blue-500/20 to-blue-600/5",
   },
   {
     icon: BarChart3,
     title: "Real Insights",
     desc: "Revenue, retention and peak hours in charts that actually help.",
     className: "",
-    accent: "from-emerald-500/20 to-emerald-600/5",
+    accent: "from-purple-500/20 to-purple-600/5",
   },
   {
     icon: Smartphone,
     title: "Online Booking",
     desc: "A branded page your clients love. One link, full chairs.",
     className: "md:col-span-2",
-    accent: "from-violet-500/20 to-violet-600/5",
+    accent: "from-cyan-500/20 to-cyan-600/5",
   },
   {
     icon: Scissors,
     title: "Custom Services",
     desc: "Build your menu, set durations and prices in seconds.",
     className: "",
-    accent: "from-amber-500/20 to-amber-600/5",
+    accent: "from-rose-500/20 to-rose-600/5",
   },
   {
     icon: Sparkles,
     title: "Auto Reminders",
     desc: "Confirmations and reminders sent for you. Fewer no-shows.",
     className: "",
-    accent: "from-rose-500/20 to-rose-600/5",
+    accent: "from-blue-500/20 to-blue-600/5",
   },
   {
     icon: QrCode,
     title: "QR Flyers",
     desc: "Print a scannable code for mirrors and counters. Walk-ins book instantly.",
     className: "",
-    accent: "from-cyan-500/20 to-cyan-600/5",
+    accent: "from-purple-500/20 to-purple-600/5",
   },
   {
     icon: Globe,
     title: "Branded Microsite",
     desc: "Your own mini-website with services, gallery and reviews built in.",
     className: "md:col-span-2",
-    accent: "from-fuchsia-500/20 to-fuchsia-600/5",
+    accent: "from-cyan-500/20 to-cyan-600/5",
   },
   {
     icon: MessageSquare,
     title: "Reviews Engine",
     desc: "Automatic review requests after every visit. Build your reputation on autopilot.",
     className: "md:col-span-2",
-    accent: "from-yellow-500/20 to-yellow-600/5",
+    accent: "from-rose-500/20 to-rose-600/5",
   },
   {
     icon: ShieldCheck,
     title: "Waitlist Recovery",
     desc: "Cancellation? The next client in line claims the slot automatically.",
     className: "",
-    accent: "from-teal-500/20 to-teal-600/5",
+    accent: "from-blue-500/20 to-blue-600/5",
   },
 ];
 
@@ -270,9 +273,12 @@ export default function Landing() {
   });
   const mockupY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const mockupScale = useTransform(scrollYProgress, [0, 1], [1, 0.96]);
+  const { user } = useAuth();
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <SidebarProvider defaultOpen={!user}>
+      <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+        {user && <AppSidebar />}
       <Seo
         title="Cutzioo — Barbershop Booking & Management for Modern Barbers"
         description="Run your chair like a premium app. Publish a booking page, manage your agenda, and grow your barbershop with Cutzioo."
@@ -770,5 +776,6 @@ export default function Landing() {
         </div>
       </footer>
     </div>
+    </SidebarProvider>
   );
 }

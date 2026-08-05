@@ -12,7 +12,8 @@ import {
   Plus,
   Filter,
   DollarSign,
-  Settings
+  Settings,
+  Calendar as BookIcon,
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { useNavigate } from "react-router-dom";
@@ -29,6 +30,14 @@ import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 function StatPill({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string | number; tone?: 'rose' | 'green' | 'blue' }) {
   const toneClass = tone === 'rose' ? 'bg-[#FF375F]/10 text-[#FF375F]' : tone === 'green' ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#0A84FF]/10 text-[#0A84FF]';
@@ -673,7 +682,24 @@ const Agenda = () => {
 
               {/* Main Content */}
               <div className="flex-1 overflow-auto p-4 md:p-6">
-                {viewMode === 'week' ? (
+                {filteredAppointments.length === 0 ? (
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <BookIcon />
+                      </EmptyMedia>
+                      <EmptyTitle>No upcoming bookings</EmptyTitle>
+                      <EmptyDescription>Create a booking to get started.</EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
+                      <div className="flex gap-2">
+                        <Button size="sm" onPress={() => setIsAppointmentFormOpen(true)}>
+                          Create booking
+                        </Button>
+                      </div>
+                    </EmptyContent>
+                  </Empty>
+                ) : viewMode === 'week' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {weekCards.map((week, index) => {
                       const isCurrent = week.isCurrentWeek;
