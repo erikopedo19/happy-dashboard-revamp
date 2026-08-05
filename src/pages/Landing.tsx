@@ -37,7 +37,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -320,10 +320,10 @@ export default function Landing() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+            <Button variant="light" size="sm" onPress={() => navigate("/auth")}>
               Sign in
             </Button>
-            <Button size="sm" className="rounded-full" onClick={() => navigate("/auth")}>
+            <Button size="sm" className="rounded-full" onPress={() => navigate("/auth")}>
               Get started
             </Button>
           </div>
@@ -359,10 +359,10 @@ export default function Landing() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Button size="lg" className="rounded-full h-12 px-7" onClick={() => navigate("/auth")}>
+              <Button size="lg" className="rounded-full h-12 px-7" onPress={() => navigate("/auth")}>
                 Start free <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full h-12 px-7 border-white/10 bg-white/[0.03]" onClick={() => navigate("/find-barber")}>
+              <Button size="lg" variant="bordered" className="rounded-full h-12 px-7 border-white/10 bg-white/[0.03]" onPress={() => navigate("/find-barber")}>
                 I'm a client
               </Button>
             </div>
@@ -642,8 +642,8 @@ export default function Landing() {
                   <CardFooter>
                     <Button
                       className="w-full rounded-full h-11"
-                      variant={p.highlight ? "default" : "outline"}
-                      onClick={() => navigate("/auth")}
+                      variant={p.highlight ? "solid" : "bordered"}
+                      onPress={() => navigate("/auth")}
                     >
                       {p.cta}
                     </Button>
@@ -746,7 +746,7 @@ export default function Landing() {
               </CardDescription>
             </CardHeader>
             <CardFooter className="relative justify-center pb-8 pt-4">
-              <Button size="lg" className="rounded-full h-12 px-8" onClick={() => navigate("/auth")}>
+              <Button size="lg" className="rounded-full h-12 px-8" onPress={() => navigate("/auth")}>
                 Start free <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
