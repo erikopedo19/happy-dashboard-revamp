@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import {
   Drawer,
@@ -219,9 +219,8 @@ const FindBarbershop = () => {
                 />
               </div>
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => setFiltersOpen(true)}
+                variant="bordered"
+                onPress={() => setFiltersOpen(true)}
                 className="h-12 rounded-2xl border-black/10 bg-white px-4 dark:border-white/10 dark:bg-[#1C1C1E]"
               >
                 <SlidersHorizontal className="mr-2 h-4 w-4" />
@@ -236,8 +235,7 @@ const FindBarbershop = () => {
 
             <div className="md:hidden">
               <Button
-                type="button"
-                onClick={() => setFiltersOpen(true)}
+                onPress={() => setFiltersOpen(true)}
                 className="flex h-13 w-full items-center justify-between rounded-3xl bg-[#1C1C1E] px-4 text-left text-white shadow-lg shadow-black/10 hover:bg-[#1C1C1E]/95"
               >
                 <span className="flex items-center gap-3">
@@ -332,9 +330,8 @@ const FindBarbershop = () => {
                 <p className="text-xs text-[#8E8E93]">{shops.length} places on the map</p>
               </div>
               <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setFiltersOpen(true)}
+                variant="light"
+                onPress={() => setFiltersOpen(true)}
                 className="h-9 rounded-full px-3 text-[#FF2D55] hover:bg-[#FF2D55]/10 hover:text-[#FF2D55]"
               >
                 <SlidersHorizontal className="mr-2 h-4 w-4" />
@@ -372,7 +369,7 @@ const FindBarbershop = () => {
                 title="No public shops yet"
                 subtitle={searchTerm ? "Try another search or clear filters." : "New shops will appear here once they go live."}
                 action={
-                  <Button onClick={resetFilters} className="rounded-2xl bg-[#FF2D55] px-5 text-white hover:bg-[#FF1744]">
+                  <Button onPress={resetFilters} className="rounded-2xl bg-[#FF2D55] px-5 text-white hover:bg-[#FF1744]">
                     Reset filters
                   </Button>
                 }
@@ -477,9 +474,8 @@ const FindBarbershop = () => {
 
             <div className="grid grid-cols-2 gap-2">
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
+                variant="bordered"
+                onPress={() => {
                   if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition(
                       (position) => setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
@@ -492,14 +488,14 @@ const FindBarbershop = () => {
                 <LocateFixed className="mr-2 h-4 w-4" />
                 Use location
               </Button>
-              <Button type="button" onClick={resetFilters} className="h-12 rounded-full bg-[#1C1C1E] text-white">
+              <Button onPress={resetFilters} className="h-12 rounded-full bg-[#1C1C1E] text-white">
                 Clear all
               </Button>
             </div>
           </div>
 
           <DrawerFooter className="px-0 pb-0 pt-2">
-            <Button type="button" onClick={() => setFiltersOpen(false)} className="h-14 rounded-full bg-black text-white hover:bg-black/90">
+            <Button onPress={() => setFiltersOpen(false)} className="h-14 rounded-full bg-black text-white hover:bg-black/90">
               Show {shops.length} results
             </Button>
           </DrawerFooter>
@@ -685,7 +681,7 @@ function BarberCard({
             </Link>
           ) : (
             <Button
-              disabled
+              isDisabled
               className="h-11 w-full rounded-2xl bg-[#E5E5EA] text-[#8E8E93] dark:bg-[#2C2C2E]"
             >
               Booking unavailable
@@ -694,10 +690,9 @@ function BarberCard({
 
           {userLocation && barber.latitude && barber.longitude ? (
             <Button
-              type="button"
-              variant="outline"
+              variant="bordered"
               className="h-11 rounded-2xl border-black/10 dark:border-white/10"
-              onClick={() =>
+              onPress={() =>
                 window.open(
                   `https://www.google.com/maps/dir/?api=1&destination=${barber.latitude},${barber.longitude}`,
                 )
@@ -707,7 +702,7 @@ function BarberCard({
               Directions
             </Button>
           ) : (
-            <Button type="button" variant="outline" className="h-11 rounded-2xl border-black/10 dark:border-white/10" disabled>
+            <Button variant="bordered" className="h-11 rounded-2xl border-black/10 dark:border-white/10" isDisabled>
               Nearby view
             </Button>
           )}
