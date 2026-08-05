@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@heroui/react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
@@ -520,18 +521,15 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   if (!isOpen) return null;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={cn(
-        "overflow-hidden shadow-2xl",
-        isMobile
-          ? "w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] p-0 border-0"
-          : "sm:w-[92vw] sm:max-w-[940px] sm:max-h-[86vh] sm:rounded-[20px] sm:p-0 sm:border sm:border-white/[0.08] bg-[#0e0e10]"
-      )}>
-        <DialogTitle className="sr-only">Book Appointment</DialogTitle>
-        <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
+  // Mobile: use Dialog, PC: use Drawer
+  if (isMobile) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] p-0 border-0 overflow-hidden shadow-2xl">
+          <DialogTitle className="sr-only">Book Appointment</DialogTitle>
+          <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
 
-        <motion.div
+          <motion.div
           ref={contentRef}
           initial={isMobile ? { y: 24, opacity: 0 } : false}
           animate={isMobile ? { y: 0, opacity: 1 } : {}}
@@ -1095,5 +1093,75 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         </motion.div>
       </DialogContent>
     </Dialog>
-  );
-}
+    );
+  }
+
+  // PC: use Drawer
+  return (
+    <Drawer
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      size="2xl"
+      placement="right"
+    >
+      <DrawerContent className="bg-[#0e0e10] p-0 overflow-hidden">
+        <motion.div
+          ref={contentRef}
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+          className="flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
+        >
+          {/* Desktop close */}
+          <button
+            onClick={handleClose}
+            className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.06] text-gray-400 hover:text-white transition-colors z-10"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          {/* Left Panel - Service Info */}
+          <div className="w-[280px] shrink-0 p-6 border-r border-white/[0.06] bg-[#0e0e10] flex flex-col">
+            {/* Profile */}
+            <div className="mt-8 mb-6">
+              <div className="rounded-full overflow-hidden ring-1 ring-white/10 w-12 h-12">
+                <img
+                  src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
+                  alt={profile?.full_name || 'User'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="text-sm text-gray-400 mt-3">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+            </div>
+
+            {/* Service Title */}
+            <h2 className="text-xl font-semibold text-white mb-2">
+              {selectedService ? `[${selectedService.duration}-min] ${selectedService.name}` : 'Select a Service'}
+            </h2>
+
+            {/* Service Description */}
+            {selectedService?.description && (
+              <p className="text-sm text-gray-400 mb-6">{selectedService.description}</p>
+            )}
+
+            {/* Service Details */}
+            {selectedService && (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2 text-gray-300">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span>{selectedService.duration} min</span>
+                </div>
+              </div>
+            )}
+
+            {/* Price */}
+            {selectedService && (
+              <div className="mt-auto pt-6">
+                <p className="text-2xl font-bold text-white">${selectedService.price}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Center Panel - Calendar */}
+          <div className="flex-1 p-6 overflow-y-auto bg-[#0e0e10]">
+            <AnimatePresence mode="wait">
