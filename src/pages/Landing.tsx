@@ -43,9 +43,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { useAuth } from "@/contexts/AuthContext";
 
 const features = [
   {
@@ -273,12 +270,9 @@ export default function Landing() {
   });
   const mockupY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const mockupScale = useTransform(scrollYProgress, [0, 1], [1, 0.96]);
-  const { user } = useAuth();
 
   return (
-    <SidebarProvider defaultOpen={!user}>
-      <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
-        {user && <AppSidebar />}
+    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
       <Seo
         title="Cutzioo — Barbershop Booking & Management for Modern Barbers"
         description="Run your chair like a premium app. Publish a booking page, manage your agenda, and grow your barbershop with Cutzioo."
@@ -776,6 +770,5 @@ export default function Landing() {
         </div>
       </footer>
     </div>
-    </SidebarProvider>
   );
 }
