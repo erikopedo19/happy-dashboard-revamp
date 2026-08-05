@@ -2,7 +2,7 @@
 
 import { User, Plus, Search, Mail, Phone, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
@@ -356,8 +356,8 @@ const Customers = () => {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setCustomerToEdit(null)}>Cancel</Button>
-                <Button type="submit" disabled={updateMutation.isPending}>
+                <Button variant="bordered" onPress={() => setCustomerToEdit(null)}>Cancel</Button>
+                <Button type="submit" isDisabled={updateMutation.isPending}>
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </DialogFooter>
@@ -379,8 +379,8 @@ const Customers = () => {
             <AlertDialogCancel onClick={() => setCustomerToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-[#e11d48] hover:bg-[#be123c]"
-              onClick={() => customerToDelete && deleteMutation.mutate(customerToDelete.id)}
-              disabled={deleteMutation.isPending}
+              onPress={() => customerToDelete && deleteMutation.mutate(customerToDelete.id)}
+              isDisabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
