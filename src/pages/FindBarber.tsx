@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import {
   Search,
   Scissors,
@@ -573,7 +573,7 @@ function BarberCard({
         </button>
         {barber.booking_link ? (
           <Button
-            onClick={() => setBookOpen(true)}
+            onPress={() => setBookOpen(true)}
             className="flex-[1.4] w-full h-12 rounded-[14px] text-white font-semibold border-0 active:scale-[0.97] transition-transform"
             style={{ backgroundColor: accent }}
           >
@@ -581,7 +581,7 @@ function BarberCard({
             Book
           </Button>
         ) : (
-          <Button disabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
+          <Button isDisabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
             Unavailable
           </Button>
         )}
@@ -701,7 +701,7 @@ function FavoritesList({
         title="No favorites yet"
         subtitle="Tap the heart on a barber to save them"
         action={
-          <Button onClick={onExplore} className="bg-[#FF2D55] hover:bg-[#E6294D] rounded-2xl h-11 px-6">
+          <Button onPress={onExplore} className="bg-[#FF2D55] hover:bg-[#E6294D] rounded-2xl h-11 px-6">
             Explore
           </Button>
         }
@@ -929,9 +929,9 @@ function FullScreenMap({
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    variant="outline"
+                    variant="bordered"
                     className="h-12 flex-1 rounded-full border-black/10 dark:border-white/10"
-                    onClick={() => {
+                    onPress={() => {
                       setMaxDistance("any");
                       setMinRating("any");
                     }}
@@ -940,7 +940,7 @@ function FullScreenMap({
                   </Button>
                   <Button
                     className="h-12 flex-1 rounded-full bg-rose-500 text-white hover:bg-rose-600"
-                    onClick={() => setFiltersOpen(false)}
+                    onPress={() => setFiltersOpen(false)}
                   >
                     Show results
                   </Button>
