@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,8 +165,8 @@ export const MicrositeEditorPanel = () => {
               <span className="text-[12px] font-semibold text-foreground">{state.published ? "Live" : "Draft"}</span>
             </div>
             <Button
-              onClick={save}
-              disabled={saving}
+              onPress={save}
+              isDisabled={saving}
               className="h-11 rounded-2xl bg-primary hover:bg-primary/90 active:scale-[0.97] transition-transform text-white font-semibold px-5"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-1.5" /> Save</>}
