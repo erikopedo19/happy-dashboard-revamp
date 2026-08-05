@@ -6,7 +6,7 @@ import { Heart, Loader2, Scissors, Star, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 
 const Favorites = () => {
   const { user, loading } = useAuth();
