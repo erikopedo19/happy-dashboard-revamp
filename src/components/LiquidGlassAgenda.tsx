@@ -169,7 +169,7 @@ export const LiquidGlassAgenda = ({
   const dayLongPressTimer = useRef<number | null>(null);
   const dayLongPressFired = useRef(false);
   const [showDaysOffHint, setShowDaysOffHint] = useState(false);
-  const [showCompletionCircle, setShowCompletionCircle] = useState(false);
+  
   const isMobile = useIsMobile() ?? false;
 
   // Show the "hold a date" hint only once, the very first time the agenda opens
