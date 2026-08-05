@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { toast } from "sonner";
 import { Lock, Users, Briefcase, Calendar, Building2, MapPin } from "lucide-react";
 
@@ -143,9 +143,9 @@ const DbPrevStats = () => {
               onChange={(e) => setAccessCode(e.target.value)}
               className="text-lg tracking-wider"
             />
-            <Button 
-              className="w-full" 
-              onClick={checkAccess}
+            <Button
+              className="w-full"
+              onPress={checkAccess}
               size="lg"
             >
               Continue
@@ -164,10 +164,10 @@ const DbPrevStats = () => {
             <h1 className="text-2xl font-bold text-gray-900">Statistics Overview</h1>
             <p className="text-gray-500">Comprehensive analysis of onboarding data</p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={fetchStats} 
-            disabled={isLoading}
+          <Button
+            variant="bordered"
+            onPress={fetchStats}
+            isDisabled={isLoading}
           >
             Refresh Data
           </Button>
