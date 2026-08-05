@@ -16,10 +16,10 @@ interface MoreItem {
 }
 
 const mainItems: DockItem[] = [
-  { label: 'Admin', icon: LayoutDashboard, to: '/admin' },
-  { label: 'Agenda', icon: Calendar, to: '/agenda' },
-  { label: 'Reports', icon: BarChart3, to: '/reports' },
-  { label: 'Settings', icon: Settings, to: '/settings' },
+  { label: 'Admin', icon: LayoutDashboard, to: '/admin', color: '#FF375F' },
+  { label: 'Agenda', icon: Calendar, to: '/agenda', color: '#0A84FF' },
+  { label: 'Reports', icon: BarChart3, to: '/reports', color: '#AF52DE' },
+  { label: 'Settings', icon: Settings, to: '/settings', color: '#32ADE6' },
 ];
 
 const moreItems: MoreItem[] = [

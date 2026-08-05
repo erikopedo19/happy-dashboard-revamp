@@ -3,10 +3,10 @@ import { Search, Calendar, Heart, User } from 'lucide-react';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
 
 const navItems: DockItem[] = [
-  { label: 'Explore', icon: Search, to: '/find-barber' },
-  { label: 'Bookings', icon: Calendar, to: '/my-bookings' },
-  { label: 'Favorites', icon: Heart, to: '/favorites' },
-  { label: 'Profile', icon: User, to: '/me' },
+  { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF375F' },
+  { label: 'Bookings', icon: Calendar, to: '/my-bookings', color: '#0A84FF' },
+  { label: 'Favorites', icon: Heart, to: '/favorites', color: '#AF52DE' },
+  { label: 'Profile', icon: User, to: '/me', color: '#32ADE6' },
 ];
 
 export const ClientMobileDock = () => null;
