@@ -42,7 +42,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         className
       )}
     >
-      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-center justify-center gap-2.5">
+      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-stretch justify-center gap-2.5">
       <motion.div
         initial={{ y: 28, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
