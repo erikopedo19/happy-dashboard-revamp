@@ -693,7 +693,12 @@ export const LiquidGlassAgenda = ({
                   className={cn(
                     "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
                     isMobile
-                      ? "py-1 px-2.5 rounded-xl"
+                      ? cn(
+                          "w-[52px] py-2 rounded-[18px] border",
+                          isSelected
+                            ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+                            : "bg-transparent border-transparent"
+                        )
                       : cn(
                           "py-1.5 px-2 rounded-xl",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
@@ -704,29 +709,34 @@ export const LiquidGlassAgenda = ({
                 >
                   {isMobile ? (
                     <>
-                      <div className="h-1.5 flex items-center justify-center">
-                        {isSelected && <div className={cn("w-1 h-1 rounded-full", isOff ? "bg-rose-500" : "bg-gray-900 dark:bg-white")} />}
-                      </div>
                       <span className={cn(
-                        "font-semibold transition-all",
+                        "text-[12px] font-medium leading-none",
                         isOff
-                          ? cn("text-rose-500 dark:text-rose-400", isSelected ? "text-[19px]" : "text-[15px]")
+                          ? "text-rose-400/90"
                           : isSelected
-                            ? "text-[19px] text-gray-900 dark:text-white"
-                            : isToday
-                              ? "text-[15px] text-blue-600 dark:text-blue-400"
-                              : "text-[15px] text-gray-400 dark:text-gray-500"
-                      )}>
-                        {format(day, 'd')}
-                      </span>
-                      <span className={cn(
-                        "text-[10px] font-medium uppercase mt-0.5",
-                        isOff
-                          ? "text-rose-400/80"
-                          : isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
+                            ? "text-gray-500 dark:text-white/50"
+                            : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
+                      <span className={cn(
+                        "mt-1.5 text-[18px] font-semibold leading-none transition-all",
+                        isOff
+                          ? "text-rose-500 dark:text-rose-400"
+                          : isSelected
+                            ? "text-gray-900 dark:text-white"
+                            : isToday
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-400 dark:text-gray-500"
+                      )}>
+                        {format(day, 'd')}
+                      </span>
+                      {hasAppointments && !isOff && (
+                        <div className={cn(
+                          "mt-1 h-1 w-1 rounded-full",
+                          isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
+                        )} />
+                      )}
                     </>
                   ) : (
                     <>
