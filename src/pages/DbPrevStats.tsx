@@ -144,25 +144,17 @@ const DbPrevStats = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Enter access code"
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value)}
-              className="text-lg tracking-wider"
-            />
-            <Button
-              className="w-full"
-              onPress={checkAccess}
-              size="lg"
-            >
-              Continue
-            </Button>
+            <p className="text-sm text-gray-500">
+              {checkingAccess
+                ? "Verifying your permissions…"
+                : "This page is restricted to super admins."}
+            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
+
 
 
   return (
