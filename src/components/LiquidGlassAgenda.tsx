@@ -561,22 +561,9 @@ export const LiquidGlassAgenda = ({
       )}>
         <div className="flex items-center justify-between gap-3 mb-1.5">
           {isMobile ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-[15px] font-semibold text-gray-900 dark:text-white active:opacity-60 transition-opacity">
-                  {viewMode === 'week' ? 'Week' : 'Day'}
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-white/40" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
-                <DropdownMenuItem onClick={() => onViewModeChange('week')} className="cursor-pointer">
-                  Week
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onViewModeChange('day')} className="cursor-pointer">
-                  Day
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
+              {format(selectedDay, 'd MMM')}
+            </span>
           ) : shouldShowViewToggle ? (
             <div className="flex items-center gap-2">
               <button
@@ -613,10 +600,28 @@ export const LiquidGlassAgenda = ({
                   className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
-                  More features
+                  More
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
+                {isMobile && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onViewModeChange('day')}
+                      className={cn("cursor-pointer", viewMode === 'day' && "font-semibold")}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Day view
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onViewModeChange('week')}
+                      className={cn("cursor-pointer", viewMode === 'week' && "font-semibold")}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Week view
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem
                   onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
                   className="text-rose-500 dark:text-rose-300 focus:bg-rose-500/10 cursor-pointer"
@@ -647,9 +652,9 @@ export const LiquidGlassAgenda = ({
             <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
               {format(selectedDay, 'MMMM yyyy')}
             </span>
-            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-white/40" />
           </div>
         )}
+
 
 
         {/* Day Selector Row */}
