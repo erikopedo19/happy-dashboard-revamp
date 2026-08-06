@@ -165,7 +165,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
             if (trailing.to) navigate(trailing.to);
             trailing.onClick?.();
           }}
-          className="pointer-events-auto flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full"
+          className="pointer-events-auto flex aspect-square shrink-0 self-stretch items-center justify-center rounded-full"
           style={{
             background: "rgba(28, 28, 30, 0.72)",
             border: "1px solid rgba(255, 255, 255, 0.10)",
