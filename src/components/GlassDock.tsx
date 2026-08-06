@@ -152,6 +152,38 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
 
         })}
       </motion.div>
+
+      {trailing && TrailingIcon && (
+        <motion.button
+          type="button"
+          initial={{ y: 28, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24, mass: 0.7, delay: 0.05 }}
+          whileTap={{ scale: 0.9 }}
+          aria-label={trailing.label}
+          onClick={() => {
+            if (trailing.to) navigate(trailing.to);
+            trailing.onClick?.();
+          }}
+          className="pointer-events-auto flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full"
+          style={{
+            background: "rgba(28, 28, 30, 0.72)",
+            border: "1px solid rgba(255, 255, 255, 0.10)",
+            backdropFilter: "blur(32px) saturate(2.2)",
+            WebkitBackdropFilter: "blur(32px) saturate(2.2)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.14)",
+          }}
+        >
+          <TrailingIcon
+            size={22}
+            style={{
+              color: trailingActive ? trailing.color || defaultColor : "rgba(255,255,255,0.75)",
+              transition: "color 0.2s ease",
+            }}
+          />
+        </motion.button>
+      )}
+      </div>
     </div>
   );
 };
