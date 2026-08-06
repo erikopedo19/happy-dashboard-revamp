@@ -1125,26 +1125,30 @@ export const LiquidGlassAgenda = ({
                             borderLeft: isCancelled ? undefined : `4px solid ${colorToRgba(serviceColor, isMobile ? 1 : 0.9)}`,
                           }}
                         >
-                          {/* Glass shine effect */}
-                          <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                              background: isDark
-                                ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)'
-                                : 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)',
-                              borderRadius: 'inherit',
-                            }}
-                          />
+                          {!isMobile && (
+                            <>
+                              {/* Glass shine effect */}
+                              <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                  background: isDark
+                                    ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)'
+                                    : 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)',
+                                  borderRadius: 'inherit',
+                                }}
+                              />
 
-                          {/* Inner glow ring */}
-                          <div
-                            className="absolute inset-0 rounded-2xl pointer-events-none"
-                            style={{
-                              boxShadow: isDark
-                                ? `inset 0 1px 0 0 rgba(255,255,255,0.08), inset 0 -1px 0 0 rgba(0,0,0,0.2)`
-                                : `inset 0 1px 0 0 rgba(255,255,255,0.6), inset 0 -1px 0 0 rgba(0,0,0,0.04)`,
-                            }}
-                          />
+                              {/* Inner glow ring */}
+                              <div
+                                className="absolute inset-0 rounded-2xl pointer-events-none"
+                                style={{
+                                  boxShadow: isDark
+                                    ? `inset 0 1px 0 0 rgba(255,255,255,0.08), inset 0 -1px 0 0 rgba(0,0,0,0.2)`
+                                    : `inset 0 1px 0 0 rgba(255,255,255,0.6), inset 0 -1px 0 0 rgba(0,0,0,0.04)`,
+                                }}
+                              />
+                            </>
+                          )}
 
                           {/* Content */}
                           <div className="relative z-10 flex flex-col justify-between h-full">
