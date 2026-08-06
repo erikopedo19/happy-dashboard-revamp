@@ -774,8 +774,10 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           email_template_html: string | null
+          freelancer_mode: boolean
           full_name: string | null
           google_maps_url: string | null
+          heard_from: string | null
           id: string
           is_public: boolean | null
           latitude: number | null
@@ -819,8 +821,10 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
+          freelancer_mode?: boolean
           full_name?: string | null
           google_maps_url?: string | null
+          heard_from?: string | null
           id: string
           is_public?: boolean | null
           latitude?: number | null
@@ -864,8 +868,10 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
+          freelancer_mode?: boolean
           full_name?: string | null
           google_maps_url?: string | null
+          heard_from?: string | null
           id?: string
           is_public?: boolean | null
           latitude?: number | null
