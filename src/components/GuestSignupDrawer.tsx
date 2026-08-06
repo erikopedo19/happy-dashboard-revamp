@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, Gift, CreditCard, Check } from "lucide-react";
+import { Gift, CreditCard, Check } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useAuth } from "@/contexts/AuthContext";
 import { haptic } from "@/lib/haptics";
@@ -57,7 +57,7 @@ export function GuestSignupDrawer() {
             initial={{ scale: 0.86, opacity: 0, y: 8 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 280, damping: 20 }}
-            className="mx-auto mb-5 flex h-[76px] w-[76px] items-center justify-center rounded-[26px] bg-gradient-to-br from-rose-400 to-rose-600 shadow-[0_14px_38px_-14px_rgba(244,63,94,0.9)]"
+            className="mx-auto mb-5 flex h-[76px] w-[76px] items-center justify-center rounded-[26px] bg-gradient-to-br from-rose-400 to-rose-600"
           >
             <Gift className="h-8 w-8 text-white" />
           </motion.div>
@@ -110,9 +110,8 @@ export function GuestSignupDrawer() {
               setOpen(false);
               navigate("/auth");
             }}
-            className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-black text-[16px] font-semibold text-white shadow-[0_10px_28px_-12px_rgba(0,0,0,0.7)] dark:bg-white dark:text-black"
+            className="mt-6 flex h-14 w-full items-center justify-center rounded-full bg-black text-[16px] font-semibold text-white dark:bg-white dark:text-black"
           >
-            <Sparkles className="h-4 w-4" />
             Start free month
           </motion.button>
 
