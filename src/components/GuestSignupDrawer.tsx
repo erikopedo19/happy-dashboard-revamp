@@ -11,6 +11,8 @@ const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
 
 // Routes where a sign-up nudge would get in the way
 const MUTED_PREFIXES = ["/auth", "/onboarding", "/book/", "/manage/", "/review/", "/waitlist/", "/site/", "/.lovable"];
+// Exact routes where the nudge should never show (landing page)
+const MUTED_EXACT = ["/"];
 
 const PERKS = [
   "Full access to bookings, agenda & clients",
@@ -28,7 +30,9 @@ export function GuestSignupDrawer() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
-  const muted = MUTED_PREFIXES.some((p) => location.pathname.startsWith(p));
+  const muted =
+    MUTED_EXACT.includes(location.pathname) ||
+    MUTED_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
     if (loading || user || muted) return;
