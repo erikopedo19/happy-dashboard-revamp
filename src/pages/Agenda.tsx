@@ -592,7 +592,7 @@ const Agenda = () => {
                     </Button>
                     <Button
                       onPress={handleToggleFilters}
-                      variant={showFilters ? "secondary" : "light"}
+                      variant={showFilters ? "flat" : "light"}
                       size="sm"
                       className={cn(
                         "h-9 rounded-xl px-3",
