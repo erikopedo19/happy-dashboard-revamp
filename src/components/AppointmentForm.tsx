@@ -1313,16 +1313,16 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {showCalendarSelection && (
                   <>
                     {/* Week days header */}
-                    <div className="grid grid-cols-7 mb-1 gap-2">
+                    <div className="grid grid-cols-7 mb-1 gap-1.5">
                       {weekDays.map(day => (
-                        <div key={day} className="text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500 py-2">
-                          {day}
+                        <div key={day} className="text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-500 py-2">
+                          {day.slice(0, 3)}
                         </div>
                       ))}
                     </div>
 
                     {/* Calendar grid */}
-                    <div className="grid grid-cols-7 gap-2">
+                    <div className="grid grid-cols-7 gap-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] p-2">
                       {calendarDays.map((day) => {
                         const isSelected = isSameDay(day, selectedDateObj);
                         const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -1342,19 +1342,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                             onClick={() => handleDateSelect(day)}
                             disabled={isDisabled}
                             className={cn(
-                              "relative aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all",
+                              "relative aspect-square flex items-center justify-center text-[13px] font-semibold rounded-full transition-all duration-200",
                               isSelected
-                                ? "bg-white text-[#0e0e10] shadow-[0_4px_14px_rgba(255,255,255,0.18)]"
+                                ? "bg-white text-[#0b0b0d] shadow-[0_6px_18px_rgba(255,255,255,0.22)] scale-[1.04]"
                                 : isDisabled
-                                ? "text-gray-700"
+                                ? "text-white/20"
                                 : isToday
-                                ? "bg-white/[0.10] text-white hover:bg-white/[0.16]"
-                                : "text-white hover:bg-white/[0.06]"
+                                ? "bg-white/[0.12] text-white hover:bg-white/[0.18]"
+                                : "text-white/85 hover:bg-white/[0.08] hover:text-white"
                             )}
                           >
                             {format(day, 'd')}
                             {showDot && (
-                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#0A84FF]" />
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-white/40" />
                             )}
                           </button>
                         );
