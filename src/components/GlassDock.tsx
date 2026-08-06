@@ -42,7 +42,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         className
       )}
     >
-      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-center justify-center gap-2.5">
+      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-stretch justify-center gap-2.5">
       <motion.div
         initial={{ y: 28, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -165,7 +165,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
             if (trailing.to) navigate(trailing.to);
             trailing.onClick?.();
           }}
-          className="pointer-events-auto flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full"
+          className="pointer-events-auto flex aspect-square shrink-0 self-stretch items-center justify-center rounded-full"
           style={{
             background: "rgba(28, 28, 30, 0.72)",
             border: "1px solid rgba(255, 255, 255, 0.10)",
