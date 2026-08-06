@@ -671,7 +671,7 @@ export const LiquidGlassAgenda = ({
           <motion.div
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
-            className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1"
+            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1 py-1"
           >
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
