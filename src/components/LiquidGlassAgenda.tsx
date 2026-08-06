@@ -1058,14 +1058,20 @@ export const LiquidGlassAgenda = ({
                   {/* Time label */}
                   <div className="flex items-start gap-3 mb-1">
                     <div className="w-12 flex-shrink-0 pt-0.5">
-                      <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                      <span className={cn(
+                        "text-[11px] font-medium",
+                        isMobile && isSameDay(selectedDay, new Date()) && new Date().getHours() === slotHour
+                          ? "inline-flex items-center rounded-full bg-white px-2 py-0.5 text-gray-900 shadow-sm dark:bg-[#1C1C1E] dark:text-white"
+                          : "text-gray-400 dark:text-gray-500"
+                      )}>
                         {hour.endsWith(':00') ? formatTimeLabel(hour) : hour}
                       </span>
                     </div>
 
                     {/* Thin separator line */}
-                    <div className="flex-1 h-px bg-gray-100 dark:bg-white/5 mt-2" />
+                    {!isMobile && <div className="flex-1 h-px bg-gray-100 dark:bg-white/5 mt-2" />}
                   </div>
+
 
                   {/* Appointments in this hour */}
                   {hourAppointments.map((apt) => {
