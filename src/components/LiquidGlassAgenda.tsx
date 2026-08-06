@@ -1260,25 +1260,36 @@ export const LiquidGlassAgenda = ({
         )}
       </div>
 
-      {/* Floating Action Button - Liquid Glass */}
-      <div className="absolute bottom-6 right-6 z-40">
-        <button
-          onClick={() => onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), '09:00')}
-          className={cn(
-            "w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90",
-            "shadow-lg",
-            isDark
-              ? "bg-white/15 border border-white/20 shadow-black/30"
-              : "bg-gray-900/90 border border-gray-800 shadow-gray-900/20"
-          )}
-          style={{
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}
-        >
-          <Plus className={cn("w-6 h-6", isDark ? "text-white" : "text-white")} />
-        </button>
-      </div>
+      {/* Floating Action Button - hidden on past days */}
+      {format(selectedDay, 'yyyy-MM-dd') >= format(new Date(), 'yyyy-MM-dd') && (
+        <div className="absolute bottom-6 right-6 z-40">
+          <button
+            onClick={() => {
+              const now = new Date();
+              let time = '09:00';
+              if (isSameDay(selectedDay, now)) {
+                const nextHour = Math.min(now.getHours() + 1, 23);
+                time = `${nextHour.toString().padStart(2, '0')}:00`;
+              }
+              onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
+            }}
+            className={cn(
+              "w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90",
+              "shadow-lg",
+              isDark
+                ? "bg-white/15 border border-white/20 shadow-black/30"
+                : "bg-gray-900/90 border border-gray-800 shadow-gray-900/20"
+            )}
+            style={{
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <Plus className="w-6 h-6 text-white" />
+          </button>
+        </div>
+      )}
+
 
       {contextMenu && (
         <>
