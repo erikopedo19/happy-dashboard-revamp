@@ -517,6 +517,33 @@ export type Database = {
           },
         ]
       }
+      marketing_email_log: {
+        Row: {
+          campaign: string
+          created_at: string
+          id: string
+          recipient_email: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          campaign: string
+          created_at?: string
+          id?: string
+          recipient_email: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          campaign?: string
+          created_at?: string
+          id?: string
+          recipient_email?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string | null
@@ -1628,6 +1655,18 @@ export type Database = {
         Args: { _appointment_id: string }
         Returns: undefined
       }
+      marketing_email_candidates: {
+        Args: { _limit?: number }
+        Returns: {
+          campaign: string
+          full_name: string
+          month_appointments: number
+          priority: number
+          total_appointments: number
+          user_id: string
+        }[]
+      }
+      marketing_emails_sent_today: { Args: never; Returns: number }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json
