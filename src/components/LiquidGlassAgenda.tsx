@@ -642,13 +642,11 @@ export const LiquidGlassAgenda = ({
         </div>
 
         {isMobile && (
-          <div className="flex items-baseline gap-1.5 mb-1.5 -mt-1">
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white leading-none">
-              {format(selectedDay, 'MMM d')}
+          <div className="flex items-center gap-1.5 mb-2 -mt-0.5">
+            <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
+              {format(selectedDay, 'MMMM yyyy')}
             </span>
-            <span className="text-[11px] text-gray-400 dark:text-white/40 leading-none">
-              {format(selectedDay, 'yyyy')}
-            </span>
+            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-white/40" />
           </div>
         )}
 
