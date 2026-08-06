@@ -427,7 +427,7 @@ const Services = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-              <AlertDialogAction onPress={confirmDelete}
+              <AlertDialogAction onClick={confirmDelete}
                 className="rounded-full text-white border-0" style={{ background: ROSE }}>
                 {serviceToDelete && futureCountFor(serviceToDelete) > 0 ? "Schedule deletion" : "Delete"}
               </AlertDialogAction>

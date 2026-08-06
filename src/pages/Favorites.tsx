@@ -107,7 +107,7 @@ const Favorites = () => {
                 </button>
                 {b.booking_link && (
                   <Link to={`/book/${b.booking_link}`}>
-                    <Button size="icon" className="rounded-2xl h-10 w-10" style={{ background: accent }}>
+                    <Button isIconOnly size="sm" className="rounded-2xl h-10 w-10" style={{ background: accent }}>
                       <Calendar className="w-4 h-4 text-white" />
                     </Button>
                   </Link>
