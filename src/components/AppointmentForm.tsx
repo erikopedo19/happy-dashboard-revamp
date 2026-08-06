@@ -1123,41 +1123,40 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Left Panel - Service Info */}
           <div className="w-[264px] shrink-0 p-6 bg-white/[0.02] border-r border-white/[0.06] flex flex-col">
             {/* Profile */}
-            <div className="mt-8 mb-6">
-              <div className="rounded-full overflow-hidden ring-1 ring-white/10 w-12 h-12">
+            <div className="mt-6 mb-6">
+              <div className="rounded-2xl overflow-hidden ring-1 ring-white/10 w-14 h-14 shadow-lg">
                 <img
                   src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
                   alt={profile?.full_name || 'User'}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-sm text-gray-400 mt-3">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+              <p className="text-[13px] text-gray-400 mt-3 font-medium">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
             </div>
 
             {/* Service Title */}
-            <h2 className="text-xl font-semibold text-white mb-2">
-              {selectedService ? `[${selectedService.duration}-min] ${selectedService.name}` : 'Select a Service'}
+            <h2 className="text-[22px] leading-tight font-semibold text-white tracking-tight mb-2">
+              {selectedService ? selectedService.name : 'Select a service'}
             </h2>
 
             {/* Service Description */}
             {selectedService?.description && (
-              <p className="text-sm text-gray-400 mb-6">{selectedService.description}</p>
+              <p className="text-[13px] leading-relaxed text-gray-400 mb-5">{selectedService.description}</p>
             )}
 
             {/* Service Details */}
             {selectedService && (
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span>{selectedService.duration} min</span>
-                </div>
+              <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-white/[0.06] border border-white/[0.08] px-3 py-1.5 text-[12px] text-gray-300">
+                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                <span>{selectedService.duration} min</span>
               </div>
             )}
 
             {/* Price */}
             {selectedService && (
               <div className="mt-auto pt-6">
-                <p className="text-2xl font-bold text-white">${selectedService.price}</p>
+                <p className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Total</p>
+                <p className="text-[28px] font-semibold text-white tracking-tight">${selectedService.price}</p>
               </div>
             )}
           </div>
