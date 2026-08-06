@@ -191,7 +191,7 @@ export default function Brand() {
             <div className="ml-auto flex items-center">
               <Button
                 className="rounded-full px-7 py-2 bg-[#f3f2fe] text-[#695cfb] hover:bg-[#ece8fd] font-semibold shadow-none"
-                variant="secondary"
+                variant="flat"
               >
                 Save
               </Button>
@@ -347,7 +347,7 @@ export default function Brand() {
                 </div>
                 <div className="font-semibold text-[#202325] mb-1">Need help with your Booking Page?</div>
                 <div className="mb-4 text-sm text-[#737677]">We're real people here to help you 24/7</div>
-                <Button variant="outline" className="w-full rounded-full bg-[#fbfbfd] text-[15px] border-[#edecef] text-[#6c62b3] hover:bg-[#f2f0f9]">
+                <Button variant="bordered" className="w-full rounded-full bg-[#fbfbfd] text-[15px] border-[#edecef] text-[#6c62b3] hover:bg-[#f2f0f9]">
                   💬 Connect with us
                 </Button>
               </div>

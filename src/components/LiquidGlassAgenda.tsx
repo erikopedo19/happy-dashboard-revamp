@@ -547,35 +547,23 @@ export const LiquidGlassAgenda = ({
   return (
     <div className={cn(
       "flex flex-col h-full",
-      "bg-white dark:bg-[#0a0a0a]",
+      isMobile ? "bg-[#F3F2F0] dark:bg-[#0B0B0C]" : "bg-white dark:bg-[#0a0a0a]",
       "transition-colors duration-300"
     )}>
       {/* Top Bar - Week Day Selector */}
       <div className={cn(
         "px-4 pt-2 pb-3",
-        "bg-white/80 dark:bg-[#1a1a1a]/80",
+        isMobile
+          ? "bg-[#F3F2F0]/90 dark:bg-[#0B0B0C]/90 border-b border-black/[0.06] dark:border-white/[0.06]"
+          : "bg-white/80 dark:bg-[#1a1a1a]/80 border-b border-gray-200/50 dark:border-white/5",
         "backdrop-blur-2xl",
-        "border-b border-gray-200/50 dark:border-white/5",
         "sticky top-0 z-30"
       )}>
         <div className="flex items-center justify-between gap-3 mb-1.5">
           {isMobile ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-[15px] font-semibold text-gray-900 dark:text-white active:opacity-60 transition-opacity">
-                  {viewMode === 'week' ? 'Week' : 'Day'}
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-white/40" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
-                <DropdownMenuItem onClick={() => onViewModeChange('week')} className="cursor-pointer">
-                  Week
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onViewModeChange('day')} className="cursor-pointer">
-                  Day
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
+              {format(selectedDay, 'd MMM')}
+            </span>
           ) : shouldShowViewToggle ? (
             <div className="flex items-center gap-2">
               <button
@@ -612,10 +600,28 @@ export const LiquidGlassAgenda = ({
                   className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
-                  More features
+                  More
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
+                {isMobile && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onViewModeChange('day')}
+                      className={cn("cursor-pointer", viewMode === 'day' && "font-semibold")}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Day view
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onViewModeChange('week')}
+                      className={cn("cursor-pointer", viewMode === 'week' && "font-semibold")}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Week view
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem
                   onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
                   className="text-rose-500 dark:text-rose-300 focus:bg-rose-500/10 cursor-pointer"
@@ -642,15 +648,13 @@ export const LiquidGlassAgenda = ({
         </div>
 
         {isMobile && (
-          <div className="flex items-baseline gap-1.5 mb-1.5 -mt-1">
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white leading-none">
-              {format(selectedDay, 'MMM d')}
-            </span>
-            <span className="text-[11px] text-gray-400 dark:text-white/40 leading-none">
-              {format(selectedDay, 'yyyy')}
+          <div className="flex items-center gap-1.5 mb-2 -mt-0.5">
+            <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
+              {format(selectedDay, 'MMMM yyyy')}
             </span>
           </div>
         )}
+
 
 
         {/* Day Selector Row */}
@@ -667,7 +671,7 @@ export const LiquidGlassAgenda = ({
           <motion.div
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
-            className="flex-1 min-w-0 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1"
+            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1 py-1"
           >
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
@@ -695,7 +699,12 @@ export const LiquidGlassAgenda = ({
                   className={cn(
                     "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
                     isMobile
-                      ? "py-1 px-2.5 rounded-xl"
+                      ? cn(
+                          "w-[52px] py-2 rounded-[18px] border",
+                          isSelected
+                            ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+                            : "bg-transparent border-transparent"
+                        )
                       : cn(
                           "py-1.5 px-2 rounded-xl",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
@@ -706,29 +715,34 @@ export const LiquidGlassAgenda = ({
                 >
                   {isMobile ? (
                     <>
-                      <div className="h-1.5 flex items-center justify-center">
-                        {isSelected && <div className={cn("w-1 h-1 rounded-full", isOff ? "bg-rose-500" : "bg-gray-900 dark:bg-white")} />}
-                      </div>
                       <span className={cn(
-                        "font-semibold transition-all",
+                        "text-[12px] font-medium leading-none",
                         isOff
-                          ? cn("text-rose-500 dark:text-rose-400", isSelected ? "text-[19px]" : "text-[15px]")
+                          ? "text-rose-400/90"
                           : isSelected
-                            ? "text-[19px] text-gray-900 dark:text-white"
-                            : isToday
-                              ? "text-[15px] text-blue-600 dark:text-blue-400"
-                              : "text-[15px] text-gray-400 dark:text-gray-500"
-                      )}>
-                        {format(day, 'd')}
-                      </span>
-                      <span className={cn(
-                        "text-[10px] font-medium uppercase mt-0.5",
-                        isOff
-                          ? "text-rose-400/80"
-                          : isSelected ? "text-gray-500 dark:text-white/50" : "text-gray-400 dark:text-gray-500"
+                            ? "text-gray-500 dark:text-white/50"
+                            : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
+                      <span className={cn(
+                        "mt-1.5 text-[18px] font-semibold leading-none transition-all",
+                        isOff
+                          ? "text-rose-500 dark:text-rose-400"
+                          : isSelected
+                            ? "text-gray-900 dark:text-white"
+                            : isToday
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-400 dark:text-gray-500"
+                      )}>
+                        {format(day, 'd')}
+                      </span>
+                      {hasAppointments && !isOff && (
+                        <div className={cn(
+                          "mt-1 h-1 w-1 rounded-full",
+                          isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
+                        )} />
+                      )}
                     </>
                   ) : (
                     <>
@@ -782,36 +796,8 @@ export const LiquidGlassAgenda = ({
             </button>
           )}
 
-          {/* Completion ring */}
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="w-9 h-9 flex items-center justify-center relative"
-          >
-            <svg viewBox="0 0 36 36" className="w-8 h-8">
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className="text-gray-200 dark:text-gray-700"
-              />
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeDasharray={`${completionPct}, 100`}
-                strokeLinecap="round"
-                className="text-green-500 dark:text-green-400"
-              />
-            </svg>
-            <span className="absolute text-[8px] font-bold text-gray-700 dark:text-gray-200">
-              {completionPct}
-            </span>
-          </motion.div>
         </div>
+
 
 
         <AnimatePresence>
@@ -1049,21 +1035,29 @@ export const LiquidGlassAgenda = ({
                   {/* Time label */}
                   <div className="flex items-start gap-3 mb-1">
                     <div className="w-12 flex-shrink-0 pt-0.5">
-                      <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                      <span className={cn(
+                        "text-[11px] font-medium",
+                        isMobile && isSameDay(selectedDay, new Date()) && new Date().getHours() === parseInt(hour.slice(0, 2), 10)
+                          ? "inline-flex items-center rounded-full bg-white px-2 py-0.5 text-gray-900 shadow-sm dark:bg-[#1C1C1E] dark:text-white"
+                          : "text-gray-400 dark:text-gray-500"
+                      )}>
                         {hour.endsWith(':00') ? formatTimeLabel(hour) : hour}
                       </span>
                     </div>
 
                     {/* Thin separator line */}
-                    <div className="flex-1 h-px bg-gray-100 dark:bg-white/5 mt-2" />
+                    {!isMobile && <div className="flex-1 h-px bg-gray-100 dark:bg-white/5 mt-2" />}
                   </div>
+
 
                   {/* Appointments in this hour */}
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
                     const endTime = getEndTime(apt.appointment_time, duration);
                     const slotsSpanned = Math.max(Math.ceil(duration / slotInterval), 1);
-                    const minHeight = Math.max(slotsSpanned * 64, 56);
+                    const minHeight = isMobile
+                      ? Math.max(Math.round(duration * 1.15), 64)
+                      : Math.max(slotsSpanned * 64, 56);
                     const isCompleted = apt.status === 'completed';
                     const isCancelled = apt.status === 'cancelled';
                     const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
@@ -1088,40 +1082,50 @@ export const LiquidGlassAgenda = ({
                               ? (isDark
                                   ? "border-red-500/25 border-dashed opacity-60 shadow-none"
                                   : "border-red-300/60 border-dashed opacity-70 shadow-none")
-                              : (isDark
-                                  ? "border-white/10 shadow-lg shadow-black/20"
-                                  : "border-gray-200/60 shadow-sm")
+                              : isMobile
+                                ? (isDark
+                                    ? "border-white/[0.07] shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
+                                    : "border-black/[0.05] shadow-[0_4px_16px_rgba(0,0,0,0.06)]")
+                                : (isDark
+                                    ? "border-white/10 shadow-lg shadow-black/20"
+                                    : "border-gray-200/60 shadow-sm")
                           )}
                           style={{
                             minHeight: `${minHeight}px`,
                             background: isCancelled
                               ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
-                              : getGlassGradient(serviceColor, isDark),
-                            backdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
-                            WebkitBackdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
-                            borderLeft: isCancelled ? undefined : `3px solid ${colorToRgba(serviceColor, 0.9)}`,
+                              : isMobile
+                                ? (isDark ? "#161618" : "#FFFFFF")
+                                : getGlassGradient(serviceColor, isDark),
+                            backdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
+                            WebkitBackdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
+                            borderLeft: isCancelled ? undefined : `4px solid ${colorToRgba(serviceColor, isMobile ? 1 : 0.9)}`,
                           }}
                         >
-                          {/* Glass shine effect */}
-                          <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                              background: isDark
-                                ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)'
-                                : 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)',
-                              borderRadius: 'inherit',
-                            }}
-                          />
+                          {!isMobile && (
+                            <>
+                              {/* Glass shine effect */}
+                              <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                  background: isDark
+                                    ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)'
+                                    : 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)',
+                                  borderRadius: 'inherit',
+                                }}
+                              />
 
-                          {/* Inner glow ring */}
-                          <div
-                            className="absolute inset-0 rounded-2xl pointer-events-none"
-                            style={{
-                              boxShadow: isDark
-                                ? `inset 0 1px 0 0 rgba(255,255,255,0.08), inset 0 -1px 0 0 rgba(0,0,0,0.2)`
-                                : `inset 0 1px 0 0 rgba(255,255,255,0.6), inset 0 -1px 0 0 rgba(0,0,0,0.04)`,
-                            }}
-                          />
+                              {/* Inner glow ring */}
+                              <div
+                                className="absolute inset-0 rounded-2xl pointer-events-none"
+                                style={{
+                                  boxShadow: isDark
+                                    ? `inset 0 1px 0 0 rgba(255,255,255,0.08), inset 0 -1px 0 0 rgba(0,0,0,0.2)`
+                                    : `inset 0 1px 0 0 rgba(255,255,255,0.6), inset 0 -1px 0 0 rgba(0,0,0,0.04)`,
+                                }}
+                              />
+                            </>
+                          )}
 
                           {/* Content */}
                           <div className="relative z-10 flex flex-col justify-between h-full">
@@ -1256,25 +1260,36 @@ export const LiquidGlassAgenda = ({
         )}
       </div>
 
-      {/* Floating Action Button - Liquid Glass */}
-      <div className="absolute bottom-6 right-6 z-40">
-        <button
-          onClick={() => onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), '09:00')}
-          className={cn(
-            "w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90",
-            "shadow-lg",
-            isDark
-              ? "bg-white/15 border border-white/20 shadow-black/30"
-              : "bg-gray-900/90 border border-gray-800 shadow-gray-900/20"
-          )}
-          style={{
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}
-        >
-          <Plus className={cn("w-6 h-6", isDark ? "text-white" : "text-white")} />
-        </button>
-      </div>
+      {/* Floating Action Button - hidden on past days */}
+      {format(selectedDay, 'yyyy-MM-dd') >= format(new Date(), 'yyyy-MM-dd') && (
+        <div className="absolute bottom-6 right-6 z-40">
+          <button
+            onClick={() => {
+              const now = new Date();
+              let time = '09:00';
+              if (isSameDay(selectedDay, now)) {
+                const nextHour = Math.min(now.getHours() + 1, 23);
+                time = `${nextHour.toString().padStart(2, '0')}:00`;
+              }
+              onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
+            }}
+            className={cn(
+              "w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90",
+              "shadow-lg",
+              isDark
+                ? "bg-white/15 border border-white/20 shadow-black/30"
+                : "bg-gray-900/90 border border-gray-800 shadow-gray-900/20"
+            )}
+            style={{
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <Plus className="w-6 h-6 text-white" />
+          </button>
+        </div>
+      )}
+
 
       {contextMenu && (
         <>

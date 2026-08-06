@@ -549,7 +549,7 @@ export default function Landing() {
                     <Button
                       className="w-full rounded-full h-11"
                       variant={p.highlight ? "solid" : "bordered"}
-                      color={p.highlight ? "rose" : "default"}
+                      color={p.highlight ? "danger" : "default"}
                       onPress={() => navigate("/auth")}
                     >
                       {p.cta}

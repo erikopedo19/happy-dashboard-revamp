@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_blocked_slots: {
+        Row: {
+          blocked_date: string
+          created_at: string
+          end_time: string
+          id: string
+          reason: string | null
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string
+          end_time: string
+          id?: string
+          reason?: string | null
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          reason?: string | null
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agenda_settings: {
         Row: {
           created_at: string | null
@@ -517,6 +550,33 @@ export type Database = {
           },
         ]
       }
+      marketing_email_log: {
+        Row: {
+          campaign: string
+          created_at: string
+          id: string
+          recipient_email: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          campaign: string
+          created_at?: string
+          id?: string
+          recipient_email: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          campaign?: string
+          created_at?: string
+          id?: string
+          recipient_email?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string | null
@@ -774,8 +834,10 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           email_template_html: string | null
+          freelancer_mode: boolean
           full_name: string | null
           google_maps_url: string | null
+          heard_from: string | null
           id: string
           is_public: boolean | null
           latitude: number | null
@@ -819,8 +881,10 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
+          freelancer_mode?: boolean
           full_name?: string | null
           google_maps_url?: string | null
+          heard_from?: string | null
           id: string
           is_public?: boolean | null
           latitude?: number | null
@@ -864,8 +928,10 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
+          freelancer_mode?: boolean
           full_name?: string | null
           google_maps_url?: string | null
+          heard_from?: string | null
           id?: string
           is_public?: boolean | null
           latitude?: number | null
@@ -1622,6 +1688,18 @@ export type Database = {
         Args: { _appointment_id: string }
         Returns: undefined
       }
+      marketing_email_candidates: {
+        Args: { _limit?: number }
+        Returns: {
+          campaign: string
+          full_name: string
+          month_appointments: number
+          priority: number
+          total_appointments: number
+          user_id: string
+        }[]
+      }
+      marketing_emails_sent_today: { Args: never; Returns: number }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json

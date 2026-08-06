@@ -69,6 +69,7 @@ import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
+import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
 
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
@@ -231,6 +232,7 @@ function App() {
                   <GlimmIntercept />
                   <GlobalBanner />
                   <UpdatePopup />
+                  <GuestSignupDrawer />
                   <ScrollToTop />
                   <AnimatedRoutes />
                   <HeaderActions />

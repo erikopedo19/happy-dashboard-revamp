@@ -168,6 +168,65 @@ serve(async (req: Request) => {
     }
 
     await admin.from("profiles").update({ welcome_email_sent: true }).eq("id", user.id);
+
+    // --- Internal admin notification (not a user-facing feature) ---
+    try {
+      if (LOVABLE_API_KEY && BREVO_API_KEY) {
+        const { count } = await admin
+          .from("profiles")
+          .select("id", { count: "exact", head: true });
+
+        const method =
+          (user.app_metadata as any)?.provider ||
+          ((user.identities || [])[0] as any)?.provider ||
+          "email";
+        const created = new Date(user.created_at || new Date().toISOString());
+        const when = created.toISOString().replace("T", " ").slice(0, 19) + " UTC";
+
+        const rows: [string, string][] = [
+          ["User #", String(count ?? "?")],
+          ["Email", email],
+          ["User ID", user.id],
+          ["Signup method", String(method)],
+          ["Date & time", when],
+        ];
+
+        const adminHtml = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#f5f5f7;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c1c1e;">
+<table cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#fff;border:1px solid #e5e5ea;border-radius:16px;overflow:hidden;width:100%;">
+<tr><td style="padding:20px 24px;border-bottom:1px solid #e5e5ea;">
+<div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8e8e93;font-weight:600;">Cutzioo · Internal</div>
+<div style="font-size:19px;font-weight:700;margin-top:4px;">New account created</div>
+</td></tr>
+${rows
+  .map(
+    ([k, v]) =>
+      `<tr><td style="padding:12px 24px;border-bottom:1px solid #f2f2f7;">
+<div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8e8e93;font-weight:600;">${esc(k)}</div>
+<div style="font-size:15px;font-weight:600;margin-top:2px;">${esc(v)}</div></td></tr>`
+  )
+  .join("")}
+</table></body></html>`;
+
+        const adminRes = await fetch(`${GATEWAY_URL}/smtp/email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "X-Connection-Api-Key": BREVO_API_KEY,
+          },
+          body: JSON.stringify({
+            sender: { name: "Cutzioo Signups", email: SENDER_EMAIL },
+            to: [{ email: "erikballiu19@gmail.com" }],
+            subject: `New signup #${count ?? "?"} · ${email}`,
+            htmlContent: adminHtml,
+          }),
+        });
+        if (!adminRes.ok) console.error("Admin notify failed", adminRes.status, await adminRes.text());
+      }
+    } catch (notifyErr) {
+      console.error("Admin notify error", notifyErr);
+    }
+
     // Refresh any listeners
     return new Response(JSON.stringify({ ok: true }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },

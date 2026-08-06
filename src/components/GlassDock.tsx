@@ -21,13 +21,18 @@ interface GlassDockProps {
   items: DockItem[];
   activeIndex: number;
   className?: string;
+  /** Rendered as a separate, detached circular button next to the dock pill. */
+  trailing?: DockItem;
+  trailingActive?: boolean;
 }
 
 const defaultColor = "#FF375F";
 
-export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => {
+export const GlassDock = ({ items, activeIndex, className, trailing, trailingActive }: GlassDockProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const TrailingIcon = trailing?.icon;
 
   return (
     <div
@@ -37,11 +42,12 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
         className
       )}
     >
+      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-stretch justify-center gap-2.5">
       <motion.div
         initial={{ y: 28, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.8 }}
-        className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around overflow-hidden rounded-full px-5 py-3"
+        className="pointer-events-auto relative isolate flex flex-1 items-center justify-around overflow-hidden rounded-full px-3 py-2"
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -146,6 +152,38 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
 
         })}
       </motion.div>
+
+      {trailing && TrailingIcon && (
+        <motion.button
+          type="button"
+          initial={{ y: 28, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24, mass: 0.7, delay: 0.05 }}
+          whileTap={{ scale: 0.9 }}
+          aria-label={trailing.label}
+          onClick={() => {
+            if (trailing.to) navigate(trailing.to);
+            trailing.onClick?.();
+          }}
+          className="pointer-events-auto flex aspect-square shrink-0 self-stretch items-center justify-center rounded-full"
+          style={{
+            background: "rgba(28, 28, 30, 0.72)",
+            border: "1px solid rgba(255, 255, 255, 0.10)",
+            backdropFilter: "blur(32px) saturate(2.2)",
+            WebkitBackdropFilter: "blur(32px) saturate(2.2)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.14)",
+          }}
+        >
+          <TrailingIcon
+            size={22}
+            style={{
+              color: trailingActive ? trailing.color || defaultColor : "rgba(255,255,255,0.75)",
+              transition: "color 0.2s ease",
+            }}
+          />
+        </motion.button>
+      )}
+      </div>
     </div>
   );
 };

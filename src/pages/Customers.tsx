@@ -176,7 +176,7 @@ const Customers = () => {
                 </div>
               </div>
               <div className="flex gap-2 md:gap-3">
-                <Button variant="outline" size="sm" className="hidden sm:flex">
+                <Button variant="bordered" size="sm" className="hidden sm:flex">
                   <Search className="w-4 h-4 mr-2" />
                   Search
                 </Button>
@@ -379,8 +379,8 @@ const Customers = () => {
             <AlertDialogCancel onClick={() => setCustomerToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-[#e11d48] hover:bg-[#be123c]"
-              onPress={() => customerToDelete && deleteMutation.mutate(customerToDelete.id)}
-              isDisabled={deleteMutation.isPending}
+              onClick={() => customerToDelete && deleteMutation.mutate(customerToDelete.id)}
+              disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>

@@ -167,17 +167,14 @@ export const MobileDockInner = () => {
 
   const visibleMoreItems = moreItems;
 
-  const glassItems: DockItem[] = [
-    ...mainItems,
-    { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true) },
-  ];
+  const glassItems: DockItem[] = [...mainItems];
 
   const moreActive = visibleMoreItems.some(
     (item) => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'))
   );
 
   const activeIndex = moreActive
-    ? mainItems.length
+    ? -1
     : glassItems.findIndex((item) => {
         if (!item.to) return false;
         return location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'));
@@ -186,7 +183,12 @@ export const MobileDockInner = () => {
   return (
     <>
       <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} items={visibleMoreItems} />
-      <GlassDock items={glassItems} activeIndex={activeIndex >= 0 ? activeIndex : 0} />
+      <GlassDock
+        items={glassItems}
+        activeIndex={activeIndex >= 0 ? activeIndex : 0}
+        trailing={{ label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true), color: '#FF375F' }}
+        trailingActive={moreActive || moreOpen}
+      />
     </>
   );
 };
