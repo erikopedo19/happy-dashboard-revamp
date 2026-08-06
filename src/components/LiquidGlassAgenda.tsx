@@ -547,15 +547,16 @@ export const LiquidGlassAgenda = ({
   return (
     <div className={cn(
       "flex flex-col h-full",
-      "bg-white dark:bg-[#0a0a0a]",
+      isMobile ? "bg-[#F3F2F0] dark:bg-[#0B0B0C]" : "bg-white dark:bg-[#0a0a0a]",
       "transition-colors duration-300"
     )}>
       {/* Top Bar - Week Day Selector */}
       <div className={cn(
         "px-4 pt-2 pb-3",
-        "bg-white/80 dark:bg-[#1a1a1a]/80",
+        isMobile
+          ? "bg-[#F3F2F0]/90 dark:bg-[#0B0B0C]/90 border-b border-black/[0.06] dark:border-white/[0.06]"
+          : "bg-white/80 dark:bg-[#1a1a1a]/80 border-b border-gray-200/50 dark:border-white/5",
         "backdrop-blur-2xl",
-        "border-b border-gray-200/50 dark:border-white/5",
         "sticky top-0 z-30"
       )}>
         <div className="flex items-center justify-between gap-3 mb-1.5">
