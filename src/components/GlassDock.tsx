@@ -21,13 +21,18 @@ interface GlassDockProps {
   items: DockItem[];
   activeIndex: number;
   className?: string;
+  /** Rendered as a separate, detached circular button next to the dock pill. */
+  trailing?: DockItem;
+  trailingActive?: boolean;
 }
 
 const defaultColor = "#FF375F";
 
-export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => {
+export const GlassDock = ({ items, activeIndex, className, trailing, trailingActive }: GlassDockProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const TrailingIcon = trailing?.icon;
 
   return (
     <div
@@ -37,11 +42,12 @@ export const GlassDock = ({ items, activeIndex, className }: GlassDockProps) => 
         className
       )}
     >
+      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-center justify-center gap-2.5">
       <motion.div
         initial={{ y: 28, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.8 }}
-        className="pointer-events-auto relative isolate mx-auto flex w-[min(380px,calc(100vw-2rem))] items-center justify-around overflow-hidden rounded-[30px] px-4 py-2"
+        className="pointer-events-auto relative isolate flex flex-1 items-center justify-around overflow-hidden rounded-[30px] px-3 py-2"
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
