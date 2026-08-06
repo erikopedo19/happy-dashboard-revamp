@@ -30,7 +30,9 @@ export function GuestSignupDrawer() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
-  const muted = MUTED_PREFIXES.some((p) => location.pathname.startsWith(p));
+  const muted =
+    MUTED_EXACT.includes(location.pathname) ||
+    MUTED_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
     if (loading || user || muted) return;
