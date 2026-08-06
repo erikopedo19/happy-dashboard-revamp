@@ -1365,13 +1365,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             ) : step === "details" ? (
               <div className="h-full flex flex-col">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Enter Your Details
+                <h3 className="text-[22px] font-semibold text-white tracking-tight mb-6">
+                  Your details
                 </h3>
 
                 <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Full Name *
                     </label>
                     <div className="relative">
@@ -1382,13 +1382,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="John Doe"
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                        className="w-full pl-12 pr-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Email Address
                     </label>
                     <input
@@ -1396,7 +1396,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="john@example.com"
-                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       We'll send a confirmation email to this address.
@@ -1404,7 +1404,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Phone Number
                     </label>
                     <input
@@ -1412,7 +1412,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Optional — we'll send an SMS confirmation if provided.
@@ -1420,7 +1420,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Notes
                     </label>
                     <textarea
@@ -1428,7 +1428,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Add any appointment notes"
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
+                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600 resize-none"
                     />
                   </div>
 
@@ -1437,10 +1437,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       type="submit"
                       disabled={isLoading || !customerName}
                       className={cn(
-                        "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                        "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2",
                         customerName && !isLoading
-                          ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                          : "bg-gray-600 cursor-not-allowed"
+                          ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                          : "bg-white/[0.08] text-white/40 cursor-not-allowed"
                       )}
                     >
                       {isLoading ? (
@@ -1481,7 +1481,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
           {/* Right Panel - Time Slots */}
           {(step === "datetime" && showTimeSelection && selectedService) && (
-            <div className="w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06] bg-[#0e0e10]">
+            <div className="w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06] bg-white/[0.02] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[15px] font-semibold text-white tracking-tight">
                   {format(selectedDateObj, 'EEE, MMM d')}
@@ -1502,37 +1502,37 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </div>
               </div>
 
-              <div className="max-h-[360px] flex flex-col gap-1.5 pr-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2 pr-1 overflow-y-auto flex-1 min-h-0 content-start">
                 {availableTimeSlots.map((time) => (
                   <button
                     key={time}
                     onClick={() => handleTimeSelect(time)}
                     className={cn(
-                      "py-3 px-3 rounded-xl border text-sm font-semibold transition-all text-center",
+                      "py-2.5 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all duration-200 active:scale-[0.97]",
                       selectedTimeSlot === time
-                        ? "border-[#0A84FF] bg-[#0A84FF] text-white"
-                        : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.07] text-white"
+                        ? "border-white bg-white text-[#0b0b0d] shadow-[0_6px_18px_-6px_rgba(255,255,255,0.5)]"
+                        : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.08] text-white/90"
                     )}
                   >
                     {formatTime(time)}
                   </button>
                 ))}
                 {availableTimeSlots.length === 0 && (
-                  <div className="rounded-xl border border-white/[0.06] p-4 text-center text-sm text-gray-500">
+                  <div className="col-span-2 rounded-2xl border border-white/[0.06] p-5 text-center text-[13px] text-gray-500">
                     No available times for this service.
                   </div>
                 )}
               </div>
 
-              <div className="mt-6">
+              <div className="mt-5 pt-4 border-t border-white/[0.06]">
                 <button
                   onClick={handleContinue}
                   disabled={!selectedTimeSlot}
                   className={cn(
-                    "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all",
+                    "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99]",
                     selectedTimeSlot
-                      ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                      : "bg-gray-600 cursor-not-allowed"
+                      ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                      : "bg-white/[0.08] text-white/40 cursor-not-allowed"
                   )}
                 >
                   Continue
