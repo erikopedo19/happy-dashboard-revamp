@@ -1104,24 +1104,24 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       size="2xl"
       placement="right"
     >
-      <DrawerContent className="bg-[#0e0e10] p-0 overflow-hidden">
+      <DrawerContent className="bg-[#0b0b0d] p-0 overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)] my-3 mr-3 h-[calc(100vh-1.5rem)]">
         <motion.div
           ref={contentRef}
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-          className="flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
+          className="flex h-full overflow-hidden rounded-[28px]"
         >
           {/* Desktop close */}
           <button
             onClick={handleClose}
-            className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.06] text-gray-400 hover:text-white transition-colors z-10"
+            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.12] transition-all active:scale-95 z-20"
           >
             <X className="h-4 w-4" />
           </button>
 
           {/* Left Panel - Service Info */}
-          <div className="w-[280px] shrink-0 p-6 border-r border-white/[0.06] bg-[#0e0e10] flex flex-col">
+          <div className="w-[264px] shrink-0 p-6 bg-white/[0.02] border-r border-white/[0.06] flex flex-col">
             {/* Profile */}
             <div className="mt-8 mb-6">
               <div className="rounded-full overflow-hidden ring-1 ring-white/10 w-12 h-12">
