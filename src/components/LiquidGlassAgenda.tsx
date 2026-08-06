@@ -1060,7 +1060,7 @@ export const LiquidGlassAgenda = ({
                     <div className="w-12 flex-shrink-0 pt-0.5">
                       <span className={cn(
                         "text-[11px] font-medium",
-                        isMobile && isSameDay(selectedDay, new Date()) && new Date().getHours() === slotHour
+                        isMobile && isSameDay(selectedDay, new Date()) && new Date().getHours() === parseInt(hour.slice(0, 2), 10)
                           ? "inline-flex items-center rounded-full bg-white px-2 py-0.5 text-gray-900 shadow-sm dark:bg-[#1C1C1E] dark:text-white"
                           : "text-gray-400 dark:text-gray-500"
                       )}>
