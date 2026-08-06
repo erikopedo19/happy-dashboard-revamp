@@ -1,6 +1,6 @@
 // Scheduled marketing email engine (Brevo via Lovable gateway).
 // Campaigns: welcome_24h, activation_setup, inactive_14d, milestone_200, monthly_recap.
-// Hard cap: 30 emails per calendar day (UTC), one email per user per campaign (recap: monthly).
+// Hard cap: 30 emails per calendar day (UTC). Per user: max 1 per day, max 2 per rolling 7 days.
 /* eslint-disable */
 declare const Deno: { env: { get(key: string): string | undefined } };
 
