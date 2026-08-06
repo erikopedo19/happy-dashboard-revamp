@@ -67,7 +67,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         />
         {/* Specular top highlight — SwiftUI glass material */}
         <div
-          className="pointer-events-none absolute inset-x-6 top-0 h-px rounded-full"
+          className="pointer-events-none absolute left-1/2 right-1/2 top-0 h-px -translate-x-1/2 w-1/2 rounded-full"
           style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }}
         />
 
@@ -85,10 +85,6 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           const content = (
             <div
               className="relative z-10 flex flex-col items-center gap-px"
-              style={{
-                transform:
-                  i === 0 ? "translateX(-4px)" : i === items.length - 1 ? "translateX(4px)" : undefined,
-              }}
             >
               <motion.div
                 animate={{ scale: isActive ? 1.15 : 1, y: isActive ? -1 : 0 }}
@@ -127,10 +123,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               {isActive && (
                 <motion.div
                   layoutId="tab-glow"
-                  className={cn(
-                    "absolute -inset-y-1 rounded-full overflow-hidden",
-                    i === 0 ? "-left-5 -right-3" : i === items.length - 1 ? "-left-3 -right-5" : "-inset-x-3"
-                  )}
+                  className="absolute -inset-y-1 -inset-x-2 rounded-full overflow-hidden"
                   style={{
                     background: "rgba(255,255,255,0.08)",
                     border: "1px solid rgba(255,255,255,0.06)",
