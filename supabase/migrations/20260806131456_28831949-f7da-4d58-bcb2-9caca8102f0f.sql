@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.clean_display_name(text) TO authenticated, anon;
