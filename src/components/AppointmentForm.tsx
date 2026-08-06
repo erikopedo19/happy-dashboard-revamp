@@ -1104,66 +1104,65 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       size="2xl"
       placement="right"
     >
-      <DrawerContent className="bg-[#0e0e10] p-0 overflow-hidden">
+      <DrawerContent className="bg-[#0b0b0d] p-0 overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)] my-3 mr-3 h-[calc(100vh-1.5rem)]">
         <motion.div
           ref={contentRef}
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-          className="flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
+          className="flex h-full overflow-hidden rounded-[28px]"
         >
           {/* Desktop close */}
           <button
             onClick={handleClose}
-            className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.06] text-gray-400 hover:text-white transition-colors z-10"
+            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.12] transition-all active:scale-95 z-20"
           >
             <X className="h-4 w-4" />
           </button>
 
           {/* Left Panel - Service Info */}
-          <div className="w-[280px] shrink-0 p-6 border-r border-white/[0.06] bg-[#0e0e10] flex flex-col">
+          <div className="w-[264px] shrink-0 p-6 bg-white/[0.02] border-r border-white/[0.06] flex flex-col">
             {/* Profile */}
-            <div className="mt-8 mb-6">
-              <div className="rounded-full overflow-hidden ring-1 ring-white/10 w-12 h-12">
+            <div className="mt-6 mb-6">
+              <div className="rounded-2xl overflow-hidden ring-1 ring-white/10 w-14 h-14 shadow-lg">
                 <img
                   src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
                   alt={profile?.full_name || 'User'}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-sm text-gray-400 mt-3">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+              <p className="text-[13px] text-gray-400 mt-3 font-medium">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
             </div>
 
             {/* Service Title */}
-            <h2 className="text-xl font-semibold text-white mb-2">
-              {selectedService ? `[${selectedService.duration}-min] ${selectedService.name}` : 'Select a Service'}
+            <h2 className="text-[22px] leading-tight font-semibold text-white tracking-tight mb-2">
+              {selectedService ? selectedService.name : 'Select a service'}
             </h2>
 
             {/* Service Description */}
             {selectedService?.description && (
-              <p className="text-sm text-gray-400 mb-6">{selectedService.description}</p>
+              <p className="text-[13px] leading-relaxed text-gray-400 mb-5">{selectedService.description}</p>
             )}
 
             {/* Service Details */}
             {selectedService && (
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span>{selectedService.duration} min</span>
-                </div>
+              <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-white/[0.06] border border-white/[0.08] px-3 py-1.5 text-[12px] text-gray-300">
+                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                <span>{selectedService.duration} min</span>
               </div>
             )}
 
             {/* Price */}
             {selectedService && (
               <div className="mt-auto pt-6">
-                <p className="text-2xl font-bold text-white">${selectedService.price}</p>
+                <p className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Total</p>
+                <p className="text-[28px] font-semibold text-white tracking-tight">${selectedService.price}</p>
               </div>
             )}
           </div>
 
           {/* Center Panel - Calendar */}
-          <div className="flex-1 p-6 overflow-y-auto bg-[#0e0e10]">
+          <div className="flex-1 p-7 overflow-y-auto bg-[#0b0b0d]">
             <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -1176,19 +1175,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               <div className="h-full flex flex-col">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-white tracking-tight">
+                  <h3 className="text-[22px] font-semibold text-white tracking-tight">
                     {format(currentMonth, 'MMMM yyyy')}
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5 p-1 rounded-full bg-white/[0.05] border border-white/[0.06]">
                     <button
                       onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/[0.1] transition-all active:scale-95 text-gray-300"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/[0.1] transition-all active:scale-95 text-gray-300"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -1198,24 +1197,24 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {/* Service Selection */}
                 {showServiceSelection && (
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-400 mb-3">Select Service</label>
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-3">Select service</label>
                     <div className="grid grid-cols-1 gap-2">
                       {services.map((service: Service) => (
                         <button
                           key={service.id}
                           onClick={() => setServiceId(service.id)}
                           className={cn(
-                            "flex items-center justify-between p-4 rounded-xl border transition-all text-left",
+                            "flex items-center justify-between px-4 py-3.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99]",
                             serviceId === service.id
-                              ? "border-[#0A84FF] bg-white/[0.06]"
-                              : "border-white/[0.06] hover:border-gray-600"
+                              ? "border-white/25 bg-white/[0.09] shadow-[0_6px_24px_-8px_rgba(0,0,0,0.6)]"
+                              : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
                           )}
                         >
                           <div>
-                            <p className="font-medium text-white">{service.name}</p>
-                            <p className="text-sm text-gray-500">{service.duration} mins</p>
+                            <p className="font-medium text-white text-[15px] tracking-tight">{service.name}</p>
+                            <p className="text-[12px] text-gray-500 mt-0.5">{service.duration} mins</p>
                           </div>
-                          <p className="font-bold text-white">${service.price}</p>
+                          <p className="font-semibold text-white text-[15px]">${service.price}</p>
                         </button>
                       ))}
                     </div>
@@ -1226,7 +1225,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {selectedService && (
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block text-sm font-medium text-gray-400">
+                      <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500">
                         Stylist <span className="text-gray-600">(optional)</span>
                       </label>
                       {stylists.length > 0 && stylistId && (
@@ -1242,7 +1241,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
                     <div className="grid grid-cols-1 gap-2">
                       {stylists.length === 0 ? (
-                        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
+                        <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
                           <p className="text-sm text-gray-400">
                             No stylists yet — book without one, or add your team.
                           </p>
@@ -1271,10 +1270,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                               type="button"
                               onClick={() => setStylistId(stylist.id)}
                               className={cn(
-                                "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                "flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99]",
                                 stylistId === stylist.id
-                                  ? "border-[#0A84FF] bg-white/[0.06]"
-                                  : "border-white/[0.06] hover:border-gray-600"
+                                  ? "border-white/25 bg-white/[0.09]"
+                                  : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
                               )}
                             >
                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
@@ -1289,7 +1288,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                                 <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
                               </div>
                               {stylistId === stylist.id && (
-                                <Check className="w-5 h-5 text-[#0A84FF]" />
+                                <Check className="w-5 h-5 text-white" />
                               )}
                             </button>
                           ))}
@@ -1314,16 +1313,16 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {showCalendarSelection && (
                   <>
                     {/* Week days header */}
-                    <div className="grid grid-cols-7 mb-1 gap-2">
+                    <div className="grid grid-cols-7 mb-1 gap-1.5">
                       {weekDays.map(day => (
-                        <div key={day} className="text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500 py-2">
-                          {day}
+                        <div key={day} className="text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-500 py-2">
+                          {day.slice(0, 3)}
                         </div>
                       ))}
                     </div>
 
                     {/* Calendar grid */}
-                    <div className="grid grid-cols-7 gap-2">
+                    <div className="grid grid-cols-7 gap-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] p-2">
                       {calendarDays.map((day) => {
                         const isSelected = isSameDay(day, selectedDateObj);
                         const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -1343,19 +1342,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                             onClick={() => handleDateSelect(day)}
                             disabled={isDisabled}
                             className={cn(
-                              "relative aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all",
+                              "relative aspect-square flex items-center justify-center text-[13px] font-semibold rounded-full transition-all duration-200",
                               isSelected
-                                ? "bg-white text-[#0e0e10] shadow-[0_4px_14px_rgba(255,255,255,0.18)]"
+                                ? "bg-white text-[#0b0b0d] shadow-[0_6px_18px_rgba(255,255,255,0.22)] scale-[1.04]"
                                 : isDisabled
-                                ? "text-gray-700"
+                                ? "text-white/20"
                                 : isToday
-                                ? "bg-white/[0.10] text-white hover:bg-white/[0.16]"
-                                : "text-white hover:bg-white/[0.06]"
+                                ? "bg-white/[0.12] text-white hover:bg-white/[0.18]"
+                                : "text-white/85 hover:bg-white/[0.08] hover:text-white"
                             )}
                           >
                             {format(day, 'd')}
                             {showDot && (
-                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#0A84FF]" />
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-white/40" />
                             )}
                           </button>
                         );
@@ -1366,13 +1365,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             ) : step === "details" ? (
               <div className="h-full flex flex-col">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Enter Your Details
+                <h3 className="text-[22px] font-semibold text-white tracking-tight mb-6">
+                  Your details
                 </h3>
 
                 <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Full Name *
                     </label>
                     <div className="relative">
@@ -1383,13 +1382,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="John Doe"
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                        className="w-full pl-12 pr-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Email Address
                     </label>
                     <input
@@ -1397,7 +1396,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="john@example.com"
-                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       We'll send a confirmation email to this address.
@@ -1405,7 +1404,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Phone Number
                     </label>
                     <input
@@ -1413,7 +1412,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Optional — we'll send an SMS confirmation if provided.
@@ -1421,7 +1420,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
                       Notes
                     </label>
                     <textarea
@@ -1429,7 +1428,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Add any appointment notes"
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
+                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600 resize-none"
                     />
                   </div>
 
@@ -1438,10 +1437,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       type="submit"
                       disabled={isLoading || !customerName}
                       className={cn(
-                        "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
+                        "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2",
                         customerName && !isLoading
-                          ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                          : "bg-gray-600 cursor-not-allowed"
+                          ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                          : "bg-white/[0.08] text-white/40 cursor-not-allowed"
                       )}
                     >
                       {isLoading ? (
@@ -1482,7 +1481,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
           {/* Right Panel - Time Slots */}
           {(step === "datetime" && showTimeSelection && selectedService) && (
-            <div className="w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06] bg-[#0e0e10]">
+            <div className="w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06] bg-white/[0.02] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[15px] font-semibold text-white tracking-tight">
                   {format(selectedDateObj, 'EEE, MMM d')}
@@ -1503,37 +1502,37 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </div>
               </div>
 
-              <div className="max-h-[360px] flex flex-col gap-1.5 pr-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2 pr-1 overflow-y-auto flex-1 min-h-0 content-start">
                 {availableTimeSlots.map((time) => (
                   <button
                     key={time}
                     onClick={() => handleTimeSelect(time)}
                     className={cn(
-                      "py-3 px-3 rounded-xl border text-sm font-semibold transition-all text-center",
+                      "py-2.5 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all duration-200 active:scale-[0.97]",
                       selectedTimeSlot === time
-                        ? "border-[#0A84FF] bg-[#0A84FF] text-white"
-                        : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.07] text-white"
+                        ? "border-white bg-white text-[#0b0b0d] shadow-[0_6px_18px_-6px_rgba(255,255,255,0.5)]"
+                        : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.08] text-white/90"
                     )}
                   >
                     {formatTime(time)}
                   </button>
                 ))}
                 {availableTimeSlots.length === 0 && (
-                  <div className="rounded-xl border border-white/[0.06] p-4 text-center text-sm text-gray-500">
+                  <div className="col-span-2 rounded-2xl border border-white/[0.06] p-5 text-center text-[13px] text-gray-500">
                     No available times for this service.
                   </div>
                 )}
               </div>
 
-              <div className="mt-6">
+              <div className="mt-5 pt-4 border-t border-white/[0.06]">
                 <button
                   onClick={handleContinue}
                   disabled={!selectedTimeSlot}
                   className={cn(
-                    "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all",
+                    "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99]",
                     selectedTimeSlot
-                      ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                      : "bg-gray-600 cursor-not-allowed"
+                      ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                      : "bg-white/[0.08] text-white/40 cursor-not-allowed"
                   )}
                 >
                   Continue
