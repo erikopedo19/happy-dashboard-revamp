@@ -1162,7 +1162,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           </div>
 
           {/* Center Panel - Calendar */}
-          <div className="flex-1 p-6 overflow-y-auto bg-[#0e0e10]">
+          <div className="flex-1 p-7 overflow-y-auto bg-[#0b0b0d]">
             <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -1175,19 +1175,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               <div className="h-full flex flex-col">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-white tracking-tight">
+                  <h3 className="text-[22px] font-semibold text-white tracking-tight">
                     {format(currentMonth, 'MMMM yyyy')}
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5 p-1 rounded-full bg-white/[0.05] border border-white/[0.06]">
                     <button
                       onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/[0.1] transition-all active:scale-95 text-gray-300"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/[0.1] transition-all active:scale-95 text-gray-300"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -1197,24 +1197,24 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {/* Service Selection */}
                 {showServiceSelection && (
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-400 mb-3">Select Service</label>
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-3">Select service</label>
                     <div className="grid grid-cols-1 gap-2">
                       {services.map((service: Service) => (
                         <button
                           key={service.id}
                           onClick={() => setServiceId(service.id)}
                           className={cn(
-                            "flex items-center justify-between p-4 rounded-xl border transition-all text-left",
+                            "flex items-center justify-between px-4 py-3.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99]",
                             serviceId === service.id
-                              ? "border-[#0A84FF] bg-white/[0.06]"
-                              : "border-white/[0.06] hover:border-gray-600"
+                              ? "border-white/25 bg-white/[0.09] shadow-[0_6px_24px_-8px_rgba(0,0,0,0.6)]"
+                              : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
                           )}
                         >
                           <div>
-                            <p className="font-medium text-white">{service.name}</p>
-                            <p className="text-sm text-gray-500">{service.duration} mins</p>
+                            <p className="font-medium text-white text-[15px] tracking-tight">{service.name}</p>
+                            <p className="text-[12px] text-gray-500 mt-0.5">{service.duration} mins</p>
                           </div>
-                          <p className="font-bold text-white">${service.price}</p>
+                          <p className="font-semibold text-white text-[15px]">${service.price}</p>
                         </button>
                       ))}
                     </div>
