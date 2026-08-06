@@ -1078,7 +1078,9 @@ export const LiquidGlassAgenda = ({
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
                     const endTime = getEndTime(apt.appointment_time, duration);
                     const slotsSpanned = Math.max(Math.ceil(duration / slotInterval), 1);
-                    const minHeight = Math.max(slotsSpanned * 64, 56);
+                    const minHeight = isMobile
+                      ? Math.max(Math.round(duration * 1.15), 64)
+                      : Math.max(slotsSpanned * 64, 56);
                     const isCompleted = apt.status === 'completed';
                     const isCancelled = apt.status === 'cancelled';
                     const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
@@ -1103,18 +1105,24 @@ export const LiquidGlassAgenda = ({
                               ? (isDark
                                   ? "border-red-500/25 border-dashed opacity-60 shadow-none"
                                   : "border-red-300/60 border-dashed opacity-70 shadow-none")
-                              : (isDark
-                                  ? "border-white/10 shadow-lg shadow-black/20"
-                                  : "border-gray-200/60 shadow-sm")
+                              : isMobile
+                                ? (isDark
+                                    ? "border-white/[0.07] shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
+                                    : "border-black/[0.05] shadow-[0_4px_16px_rgba(0,0,0,0.06)]")
+                                : (isDark
+                                    ? "border-white/10 shadow-lg shadow-black/20"
+                                    : "border-gray-200/60 shadow-sm")
                           )}
                           style={{
                             minHeight: `${minHeight}px`,
                             background: isCancelled
                               ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
-                              : getGlassGradient(serviceColor, isDark),
-                            backdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
-                            WebkitBackdropFilter: isCancelled ? "none" : "blur(40px) saturate(180%)",
-                            borderLeft: isCancelled ? undefined : `3px solid ${colorToRgba(serviceColor, 0.9)}`,
+                              : isMobile
+                                ? (isDark ? "#161618" : "#FFFFFF")
+                                : getGlassGradient(serviceColor, isDark),
+                            backdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
+                            WebkitBackdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
+                            borderLeft: isCancelled ? undefined : `4px solid ${colorToRgba(serviceColor, isMobile ? 1 : 0.9)}`,
                           }}
                         >
                           {/* Glass shine effect */}
