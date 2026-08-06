@@ -1225,7 +1225,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 {selectedService && (
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block text-sm font-medium text-gray-400">
+                      <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500">
                         Stylist <span className="text-gray-600">(optional)</span>
                       </label>
                       {stylists.length > 0 && stylistId && (
@@ -1241,7 +1241,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
                     <div className="grid grid-cols-1 gap-2">
                       {stylists.length === 0 ? (
-                        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
+                        <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
                           <p className="text-sm text-gray-400">
                             No stylists yet — book without one, or add your team.
                           </p>
@@ -1270,10 +1270,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                               type="button"
                               onClick={() => setStylistId(stylist.id)}
                               className={cn(
-                                "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                "flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99]",
                                 stylistId === stylist.id
-                                  ? "border-[#0A84FF] bg-white/[0.06]"
-                                  : "border-white/[0.06] hover:border-gray-600"
+                                  ? "border-white/25 bg-white/[0.09]"
+                                  : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
                               )}
                             >
                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
@@ -1288,7 +1288,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                                 <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
                               </div>
                               {stylistId === stylist.id && (
-                                <Check className="w-5 h-5 text-[#0A84FF]" />
+                                <Check className="w-5 h-5 text-white" />
                               )}
                             </button>
                           ))}
