@@ -122,7 +122,6 @@ export function useFinalizeOnboarding() {
             booking_locale: draft.appLanguage || "en",
             currency: (draft as any).currency || "EUR",
             accepts_waitlist: !!draft.acceptsWaitlist,
-            freelancer_mode: !!draft.freelancerMode,
             heard_from: draft.heardFrom || null,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),

@@ -143,7 +143,6 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const [endHour, setEndHour] = useState("18:00");
   const [cancellationAlerts, setCancellationAlerts] = useState(true);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(true);
-  const [freelancerMode, setFreelancerMode] = useState(false);
   const [heardFrom, setHeardFrom] = useState("");
   const { setIsOpen } = useOnboardingVisibility();
 
@@ -205,7 +204,6 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           notify_cancellation_alerts: cancellationAlerts,
           loyalty_discount_enabled: loyaltyDiscount,
           loyalty_discount_percent: 20,
-          freelancer_mode: freelancerMode,
           heard_from: heardFrom || null,
           onboarding_completed: true,
           is_public: true,
@@ -528,7 +526,6 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                 <div className="grid gap-3">
                   <FeatureCard icon={BellRing} title="Cancellation alerts" detail="Get an instant notification when a client cancels, so you can refill the slot fast." checked={cancellationAlerts} onChange={setCancellationAlerts} />
                   <FeatureCard icon={Tag} title="Loyal regular discount" detail="Clients with more than one booking in seven days automatically receive 20% off their next booking." checked={loyaltyDiscount} onChange={setLoyaltyDiscount} />
-                  <FeatureCard icon={Home} title="Freelancer mode" detail="I travel to clients' homes for appointments." checked={freelancerMode} onChange={setFreelancerMode} />
                 </div>
                 <div className="rounded-[24px] bg-[#1C1C1E] p-4">
                   <p className="text-[13px] font-semibold text-white/90 mb-3">How did you hear about us?</p>
