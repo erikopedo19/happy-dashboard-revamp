@@ -129,6 +129,11 @@ export function MobileSettings(props: any) {
   const { setRole } = useRoleSwitch();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+    document.scrollingElement?.scrollTo({ top: 0 });
+  }, []);
+
+  useEffect(() => {
     setAvatarFailed(false);
   }, [brandForm.avatar_url]);
 
