@@ -597,11 +597,14 @@ export const LiquidGlassAgenda = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
+                  className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
-                  More
+                  <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#F43F5E,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-transparent">
+                    More
+                  </span>
                 </button>
+
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
                 {isMobile && (
