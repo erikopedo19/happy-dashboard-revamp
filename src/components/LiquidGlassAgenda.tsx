@@ -658,11 +658,11 @@ export const LiquidGlassAgenda = ({
 
 
         {/* Day Selector Row */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0">
           {/* Menu / back button area */}
           <button
             onClick={() => onWeekChange(addDays(currentWeek, -7))}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            className="w-6 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -671,8 +671,9 @@ export const LiquidGlassAgenda = ({
           <motion.div
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
-            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1 py-1"
+            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-2 px-0.5 py-1"
           >
+
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
