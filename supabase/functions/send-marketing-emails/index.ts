@@ -274,10 +274,12 @@ serve(async (req: Request) => {
       const ok = res.ok;
       if (!ok) console.error("Brevo send failed", c.campaign, res.status, await res.text());
 
-      await admin
-        .from("marketing_email_log")
-        .update({ status: ok ? "sent" : "failed" })
-        .eq("id", reserved.id);
+      if (ok) {
+        await admin.from("marketing_email_log").update({ status: "sent" }).eq("id", reserved.id);
+      } else {
+        // release the reservation so the campaign can be retried later
+        await admin.from("marketing_email_log").delete().eq("id", reserved.id);
+      }
 
       if (ok) {
         sent++;
