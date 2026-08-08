@@ -791,11 +791,12 @@ export const LiquidGlassAgenda = ({
           {isMobile && (
             <button
               onClick={() => onWeekChange(addDays(currentWeek, 7))}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+              className="w-6 h-9 -mr-1 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           )}
+
 
         </div>
 
