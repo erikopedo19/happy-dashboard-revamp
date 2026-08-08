@@ -95,12 +95,19 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
                   style={{ color: itemTextColor, transition: "color 0.2s ease" }}
                 />
               </motion.div>
-              <span
-                className="text-[10px] font-medium"
-                style={{ color: itemTextColor, transition: "color 0.2s ease" }}
-              >
-                {item.label}
-              </span>
+              {item.label === "More" ? (
+                <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#F43F5E,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
+                  {item.label}
+                </span>
+              ) : (
+                <span
+                  className="text-[10px] font-medium"
+                  style={{ color: itemTextColor, transition: "color 0.2s ease" }}
+                >
+                  {item.label}
+                </span>
+              )}
+
             </div>
           );
 
