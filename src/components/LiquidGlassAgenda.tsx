@@ -1245,20 +1245,34 @@ export const LiquidGlassAgenda = ({
                       <div
                         className={cn(
                           "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
-                          isDark
-                            ? "border-white/10 text-white/40"
-                            : "border-gray-300/60 text-gray-500"
+                          selectedDayIsOff
+                            ? "border-rose-500/30 text-rose-500/80 dark:text-rose-300/80"
+                            : isDark
+                              ? "border-white/10 text-white/40"
+                              : "border-gray-300/60 text-gray-500"
                         )}
                         style={{
-                          backgroundImage: isDark
-                            ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
-                            : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
+                          backgroundImage: selectedDayIsOff
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(244,63,94,0.10) 7px, rgba(244,63,94,0.10) 14px)"
+                            : isDark
+                              ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
+                              : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
                         }}
                       >
-                        <Ban className="w-3.5 h-3.5" />
-                        <span className="text-[12px] font-medium">Blocked</span>
+                        {selectedDayIsOff ? (
+                          <>
+                            {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3.5 h-3.5" />; })()}
+                            <span className="text-[12px] font-medium">{selectedDayOffReason}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Ban className="w-3.5 h-3.5" />
+                            <span className="text-[12px] font-medium">Blocked</span>
+                          </>
+                        )}
                       </div>
                     </div>
+
                   )}
 
                   {/* Spacer between hours */}
