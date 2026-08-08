@@ -120,6 +120,31 @@ const ModernBookingForm = ({
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
 
+  // Check which dates have available slots for selected services
+  const datesWithAvailability = useMemo(() => {
+    if (!selectedServiceIds.length || !timeSlots.length) return new Set<string>();
+    const availableDates = new Set<string>();
+    
+    calendarDays.forEach((day) => {
+      const dayKey = format(day, 'yyyy-MM-dd');
+      const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
+      const isWorkingDay = workingDays.includes(getDay(day));
+      
+      if (!isPast && isWorkingDay) {
+        // Check if there are any available slots for this date
+        const dayAvailability = timeSlots.filter((time) => {
+          return isTimeSlotAvailable(time);
+        });
+        
+        if (dayAvailability.length > 0) {
+          availableDates.add(dayKey);
+        }
+      }
+    });
+    
+    return availableDates;
+  }, [calendarDays, selectedServiceIds, timeSlots, workingDays, isTimeSlotAvailable, format]);
+
   // Week days header - starting from Monday
   const weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -783,6 +808,8 @@ const ModernBookingForm = ({
                     const isCurrentMonth = isSameMonth(day, currentMonth);
                     const isToday = isSameDay(day, new Date());
                     const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day));
+                    const dayKey = format(day, 'yyyy-MM-dd');
+                    const hasAvailability = datesWithAvailability.has(dayKey);
                     
                     return (
                       <button
@@ -797,6 +824,8 @@ const ModernBookingForm = ({
                             ? "text-gray-400 cursor-not-allowed"
                             : !isCurrentMonth
                             ? getTextMutedClass()
+                            : !hasAvailability
+                            ? "opacity-40"
                             : isToday
                             ? `${getTextClass()} border ${getBorderClass()}`
                             : `${getTextClass()} hover:${getCardBgClassTertiary()} ${getCardBgClassSecondary()}`

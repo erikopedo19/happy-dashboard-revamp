@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
+import { startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
@@ -261,6 +261,36 @@ const AgendaBookingForm = ({
     const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
+
+  // Check which dates have available slots for selected services
+  const datesWithAvailability = useMemo(() => {
+    if (!selectedServiceIds.length || !timeSlots.length) return new Set<string>();
+    const availableDates = new Set<string>();
+    
+    calendarDays.forEach((day) => {
+      const dayKey = format(day, 'yyyy-MM-dd');
+      const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
+      const isWorkingDay = workingDays.includes(getDay(day));
+      const isDayOff = disabledDates.includes(dayKey);
+      
+      if (!isPast && isWorkingDay && !isDayOff) {
+        // Check if there are any available slots for this date
+        const dayAvailability = timeSlots.filter((time) => {
+          if (isSameDay(day, new Date())) {
+            const nowMin = minutesInTz(new Date(), timezone);
+            return timeStrToMinutes(time.slice(0, 5)) > nowMin && isTimeSlotAvailable(time, selectedServiceIds);
+          }
+          return isTimeSlotAvailable(time, selectedServiceIds);
+        });
+        
+        if (dayAvailability.length > 0) {
+          availableDates.add(dayKey);
+        }
+      }
+    });
+    
+    return availableDates;
+  }, [calendarDays, selectedServiceIds, timeSlots, workingDays, disabledDates, timezone, isTimeSlotAvailable, isSameDay]);
 
   const weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -746,6 +776,8 @@ const AgendaBookingForm = ({
                           const isCurrentMonth = isSameMonth(day, currentMonth);
                           const isToday = isSameDay(day, new Date());
                           const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day)) || disabledDates.includes(format(day, 'yyyy-MM-dd'));
+                          const dayKey = format(day, 'yyyy-MM-dd');
+                          const hasAvailability = datesWithAvailability.has(dayKey);
                           return (
                             <button
                               key={day.toISOString()}
@@ -759,6 +791,8 @@ const AgendaBookingForm = ({
                                   ? "text-[#636366] cursor-not-allowed"
                                   : !isCurrentMonth
                                   ? "text-[#636366]"
+                                  : !hasAvailability
+                                  ? "text-white/40"
                                   : isToday
                                   ? "text-white border border-[#3a3a3a]"
                                   : "text-white hover:bg-[#2a2a2a] bg-[#2a2a2a]/40"
