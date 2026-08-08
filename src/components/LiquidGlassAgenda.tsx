@@ -718,7 +718,9 @@ export const LiquidGlassAgenda = ({
                           "w-[58px] py-2.5 rounded-[18px] border",
                           isSelected
                             ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
-                            : "bg-transparent border-transparent"
+                            : isToday
+                              ? "bg-blue-500 text-white border-blue-600 shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                              : "bg-transparent border-transparent"
                         )
                       : cn(
                           "py-1.5 px-2 rounded-xl",
@@ -737,7 +739,7 @@ export const LiquidGlassAgenda = ({
                           : isSelected
                             ? "text-gray-500 dark:text-white/50"
                             : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                              ? "text-blue-100"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
@@ -749,7 +751,7 @@ export const LiquidGlassAgenda = ({
                           : isSelected
                             ? "text-gray-900 dark:text-white"
                             : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                              ? "text-white"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
@@ -816,7 +818,7 @@ export const LiquidGlassAgenda = ({
                 }}
                 className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[12px] font-semibold hover:bg-blue-600 transition-colors"
               >
-                {format(new Date(), 'MMM d')}
+                Today
               </button>
               <button
                 onClick={() => onWeekChange(addDays(currentWeek, 7))}
