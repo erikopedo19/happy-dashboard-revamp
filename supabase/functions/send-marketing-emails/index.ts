@@ -18,6 +18,7 @@ const GATEWAY_URL = "https://connector-gateway.lovable.dev/brevo";
 const SENDER_EMAIL = "hello@cutzioo.com";
 const SENDER_NAME = "Cutzioo";
 const APP_URL = "https://cutzioo.com";
+const LOGO_URL = "https://cutzioo.com/__l5e/assets-v1/73db5242-2eb7-4a09-ae43-1ef5358c6085/cutzioo-check.png";
 const DAILY_CAP = 30;
 
 const esc = (s: string) =>
@@ -37,7 +38,10 @@ function shell(opts: {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:40px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e5e5ea;">
-      <tr><td style="padding:36px 32px 4px;">
+      <tr><td style="padding:32px 32px 0;">
+        <img src="${LOGO_URL}" width="34" height="34" alt="Cutzioo" style="display:block;border:0;width:34px;height:34px;border-radius:10px;" />
+      </td></tr>
+      <tr><td style="padding:18px 32px 4px;">
         <div style="font-size:11px;color:#8e8e93;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-bottom:10px;">${esc(opts.kicker)}</div>
         <h1 style="margin:0;font-size:23px;font-weight:700;color:#1c1c1e;letter-spacing:-0.02em;line-height:1.3;">${opts.title}</h1>
       </td></tr>
@@ -53,6 +57,36 @@ function shell(opts: {
   </td></tr>
 </table>
 </body></html>`;
+}
+
+function barChart(weekly: Array<{ label: string; booked: number; cancelled: number }>) {
+  const rows = (weekly ?? []).filter(Boolean);
+  if (!rows.length) return "";
+  const max = Math.max(1, ...rows.map((r) => Number(r.booked ?? 0) + Number(r.cancelled ?? 0)));
+  const bars = rows
+    .map((r) => {
+      const booked = Number(r.booked ?? 0);
+      const cancelled = Number(r.cancelled ?? 0);
+      const bw = Math.round((booked / max) * 100);
+      const cw = Math.round((cancelled / max) * 100);
+      return `<tr>
+  <td style="padding:6px 10px 6px 0;font-size:12px;color:#8e8e93;white-space:nowrap;">${esc(r.label)}</td>
+  <td style="padding:6px 0;">
+    <div style="background:#1c1c1e;height:10px;border-radius:6px;width:${bw}%;min-width:2px;display:block;"></div>
+    ${cancelled > 0 ? `<div style="background:#e5b3b3;height:6px;border-radius:6px;width:${cw}%;min-width:2px;display:block;margin-top:4px;"></div>` : ""}
+  </td>
+  <td align="right" style="padding:6px 0 6px 10px;font-size:12px;color:#48484a;white-space:nowrap;">${booked}${cancelled > 0 ? ` · <span style="color:#c0392b;">${cancelled}</span>` : ""}</td>
+</tr>`;
+    })
+    .join("");
+  return `<div style="margin-top:18px;padding:16px 18px;border:1px solid #e5e5ea;border-radius:16px;">
+  <div style="font-size:12px;color:#8e8e93;margin-bottom:8px;">Weekly activity</div>
+  <table width="100%" cellpadding="0" cellspacing="0">${bars}</table>
+  <div style="margin-top:10px;font-size:11px;color:#a1a1a6;">
+    <span style="display:inline-block;width:8px;height:8px;background:#1c1c1e;border-radius:2px;"></span> Booked
+    &nbsp;&nbsp;<span style="display:inline-block;width:8px;height:8px;background:#e5b3b3;border-radius:2px;"></span> Cancelled
+  </div>
+</div>`;
 }
 
 type Campaign = {
@@ -123,11 +157,13 @@ const CAMPAIGNS: Record<string, Campaign> = {
       shell({
         kicker: "Monthly recap",
         title: "Here's how last month went",
-        body: `<p style="margin:0 0 16px;">Hi ${esc(c.firstName)}, a quick look at your last 30 days on Cutzioo.</p>
+        body: `<p style="margin:0 0 16px;">Hi ${esc(c.firstName)}, a quick look at your last full month on Cutzioo.</p>
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f7;border-radius:16px;">
-  <tr><td style="padding:16px 18px;font-size:14px;color:#8e8e93;">Appointments</td><td align="right" style="padding:16px 18px;font-size:17px;font-weight:700;">${c.month}</td></tr>
+  <tr><td style="padding:16px 18px;font-size:14px;color:#8e8e93;">Booked</td><td align="right" style="padding:16px 18px;font-size:17px;font-weight:700;">${c.month}</td></tr>
+  <tr><td style="padding:0 18px 12px;font-size:14px;color:#8e8e93;">Cancelled</td><td align="right" style="padding:0 18px 12px;font-size:17px;font-weight:700;color:#c0392b;">${c.cancelled}</td></tr>
   <tr><td style="padding:0 18px 16px;font-size:14px;color:#8e8e93;">All time</td><td align="right" style="padding:0 18px 16px;font-size:17px;font-weight:700;">${c.total}</td></tr>
 </table>
+${barChart(c.weekly)}
 <p style="margin:16px 0 0;font-size:14px;">Share your booking link again this week — it's the easiest way to grow next month's number.</p>`,
         ctaLabel: "View my dashboard",
         ctaUrl: `${APP_URL}/admin`,
@@ -190,6 +226,8 @@ serve(async (req: Request) => {
         firstName: String(c.full_name || "there").split(" ")[0] || "there",
         total: Number(c.total_appointments ?? 0),
         month: Number(c.month_appointments ?? 0),
+        cancelled: Number(c.cancelled_appointments ?? 0),
+        weekly: (c.weekly_counts ?? []) as any[],
         remaining: Math.max(1, 200 - Number(c.total_appointments ?? 0)),
       };
 
