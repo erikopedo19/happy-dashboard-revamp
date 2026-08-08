@@ -1,7 +1,7 @@
 -- Blocked time slots on the agenda (e.g. 45 min buffer before a booking)
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE               TABLE IF NOT EXISTS public.agenda_blocked_slots (
+CREATE TABLE IF NOT EXISTS public.agenda_blocked_slots (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   blocked_date date NOT NULL,

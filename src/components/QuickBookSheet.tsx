@@ -180,33 +180,6 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     return out;
   }, [workingDays, timeOffSet]);
 
-  // Check which dates have available slots for the selected service
-  const datesWithAvailability = useMemo(() => {
-    if (!selectedService || !settings) return new Set<string>();
-    const availableDates = new Set<string>();
-    
-    nextDays.forEach((d) => {
-      const slots = getAvailableBookingSlots({
-        date: d,
-        allSlots,
-        startHour: settings.start_hour,
-        endHour: settings.end_hour,
-        interval: settings.service_duration,
-        serviceDuration: selectedService.duration,
-        bookedSlots: booked,
-        workingDays,
-        timezone: settings.timezone,
-        timeOffDates: timeOffSet,
-      });
-      
-      if (slots.length > 0) {
-        availableDates.add(format(d, "yyyy-MM-dd"));
-      }
-    });
-    
-    return availableDates;
-  }, [nextDays, selectedService, settings, allSlots, booked, workingDays, timeOffSet]);
-
   const availableSlots = useMemo(() => {
     if (!selectedService || !settings) return [];
     return getAvailableBookingSlots({
@@ -220,9 +193,8 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       workingDays,
       timezone: settings.timezone,
       timeOffDates: timeOffSet,
-      blockedSlots: blocked,
     });
-  }, [allSlots, booked, selectedService, settings, date, workingDays, timeOffSet, blocked]);
+  }, [allSlots, booked, selectedService, settings, date, workingDays, timeOffSet]);
 
   const canContinue = serviceId && time;
   const canConfirm = name.trim() && /\S+@\S+\.\S+/.test(email);
@@ -405,8 +377,6 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {nextDays.map((d) => {
                       const active = isSameDay(d, date);
-                      const dateKey = format(d, "yyyy-MM-dd");
-                      const hasAvailability = datesWithAvailability.has(dateKey);
                       return (
                         <button
                           key={d.toISOString()}
@@ -418,8 +388,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                             "shrink-0 w-14 py-2.5 rounded-[20px] flex flex-col items-center transition active:scale-95",
                             active
                               ? "text-white"
-                              : "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] border border-black/5 dark:border-white/5",
-                            !hasAvailability && !active && "opacity-40"
+                              : "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] border border-black/5 dark:border-white/5"
                           )}
                           style={active ? { backgroundColor: accentColor } : undefined}
                         >

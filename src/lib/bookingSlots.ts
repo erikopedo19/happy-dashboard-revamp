@@ -65,7 +65,6 @@ export const getAvailableBookingSlots = ({
   stylistId,
   allowPastSlots = false,
   timeOffDates,
-  blockedSlots,
 }: {
   date: Date;
   allSlots: string[];
@@ -80,8 +79,6 @@ export const getAvailableBookingSlots = ({
   allowPastSlots?: boolean;
   /** Dates (yyyy-MM-dd) the business marked as days off — never bookable. */
   timeOffDates?: string[] | Set<string> | null;
-  /** Blocked slots (e.g., buffers) that should not be bookable */
-  blockedSlots?: { start_time: string; end_time: string }[] | null;
 }) => {
   const days = workingDays ?? [0, 1, 2, 3, 4, 5, 6];
   if (!days.includes(date.getDay())) return [];
@@ -107,19 +104,6 @@ export const getAvailableBookingSlots = ({
     if (slotMin < openMin || slotMin + slotDuration > closeMin) return false;
     if ((slotMin - openMin) % step !== 0) return false;
     if (!allowPastSlots && isToday && slotMin <= nowMinutes) return false;
-    if (bookedSlots.some((booked) => bookingSlotOverlaps(slot, slotDuration, booked, step, stylistId))) return false;
-    
-    // Check if slot overlaps with any blocked slots
-    if (blockedSlots && blockedSlots.length > 0) {
-      const slotEndMin = slotMin + slotDuration;
-      const overlapsBlocked = blockedSlots.some((blocked) => {
-        const blockedStart = parseTime(blocked.start_time);
-        const blockedEnd = parseTime(blocked.end_time);
-        return slotMin < blockedEnd && slotEndMin > blockedStart;
-      });
-      if (overlapsBlocked) return false;
-    }
-    
-    return true;
+    return !bookedSlots.some((booked) => bookingSlotOverlaps(slot, slotDuration, booked, step, stylistId));
   });
 };

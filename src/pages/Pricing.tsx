@@ -81,7 +81,7 @@ export default function Pricing() {
         </button>
       </div>
 
-      <div className="flex-1 mx-auto w-full max-w-md px-6 pb-52 flex flex-col">
+      <div className="flex-1 mx-auto w-full max-w-md px-6 pb-40 flex flex-col">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,21 +190,19 @@ export default function Pricing() {
       </div>
 
       {/* Sticky checkout bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-white/[0.08] bg-[#08080A]/95 backdrop-blur-xl z-50">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-white/[0.08] bg-[#08080A]/95 backdrop-blur-xl">
         <div
-          className="mx-auto w-full max-w-md px-6 pt-4"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}
+          className="mx-auto w-full max-w-md px-6 pt-3"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 14px)" }}
         >
-          <div className="bg-gradient-to-r from-rose-500/10 to-purple-500/10 rounded-2xl p-4 mb-4 border border-white/[0.08]">
-            <p className="text-center text-[13px] text-white/70 font-medium">
-              {active
-                ? `${active.title} · ${active.price} ${freeTrial && STRIPE_TRIAL_ENABLED ? "after your 7-day free trial" : active.sub}`
-                : "Select a plan"}
-            </p>
-          </div>
+          <p className="mb-2 text-center text-[12.5px] text-white/45">
+            {active
+              ? `${active.title} · ${active.price} ${freeTrial && STRIPE_TRIAL_ENABLED ? "after your 7-day free trial" : active.sub}`
+              : "Select a plan"}
+          </p>
           <button
             onClick={handleContinue}
-            className="w-full h-14 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[16px] font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-[0_8px_24px_rgba(244,63,94,0.4)] hover:shadow-[0_12px_32px_rgba(244,63,94,0.5)] border border-rose-400/20"
+            className="w-full h-14 rounded-full bg-black text-white text-[16px] font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition border border-black/10"
           >
             <Sparkles className="w-4 h-4" />
             Continue
