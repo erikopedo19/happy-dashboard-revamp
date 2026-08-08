@@ -118,7 +118,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               onHoverEnd={() => setHovered(null)}
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
-              className="relative flex cursor-pointer flex-col items-center gap-[3px] rounded-full px-4 py-2"
+              className="relative flex flex-1 cursor-pointer flex-col items-center gap-[3px] rounded-full px-2 py-2"
             >
               {isActive && (
                 <motion.div
