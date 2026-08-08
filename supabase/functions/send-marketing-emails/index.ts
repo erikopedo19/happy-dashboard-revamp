@@ -237,6 +237,25 @@ serve(async (req: Request) => {
         continue;
       }
 
+      // Reserve the slot first — the unique index (user_id, campaign, period)
+      // makes a duplicate send impossible even if two runs overlap.
+      const { data: reserved, error: reserveErr } = await admin
+        .from("marketing_email_log")
+        .insert({
+          user_id: c.user_id,
+          campaign: c.campaign,
+          period: c.period ?? "",
+          recipient_email: email,
+          status: "sending",
+        })
+        .select("id")
+        .maybeSingle();
+
+      if (reserveErr || !reserved) {
+        results.push({ email, campaign: c.campaign, skipped: "already sent" });
+        continue;
+      }
+
       const res = await fetch(`${GATEWAY_URL}/smtp/email`, {
         method: "POST",
         headers: {
@@ -255,12 +274,10 @@ serve(async (req: Request) => {
       const ok = res.ok;
       if (!ok) console.error("Brevo send failed", c.campaign, res.status, await res.text());
 
-      await admin.from("marketing_email_log").insert({
-        user_id: c.user_id,
-        campaign: c.campaign,
-        recipient_email: email,
-        status: ok ? "sent" : "failed",
-      });
+      await admin
+        .from("marketing_email_log")
+        .update({ status: ok ? "sent" : "failed" })
+        .eq("id", reserved.id);
 
       if (ok) {
         sent++;
