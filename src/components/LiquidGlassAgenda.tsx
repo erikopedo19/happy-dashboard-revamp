@@ -703,7 +703,9 @@ export const LiquidGlassAgenda = ({
                           "w-[52px] py-2 rounded-[18px] border",
                           isSelected
                             ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
-                            : "bg-transparent border-transparent"
+                            : isToday
+                              ? "bg-blue-500 text-white border-blue-600 shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                              : "bg-transparent border-transparent"
                         )
                       : cn(
                           "py-1.5 px-2 rounded-xl",
@@ -721,7 +723,9 @@ export const LiquidGlassAgenda = ({
                           ? "text-rose-400/90"
                           : isSelected
                             ? "text-gray-500 dark:text-white/50"
-                            : "text-gray-400 dark:text-gray-500"
+                            : isToday
+                              ? "text-blue-100"
+                              : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
@@ -732,7 +736,7 @@ export const LiquidGlassAgenda = ({
                           : isSelected
                             ? "text-gray-900 dark:text-white"
                             : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                              ? "text-white"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
@@ -788,12 +792,26 @@ export const LiquidGlassAgenda = ({
 
           {/* Right arrow for mobile */}
           {isMobile && (
-            <button
-              onClick={() => onWeekChange(addDays(currentWeek, 7))}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  haptic("selection");
+                  setSelectedDay(new Date());
+                  const today = new Date();
+                  const newWeek = startOfWeek(today, { weekStartsOn: 1 });
+                  onWeekChange(newWeek);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[12px] font-semibold hover:bg-blue-600 transition-colors"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => onWeekChange(addDays(currentWeek, 7))}
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
           )}
 
         </div>
@@ -1234,19 +1252,28 @@ export const LiquidGlassAgenda = ({
                     <div className="pl-[60px] mb-1">
                       <div
                         className={cn(
-                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
+                          "w-full h-12 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 relative overflow-hidden",
                           isDark
-                            ? "border-white/10 text-white/40"
-                            : "border-gray-300/60 text-gray-500"
+                            ? "border-white/20 text-white/50"
+                            : "border-gray-400 text-gray-600"
                         )}
                         style={{
                           backgroundImage: isDark
-                            ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
-                            : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(255,255,255,0.08) 6px, rgba(255,255,255,0.08) 12px)"
+                            : "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.06) 6px, rgba(0,0,0,0.06) 12px)",
                         }}
                       >
-                        <Ban className="w-3.5 h-3.5" />
-                        <span className="text-[12px] font-medium">Blocked</span>
+                        {/* Additional diagonal lines overlay */}
+                        <div 
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            backgroundImage: isDark
+                              ? "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)"
+                              : "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 20px)",
+                          }}
+                        />
+                        <Ban className="w-3.5 h-3.5 relative z-10" />
+                        <span className="text-[12px] font-semibold relative z-10">Blocked</span>
                       </div>
                     </div>
                   )}
