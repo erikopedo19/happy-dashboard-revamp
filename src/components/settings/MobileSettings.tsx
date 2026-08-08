@@ -129,6 +129,11 @@ export function MobileSettings(props: any) {
   const { setRole } = useRoleSwitch();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+    document.scrollingElement?.scrollTo({ top: 0 });
+  }, []);
+
+  useEffect(() => {
     setAvatarFailed(false);
   }, [brandForm.avatar_url]);
 
@@ -347,18 +352,7 @@ export function MobileSettings(props: any) {
             value={brandForm.loyalty_discount_enabled ? `${brandForm.loyalty_discount_percent}% next booking` : "Off"}
             onClick={() => setPanel("loyalty")}
           />
-          <Row
-            icon={Home}
-            tint="#22c55e"
-            label="Freelancer mode"
-            value={brandForm.freelancer_mode ? "On" : "Off"}
-            onClick={() =>
-              setBrandForm((previous: any) => ({
-                ...previous,
-                freelancer_mode: !previous.freelancer_mode,
-              }))
-            }
-          />
+          
         </Group>
 
         <Group label="Legal">

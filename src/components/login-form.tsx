@@ -1,3 +1,4 @@
+import checkLogo from "@/assets/cutzioo-check.png.asset.json";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Chrome } from "lucide-react";
@@ -141,7 +142,7 @@ export function LoginForm() {
           Back
         </button>
         <div className="flex items-center gap-2">
-          <img src="/cutzioo-logo.webp" alt="" className="h-7 w-7 rounded-[12px]" />
+          <img src={checkLogo.url} alt="" className="h-7 w-7 rounded-[12px] object-contain" />
           <span className="font-cal text-lg tracking-tight">Cutzioo</span>
         </div>
         <div className="w-16" />

@@ -204,6 +204,10 @@ export const LiquidGlassAgenda = ({
   });
   const timeOffSet = useMemo(() => new Set(timeOffRows.map((r) => r.off_date)), [timeOffRows]);
   const timeOffReason = useMemo(() => new Map(timeOffRows.map((r) => [r.off_date, r.reason])), [timeOffRows]);
+  const selectedDayKey = format(selectedDay, "yyyy-MM-dd");
+  const selectedDayIsOff = timeOffSet.has(selectedDayKey);
+  const selectedDayOffReason = timeOffReason.get(selectedDayKey) || "Day off";
+
 
   const openTimeOff = (day: Date) => {
     haptic("heavy");
@@ -597,11 +601,14 @@ export const LiquidGlassAgenda = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
+                  className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
-                  More
+                  <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#F43F5E,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-transparent">
+                    More
+                  </span>
                 </button>
+
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="dark:bg-[#1C1C1E] dark:border-[#2C2C2E]">
                 {isMobile && (
@@ -648,21 +655,28 @@ export const LiquidGlassAgenda = ({
         </div>
 
         {isMobile && (
-          <div className="flex items-center gap-1.5 mb-2 -mt-0.5">
+          <div className="flex items-center gap-2 mb-2 -mt-0.5">
             <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
               {format(selectedDay, 'MMMM yyyy')}
             </span>
+            {selectedDayIsOff && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
+                {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
+                {selectedDayOffReason}
+              </span>
+            )}
           </div>
         )}
 
 
 
+
         {/* Day Selector Row */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0">
           {/* Menu / back button area */}
           <button
             onClick={() => onWeekChange(addDays(currentWeek, -7))}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            className="w-6 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -671,8 +685,9 @@ export const LiquidGlassAgenda = ({
           <motion.div
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
-            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-1 px-1 py-1"
+            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-2 px-0.5 py-1"
           >
+
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               const isSelected = isSameDay(day, selectedDay);
@@ -700,7 +715,7 @@ export const LiquidGlassAgenda = ({
                     "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
                     isMobile
                       ? cn(
-                          "w-[52px] py-2 rounded-[18px] border",
+                          "w-[58px] py-2.5 rounded-[18px] border",
                           isSelected
                             ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
                             : isToday
@@ -813,6 +828,7 @@ export const LiquidGlassAgenda = ({
               </button>
             </>
           )}
+
 
         </div>
 
@@ -1040,13 +1056,14 @@ export const LiquidGlassAgenda = ({
               slotDate.setHours(slotHour, slotMinute, 0, 0);
               const isPastSlot = isPastDay || (isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime());
 
-              const isBlocked = (blockedSlots || []).some((b: any) => {
+              const isBlocked = selectedDayIsOff || (blockedSlots || []).some((b: any) => {
                 const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
                 const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
                 const startMin = sh * 60 + sm;
                 const endMin = eh * 60 + em;
                 return slotStartMin >= startMin && slotStartMin < endMin;
               });
+
 
               return (
                 <div key={hour} className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}>
@@ -1252,15 +1269,15 @@ export const LiquidGlassAgenda = ({
                     <div className="pl-[60px] mb-1">
                       <div
                         className={cn(
-                          "w-full h-12 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 relative overflow-hidden",
+                          "w-full h-12 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 relative overflow-hidden cursor-not-allowed",
                           isDark
-                            ? "border-white/20 text-white/50"
-                            : "border-gray-400 text-gray-600"
+                            ? "border-rose-500/30 bg-rose-500/5 text-rose-400/70"
+                            : "border-rose-300 bg-rose-50 text-rose-600"
                         )}
                         style={{
                           backgroundImage: isDark
-                            ? "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(255,255,255,0.08) 6px, rgba(255,255,255,0.08) 12px)"
-                            : "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.06) 6px, rgba(0,0,0,0.06) 12px)",
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(244,63,94,0.08) 6px, rgba(244,63,94,0.08) 12px)"
+                            : "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(244,63,94,0.1) 6px, rgba(244,63,94,0.1) 12px)",
                         }}
                       >
                         {/* Additional diagonal lines overlay */}
@@ -1268,8 +1285,8 @@ export const LiquidGlassAgenda = ({
                           className="absolute inset-0 pointer-events-none"
                           style={{
                             backgroundImage: isDark
-                              ? "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)"
-                              : "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 20px)",
+                              ? "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(244,63,94,0.06) 10px, rgba(244,63,94,0.06) 20px)"
+                              : "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(244,63,94,0.08) 10px, rgba(244,63,94,0.08) 20px)",
                           }}
                         />
                         <Ban className="w-3.5 h-3.5 relative z-10" />
