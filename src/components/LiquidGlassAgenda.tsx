@@ -1027,13 +1027,14 @@ export const LiquidGlassAgenda = ({
               slotDate.setHours(slotHour, slotMinute, 0, 0);
               const isPastSlot = isPastDay || (isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime());
 
-              const isBlocked = (blockedSlots || []).some((b: any) => {
+              const isBlocked = selectedDayIsOff || (blockedSlots || []).some((b: any) => {
                 const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
                 const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
                 const startMin = sh * 60 + sm;
                 const endMin = eh * 60 + em;
                 return slotStartMin >= startMin && slotStartMin < endMin;
               });
+
 
               return (
                 <div key={hour} className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}>
