@@ -204,6 +204,10 @@ export const LiquidGlassAgenda = ({
   });
   const timeOffSet = useMemo(() => new Set(timeOffRows.map((r) => r.off_date)), [timeOffRows]);
   const timeOffReason = useMemo(() => new Map(timeOffRows.map((r) => [r.off_date, r.reason])), [timeOffRows]);
+  const selectedDayKey = format(selectedDay, "yyyy-MM-dd");
+  const selectedDayIsOff = timeOffSet.has(selectedDayKey);
+  const selectedDayOffReason = timeOffReason.get(selectedDayKey) || "Day off";
+
 
   const openTimeOff = (day: Date) => {
     haptic("heavy");
