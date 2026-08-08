@@ -82,10 +82,10 @@ export function SubscriptionCard() {
             }
           }}
           className={cn(
-            "rounded-full h-10 px-5 shrink-0 transition-all",
+            "rounded-full h-10 px-5 shrink-0 transition-all text-[14px] font-semibold",
             subscribed && !loading
               ? "bg-gradient-to-r from-rose-500 to-purple-500 text-white border-0 shadow-[0_4px_12px_rgba(244,63,94,0.3)] hover:shadow-[0_6px_16px_rgba(244,63,94,0.4)]"
-              : ""
+              : "bg-[#0A84FF] text-white border-0 hover:bg-[#0066d6]"
           )}
           variant={subscribed ? "default" : "default"}
         >
