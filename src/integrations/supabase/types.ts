@@ -555,6 +555,7 @@ export type Database = {
           campaign: string
           created_at: string
           id: string
+          period: string
           recipient_email: string
           status: string
           user_id: string
@@ -563,6 +564,7 @@ export type Database = {
           campaign: string
           created_at?: string
           id?: string
+          period?: string
           recipient_email: string
           status?: string
           user_id: string
@@ -571,6 +573,7 @@ export type Database = {
           campaign?: string
           created_at?: string
           id?: string
+          period?: string
           recipient_email?: string
           status?: string
           user_id?: string
@@ -1692,11 +1695,14 @@ export type Database = {
         Args: { _limit?: number }
         Returns: {
           campaign: string
+          cancelled_appointments: number
           full_name: string
           month_appointments: number
+          period: string
           priority: number
           total_appointments: number
           user_id: string
+          weekly_counts: Json
         }[]
       }
       marketing_emails_sent_today: { Args: never; Returns: number }
