@@ -701,7 +701,7 @@ export const LiquidGlassAgenda = ({
                     "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
                     isMobile
                       ? cn(
-                          "w-[52px] py-2 rounded-[18px] border",
+                          "w-[58px] py-2.5 rounded-[18px] border",
                           isSelected
                             ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
                             : "bg-transparent border-transparent"
