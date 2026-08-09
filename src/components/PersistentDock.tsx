@@ -5,8 +5,9 @@ import { useOnboardingVisibility } from "@/contexts/OnboardingContext";
 import { MobileDockInner } from "@/components/MobileDock";
 import { ClientMobileDockInner } from "@/components/ClientMobileDock";
 
-const HIDE_ON = ["/auth", "/login", "/superadmin", "/choose-role", "/choose-mode", "/complete-profile", "/onboarding"];
-const HIDE_PREFIX = ["/book/", "/onboarding"];
+const HIDE_ON = ["/auth", "/login", "/superadmin", "/choose-role", "/choose-mode", "/complete-profile", "/onboarding", "/pricing"];
+const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing"];
+
 
 const CLIENT_ROUTES = [
   "/find-barber",
