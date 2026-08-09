@@ -17,15 +17,14 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 // iOS-style icons - minimal and clean
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
   Search,
   LayoutGrid,
   List,
-  Plus,
   Filter
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -471,7 +470,7 @@ const Agenda = () => {
                 <Card className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      <span className="text-rose-600 dark:text-rose-400 font-bold text-sm">$</span>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>

@@ -183,6 +183,13 @@ const ModernBookingForm = ({
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
     setSelectedStylistId("");
+    // Auto-advance to next step after selecting time
+    setAnimationDirection("forward");
+    if (stylists.length > 0) {
+      setStep("stylist");
+    } else {
+      setStep("details");
+    }
   };
 
   const handleStylistSelect = (stylistId: string) => {
@@ -731,24 +738,6 @@ const ModernBookingForm = ({
                   )}
                 </div>
 
-                {/* Continue Button */}
-                {selectedDate && availableTimeSlots.length > 0 && (
-                  <div className="mt-6">
-                    <Button
-                      onClick={handleContinue}
-                      disabled={!selectedTime}
-                      className={cn(
-                        "w-full py-3 px-6 rounded-xl font-semibold text-white transition-all",
-                        selectedTime
-                          ? ""
-                          : "bg-gray-600 cursor-not-allowed"
-                      )}
-                      style={selectedTime ? accentStyle : {}}
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                )}
               </>
             )}
 
