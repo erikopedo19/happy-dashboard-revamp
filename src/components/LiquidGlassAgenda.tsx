@@ -700,6 +700,11 @@ export const LiquidGlassAgenda = ({
               return (
                 <button
                   key={day.toISOString()}
+                  ref={(el) => {
+                    if (el && isSelected) {
+                      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                    }
+                  }}
                   onClick={() => {
                     if (dayLongPressFired.current) { dayLongPressFired.current = false; return; }
                     haptic("selection");
@@ -712,46 +717,51 @@ export const LiquidGlassAgenda = ({
                   onPointerCancel={clearDayLongPress}
                   onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
-                    "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
+                    "relative snap-start shrink-0 flex flex-col items-center select-none touch-manipulation active:scale-95 transition-transform duration-200",
                     isMobile
-                      ? cn(
-                          "w-[58px] py-2.5 rounded-[18px] border",
-                          isSelected
-                            ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
-                            : "bg-transparent border-transparent"
-                        )
+                      ? "w-[58px] py-2.5 rounded-[18px]"
                       : cn(
-                          "py-1.5 px-2 rounded-xl",
+                          "py-1.5 px-2 rounded-xl transition-all",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
                         ),
                     isOff && !isSelected && "bg-rose-500/10 ring-1 ring-rose-500/40",
                     isOff && isSelected && !isMobile && "!bg-rose-500"
                   )}
                 >
+                  {isMobile && isSelected && (
+                    <motion.span
+                      layoutId="agenda-day-pill"
+                      transition={{ type: "spring", stiffness: 480, damping: 38, mass: 0.7 }}
+                      className="absolute inset-0 rounded-[18px] border bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+                    />
+                  )}
                   {isMobile ? (
                     <>
                       <span className={cn(
-                        "text-[12px] font-medium leading-none",
+                        "relative z-10 text-[12px] font-medium leading-none",
                         isOff
                           ? "text-rose-400/90"
-                          : isSelected
-                            ? "text-gray-500 dark:text-white/50"
-                            : "text-gray-400 dark:text-gray-500"
+                          : isToday
+                            ? "text-blue-500/70 dark:text-blue-400/70"
+                            : isSelected
+                              ? "text-gray-500 dark:text-white/50"
+                              : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
                       <span className={cn(
-                        "mt-1.5 text-[18px] font-semibold leading-none transition-all",
+                        "relative z-10 mt-1.5 text-[18px] font-semibold leading-none transition-colors duration-200",
                         isOff
                           ? "text-rose-500 dark:text-rose-400"
-                          : isSelected
-                            ? "text-gray-900 dark:text-white"
-                            : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                          : isToday
+                            ? "text-blue-600 dark:text-blue-400"
+                            : isSelected
+                              ? "text-gray-900 dark:text-white"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
+
                       {hasAppointments && !isOff && (
                         <div className={cn(
                           "mt-1 h-1 w-1 rounded-full",
