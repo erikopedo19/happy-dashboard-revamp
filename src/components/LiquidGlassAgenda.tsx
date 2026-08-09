@@ -454,7 +454,7 @@ export const LiquidGlassAgenda = ({
       haptic("heavy");
       setPendingBlockSlot({ hour, start, end: slot });
       blockTimerRef.current = null;
-    }, 600);
+    }, 1000);
 
   };
 

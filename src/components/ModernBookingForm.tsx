@@ -965,7 +965,7 @@ const ModernBookingForm = ({
                 <h4 className={`text-sm font-medium ${getTextClass()} mb-4`}>Your Details</h4>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleGoToReview)} className="space-y-4 flex-1">
+                  <form onSubmit={form.handleSubmit(handleConfirmBooking)} className="space-y-4 flex-1">
                     <FormField
                       control={form.control}
                       name="customer_name"
@@ -1037,7 +1037,7 @@ const ModernBookingForm = ({
                           </>
                         ) : (
                           <>
-                            {rescheduleAppointment ? "Review Change" : "Review booking"}
+                            {rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
                           </>
                         )}
                       </Button>
