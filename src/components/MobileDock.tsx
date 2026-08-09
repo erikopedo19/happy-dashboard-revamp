@@ -1,123 +1,192 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import type { ComponentType } from 'react';
-import { motion } from 'framer-motion';
-import { LayoutDashboard, Calendar, BarChart3, Scissors, Settings, MoreHorizontal, Globe, UserCheck, Package, Briefcase, Users } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Calendar, BarChart3, Settings, MoreHorizontal, Globe, UserCheck, Briefcase, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { GlassDock, type DockItem } from '@/components/GlassDock';
 
-interface NavItem {
+interface MoreItem {
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: any;
   path: string;
-  accent: string;
+  isNew?: boolean;
 }
 
-const ACTIVE_GRADIENT = 'from-[#d60052] to-rose-500';
-
-const mainItems: NavItem[] = [
-  { label: 'Admin', icon: LayoutDashboard, path: '/admin', accent: ACTIVE_GRADIENT },
-  { label: 'Agenda', icon: Calendar, path: '/agenda', accent: ACTIVE_GRADIENT },
-  { label: 'Reports', icon: BarChart3, path: '/reports', accent: ACTIVE_GRADIENT },
-  { label: 'Services', icon: Scissors, path: '/services', accent: ACTIVE_GRADIENT },
-  { label: 'Settings', icon: Settings, path: '/settings', accent: ACTIVE_GRADIENT },
+const mainItems: DockItem[] = [
+  { label: 'Admin', icon: LayoutDashboard, to: '/admin', color: '#FF375F' },
+  { label: 'Agenda', icon: Calendar, to: '/agenda', color: '#0A84FF' },
+  { label: 'Reports', icon: BarChart3, to: '/reports', color: '#AF52DE' },
+  { label: 'Settings', icon: Settings, to: '/settings', color: '#32ADE6' },
 ];
 
-const moreItems: NavItem[] = [
-  { label: 'Customers', icon: Users, path: '/customers', accent: ACTIVE_GRADIENT },
-  { label: 'Booking', icon: Globe, path: '/booking-page', accent: ACTIVE_GRADIENT },
-  { label: 'Stylists', icon: UserCheck, path: '/stylists', accent: ACTIVE_GRADIENT },
-  { label: 'Teams', icon: Briefcase, path: '/teams', accent: ACTIVE_GRADIENT },
-  { label: 'Products', icon: Package, path: '/products', accent: ACTIVE_GRADIENT },
+const moreItems: MoreItem[] = [
+  { label: 'Services', icon: 'scissors', path: '/services' },
+  { label: 'Customers', icon: 'users', path: '/customers' },
+  { label: 'Booking', icon: 'globe', path: '/booking-page' },
+  { label: 'Stylists', icon: 'user-check', path: '/stylists' },
+  { label: 'Teams', icon: 'briefcase', path: '/teams', isNew: true },
 ];
 
-const DockLink = ({ item, location }: { item: NavItem; location: ReturnType<typeof useLocation> }) => {
-  const Icon = item.icon;
-  const isActive =
-    location.pathname === item.path ||
-    (item.path !== '/admin' && location.pathname.startsWith(item.path + '/'));
+const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Lock body scroll while the overlay is open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
 
   return (
-    <Link
-      to={item.path}
-      className={cn(
-        'relative flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 transition-all duration-300 active:scale-95',
-        isActive ? 'text-white' : 'text-muted-foreground hover:text-rose-500 dark:hover:text-rose-300'
-      )}
-    >
-      {isActive && (
+    <AnimatePresence>
+      {open && (
         <motion.div
-          layoutId="dock-active-pill"
-          className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18)]', item.accent)}
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-        />
+          key="more-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+          className="fixed inset-0 z-[100]"
+          style={{
+            background: 'rgba(6, 6, 10, 0.62)',
+            backdropFilter: 'saturate(160%) blur(22px)',
+            WebkitBackdropFilter: 'saturate(160%) blur(22px)',
+          }}
+          onClick={onClose}
+        >
+          {/* Soft ambient glow */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-[#f43f5e]/20 blur-[110px]"
+          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+            className="pointer-events-none absolute bottom-24 -left-20 h-80 w-80 rounded-full bg-[#fb923c]/10 blur-[120px]"
+          />
+
+          {/* Menu items — bottom right, slide up staggered */}
+          <div
+            className="absolute bottom-0 right-0 flex flex-col items-end gap-1.5 px-7 pb-[calc(env(safe-area-inset-bottom)+7.5rem)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {items.map((item, i) => {
+              const isActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(item.path + '/');
+              return (
+                <motion.button
+                  key={item.path}
+                  type="button"
+                  initial={{ opacity: 0, y: 36, filter: 'blur(8px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 280,
+                    damping: 28,
+                    delay: 0.04 + (moreItems.length - 1 - i) * 0.04,
+                  }}
+                  onClick={() => {
+                    onClose();
+                    navigate(item.path);
+                  }}
+                  className="group flex items-center gap-3 py-1 text-right active:scale-[0.97] transition-transform"
+                >
+                  <span
+                    className={cn(
+                      'text-[34px] font-bold tracking-tight leading-[1.25]',
+                      item.isNew
+                        ? 'nav-shimmer-new'
+                        : isActive
+                        ? 'text-[#FF375F]'
+                        : 'text-white'
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </motion.button>
+              );
+            })}
+
+            {/* Close button */}
+            <motion.button
+              type="button"
+              aria-label="Close menu"
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 30, delay: 0.16 }}
+              onClick={onClose}
+              className="mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/12 border border-white/10 text-white active:scale-90 transition-transform"
+              style={{
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+              }}
+            >
+              <X className="h-5 w-5" />
+            </motion.button>
+          </div>
+        </motion.div>
       )}
-      <Icon className={cn('relative z-10 h-5 w-5 transition-transform duration-300', isActive && 'scale-105')} />
-      <span className={cn('relative z-10 text-[9px] font-medium tracking-[-0.03em]', isActive && 'font-semibold')}>
-        {item.label}
-      </span>
-    </Link>
+    </AnimatePresence>
   );
 };
 
-// A single PersistentDock at the App root renders the actual dock.
-// Inline `<MobileDock />` usages render nothing to prevent stacked docks.
 export const MobileDock = () => null;
 
 export const MobileDockInner = () => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const { user } = useAuth();
+
+  const { data: services = [] } = useQuery({
+    queryKey: ['dock-services', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from('services')
+        .select('id')
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const visibleMoreItems = moreItems;
+
+  const glassItems: DockItem[] = [
+    ...mainItems,
+    { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true), color: '#FF375F' },
+  ];
+
+  const moreActive = visibleMoreItems.some(
+    (item) => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'))
+  );
+
+  const mainIndex = mainItems.findIndex((item) => {
+    if (!item.to) return false;
+    return location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'));
+  });
+
+  const activeIndex = moreActive || moreOpen ? glassItems.length - 1 : mainIndex >= 0 ? mainIndex : 0;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pointer-events-none">
-      <div className="relative mx-auto max-w-lg rounded-[28px] border border-white/10 bg-[#18171c]/95 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl pointer-events-auto">
-        <div className="grid grid-cols-6 items-center gap-1 px-2 py-2">
-          {mainItems.map((item) => (
-            <DockLink key={item.path} item={item} location={location} />
-          ))}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="More"
-                className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-muted-foreground transition-all hover:bg-rose-500/10 hover:text-rose-300 active:scale-95"
-              >
-                <MoreHorizontal className="h-5 w-5" />
-                <span className="text-[9px] font-medium tracking-[-0.03em]">More</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="mb-2 w-52 rounded-2xl border-white/10 bg-[#18171c]/95 p-2 shadow-xl backdrop-blur-xl">
-              {moreItems.map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  location.pathname === item.path ||
-                  location.pathname.startsWith(item.path + '/');
-                return (
-                  <DropdownMenuItem
-                    key={item.path}
-                    onSelect={() => navigate(item.path)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-xl',
-                      isActive && 'bg-rose-500/10 text-rose-300'
-                    )}
-                  >
-                    <span className={cn('flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br text-white', item.accent)}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="text-sm">{item.label}</span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </div>
+    <>
+      <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} items={visibleMoreItems} />
+      <GlassDock items={glassItems} activeIndex={activeIndex} />
+    </>
   );
 };
-

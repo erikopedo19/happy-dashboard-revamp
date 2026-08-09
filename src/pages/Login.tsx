@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@heroui/react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,11 +31,11 @@ export function Login04() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-8">
-      {/* Background decoration */}
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4 md:p-8">
+      {/* Subtle background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 blur-3xl" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 blur-3xl" />
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center relative z-10">
@@ -43,8 +43,8 @@ export function Login04() {
         <Card className="border-slate-800/50 bg-slate-950/50 backdrop-blur-xl shadow-2xl">
           <CardHeader className="space-y-1 pb-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-white">Welcome back</CardTitle>
@@ -110,9 +110,8 @@ export function Login04() {
               </div>
 
               <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold h-11 shadow-lg shadow-blue-500/25 transition-all hover:shadow-blue-500/40"
+                isDisabled={isLoading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11 shadow-sm transition-all"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -138,11 +137,11 @@ export function Login04() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+              <Button variant="bordered" className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
               </Button>
-              <Button variant="outline" className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+              <Button variant="bordered" className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

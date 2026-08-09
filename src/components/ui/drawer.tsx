@@ -26,7 +26,12 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    className={cn(
+      "fixed inset-0 z-50 bg-black/50 dark:bg-black/70 backdrop-blur-[2px]",
+      "data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:duration-300",
+      "data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:duration-200",
+      className
+    )}
     {...props}
   />
 ))
@@ -41,12 +46,16 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[92vh] flex-col overflow-hidden",
+        "rounded-t-[32px] border border-black/[0.04] dark:border-white/[0.08]",
+        "bg-white dark:bg-[#121214] text-[#1C1C1E] dark:text-white",
+        "shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.6)]",
+        "transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
         className
       )}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      <div className="mx-auto mt-3.5 h-1.5 w-10 shrink-0 rounded-full bg-black/10 dark:bg-white/15" />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
@@ -82,7 +91,7 @@ const DrawerTitle = React.forwardRef<
   <DrawerPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-lg font-semibold leading-none tracking-tight text-[#1C1C1E] dark:text-white",
       className
     )}
     {...props}
@@ -96,7 +105,7 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-[#8E8E93] dark:text-white/50", className)}
     {...props}
   />
 ))

@@ -1,59 +1,81 @@
-import { motion } from "framer-motion";
-import { ReactNode, useRef } from "react";
+import { ReactNode, useLayoutEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { gsap } from "gsap";
 
-const SESSION_KEY = "pt:seen-routes";
+const CLIENT_PREFIXES = [
+  "/find-barber",
+  "/find-barbershop",
+  "/my-bookings",
+  "/favorites",
+  "/me",
+];
 
-function getSeen(): Set<string> {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-  } catch {
-    return new Set();
-  }
-}
+const ADMIN_PREFIXES = [
+  "/admin",
+  "/agenda",
+  "/customers",
+  "/services",
+  "/settings",
+  "/reports",
+  "/stylists",
+  "/teams",
+  "/products",
+  "/booking-forms",
+  "/brand",
+  "/booking-page",
+  "/microsite",
+  "/pricing",
+];
 
-function markSeen(path: string) {
-  try {
-    const seen = getSeen();
-    seen.add(path);
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(Array.from(seen)));
-  } catch {
-    /* noop */
-  }
+type RouteKind = "client" | "admin" | "other";
+
+function routeType(path: string): RouteKind {
+  if (CLIENT_PREFIXES.some((p) => path.startsWith(p))) return "client";
+  if (ADMIN_PREFIXES.some((p) => path.startsWith(p))) return "admin";
+  return "other";
 }
 
 /**
- * Snappy iOS-style page transition. Animates only the first visit to each
- * route per session, with a very short fade/slide so navigation feels instant.
+ * Fast GSAP page transition.
+ * Admin <-> client views get a sideways slide + scale; everything else gets a
+ * quick fade/slide so there is no loading feel.
  */
 export const PageTransition = ({ children }: { children: ReactNode }) => {
-  const isMobile = useIsMobile();
   const { pathname } = useLocation();
+  const container = useRef<HTMLDivElement>(null);
+  const prevType = useRef<RouteKind | null>(null);
+  const didMount = useRef(false);
 
-  const shouldAnimateRef = useRef<boolean | null>(null);
-  if (shouldAnimateRef.current === null) {
-    const seen = getSeen();
-    shouldAnimateRef.current = !seen.has(pathname);
-    if (shouldAnimateRef.current) markSeen(pathname);
-  }
-  const shouldAnimate = shouldAnimateRef.current;
+  useLayoutEffect(() => {
+    const type = routeType(pathname);
 
-  if (!shouldAnimate) {
-    return <div style={{ height: "100%" }}>{children}</div>;
-  }
+    if (!didMount.current) {
+      didMount.current = true;
+      prevType.current = type;
+      return;
+    }
 
-  return (
-    <motion.div
-      initial={isMobile ? { opacity: 0, x: 12 } : { opacity: 0, y: 6 }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{ duration: 0.16, ease: [0.32, 0.72, 0, 1] }}
-      style={{ height: "100%" }}
-    >
-      {children}
-    </motion.div>
-  );
+    const fromType = prevType.current ?? "other";
+    const adminToClient = fromType === "admin" && type === "client";
+    const clientToAdmin = fromType === "client" && type === "admin";
+
+    const fromX = adminToClient ? 80 : clientToAdmin ? -80 : 0;
+    const fromY = fromX === 0 ? 12 : 0;
+    const fromScale = adminToClient || clientToAdmin ? 0.96 : 1;
+
+    const el = container.current;
+    if (!el) return;
+
+    gsap.fromTo(
+      el,
+      { opacity: 0, x: fromX, y: fromY, scale: fromScale },
+      { opacity: 1, x: 0, y: 0, scale: 1, duration: 0.32, ease: "power2.out" }
+    );
+
+    prevType.current = type;
+  }, [pathname]);
+
+  return <div ref={container}>{children}</div>;
 };
 
 export default PageTransition;

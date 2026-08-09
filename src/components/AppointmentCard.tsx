@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { Badge } from "@/components/ui/badge";
 import { addMinutes, format, parse } from 'date-fns';
 
@@ -66,14 +66,11 @@ const AppointmentCard = ({
         
         <div className="flex items-center justify-between mt-1.5 px-[6px]">
           <div className="flex items-center">
-              <Avatar className="h-5 w-5 border" style={{
-            borderColor: 'rgba(255, 255, 255, 0.5)'
-          }}>
-                <AvatarFallback className="text-[10px] font-semibold" style={{
-              backgroundColor: 'transparent',
-              color: 'inherit'
-            }}>{getInitials(appointment.customer.name)}</AvatarFallback>
-              </Avatar>
+              <Avatar
+                name={getInitials(appointment.customer.name)}
+                className="h-5 w-5"
+                isBordered
+              />
           </div>
           {appointment.status && <Badge variant="outline" className="text-[10px] capitalize font-medium border-opacity-30 bg-white/20 px-1.5 py-0">{appointment.status}</Badge>}
         </div>

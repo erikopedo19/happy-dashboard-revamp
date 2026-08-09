@@ -1,55 +1,35 @@
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { Search, Calendar, Heart, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { GlassDock, type DockItem } from '@/components/GlassDock';
 
-const navItems = [
-  { label: 'Explore', icon: Search, path: '/find-barber' },
-  { label: 'Bookings', icon: Calendar, path: '/my-bookings' },
-  { label: 'Favorites', icon: Heart, path: '/favorites' },
-  { label: 'Profile', icon: User, path: '/me' },
+const navItems: DockItem[] = [
+  { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF375F' },
+  { label: 'Bookings', icon: Calendar, to: '/my-bookings', color: '#0A84FF' },
+  { label: 'Favorites', icon: Heart, to: '/favorites', color: '#AF52DE' },
+  { label: 'Profile', icon: User, to: '/me', color: '#32ADE6' },
 ];
 
 export const ClientMobileDock = () => null;
 
 export const ClientMobileDockInner = () => {
   const location = useLocation();
+  const currentTab = new URLSearchParams(location.search).get('tab');
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-2xl border-t border-border/60 pb-safe">
-      <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            location.pathname === item.path ||
-            (item.path !== '/' && location.pathname.startsWith(item.path));
+  const isItemActive = (to: string) => {
+    const [base, query] = to.split('?');
+    const itemTab = query ? new URLSearchParams(query).get('tab') : null;
+    const pathMatches =
+      location.pathname === base ||
+      (base !== '/' && location.pathname.startsWith(base + '/'));
+    if (!pathMatches) return false;
+    if (itemTab) return currentTab === itemTab;
+    if (base === '/find-barber') return !currentTab;
+    return true;
+  };
 
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                'relative flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-2xl transition-colors duration-300',
-                isActive ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="client-dock-active-pill"
-                  className="absolute inset-0 rounded-2xl bg-gradient-rose shadow-rose"
-                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                />
-              )}
-              <Icon className={cn('relative z-10 h-5 w-5 transition-transform duration-300', isActive && 'scale-110')} />
-              <span className={cn('relative z-10 text-[10px] font-medium', isActive && 'font-semibold')}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
+  const activeIndex = navItems.findIndex((item) => item.to && isItemActive(item.to));
+
+  return <GlassDock items={navItems} activeIndex={activeIndex >= 0 ? activeIndex : 0} />;
 };
 
 export default ClientMobileDock;

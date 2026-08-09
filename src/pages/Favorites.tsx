@@ -6,7 +6,7 @@ import { Heart, Loader2, Scissors, Star, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 
 const Favorites = () => {
   const { user, loading } = useAuth();
@@ -89,7 +89,7 @@ const Favorites = () => {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                    {b.full_name || "Barber"}
+                    {b.business_name || b.full_name || "Barber"}
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">
                     <Star className="w-3.5 h-3.5 fill-[#FFB800] text-[#FFB800]" />
@@ -107,7 +107,7 @@ const Favorites = () => {
                 </button>
                 {b.booking_link && (
                   <Link to={`/book/${b.booking_link}`}>
-                    <Button size="icon" className="rounded-2xl h-10 w-10" style={{ background: accent }}>
+                    <Button isIconOnly size="sm" className="rounded-2xl h-10 w-10" style={{ background: accent }}>
                       <Calendar className="w-4 h-4 text-white" />
                     </Button>
                   </Link>

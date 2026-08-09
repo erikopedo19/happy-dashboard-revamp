@@ -1,66 +1,106 @@
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Copy, 
-  ExternalLink, 
-  RefreshCw, 
-  Share2, 
-  Save, 
-  Check, 
-  Mail, 
-  QrCode, 
-  Download,
-  Settings,
-  Sparkles,
-  Link as LinkIcon
+import { Switch } from "@/components/ui/switch";
+import {
+  Copy,
+  ExternalLink,
+  RefreshCw,
+  Share2,
+  Save,
+  Link as LinkIcon,
+  Check,
+  Crown,
+  QrCode,
+  Globe,
+  Mail,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePremium } from "@/hooks/use-premium";
+import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+const BUTTON_COLORS: { value: string; label: string; tw: string }[] = [
+  { value: "default", label: "Default UI", tw: "bg-white/10 border border-white/20" },
+  { value: "pink", label: "Neon Pink", tw: "bg-[#ff2281]" },
+  { value: "blue", label: "Ocean", tw: "bg-[#0070f3]" },
+  { value: "orange", label: "Sunset", tw: "bg-[#f2994a]" },
+  { value: "yellow", label: "Gold", tw: "bg-[#f2c94c]" },
+  { value: "green", label: "Mint", tw: "bg-[#27ae60]" },
+  { value: "purple", label: "Berry", tw: "bg-[#8e44ad]" },
+];
+
+const cleanSlug = (raw: string) =>
+  raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const LANGS = [
+  { value: "en", label: "English", flag: "🇬🇧" },
+  { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
+  { value: "es", label: "Español", flag: "��" },
+  { value: "pl", label: "Polski", flag: "🇵🇱" },
+] as const;
+
+const CURRENCY_BY_LOCALE: Record<string, string> = {
+  en: "GBP",
+  el: "EUR",
+  es: "EUR",
+  pl: "PLN",
+};
 
 const BookingLinkGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
+  const [bookingLocale, setBookingLocale] = useState<string>("en");
+  const [copied, setCopied] = useState(false);
+  const [bookingTheme, setBookingTheme] = useState<string>("default");
+  const [brandColor, setBrandColor] = useState<string>("#e11d48");
+  const [showWebsiteInfo, setShowWebsiteInfo] = useState(false);
+  const [websiteRequested, setWebsiteRequested] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
   const queryClient = useQueryClient();
-  const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "christmas" | "summer">("default");
-  const [accentColor, setAccentColor] = useState("#e11d48");
-  const [showQrCode, setShowQrCode] = useState(false);
+  const navigate = useNavigate();
 
-  // Fetch user profile with booking link
-  const { data: profile, refetch } = useQuery({
-    queryKey: ['profile-booking-link', user?.id],
+  const { data: profile, isLoading, refetch } = useQuery({
+    queryKey: ["profile-booking-link", user?.id],
     queryFn: async () => {
       if (!user) return null;
-
       const { data, error } = await supabase
-        .from('profiles')
-        .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
-        .eq('id', user.id)
+        .from("profiles")
+        .select(
+          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_theme, booking_locale"
+        )
+        .eq("id", user.id)
         .single();
-
       if (error) {
-        if (error.code === 'PGRST116') {
+        if (error.code === "PGRST116") {
           const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
+            .from("profiles")
             .insert({
               id: user.id,
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-              ask_phone: true, // Default to true for new profiles
-              ask_notes: true,  // Default to true for new profiles
-              brand_color: "#e11d48"
+              full_name:
+                user.user_metadata?.full_name || user.email?.split("@")[0],
+              ask_phone: true,
+              ask_notes: true,
+              brand_color: "#e11d48",
+              booking_locale: "en",
             })
-            .select('booking_link, full_name, ask_phone, ask_notes, brand_color')
+            .select(
+              "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_locale"
+            )
             .single();
-
           if (createError) throw createError;
           return newProfile;
         }
@@ -71,81 +111,85 @@ const BookingLinkGenerator = () => {
     enabled: !!user,
   });
 
+  // Default slug: business_name → full_name → email prefix.
+  const suggestedSlug = useMemo(() => {
+    const base =
+      (profile as any)?.business_name ||
+      profile?.full_name ||
+      user?.email?.split("@")[0] ||
+      "";
+    return cleanSlug(base);
+  }, [profile, user]);
+
   useEffect(() => {
-    if (profile?.booking_link) {
-      setCustomSlug(profile.booking_link);
-    }
-    setAskPhone(profile?.ask_phone ?? true);
-    setAskNotes(profile?.ask_notes ?? true);
-    setAccentColor(profile?.brand_color ?? "#e11d48");
-  }, [profile]);
+    if (!profile) return;
+    setCustomSlug(profile.booking_link || suggestedSlug);
+    setAskPhone(profile.ask_phone ?? true);
+    setAskNotes(profile.ask_notes ?? true);
+    setBookingLocale((profile as any)?.booking_locale ?? "en");
+    setBookingTheme((profile as any)?.booking_theme || "default");
+    setBrandColor((profile as any)?.brand_color || "#e11d48");
+    setWebsiteRequested((profile as any)?.website_design_requested ?? false);
+  }, [profile, suggestedSlug]);
 
   const getBookingUrl = () => {
-    if (!profile?.booking_link) return '';
-    const baseUrl = `${window.location.origin}/book/${profile.booking_link}`;
-    const params = new URLSearchParams();
-    if (askPhone) params.append('askPhone', 'true');
-    if (askNotes) params.append('askNotes', 'true');
-    if (emailTheme) params.append('theme', emailTheme);
-    if (accentColor) params.append('accent', accentColor.replace('#', ''));
-    const queryString = params.toString();
-    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+    const slug = profile?.booking_link || customSlug;
+    if (!slug) return "";
+    return `${window.location.origin}/book/${slug}`;
   };
 
   const bookingUrl = getBookingUrl();
 
-  // QR Code URL using QuickChart QR API with custom color
-  const qrCodeUrl = bookingUrl 
-    ? `https://quickchart.io/qr?text=${encodeURIComponent(bookingUrl)}&size=300&dark=${accentColor.replace('#', '')}&light=ffffff&ecLevel=H&margin=2`
-    : '';
-
   const updateSlug = async () => {
-    if (!user || !customSlug.trim()) return;
-
+    if (!user) return;
+    const cleaned = cleanSlug(customSlug);
+    if (!cleaned) {
+      toast({
+        title: "Invalid link",
+        description: "Use letters and numbers.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setCustomSlug(cleaned);
     setIsGenerating(true);
     try {
-      // Check if slug is taken by another user
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('booking_link', customSlug.trim())
-        .neq('id', user.id) // Exclude current user
-        .single();
-
-      if (existingProfile) {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("booking_link", cleaned)
+        .neq("id", user.id)
+        .maybeSingle();
+      if (existing) {
         toast({
-          title: "Slug unavailable",
-          description: "This booking link is already taken. Please choose another one.",
-          variant: "destructive"
+          title: "Already taken",
+          description: "Try a different link.",
+          variant: "destructive",
         });
         return;
       }
-      // If no existing profile with this slug (or it's the current user's), proceed to update
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
-          booking_link: customSlug.trim(),
+          booking_link: cleaned,
           ask_phone: askPhone,
           ask_notes: askNotes,
-          brand_color: accentColor,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
+          booking_locale: bookingLocale,
+          currency: CURRENCY_BY_LOCALE[bookingLocale] || "EUR",
+          booking_theme: isPremium ? bookingTheme : "default",
+          brand_color: isPremium ? brandColor : null,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
       if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ['profile-booking-link'] });
+      await queryClient.invalidateQueries({ queryKey: ["profile-booking-link"] });
       await refetch();
-
+      toast({ title: "Saved", description: "Your link is live." });
+    } catch (e) {
+      console.error(e);
       toast({
-        title: "Success!",
-        description: "Your booking link has been updated.",
-      });
-    } catch (error) {
-      console.error('Error updating booking link:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update booking link. This slug might be taken.",
+        title: "Couldn't save",
+        description: "Try again in a moment.",
         variant: "destructive",
       });
     } finally {
@@ -153,52 +197,29 @@ const BookingLinkGenerator = () => {
     }
   };
 
-  const generateNewLink = () => {
-    let newSlug = '';
-    if (profile?.full_name) {
-      newSlug = profile.full_name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-
-      if (!newSlug) {
-        newSlug = 'book-' + Math.random().toString(36).substring(2, 15);
-      }
-    } else {
-      newSlug = 'book-' + Math.random().toString(36).substring(2, 15);
-    }
-    setCustomSlug(newSlug);
-  };
+  const resetToSuggested = () => setCustomSlug(suggestedSlug);
 
   const copyToClipboard = async () => {
     if (!bookingUrl) return;
     try {
       await navigator.clipboard.writeText(bookingUrl);
-      toast({
-        title: "Copied!",
-        description: "Booking link copied to clipboard.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link.",
-        variant: "destructive",
-      });
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1400);
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
     }
   };
 
   const shareLink = async () => {
     if (!bookingUrl) return;
-
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Book an Appointment',
-          text: `Book an appointment with ${profile?.full_name || 'us'} `,
+          title: "Book an appointment",
           url: bookingUrl,
         });
-      } catch (error) {
-        console.log('Error sharing:', error);
+      } catch {
+        /* cancelled */
       }
     } else {
       copyToClipboard();
@@ -206,256 +227,348 @@ const BookingLinkGenerator = () => {
   };
 
   const openBookingPage = () => {
-    if (bookingUrl) {
-      window.open(bookingUrl, '_blank');
+    if (bookingUrl) window.open(bookingUrl, "_blank");
+  };
+
+  const requestWebsiteDesign = async () => {
+    setShowWebsiteInfo((s) => !s);
+    if (!user || websiteRequested) return;
+    try {
+      const { error } = await (supabase as any)
+        .from("profiles")
+        .update({
+          website_design_requested: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+      if (error) throw error;
+      setWebsiteRequested(true);
+      await queryClient.invalidateQueries({ queryKey: ["profile-booking-link"] });
+      toast({ title: "Request sent", description: "Our team will email you soon." });
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const downloadQrCode = async () => {
-    if (!qrCodeUrl) return;
-    try {
-      const response = await fetch(qrCodeUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `booking-qr-${customSlug || 'code'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast({
-        title: "Downloaded!",
-        description: "Your custom QR code has been saved.",
-      });
-    } catch (error) {
-      toast({
-        title: "Download failed",
-        description: "Could not download the QR code image.",
-        variant: "destructive"
-      });
-    }
-  };
+  if (isLoading) return <BookingLinkSkeleton />;
+
+  const displayUrl = bookingUrl.replace(/^https?:\/\//, "");
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
-      {/* Settings Panel */}
-      <div className="lg:col-span-7 space-y-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <LinkIcon className="h-5 w-5 text-[#e11d48]" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Booking Link Config</h3>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Customize and optimize your public booking form and experience.
+    <motion.div
+      className="space-y-4"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 px-1">
+        <span className="h-10 w-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+          <LinkIcon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[15px] font-semibold text-white leading-tight">
+            Booking link
           </p>
-        </div>
-
-        <div className="space-y-5">
-          {/* Slug Input */}
-          <div className="space-y-2">
-            <Label htmlFor="slug" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Link Slug</Label>
-            <div className="flex gap-2">
-              <div className="flex-1 flex items-center bg-gray-50 dark:bg-zinc-900/60 rounded-xl px-3 border border-gray-200 dark:border-zinc-800 focus-within:border-[#e11d48] dark:focus-within:border-[#e11d48] focus-within:ring-1 focus-within:ring-[#e11d48]/20 transition-all">
-                <span className="text-sm text-gray-400 font-mono hidden sm:inline-block border-r border-gray-200 dark:border-zinc-800 pr-2.5 mr-2.5 select-none">
-                  /book/
-                </span>
-                <input
-                  id="slug"
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value)}
-                  placeholder="your-business-name"
-                  className="bg-transparent font-mono text-sm h-11 w-full text-gray-800 dark:text-gray-100 outline-none"
-                />
-              </div>
-              <Button
-                onClick={updateSlug}
-                disabled={
-                  isGenerating ||
-                  (
-                    customSlug === profile?.booking_link &&
-                    askPhone === (profile?.ask_phone ?? true) &&
-                    askNotes === (profile?.ask_notes ?? true) &&
-                    accentColor === (profile?.brand_color ?? "#e11d48")
-                  )
-                }
-                className="bg-[#e11d48] hover:bg-[#be123c] text-white h-11 px-5 rounded-xl font-semibold flex items-center gap-2 shadow-sm transition-all"
-              >
-                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>Save</span>
-              </Button>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={generateNewLink}
-                className="text-xs font-medium text-gray-400 hover:text-[#e11d48] flex items-center gap-1 transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Auto-generate from business name
-              </button>
-            </div>
-          </div>
-
-          {/* Form Configuration */}
-          <div className="space-y-3 pt-1">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Required Details</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-3.5 rounded-xl hover:bg-gray-100/50 dark:hover:bg-zinc-900/60 transition-colors">
-                <Checkbox
-                  id="askPhone"
-                  checked={askPhone}
-                  onCheckedChange={(checked) => setAskPhone(checked as boolean)}
-                  className="rounded-md border-gray-300 dark:border-zinc-700 data-[state=checked]:bg-[#e11d48] data-[state=checked]:border-[#e11d48]"
-                />
-                <Label htmlFor="askPhone" className="font-semibold text-sm cursor-pointer text-gray-700 dark:text-gray-300">Phone Number</Label>
-              </div>
-              <div className="flex items-center gap-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-3.5 rounded-xl hover:bg-gray-100/50 dark:hover:bg-zinc-900/60 transition-colors">
-                <Checkbox
-                  id="askNotes"
-                  checked={askNotes}
-                  onCheckedChange={(checked) => setAskNotes(checked as boolean)}
-                  className="rounded-md border-gray-300 dark:border-zinc-700 data-[state=checked]:bg-[#e11d48] data-[state=checked]:border-[#e11d48]"
-                />
-                <Label htmlFor="askNotes" className="font-semibold text-sm cursor-pointer text-gray-700 dark:text-gray-300">Extra Notes</Label>
-              </div>
-            </div>
-          </div>
-
-          {/* Color & Theme */}
-          <div className="space-y-4 pt-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Accent Branding</Label>
-                <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 p-2.5 rounded-xl">
-                  <input
-                    id="accentColor"
-                    type="color"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    className="h-9 w-12 rounded-lg border border-gray-200 dark:border-zinc-800 bg-background cursor-pointer shrink-0"
-                  />
-                  <input
-                    type="text"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    className="bg-transparent font-mono text-xs w-full text-gray-700 dark:text-gray-300 outline-none"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1"><Mail className="h-3 w-3" /> Email Theme</Label>
-                <div className="relative">
-                  <select
-                    value={emailTheme}
-                    onChange={(e) => setEmailTheme(e.target.value as any)}
-                    className="w-full h-[46px] px-3 bg-gray-50 dark:bg-zinc-900/40 border border-gray-200 dark:border-zinc-800/80 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-[#e11d48] transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="default">✉️ Classic Rose</option>
-                    <option value="minimal">🪶 Slate Minimalist</option>
-                    <option value="christmas">🎄 Festive Winter</option>
-                    <option value="summer">☀️ Sunny Vibes</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                    <Settings className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p className="text-[12px] text-white/45 mt-0.5">
+            Share so clients can book online.
+          </p>
         </div>
       </div>
 
-      {/* Sharing & QR Code Live Panel */}
-      <div className="lg:col-span-5 flex flex-col justify-between bg-gray-50/50 dark:bg-zinc-900/20 border border-gray-100 dark:border-zinc-800/50 rounded-2xl p-5 lg:p-6 space-y-6">
-        <div className="space-y-4">
+      {/* URL preview */}
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+            Your link
+          </span>
+          <button
+            onClick={copyToClipboard}
+            disabled={!bookingUrl}
+            className="text-[11px] font-semibold text-white/60 hover:text-white flex items-center gap-1 disabled:opacity-40"
+          >
+            {copied ? (
+              <>
+                <Check className="h-3 w-3" /> Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-3 w-3" /> Copy
+              </>
+            )}
+          </button>
+        </div>
+        <p className="text-[14px] text-white font-medium break-all leading-snug select-all max-w-full">
+          {displayUrl || <span className="text-white/30">set a name below</span>}
+        </p>
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <button
+            onClick={shareLink}
+            disabled={!bookingUrl}
+            className="h-10 rounded-[18px] bg-[#2C2C2E] border border-rose-500/10 text-white text-[13px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
+          >
+            <Share2 className="h-3.5 w-3.5 text-rose-400" /> Share
+          </button>
+          <button
+            onClick={openBookingPage}
+            disabled={!bookingUrl}
+            className="h-10 rounded-[18px] bg-rose-500 text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98] transition disabled:opacity-40"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> Open
+          </button>
+        </div>
+      </div>
+
+
+      {/* Slug editor */}
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+            Custom name
+          </Label>
+          <button
+            type="button"
+            onClick={resetToSuggested}
+            className="text-[11px] font-semibold text-white/50 hover:text-white flex items-center gap-1"
+          >
+            <RefreshCw className="h-3 w-3" /> Reset
+          </button>
+        </div>
+        <div className="flex items-center gap-2 rounded-[18px] bg-[#2C2C2E] border border-rose-500/10 px-3 h-12 focus-within:border-rose-500/40 transition">
+          <span className="text-[13px] text-white/40 shrink-0">/book/</span>
+          <input
+            value={customSlug}
+            onChange={(e) => setCustomSlug(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                updateSlug();
+              }
+            }}
+            placeholder={suggestedSlug || "your-name"}
+            className="flex-1 bg-transparent text-[14px] font-medium text-white placeholder:text-white/25 outline-none"
+          />
+          <button
+            type="button"
+            onClick={updateSlug}
+            disabled={isGenerating || customSlug.trim().length === 0}
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition text-white"
+          >
+            Save
+          </button>
+        </div>
+        {suggestedSlug && customSlug !== suggestedSlug && (
+          <p className="text-[11px] text-white/40">
+            Suggested from your business:{" "}
+            <button
+              onClick={resetToSuggested}
+              className="text-white/70 underline underline-offset-2"
+            >
+              {suggestedSlug}
+            </button>
+          </p>
+        )}
+      </div>
+
+
+      {/* Theme */}
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-4 overflow-hidden">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[#e11d48]" />
-            <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Live Preview & Share</h4>
+            <Crown className="w-3.5 h-3.5 text-rose-400" />
+            <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              Premium button theme
+            </Label>
           </div>
-
-          {bookingUrl ? (
-            <div className="space-y-5">
-              {/* QR Code Container */}
-              <div className="flex flex-col items-center bg-white dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-                {qrCodeUrl ? (
-                  <div className="relative group overflow-hidden rounded-xl border border-gray-100 dark:border-zinc-900 p-2 bg-white">
-                    <img 
-                      src={qrCodeUrl} 
-                      alt="Booking QR Code" 
-                      className="w-40 h-40 object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-40 h-40 bg-gray-100 dark:bg-zinc-900 rounded-xl flex items-center justify-center">
-                    <QrCode className="w-8 h-8 text-gray-400 animate-pulse" />
-                  </div>
-                )}
-                <div className="text-center mt-3">
-                  <p className="text-xs font-bold text-gray-800 dark:text-gray-200">Interactive QR Code</p>
-                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Scans instantly to open your booking form</p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 h-9 rounded-xl border-gray-200 dark:border-zinc-800 text-xs font-semibold flex items-center gap-1.5 hover:bg-gray-50 dark:hover:bg-zinc-900"
-                  onClick={downloadQrCode}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Download QR Code
-                </Button>
-              </div>
-
-              {/* URL Preview */}
-              <div className="bg-white dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800 rounded-xl px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between overflow-hidden shadow-sm">
-                <span className="truncate mr-3 select-all">{bookingUrl}</span>
-                <button 
-                  onClick={copyToClipboard}
-                  className="text-gray-400 hover:text-[#e11d48] transition-colors shrink-0"
-                >
-                  <Copy className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <QrCode className="h-12 w-12 text-gray-300 dark:text-zinc-800 mb-3" />
-              <p className="text-sm font-semibold text-gray-500">Save a slug to see live QR Code & link</p>
-            </div>
+          {!isPremium && (
+            <span className="text-[11px] flex items-center gap-1 text-rose-400 font-medium">
+              <Crown className="w-3 h-3" /> Pro
+            </span>
           )}
         </div>
 
-        {bookingUrl && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 h-11 rounded-xl border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 font-semibold text-sm flex items-center justify-center gap-2"
-              onClick={copyToClipboard}
-            >
-              <Copy className="w-4 h-4" />
-              Copy Link
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 h-11 rounded-xl border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 font-semibold text-sm flex items-center justify-center gap-2"
-              onClick={shareLink}
-            >
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            <Button
-              variant="outline"
-              className="h-11 w-11 rounded-xl border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900/60 flex items-center justify-center shrink-0"
-              onClick={openBookingPage}
-              title="Open booking page"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Button>
+        {isPremium && (
+          <>
+            <div className="max-w-full overflow-hidden">
+              <TypewriterLoop
+                LeadText="Button"
+                morphingText={BUTTON_COLORS.map((c) => c.label)}
+                className="text-2xl md:text-4xl !justify-start max-w-full"
+                interval={3500}
+              />
+            </div>
+
+            {bookingTheme === "default" ? (
+              <button
+                type="button"
+                className="w-full h-12 rounded-full font-semibold text-white flex items-center justify-center"
+                style={{ backgroundColor: brandColor }}
+              >
+                {bookingUrl ? "Book now" : "Preview"}
+              </button>
+            ) : (
+              <PulseButton
+                text={bookingUrl ? "Book now" : "Preview"}
+                color={(BUTTON_COLORS.find((c) => c.value === bookingTheme)?.value as ButtonColor) || "pink"}
+                size="md"
+                className="w-full"
+              />
+            )}
+
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+              {BUTTON_COLORS.map((c) => {
+                const active = bookingTheme === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setBookingTheme(c.value)}
+                    className={cn(
+                      "h-10 rounded-[18px] border-2 transition flex items-center justify-center",
+                      active ? "border-rose-500" : "border-transparent"
+                    )}
+                    title={c.label}
+                  >
+                    <div className={cn("w-6 h-6 rounded-full", c.tw)} />
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {isPremium ? (
+          <div className="flex items-center gap-2 px-1">
+            <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">Brand color</Label>
+            <input
+              type="color"
+              value={brandColor}
+              onChange={(e) => setBrandColor(e.target.value)}
+              className="w-8 h-8 rounded-full overflow-hidden border border-rose-500/20 bg-transparent cursor-pointer"
+            />
           </div>
+        ) : (
+          <p className="px-1 text-[11px] text-white/40">
+            Upgrade to Pro to unlock animated premium button themes.
+          </p>
         )}
       </div>
-    </div>
+
+      {/* Save */}
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={updateSlug}
+        disabled={isGenerating || customSlug.trim().length === 0}
+        className="w-full h-12 rounded-full bg-rose-500 text-white text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        {isGenerating ? (
+          <>
+            <RefreshCw className="w-4 h-4 animate-spin" /> Saving…
+          </>
+        ) : (
+          <>
+            <Save className="w-4 h-4" strokeWidth={2.5} /> Save
+          </>
+        )}
+      </motion.button>
+
+      {/* Website design request */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="h-10 w-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+              <Globe className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-[15px] font-semibold text-white">Need a full website?</p>
+              <p className="text-[12px] text-white/45">Request a custom design for your brand.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={requestWebsiteDesign}
+            className="h-9 px-4 rounded-full bg-rose-500 text-white text-[13px] font-semibold active:scale-[0.98] transition"
+          >
+            {showWebsiteInfo ? "Hide" : "Request"}
+          </button>
+        </div>
+        <AnimatePresence>
+          {showWebsiteInfo && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-3 border-t border-white/10">
+                <p className="text-[13px] text-white/70">Send your details to</p>
+                <a
+                  href="mailto:hello@cutzioo.com?subject=Website%20design%20request"
+                  className="mt-1 inline-flex items-center gap-2 text-[14px] font-medium text-rose-400 hover:text-rose-300 transition"
+                >
+                  <Mail className="h-4 w-4" /> hello@cutzioo.com
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 };
+
+function OptionRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 h-12">
+      <span className="text-[14px] text-white">{label}</span>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function BookingLinkSkeleton() {
+  const bar = "bg-white/[0.06] rounded-md animate-pulse";
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 px-1">
+        <div className="h-10 w-10 rounded-2xl bg-white/[0.06] animate-pulse" />
+        <div className="space-y-2 flex-1">
+          <div className={cn(bar, "h-3 w-24")} />
+          <div className={cn(bar, "h-2.5 w-40")} />
+        </div>
+      </div>
+      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
+        <div className={cn(bar, "h-2.5 w-16")} />
+        <div className={cn(bar, "h-4 w-3/4")} />
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className="h-10 rounded-[18px] bg-white/[0.05] animate-pulse" />
+          <div className="h-10 rounded-[18px] bg-white/[0.05] animate-pulse" />
+        </div>
+      </div>
+      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
+        <div className={cn(bar, "h-2.5 w-20")} />
+        <div className="h-12 rounded-[18px] bg-white/[0.05] animate-pulse" />
+      </div>
+      <div className="rounded-2xl bg-white/[0.04] border border-white/10 divide-y divide-white/5 overflow-hidden">
+        <div className="h-12 animate-pulse bg-white/[0.02]" />
+        <div className="h-12 animate-pulse bg-white/[0.02]" />
+      </div>
+      <div className="h-12 rounded-2xl bg-white/[0.06] animate-pulse" />
+    </div>
+  );
+}
 
 export default BookingLinkGenerator;

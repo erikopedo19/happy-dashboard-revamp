@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, Clock, Scissors, ChevronRight, Crown } from "lucide-react";
@@ -60,8 +62,23 @@ const Services = () => {
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const requireAuth = useRequireAuth();
   const queryClient = useQueryClient();
   const { isPremium } = usePremium();
+
+  const { data: profile } = useQuery<{ currency?: string | null } | null>({
+    queryKey: ["services-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await db.from("profiles").select("currency").eq("id", user.id).maybeSingle();
+      if (error) throw error;
+      return data as { currency?: string | null } | null;
+    },
+    enabled: !!user,
+  });
+
+  const currency = profile?.currency || "EUR";
+  const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
 
   const { data: services = [], isLoading } = useQuery<Service[]>({
     queryKey: ["services", user?.id],
@@ -97,7 +114,7 @@ const Services = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!requireAuth("Sign in to manage services")) return;
     // Free-tier cap
     if (!editingService && !isPremium && services.length >= PREMIUM_LIMITS.freeServices) {
       toast({
@@ -147,6 +164,7 @@ const Services = () => {
 
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
+    if (!requireAuth("Sign in to delete services")) return;
     try {
       const pending = futureCountFor(serviceToDelete);
       if (pending > 0) {
@@ -173,6 +191,7 @@ const Services = () => {
   };
 
   const restoreService = async (id: string) => {
+    if (!requireAuth("Sign in to restore services")) return;
     try {
       const { error } = await db.from("services").update({ deleted_at: null }).eq("id", id);
       if (error) throw error;
@@ -190,7 +209,7 @@ const Services = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
         <AppSidebar />
         <main className="flex-1 pb-28">
           <div className="max-w-3xl mx-auto px-4 pt-6 md:px-8 md:pt-10">
@@ -207,96 +226,109 @@ const Services = () => {
               <Dialog open={isDialogOpen} onOpenChange={(o) => (o ? setIsDialogOpen(true) : closeDialog())}>
                 <DialogTrigger asChild>
                   <Button
-                    onClick={() => setEditingService(null)}
-                    className="h-10 rounded-full px-4 text-white border-0 shadow-sm"
+                    onPress={() => setEditingService(null)}
+                    className="h-10 rounded-full px-4 text-white border-0"
                     style={{ background: ROSE }}
                   >
                     <Plus className="h-4 w-4 mr-1.5" />
                     New
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[440px] rounded-2xl">
-                  <DialogHeader>
-                    <DialogTitle>{editingService ? "Edit Service" : "New Service"}</DialogTitle>
-                    <DialogDescription>
-                      {editingService ? "Update your service details." : "Add a new service to your menu."}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="name">Name</Label>
-                      <Input id="name" value={formData.name}
-                        onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                        placeholder="e.g. Haircut" required className="h-11 rounded-xl" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="duration">Duration (min)</Label>
-                        <Input id="duration" type="number" min={5} max={480} step={5}
-                          value={formData.duration}
-                          onChange={(e) => setFormData((p) => ({ ...p, duration: parseInt(e.target.value) || 30 }))}
-                          required className="h-11 rounded-xl" />
+                <DialogContent className="sm:max-w-[440px] rounded-[28px] border border-white/[0.08] bg-[#15151A] p-0 overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 360, damping: 34 }}
+                    className="p-6"
+                  >
+                    <DialogHeader className="mb-5">
+                      <DialogTitle className="text-xl font-bold text-white">{editingService ? "Edit Service" : "New Service"}</DialogTitle>
+                      <DialogDescription className="text-[#8E8E93]">
+                        {editingService ? "Update your service details." : "Add a new service to your menu."}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Name</Label>
+                        <Input id="name" value={formData.name}
+                          onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                          placeholder="e.g. Haircut" required
+                          className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="price">Price ($)</Label>
-                        <Input id="price" type="number" min={0} step={0.5}
-                          value={formData.price}
-                          onChange={(e) => setFormData((p) => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
-                          className="h-11 rounded-xl" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="duration" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Duration (min)</Label>
+                          <Input id="duration" type="number" min={5} max={480} step={5}
+                            value={formData.duration}
+                            onChange={(e) => setFormData((p) => ({ ...p, duration: Number(e.target.value) }))}
+                            required
+                            className="no-spinner h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="price" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Price ({currencySymbol})</Label>
+                          <Input id="price" type="number" min={0} step={0.5}
+                            value={formData.price}
+                            onChange={(e) => setFormData((p) => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
+                            className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Icon</Label>
-                      <IconPicker value={formData.icon}
-                        onChange={(icon) => setFormData((p) => ({ ...p, icon }))} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Color</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {PALETTE.map((c) => (
-                          <button key={c.value} type="button"
-                            onClick={() => setFormData((p) => ({ ...p, color: c.value }))}
-                            aria-label={c.label}
-                            className={cn(
-                              "w-9 h-9 rounded-full transition-transform",
-                              formData.color === c.value ? "ring-2 ring-offset-2 ring-[#1C1C1E] dark:ring-white scale-105" : "hover:scale-105"
-                            )}
-                            style={{ background: c.hex }}
-                          />
-                        ))}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Icon</Label>
+                        <IconPicker value={formData.icon}
+                          onChange={(icon) => setFormData((p) => ({ ...p, icon }))} />
                       </div>
-                    </div>
-                    <DialogFooter className="pt-2">
-                      <Button type="button" variant="outline" onClick={closeDialog} className="rounded-full">
-                        Cancel
-                      </Button>
-                      <Button type="submit" className="rounded-full text-white border-0" style={{ background: ROSE }}>
-                        {editingService ? "Save" : "Create"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Color</Label>
+                        <div className="flex flex-wrap gap-2.5">
+                          {PALETTE.map((c) => (
+                            <button key={c.value} type="button"
+                              onClick={() => setFormData((p) => ({ ...p, color: c.value }))}
+                              aria-label={c.label}
+                              className={cn(
+                                "w-10 h-10 rounded-full transition-transform ring-2 ring-offset-2 ring-offset-[#15151A]",
+                                formData.color === c.value ? "ring-white scale-110" : "ring-transparent hover:scale-105"
+                              )}
+                              style={{ background: c.hex }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <DialogFooter className="pt-2 gap-3">
+                        <Button variant="bordered" onPress={closeDialog}
+                          className="h-12 rounded-[18px] flex-1 border-white/10 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-12 rounded-[18px] flex-1 text-white border-0" style={{ background: ROSE }}>
+                          {editingService ? "Save" : "Create"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </motion.div>
                 </DialogContent>
               </Dialog>
             </div>
 
             {/* Empty state */}
             {!isLoading && services.length === 0 && (
-              <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-10 text-center">
-                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                className="rounded-[28px] bg-[#15151A] border border-white/[0.08] p-10 text-center shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
+              >
+                <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
                   style={{ background: `${ROSE}15` }}>
-                  <Scissors className="h-6 w-6" style={{ color: ROSE }} />
+                  <Scissors className="h-7 w-7" style={{ color: ROSE }} />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-white mb-1">
-                  No services yet
-                </h3>
-                <p className="text-sm text-[#8E8E93] mb-5">
+                <h3 className="text-xl font-bold text-white mb-1">No services yet</h3>
+                <p className="text-[15px] text-[#8E8E93] mb-6">
                   Create your first service to start taking bookings.
                 </p>
-                <Button onClick={() => setIsDialogOpen(true)}
-                  className="rounded-full text-white border-0" style={{ background: ROSE }}>
+                <Button onPress={() => setIsDialogOpen(true)}
+                  className="h-12 rounded-[18px] bg-white text-black text-[14px] font-semibold px-6 hover:bg-white/90 border-0">
                   <Plus className="h-4 w-4 mr-1.5" /> Add Service
                 </Button>
-              </div>
+              </motion.div>
             )}
 
             {/* Loading */}

@@ -1,11 +1,14 @@
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, ArrowRight, MapPin, Phone, Star, Flame, Gift, Sparkles, Globe } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { formatTzLabel } from "@/lib/tz";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 
 interface Service {
   id: string;
@@ -23,7 +26,7 @@ interface ModernBookingFormProps {
   services: Service[];
   stylists?: { id: string; name: string; avatar_url?: string | null; title?: string | null }[];
   stylistServices?: { stylist_id: string; service_id: string }[];
-  existingAppointments?: { id: string; appointment_date: string; appointment_time: string; service: Service; stylist_id?: string | null }[];
+  existingAppointments?: { id?: string; appointment_date?: string; appointment_time: string; service?: Service | null; service_duration?: number | null; stylist_id?: string | null }[];
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
@@ -48,6 +51,7 @@ interface ModernBookingFormProps {
     stylists_count?: number | null;
   } | null;
   workingDays?: number[];
+  timezone?: string;
   rescheduleAppointment?: any;
 }
 
@@ -67,9 +71,10 @@ const ModernBookingForm = ({
   isLoading,
   businessProfile,
   workingDays = [0, 1, 2, 3, 4, 5, 6],
+  timezone = "UTC",
   rescheduleAppointment
 }: ModernBookingFormProps) => {
-  const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
+  const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "review" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
@@ -237,7 +242,12 @@ const ModernBookingForm = ({
     return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleGoToReview = (values: any) => {
+    setAnimationDirection("forward");
+    setStep("review");
+  };
+
+  const handleConfirmBooking = async (values: any) => {
     // Always inject current state into form values before submit
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) {
@@ -309,19 +319,109 @@ const ModernBookingForm = ({
     );
   }
 
+  if (step === "review") {
+    const customer = form.getValues();
+    const stylist = stylists.find((s: any) => s.id === selectedStylistId);
+    return (
+      <div className={`min-h-screen ${getBgClass()} flex items-center justify-center p-4`}>
+        <div className={`w-full max-w-md ${getCardBgClass()} rounded-2xl border ${getBorderClass()} p-6`}>
+          <h2 className={`text-2xl font-bold ${getTextClass()} text-center mb-2`}>
+            {rescheduleAppointment ? "Confirm your change" : "Confirm your booking"}
+          </h2>
+          <p className={`text-center ${getTextMutedClass()} text-sm mb-6`}>
+            Please review all details before we finalize.
+          </p>
+
+          <div className={`${getCardBgClassSecondary()} rounded-xl p-4 space-y-3`}>
+            {selectedServices.map((service: any) => (
+              <div key={service.id} className="flex justify-between text-sm">
+                <span className={getTextClass()}>{service.name}</span>
+                <span className={getTextSecondaryClass()}>€{service.price}</span>
+              </div>
+            ))}
+            <div className={`border-t ${getBorderClass()} pt-3 flex justify-between`}>
+              <span className={getTextMutedClass()}>Total</span>
+              <span className={getTextClass()}>€{totalPrice} · {totalDuration} min</span>
+            </div>
+          </div>
+
+          <div className={`mt-4 ${getCardBgClassSecondary()} rounded-xl p-4 space-y-2 text-sm`}>
+            <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+              <CalendarIcon className="w-4 h-4" />
+              <span className={getTextClass()}>{selectedDate && format(selectedDate, 'EEEE d MMMM yyyy')}</span>
+            </div>
+            <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+              <Clock className="w-4 h-4" />
+              <span className={getTextClass()}>{selectedTime}</span>
+            </div>
+            {selectedStylistId && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <User className="w-4 h-4" />
+                <span className={getTextClass()}>{stylist?.name || "Selected stylist"}</span>
+              </div>
+            )}
+            {customer.customer_name && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <User className="w-4 h-4" />
+                <span className={getTextClass()}>{customer.customer_name}</span>
+              </div>
+            )}
+            {customer.customer_email && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <span className={getTextClass()}>{customer.customer_email}</span>
+              </div>
+            )}
+            {customer.customer_phone && (
+              <div className={`flex items-center gap-2 ${getTextSecondaryClass()}`}>
+                <span className={getTextClass()}>{customer.customer_phone}</span>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={form.handleSubmit(handleConfirmBooking)} className="mt-6 space-y-3">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 px-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-sm"
+              style={accentStyle}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {rescheduleAppointment ? "Confirm Change" : "Confirm booking"}
+                </>
+              )}
+            </Button>
+            <button
+              type="button"
+              onClick={() => { setAnimationDirection("backward"); setStep("details"); }}
+              className={`w-full text-center text-sm py-2 ${getTextMutedClass()} hover:${getTextClass()} transition-colors`}
+            >
+              Back to details
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen ${getBgClass()} ${getTextClass()}`}>
       {/* Theme Toggle Button */}
       <button
         onClick={() => setShowThemeControls(!showThemeControls)}
-        className={`fixed top-4 right-4 z-50 p-3 rounded-full ${getCardBgClass()} ${getBorderClass()} border shadow-lg hover:scale-105 transition-transform`}
+        className={`fixed top-4 right-4 z-50 p-3 rounded-full ${getCardBgClass()} ${getBorderClass()} border hover:scale-105 transition-transform`}
       >
         <div className="w-5 h-5 rounded-full" style={accentStyle} />
       </button>
 
       {/* Theme Controls Panel */}
       {showThemeControls && (
-        <div className={`fixed top-16 right-4 z-50 p-4 rounded-xl ${getCardBgClass()} ${getBorderClass()} border shadow-xl w-64`}>
+        <div className={`fixed top-16 right-4 z-50 p-4 rounded-xl ${getCardBgClass()} ${getBorderClass()} border w-64`}>
           <h3 className={`text-sm font-semibold mb-3 ${getTextClass()}`}>Theme Settings</h3>
           
           {/* Dark/Light Toggle */}
@@ -387,6 +487,65 @@ const ModernBookingForm = ({
               </div>
               <h1 className={`text-xl font-semibold ${getTextClass()} mb-1`}>{businessProfile?.full_name || 'Book an Appointment'}</h1>
               <p className={`${getTextMutedClass()} text-sm`}>Select a service to continue</p>
+            </div>
+
+            {/* Streak / Loyalty card — iOS style */}
+            <div className={cn(`mb-6 rounded-2xl border p-4 ${getCardBgClass()} ${getBorderClass()} overflow-hidden`)}>
+              <Tabs defaultValue="streak">
+                <div className="flex items-center justify-between mb-3">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${getTextMutedClass()}`}>Loyalty</p>
+                  <TabsList className={cn(`rounded-full p-1 ${getCardBgClassSecondary()} ${getBorderClass()} border`)}>
+                    <TabsTrigger value="streak" className="text-xs px-3 py-1 rounded-full">Streak</TabsTrigger>
+                    <TabsTrigger value="perks" className="text-xs px-3 py-1 rounded-full">Perks</TabsTrigger>
+                    <TabsTrigger value="gift" className="text-xs px-3 py-1 rounded-full">Gift</TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="streak" className="mt-0">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                    >
+                      <Flame className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm ${getTextClass()}`}>Start a booking streak</p>
+                      <p className={`text-xs ${getTextMutedClass()}`}>3 visits unlock 10% off your next appointment</p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="perks" className="mt-0">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                    >
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm ${getTextClass()}`}>Member perks</p>
+                      <p className={`text-xs ${getTextMutedClass()}`}>Free upgrade after 5 completed bookings</p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="gift" className="mt-0">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                    >
+                      <Gift className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold text-sm ${getTextClass()}`}>Refer a friend</p>
+                      <p className={`text-xs ${getTextMutedClass()}`}>They book, you both get a reward</p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Services List */}
@@ -463,11 +622,13 @@ const ModernBookingForm = ({
         <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
           <div className="w-full max-w-6xl">
         {/* Main 3-Panel Layout with Animation */}
-        <div 
+        <motion.div
           className={cn(
-            `flex flex-col lg:flex-row min-h-[600px] ${getCardBgClass()} rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ease-out`,
-            animationDirection === "forward" ? "animate-in slide-in-from-right-4" : "animate-in slide-in-from-left-4"
+            `flex flex-col lg:flex-row min-h-[600px] ${getCardBgClass()} rounded-2xl overflow-hidden`,
           )}
+          initial={{ opacity: 0, x: animationDirection === "forward" ? 24 : -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           key={step}
         >
           
@@ -697,8 +858,14 @@ const ModernBookingForm = ({
                   </div>
                 </div>
 
+                {/* Timezone label */}
+                <div className="flex items-center gap-1.5 mb-3 text-xs text-gray-500 dark:text-gray-400">
+                  <Globe className="w-3 h-3" />
+                  <span>Times shown in {formatTzLabel(timezone)}</span>
+                </div>
+
                 {/* Time slots */}
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent pr-1">
                   {selectedDate ? (
                     availableTimeSlots.length > 0 ? (
                       availableTimeSlots.map((time) => {
@@ -798,7 +965,7 @@ const ModernBookingForm = ({
                 <h4 className={`text-sm font-medium ${getTextClass()} mb-4`}>Your Details</h4>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 flex-1">
+                  <form onSubmit={form.handleSubmit(handleGoToReview)} className="space-y-4 flex-1">
                     <FormField
                       control={form.control}
                       name="customer_name"
@@ -870,7 +1037,7 @@ const ModernBookingForm = ({
                           </>
                         ) : (
                           <>
-                            {rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
+                            {rescheduleAppointment ? "Review Change" : "Review booking"}
                           </>
                         )}
                       </Button>
@@ -888,7 +1055,7 @@ const ModernBookingForm = ({
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
       )}

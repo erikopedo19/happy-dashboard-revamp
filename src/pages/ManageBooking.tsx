@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Phone, Loader2, CheckCircle2, XCircle, ArrowLeft, Star } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
@@ -155,7 +155,7 @@ export default function ManageBooking() {
             </div>
           )}
           <div className="pt-8">
-            <h1 className="text-2xl font-bold leading-tight">{booking.business.name}</h1>
+            <h1 className="text-2xl font-bold leading-tight">{booking.business.name} — Manage Your Appointment</h1>
             <p className="text-white/50 text-sm">Booking management</p>
           </div>
         </div>
@@ -223,16 +223,16 @@ export default function ManageBooking() {
             {!cancelled && (
               <div className="grid grid-cols-2 gap-3">
                 <Button
-                  onClick={() => setMode("reschedule")}
+                  onPress={() => setMode("reschedule")}
                   className="h-14 rounded-2xl text-base font-semibold border-0"
                   style={{ background: accent, color: "#0A0A0B" }}
                 >
                   Reschedule
                 </Button>
                 <Button
-                  onClick={handleCancel}
-                  disabled={busy}
-                  variant="outline"
+                  onPress={handleCancel}
+                  isDisabled={busy}
+                  variant="bordered"
                   className="h-14 rounded-2xl text-base font-semibold border-white/15 bg-white/5 text-white hover:bg-white/10"
                 >
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel booking"}
@@ -295,8 +295,8 @@ export default function ManageBooking() {
               </div>
 
               <Button
-                onClick={handleReschedule}
-                disabled={!selectedTime || busy}
+                onPress={handleReschedule}
+                isDisabled={!selectedTime || busy}
                 className="w-full h-14 rounded-2xl text-base font-semibold border-0"
                 style={{ background: accent, color: "#0A0A0B" }}
               >

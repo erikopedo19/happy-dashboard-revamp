@@ -1,15 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
-
 /* Apple SF Pro system font stack — applied globally */
 :root {
-  --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'SF Pro', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
 }
-html, body, #root {
-  font-family: var(--font-apple);
+html, body, #root, button, input, textarea, select {
+  font-family: var(--font-apple) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'ss01', 'cv11';
   letter-spacing: -0.01em;
 }
 
@@ -53,10 +49,12 @@ html, body, #root {
     --chart-5: 346 60% 70%;
 
     --gradient-brand: linear-gradient(135deg, #050506 0%, #111317 48%, #1d2027 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 62%));
-    --gradient-sky: linear-gradient(135deg, hsl(222 50% 35%), hsl(222 60% 50%));
-    --shadow-rose: 0 10px 40px -10px hsl(217 91% 60% / 0.24);
+    --shadow-rose: 0 10px 40px -10px hsl(346 84% 60% / 0.35);
+    --shadow-purple: 0 10px 40px -10px hsl(280 84% 60% / 0.35);
     --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
+
+    --rose: 346 84% 60%;
+    --purple: 280 84% 62%;
 
     --glass-background: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.08);
@@ -125,16 +123,19 @@ html, body, #root {
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-apple);
     font-weight: 400;
     letter-spacing: -0.015em;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-apple);
     font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -143,7 +144,7 @@ html, body, #root {
 
 @layer utilities {
   .font-sora {
-    font-family: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-apple);
   }
 
   /* Splash screen — refined iOS loader */
@@ -301,7 +302,7 @@ html, body, #root {
   }
 
   .sf-pro {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-apple);
   }
 
   /* Realism Button Styles */
@@ -424,8 +425,8 @@ html, body, #root {
     border-radius: 20px !important;
   }
 
-  /* Buttons keep moderate rounding */
-  .button { border-radius: 12px; }
+  /* Buttons — Apple UI fully rounded, no glow */
+  .button { border-radius: 9999px; }
 
   /* Tabs styling */
   [role="tablist"] {
@@ -435,7 +436,7 @@ html, body, #root {
 
   [role="tab"] {
     border-radius: 20px !important;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-apple);
     font-weight: 500;
   }
 
@@ -447,6 +448,18 @@ html, body, #root {
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Remove number-input spin buttons */
+  .no-spinner {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
   }
 
   /* iOS Safe Area Support */
@@ -735,9 +748,8 @@ html, body, #root {
   opacity: 0.9;
   transition: opacity 0.2s ease, transform 0.1s ease;
   padding: 2px;
-  background: black;
+  background: hsl(var(--primary));
   border-radius: 16px;
-  background: linear-gradient(to top, #be123c, #fb7185);
   border: none;
   outline: none;
 }
@@ -755,10 +767,9 @@ html, body, #root {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: #e11d48;
+  background: hsl(var(--primary));
   color: white;
   border-radius: 14px;
-  background: linear-gradient(to top, #db2777, #f43f5e);
   font-weight: 500;
   font-size: 0.875rem;
   white-space: nowrap;
@@ -805,4 +816,179 @@ html, body, #root {
   background-size: 140% 140%, 130% 130%, 120% 120%;
   animation: ambient-drift 28s ease-in-out infinite, ambient-hue 40s linear infinite;
   will-change: filter, background-position;
+}
+
+/* iOS minimal solid utilities — no gradients */
+.bg-aurora {
+  background: hsl(var(--primary));
+}
+.bg-rose-purple {
+  background: hsl(var(--primary));
+}
+.text-aurora {
+  color: hsl(var(--primary));
+}
+.shadow-aurora {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.bg-aurora-soft {
+  background: transparent;
+}
+@keyframes aurora-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.bg-aurora-animated {
+  background: hsl(var(--primary));
+  background-size: auto;
+  animation: none;
+}
+
+/* Override tailwind bg-gradient-rose to solid iOS primary */
+.bg-gradient-rose {
+  background: hsl(var(--primary)) !important;
+}
+
+/* ───── iOS Map · Radar pulse animations ───── */
+@keyframes radar-ping {
+  0%   { transform: scale(0.4); opacity: 0.9; }
+  80%  { opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes radar-sweep {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes radar-dot-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.45); }
+  50%      { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(225, 29, 72, 0); }
+}
+@keyframes pin-bounce {
+  0%   { transform: translate(-50%, -100%) scale(0.6); opacity: 0; }
+  60%  { transform: translate(-50%, -108%) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+}
+@keyframes pin-float {
+  0%, 100% { transform: translate(-50%, -100%) translateY(0); }
+  50%      { transform: translate(-50%, -100%) translateY(-3px); }
+}
+
+.radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(225, 29, 72, 0.55);
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.18) 0%, transparent 70%);
+  animation: radar-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.radar-ring.delay-1 { animation-delay: 0.8s; }
+.radar-ring.delay-2 { animation-delay: 1.6s; }
+
+.radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    transparent 300deg,
+    rgba(225, 29, 72, 0.55) 355deg,
+    rgba(244, 63, 94, 0.85) 360deg);
+  mask: radial-gradient(circle, transparent 6px, black 7px);
+  -webkit-mask: radial-gradient(circle, transparent 6px, black 7px);
+  animation: radar-sweep 2.6s linear infinite;
+}
+
+.radar-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  border: 2.5px solid #fff;
+  animation: radar-dot-pulse 1.6s ease-in-out infinite;
+}
+
+/* Cal Sans display font utility — now maps to SF Pro for consistency */
+.font-cal {
+  font-family: var(--font-apple);
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+/* ============================================================
+   Mobile: replace Liquid Glass with solid rounded dark surfaces
+   ============================================================ */
+@media (max-width: 767px) {
+  .liquid-glass:not(.mobile-dock),
+  .liquid-glass-agenda:not(.mobile-dock),
+  .glass-card:not(.mobile-dock),
+  .glass-surface:not(.mobile-dock) {
+    background: #15151A !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 20px !important;
+    box-shadow: none !important;
+  }
+  .liquid-glass:not(.mobile-dock)::before,
+  .liquid-glass:not(.mobile-dock)::after {
+    display: none !important;
+  }
+  /* neutralize backdrop-blur utilities on phone, except the dock */
+  [class*="backdrop-blur"]:not(.mobile-dock) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* translucent white overlays -> solid dark card, except the dock */
+  .bg-white\/5:not(.mobile-dock), .bg-white\/10:not(.mobile-dock),
+  .bg-white\/\[0\.03\]:not(.mobile-dock), .bg-white\/\[0\.04\]:not(.mobile-dock),
+  .bg-white\/\[0\.05\]:not(.mobile-dock), .bg-white\/\[0\.06\]:not(.mobile-dock),
+  .bg-white\/\[0\.08\]:not(.mobile-dock) {
+    background-color: #15151A !important;
+  }
+
+  /* Frosted, high-contrast mobile dock */
+  .mobile-dock {
+    background: rgba(18, 18, 22, 0.72) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(24px) !important;
+    backdrop-filter: saturate(180%) blur(24px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow:
+      0 14px 44px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+    /* Isolate into own stacking context to stop scroll-jitter of blur */
+    isolation: isolate;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+}
+
+/* ───── New-page highlight · rose→orange gradient swipe (runs ~5s) ───── */
+@keyframes nav-shimmer-sweep {
+  0%   { background-position: 130% 0; }
+  100% { background-position: -130% 0; }
+}
+.nav-shimmer-new {
+  background-image: linear-gradient(
+    100deg,
+    #ffffff 32%,
+    #fda4af 44%,
+    #fb923c 52%,
+    #fda4af 60%,
+    #ffffff 72%
+  );
+  background-size: 220% 100%;
+  background-position: 130% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: nav-shimmer-sweep 1.25s ease-in-out 4;
+  text-shadow: none;
 }

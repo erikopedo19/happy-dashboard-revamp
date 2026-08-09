@@ -1,11 +1,13 @@
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useOnboardingVisibility } from "@/contexts/OnboardingContext";
 import { MobileDockInner } from "@/components/MobileDock";
 import { ClientMobileDockInner } from "@/components/ClientMobileDock";
 
-const HIDE_ON = ["/auth", "/superadmin", "/choose-role", "/complete-profile"];
-const HIDE_PREFIX = ["/book/"];
+const HIDE_ON = ["/auth", "/login", "/superadmin", "/choose-role", "/choose-mode", "/complete-profile", "/onboarding", "/pricing"];
+const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing"];
+
 
 const CLIENT_ROUTES = [
   "/find-barber",
@@ -34,12 +36,14 @@ export const PersistentDock = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const { isOpen: onboardingOpen } = useOnboardingVisibility();
 
   if (!isMobile) return null;
   if (HIDE_ON.includes(location.pathname)) return null;
   if (HIDE_PREFIX.some((p) => location.pathname.startsWith(p))) return null;
-  // Hide on landing page when logged out
   if (!user && location.pathname === "/") return null;
+  if (onboardingOpen) return null;
+
 
   const role = (user?.user_metadata as any)?.role;
   const isClientRoute = CLIENT_ROUTES.some((r) => location.pathname.startsWith(r));

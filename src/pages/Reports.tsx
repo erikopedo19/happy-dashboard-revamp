@@ -1,11 +1,10 @@
-import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MobileDock } from "@/components/MobileDock";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Avatar } from "@heroui/react";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChartContainer,
@@ -14,6 +13,11 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
+import {
+  ExpandableActionBar,
+  type ExpandableActionBarItem,
+} from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,30 +28,35 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  ComposedChart,
-  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import {
+  Activity,
   ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
+  ChevronRight,
+  Clock,
   Crown,
   DollarSign,
   Download,
-  Filter,
-  MessageSquare,
+  Flame,
+  Lightbulb,
+  Lock,
+  PieChart as PieChartIcon,
   Scissors,
   Sparkles,
   Star,
+  TrendingUp,
   Users,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
 
 type RangeValue =
   | "today"
@@ -66,14 +75,8 @@ interface AppointmentRow {
   stylist_id: string | null;
   service_id: string;
   customer_id: string;
-  service?: {
-    id: string;
-    name: string;
-    color: string | null;
-    duration: number | null;
-  } | null;
+  service?: { id: string; name: string; color: string | null; duration: number | null } | null;
 }
-
 interface StylistRow {
   id: string;
   name: string;
@@ -82,7 +85,6 @@ interface StylistRow {
   status: string | null;
   bookings_today: number | null;
 }
-
 interface ReviewRow {
   id: string;
   rating: number;
@@ -90,19 +92,8 @@ interface ReviewRow {
   reviewer_name: string | null;
   created_at: string;
 }
-
-interface ServiceRow {
-  id: string;
-  name: string;
-  color: string | null;
-}
-
-interface CustomerRow {
-  id: string;
-  name: string;
-  email: string | null;
-}
-
+interface ServiceRow { id: string; name: string; color: string | null }
+interface CustomerRow { id: string; name: string; email: string | null }
 interface TopCustomerRow {
   id: string;
   name: string;
@@ -110,101 +101,90 @@ interface TopCustomerRow {
   revenue: number;
   lastVisit: string | null;
   initials: string;
-  color: string;
 }
 
 const db = supabase as any;
-
-const customerColors = [
-  "#1C1C1E", "#3A3A3C", "#48484A", "#636366",
-  "#34C759", "#5856D6", "#8E8E93", "#AEAEB2",
-];
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   maximumFractionDigits: 0,
 });
-
 const numberFormat = new Intl.NumberFormat("en-US");
+
+const iOS = {
+  blue: "#0A84FF",
+  green: "#30D158",
+  indigo: "#5E5CE6",
+  orange: "#FF9F0A",
+  pink: "#FF375F",
+  rose: "#FF2D6F",
+  rosesoft: "#FF6B95",
+  yellow: "#FFD60A",
+  grey: "#8E8E93",
+  card: "#1C1C1E",
+  cardDark: "#000000",
+  surface: "#2C2C2E",
+  surfaceDark: "#1C1C1E",
+  glass: "rgba(255, 255, 255, 0.05)",
+  glassBorder: "rgba(255, 255, 255, 0.1)",
+  textPrimary: "#FFFFFF",
+  textSecondary: "#98989F",
+  accent: "#007AFF",
+  success: "#34C759",
+  warning: "#FF9500",
+  error: "#FF3B30",
+};
+
+const AVATAR_TINTS = [iOS.rose, iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.yellow];
 
 const RANGES: { value: RangeValue; label: string; short: string }[] = [
   { value: "today", label: "Today", short: "1D" },
-  { value: "last7days", label: "Last 7 days", short: "7D" },
-  { value: "last30days", label: "Last 30 days", short: "30D" },
-  { value: "thisMonth", label: "This month", short: "MTD" },
-  { value: "lastMonth", label: "Last month", short: "LM" },
-  { value: "thisYear", label: "This year", short: "YTD" },
+  { value: "last7days", label: "7 Days", short: "7D" },
+  { value: "last30days", label: "30 Days", short: "30D" },
+  { value: "thisMonth", label: "Month", short: "MTD" },
+  { value: "lastMonth", label: "Last Mo.", short: "LM" },
+  { value: "thisYear", label: "Year", short: "YTD" },
 ];
 
 const getRangeDates = (range: RangeValue) => {
   const now = new Date();
   const start = new Date(now);
   const end = new Date(now);
-
   switch (range) {
     case "today":
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      break;
+      start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
     case "last7days":
-      start.setDate(now.getDate() - 6);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      break;
+      start.setDate(now.getDate() - 6); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
     case "last30days":
-      start.setDate(now.getDate() - 29);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      break;
+      start.setDate(now.getDate() - 29); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
     case "thisMonth":
-      start.setDate(1);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      break;
+      start.setDate(1); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
     case "lastMonth":
-      start.setMonth(now.getMonth() - 1, 1);
-      start.setHours(0, 0, 0, 0);
-      end.setMonth(now.getMonth(), 0);
-      end.setHours(23, 59, 59, 999);
-      break;
+      start.setMonth(now.getMonth() - 1, 1); start.setHours(0, 0, 0, 0);
+      end.setMonth(now.getMonth(), 0); end.setHours(23, 59, 59, 999); break;
     case "thisYear":
-      start.setMonth(0, 1);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      break;
+      start.setMonth(0, 1); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
   }
-
   return {
-    start,
-    end,
+    start, end,
     startDate: start.toISOString().slice(0, 10),
     endDate: end.toISOString().slice(0, 10),
   };
 };
 
 const dayLabel = (date: string) =>
-  new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-// iOS professional color palette
-const applePalette = [
-  "#007AFF", // Apple Blue
-  "#34C759", // Apple Green
-  "#5856D6", // Apple Purple
-  "#FF9500", // Apple Orange
-  "#AF52DE", // Apple Violet
-  "#FF2D55", // Apple Red
-];
+const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
+const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
+const stagger = (i: number) => ({ delay: i * 0.05, ...spring });
 
 const Reports = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
-
   const { startDate, endDate } = useMemo(() => getRangeDates(dateRange), [dateRange]);
 
   const { data: reviewsData } = useQuery<ReviewRow[]>({
@@ -224,10 +204,7 @@ const Reports = () => {
     queryFn: async () => {
       if (!user) return [];
       const { data: rows } = await (supabase as any)
-        .from("customers")
-        .select("id, name, email")
-        .eq("user_id", user.id)
-        .order("name");
+        .from("customers").select("id, name, email").eq("user_id", user.id).order("name");
       return (rows || []) as CustomerRow[];
     },
   });
@@ -236,50 +213,17 @@ const Reports = () => {
     queryKey: ["reports-analytics", user?.id, dateRange, startDate, endDate],
     enabled: !!user,
     queryFn: async () => {
-      if (!user) {
-        return {
-          appointments: [] as AppointmentRow[],
-          stylists: [] as StylistRow[],
-          services: [] as ServiceRow[],
-        };
-      }
-
+      if (!user) return { appointments: [] as AppointmentRow[], stylists: [] as StylistRow[], services: [] as ServiceRow[] };
       const [appointmentsResult, stylistsResult, servicesResult] = await Promise.all([
-        db
-          .from("appointments")
-          .select(`
-            id,
-            appointment_date,
-            appointment_time,
-            price,
-            status,
-            stylist_id,
-            service_id,
-            customer_id,
-            service:services(id, name, color, duration)
-          `)
-          .eq("user_id", user.id)
-          .gte("appointment_date", startDate)
-          .lte("appointment_date", endDate)
-          .order("appointment_date", { ascending: true })
-          .order("appointment_time", { ascending: true }),
-        db
-          .from("stylists")
-          .select("id, name, title, satisfaction, status, bookings_today")
-          .eq("user_id", user.id)
-          .order("name"),
-        db
-          .from("services")
-          .select("id, name, color")
-          .eq("user_id", user.id)
-          .is("deleted_at", null)
-          .order("name"),
+        db.from("appointments").select(`id, appointment_date, appointment_time, price, status, stylist_id, service_id, customer_id, service:services(id, name, color, duration)`)
+          .eq("user_id", user.id).gte("appointment_date", startDate).lte("appointment_date", endDate)
+          .order("appointment_date", { ascending: true }).order("appointment_time", { ascending: true }),
+        db.from("stylists").select("id, name, title, satisfaction, status, bookings_today").eq("user_id", user.id).order("name"),
+        db.from("services").select("id, name, color").eq("user_id", user.id).is("deleted_at", null).order("name"),
       ]);
-
       if (appointmentsResult.error) throw appointmentsResult.error;
       if (stylistsResult.error) throw stylistsResult.error;
       if (servicesResult.error) throw servicesResult.error;
-
       return {
         appointments: (appointmentsResult.data || []) as AppointmentRow[],
         stylists: (stylistsResult.data || []) as StylistRow[],
@@ -292,472 +236,433 @@ const Reports = () => {
     const appointments = data?.appointments || [];
     const stylists = data?.stylists || [];
     const services = data?.services || [];
-
-    const totalRevenue = appointments.reduce((sum, apt) => sum + (apt.price || 0), 0);
-    const completedAppointments = appointments.filter((apt) => apt.status === "completed").length;
-    const scheduledAppointments = appointments.filter(
-      (apt) => apt.status === "scheduled" || apt.status === "confirmed"
-    ).length;
-    const cancelledAppointments = appointments.filter((apt) => apt.status === "cancelled").length;
-    const totalCustomers = new Set(appointments.map((apt) => apt.customer_id)).size;
+    const totalRevenue = appointments.reduce((s, a) => s + (a.price || 0), 0);
+    const completed = appointments.filter(a => a.status === "completed").length;
+    const scheduled = appointments.filter(a => a.status === "scheduled" || a.status === "confirmed").length;
+    const cancelled = appointments.filter(a => a.status === "cancelled").length;
+    const totalCustomers = new Set(appointments.map(a => a.customer_id)).size;
     const averageTicket = appointments.length ? totalRevenue / appointments.length : 0;
-    const completionRate = appointments.length
-      ? Math.round((completedAppointments / appointments.length) * 100)
-      : 0;
+    const completionRate = appointments.length ? Math.round((completed / appointments.length) * 100) : 0;
 
-    const dailyMap = new Map<
-      string,
-      { date: string; revenue: number; appointments: number; completed: number }
-    >();
-
-    appointments.forEach((apt) => {
-      const key = apt.appointment_date;
-      const current = dailyMap.get(key) || {
-        date: key,
-        revenue: 0,
-        appointments: 0,
-        completed: 0,
-      };
-
-      current.revenue += apt.price || 0;
-      current.appointments += 1;
-      if (apt.status === "completed") current.completed += 1;
-
-      dailyMap.set(key, current);
+    const dailyMap = new Map<string, { date: string; revenue: number; appointments: number; completed: number }>();
+    appointments.forEach(a => {
+      const cur = dailyMap.get(a.appointment_date) || { date: a.appointment_date, revenue: 0, appointments: 0, completed: 0 };
+      cur.revenue += a.price || 0; cur.appointments += 1;
+      if (a.status === "completed") cur.completed += 1;
+      dailyMap.set(a.appointment_date, cur);
     });
+    const revenueTrend = Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+      .map(i => ({ label: dayLabel(i.date), revenue: i.revenue, appointments: i.appointments, completed: i.completed }));
 
-    const revenueTrend = Array.from(dailyMap.values())
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map((item) => ({
-        label: dayLabel(item.date),
-        revenue: item.revenue,
-        appointments: item.appointments,
-        completed: item.completed,
-      }));
-
-    const serviceUsageMap = new Map<
-      string,
-      { name: string; bookings: number; revenue: number; color: string }
-    >();
-
-    appointments.forEach((apt) => {
-      const serviceName = apt.service?.name || "Service";
-      const existing = serviceUsageMap.get(serviceName) || {
-        name: serviceName,
-        bookings: 0,
-        revenue: 0,
-        color:
-          apt.service?.color ||
-          applePalette[serviceUsageMap.size % applePalette.length],
-      };
-
-      existing.bookings += 1;
-      existing.revenue += apt.price || 0;
-
-      serviceUsageMap.set(serviceName, existing);
+    const serviceMap = new Map<string, { name: string; bookings: number; revenue: number }>();
+    appointments.forEach(a => {
+      const n = a.service?.name || "Service";
+      const e = serviceMap.get(n) || { name: n, bookings: 0, revenue: 0 };
+      e.bookings += 1; e.revenue += a.price || 0;
+      serviceMap.set(n, e);
     });
+    const serviceBreakdown = Array.from(serviceMap.values()).sort((a, b) => b.bookings - a.bookings).slice(0, 6);
 
-    const serviceBreakdown = Array.from(serviceUsageMap.values())
-      .sort((a, b) => b.bookings - a.bookings)
-      .slice(0, 6);
-
-    const stylistPerformance = stylists
-      .map((stylist, index) => {
-        const stylistAppointments = appointments.filter((apt) => apt.stylist_id === stylist.id);
-        const revenue = stylistAppointments.reduce((sum, apt) => sum + (apt.price || 0), 0);
-        const completed = stylistAppointments.filter((apt) => apt.status === "completed").length;
-        const score = revenue + completed * 30 + (stylist.satisfaction || 0) * 100;
-
-        return {
-          id: stylist.id,
-          name: stylist.name,
-          title: stylist.title || "Stylist",
-          bookings: stylistAppointments.length,
-          completed,
-          revenue,
-          satisfaction: stylist.satisfaction || 0,
-          score,
-          color: applePalette[index % applePalette.length],
-        };
-      })
-      .sort((a, b) => b.score - a.score);
-
-    const topStylist = stylistPerformance[0];
+    const stylistPerformance = stylists.map(s => {
+      const apts = appointments.filter(a => a.stylist_id === s.id);
+      const revenue = apts.reduce((sum, a) => sum + (a.price || 0), 0);
+      const done = apts.filter(a => a.status === "completed").length;
+      return {
+        id: s.id, name: s.name, title: s.title || "Stylist",
+        bookings: apts.length, completed: done, revenue,
+        satisfaction: s.satisfaction || 0,
+        score: revenue + done * 30 + (s.satisfaction || 0) * 100,
+      };
+    }).sort((a, b) => b.score - a.score);
 
     const statusBreakdown = [
-      { name: "Completed", value: completedAppointments, fill: "#34C759" }, // Apple Green
-      { name: "Scheduled", value: scheduledAppointments, fill: "#007AFF" }, // Apple Blue
-      { name: "Cancelled", value: cancelledAppointments, fill: "#8E8E93" }, // Apple Grey
-    ].filter((item) => item.value > 0);
+      { name: "Completed", value: completed, fill: iOS.green },
+      { name: "Scheduled", value: scheduled, fill: iOS.blue },
+      { name: "Cancelled", value: cancelled, fill: iOS.pink },
+    ].filter(i => i.value > 0);
 
-    const busiestHourMap = new Map<string, number>();
-    appointments.forEach((apt) => {
-      const hour = `${apt.appointment_time.slice(0, 2)}:00`;
-      busiestHourMap.set(hour, (busiestHourMap.get(hour) || 0) + 1);
-    });
-
-    const hourlyDemand = Array.from(busiestHourMap.entries())
-      .map(([hour, value]) => ({ hour, value }))
-      .sort((a, b) => a.hour.localeCompare(b.hour))
-      .slice(0, 10);
-
-    const dayOfWeekDemand = [0, 1, 2, 3, 4, 5, 6].map((dow) => ({
+    const dayOfWeekDemand = [0, 1, 2, 3, 4, 5, 6].map(dow => ({
       day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dow],
-      count: appointments.filter(
-        (apt) => new Date(`${apt.appointment_date}T00:00:00`).getDay() === dow
-      ).length,
+      count: appointments.filter(a => new Date(`${a.appointment_date}T00:00:00`).getDay() === dow).length,
     }));
 
-    // simple delta vs first half of window
+    const hourlyDemand = Array.from({ length: 13 }, (_, i) => i + 8).map(hour => ({
+      hour: hour <= 12 ? `${hour}${hour === 12 ? "pm" : "am"}` : `${hour - 12}pm`,
+      count: appointments.filter(a => parseInt((a.appointment_time || "0").split(":")[0], 10) === hour).length,
+    }));
+    const peakHour = hourlyDemand.reduce((best, h) => (h.count > best.count ? h : best), hourlyDemand[0]);
+
     const half = Math.floor(revenueTrend.length / 2);
     const firstHalf = revenueTrend.slice(0, half).reduce((s, r) => s + r.revenue, 0);
     const secondHalf = revenueTrend.slice(half).reduce((s, r) => s + r.revenue, 0);
     const revenueDelta = firstHalf > 0 ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100) : 0;
 
+    const busiestDay = dayOfWeekDemand.reduce((best, d) => (d.count > best.count ? d : best), dayOfWeekDemand[0]);
+
     return {
-      totalRevenue,
-      totalAppointments: appointments.length,
-      totalCustomers,
-      averageTicket,
-      completionRate,
-      completedAppointments,
-      scheduledAppointments,
-      cancelledAppointments,
-      revenueTrend,
-      serviceBreakdown,
-      stylistPerformance,
-      topStylist,
-      statusBreakdown,
-      hourlyDemand,
-      dayOfWeekDemand,
-      activeServices: services.length,
-      activeStylists: stylists.length,
-      revenueDelta,
+      totalRevenue, totalAppointments: appointments.length, totalCustomers,
+      averageTicket, completionRate, completedAppointments: completed,
+      scheduledAppointments: scheduled, cancelledAppointments: cancelled,
+      revenueTrend, serviceBreakdown, stylistPerformance, statusBreakdown, dayOfWeekDemand,
+      hourlyDemand, peakHour, busiestDay,
+      activeServices: services.length, activeStylists: stylists.length, revenueDelta,
     };
   }, [data]);
 
   const topCustomers = useMemo<TopCustomerRow[]>(() => {
     if (!data?.appointments || !customersData.length) return [];
     const map = new Map<string, { bookings: number; revenue: number; lastVisit: string | null }>();
-    data.appointments.forEach((apt) => {
+    data.appointments.forEach(apt => {
       if (!apt.customer_id) return;
       const prev = map.get(apt.customer_id) ?? { bookings: 0, revenue: 0, lastVisit: null };
       map.set(apt.customer_id, {
         bookings: prev.bookings + 1,
         revenue: prev.revenue + (apt.price || 0),
-        lastVisit:
-          !prev.lastVisit || apt.appointment_date > prev.lastVisit
-            ? apt.appointment_date
-            : prev.lastVisit,
+        lastVisit: !prev.lastVisit || apt.appointment_date > prev.lastVisit ? apt.appointment_date : prev.lastVisit,
       });
     });
-    return customersData
-      .map((c, i) => {
-        const stats = map.get(c.id) ?? { bookings: 0, revenue: 0, lastVisit: null };
-        const parts = c.name.trim().split(" ");
-        const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
-        return {
-          id: c.id,
-          name: c.name,
-          bookings: stats.bookings,
-          revenue: stats.revenue,
-          lastVisit: stats.lastVisit,
-          initials: initials.toUpperCase(),
-          color: customerColors[i % customerColors.length],
-        };
-      })
-      .filter((c) => c.bookings > 0)
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 8);
+    return customersData.map(c => {
+      const s = map.get(c.id) ?? { bookings: 0, revenue: 0, lastVisit: null };
+      const parts = c.name.trim().split(" ");
+      const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+      return { id: c.id, name: c.name, bookings: s.bookings, revenue: s.revenue, lastVisit: s.lastVisit, initials: initials.toUpperCase() };
+    }).filter(c => c.bookings > 0).sort((a, b) => b.revenue - a.revenue).slice(0, 8);
   }, [data, customersData]);
 
-  const revenueChartConfig = {
-    revenue: { label: "Revenue", color: "#007AFF" },
-  } satisfies ChartConfig;
+  const revenueChartConfig = { revenue: { label: "Revenue", color: iOS.blue } } satisfies ChartConfig;
 
   const handleExport = () => {
     const header = "label,revenue,appointments,completed";
-    const rows = analytics.revenueTrend
-      .map((r) => `${r.label},${r.revenue},${r.appointments},${r.completed}`)
-      .join("\n");
+    const rows = analytics.revenueTrend.map(r => `${r.label},${r.revenue},${r.appointments},${r.completed}`).join("\n");
     const blob = new Blob([`${header}\n${rows}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `reports-${dateRange}.csv`;
-    a.click();
+    a.href = url; a.download = `reports-${dateRange}.csv`; a.click();
     URL.revokeObjectURL(url);
-    toast({
-      title: "Export ready",
-      description: "Your analytics CSV has been downloaded.",
-    });
+    toast({ title: "Export ready", description: "Your analytics CSV has been downloaded." });
   };
+
+  const revenueRef = useRef<HTMLDivElement>(null);
+  const insightsRef = useRef<HTMLDivElement>(null);
+  const kpisRef = useRef<HTMLDivElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
+  const peakRef = useRef<HTMLDivElement>(null);
+  const servicesRef = useRef<HTMLDivElement>(null);
+  const stylistsRef = useRef<HTMLDivElement>(null);
+  const customersRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
+
+  const sectionRefs = {
+    revenue: revenueRef,
+    insights: insightsRef,
+    kpis: kpisRef,
+    status: statusRef,
+    peak: peakRef,
+    services: servicesRef,
+    stylists: stylistsRef,
+    customers: customersRef,
+    reviews: reviewsRef,
+  };
+
+  const [activeSection, setActiveSection] = useState("revenue");
+
+  const scrollTo = (id: string) => {
+    const ref = sectionRefs[id as keyof typeof sectionRefs];
+    if (ref?.current) {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const actionItems: ExpandableActionBarItem[] = useMemo(
+    () => [
+      { id: "revenue", label: "Revenue", icon: <TrendingUp className="h-4 w-4" />, onClick: () => scrollTo("revenue") },
+      { id: "insights", label: "Insights", icon: <Lightbulb className="h-4 w-4" />, onClick: () => scrollTo("insights") },
+      { id: "kpis", label: "KPIs", icon: <Activity className="h-4 w-4" />, onClick: () => scrollTo("kpis") },
+      { id: "status", label: "Status", icon: <PieChartIcon className="h-4 w-4" />, onClick: () => scrollTo("status") },
+      { id: "peak", label: "Peak hours", icon: <Clock className="h-4 w-4" />, onClick: () => scrollTo("peak") },
+      { id: "services", label: "Services", icon: <Scissors className="h-4 w-4" />, onClick: () => scrollTo("services") },
+      { id: "stylists", label: "Stylists", icon: <Crown className="h-4 w-4" />, onClick: () => scrollTo("stylists") },
+      { id: "customers", label: "Customers", icon: <Users className="h-4 w-4" />, onClick: () => scrollTo("customers") },
+      { id: "reviews", label: "Reviews", icon: <Star className="h-4 w-4" />, onClick: () => scrollTo("reviews") },
+      { id: "export", label: "Export", icon: <Download className="h-4 w-4" />, onClick: handleExport },
+    ],
+    [handleExport],
+  );
+
+  useEffect(() => {
+    if (isMobile) return;
+    const container = document.querySelector("main > div.relative.z-10.flex-1.overflow-auto");
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { root: container, threshold: 0.4 },
+    );
+
+    Object.values(sectionRefs).forEach((ref) => {
+      if (ref.current) observer.observe(ref.current);
+    });
+
+    return () => observer.disconnect();
+  }, [isMobile]);
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0a0203] overflow-hidden">
+      <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
-
-        <main className="relative flex-1 bg-[#0a0203] flex flex-col overflow-hidden">
-          {/* Vibrant ambient gradient glow — slowly cycles colors */}
-          <div
-            aria-hidden
-            className="ambient-gradient pointer-events-none absolute inset-x-0 top-0 h-56 z-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(60% 100% at 15% 0%, rgba(99,102,241,0.40) 0%, rgba(99,102,241,0) 60%), radial-gradient(55% 100% at 85% 0%, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0) 65%), radial-gradient(45% 90% at 50% 0%, rgba(168,85,247,0.24) 0%, rgba(10,2,3,0) 70%)",
-              maskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.55) 45%, transparent 100%)",
-            }}
-          />
-
-          {/* Header */}
-          <div className="sticky top-0 z-20 border-b border-white/5 bg-[#0a0203]/70 backdrop-blur-2xl">
-            <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <SidebarTrigger className="lg:hidden text-white" />
-                <div className="min-w-0">
-                  <p className="hidden md:block text-[10px] uppercase tracking-[0.22em] font-semibold text-[#8E8E93]">
-                    Analytics studio
+        <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
+          {/* iOS large-title header */}
+          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 backdrop-blur-xl">
+            <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <motion.div
+                  className="min-w-0 hidden md:block"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={springSoft}
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
+                    Analytics
                   </p>
-                  <h1 className="text-[17px] md:text-2xl font-semibold text-white truncate">
+                  <h1 className="text-[34px] md:text-[40px] font-bold text-white tracking-[-0.03em] leading-none">
                     Reports
                   </h1>
-                </div>
+                </motion.div>
               </div>
 
-              <Button
+              <motion.button
                 type="button"
-                size="sm"
                 onClick={handleExport}
-                className="rounded-full h-9 px-4 bg-white text-[#0a0203] hover:bg-white/90 font-semibold gap-1.5"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={springSoft}
+                whileTap={{ scale: 0.94 }}
+                className="hidden md:inline-flex shrink-0 items-center gap-2 rounded-[12px] h-10 px-4 bg-[#15151A] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
               >
-                <Download className="h-4 w-4" strokeWidth={2.5} />
-                {!isMobile && "Export"}
-              </Button>
+                <Download className="h-4 w-4" strokeWidth={2.3} />
+                Export
+              </motion.button>
             </div>
 
-            {/* Range pills with subtle animations */}
-            <div className="px-4 md:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
-              {RANGES.map((r) => {
-                const active = dateRange === r.value;
-                return (
-                  <button
-                    key={r.value}
-                    onClick={() => setDateRange(r.value)}
-                    className={`relative shrink-0 h-8 px-4 rounded-full text-xs font-semibold transition-all ${
-                      active
-                        ? "bg-white text-[#0a0203] shadow-sm"
-                        : "bg-white/[0.06] text-white"
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="activeRangePill"
-                        className="absolute inset-0 rounded-full bg-white -z-10"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    {isMobile ? r.short : r.label}
-                  </button>
-                );
-              })}
-            </div>
+            {/* Apple-style segmented date range (desktop only; mobile view has its own) */}
+            {!isMobile && (
+              <div className="px-4 md:px-8 pb-4">
+                <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
+                  <TabsList className="w-full md:w-auto bg-[#15151A]">
+                    {RANGES.map((r) => (
+                      <Fragment key={r.value}>
+                        <TabsTrigger value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
+                          <span className="relative">{r.label}</span>
+                        </TabsTrigger>
+                      </Fragment>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
           </div>
 
-          {/* Content */}
           <div className="relative z-10 flex-1 overflow-auto">
-            <div className="w-full px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5 pb-32 md:pb-6 max-w-[1440px] mx-auto">
-              <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.85fr] gap-4 md:gap-5">
-                <Card className="rounded-[2rem] border border-white/5 bg-[#1a0509]/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden backdrop-blur-2xl">
-                  <CardContent className="p-5 md:p-6">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8E8E93]">
-                        Revenue overview
-                      </p>
-                      <p className="text-3xl md:text-5xl font-bold text-white mt-2 tracking-tight">
-                        {currency.format(analytics.totalRevenue)}
-                      </p>
-                      <div className="mt-3 flex items-center gap-2">
-                        <div
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            analytics.revenueDelta >= 0
-                              ? "bg-emerald-500/15 text-emerald-300"
-                              : "bg-white/[0.06] text-white/60"
-                          }`}
-                        >
-                          {analytics.revenueDelta >= 0 ? (
-                            <ArrowUpRight className="w-3.5 h-3.5" />
-                          ) : (
-                            <ArrowDownRight className="w-3.5 h-3.5" />
-                          )}
-                          {Math.abs(analytics.revenueDelta)}%
+            {isMobile && (
+              <MobileReportsView
+                analytics={analytics}
+                isLoading={isLoading}
+                topCustomers={topCustomers}
+                reviews={reviewsData || []}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                onExport={handleExport}
+              />
+            )}
+            <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
+
+              {/* Hero revenue card */}
+              <motion.div
+                id="revenue"
+                ref={sectionRefs.revenue}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={springSoft}
+              >
+                <Card className="relative rounded-[24px] border border-white/[0.08] bg-[#15151A] overflow-hidden">
+                  <CardContent className="relative p-6 md:p-8">
+                    <div className="flex items-start justify-between gap-5">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">
+                          Total revenue
+                        </p>
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={analytics.totalRevenue}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
+                            style={{}}
+                          >
+                            {isLoading ? "—" : currency.format(analytics.totalRevenue)}
+                          </motion.p>
+                        </AnimatePresence>
+                        <div className="mt-4 flex items-center gap-2.5">
+                          <div
+                            className={cn(
+                              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold border",
+                              analytics.revenueDelta >= 0
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-[#FF375F]/10 text-[#FF375F] border-[#FF375F]/20"
+                            )}
+                          >
+                            {analytics.revenueDelta >= 0 ? (
+                              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+                            ) : (
+                              <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+                            )}
+                            {Math.abs(analytics.revenueDelta)}%
+                          </div>
+                          <span className="text-xs text-white/50">vs prior period</span>
                         </div>
-                        <span className="text-xs text-[#8E8E93]">
-                          vs first half
-                        </span>
                       </div>
-                    </div>
-                    <div className="w-11 h-11 rounded-2xl bg-white/[0.06] flex items-center justify-center shrink-0">
-                      <DollarSign className="w-5 h-5 text-white" strokeWidth={2.5} />
-                    </div>
-                  </div>
 
-                  <ChartContainer
-                    config={revenueChartConfig}
-                    className="h-[260px] md:h-[320px] w-full aspect-auto mt-4"
-                  >
-                    <ComposedChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
-                      <defs>
-                        <linearGradient id="fillRevLine" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#007AFF" stopOpacity={0.22} />
-                          <stop offset="100%" stopColor="#007AFF" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="fillRevBars" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#30D158" stopOpacity={0.85} />
-                          <stop offset="100%" stopColor="#30D158" stopOpacity={0.15} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
-                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
-                      <YAxis hide />
-                      <ChartTooltip
-                        cursor={{ fill: "rgba(14,165,233,0.06)" }}
-                        content={
-                          <ChartTooltipContent
-                            formatter={(value) => [currency.format(Number(value)), "Revenue"]}
-                          />
-                        }
-                      />
-                      <Bar
-                        dataKey="appointments"
-                        fill="url(#fillRevBars)"
-                        radius={[10, 10, 10, 10]}
-                        barSize={isMobile ? 12 : 18}
-                        animationDuration={900}
-                        animationBegin={100}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#007AFF"
-                        strokeWidth={2.5}
-                        fill="url(#fillRevLine)"
-                        animationDuration={1200}
-                        animationBegin={300}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="completed"
-                        stroke="#8E8E93"
-                        strokeWidth={2}
-                        strokeDasharray="3 4"
-                        dot={false}
-                        animationDuration={1200}
-                        animationBegin={450}
-                      />
-                    </ComposedChart>
-                  </ChartContainer>
-                </CardContent>
-                </Card>
+                      {/* iOS radial gauge — completion rate */}
+                      <CompletionGauge value={analytics.completionRate} />
+                    </div>
 
-                <Card className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#170410] to-[#0a0a1f] text-white shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden">
-                  <CardContent className="p-5 md:p-6 h-full flex flex-col">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
-                        Report health
-                      </p>
-                      <h2 className="text-2xl md:text-3xl font-bold mt-2">
-                        {analytics.completionRate}% completed
-                      </h2>
-                      <p className="text-sm text-white/60 mt-2">
-                        {numberFormat.format(analytics.completedAppointments)} finished bookings from {numberFormat.format(analytics.totalAppointments)} total.
-                      </p>
-                    </div>
-                    <div className="mt-6 grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                        <p className="text-[10px] uppercase tracking-wider text-white/50">Scheduled</p>
-                        <p className="text-2xl font-bold mt-2">{numberFormat.format(analytics.scheduledAppointments)}</p>
-                      </div>
-                      <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                        <p className="text-[10px] uppercase tracking-wider text-white/50">Cancelled</p>
-                        <p className="text-2xl font-bold mt-2">{numberFormat.format(analytics.cancelledAppointments)}</p>
-                      </div>
-                    </div>
-                    <div className="mt-auto pt-6">
-                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full rounded-full bg-white" style={{ width: `${analytics.completionRate}%` }} />
-                      </div>
-                    </div>
+                    <ChartContainer
+                      config={revenueChartConfig}
+                      className="h-[220px] md:h-[300px] w-full aspect-auto mt-6"
+                    >
+                      <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
+                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="hsl(var(--border))" />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }}
+                          interval="preserveStartEnd"
+                          dy={6}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          width={42}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }}
+                          tickFormatter={(v) => {
+                            const n = Number(v);
+                            if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+                            return String(n);
+                          }}
+                        />
+                        <ChartTooltip
+                          cursor={{ stroke: "hsl(var(--muted-foreground))", strokeDasharray: "3 4" }}
+                          content={<ChartTooltipContent formatter={(value) => [currency.format(Number(value)), "Revenue"]} />}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke={iOS.rose}
+                          strokeWidth={2.4}
+                          fill={iOS.rose}
+                          fillOpacity={0.08}
+                          dot={false}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))", fill: iOS.rose }}
+                          animationDuration={900}
+                        />
+                      </AreaChart>
+                    </ChartContainer>
                   </CardContent>
                 </Card>
-              </section>
+              </motion.div>
+
+              {/* Smart insights */}
+              {analytics.totalAppointments > 0 && (
+                <div id="insights" ref={sectionRefs.insights} className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <InsightCard
+                    index={0}
+                    icon={<Flame className="w-4 h-4" strokeWidth={2.3} />}
+                    tint={iOS.orange}
+                    title="Busiest day"
+                    text={`${analytics.busiestDay?.day ?? "—"} is your hottest day with ${analytics.busiestDay?.count ?? 0} bookings. Consider premium pricing.`}
+                  />
+                  <InsightCard
+                    index={1}
+                    icon={<Clock className="w-4 h-4" strokeWidth={2.3} />}
+                    tint={iOS.blue}
+                    title="Peak hour"
+                    text={`Most clients book around ${analytics.peakHour?.hour ?? "—"}. Keep your best stylists on that slot.`}
+                  />
+                  <InsightCard
+                    index={2}
+                    icon={<TrendingUp className="w-4 h-4" strokeWidth={2.3} />}
+                    tint={analytics.revenueDelta >= 0 ? iOS.green : iOS.pink}
+                    title={analytics.revenueDelta >= 0 ? "Trending up" : "Trending down"}
+                    text={
+                      analytics.revenueDelta >= 0
+                        ? `Revenue is up ${analytics.revenueDelta}% vs the first half of this period. Keep it rolling.`
+                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}% — try a reminder blast or promo on slow days.`
+                    }
+                  />
+                </div>
+              )}
 
               {/* KPI grid */}
-              <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <KpiTile index={0}
-                  icon={<CalendarDays className="w-4 h-4 text-white" />}
-                  label="Appointments"
+              <div id="kpis" ref={sectionRefs.kpis} className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                <KpiTile index={0} loading={isLoading}
+                  icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
+                  label="Bookings"
                   value={numberFormat.format(analytics.totalAppointments)}
-                  hint={`${analytics.completionRate}% completed`}
-                  accent="ink"
+                  hint={`${analytics.completionRate}% done`}
+                  tint={iOS.rose}
                 />
-                <KpiTile index={1}
-                  icon={<Users className="w-4 h-4 text-sky-500" />}
+                <KpiTile index={1} loading={isLoading}
+                  icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
-                  accent="sky"
+                  tint={iOS.blue}
                 />
-                <KpiTile index={2}
-                  icon={<DollarSign className="w-4 h-4 text-white" />}
+                <KpiTile index={2} loading={isLoading}
+                  icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
                   label="Avg ticket"
                   value={currency.format(analytics.averageTicket || 0)}
                   hint="Per booking"
-                  accent="ink"
+                  tint={iOS.green}
                 />
-                <KpiTile index={3}
-                  icon={<Scissors className="w-4 h-4 text-sky-500" />}
+                <KpiTile index={3} loading={isLoading}
+                  icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
-                  hint={`${analytics.completedAppointments} completed`}
-                  accent="sky"
+                  hint={`${analytics.completedAppointments} done`}
+                  tint={iOS.indigo}
                 />
-              </section>
+              </div>
 
-              {/* Booking status — Pie chart */}
-              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-base font-semibold text-white">
-                        Booking status
-                      </h3>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">
-                        Distribution this period
-                      </p>
-                    </div>
-                  </div>
-
+              {/* Status + busiest days */}
+              <div id="status" ref={sectionRefs.status} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                <SectionCard title="Booking status" subtitle="Distribution this period" delay={0.05}>
                   {analytics.statusBreakdown.length === 0 ? (
                     <EmptyMini />
                   ) : (
                     <div className="flex items-center gap-6">
-                      <div className="relative w-36 h-36 shrink-0">
+                      <div className="relative w-40 h-40 shrink-0">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
                               data={analytics.statusBreakdown}
                               dataKey="value"
                               nameKey="name"
-                              innerRadius={46}
-                              outerRadius={68}
-                              paddingAngle={3}
-                              cornerRadius={6}
+                              innerRadius={52}
+                              outerRadius={74}
+                              paddingAngle={5}
+                              cornerRadius={10}
                               strokeWidth={0}
+                              animationDuration={1000}
                             >
                               {analytics.statusBreakdown.map((item) => (
                                 <Cell key={item.name} fill={item.fill} />
@@ -766,681 +671,1127 @@ const Reports = () => {
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-2xl font-bold text-white">
+                          <span className="text-[28px] font-bold text-white tracking-tight tabular-nums">
                             {analytics.completionRate}%
                           </span>
-                          <span className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
-                            done
-                          </span>
+                          <span className="text-[9px] text-white/50 uppercase tracking-[0.14em] mt-1">done</span>
                         </div>
                       </div>
-
-                      <div className="flex-1 space-y-2">
-                        {analytics.statusBreakdown.map((s) => (
-                          <div key={s.name} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full shrink-0"
-                                style={{ backgroundColor: s.fill }}
-                              />
-                              <span className="text-sm text-white truncate">
-                                {s.name}
-                              </span>
+                      <div className="flex-1 space-y-3">
+                        {analytics.statusBreakdown.map((s, i) => (
+                          <motion.div
+                            key={s.name}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={stagger(i)}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill }} />
+                              <span className="text-sm text-white truncate">{s.name}</span>
                             </div>
-                            <span className="text-sm font-semibold text-white">
-                              {s.value}
-                            </span>
-                          </div>
+                            <span className="text-sm font-semibold text-white tabular-nums">{s.value}</span>
+                          </motion.div>
                         ))}
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </SectionCard>
 
-              {/* Hourly demand + Busiest days */}
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
-                {/* Hourly demand */}
-                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-                  <CardContent className="p-5">
-                    <div className="mb-4">
-                      <h3 className="text-base font-semibold text-white">
-                        Demand by hour
-                      </h3>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">
-                        When clients book most
-                      </p>
-                    </div>
-
-                    {analytics.hourlyDemand.length === 0 ? (
-                      <EmptyMini />
-                    ) : (
-                      <ChartContainer
-                        config={{ value: { label: "Bookings", color: "#1C1C1E" } }}
-                        className="h-[160px] w-full aspect-auto"
-                      >
-                        <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }} barCategoryGap="25%">
-                          <defs>
-                            <linearGradient id="fillHourly" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.9} />
-                              <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.25} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
-                          <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
-                          <YAxis hide />
-                          <ChartTooltip cursor={{ fill: "rgba(28,28,30,0.05)" }} content={<ChartTooltipContent />} />
-                          <Bar
-                            dataKey="value"
-                            fill="url(#fillHourly)"
-                            radius={[10, 10, 10, 10]}
-                            background={{ fill: "rgba(28,28,30,0.04)", radius: 10 } as any}
-                            animationDuration={900}
-                            animationBegin={200}
-                          />
-                        </BarChart>
-                      </ChartContainer>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Busiest days */}
-                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-                  <CardContent className="p-5">
-                    <div className="mb-4">
-                      <h3 className="text-base font-semibold text-white">Busiest days</h3>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">Bookings by day of week</p>
-                    </div>
-                    {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
-                      <EmptyMini />
-                    ) : (
-                      <ChartContainer
-                        config={{ count: { label: "Bookings", color: "#007AFF" } }}
-                        className="h-[160px] w-full aspect-auto"
-                      >
-                        <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                          <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8E8E93" }} />
-                          <YAxis hide />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="count" radius={[8, 8, 0, 0]} animationDuration={900} animationBegin={200}>
-                            {analytics.dayOfWeekDemand.map((entry, i) => {
-                              const maxCount = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
-                              const opacity = 0.35 + (entry.count / maxCount) * 0.65;
-                              return <Cell key={i} fill={`rgba(10,132,255,${opacity})`} />;
-                            })}
-                          </Bar>
-                        </BarChart>
-                      </ChartContainer>
-                    )}
-                  </CardContent>
-                </Card>
-              </section>
-
-              {/* Booking stats */}
-              <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm transition-all duration-300 hover:shadow-[0_8px_40px_rgba(14,165,233,0.10)] ">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <h3 className="text-base font-semibold text-white">
-                        Booking stats
-                      </h3>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">
-                        Status breakdown this period
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
-                      <Filter className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
-                    </div>
-                  </div>
-
-                  {analytics.statusBreakdown.length === 0 ? (
+                <SectionCard title="Busiest days" subtitle="Bookings by day of week" delay={0.1}>
+                  {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
                     <EmptyMini />
                   ) : (
-                    <div className="h-[200px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={analytics.statusBreakdown}
-                          margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                          barCategoryGap="28%"
-                        >
-                          <defs>
-                            <linearGradient id="noGapGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#0ea5e9" stopOpacity={1} />
-                              <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.4} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
-                          <XAxis
-                            dataKey="name"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 12, fill: "#8E8E93" }}
-                          />
-                          <YAxis hide />
-                          <Tooltip
-                            cursor={{ fill: "rgba(14,165,233,0.06)" }}
-                            contentStyle={{
-                              borderRadius: "14px",
-                              border: "1px solid rgba(255,255,255,0.08)",
-                              boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                            }}
-                            formatter={(value: number) => [value, "Bookings"]}
-                          />
-                          <Bar
-                            dataKey="value"
-                            fill="url(#noGapGradient)"
-                            radius={[12, 12, 12, 12]}
-                            background={{ fill: "rgba(14,165,233,0.06)", radius: 12 } as any}
-                            animationDuration={900}
-                            animationBegin={200}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Top services */}
-              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-                <CardContent className="p-5">
-                  <div className="mb-4">
-                    <h3 className="text-base font-semibold text-white">
-                      Top services
-                    </h3>
-                    <p className="text-xs text-[#8E8E93] mt-0.5">
-                      Most booked in this period
-                    </p>
-                  </div>
-
-                  {analytics.serviceBreakdown.length === 0 ? (
-                    <EmptyMini />
-                  ) : (
-                    <div className="space-y-3">
-                      {analytics.serviceBreakdown.map((s, idx) => {
-                        const max = analytics.serviceBreakdown[0]?.bookings || 1;
-                        const pct = (s.bookings / max) * 100;
-                        return (
-                          <div key={s.name} className="space-y-1.5">
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="w-5 h-5 rounded-md bg-white/[0.06] text-[10px] font-semibold text-[#8E8E93] flex items-center justify-center shrink-0">
-                                  {idx + 1}
-                                </span>
-                                <span className="font-medium text-white truncate">
-                                  {s.name}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 shrink-0">
-                                <span className="text-xs text-[#8E8E93]">
-                                  {currency.format(s.revenue)}
-                                </span>
-                                <span className="text-sm font-semibold text-white tabular-nums">
-                                  {s.bookings}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-sky-500 transition-all"
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Stylist ranking */}
-              <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-base font-semibold text-white">
-                        Stylist leaderboard
-                      </h3>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">
-                        Ranked by revenue & satisfaction
-                      </p>
-                    </div>
-                  </div>
-
-                  {analytics.stylistPerformance.length === 0 ? (
-                    <EmptyMini />
-                  ) : (
-                    <div className="space-y-2">
-                      {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
-                        <div
-                          key={stylist.id}
-                          className="flex items-center gap-3 rounded-2xl bg-white/[0.04] px-3 py-3"
-                        >
-                          <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-white shrink-0 ${
-                              index === 0 ? "bg-white text-[#0a0203]" : "bg-white/10 text-white"
-                            }`}
-                          >
-                            {index === 0 ? <Crown className="w-4 h-4" /> : index + 1}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-sm text-white truncate">
-                              {stylist.name}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-[#8E8E93] mt-0.5">
-                              <span>{stylist.bookings} bookings</span>
-                              <span>·</span>
-                              <span className="flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-[#FFCC00] text-[#FFCC00]" />
-                                {stylist.satisfaction.toFixed(1)}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-semibold text-white tabular-nums">
-                              {currency.format(stylist.revenue)}
-                            </p>
-                            <p className="text-[10px] text-[#8E8E93] uppercase tracking-wide">
-                              revenue
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Stylist comparison chart */}
-              {analytics.stylistPerformance.length > 0 && (
-                <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-                  <CardContent className="p-5">
-                    <div className="mb-4">
-                      <h3 className="text-base font-semibold text-white">
-                        Revenue comparison
-                      </h3>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">
-                        Side-by-side stylist output
-                      </p>
-                    </div>
                     <ChartContainer
-                      config={{ revenue: { label: "Revenue", color: "#1C1C1E" } }}
-                      className="h-[220px] w-full aspect-auto"
+                      config={{ count: { label: "Bookings", color: iOS.indigo } }}
+                      className="h-[170px] w-full aspect-auto"
                     >
-                      <BarChart
-                        data={analytics.stylistPerformance.slice(0, 6)}
-                        margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
-                        barCategoryGap="28%"
-                      >
-                        <defs>
-                          <linearGradient id="fillStylist" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#1C1C1E" stopOpacity={0.9} />
-                            <stop offset="100%" stopColor="#1C1C1E" stopOpacity={0.25} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.06)" />
-                        <XAxis
-                          dataKey="name"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11, fill: "#8E8E93" }}
-                          tickFormatter={(value) => value.slice(0, 8)}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11, fill: "#8E8E93" }}
-                          tickFormatter={(value) => `$${value}`}
-                        />
-                        <ChartTooltip
-                          cursor={{ fill: "rgba(28,28,30,0.05)" }}
-                          content={
-                            <ChartTooltipContent
-                              formatter={(value) => [currency.format(Number(value)), "Revenue"]}
-                            />
-                          }
-                        />
-                        <Bar
-                          dataKey="revenue"
-                          radius={[12, 12, 12, 12]}
-                          fill="url(#fillStylist)"
-                          background={{ fill: "rgba(28,28,30,0.04)", radius: 12 } as any}
-                          animationDuration={900}
-                          animationBegin={200}
-                        />
+                      <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="24%">
+                        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} />
+                        <YAxis hide />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
+                          {analytics.dayOfWeekDemand.map((entry, i) => {
+                            const max = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
+                            const opacity = 0.35 + (entry.count / max) * 0.65;
+                            return <Cell key={i} fill={`rgba(94,92,230,${opacity})`} />;
+                          })}
+                        </Bar>
                       </BarChart>
                     </ChartContainer>
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+                </SectionCard>
+              </div>
 
-              {/* Best customers */}
-              <TopCustomersSection customers={topCustomers} />
+              {/* Peak hours */}
+              <SectionCard id="peak" forwardRef={sectionRefs.peak} title="Peak hours" subtitle="When your chair fills up" delay={0.12}>
+                {analytics.hourlyDemand.every((h) => h.count === 0) ? (
+                  <EmptyMini />
+                ) : (
+                  <ChartContainer
+                    config={{ count: { label: "Bookings", color: iOS.blue } }}
+                    className="h-[170px] w-full aspect-auto"
+                  >
+                    <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="28%">
+                      <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} interval={1} />
+                      <YAxis hide />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
+                        {analytics.hourlyDemand.map((entry, i) => {
+                          const max = Math.max(...analytics.hourlyDemand.map((h) => h.count), 1);
+                          const isPeak = entry.hour === analytics.peakHour?.hour && entry.count > 0;
+                          const opacity = 0.3 + (entry.count / max) * 0.7;
+                          return <Cell key={i} fill={isPeak ? iOS.rose : `rgba(10,132,255,${opacity})`} />;
+                        })}
+                      </Bar>
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </SectionCard>
 
-              {/* Reviews section */}
-              <ReviewsSection reviews={reviewsData || []} />
+              {/* Top services */}
+              <SectionCard id="services" forwardRef={sectionRefs.services} title="Top services" subtitle="Most booked in this period" delay={0.15}>
+                {analytics.serviceBreakdown.length === 0 ? (
+                  <EmptyMini />
+                ) : (
+                  <div className="space-y-4">
+                    {analytics.serviceBreakdown.map((s, idx) => {
+                      const max = analytics.serviceBreakdown[0]?.bookings || 1;
+                      const pct = (s.bookings / max) * 100;
+                      return (
+                        <motion.div
+                          key={s.name}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 * idx, ...springSoft }}
+                          className="space-y-2"
+                        >
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-7 h-7 rounded-[10px] bg-white/10 text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
+                                {idx + 1}
+                              </span>
+                              <span className="font-medium text-white truncate">{s.name}</span>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-xs text-white/50 tabular-nums">{currency.format(s.revenue)}</span>
+                              <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
+                            </div>
+                          </div>
+                          <div className="h-2 rounded-[10px] bg-white/10 overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-[10px] bg-[#FF375F]"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </SectionCard>
 
-              {isLoading && (
-                <div className="text-sm text-[#8E8E93] text-center py-4">
-                  Loading analytics...
-                </div>
-              )}
+              {/* Stylist leaderboard */}
+              <SectionCard id="stylists" forwardRef={sectionRefs.stylists} title="Stylist leaderboard" subtitle="Ranked by revenue & satisfaction" delay={0.2}>
+                {analytics.stylistPerformance.length === 0 ? (
+                  <EmptyMini />
+                ) : (
+                  <div className="rounded-[16px] bg-white/5 overflow-hidden divide-y divide-white/[0.06]">
+                    {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
+                      <motion.div
+                        key={stylist.id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.05 * index, ...springSoft }}
+                        whileTap={{ scale: 0.98, backgroundColor: "rgba(255,255,255,0.1)" }}
+                        className="flex items-center gap-3.5 px-4 py-3.5 transition-colors"
+                      >
+                        <div
+                          className={cn(
+                            "w-10 h-10 rounded-[14px] flex items-center justify-center font-bold text-sm shrink-0",
+                            index === 0
+                              ? "bg-[#FFD60A] text-black"
+                              : index === 1
+                              ? "bg-[#22222A] text-white"
+                              : index === 2
+                              ? "bg-orange-500/25 text-orange-400"
+                              : "bg-white/10 text-white/50"
+                          )}
+                        >
+                          {index === 0 ? <Crown className="w-4 h-4" strokeWidth={2.3} /> : index + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-[15px] text-white truncate">{stylist.name}</p>
+                          <div className="flex items-center gap-2 text-[11px] text-white/50 mt-0.5">
+                            <span>{stylist.bookings} bookings</span>
+                            <span>·</span>
+                            <span className="flex items-center gap-0.5">
+                              <Star className="w-3 h-3 fill-[#FFD60A] text-[#FFD60A]" />
+                              {stylist.satisfaction.toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[15px] font-semibold text-white tabular-nums">
+                            {currency.format(stylist.revenue)}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-white/50 shrink-0" strokeWidth={2.3} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </SectionCard>
+
+              <TopCustomersSection id="customers" forwardRef={sectionRefs.customers} customers={topCustomers} />
+              <ReviewsSection id="reviews" forwardRef={sectionRefs.reviews} reviews={reviewsData || []} />
             </div>
           </div>
-          <MobileDock />
+
+          {/* Floating expandable action bar — PC only */}
+          {!isMobile && (
+            <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-50 flex justify-center">
+              <div className="pointer-events-auto">
+                <ExpandableActionBar
+                  items={actionItems}
+                  activeId={activeSection}
+                  onAction={(item) => {
+                    setActiveSection(item.id);
+                    item.onClick?.();
+                  }}
+                  classNames={{
+                    root: "drop-shadow-2xl",
+                    track: "bg-[#15151A]/80 border-white/[0.08] shadow-2xl backdrop-blur-2xl",
+                    item: "group data-[active=true]:text-white",
+                    activeItem: "text-white",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
     </SidebarProvider>
   );
 };
 
-function KpiTile({
-  icon,
-  label,
-  value,
-  hint,
-  index = 0,
-  accent = "ink",
+function SectionCard({
+  id,
+  forwardRef,
+  title,
+  subtitle,
+  children,
+  delay = 0,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  hint: string;
-  index?: number;
-  accent?: "ink" | "sky" | "rose";
+  id?: string;
+  forwardRef?: Ref<HTMLDivElement>;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  delay?: number;
 }) {
-  const accentBg = accent === "sky"
-    ? "bg-[#3b82f6]/15"
-    : "bg-white/[0.06]";
-  const hoverShadow = "hover:shadow-[0_10px_36px_rgba(0,0,0,0.08)]";
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ scale: 1.025, transition: { duration: 0.18 } }}
-    >
-      <Card className={cn("rounded-2xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] cursor-default transition-shadow duration-300", hoverShadow)}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", accentBg)}>
-              {icon}
-            </div>
-          </div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-            {label}
-          </p>
-          <p className="text-xl md:text-2xl font-bold text-white mt-1 tabular-nums">
-            {value}
-          </p>
-          <p className="text-[11px] text-[#8E8E93] mt-1 truncate">{hint}</p>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
-function TopCustomersSection({ customers }: { customers: TopCustomerRow[] }) {
-  const podiumSlots = [
-    { c: customers[1], height: 72, color: "#3A3A3C", glow: "rgba(28,28,30,0.20)", rank: 2 },
-    { c: customers[0], height: 104, color: "#1C1C1E", glow: "rgba(28,28,30,0.30)", rank: 1 },
-    { c: customers[2], height: 52, color: "#5856D6", glow: "rgba(88,86,214,0.20)", rank: 3 },
-  ];
-
-  return (
-    <motion.div
+      id={id}
+      ref={forwardRef}
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay, type: "spring", stiffness: 400, damping: 28 }}
+      className="relative rounded-[28px] border border-white/[0.08] bg-[#15151A]"
     >
-      <Card className="rounded-3xl border border-white/5 bg-[#1a0509]/80 backdrop-blur-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-        <CardContent className="p-5">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="text-base font-semibold text-white">Best customers</h3>
-              <p className="text-xs text-[#8E8E93] mt-0.5">Ranked by total spend this period</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-sky-500" />
-            </div>
-          </div>
-
-          {customers.length === 0 ? (
-            <EmptyMini />
-          ) : (
-            <>
-              {/* Animated podium */}
-              <div className="flex items-end justify-center gap-4 mb-6" style={{ height: 172 }}>
-                {podiumSlots.map(({ c, height, color, glow, rank }) =>
-                  !c ? (
-                    <div key={rank} className="w-20" />
-                  ) : (
-                    <div key={c.id} className="flex flex-col items-center gap-1">
-                      {/* Avatar */}
-                      <motion.div
-                        className="relative mb-0.5"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.3 + rank * 0.08, duration: 0.45, type: "spring", stiffness: 260, damping: 20 }}
-                      >
-                        {rank === 1 && (
-                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 absolute -top-3.5 left-1/2 -translate-x-1/2" />
-                        )}
-                        <div
-                          className="w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-bold text-white ring-2 ring-white/30"
-                          style={{ backgroundColor: color }}
-                        >
-                          {c.initials}
-                        </div>
-                      </motion.div>
-                      {/* Name */}
-                      <p className="text-[10px] font-medium text-white truncate max-w-[76px] text-center">
-                        {c.name.split(" ")[0]}
-                      </p>
-                      <p className="text-[9px] text-[#8E8E93] truncate max-w-[76px] text-center">
-                        {currency.format(c.revenue)}
-                      </p>
-                      {/* Rising bar */}
-                      <motion.div
-                        className="w-20 rounded-t-xl flex items-end justify-center pb-1.5"
-                        style={{
-                          backgroundColor: `${color}15`,
-                          borderTop: `2.5px solid ${color}`,
-                          boxShadow: `0 -4px 18px ${glow}`,
-                        }}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height, opacity: 1 }}
-                        transition={{ delay: 0.12 + rank * 0.09, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                      >
-                        <span className="text-[11px] font-bold" style={{ color }}>#{rank}</span>
-                      </motion.div>
-                    </div>
-                  )
-                )}
-              </div>
-
-              {/* Ranked list */}
-              <div className="space-y-2">
-                {customers.slice(0, 8).map((c, i) => {
-                  const pct = Math.min(100, (c.revenue / (customers[0]?.revenue || 1)) * 100);
-                  return (
-                    <motion.div
-                      key={c.id}
-                      initial={{ opacity: 0, x: -14 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.07 * i + 0.32, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                      className="flex items-center gap-3 rounded-2xl bg-white/[0.04] px-3 py-2.5 group"
-                    >
-                      <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0 transition-transform duration-200 group-hover:scale-110"
-                        style={{ backgroundColor: c.color }}
-                      >
-                        {c.initials}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-semibold text-sm text-white truncate">{c.name}</p>
-                          {i === 0 && (
-                            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white text-[#0a0203]">
-                              VIP
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#8E8E93]">
-                          {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
-                          {c.lastVisit
-                            ? ` · ${formatDistanceToNow(new Date(c.lastVisit + "T00:00:00"), { addSuffix: true })}`
-                            : ""}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0 min-w-[64px]">
-                        <p className="text-sm font-semibold text-white tabular-nums">
-                          {currency.format(c.revenue)}
-                        </p>
-                        <div className="w-full h-1 rounded-full bg-white/[0.06] mt-1.5 overflow-hidden">
-                          <motion.div
-                            className="h-full rounded-full"
-                            style={{ backgroundColor: c.color }}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{ delay: 0.07 * i + 0.5, duration: 0.65, ease: "easeOut" }}
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <div className="p-6 md:p-8">
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-white tracking-tight">{title}</h3>
+          {subtitle && <p className="text-sm text-white/50 mt-2">{subtitle}</p>}
+        </div>
+        {children}
+      </div>
     </motion.div>
   );
 }
 
-function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
-  const avgRating = reviews.length
-    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-    : 0;
+function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
+  icon: ReactNode; label: string; value: string; hint: string;
+  index?: number; tint: string; loading?: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: index * 0.08, type: "spring", stiffness: 420, damping: 30 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative rounded-[24px] border border-white/[0.08] bg-[#15151A] h-full"
+    >
+      <div className="p-6 h-full">
+        <div className="flex items-start justify-between mb-4">
+          <div
+            className="w-12 h-12 rounded-[16px] flex items-center justify-center"
+            style={{
+              backgroundColor: `${tint}15`,
+              color: tint,
+            }}
+          >
+            {icon}
+          </div>
+          <motion.div
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="opacity-60"
+          >
+            <Activity className="w-5 h-5 text-white/50" />
+          </motion.div>
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50 mb-2">{label}</p>
+        {loading ? (
+          <div className="h-8 w-24 bg-white/10 rounded-[12px] animate-pulse" />
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={value}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
+            >
+              <p className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
+                {value}
+              </p>
+              <p className="text-xs text-white/50 mt-1">{hint}</p>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+    </motion.div>
+  );
+}
 
-  const distribution = [5, 4, 3, 2, 1].map((star) => ({
-    star,
-    count: reviews.filter((r) => r.rating === star).length,
-  }));
-  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
+function TopCustomersSection({
+  id,
+  forwardRef,
+  customers,
+}: {
+  id?: string;
+  forwardRef?: Ref<HTMLDivElement>;
+  customers: TopCustomerRow[];
+}) {
+  return (
+    <SectionCard id={id} forwardRef={forwardRef} title="Best customers" subtitle="Ranked by spend this period" delay={0.25}>
+      {customers.length === 0 ? (
+        <EmptyMini />
+      ) : (
+        <div className="rounded-2xl bg-white/5 overflow-hidden divide-y divide-white/[0.06]">
+          {customers.map((c, i) => {
+            const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
+            const pct = Math.min(100, (c.revenue / (customers[0]?.revenue || 1)) * 100);
+            return (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.045 * i, ...springSoft }}
+                whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                className="flex items-center gap-3.5 px-4 py-3.5"
+              >
+                <Avatar
+                  name={c.initials || "?"}
+                  className="h-10 w-10 rounded-[12px]"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
+                    {i === 0 && (
+                      <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
+                        VIP
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-white/50 mt-0.5">
+                    {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
+                    {c.lastVisit ? ` · ${formatDistanceToNow(new Date(c.lastVisit + "T00:00:00"), { addSuffix: true })}` : ""}
+                  </p>
+                </div>
+                <div className="text-right shrink-0 min-w-[75px]">
+                  <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
+                  <div className="w-full h-1.5 rounded-[10px] bg-white/10 mt-1.5 overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-[10px]"
+                      style={{ backgroundColor: tint }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ delay: 0.045 * i + 0.25, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+function ReviewsSection({
+  id,
+  forwardRef,
+  reviews,
+}: {
+  id?: string;
+  forwardRef?: Ref<HTMLDivElement>;
+  reviews: ReviewRow[];
+}) {
+  const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const distribution = [5, 4, 3, 2, 1].map(star => ({ star, count: reviews.filter(r => r.rating === star).length }));
+  const maxCount = Math.max(...distribution.map(d => d.count), 1);
 
   return (
-    <Card className="rounded-3xl border-0 bg-[#1a0509] shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="text-base font-semibold text-white">Customer reviews</h3>
-            <p className="text-xs text-[#8E8E93] mt-0.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""} total</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-sky-500" strokeWidth={2.5} />
-          </div>
-        </div>
-
-        {reviews.length === 0 ? (
-          <EmptyMini />
-        ) : (
-          <div className="space-y-5">
-            {/* Rating overview */}
-            <div className="flex items-center gap-5">
-              <div className="text-center shrink-0">
-                <p className="text-5xl font-bold text-white tabular-nums">
-                  {avgRating.toFixed(1)}
-                </p>
-                <div className="flex justify-center gap-0.5 my-1">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star
-                      key={s}
-                      className={`w-4 h-4 ${
-                        s <= Math.round(avgRating)
-                          ? "fill-[#FFCC00] text-[#FFCC00]"
-                          : "text-white/15"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs text-[#8E8E93]">{reviews.length} reviews</p>
-              </div>
-              <div className="flex-1 space-y-1.5">
-                {distribution.map(({ star, count }) => (
-                  <div key={star} className="flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93] w-3 shrink-0">{star}</span>
-                    <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[#FFCC00] transition-all"
-                        style={{ width: `${(count / maxCount) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-[#8E8E93] w-4 text-right tabular-nums shrink-0">{count}</span>
-                  </div>
+    <SectionCard id={id} forwardRef={forwardRef} title="Customer reviews" subtitle={`${reviews.length} review${reviews.length !== 1 ? "s" : ""} total`} delay={0.3}>
+      {reviews.length === 0 ? (
+        <EmptyMini />
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center gap-6">
+            <motion.div
+              className="text-center shrink-0"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={springSoft}
+            >
+              <p className="text-5xl font-bold text-white tabular-nums tracking-[-0.025em] leading-none">
+                {avgRating.toFixed(1)}
+              </p>
+              <div className="flex justify-center gap-0.5 mt-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={cn(
+                      "w-4 h-4",
+                      s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30"
+                    )}
+                  />
                 ))}
               </div>
-            </div>
-
-            {/* Recent reviews list */}
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-wide font-semibold text-[#8E8E93]">Recent</p>
-              {reviews.slice(0, 8).map((r) => (
-                <div
-                  key={r.id}
-                  className="rounded-2xl bg-white/[0.04] p-4 space-y-1.5"
+              <p className="text-[11px] text-white/50 mt-1.5">{reviews.length} reviews</p>
+            </motion.div>
+            <div className="flex-1 space-y-2">
+              {distribution.map(({ star, count }, i) => (
+                <motion.div
+                  key={star}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={stagger(i)}
+                  className="flex items-center gap-2.5"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          className={`w-3.5 h-3.5 ${
-                            s <= r.rating
-                              ? "fill-[#FFCC00] text-[#FFCC00]"
-                              : "text-white/15"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-[11px] text-[#8E8E93]">
-                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
-                    </span>
+                  <span className="text-[11px] text-white/50 w-3 shrink-0 tabular-nums">{star}</span>
+                  <div className="flex-1 h-2 rounded-[10px] bg-white/10 overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-[10px] bg-[#FFD60A]"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(count / maxCount) * 100}%` }}
+                      transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    />
                   </div>
-                  {r.reviewer_name && (
-                    <p className="text-xs font-semibold text-white">
-                      {r.reviewer_name}
-                    </p>
-                  )}
-                  {r.comment && (
-                    <p className="text-sm text-white/75 leading-relaxed">
-                      &ldquo;{r.comment}&rdquo;
-                    </p>
-                  )}
-                </div>
+                  <span className="text-[11px] text-white/50 w-4 text-right tabular-nums shrink-0">{count}</span>
+                </motion.div>
               ))}
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-white/50">Recent</p>
+            {reviews.slice(0, 6).map((r, i) => (
+              <motion.div
+                key={r.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.045 * i, ...springSoft }}
+                className="rounded-[16px] bg-white/5 p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <Star key={s} className={cn("w-3.5 h-3.5", s <= r.rating ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30")} />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-white/50">
+                    {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                  </span>
+                </div>
+                {r.reviewer_name && <p className="text-sm font-semibold text-white">{r.reviewer_name}</p>}
+                {r.comment && <p className="text-sm text-white/50 leading-relaxed">&ldquo;{r.comment}&rdquo;</p>}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+function InsightCard({ icon, tint, title, text, index = 0 }: {
+  icon: ReactNode; tint: string; title: string; text: string; index?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: 0.08 * index, ...springSoft }}
+      whileHover={{ y: -2 }}
+      className="relative rounded-[18px] bg-[#15151A] border border-white/[0.08] p-5"
+    >
+      <div className="flex items-center gap-2.5 mb-2.5">
+        <div
+          className="w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${tint}20`, color: tint }}
+        >
+          {icon}
+        </div>
+        <div className="inline-flex items-center gap-1.5">
+          <Lightbulb className="w-3 h-3 text-white/50" strokeWidth={2.3} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Insight</span>
+        </div>
+      </div>
+      <p className="relative text-[15px] font-bold text-white tracking-tight">{title}</p>
+      <p className="relative text-[12px] text-white/50 mt-1 leading-relaxed">{text}</p>
+    </motion.div>
   );
 }
 
 function EmptyMini() {
   return (
-    <div className="rounded-2xl bg-white/[0.04] p-6 text-center">
-      <div className="w-10 h-10 rounded-xl bg-[#1a0509] mx-auto flex items-center justify-center">
-        <Sparkles className="w-4 h-4 text-[#8E8E93]" />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={springSoft}
+      className="rounded-[16px] bg-white/5 p-10 text-center"
+    >
+      <div className="w-11 h-11 rounded-[14px] bg-white/10 mx-auto flex items-center justify-center">
+        <Sparkles className="w-4 h-4 text-white/50" strokeWidth={2.3} />
       </div>
-      <p className="text-xs text-[#8E8E93] mt-3">No data in this range yet</p>
+      <p className="text-xs text-white/50 mt-3.5">No data in this range yet</p>
+    </motion.div>
+  );
+}
+
+function CompletionGauge({ value }: { value: number }) {
+  // Smooth iOS-style semicircular progress ring with a rose gradient
+  const radius = 82;
+  const stroke = 14;
+  const cx = 100;
+  const cy = 100;
+  const clamped = Math.max(0, Math.min(100, value));
+  const arc = Math.PI * radius; // semicircle length
+  const dash = (clamped / 100) * arc;
+
+  return (
+    <div className="relative w-[160px] h-[100px] shrink-0">
+      <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
+        <defs>
+          <linearGradient id="gauge-rose" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={iOS.rose} />
+            <stop offset="100%" stopColor={iOS.pink} />
+          </linearGradient>
+        </defs>
+        {/* background track */}
+        <path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+        />
+        {/* filled progress arc */}
+        <motion.path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="url(#gauge-rose)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={arc}
+          initial={{ strokeDashoffset: arc }}
+          animate={{ strokeDashoffset: arc - dash }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          style={{ filter: "drop-shadow(0 0 10px rgba(255,45,111,0.5))" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-2 pointer-events-none">
+        <span className="text-[26px] font-bold text-white tabular-nums leading-none tracking-tight">
+          {value}%
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-[#FF375F] mt-1 font-semibold">done</span>
+      </div>
+    </div>
+  );
+}
+
+function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
+  const [show, setShow] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  useEffect(() => {
+    if (sessionStorage.getItem("reports-login-nudge-dismissed")) return;
+    const t = setTimeout(() => setShow(true), delaySec * 1000);
+    return () => clearTimeout(t);
+  }, [delaySec]);
+  const close = () => {
+    setDismissed(true);
+    setShow(false);
+    sessionStorage.setItem("reports-login-nudge-dismissed", "1");
+  };
+  if (dismissed) return null;
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: 120, opacity: 0, scale: 0.94 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 80, opacity: 0, scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 360, damping: 30 }}
+          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
+        >
+          <div className="relative rounded-[26px] border border-white/[0.08] bg-[#15151A] p-4">
+            <div className="relative flex items-center gap-3.5">
+              <motion.div
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF375F]"
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Lock className="w-5 h-5 text-white" strokeWidth={2.4} />
+              </motion.div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold text-white leading-tight">
+                  Save your insights
+                </p>
+                <p className="text-[12px] text-white/50 mt-0.5">
+                  Sign in to unlock live tracking, exports & alerts.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Dismiss"
+                className="w-8 h-8 rounded-[12px] bg-white/10 text-white/50 flex items-center justify-center hover:bg-[#22222A] transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" strokeWidth={2.4} />
+              </button>
+            </div>
+            <div className="relative mt-3.5 flex items-center gap-2.5">
+              <Link
+                to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
+                className="flex-1 h-11 rounded-[12px] bg-[#FF375F] text-white text-[14px] font-semibold flex items-center justify-center active:scale-[0.98] transition-transform"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/auth?signup=1"
+                className="flex-1 h-11 rounded-[12px] bg-white/10 text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
+              >
+                Create account
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ── iOS 26-style mobile report components ─────────────────────────────────────
+// Solid dark surfaces, no glass, round hierarchy, smooth spring animations.
+
+function MobileCard({
+  title,
+  subtitle,
+  children,
+  delay = 0,
+  className,
+}: {
+  title?: string;
+  subtitle?: string;
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, type: "spring", stiffness: 360, damping: 30 }}
+      className={cn("rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden", className)}
+    >
+      {(title || subtitle) && (
+        <div className="px-5 pt-5 pb-2">
+          {title && <h3 className="text-[17px] font-bold text-white tracking-tight">{title}</h3>}
+          {subtitle && <p className="text-[12px] text-white/50 mt-1">{subtitle}</p>}
+        </div>
+      )}
+      {children}
+    </motion.div>
+  );
+}
+
+function MobileStatCard({
+  icon,
+  label,
+  value,
+  hint,
+  tint,
+  delay = 0,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  hint?: string;
+  tint: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, ...springSoft }}
+      whileTap={{ scale: 0.97 }}
+      className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4"
+    >
+      <div
+        className="w-10 h-10 rounded-[14px] flex items-center justify-center mb-3"
+        style={{ backgroundColor: `${tint}15`, color: tint }}
+      >
+        {icon}
+      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">{label}</p>
+      <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">{value}</p>
+      {hint && <p className="text-[11px] text-white/50 mt-1">{hint}</p>}
+    </motion.div>
+  );
+}
+
+function MobileSparkline({ data }: { data: { label: string; revenue: number }[] }) {
+  if (data.length < 2) {
+    return (
+      <div className="h-full w-full flex items-center justify-center rounded-[20px] bg-[#1C1C1E]">
+        <span className="text-[11px] text-white/40">No trend data</span>
+      </div>
+    );
+  }
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id="mobileSpark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.35} />
+            <stop offset="100%" stopColor={iOS.rose} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          dataKey="revenue"
+          stroke={iOS.rose}
+          strokeWidth={2.5}
+          fill="url(#mobileSpark)"
+          dot={false}
+          activeDot={{ r: 4, fill: iOS.rose, stroke: "#fff", strokeWidth: 2 }}
+          animationDuration={900}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function MobileDonut({
+  data,
+  value,
+  label,
+}: {
+  data: { name: string; value: number; fill: string }[];
+  value: number;
+  label: string;
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="h-[140px] flex items-center justify-center">
+        <span className="text-[11px] text-white/40">No data</span>
+      </div>
+    );
+  }
+  return (
+    <div className="relative h-[140px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            innerRadius={42}
+            outerRadius={58}
+            paddingAngle={4}
+            cornerRadius={8}
+            strokeWidth={0}
+            animationDuration={900}
+          >
+            {data.map((item) => (
+              <Cell key={item.name} fill={item.fill} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-[22px] font-bold text-white tabular-nums leading-none">{value}%</span>
+        <span className="text-[9px] uppercase tracking-[0.14em] text-[#8E8E93] mt-1 font-semibold">{label}</span>
+      </div>
+    </div>
+  );
+}
+
+function MobileBarChart({
+  data,
+  xKey,
+  yKey,
+  highlight,
+  interval = 1,
+}: {
+  data: any[];
+  xKey: string;
+  yKey: string;
+  highlight?: string;
+  interval?: number | "preserveStartEnd";
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <span className="text-[11px] text-white/40">No data</span>
+      </div>
+    );
+  }
+  const max = Math.max(...data.map((d) => d[yKey]), 1);
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.06)" />
+        <XAxis
+          dataKey={xKey}
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 9, fill: "#8E8E93", fontWeight: 500 }}
+          interval={interval}
+          dy={4}
+        />
+        <YAxis hide />
+        <Bar dataKey={yKey} radius={[6, 6, 0, 0]} animationDuration={900}>
+          {data.map((entry, i) => {
+            const isHighlight = highlight && entry[xKey] === highlight;
+            const opacity = 0.3 + (entry[yKey] / max) * 0.7;
+            return <Cell key={i} fill={isHighlight ? iOS.rose : `rgba(10,132,255,${opacity})`} />;
+          })}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+function MobileReviewsSummary({ reviews }: { reviews: ReviewRow[] }) {
+  const avgRating = useMemo(
+    () => (reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0),
+    [reviews]
+  );
+  const distribution = useMemo(
+    () => [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length })),
+    [reviews]
+  );
+  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
+
+  return (
+    <div className="px-5 pb-5 space-y-4">
+      <div className="flex items-center gap-4">
+        <div className="text-center shrink-0">
+          <p className="text-[32px] font-bold text-white tabular-nums leading-none">{avgRating.toFixed(1)}</p>
+          <div className="flex justify-center gap-0.5 mt-1.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                className={cn(
+                  "w-3.5 h-3.5",
+                  s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30"
+                )}
+              />
+            ))}
+          </div>
+          <p className="text-[10px] text-white/50 mt-1">{reviews.length} reviews</p>
+        </div>
+        <div className="flex-1 space-y-1.5">
+          {distribution.map(({ star, count }, i) => (
+            <div key={star} className="flex items-center gap-2">
+              <span className="text-[10px] text-white/50 w-2.5 tabular-nums">{star}</span>
+              <div className="flex-1 h-1.5 rounded-full bg-[#1C1C1E] overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-[#FFD60A]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(count / maxCount) * 100}%` }}
+                  transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+              <span className="text-[10px] text-white/50 w-3 text-right tabular-nums">{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileReportsView({
+  analytics,
+  isLoading,
+  topCustomers,
+  reviews,
+  dateRange,
+  setDateRange,
+  onExport,
+}: {
+  analytics: any;
+  isLoading: boolean;
+  topCustomers: TopCustomerRow[];
+  reviews: ReviewRow[];
+  dateRange: RangeValue;
+  setDateRange: (v: RangeValue) => void;
+  onExport: () => void;
+}) {
+  const completedShare = analytics.completionRate || 0;
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+
+  return (
+    <div className="px-4 pt-3 pb-32 space-y-4">
+      {/* iOS 26 header */}
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={springSoft}
+      >
+        <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
+        <p className="text-[13px] text-white/50 mt-0.5">{today}</p>
+      </motion.div>
+
+      {/* Date range */}
+      <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
+        <TabsList className="w-full bg-[#15151A]">
+          {RANGES.map((r) => (
+            <Fragment key={r.value}>
+              <TabsTrigger value={r.value} className="flex-1" indicatorClassName="bg-[#FF375F]">
+                <span className="relative">{r.short}</span>
+              </TabsTrigger>
+            </Fragment>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      {/* Hero revenue card with gauge + sparkline */}
+      <MobileCard className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">Total revenue</p>
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={analytics.totalRevenue}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.45 }}
+                className="text-[42px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.035em] leading-none mt-2"
+              >
+                {isLoading ? "—" : currency.format(analytics.totalRevenue)}
+              </motion.h2>
+            </AnimatePresence>
+            <div className="mt-3 flex items-center gap-2.5">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold",
+                  analytics.revenueDelta >= 0
+                    ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/20"
+                    : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/20"
+                )}
+              >
+                {analytics.revenueDelta >= 0 ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
+                )}
+                {Math.abs(analytics.revenueDelta)}%
+              </div>
+              <span className="text-xs text-white/50">vs prior</span>
+            </div>
+          </div>
+          <CompletionGauge value={completedShare} />
+        </div>
+        <div className="mt-4 h-[100px]">
+          <MobileSparkline data={analytics.revenueTrend} />
+        </div>
+      </MobileCard>
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <MobileStatCard
+          delay={0.05}
+          icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
+          label="Bookings"
+          value={numberFormat.format(analytics.totalAppointments)}
+          hint={`${analytics.completionRate}% done`}
+          tint={iOS.rose}
+        />
+        <MobileStatCard
+          delay={0.1}
+          icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
+          label="Clients"
+          value={numberFormat.format(analytics.totalCustomers)}
+          hint={`${analytics.activeStylists} stylists`}
+          tint={iOS.blue}
+        />
+        <MobileStatCard
+          delay={0.15}
+          icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
+          label="Avg ticket"
+          value={currency.format(analytics.averageTicket || 0)}
+          hint="Per booking"
+          tint={iOS.green}
+        />
+        <MobileStatCard
+          delay={0.2}
+          icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
+          label="Services"
+          value={numberFormat.format(analytics.activeServices)}
+          hint={`${analytics.completedAppointments} done`}
+          tint={iOS.indigo}
+        />
+      </div>
+
+      {/* Status + busiest days charts */}
+      <div className="grid grid-cols-2 gap-3">
+        <MobileCard title="Status" subtitle="Bookings" delay={0.22}>
+          <div className="pb-4">
+            <MobileDonut data={analytics.statusBreakdown} value={analytics.completionRate} label="done" />
+          </div>
+        </MobileCard>
+        <MobileCard title="Busiest day" subtitle={analytics.busiestDay?.day ?? "—"} delay={0.26}>
+          <div className="h-[140px] pb-4">
+            <MobileBarChart
+              data={analytics.dayOfWeekDemand}
+              xKey="day"
+              yKey="count"
+              highlight={analytics.busiestDay?.day}
+              interval="preserveStartEnd"
+            />
+          </div>
+        </MobileCard>
+      </div>
+
+      {/* Peak hours */}
+      <MobileCard title="Peak hours" subtitle="Bookings by hour" delay={0.3}>
+        <div className="h-[160px] pb-5">
+          <MobileBarChart
+            data={analytics.hourlyDemand}
+            xKey="hour"
+            yKey="count"
+            highlight={analytics.peakHour?.hour}
+            interval={2}
+          />
+        </div>
+      </MobileCard>
+
+      {/* Top services */}
+      <MobileCard title="Top services" subtitle="Most booked this period" delay={0.34}>
+        <div className="px-5 pb-5 space-y-4">
+          {analytics.serviceBreakdown?.slice(0, 4).map((s: any, i: number) => {
+            const max = analytics.serviceBreakdown[0]?.bookings || 1;
+            const pct = (s.bookings / max) * 100;
+            return (
+              <motion.div
+                key={s.name}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.36 + i * 0.05, ...springSoft }}
+                className="space-y-2"
+              >
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-7 h-7 rounded-[10px] bg-[#1C1C1E] text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
+                      {i + 1}
+                    </span>
+                    <span className="font-medium text-white truncate">{s.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
+                </div>
+                <div className="h-2 rounded-full bg-[#1C1C1E] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-[#FF375F]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ delay: 0.36 + i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+          {(!analytics.serviceBreakdown || analytics.serviceBreakdown.length === 0) && (
+            <div className="py-4 text-center">
+              <p className="text-[12px] text-white/50">No services booked yet</p>
+            </div>
+          )}
+        </div>
+      </MobileCard>
+
+      {/* Best customers */}
+      {topCustomers.length > 0 && (
+        <MobileCard title="Best customers" subtitle="Top spenders this period" delay={0.38}>
+          <div className="px-5 pb-5 divide-y divide-white/[0.06]">
+            {topCustomers.slice(0, 4).map((c, i) => {
+              const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
+              return (
+                <motion.div
+                  key={c.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.05, ...springSoft }}
+                  whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                  className="flex items-center gap-3.5 py-3.5 first:pt-0"
+                >
+                  <Avatar
+                    name={c.initials || "?"}
+                    className="h-10 w-10 rounded-full"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
+                      {i === 0 && (
+                        <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-full">
+                          VIP
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-white/50 mt-0.5">
+                      {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </MobileCard>
+      )}
+
+      {/* Reviews */}
+      {reviews.length > 0 && (
+        <MobileCard title="Reviews" subtitle={`${reviews.length} total`} delay={0.42}>
+          <MobileReviewsSummary reviews={reviews} />
+        </MobileCard>
+      )}
     </div>
   );
 }

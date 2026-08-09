@@ -1,7 +1,7 @@
 // send-push: fans out a notification to web push subscriptions and APNs device tokens
 // Called by DB trigger on notifications insert. No JWT (public endpoint, no PII in payload).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import webpush from "npm:web-push@3.6.7";
+import { sendNotification } from "npm:web-push-neo@0.1.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,31 +82,82 @@ async function sendApns(token: string, title: string, body: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { user_id, title, body, type, appointment_id } = await req.json();
+    const { user_id, appointment_id, title: reqTitle, body: reqBody, type: reqType } = await req.json();
     if (!user_id) return new Response(JSON.stringify({ error: "user_id required" }), { status: 400, headers: corsHeaders });
+
+    // Authenticate the request by requiring a freshly-created matching notification row
+    // (the DB trigger writes the row and then calls this function). Use DB-stored title/body.
+    let q = sb.from("notifications").select("title, body, type, appointment_id, created_at")
+      .eq("user_id", user_id)
+      .gt("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (appointment_id) q = q.eq("appointment_id", appointment_id);
+    const { data: notif } = await q.maybeSingle();
+
+    let title = reqTitle ?? "Notification";
+    let body = reqBody ?? "";
+    let type = reqType ?? "default";
+
+    if (notif) {
+      title = notif.title ?? title;
+      body = notif.body ?? body;
+      type = notif.type ?? type;
+    } else {
+      // Only the DB trigger (which inserts the notification row first) may send pushes.
+      // Without a matching, freshly-created notification row the request is rejected,
+      // so caller-supplied title/body can never be delivered on their own.
+      return new Response(JSON.stringify({ error: "no recent matching notification" }), { status: 401, headers: corsHeaders });
+    }
+
+    // Pick the click-through URL based on the recipient's role.
+    let url = "/admin";
+    try {
+      const { data: profile } = await sb.from("profiles").select("role, booking_link").eq("id", user_id).maybeSingle();
+      if (profile?.role === "client") {
+        url = "/my-bookings";
+      } else if (profile?.booking_link) {
+        url = "/admin";
+      }
+    } catch (_) {
+      // keep default
+    }
 
     const vapidPub = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPriv = Deno.env.get("VAPID_PRIVATE_KEY");
-    const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@cutzioo.com";
+    const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:xmaxerikopedo19@gmail.com";
+
+    console.log("send-push", { user_id, appointment_id, title, body, type, hasVapid: !!(vapidPub && vapidPriv) });
 
     // Web Push
     let webResults: any[] = [];
     if (vapidPub && vapidPriv) {
-      webpush.setVapidDetails(vapidSubject, vapidPub, vapidPriv);
       const { data: subs } = await sb.from("push_subscriptions").select("*").eq("user_id", user_id);
       const payload = JSON.stringify({
-        title: title ?? "New booking",
-        body: body ?? "",
+        title,
+        body,
         tag: appointment_id ?? type ?? "booking",
-        url: "/admin",
+        url,
       });
       webResults = await Promise.all((subs ?? []).map(async (s: any) => {
         try {
-          await webpush.sendNotification(
-            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } } as any,
-            payload
+          const res = await sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+            {
+              vapidDetails: {
+                subject: vapidSubject,
+                publicKey: vapidPub,
+                privateKey: vapidPriv,
+              },
+              TTL: 3600,
+            },
           );
-          return { endpoint: s.endpoint, ok: true };
+          const status = (res as any)?.statusCode ?? (res as any)?.status ?? (res as any)?.response?.statusCode;
+          if (status === 404 || status === 410) {
+            await sb.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
+          }
+          return { endpoint: s.endpoint, ok: status ? status < 400 : true, status };
         } catch (err: any) {
           // Clean up dead subscriptions
           if (err?.statusCode === 404 || err?.statusCode === 410) {
@@ -121,7 +172,7 @@ Deno.serve(async (req) => {
     let apnsResults: any[] = [];
     const { data: tokens } = await sb.from("device_tokens").select("*").eq("user_id", user_id);
     apnsResults = await Promise.all((tokens ?? []).map(async (t: any) => {
-      const r = await sendApns(t.token, title ?? "New booking", body ?? "");
+      const r = await sendApns(t.token, title, body);
       if (r && (r as any).status === 410) {
         await sb.from("device_tokens").delete().eq("token", t.token);
       }

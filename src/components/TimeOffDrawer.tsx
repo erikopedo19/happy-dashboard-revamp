@@ -1,0 +1,331 @@
+import { useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isBefore,
+  isSameDay,
+  isSameMonth,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
+import { ChevronLeft, ChevronRight, Loader2, Palmtree, Sunset, Trash2 } from "lucide-react";
+import { Button } from "@heroui/react";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { haptic } from "@/lib/haptics";
+
+const REASONS = [
+  { key: "vacation", label: "Vacation 🏝️" },
+  { key: "sick", label: "Sick 🤒" },
+  { key: "personal", label: "Personal 🙌" },
+  { key: "closed", label: "Closed 🔒" },
+  { key: "custom", label: "Write reason ✍️" },
+];
+
+const toKey = (d: Date) => format(d, "yyyy-MM-dd");
+
+interface TimeOffDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialDate?: Date;
+}
+
+export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawerProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [month, setMonth] = useState<Date>(startOfMonth(initialDate ?? new Date()));
+  const [selected, setSelected] = useState<string[]>(initialDate ? [toKey(initialDate)] : []);
+  const [reason, setReason] = useState<string>("vacation");
+  const [customReason, setCustomReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const resolvedReason = reason === "custom" ? customReason.trim() || "Closed" : reason;
+
+  const { data: daysOff = [], refetch } = useQuery<{ id: string; off_date: string; reason: string | null }[]>({
+    queryKey: ["time_off", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("time_off")
+        .select("id, off_date, reason")
+        .eq("user_id", user.id)
+        .order("off_date", { ascending: true });
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!user && open,
+  });
+
+  const offSet = useMemo(() => new Set(daysOff.map((d) => d.off_date)), [daysOff]);
+
+  const grid = useMemo(() => {
+    const start = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
+    const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end });
+  }, [month]);
+
+  const today = startOfDay(new Date());
+
+  const dragging = useRef(false);
+  const dragMode = useRef<"add" | "remove">("add");
+  const lastKey = useRef<string | null>(null);
+
+  const applyDay = (key: string) => {
+    setSelected((prev) => {
+      const has = prev.includes(key);
+      if (dragMode.current === "add") return has ? prev : [...prev, key];
+      return has ? prev.filter((k) => k !== key) : prev;
+    });
+  };
+
+  const startDrag = (day: Date) => {
+    if (isBefore(day, today)) return;
+    const key = toKey(day);
+    dragging.current = true;
+    dragMode.current = selected.includes(key) ? "remove" : "add";
+    lastKey.current = key;
+    haptic("selection");
+    applyDay(key);
+  };
+
+  const onGridPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+    const cell = el?.closest?.("[data-daykey]") as HTMLElement | null;
+    const key = cell?.dataset.daykey;
+    if (!key || key === lastKey.current || cell?.dataset.past === "1") return;
+    lastKey.current = key;
+    haptic("selection");
+    applyDay(key);
+  };
+
+  const endDrag = () => {
+    dragging.current = false;
+    lastKey.current = null;
+  };
+
+
+  const persist = async (dates: string[], successCopy: string) => {
+    if (!user || dates.length === 0) return;
+    setSaving(true);
+    try {
+      const rows = dates.map((off_date) => ({ user_id: user.id, off_date, reason: resolvedReason }));
+      const { error } = await (supabase as any)
+        .from("time_off")
+        .upsert(rows, { onConflict: "user_id,off_date" });
+      if (error) throw error;
+      haptic("success");
+      toast({ title: successCopy, description: `Reason: ${resolvedReason}. Hidden from every booking form.` });
+      setSelected([]);
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ["public-time-off"] });
+    } catch (e: any) {
+      haptic("error");
+      toast({ title: "Couldn't save", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const save = () => persist(selected, "Days off saved");
+  const blockRestOfToday = () => persist([toKey(new Date())], "Rest of today blocked");
+
+
+  const removeDay = async (id: string) => {
+    haptic("warning");
+    const { error } = await (supabase as any).from("time_off").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Couldn't remove", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refetch();
+    queryClient.invalidateQueries({ queryKey: ["public-time-off"] });
+  };
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[92vh]">
+        <div className="mx-auto w-full max-w-md px-5 pb-8 pt-2 overflow-y-auto">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-2xl bg-black/[0.05] dark:bg-white/10 flex items-center justify-center">
+              <Palmtree className="w-5 h-5 text-[#1C1C1E]/80 dark:text-white/80" />
+            </div>
+            <div>
+              <h2 className="text-[17px] font-semibold leading-tight text-[#1C1C1E] dark:text-white">Days off</h2>
+              <p className="text-[13px] text-[#8E8E93] dark:text-white/50">Tap or drag across days — they are hidden from booking</p>
+            </div>
+          </div>
+
+          {/* Month header */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => { haptic("light"); setMonth(addMonths(month, -1)); }}
+              className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition text-[#1C1C1E] dark:text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">{format(month, "MMMM yyyy")}</span>
+            <button
+              onClick={() => { haptic("light"); setMonth(addMonths(month, 1)); }}
+              className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition text-[#1C1C1E] dark:text-white"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+              <div key={i} className="text-center text-[11px] font-medium text-[#8E8E93] dark:text-white/35 py-1">{d}</div>
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={format(month, "yyyy-MM")}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+              className="grid grid-cols-7 gap-1 touch-none select-none"
+              onPointerMove={onGridPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onPointerLeave={endDrag}
+            >
+              {grid.map((day) => {
+                const key = toKey(day);
+                const inMonth = isSameMonth(day, month);
+                const past = isBefore(day, today);
+                const isSelected = selected.includes(key);
+                const isOff = offSet.has(key);
+                return (
+                  <button
+                    key={key}
+                    data-daykey={key}
+                    data-past={past ? "1" : "0"}
+                    onPointerDown={(e) => { (e.target as HTMLElement).releasePointerCapture?.(e.pointerId); startDrag(day); }}
+                    disabled={past}
+                    className={cn(
+                      "aspect-square rounded-2xl text-[14px] font-medium flex flex-col items-center justify-center transition-all active:scale-95",
+                      !inMonth && "opacity-25",
+                      past && "opacity-20",
+                      isSelected
+                        ? "bg-[#1C1C1E] text-white dark:bg-white dark:text-black"
+                        : isOff
+                          ? "bg-rose-500/15 text-rose-500 dark:bg-rose-500/20 dark:text-rose-300"
+                          : "bg-black/[0.03] text-[#1C1C1E]/80 dark:bg-white/[0.04] dark:text-white/80"
+                    )}
+                  >
+                    {format(day, "d")}
+                    {isSameDay(day, today) && (
+                      <span className={cn("w-1 h-1 rounded-full mt-0.5", isSelected ? "bg-white dark:bg-black" : "bg-[#1C1C1E]/50 dark:bg-white/60")} />
+                    )}
+                  </button>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Reasons */}
+          <p className="text-[12px] uppercase tracking-wider text-[#8E8E93] dark:text-white/35 mt-6 mb-2">Reason</p>
+          <div className="flex flex-wrap gap-2">
+            {REASONS.map((r) => (
+              <button
+                key={r.key}
+                onClick={() => { haptic("selection"); setReason(r.key); }}
+                className={cn(
+                  "px-3.5 h-9 rounded-full text-[13px] font-medium transition-all active:scale-95",
+                  reason === r.key ? "bg-[#1C1C1E] text-white dark:bg-white dark:text-black" : "bg-black/[0.05] text-[#1C1C1E]/70 dark:bg-white/[0.06] dark:text-white/70"
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+
+          <AnimatePresence initial={false}>
+            {reason === "custom" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <input
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  maxLength={60}
+                  autoFocus
+                  placeholder="e.g. Family event, training day…"
+                  className="mt-3 w-full h-12 rounded-2xl bg-black/[0.05] dark:bg-white/[0.06] px-4 text-[15px] text-[#1C1C1E] dark:text-white placeholder:text-[#8E8E93] dark:placeholder:text-white/30 outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/30"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <Button
+            onPress={save}
+            isDisabled={selected.length === 0 || saving}
+            className="w-full h-14 mt-5 rounded-full bg-black text-white hover:bg-black/90 text-[15px] font-semibold disabled:opacity-40"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : `Mark ${selected.length || ""} day${selected.length === 1 ? "" : "s"} off`}
+          </Button>
+
+          {/* Rest of the day — distinct amber treatment */}
+          <div className="mt-4 rounded-3xl border border-amber-400/25 bg-amber-400/[0.07] p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-amber-400/15 flex items-center justify-center shrink-0">
+                <Sunset className="w-4.5 h-4.5 text-amber-300" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[15px] font-semibold text-amber-100">Rest of the day</div>
+                <p className="text-[12.5px] leading-snug text-amber-100/60">
+                  Stop taking bookings for the remaining hours of today. Past hours stay closed automatically.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={blockRestOfToday}
+              disabled={saving}
+              className="mt-3 w-full h-11 rounded-full bg-amber-400 text-black text-[14px] font-semibold active:scale-[0.98] transition disabled:opacity-40"
+            >
+              Block rest of today · {resolvedReason}
+            </button>
+          </div>
+
+
+          {daysOff.length > 0 && (
+            <div className="mt-6">
+              <p className="text-[12px] uppercase tracking-wider text-[#8E8E93] dark:text-white/35 mb-2">Upcoming days off</p>
+              <div className="space-y-2">
+                {daysOff.map((d) => (
+                  <div key={d.id} className="flex items-center justify-between rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3">
+                    <div>
+                      <div className="text-[14px] font-medium text-[#1C1C1E] dark:text-white">{format(new Date(d.off_date), "EEE, MMM d")}</div>
+                      <div className="text-[12px] text-[#8E8E93] dark:text-white/40 capitalize">{d.reason || "closed"}</div>
+                    </div>
+                    <button
+                      onClick={() => removeDay(d.id)}
+                      className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition"
+                    >
+                      <Trash2 className="w-4 h-4 text-[#8E8E93] dark:text-white/60" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}

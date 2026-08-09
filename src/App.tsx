@@ -1,8 +1,28 @@
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { GlimmProvider } from "glimm/react";
+import { accentChain } from "glimm";
+import { GlimmIntercept } from "./components/GlimmIntercept";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Scroll to top on route change for mobile
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const isMobile = useIsMobile() ?? false;
+
+  useEffect(() => {
+    if (isMobile) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, isMobile]);
+
+  return null;
+}
+
+// Custom blue → rose → purple sweep palette
+const SWEEP_PALETTE = accentChain(["#2E70FF", "#FF3D7F", "#D33CFF"]);
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
 import { ThemeProvider } from "next-themes";
@@ -10,17 +30,20 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Customers from "./pages/Customers";
-import Products from "./pages/Products";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import PricingSuccess from "./pages/PricingSuccess";
+import PricingFailure from "./pages/PricingFailure";
+import Terms from "./pages/Terms";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
+import { PhoneAlerts, PhoneAlertsProvider } from "@/components/PhoneAlerts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Brand from "./pages/Brand";
 import Booking from "./pages/Booking";
@@ -42,10 +65,19 @@ import ReviewPage from "./pages/ReviewPage";
 import WaitlistClaim from "./pages/WaitlistClaim";
 import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
-import { PremiumGiftPopup } from "./components/PremiumGiftPopup";
+import { GlobalBanner } from "./components/GlobalBanner";
+import { UpdatePopup } from "./components/UpdatePopup";
+import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
+import { PageTransition } from "./components/PageTransition";
+
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
+import Microsite from "./pages/Microsite";
+import MicrositeEditor from "./pages/MicrositeEditor";
+import ChooseMode from "./pages/ChooseMode";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,57 +113,93 @@ const LandingRoute = () => {
   return <Landing />;
 }
 
+const RESERVED_SUBDOMAINS = new Set([
+  "www", "app", "admin", "api", "cutzioo", "happy-ios-dash", "localhost",
+]);
+
+function isMicrositeSubdomain(): string | null {
+  const host = window.location.hostname;
+  if (host.endsWith(".cutzioo.com")) {
+    const sub = host.slice(0, -".cutzioo.com".length);
+    if (sub && !RESERVED_SUBDOMAINS.has(sub) && !sub.includes(".")) return sub;
+  }
+  return null;
+}
+
 function AnimatedRoutes() {
   useFinalizeOnboarding();
   const location = useLocation();
+  const subdomain = isMicrositeSubdomain();
+  if (subdomain) {
+    return <Microsite />;
+  }
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -4 }}
-        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <Routes location={location}>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/book/:bookingLink" element={<Booking />} />
-          <Route path="/manage/:token" element={<ManageBooking />} />
-          <Route path="/review/:token" element={<ReviewPage />} />
-          <Route path="/waitlist/claim/:token" element={<WaitlistClaim />} />
-          <Route path="/bookingforms" element={<BookingForms />} />
-          <Route path="/find-barber" element={<FindBarber />} />
-          <Route path="/find-barbershop" element={<FindBarbershop />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/me" element={<Me />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/" element={<LandingRoute />} />
-          <Route path="/app" element={<LandingRoute />} />
-          <Route path="/superadmin" element={<SuperAdminLogin />} />
-          <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-          <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-          <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
-          <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
-          <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
-          <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
-          <Route path="/products" element={<ProtectedRoute><PremiumGate featureName="Products Catalog"><Products /></PremiumGate></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
-          <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-          <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
-          <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
-          <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-          <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+    <PageTransition>
+      <Routes location={location}>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+      <Route path="/choose-mode" element={<ChooseMode />} />
+      <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/book/:bookingLink" element={<Booking />} />
+      <Route path="/manage/:token" element={<ManageBooking />} />
+      <Route path="/review/:token" element={<ReviewPage />} />
+      <Route path="/waitlist/claim/:token" element={<WaitlistClaim />} />
+      <Route path="/bookingforms" element={<BookingForms />} />
+      <Route path="/find-barber" element={<FindBarber />} />
+      <Route path="/find-barbershop" element={<FindBarbershop />} />
+      <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/me" element={<Me />} />
+      <Route path="/favorites" element={<Favorites />} />
+      <Route path="/" element={<LandingRoute />} />
+      <Route path="/app" element={<LandingRoute />} />
+      <Route path="/superadmin" element={<SuperAdminLogin />} />
+      <Route path="/superadmin/dashboard" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+      <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+      <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
+      <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+      <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
+      <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
+      <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+      <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+      <Route path="/pricing/failure" element={<ProtectedRoute><PricingFailure /></ProtectedRoute>} />
+      <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
+      <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+      <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
+      <Route path="/site/:slug" element={<Microsite />} />
+      <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/:bookingLink" element={<Booking />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+    </PageTransition>
   );
 }
+
+const HeaderActions = () => {
+  const { user } = useAuth();
+  const isMobile = useIsMobile() ?? false;
+  const location = useLocation();
+  if (!user) return null;
+  // Pages that already render their own notification bell in the header
+  const hasOwnBell =
+    location.pathname === "/admin" ||
+    location.pathname === "/find-barbershop" ||
+    location.pathname === "/settings" ||
+    (isMobile && location.pathname.startsWith("/find-barber")) ||
+    (isMobile && location.pathname === "/agenda");
+  if (hasOwnBell) return null;
+  return (
+    <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-50">
+      <NotificationBell />
+    </div>
+  );
+};
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -145,26 +213,39 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
-            <Toaster />
-            <Sonner />
             {showSplash && (
               <div className="splash-screen">
                 <div className="splash-stage">
                   <div className="splash-ring" />
-                  <img src={logoSrc} alt="Logo" className="splash-logo" />
+                  <img src={logoSrc} alt="Cutzioo Barber Booking Logo" className="splash-logo" />
                   <span className="splash-label">Loading</span>
                 </div>
               </div>
             )}
-          <BrowserRouter>
-            <AnimatedRoutes />
-            <NotificationBell />
-            <PremiumGiftPopup />
-            <PersistentDock />
-          </BrowserRouter>
+          <PhoneAlertsProvider>
+            <BrowserRouter>
+              <OnboardingProvider>
+                <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
+                  <GlimmIntercept />
+                  <GlobalBanner />
+                  <UpdatePopup />
+                  <GuestSignupDrawer />
+                  <ScrollToTop />
+                  <AnimatedRoutes />
+                  <HeaderActions />
+
+                  <PersistentDock />
+                  <Toaster />
+                  <Sonner />
+                  <PhoneAlerts />
+
+                </GlimmProvider>
+              </OnboardingProvider>
+            </BrowserRouter>
+          </PhoneAlertsProvider>
         </div>
       </AuthProvider>
     </ThemeProvider>

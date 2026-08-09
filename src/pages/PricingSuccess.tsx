@@ -1,76 +1,126 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Crown, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Check } from "lucide-react";
 import { usePremium } from "@/hooks/use-premium";
+
+const COLORS = ["#22c55e", "#f43f5e", "#f59e0b", "#3b82f6", "#22c55e", "#a855f7", "#ec4899"];
 
 export default function PricingSuccess() {
   const navigate = useNavigate();
   const { refresh, isPremium } = usePremium();
+  const [done, setDone] = useState(false);
+  const [count, setCount] = useState(5);
+  const doneRef = useRef(done);
+  const premiumRef = useRef(isPremium);
+  const refreshRef = useRef(refresh);
+  doneRef.current = done;
+  premiumRef.current = isPremium;
+  refreshRef.current = refresh;
 
   useEffect(() => {
-    // Poll for webhook to land
-    let cancelled = false;
     let tries = 0;
+    const started = Date.now();
+    let t: ReturnType<typeof setTimeout>;
     const tick = async () => {
+      if (doneRef.current || premiumRef.current) return setDone(true);
       tries += 1;
-      await refresh();
-      if (!cancelled && !isPremium && tries < 10) {
-        setTimeout(tick, 2000);
-      }
+      await refreshRef.current();
+      if (premiumRef.current || tries >= 5 || Date.now() - started >= 4000) return setDone(true);
+      t = setTimeout(tick, 800);
     };
     tick();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    if (!done) return;
+    if (count <= 0) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+    const t = setTimeout(() => setCount((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [done, count, navigate]);
+
+  const confetti = useMemo(
+    () =>
+      Array.from({ length: 34 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 0.5,
+        size: 6 + Math.random() * 7,
+        rotate: Math.random() * 360,
+        color: COLORS[i % COLORS.length],
+        round: i % 3 === 0,
+      })),
+    [],
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c] p-6">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 22 }}
-        className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] shadow-[0_20px_60px_rgba(0,0,0,0.12)] dark:shadow-none p-8 text-center"
-      >
+    <div className="fixed inset-0 z-[100] overflow-hidden bg-[#0B0B0E]">
+      <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_0%,rgba(34,197,94,0.55),rgba(11,11,14,0)_72%)]" />
+
+      {confetti.map((c) => (
+          <motion.span
+            key={c.id}
+            className={c.round ? "absolute rounded-full" : "absolute rounded-[2px]"}
+            style={{
+              left: `${c.left}%`,
+              top: -20,
+              width: c.size,
+              height: c.round ? c.size : c.size * 0.55,
+              backgroundColor: c.color,
+            }}
+            initial={{ y: -30, rotate: c.rotate, opacity: 1 }}
+            animate={{ y: "110vh", rotate: c.rotate + 540, opacity: 0.9 }}
+            transition={{ duration: 2.4 + Math.random(), delay: c.delay, ease: "easeIn" }}
+          />
+        ))}
+
+      <div className="relative h-full flex flex-col items-center justify-center px-8 text-center">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1, rotate: [0, -10, 10, 0] }}
-          transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 16 }}
-          className="mx-auto w-20 h-20 rounded-3xl bg-rose-500 flex items-center justify-center mb-5 shadow-[0_10px_30px_rgba(225,29,72,0.4)]"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+          className="w-[92px] h-[92px] rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_16px_50px_rgba(34,197,94,0.45)]"
         >
-          <Crown className="w-10 h-10 text-white" />
+          <Check className="w-12 h-12 text-white" strokeWidth={3} />
         </motion.div>
 
-        <h1 className="text-2xl font-bold text-[#1C1C1E] dark:text-white mb-2">
-          Welcome to Pro
-        </h1>
-        <p className="text-[15px] text-[#8E8E93] mb-6">
-          {isPremium
-            ? "Your subscription is active. Everything's unlocked."
-            : "Finalising your subscription… this can take a few seconds."}
-        </p>
-
-        <ul className="text-left space-y-2 mb-7">
-          {["Unlimited services & customers", "Teams & multi-stylist", "Reports & analytics", "Map listing & branding"].map((p) => (
-            <li key={p} className="flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-rose-500/10 flex items-center justify-center">
-                <Check className="w-3 h-3 text-rose-500" strokeWidth={3} />
-              </div>
-              <span className="text-[14px] text-[#1C1C1E] dark:text-[#F2F2F7]">{p}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Button
-          onClick={() => navigate("/admin")}
-          className="w-full h-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-[15px] font-semibold"
+        <motion.h1
+          initial={{ y: 14, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.15, type: "spring", stiffness: 240, damping: 26 }}
+          className="mt-7 text-[34px] font-bold tracking-tight text-white"
         >
-          Go to dashboard
-        </Button>
-      </motion.div>
+          You are all set
+        </motion.h1>
+        <motion.p
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="mt-2 text-[15px] text-white/45"
+        >
+          {done
+            ? isPremium
+              ? "Cutzioo Pro activated. Redirecting…"
+              : "Payment received. Finalising your plan…"
+            : "Confirming your payment…"}
+        </motion.p>
+
+        {done && (
+          <motion.button
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            onClick={() => navigate("/dashboard", { replace: true })}
+            className="mt-8 rounded-full bg-white/[0.08] px-6 py-3 text-[15px] font-semibold text-white active:scale-95 transition"
+          >
+            Continue to dashboard ({count})
+          </motion.button>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,20 +1,27 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { X, ChevronLeft, Clock, User, ArrowRight, Video, Globe, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { X, ChevronLeft, Clock, User, ArrowRight, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@heroui/react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
+import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
+import { dateStrInTz, getBrowserTimezone } from "@/lib/tz";
+
 
 interface AppointmentFormProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: string;
   selectedTime: string;
+  skipTimeSelection?: boolean;
   services?: Service[];
   initialServiceId?: string | null;
 }
@@ -27,19 +34,7 @@ interface Service {
   description?: string;
 }
 
-// Generate time slots from 9 AM to 6 PM
-const generateTimeSlots = () => {
-  const slots = [];
-  for (let hour = 9; hour <= 18; hour++) {
-    slots.push(`${hour.toString().padStart(2, '0')}:00`);
-    if (hour !== 18) {
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
-    }
-  }
-  return slots;
-};
-
-export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
+export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, skipTimeSelection = false, services: providedServices, initialServiceId = null }: AppointmentFormProps) {
   const [step, setStep] = useState<"datetime" | "details" | "success">("datetime");
   const [selectedDateObj, setSelectedDateObj] = useState<Date>(new Date(selectedDate));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(selectedTime);
@@ -48,6 +43,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [serviceId, setServiceId] = useState("");
+  const [stylistId, setStylistId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
@@ -56,11 +52,51 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const requireAuth = useRequireAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const timeSlots = useMemo(() => generateTimeSlots(), []);
   const shouldFetchServices = !providedServices;
   const selectedDateIso = format(selectedDateObj, 'yyyy-MM-dd');
+
+
+  // Fetch agenda settings (single source of truth for hours)
+  const { data: agendaSettings } = useQuery<{ start_hour: string; end_hour: string; service_duration: number; working_days?: number[] | null } | null>({
+    queryKey: ['agenda-settings', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from('agenda_settings')
+        .select('start_hour, end_hour, service_duration, working_days')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch profile timezone for accurate "past hour" filtering
+  const { data: tzProfile } = useQuery<{ timezone: string | null } | null>({
+    queryKey: ['profile-tz', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await (supabase as any)
+        .from('profiles')
+        .select('timezone')
+        .eq('id', user.id)
+        .maybeSingle();
+      return data || null;
+    },
+    enabled: !!user,
+  });
+
+  const timeSlots = useMemo(() => {
+    const start = agendaSettings?.start_hour || '09:00';
+    const end = agendaSettings?.end_hour || '18:00';
+    const interval = agendaSettings?.service_duration || 30;
+    return generateBookingTimeSlots(start, end, interval);
+  }, [agendaSettings]);
+
 
   // Fetch services
   const { data: fetchedServices = [] } = useQuery<Service[]>({
@@ -82,6 +118,28 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   const services = providedServices ?? fetchedServices;
 
+  // Fetch stylists (active only — soft-deleted stylists can't be assigned to new bookings)
+  const { data: stylists = [] } = useQuery<any[]>({
+    queryKey: ['stylists-active', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from('stylists')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+
+
   // Fetch user profile for business info
   const { data: profile } = useQuery<any>({
     queryKey: ['profile', user?.id],
@@ -100,49 +158,106 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   });
 
   // Fetch already-booked slots for selected day to prevent duplicate bookings
-  const { data: bookedSlots = [] } = useQuery<string[]>({
+  const { data: bookedSlots = [] } = useQuery<BookedSlotLike[]>({
     queryKey: ['booked-slots', user?.id, selectedDateIso],
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await (supabase as any)
-        .from('appointments')
-        .select('appointment_time, status')
-        .eq('user_id', user.id)
-        .eq('appointment_date', selectedDateIso)
-        .neq('status', 'cancelled')
-        .order('appointment_time', { ascending: true });
+      const { data, error } = await (supabase as any).rpc('get_booked_slots', {
+        _business_id: user.id,
+        _date: selectedDateIso,
+      });
 
       if (error) throw error;
-      return (data || []).map((row: { appointment_time: string }) => row.appointment_time.slice(0, 5));
+      return data || [];
     },
     enabled: !!user && isOpen,
+    refetchInterval: isOpen ? 10000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
-  const bookedSlotsSet = useMemo(() => new Set(bookedSlots), [bookedSlots]);
+  // Days the barber marked off — never bookable from anywhere
+  const { data: timeOffDates = [] } = useQuery<string[]>({
+    queryKey: ['time-off-dates', user?.id],
+    enabled: !!user && isOpen,
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user!.id });
+      return (data || []).map((r: any) => r.off_date as string);
+    },
+  });
+  const timeOffSet = useMemo(() => new Set(timeOffDates), [timeOffDates]);
+
+  const selectedService = services.find((s: Service) => s.id === serviceId);
+
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedService) return [];
+    const startHour = agendaSettings?.start_hour || '09:00';
+    const endHour = agendaSettings?.end_hour || '18:00';
+    const interval = agendaSettings?.service_duration || 30;
+
+    return getAvailableBookingSlots({
+      date: selectedDateObj,
+      allSlots: timeSlots,
+      startHour,
+      endHour,
+      interval,
+      serviceDuration: selectedService.duration,
+      bookedSlots,
+      workingDays: agendaSettings?.working_days,
+      timezone: tzProfile?.timezone,
+      stylistId: stylistId || null,
+      allowPastSlots: false,
+      timeOffDates: timeOffSet,
+    });
+  }, [selectedService, agendaSettings, selectedDateObj, timeSlots, bookedSlots, tzProfile?.timezone, stylistId, timeOffSet]);
+
+  // Realtime sync — agenda hours + bookings + stylists updated instantly on this form
+  useEffect(() => {
+    if (!user || !isOpen) return;
+    const channel = supabase
+      .channel(`barber-form-sync-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_settings', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['agenda-settings', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['booked-slots', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stylists', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['stylists-active', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['profile-tz', user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, isOpen, queryClient]);
+
+
 
   // Calendar days
   const calendarDays = useMemo(() => {
-    const start = startOfMonth(currentMonth);
-    const end = endOfMonth(currentMonth);
+    // Pad the grid with surrounding week days so the day-of-week header (SUN..SAT)
+    // stays aligned with the actual weekday of each date.
+    const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 0 });
+    const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 0 });
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
 
-  const selectedService = services.find((s: Service) => s.id === serviceId);
   const showServiceSelection = !selectedService;
   const showCalendarSelection = !isMobile || !!selectedService;
   const showTimeSelection = !isMobile || (!!selectedService && !!selectedDateObj);
-  const showSelectedTimeSummary = isMobile && !!selectedTimeSlot;
+  const showSelectedTimeSummary = (isMobile || skipTimeSelection) && !!selectedTimeSlot;
 
   useEffect(() => {
     if (!services.length) return;
 
     const hasSelectedService = services.some((service: Service) => service.id === serviceId);
-    if (!hasSelectedService) {
-      const preferredServiceId = initialServiceId && services.some((service: Service) => service.id === initialServiceId)
+    if (!hasSelectedService && initialServiceId) {
+      const preferredServiceId = services.some((service: Service) => service.id === initialServiceId)
         ? initialServiceId
-        : services[0].id;
-      setServiceId(preferredServiceId);
+        : services[0]?.id;
+      if (preferredServiceId) setServiceId(preferredServiceId);
     }
   }, [services, serviceId, initialServiceId]);
 
@@ -193,6 +308,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       });
       return;
     }
+    // Stylist is optional — no guard. Empty stylistId means "any stylist / skip".
+
     if (!selectedTimeSlot) {
       toast({
         title: "Select a time",
@@ -202,10 +319,10 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       return;
     }
 
-    if (bookedSlotsSet.has(selectedTimeSlot)) {
+    if (!availableTimeSlots.includes(selectedTimeSlot)) {
       toast({
         title: "Time unavailable",
-        description: "That time slot is already booked. Please choose another time.",
+        description: "That time slot is no longer available. Please choose another time.",
         variant: "destructive",
       });
       return;
@@ -226,12 +343,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth("Sign in to book an appointment")) return;
     
     if (!user || !selectedService || !selectedTimeSlot || !customerName) {
       toast({
         title: "Missing information",
         description: "Please complete the service, time, and customer details before booking.",
         variant: "destructive",
+
       });
       return;
     }
@@ -271,6 +390,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             .insert({
               name: customerName,
               email: customerEmail,
+              phone: customerPhone || null,
               user_id: user.id,
             })
             .select()
@@ -285,6 +405,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           .from('customers')
           .insert({
             name: customerName,
+            phone: customerPhone || null,
             user_id: user.id,
           })
           .select()
@@ -296,6 +417,15 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
       // Double-check time slot availability before creating appointment
       const normalizedSelectedTime = selectedTimeSlot.slice(0, 5);
+      if (!availableTimeSlots.includes(normalizedSelectedTime)) {
+        toast({
+          title: "Time unavailable",
+          description: "This slot was just booked or has passed. Please choose a different time.",
+          variant: "destructive",
+        });
+        setStep("datetime");
+        return;
+      }
       const { data: existingAppointment, error: existingAppointmentError } = await (supabase as any)
         .from('appointments')
         .select('id')
@@ -324,6 +454,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         .insert({
           customer_id: customerId,
           service_id: validSelectedService.id,
+          stylist_id: stylistId || null,
           appointment_date: format(selectedDateObj, 'yyyy-MM-dd'),
           appointment_time: normalizedSelectedTime,
           price: validSelectedService.price,
@@ -344,11 +475,13 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         description: `Your appointment is confirmed for ${format(selectedDateObj, 'MMMM d')} at ${selectedTimeSlot}.`,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['appointments'], exact: false });
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
-          return key === 'appointments' || key === 'public-appointments';
+          return key === 'appointments'
+            || key === 'public-appointments'
+            || key === 'booked-slots'
+            || key === 'quickbook-booked';
         }
       });
       window.dispatchEvent(new Event('appointmentUpdated'));
@@ -381,55 +514,77 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     setCustomerEmail("");
     setNotes("");
     setServiceId("");
+    setStylistId("");
     setCurrentMonth(new Date(selectedDate));
     onClose();
   };
 
   if (!isOpen) return null;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={cn(
-        "p-0 overflow-hidden border-0 shadow-2xl",
-        isMobile
-          ? "w-screen h-[100dvh] max-w-none rounded-none m-0 bg-[#1a1a1a] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300"
-          : "max-w-5xl w-[92vw] max-h-[88vh] rounded-2xl bg-[#1a1a1a]"
-      )}>
-        <DialogTitle className="sr-only">Book Appointment</DialogTitle>
-        
-        <motion.div
+  // Mobile: use Dialog, PC: use Drawer
+  if (isMobile) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] p-0 border-0 overflow-hidden shadow-2xl">
+          <DialogTitle className="sr-only">Book Appointment</DialogTitle>
+          <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
+
+          <motion.div
           ref={contentRef}
           initial={isMobile ? { y: 24, opacity: 0 } : false}
           animate={isMobile ? { y: 0, opacity: 1 } : {}}
           transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
-            "bg-[#1a1a1a]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(8.5rem+env(safe-area-inset-bottom))]" : "flex max-h-[88vh] min-h-[560px] overflow-hidden"
+            "bg-[#0e0e10]",
+            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
           )}
         >
+          {/* Mobile sticky top bar with drag-handle + close */}
+          {isMobile && (
+            <div className="sticky top-0 z-30 bg-[#0e0e10]/85 backdrop-blur-xl border-b border-white/[0.06]">
+              <div className="pt-2 pb-1 flex justify-center">
+                <div className="h-1 w-10 rounded-full bg-white/15" />
+              </div>
+              <div className="px-4 py-2 flex items-center justify-between">
+                <button
+                  onClick={handleClose}
+                  className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.06] text-white/70 flex items-center justify-center active:scale-95 transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <p className="text-[13px] font-semibold text-white tracking-tight">
+                  {step === "datetime" ? "Pick a slot" : step === "details" ? "Your details" : "Confirmed"}
+                </p>
+                <div className="w-9" />
+              </div>
+            </div>
+          )}
+
           {/* Left Panel - Service Info */}
           <div className={cn(
-            "bg-[#1a1a1a] flex flex-col",
-            isMobile ? "p-4 pt-14 border-b border-[#2a2a2a]" : "w-[320px] p-8 border-r border-[#2a2a2a]"
+            "bg-[#0e0e10] flex flex-col",
+            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[280px] shrink-0 p-6 border-r border-white/[0.06]"
           )}>
-            {/* Close button */}
-            <button
-              onClick={handleClose}
-              className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#2a2a2a] text-gray-400 hover:text-white transition-colors z-10"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {/* Desktop close */}
+            {!isMobile && (
+              <button
+                onClick={handleClose}
+                className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.06] text-gray-400 hover:text-white transition-colors z-10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
 
             {/* Profile */}
-            <div className={cn(isMobile ? "mt-0 mb-4" : "mt-8 mb-6")}>
-              <div className="w-12 h-12 rounded-full overflow-hidden">
-                <img 
+            <div className={cn(isMobile ? "mt-0 mb-4 flex items-center gap-3" : "mt-8 mb-6")}>
+              <div className={cn("rounded-full overflow-hidden ring-1 ring-white/10", isMobile ? "w-11 h-11" : "w-12 h-12")}>
+                <img
                   src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
                   alt={profile?.full_name || 'User'}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="mt-3 text-sm text-gray-400">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+              <p className={cn("text-sm text-gray-400", isMobile ? "" : "mt-3")}>{profile?.full_name || profile?.business_name || 'Your Business'}</p>
             </div>
 
             {/* Service Title */}
@@ -449,14 +604,6 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   <Clock className="w-4 h-4 text-gray-500" />
                   <span>{selectedService.duration} min</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Video className="w-4 h-4 text-gray-500" />
-                  <span>Google Meet</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Globe className="w-4 h-4 text-gray-500" />
-                  <span>Europe/Bucharest</span>
-                </div>
               </div>
             )}
 
@@ -470,8 +617,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
           {/* Center Panel - Calendar */}
           <div className={cn(
-            "bg-[#1a1a1a]",
-            isMobile ? "p-4 border-b border-[#2a2a2a]" : "flex-1 p-8 border-r border-[#2a2a2a] overflow-y-auto"
+            "bg-[#0e0e10]",
+            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-6 overflow-y-auto"
           )}>
             {isMobile && (
               <div className="flex items-center gap-2 mb-5">
@@ -482,7 +629,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       key={s}
                       className={cn(
                         "h-1.5 flex-1 rounded-full transition-all duration-500",
-                        reached ? "bg-[#e11d48]" : "bg-[#2a2a2a]"
+                        reached ? "bg-[#0A84FF]" : "bg-white/[0.06]"
                       )}
                     />
                   );
@@ -501,19 +648,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               <div className="h-full flex flex-col">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-medium text-white">
-                    {format(currentMonth, 'MMMM')} <span className="text-gray-500">{format(currentMonth, 'yyyy')}</span>
+                  <h3 className={cn("font-bold text-white tracking-tight", isMobile ? "text-xl" : "text-2xl")}>
+                    {format(currentMonth, 'MMMM yyyy')}
                   </h3>
-                  <div className="flex gap-1">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] transition-colors text-gray-400"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] transition-colors text-gray-400"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -537,8 +684,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                           className={cn(
                             "flex items-center justify-between p-4 rounded-xl border transition-all text-left",
                             serviceId === service.id
-                              ? "border-[#e11d48] bg-[#2a2a2a]"
-                              : "border-[#2a2a2a] hover:border-gray-600"
+                              ? "border-[#0A84FF] bg-white/[0.06]"
+                              : "border-white/[0.06] hover:border-gray-600"
                           )}
                         >
                           <div>
@@ -552,12 +699,119 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   </div>
                 )}
 
+                {/* Stylist Selection — optional, with quick-add / invite / skip */}
+                {selectedService && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-medium text-gray-400">
+                        Stylist <span className="text-gray-600">(optional)</span>
+                      </label>
+                      {stylists.length > 0 && stylistId && (
+                        <button
+                          type="button"
+                          onClick={() => setStylistId("")}
+                          className="text-xs text-gray-500 hover:text-white"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
+                      {stylists.length === 0 ? (
+                        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
+                          <p className="text-sm text-gray-400">
+                            No stylists yet — book without one, or add your team.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/stylists"); }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              + Add stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/teams"); }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              Invite worker
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-600">You can continue without a stylist.</p>
+                        </div>
+                      ) : (
+                        <>
+                          {stylists.map((stylist: any) => (
+                            <button
+                              key={stylist.id}
+                              type="button"
+                              onClick={() => setStylistId(stylist.id)}
+                              className={cn(
+                                "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                stylistId === stylist.id
+                                  ? "border-[#0A84FF] bg-white/[0.06]"
+                                  : "border-white/[0.06] hover:border-gray-600"
+                              )}
+                            >
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
+                                {stylist.avatar_url ? (
+                                  <img src={stylist.avatar_url} alt={stylist.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-white">{stylist.name}</p>
+                                <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
+                              </div>
+                              {stylistId === stylist.id && (
+                                <Check className="w-5 h-5 text-[#0A84FF]" />
+                              )}
+                            </button>
+                          ))}
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setStylistId("")}
+                              className={cn(
+                                "h-8 px-3 rounded-full text-xs font-medium border transition-all",
+                                !stylistId
+                                  ? "bg-white/[0.08] border-white/20 text-white"
+                                  : "bg-transparent border-white/[0.08] text-gray-400 hover:text-white"
+                              )}
+                            >
+                              Skip / any stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/stylists"); }}
+                              className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
+                            >
+                              + Add stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/teams"); }}
+                              className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
+                            >
+                              Invite worker
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+
                 {showCalendarSelection && (
                   <>
                     {/* Week days header */}
-                    <div className="grid grid-cols-7 gap-1 mb-2">
+                    <div className={cn("grid grid-cols-7 mb-1", isMobile ? "gap-1.5" : "gap-2")}>
                       {weekDays.map(day => (
-                        <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                        <div key={day} className="text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500 py-2">
                           {day}
                         </div>
                       ))}
@@ -568,22 +822,36 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       {calendarDays.map((day) => {
                         const isSelected = isSameDay(day, selectedDateObj);
                         const isCurrentMonth = isSameMonth(day, currentMonth);
-                        
+                        const tz = tzProfile?.timezone || getBrowserTimezone();
+                        const todayStr = dateStrInTz(new Date(), tz);
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const isPast = dayStr < todayStr;
+                        const isToday = dayStr === todayStr;
+                        const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
+                        const isDayOff = timeOffSet.has(dayStr);
+                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
+                        const showDot = !isDisabled && !isSelected;
+
                         return (
                           <button
                             key={day.toISOString()}
                             onClick={() => handleDateSelect(day)}
-                            disabled={!isCurrentMonth}
+                            disabled={isDisabled}
                             className={cn(
-                              "aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all",
+                              "relative aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all",
                               isSelected
-                                ? "bg-[#e11d48] text-white"
-                                : !isCurrentMonth
-                                ? "text-gray-600"
-                                : "text-white hover:bg-[#2a2a2a]"
+                                ? "bg-white text-[#0e0e10] shadow-[0_4px_14px_rgba(255,255,255,0.18)]"
+                                : isDisabled
+                                ? "text-gray-700"
+                                : isToday
+                                ? "bg-white/[0.10] text-white hover:bg-white/[0.16]"
+                                : "text-white hover:bg-white/[0.06]"
                             )}
                           >
                             {format(day, 'd')}
+                            {showDot && (
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#0A84FF]" />
+                            )}
                           </button>
                         );
                       })}
@@ -592,12 +860,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 )}
               </div>
             ) : step === "details" ? (
-              <div className={cn("h-full flex flex-col", !isMobile && "max-w-lg mx-auto")}>
+              <div className="h-full flex flex-col">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Enter Your Details
                 </h3>
 
-                <form onSubmit={handleSubmit} className={cn("space-y-4 flex-1", isMobile && "pb-36") }>
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Full Name *
@@ -610,7 +878,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="John Doe"
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#e11d48] focus:outline-none transition-colors text-white placeholder-gray-500"
+                        className="w-full pl-12 pr-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                       />
                     </div>
                   </div>
@@ -624,7 +892,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="john@example.com"
-                      className="w-full px-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#e11d48] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       We'll send a confirmation email to this address.
@@ -640,7 +908,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-4 py-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#e11d48] focus:outline-none transition-colors text-white placeholder-gray-500"
+                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Optional — we'll send an SMS confirmation if provided.
@@ -656,27 +924,18 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Add any appointment notes"
                       rows={3}
-                      className="w-full px-4 py-3 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl focus:border-[#e11d48] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
+                      className="w-full px-4 py-3 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
                     />
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setStep("datetime")}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mt-4"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span>Back to calendar</span>
-                  </button>
-
-                  <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#1a1a1a]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
+                  <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
                     <button
                       type="submit"
                       disabled={isLoading || !customerName}
                       className={cn(
                         "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
                         customerName && !isLoading
-                          ? "bg-[#e11d48] hover:bg-[#be123c]"
+                          ? "bg-[#0A84FF] hover:bg-[#0066d6]"
                           : "bg-gray-600 cursor-not-allowed"
                       )}
                     >
@@ -697,7 +956,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-full bg-[#e11d48] flex items-center justify-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-[#0A84FF] flex items-center justify-center mb-6">
                   <Check className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">You're Booked!</h3>
@@ -706,7 +965,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </p>
                 <button
                   onClick={handleClose}
-                  className="px-8 py-3 bg-[#e11d48] hover:bg-[#be123c] text-white rounded-xl font-medium transition-colors"
+                  className="px-8 py-3 bg-[#0A84FF] hover:bg-[#0066d6] text-white rounded-xl font-medium transition-colors"
                 >
                   Done
                 </button>
@@ -719,19 +978,19 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           {/* Right Panel - Time Slots / Booking Summary */}
           {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
             <div className={cn(
-              "bg-[#1a1a1a]",
-              isMobile ? "p-4 pb-36" : "w-[280px] p-6 overflow-y-auto"
+              "bg-[#0e0e10]",
+              isMobile ? "p-4 pb-6" : "w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06]"
             )}>
             {!isMobile && step === "details" && (
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Booking summary</p>
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#2a2a2a]/50 p-4 space-y-3">
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.06]/50 p-4 space-y-3">
                   <div>
                     <p className="text-xs text-gray-500">Service</p>
                     <p className="text-white font-semibold text-sm mt-0.5">{selectedService.name}</p>
                     <p className="text-gray-400 text-xs mt-0.5">{selectedService.duration} min · ${selectedService.price}</p>
                   </div>
-                  <div className="border-t border-[#3a3a3a]" />
+                  <div className="border-t border-white/[0.08]" />
                   <div>
                     <p className="text-xs text-gray-500">Date & time</p>
                     <p className="text-white font-semibold text-sm mt-0.5">{format(selectedDateObj, "EEE, MMM d")}</p>
@@ -741,7 +1000,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 <button
                   type="button"
                   onClick={() => setStep("datetime")}
-                  className="w-full py-2.5 rounded-xl border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl border border-white/[0.06] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" /> Change slot
                 </button>
@@ -749,63 +1008,56 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             )}
               {!showSelectedTimeSummary && (
                 <>
-                  <div className="flex gap-2 mb-6">
-                    <button
-                      onClick={() => setTimeFormat("12h")}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                        timeFormat === "12h" ? "bg-[#2a2a2a] text-white" : "text-gray-500 hover:text-white"
-                      )}
-                    >
-                      12h
-                    </button>
-                    <button
-                      onClick={() => setTimeFormat("24h")}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                        timeFormat === "24h" ? "bg-[#2a2a2a] text-white" : "text-gray-500 hover:text-white"
-                      )}
-                    >
-                      24h
-                    </button>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-[15px] font-semibold text-white tracking-tight">
+                      {format(selectedDateObj, 'EEE, MMM d')}
+                    </h4>
+                    <div className="inline-flex p-0.5 rounded-full bg-white/[0.06]">
+                      {(["12h", "24h"] as const).map((tf) => (
+                        <button
+                          key={tf}
+                          onClick={() => setTimeFormat(tf)}
+                          className={cn(
+                            "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors",
+                            timeFormat === tf ? "bg-white text-[#0e0e10]" : "text-gray-400 hover:text-white"
+                          )}
+                        >
+                          {tf}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <h4 className="text-sm font-medium text-white mb-4">
-                    {format(selectedDateObj, 'EEE dd')}
-                  </h4>
-
-                  <div className={cn("space-y-2 overflow-y-auto", isMobile ? "max-h-none" : "max-h-[400px]")}>
-                    {timeSlots.map((time) => {
-                      const isBooked = bookedSlotsSet.has(time);
-
+                  <div className={cn("overflow-y-auto", isMobile ? "max-h-none grid grid-cols-2 gap-2" : "max-h-[360px] flex flex-col gap-1.5 pr-1")}>
+                    {availableTimeSlots.map((time) => {
                       return (
                         <button
                           key={time}
                           onClick={() => {
-                            if (isBooked) return;
                             handleTimeSelect(time);
                           }}
-                          disabled={isBooked}
                           className={cn(
-                            "w-full py-3 px-4 rounded-xl border font-medium transition-all text-center flex items-center justify-center gap-2",
-                            isBooked
-                              ? "border-[#2a2a2a] text-gray-500 cursor-not-allowed opacity-60"
-                              : selectedTimeSlot === time
-                                ? "border-[#e11d48] bg-[#e11d48]/10 text-white"
-                                : "border-[#2a2a2a] hover:border-gray-600 text-white"
+                            "py-3 px-3 rounded-xl border text-sm font-semibold transition-all text-center",
+                            selectedTimeSlot === time
+                                ? "border-[#0A84FF] bg-[#0A84FF] text-white"
+                                : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.07] text-white"
                           )}
                         >
-                          <span>{formatTime(time)}</span>
-                          {isBooked && <span className="text-[10px] uppercase tracking-wide">Booked</span>}
+                          {formatTime(time)}
                         </button>
                       );
                     })}
+                    {availableTimeSlots.length === 0 && (
+                      <div className="col-span-2 rounded-xl border border-white/[0.06] p-4 text-center text-sm text-gray-500">
+                        No available times for this service.
+                      </div>
+                    )}
                   </div>
                 </>
               )}
 
               {showSelectedTimeSummary && (
-                <div className="rounded-2xl border border-[#e11d48]/40 bg-[#e11d48]/10 p-4 mb-4">
+                <div className="rounded-2xl border border-[#0A84FF]/40 bg-[#0A84FF]/10 p-4 mb-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-gray-400">Selected slot</p>
@@ -814,7 +1066,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     <button
                       type="button"
                       onClick={() => setSelectedTimeSlot("")}
-                      className="text-sm text-[#fb7185] hover:text-white transition-colors"
+                      className="text-sm text-[#5ac8fa] hover:text-white transition-colors"
                     >
                       Change
                     </button>
@@ -822,14 +1074,14 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </div>
               )}
 
-              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#1a1a1a]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
+              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
                 <button
                   onClick={handleContinue}
                   disabled={!selectedTimeSlot}
                   className={cn(
                     "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all",
                     selectedTimeSlot
-                      ? "bg-[#e11d48] hover:bg-[#be123c]"
+                      ? "bg-[#0A84FF] hover:bg-[#0066d6]"
                       : "bg-gray-600 cursor-not-allowed"
                   )}
                 >
@@ -841,5 +1093,455 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         </motion.div>
       </DialogContent>
     </Dialog>
+    );
+  }
+
+  // PC: use Drawer
+  return (
+    <Drawer
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      size="2xl"
+      placement="right"
+    >
+      <DrawerContent className="bg-[#0b0b0d] p-0 overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)] my-3 mr-3 h-[calc(100vh-1.5rem)]">
+        <motion.div
+          ref={contentRef}
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
+          className="flex h-full overflow-hidden rounded-[28px]"
+        >
+          {/* Desktop close */}
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.12] transition-all active:scale-95 z-20"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          {/* Left Panel - Service Info */}
+          <div className="w-[264px] shrink-0 p-6 bg-white/[0.02] border-r border-white/[0.06] flex flex-col">
+            {/* Profile */}
+            <div className="mt-6 mb-6">
+              <div className="rounded-2xl overflow-hidden ring-1 ring-white/10 w-14 h-14 shadow-lg">
+                <img
+                  src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
+                  alt={profile?.full_name || 'User'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="text-[13px] text-gray-400 mt-3 font-medium">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+            </div>
+
+            {/* Service Title */}
+            <h2 className="text-[22px] leading-tight font-semibold text-white tracking-tight mb-2">
+              {selectedService ? selectedService.name : 'Select a service'}
+            </h2>
+
+            {/* Service Description */}
+            {selectedService?.description && (
+              <p className="text-[13px] leading-relaxed text-gray-400 mb-5">{selectedService.description}</p>
+            )}
+
+            {/* Service Details */}
+            {selectedService && (
+              <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-white/[0.06] border border-white/[0.08] px-3 py-1.5 text-[12px] text-gray-300">
+                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                <span>{selectedService.duration} min</span>
+              </div>
+            )}
+
+            {/* Price */}
+            {selectedService && (
+              <div className="mt-auto pt-6">
+                <p className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Total</p>
+                <p className="text-[28px] font-semibold text-white tracking-tight">${selectedService.price}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Center Panel - Calendar */}
+          <div className="flex-1 p-7 overflow-y-auto bg-[#0b0b0d]">
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+            {step === "datetime" ? (
+              <div className="h-full flex flex-col">
+                {/* Month Navigation */}
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-[22px] font-semibold text-white tracking-tight">
+                    {format(currentMonth, 'MMMM yyyy')}
+                  </h3>
+                  <div className="flex gap-1.5 p-1 rounded-full bg-white/[0.05] border border-white/[0.06]">
+                    <button
+                      onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/[0.1] transition-all active:scale-95 text-gray-300"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/[0.1] transition-all active:scale-95 text-gray-300"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Service Selection */}
+                {showServiceSelection && (
+                  <div className="mb-6">
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-3">Select service</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {services.map((service: Service) => (
+                        <button
+                          key={service.id}
+                          onClick={() => setServiceId(service.id)}
+                          className={cn(
+                            "flex items-center justify-between px-4 py-3.5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99]",
+                            serviceId === service.id
+                              ? "border-white/25 bg-white/[0.09] shadow-[0_6px_24px_-8px_rgba(0,0,0,0.6)]"
+                              : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
+                          )}
+                        >
+                          <div>
+                            <p className="font-medium text-white text-[15px] tracking-tight">{service.name}</p>
+                            <p className="text-[12px] text-gray-500 mt-0.5">{service.duration} mins</p>
+                          </div>
+                          <p className="font-semibold text-white text-[15px]">${service.price}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stylist Selection */}
+                {selectedService && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500">
+                        Stylist <span className="text-gray-600">(optional)</span>
+                      </label>
+                      {stylists.length > 0 && stylistId && (
+                        <button
+                          type="button"
+                          onClick={() => setStylistId("")}
+                          className="text-xs text-gray-500 hover:text-white"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
+                      {stylists.length === 0 ? (
+                        <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
+                          <p className="text-sm text-gray-400">
+                            No stylists yet — book without one, or add your team.
+                          </p>
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/stylists"); }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              + Add stylist
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { onClose(); navigate("/teams"); }}
+                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
+                            >
+                              Invite worker
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {stylists.map((stylist: any) => (
+                            <button
+                              key={stylist.id}
+                              type="button"
+                              onClick={() => setStylistId(stylist.id)}
+                              className={cn(
+                                "flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99]",
+                                stylistId === stylist.id
+                                  ? "border-white/25 bg-white/[0.09]"
+                                  : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
+                              )}
+                            >
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
+                                {stylist.avatar_url ? (
+                                  <img src={stylist.avatar_url} alt={stylist.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-white">{stylist.name}</p>
+                                <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
+                              </div>
+                              {stylistId === stylist.id && (
+                                <Check className="w-5 h-5 text-white" />
+                              )}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setStylistId("")}
+                            className={cn(
+                              "h-8 px-3 rounded-full text-xs font-medium border transition-all mt-2",
+                              !stylistId
+                                ? "bg-white/[0.08] border-white/20 text-white"
+                                : "bg-transparent border-white/[0.08] text-gray-400 hover:text-white"
+                            )}
+                          >
+                            Skip / any stylist
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {showCalendarSelection && (
+                  <>
+                    {/* Week days header */}
+                    <div className="grid grid-cols-7 mb-1 gap-1.5">
+                      {weekDays.map(day => (
+                        <div key={day} className="text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-500 py-2">
+                          {day.slice(0, 3)}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Calendar grid */}
+                    <div className="grid grid-cols-7 gap-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] p-2">
+                      {calendarDays.map((day) => {
+                        const isSelected = isSameDay(day, selectedDateObj);
+                        const isCurrentMonth = isSameMonth(day, currentMonth);
+                        const tz = tzProfile?.timezone || getBrowserTimezone();
+                        const todayStr = dateStrInTz(new Date(), tz);
+                        const dayStr = format(day, 'yyyy-MM-dd');
+                        const isPast = dayStr < todayStr;
+                        const isToday = dayStr === todayStr;
+                        const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
+                        const isDayOff = timeOffSet.has(dayStr);
+                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
+                        const showDot = !isDisabled && !isSelected;
+
+                        return (
+                          <button
+                            key={day.toISOString()}
+                            onClick={() => handleDateSelect(day)}
+                            disabled={isDisabled}
+                            className={cn(
+                              "relative aspect-square flex items-center justify-center text-[13px] font-semibold rounded-full transition-all duration-200",
+                              isSelected
+                                ? "bg-white text-[#0b0b0d] shadow-[0_6px_18px_rgba(255,255,255,0.22)] scale-[1.04]"
+                                : isDisabled
+                                ? "text-white/20"
+                                : isToday
+                                ? "bg-white/[0.12] text-white hover:bg-white/[0.18]"
+                                : "text-white/85 hover:bg-white/[0.08] hover:text-white"
+                            )}
+                          >
+                            {format(day, 'd')}
+                            {showDot && (
+                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-white/40" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : step === "details" ? (
+              <div className="h-full flex flex-col">
+                <h3 className="text-[22px] font-semibold text-white tracking-tight mb-6">
+                  Your details
+                </h3>
+
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="John Doe"
+                        required
+                        className="w-full pl-12 pr-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="john@example.com"
+                      className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      We'll send a confirmation email to this address.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+1 555 123 4567"
+                      className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional — we'll send an SMS confirmation if provided.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-semibold text-gray-500 mb-2">
+                      Notes
+                    </label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Add any appointment notes"
+                      rows={3}
+                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600 resize-none"
+                    />
+                  </div>
+
+                  <div className="mt-auto pt-6">
+                    <button
+                      type="submit"
+                      disabled={isLoading || !customerName}
+                      className={cn(
+                        "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2",
+                        customerName && !isLoading
+                          ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                          : "bg-white/[0.08] text-white/40 cursor-not-allowed"
+                      )}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Booking...
+                        </>
+                      ) : (
+                        <>
+                          Book Appointment
+                          <ArrowRight className="w-5 h-5" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-[#0A84FF] flex items-center justify-center mb-6">
+                  <Check className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">You're Booked!</h3>
+                <p className="text-gray-400 mb-6">
+                  Your appointment for {format(selectedDateObj, 'MMMM d')} at {selectedTimeSlot} is confirmed.
+                </p>
+                <button
+                  onClick={handleClose}
+                  className="px-8 py-3 bg-[#0A84FF] hover:bg-[#0066d6] text-white rounded-xl font-medium transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+            </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Panel - Time Slots */}
+          {(step === "datetime" && showTimeSelection && selectedService) && (
+            <div className="w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06] bg-white/[0.02] flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-[15px] font-semibold text-white tracking-tight">
+                  {format(selectedDateObj, 'EEE, MMM d')}
+                </h4>
+                <div className="inline-flex p-0.5 rounded-full bg-white/[0.06]">
+                  {(["12h", "24h"] as const).map((tf) => (
+                    <button
+                      key={tf}
+                      onClick={() => setTimeFormat(tf)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors",
+                        timeFormat === tf ? "bg-white text-[#0e0e10]" : "text-gray-400 hover:text-white"
+                      )}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pr-1 overflow-y-auto flex-1 min-h-0 content-start">
+                {availableTimeSlots.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeSelect(time)}
+                    className={cn(
+                      "py-2.5 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all duration-200 active:scale-[0.97]",
+                      selectedTimeSlot === time
+                        ? "border-white bg-white text-[#0b0b0d] shadow-[0_6px_18px_-6px_rgba(255,255,255,0.5)]"
+                        : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.08] text-white/90"
+                    )}
+                  >
+                    {formatTime(time)}
+                  </button>
+                ))}
+                {availableTimeSlots.length === 0 && (
+                  <div className="col-span-2 rounded-2xl border border-white/[0.06] p-5 text-center text-[13px] text-gray-500">
+                    No available times for this service.
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-white/[0.06]">
+                <button
+                  onClick={handleContinue}
+                  disabled={!selectedTimeSlot}
+                  className={cn(
+                    "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99]",
+                    selectedTimeSlot
+                      ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                      : "bg-white/[0.08] text-white/40 cursor-not-allowed"
+                  )}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </DrawerContent>
+    </Drawer>
   );
 }

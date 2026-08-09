@@ -4,20 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2 } from "lucide-react";
+import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar, Sparkles, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
+import { OffersPanel } from "@/components/OffersPanel";
 
-const SUPER_ADMIN_EMAIL = "erikballiu19@gmail.com";
+
 
 type Sub = {
   subscribed: boolean;
@@ -36,6 +37,8 @@ type Row = {
   business_name: string | null;
   avatar_url: string | null;
   role: string | null;
+  website_design_requested?: boolean;
+  heard_from?: string | null;
   subscription: Sub;
 };
 
@@ -56,8 +59,13 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings">("users");
+  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings" | "offers">("users");
   const [showGoogleButton, setShowGoogleButton] = useState(true);
+  const [totalBookings, setTotalBookings] = useState(0);
+  const [fakeShopsEnabled, setFakeShopsEnabled] = useState(false);
+  const [fakeShopsCount, setFakeShopsCount] = useState(0);
+  const [fakeShopsBusy, setFakeShopsBusy] = useState(false);
+  const [fakeShopsToGenerate, setFakeShopsToGenerate] = useState(20);
   const [emailTheme, setEmailTheme] = useState<EmailTheme>("default");
   const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES.default.preSubject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
@@ -84,12 +92,16 @@ export default function SuperAdminDashboard() {
     if (error) console.warn("Edge function error (may not be deployed):", error.message);
   };
 
-  // gate
+  // gate via server-side RPC
+  const [isAdminVerified, setIsAdminVerified] = useState(false);
   useEffect(() => {
     if (loading) return;
-    if (!user || user.email?.toLowerCase() !== SUPER_ADMIN_EMAIL) {
-      navigate("/superadmin", { replace: true });
-    }
+    if (!user) { navigate("/superadmin", { replace: true }); return; }
+    (async () => {
+      const { data } = await (supabase as any).rpc("is_super_admin");
+      if (data === true) setIsAdminVerified(true);
+      else navigate("/superadmin", { replace: true });
+    })();
   }, [user, loading, navigate]);
 
   const load = async () => {
@@ -99,12 +111,15 @@ export default function SuperAdminDashboard() {
       toast.error("Failed to load users", { description: error.message });
     } else {
       setRows(data?.users ?? []);
+      setTotalBookings(data?.totalBookings ?? 0);
       setShowGoogleButton(data?.settings?.auth?.show_google_button !== false);
+      setFakeShopsEnabled(data?.settings?.fake_shops?.enabled === true);
+      setFakeShopsCount(Number(data?.settings?.fake_shops?.count ?? 0));
     }
     setBusy(false);
   };
 
-  useEffect(() => { if (user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL) load(); /* eslint-disable-next-line */ }, [user?.id]);
+  useEffect(() => { if (isAdminVerified) load(); /* eslint-disable-next-line */ }, [isAdminVerified]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -123,11 +138,20 @@ export default function SuperAdminDashboard() {
     return { total, active, free };
   }, [rows]);
 
+  const heardStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    rows.forEach((r) => {
+      const k = r.heard_from || "Unknown";
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    return counts;
+  }, [rows]);
+
   const newcomers = useMemo(() => {
     const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
     return rows.filter((r) => {
       const created = r.created_at ? new Date(r.created_at).getTime() : 0;
-      return created >= cutoff && !r.subscription?.active && r.email !== SUPER_ADMIN_EMAIL;
+      return created >= cutoff && !r.subscription?.active;
     });
   }, [rows]);
 
@@ -164,6 +188,45 @@ export default function SuperAdminDashboard() {
       toast.success(next ? "Google button enabled" : "Google button hidden");
     }
   };
+
+  const updateFakeShopsEnabled = async (next: boolean) => {
+    setFakeShopsEnabled(next);
+    setFakeShopsBusy(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "update_fake_shops_settings", enabled: next },
+    });
+    setFakeShopsBusy(false);
+    if (error) {
+      toast.error("Update failed", { description: error.message });
+      setFakeShopsEnabled(!next);
+    } else {
+      toast.success(next ? "Fake barbershops turned ON" : "Fake barbershops turned OFF");
+    }
+  };
+
+  const generateFakeShops = async () => {
+    setFakeShopsBusy(true);
+    const { error, data } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "generate_fake_shops", count: fakeShopsToGenerate },
+    });
+    setFakeShopsBusy(false);
+    if (error) { toast.error("Generation failed", { description: error.message }); return; }
+    setFakeShopsCount(Number(data?.total ?? 0));
+    toast.success(`Generated ${data?.generated ?? 0} fake barbershops`);
+  };
+
+  const clearFakeShops = async () => {
+    if (!confirm("Delete ALL fake barbershops?")) return;
+    setFakeShopsBusy(true);
+    const { error } = await (supabase as any).functions.invoke("superadmin-users", {
+      body: { action: "clear_fake_shops" },
+    });
+    setFakeShopsBusy(false);
+    if (error) { toast.error("Clear failed", { description: error.message }); return; }
+    setFakeShopsCount(0);
+    toast.success("All fake barbershops removed");
+  };
+
 
   const quickToggle = async (row: Row, next: boolean) => {
     const optimistic = rows.map((r) => r.id === row.id ? {
@@ -211,7 +274,7 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="sticky top-0 z-10 backdrop-blur-xl bg-background/80 border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="light" size="sm" onPress={() => navigate("/")}>
             <ArrowLeft className="w-4 h-4 mr-1" /> Home
           </Button>
           <div className="flex items-center gap-2">
@@ -219,7 +282,7 @@ export default function SuperAdminDashboard() {
             <span className="font-semibold">Super Admin</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={load} disabled={busy}>
+            <Button variant="bordered" size="sm" onPress={load} isDisabled={busy}>
               <RefreshCcw className={`w-3.5 h-3.5 mr-1.5 ${busy ? "animate-spin" : ""}`} /> Refresh
             </Button>
           </div>
@@ -229,7 +292,7 @@ export default function SuperAdminDashboard() {
       {/* Tab nav */}
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
         <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
-          {(["users", "campaigns", "gifts", "settings"] as const).map((t) => (
+          {(["users", "campaigns", "gifts", "settings", "offers"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -237,8 +300,8 @@ export default function SuperAdminDashboard() {
                 tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : "Settings"}
+              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : t === "offers" ? <Gift className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : t === "offers" ? "Offers" : "Settings"}
             </button>
           ))}
         </div>
@@ -248,11 +311,35 @@ export default function SuperAdminDashboard() {
       {tab === "users" && (
       <motion.div key="users" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <StatCard icon={<Users className="w-4 h-4" />} label="Total users" value={stats.total} />
           <StatCard icon={<Crown className="w-4 h-4 text-amber-500" />} label="Premium" value={stats.active} />
           <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Free" value={stats.free} />
+          <StatCard icon={<Calendar className="w-4 h-4 text-emerald-500" />} label="Bookings" value={totalBookings} />
         </div>
+
+        <Card className="rounded-3xl">
+          <CardHeader>
+            <CardTitle className="text-base">Where did they hear about us?</CardTitle>
+            <CardDescription>Source breakdown from onboarding answers.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {(Object.entries(heardStats) as [string, number][])
+                .filter(([, count]) => count > 0)
+                .sort(([, a], [, b]) => b - a)
+                .map(([source, count]) => (
+                  <div key={source}>
+                    <StatCard
+                      icon={<Globe className="w-4 h-4 text-blue-500" />}
+                      label={source === "Unknown" ? "Unknown" : source.charAt(0).toUpperCase() + source.slice(1)}
+                      value={count}
+                    />
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="rounded-3xl">
           <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
@@ -286,14 +373,15 @@ export default function SuperAdminDashboard() {
                 const active = !!r.subscription?.active;
                 return (
                   <div key={r.id} className="flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={r.avatar_url ?? undefined} />
-                      <AvatarFallback className="bg-muted">{initials}</AvatarFallback>
-                    </Avatar>
+                    <Avatar
+                      src={r.avatar_url ?? undefined}
+                      name={initials}
+                      className="w-10 h-10"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium truncate">{r.full_name || r.business_name || r.email}</span>
-                        {r.email === SUPER_ADMIN_EMAIL && <Badge variant="outline" className="text-[10px] border-red-500/40 text-red-500">admin</Badge>}
+                        {r.id === user?.id && <Badge variant="outline" className="text-[10px] border-red-500/40 text-red-500">admin</Badge>}
                         {active ? (
                           <Badge className="bg-amber-500/15 text-amber-600 hover:bg-amber-500/15 border-0">
                             <Crown className="w-3 h-3 mr-1" /> {r.subscription?.subscription_tier ?? "Pro"}
@@ -306,13 +394,18 @@ export default function SuperAdminDashboard() {
                         {r.email}
                         {r.subscription?.subscription_end ? ` · until ${new Date(r.subscription.subscription_end).toLocaleDateString()}` : ""}
                       </div>
+                      {r.website_design_requested && (
+                        <Badge variant="outline" className="mt-1 w-fit text-[10px] border-rose-500/30 text-rose-500 flex items-center gap-1">
+                          <Globe className="w-3 h-3" /> Website requested
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
                         {active ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
                         <Switch checked={!!r.subscription?.subscribed} onCheckedChange={(v) => quickToggle(r, v)} />
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => setEditing(r)}>Edit</Button>
+                      <Button size="sm" variant="bordered" onPress={() => setEditing(r)}>Edit</Button>
                     </div>
                   </div>
                 );
@@ -375,7 +468,7 @@ export default function SuperAdminDashboard() {
                   </div>
                 )}
               </div>
-              <Button onClick={giftNewcomers} disabled={saving || newcomers.length === 0} className="rounded-full bg-white text-black hover:bg-white/90">
+              <Button onPress={giftNewcomers} isDisabled={saving || newcomers.length === 0} className="rounded-full bg-white text-black hover:bg-white/90">
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Gift className="w-4 h-4 mr-2" />}
                 Gift 10 days to all newcomers
               </Button>
@@ -393,7 +486,7 @@ export default function SuperAdminDashboard() {
               <CardTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> App settings</CardTitle>
               <CardDescription>Control global sign-in and platform features.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-5">
               <div className="flex items-center justify-between gap-4 rounded-3xl border border-border p-5">
                 <div>
                   <div className="font-medium">Show Google sign-in button</div>
@@ -401,9 +494,55 @@ export default function SuperAdminDashboard() {
                 </div>
                 <Switch checked={showGoogleButton} disabled={saving} onCheckedChange={updateGoogleButton} />
               </div>
+
+              <div className="rounded-3xl border border-border p-5 space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-medium">Fake barbershops on Find Barber</div>
+                    <div className="text-sm text-muted-foreground">
+                      When ON, the discovery page also shows generated barbershops with bios in Greek, Italian, Spanish, French, English and German.
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Currently stored: <span className="font-semibold text-foreground">{fakeShopsCount}</span></div>
+                  </div>
+                  <Switch checked={fakeShopsEnabled} disabled={fakeShopsBusy} onCheckedChange={updateFakeShopsEnabled} />
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border">
+                  <Label className="text-sm">Generate</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={fakeShopsToGenerate}
+                    onChange={(e) => setFakeShopsToGenerate(Math.max(1, Math.min(200, Number(e.target.value) || 1)))}
+                    className="w-24 h-9 rounded-full"
+                  />
+                  <Button
+                    onPress={generateFakeShops}
+                    isDisabled={fakeShopsBusy}
+                    className="rounded-full bg-white text-black hover:bg-white/90"
+                  >
+                    {fakeShopsBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    Generate now
+                  </Button>
+                  <Button
+                    onPress={clearFakeShops}
+                    isDisabled={fakeShopsBusy || fakeShopsCount === 0}
+                    variant="bordered"
+                    className="rounded-full"
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
+      </motion.div>
+      )}
+
+      {tab === "offers" && (
+      <motion.div key="offers" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+        <OffersPanel />
       </motion.div>
       )}
       </AnimatePresence>
@@ -605,15 +744,15 @@ function EditDialog({ row, onClose, onSave, saving }: {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="secondary" onClick={() => setDuration(30)}>+1 month</Button>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setDuration(90)}>+3 months</Button>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setDuration(365)}>+1 year</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEnd("")}>No end</Button>
+            <Button size="sm" variant="flat" onPress={() => setDuration(30)}>+1 month</Button>
+            <Button size="sm" variant="flat" onPress={() => setDuration(90)}>+3 months</Button>
+            <Button size="sm" variant="flat" onPress={() => setDuration(365)}>+1 year</Button>
+            <Button size="sm" variant="light" onPress={() => setEnd("")}>No end</Button>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onSave({ subscribed, subscription_tier: tier, subscription_end: end })} disabled={saving}>
+          <Button variant="bordered" onPress={onClose}>Cancel</Button>
+          <Button onPress={() => onSave({ subscribed, subscription_tier: tier, subscription_end: end })} isDisabled={saving}>
             {saving && <Loader2 className="w-3 h-3 mr-1 animate-spin" />} Save
           </Button>
         </DialogFooter>

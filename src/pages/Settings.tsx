@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Bell,
   Calendar,
@@ -16,19 +17,23 @@ import {
   Scissors,
   Moon,
   Sun,
+  Search,
+  ArrowRight,
+  Trash2,
+  LogOut,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { NotificationBell } from "@/components/NotificationBell";
 import { MobileDock } from "@/components/MobileDock";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RoseGradientButton } from "@/components/RoseGradientButton";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { PushToggle } from "@/components/PushToggle";
+import { enableBookingPush } from "@/lib/push";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -41,9 +46,15 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@heroui/react";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
+import { usePremium } from "@/hooks/use-premium";
+import { MobileSettings } from "@/components/settings/MobileSettings";
+import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
+import { useRoleSwitch } from "@/hooks/use-role-switch";
+import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
 
@@ -81,6 +92,13 @@ type BrandProfileRecord = {
   description: string;
   years_experience?: number;
   accepts_waitlist?: boolean;
+  notify_cancellation_alerts: boolean;
+  loyalty_discount_enabled: boolean;
+  loyalty_discount_percent: number;
+  timezone: string;
+  booking_locale: "en" | "el";
+  avatar_url?: string;
+  banner_url?: string;
 };
 
 // Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
@@ -97,6 +115,9 @@ const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } |
   if (place) return { lat: parseFloat(place[1]), lng: parseFloat(place[2]) };
   return null;
 };
+
+const buildGoogleMapsUrl = (lat: number, lng: number) =>
+  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
 const defaultAgendaSettings: AgendaSettingsRecord = {
   user_id: "",
@@ -122,6 +143,13 @@ const defaultBrandProfile: BrandProfileRecord = {
   description: "",
   years_experience: undefined,
   accepts_waitlist: false,
+  notify_cancellation_alerts: true,
+  loyalty_discount_enabled: true,
+  loyalty_discount_percent: 20,
+  timezone: getBrowserTimezone(),
+  booking_locale: "en",
+  avatar_url: "",
+  banner_url: "",
 };
 
 const normalizeTime = (value?: string | null, fallback = "08:00") => {
@@ -137,7 +165,22 @@ const sortWorkingDays = (days: number[]) =>
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("general");
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [settingsSearch, setSettingsSearch] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [activeTab]);
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
   const [brandForm, setBrandForm] = useState<BrandProfileRecord>(defaultBrandProfile);
@@ -150,9 +193,51 @@ const Settings = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const [agreed, setAgreed] = useState(true);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
+  const handleAgreeToggle = (checked: boolean) => {
+    if (!checked) {
+      const confirmed = confirm("You must agree to the Terms and Privacy Policy to use the app. If you decline, you will be signed out.");
+      if (!confirmed) return;
+      handleSignOut();
+      return;
+    }
+    setAgreed(checked);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.id) {
+      toast({ title: "Not signed in", description: "Please sign in again.", variant: "destructive" });
+      return;
+    }
+    const confirmation = window.prompt("To permanently delete your account, type 'delete my account' below.");
+    if (confirmation === null) return;
+    if (confirmation.trim().toLowerCase() !== "delete my account") {
+      toast({ title: "Deletion cancelled", description: "The confirmation phrase did not match.", variant: "destructive" });
+      return;
+    }
+    const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
+    if (error || !data?.success) {
+      toast({ title: "Could not delete account", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Account deleted" });
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
+  const { isPremium } = usePremium();
+  const bannerMaxMB = isPremium ? 8 : 2;
+  const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
+  const { role, setRole, switching: switchingRole } = useRoleSwitch();
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings-page-data", user?.id],
@@ -168,7 +253,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, description, years_experience, accepts_waitlist")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, notify_cancellation_alerts, loyalty_discount_enabled, loyalty_discount_percent, onboarding_completed, timezone, booking_locale")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -187,6 +272,66 @@ const Settings = () => {
       };
     },
   });
+
+  // Auto-save agenda settings when hours/days/duration change
+  const autoSaveAgenda = useMutation({
+    mutationFn: async (agenda: AgendaSettingsRecord) => {
+      if (!user) throw new Error("User not found");
+      if (agenda.start_hour >= agenda.end_hour) throw new Error("Opening hour must be earlier than closing hour");
+      if (agenda.working_days.length === 0) throw new Error("Select at least one working day");
+
+      const { error } = await (supabase as any)
+        .from("agenda_settings")
+        .upsert(
+          {
+            user_id: user.id,
+            service_duration: agenda.service_duration,
+            start_hour: agenda.start_hour,
+            end_hour: agenda.end_hour,
+            working_days: agenda.working_days,
+          },
+          { onConflict: "user_id" }
+        );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings-page-data", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["agenda_settings", user?.id], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["public-agenda-settings"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false });
+      toast({ title: "Schedule saved" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Couldn't save schedule",
+        description: error?.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (!user || isLoading) return;
+    if (agendaForm.start_hour >= agendaForm.end_hour) return;
+    if (agendaForm.working_days.length === 0) return;
+
+    const timeout = setTimeout(() => {
+      const baseline = data?.agenda;
+      const changed =
+        agendaForm.service_duration !== (baseline?.service_duration ?? 30) ||
+        agendaForm.start_hour !== normalizeTime(baseline?.start_hour, "08:00") ||
+        agendaForm.end_hour !== normalizeTime(baseline?.end_hour, "18:00") ||
+        JSON.stringify(agendaForm.working_days) !==
+          JSON.stringify(sortWorkingDays(baseline?.working_days ?? [1, 2, 3, 4, 5, 6]));
+
+      if (changed) {
+        autoSaveAgenda.mutate(agendaForm);
+      }
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [agendaForm, user, data, isLoading]);
 
   useEffect(() => {
     if (!user || !data) return;
@@ -220,6 +365,13 @@ const Settings = () => {
       description: data.profile?.description ?? "",
       years_experience: data.profile?.years_experience ?? undefined,
       accepts_waitlist: data.profile?.accepts_waitlist ?? false,
+      notify_cancellation_alerts: data.profile?.notify_cancellation_alerts ?? true,
+      loyalty_discount_enabled: data.profile?.loyalty_discount_enabled ?? false,
+      loyalty_discount_percent: data.profile?.loyalty_discount_percent ?? 20,
+      timezone: data.profile?.timezone ?? getBrowserTimezone(),
+      booking_locale: data.profile?.booking_locale ?? "en",
+      avatar_url: data.profile?.avatar_url ?? "",
+      banner_url: data.profile?.banner_url ?? "",
     });
 
     // Set dark mode from profile, default to dark mode
@@ -306,10 +458,17 @@ const Settings = () => {
         address: [brandForm.location.trim(), brandForm.city.trim()].filter(Boolean).join(", ") || null,
         latitude: lat ?? null,
         longitude: lng ?? null,
-        google_maps_url: mapsUrl || null,
+        google_maps_url: mapsUrl || (lat != null && lng != null ? buildGoogleMapsUrl(lat, lng) : null),
         description: brandForm.description.trim() || null,
         years_experience: brandForm.years_experience ?? null,
         accepts_waitlist: brandForm.accepts_waitlist ?? false,
+        notify_cancellation_alerts: brandForm.notify_cancellation_alerts,
+        loyalty_discount_enabled: brandForm.loyalty_discount_enabled,
+        loyalty_discount_percent: brandForm.loyalty_discount_percent,
+        timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
+        booking_locale: brandForm.booking_locale || "en",
+        avatar_url: brandForm.avatar_url?.trim() || null,
+        banner_url: brandForm.banner_url?.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -321,20 +480,49 @@ const Settings = () => {
       if (agendaResult.error) throw agendaResult.error;
       if (profileResult.error) throw profileResult.error;
 
+      // Keep business_hours in sync with agenda (single source of truth for public views)
+      try {
+        const hoursRows = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+          user_id: user.id,
+          day_of_week: d,
+          open_time: agendaForm.start_hour,
+          close_time: agendaForm.end_hour,
+          is_closed: !agendaForm.working_days.includes(d),
+        }));
+        await (supabase as any).from("business_hours").delete().eq("user_id", user.id);
+        await (supabase as any).from("business_hours").insert(hoursRows);
+      } catch (e) {
+        console.warn("business_hours sync skipped", e);
+      }
+
       // Reflect parsed coordinates back into the form
       if (mapsUrl && lat !== undefined && lng !== undefined) {
         setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
       }
 
-      return true;
+      return profilePayload;
     },
-    onSuccess: async () => {
+    onSuccess: async (profilePayload) => {
+      // Optimistically update caches so the saved name/image/texts are visible immediately
+      queryClient.setQueryData(["settings-page-data", user?.id], (old: any) => ({
+        ...old,
+        profile: { ...(old?.profile || {}), ...profilePayload, id: user?.id },
+      }));
+      queryClient.setQueryData(["mobile-dashboard-profile", user?.id], (old: any) => ({
+        ...(old || {}),
+        full_name: profilePayload.full_name,
+        business_name: profilePayload.business_name,
+        avatar_url: profilePayload.avatar_url,
+      }));
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["settings-page-data", user?.id] }),
         queryClient.invalidateQueries({ queryKey: ["agenda_settings", user?.id] }),
         queryClient.invalidateQueries({ queryKey: ["public-agenda-settings"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["appointments"], exact: false }),
         queryClient.invalidateQueries({ queryKey: ["stylists"], exact: false }),
+        queryClient.invalidateQueries({ queryKey: ["barber-details"], exact: false }),
+        queryClient.invalidateQueries({ queryKey: ["mobile-dashboard-profile", user?.id] }),
       ]);
 
       toast({
@@ -398,64 +586,164 @@ const Settings = () => {
     },
   ] as const;
 
+  if (isMobile) {
+    return (
+      <MobileSettings
+        user={user}
+        theme={theme}
+        setTheme={setTheme}
+        profileForm={profileForm}
+        setProfileForm={setProfileForm}
+        brandForm={brandForm}
+        setBrandForm={setBrandForm}
+        agendaForm={agendaForm}
+        setAgendaForm={setAgendaForm}
+        toggleWorkingDay={toggleWorkingDay}
+        notificationPrefs={notificationPrefs}
+        setNotificationPrefs={setNotificationPrefs}
+        notifications={notifications}
+        hasValidHours={hasValidHours}
+        saveMutation={saveMutation}
+        updateDarkModeMutation={updateDarkModeMutation}
+        isLoading={isLoading}
+        navigate={navigate}
+        bannerMaxMB={bannerMaxMB}
+        avatarMaxMB={avatarMaxMB}
+      />
+    );
+  }
+
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] overflow-hidden">
+          <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#0c0c0c] text-[#1C1C1E] dark:text-[#F2F2F7] overflow-hidden relative">
         <AppSidebar />
 
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-20 border-b border-[#C6C6C8] dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl">
+        <main className="flex-1 flex flex-col overflow-hidden relative">
+          <div className="sticky top-0 z-20 border-b border-white/40 dark:border-white/5 bg-white/90 dark:bg-[#1C1C1E]/90">
             <div className="px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <SidebarTrigger className="lg:hidden text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                <h1 className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">Settings</h1>
+                <motion.h1
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[17px] md:text-2xl font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate"
+                >
+                  Settings
+                </motion.h1>
               </div>
 
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending || isLoading}
-                className="rounded-full h-9 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold shadow-none"
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-                )}
-                {saveMutation.isPending ? "Saving" : "Save"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.02 }}>
+                  <Button
+                    size="sm"
+                    onPress={() => saveMutation.mutate()}
+                    isDisabled={saveMutation.isPending || isLoading}
+                    className="rounded-full h-9 px-5 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
+                  >
+                  {saveMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                  )}
+                  {saveMutation.isPending ? "Saving" : "Save"}
+                </Button>
+              </motion.div>
+            </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">
+          <div ref={scrollRef} className="flex-1 overflow-auto relative">
             <div className="max-w-6xl mx-auto p-4 md:p-6">
               <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.8fr] gap-6">
                 <div className="space-y-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-5 gap-1 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-1 h-auto">
-                      <TabsTrigger value="general" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Settings2 className="w-4 h-4" />General
-                      </TabsTrigger>
-                      <TabsTrigger value="booking" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Link2 className="w-4 h-4" />Booking
-                      </TabsTrigger>
-                      <TabsTrigger value="messages" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Sparkles className="w-4 h-4" />Messages
-                      </TabsTrigger>
-                      <TabsTrigger value="notifications" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Bell className="w-4 h-4" />Alerts
-                      </TabsTrigger>
-                      <TabsTrigger value="business" className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-xl px-1 md:px-3 py-2 text-[10px] md:text-sm data-[state=active]:bg-[#F2F2F7] dark:data-[state=active]:bg-[#2C2C2E]">
-                        <Store className="w-4 h-4" />Business
-                      </TabsTrigger>
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={(v) => {
+                      setActiveTab(v);
+                      setSearchParams({ tab: v }, { replace: true });
+                    }}
+                    className="space-y-6"
+                  >
+                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
+                      {[
+                        { v: "overview", icon: Settings2, label: "Overview" },
+                        { v: "general", icon: User, label: "General" },
+                        { v: "booking", icon: Link2, label: "Booking" },
+                        { v: "messages", icon: Sparkles, label: "Messages" },
+                        { v: "notifications", icon: Bell, label: "Alerts", badge: "New" },
+                        { v: "business", icon: Store, label: "Business" },
+                      ].map(({ v, icon: Icon, label, badge }) => (
+                        <TabsTrigger
+                          key={v}
+                          value={v}
+                          className={cn(
+                            "relative flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-[10px] px-1 md:px-3 py-2 text-[10px] md:text-sm font-medium transition-all duration-300",
+                            "data-[state=active]:bg-[#0A84FF] data-[state=active]:text-white",
+                            "data-[state=inactive]:text-[#8E8E93] data-[state=inactive]:hover:bg-white/[0.05]"
+                          )}
+                        >
+                          <div className="relative">
+                            <Icon className="w-4 h-4" />
+                            {badge && (
+                              <span className="absolute -top-2 -right-3 inline-flex items-center px-1 py-0 rounded-full bg-amber-500 text-[8px] font-bold text-black leading-none">
+                                {badge}
+                              </span>
+                            )}
+                          </div>
+                          {label}
+                        </TabsTrigger>
+                      ))}
                     </TabsList>
 
-                    <TabsContent value="messages" className="mt-0 space-y-6">
+                    <TabsContent value="overview" className="mt-0 space-y-6 animate-fade-in">
+                      <div className="relative max-w-md">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
+                        <Input
+                          type="text"
+                          placeholder="Search settings..."
+                          value={settingsSearch}
+                          onChange={(e) => setSettingsSearch(e.target.value)}
+                          className="w-full h-11 pl-10 rounded-2xl bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93]"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[
+                          { v: "general", icon: User, label: "General", desc: "Profile, language, timezone and preferences." },
+                          { v: "booking", icon: Link2, label: "Booking", desc: "Your public booking link and page options." },
+                          { v: "messages", icon: Sparkles, label: "Messages", desc: "Email and SMS message templates." },
+                          { v: "notifications", icon: Bell, label: "Alerts", desc: "Push and cancellation alerts." },
+                          { v: "business", icon: Store, label: "Business", desc: "Working hours, services and brand identity." },
+                        ]
+                          .filter((c) => c.label.toLowerCase().includes(settingsSearch.toLowerCase()) || c.desc.toLowerCase().includes(settingsSearch.toLowerCase()))
+                          .map((c) => (
+                            <Card
+                              key={c.v}
+                              onClick={() => { setActiveTab(c.v); setSearchParams({ tab: c.v }, { replace: true }); }}
+                              className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-sm cursor-pointer hover:shadow-md transition-shadow group"
+                            >
+                              <CardHeader className="pb-2">
+                                <div className="w-10 h-10 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center mb-3 group-hover:bg-[#0A84FF]/10 transition-colors">
+                                  <c.icon className="w-5 h-5 text-[#0A84FF]" />
+                                </div>
+                                <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-base font-semibold flex items-center justify-between">
+                                  {c.label}
+                                  <ArrowRight className="w-4 h-4 text-[#8E8E93] group-hover:text-[#0A84FF] transition-colors" />
+                                </CardTitle>
+                                <CardDescription className="text-[#8E8E93] text-sm">{c.desc}</CardDescription>
+                              </CardHeader>
+                            </Card>
+                          ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="messages" className="mt-0 space-y-6 animate-fade-in">
                       <MessageTemplates />
                     </TabsContent>
 
-                    <TabsContent value="general" className="mt-0 space-y-6">
+                    <TabsContent value="general" className="mt-0 space-y-6 animate-fade-in">
                       {/* Role switcher */}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
@@ -485,10 +773,7 @@ const Settings = () => {
                                   type="button"
                                   onClick={async () => {
                                     if (selected) return;
-                                    await supabase.auth.updateUser({ data: { role: key } });
-                                    await (supabase as any).from("profiles").update({ role: key }).eq("id", user?.id);
-                                    toast({ title: `Switched to ${label}`, description: "Your role has been updated." });
-                                    window.location.reload();
+                                    await setRole(key as "client" | "barber");
                                   }}
                                   className={cn(
                                     "relative flex flex-col items-start gap-1 rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98]",
@@ -509,11 +794,54 @@ const Settings = () => {
                         </CardContent>
                       </Card>
 
+                      {/* Find Barber action card */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                      >
+                        <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
+                          <CardHeader>
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                                <Search className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Find a barber</CardTitle>
+                                <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                                  Switch to client mode and discover barbers near you.
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <Button
+                              isDisabled={switchingRole}
+                              onPress={() => setRole(role === "client" ? "barber" : "client")}
+                              className={cn(
+                                "w-full h-12 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] disabled:opacity-60",
+                                role === "client"
+                                  ? "bg-[#1C1C1E] hover:bg-[#000000] text-white shadow-black/20"
+                                  : "bg-[#9f1239] hover:bg-[#881337] text-white shadow-rose-900/20"
+                              )}
+                            >
+                              {switchingRole ? (
+                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              ) : (
+                                <>{role === "client" ? <Scissors className="w-5 h-5 mr-2" /> : <Search className="w-5 h-5 mr-2" />}</>
+                              )}
+                              {role === "client" ? "Switch to barber mode" : "Switch to client & find barber"}
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                            <div className="w-11 h-11 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-primary dark:text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Agenda timing</CardTitle>
@@ -526,8 +854,69 @@ const Settings = () => {
 
                         <CardContent className="space-y-6">
                           <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-3 block">
-                              Slot duration
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Working days
+                            </Label>
+                            <div className="flex flex-wrap gap-2">
+                              {weekDays.map((day) => {
+                                const active = agendaForm.working_days.includes(day.value);
+
+                                return (
+                                  <button
+                                    key={day.value}
+                                    type="button"
+                                    onClick={() => toggleWorkingDay(day.value)}
+                                    className={cn(
+                                      "min-w-[4.25rem] flex-1 rounded-[12px] border px-3 py-3 text-center transition-all",
+                                      active
+                                        ? "border-[#0A84FF] bg-[#0A84FF] text-white shadow-sm"
+                                        : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
+                                    )}
+                                  >
+                                    <span className="text-sm font-semibold">{day.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Working hours
+                            </Label>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <Input
+                                  type="time"
+                                  value={agendaForm.start_hour}
+                                  onChange={(e) =>
+                                    setAgendaForm((prev) => ({ ...prev, start_hour: e.target.value }))
+                                  }
+                                  className="h-14 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-center text-lg font-medium"
+                                />
+                                <p className="text-[11px] text-[#8E8E93] text-center mt-1.5">Opens</p>
+                              </div>
+                              <span className="text-[#8E8E93] font-medium">to</span>
+                              <div className="flex-1">
+                                <Input
+                                  type="time"
+                                  value={agendaForm.end_hour}
+                                  onChange={(e) =>
+                                    setAgendaForm((prev) => ({ ...prev, end_hour: e.target.value }))
+                                  }
+                                  className="h-14 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-center text-lg font-medium"
+                                />
+                                <p className="text-[11px] text-[#8E8E93] text-center mt-1.5">Closes</p>
+                              </div>
+                            </div>
+                            {!hasValidHours && (
+                              <p className="text-xs text-red-500 mt-2 text-center">Closing time must be later than opening time.</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Appointment slot
                             </Label>
                             <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                               {serviceDurationOptions.map((duration) => (
@@ -538,9 +927,9 @@ const Settings = () => {
                                     setAgendaForm((prev) => ({ ...prev, service_duration: duration }))
                                   }
                                   className={cn(
-                                    "h-11 rounded-2xl border text-sm font-medium transition-all",
+                                    "h-12 rounded-[12px] border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-[#e11d48] text-white border-gray-950 shadow-sm"
+                                      ? "bg-[#0A84FF] text-white border-[#0A84FF] shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >
@@ -550,40 +939,56 @@ const Settings = () => {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                                Opens at
-                              </Label>
-                              <Input
-                                type="time"
-                                value={agendaForm.start_hour}
-                                onChange={(e) =>
-                                  setAgendaForm((prev) => ({ ...prev, start_hour: e.target.value }))
-                                }
-                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                                Closes at
-                              </Label>
-                              <Input
-                                type="time"
-                                value={agendaForm.end_hour}
-                                onChange={(e) =>
-                                  setAgendaForm((prev) => ({ ...prev, end_hour: e.target.value }))
-                                }
-                                className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                              />
-                            </div>
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Business time zone
+                            </Label>
+                            <Select
+                              value={brandForm.timezone || getBrowserTimezone()}
+                              onValueChange={(value) =>
+                                setBrandForm((prev) => ({ ...prev, timezone: value }))
+                              }
+                            >
+                              <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                                <SelectValue placeholder="Select time zone" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[280px]">
+                                {listTimezones().map((tz) => (
+                                  <SelectItem key={tz} value={tz}>
+                                    {formatTzLabel(tz)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-[#8E8E93] mt-1.5">
+                              Slots on your booking link and Find Barber use this time zone. Detected: {formatTzLabel(getBrowserTimezone())}
+                            </p>
                           </div>
 
-                          {!hasValidHours && (
-                            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                              Closing time must be later than opening time.
-                            </div>
-                          )}
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
+                              Booking language
+                            </Label>
+                            <Select
+                              value={brandForm.booking_locale || "en"}
+                              onValueChange={(value) =>
+                                setBrandForm((prev) => ({ ...prev, booking_locale: value as "en" | "el" }))
+                              }
+                            >
+                              <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                                <SelectValue placeholder="Select language" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="en">English</SelectItem>
+                                <SelectItem value="el">Greek (Ελληνικά)</SelectItem>
+                                <SelectItem value="es">Spanish (Español)</SelectItem>
+                                <SelectItem value="pl">Polish (Polski)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-[#8E8E93] mt-1.5">
+                              Language used on your public booking page and client messages. Default: English.
+                            </p>
+                          </div>
 
                           <Separator />
 
@@ -616,6 +1021,18 @@ const Settings = () => {
                                   }}
                                 />
                               </div>
+                              <Separator />
+                              <div className="flex items-center justify-between py-2">
+                                <div>
+                                  <p className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">Barber mode</p>
+                                  <p className="text-sm text-[#8E8E93] dark:text-gray-500">Use the barber dashboard instead of finding a barber</p>
+                                </div>
+                                <Switch
+                                  checked={role === 'barber'}
+                                  disabled={switchingRole}
+                                  onCheckedChange={(checked) => setRole(checked ? 'barber' : 'client')}
+                                />
+                              </div>
                             </CardContent>
                           </Card>
 
@@ -637,7 +1054,7 @@ const Settings = () => {
                                     className={cn(
                                       "rounded-2xl border px-4 py-3 text-left transition-all",
                                       active
-                                        ? "border-gray-950 bg-[#e11d48] text-white shadow-sm"
+                                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
                                         : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
                                     )}
                                   >
@@ -662,11 +1079,11 @@ const Settings = () => {
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="booking" className="mt-0 space-y-6">
+                    <TabsContent value="booking" className="mt-0 space-y-6 animate-fade-in">
                       <BookingLinkGenerator />
                     </TabsContent>
 
-                    <TabsContent value="notifications" className="mt-0">
+                    <TabsContent value="notifications" className="mt-0 animate-fade-in">
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
@@ -682,8 +1099,6 @@ const Settings = () => {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                          <PushToggle />
-                          <Separator className="bg-[#C6C6C8] dark:bg-[#2C2C2E]" />
                           {notifications.map((item, index) => (
                             <div key={item.id}>
                               <div className="flex items-center justify-between gap-4 py-3">
@@ -693,12 +1108,19 @@ const Settings = () => {
                                 </div>
                                 <Switch
                                   checked={notificationPrefs[item.id]}
-                                  onCheckedChange={(checked) =>
+                                  onCheckedChange={async (checked) => {
+                                    if (item.id === "cancellations" && checked) {
+                                      const r = await enableBookingPush();
+                                      if (!r.ok) {
+                                        toast({ title: "Notifications blocked", description: r.reason, variant: "destructive" });
+                                        return;
+                                      }
+                                    }
                                     setNotificationPrefs((prev) => ({
                                       ...prev,
                                       [item.id]: checked,
-                                    }))
-                                  }
+                                    }));
+                                  }}
                                 />
                               </div>
                               {index < notifications.length - 1 && <Separator className="bg-[#C6C6C8] dark:bg-[#2C2C2E]" />}
@@ -706,11 +1128,14 @@ const Settings = () => {
                           ))}
                         </CardContent>
                       </Card>
+                      <div className="mt-6">
+                        <ReviewRequestsCard />
+                      </div>
                     </TabsContent>
 
-                    <TabsContent value="business" className="mt-0 space-y-6">
+                    <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionCard />
-                      {user?.id && <PublicVisibilityCard userId={user.id} />}
+                      {/* Public visibility toggle removed — all profiles are public by default */}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
@@ -727,6 +1152,31 @@ const Settings = () => {
                         </CardHeader>
 
                         <CardContent className="space-y-5">
+                          {/* Brand media — organised at the top */}
+                          <div className="space-y-5">
+                            <BrandImageUpload
+                              label="Banner"
+                              path={brandForm.banner_url}
+                              folder="banner"
+                              onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
+                              className="w-full"
+                              maxSizeMB={bannerMaxMB}
+                              helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
+                            />
+
+                            <BrandImageUpload
+                              label="Profile photo"
+                              path={brandForm.avatar_url}
+                              folder="avatar"
+                              circle
+                              onChange={(url) => setBrandForm((prev) => ({ ...prev, avatar_url: url }))}
+                              maxSizeMB={avatarMaxMB}
+                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 5MB"}.`}
+                            />
+                          </div>
+
+                          <Separator />
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
@@ -827,7 +1277,7 @@ const Settings = () => {
                                 placeholder="Tell clients about your style, experience, and what makes you stand out."
                                 rows={3}
                                 maxLength={400}
-                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                                className="w-full px-3 py-2 rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
                               />
                               <p className="text-xs text-[#8E8E93] dark:text-gray-500 mt-1.5 text-right">
                                 {brandForm.description.length}/400
@@ -836,7 +1286,7 @@ const Settings = () => {
                           </div>
 
                           {/* Cancellation waitlist */}
-                          <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-50/60 to-pink-50/60 dark:from-rose-950/20 dark:to-pink-950/20 p-4 flex items-center gap-4">
+                          <div className="rounded-2xl border border-primary/20 bg-muted p-4 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                               <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
                                 Accept cancellation waitlist
@@ -852,7 +1302,6 @@ const Settings = () => {
                               }
                             />
                           </div>
-
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -884,31 +1333,6 @@ const Settings = () => {
                             </div>
                           </div>
 
-                          <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                              Google Maps link
-                            </Label>
-                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-2">
-                              Paste a Google Maps share link — coordinates auto-fill on save.
-                            </p>
-                            <Input
-                              value={brandForm.google_maps_url || ""}
-                              onChange={(e) => {
-                                const url = e.target.value;
-                                setBrandForm((prev) => {
-                                  const parsed = extractLatLngFromGoogleUrl(url);
-                                  return {
-                                    ...prev,
-                                    google_maps_url: url,
-                                    latitude: parsed?.lat ?? prev.latitude,
-                                    longitude: parsed?.lng ?? prev.longitude,
-                                  };
-                                });
-                              }}
-                              placeholder="https://maps.google.com/?q=40.7128,-74.0060"
-                              className="h-12 rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                            />
-                          </div>
 
                           <div>
                             <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
@@ -928,8 +1352,17 @@ const Settings = () => {
                               }] : []}
                               height="300px"
                               pickMode
+                              initialCenter={brandForm.latitude && brandForm.longitude ? {
+                                lat: brandForm.latitude,
+                                lng: brandForm.longitude,
+                              } : undefined}
                               onLocationPick={({ lat, lng }) =>
-                                setBrandForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+                                setBrandForm((prev) => ({
+                                  ...prev,
+                                  latitude: lat,
+                                  longitude: lng,
+                                  google_maps_url: prev.google_maps_url || buildGoogleMapsUrl(lat, lng),
+                                }))
                               }
                             />
                             <div className="grid grid-cols-2 gap-4 mt-3">
@@ -972,14 +1405,14 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E] overflow-hidden">
-                    <div className="bg-[#1C1C1E] p-6 text-white">
+                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm">
+                    <div className="bg-[#1C1C1E] dark:bg-[#2C2C2E] p-6 text-white">
                       <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-4 h-4 text-white/80" />
-                        <span className="text-sm font-medium text-white/80">Live agenda preview</span>
+                        <Calendar className="w-4 h-4 text-[#F2F2F7]/80" />
+                        <span className="text-sm font-medium text-[#F2F2F7]/80">Live agenda preview</span>
                       </div>
-                      <h3 className="text-xl font-semibold">Your saved schedule</h3>
-                      <p className="text-sm text-white/70 mt-1">
+                      <h3 className="text-xl font-semibold text-white">Your saved schedule</h3>
+                      <p className="text-sm text-[#F2F2F7]/70 mt-1">
                         These values are used by the agenda and booking availability.
                       </p>
                     </div>
@@ -1023,7 +1456,7 @@ const Settings = () => {
                       <div className="rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#C6C6C8] dark:border-[#2C2C2E] p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs uppercase tracking-wide text-[#8E8E93] dark:text-gray-500">Time slots</p>
-                          <span className="rounded-full bg-rose-100 text-rose-700 border-0 px-3 py-1 text-xs font-medium">
+                          <span className="rounded-full bg-primary/10 text-primary border-0 px-3 py-1 text-xs font-medium">
                             {agendaForm.service_duration} min
                           </span>
                         </div>
@@ -1088,11 +1521,76 @@ const Settings = () => {
                       </div>
                     </CardContent>
                   </Card>
+
+                  <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
+                    <CardHeader>
+                      <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Legal</CardTitle>
+                      <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                        Review our terms and privacy policy.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/terms")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Terms of Service
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/privacy")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Privacy Policy
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+
+                      <div className="flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4">
+                        <span className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">Agree to Terms & Privacy</span>
+                        <Switch checked={agreed} onCheckedChange={handleAgreeToggle} />
+                      </div>
+
+                      <Button
+                        variant="bordered"
+                        onPress={handleSignOut}
+                        className="w-full rounded-2xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:opacity-80"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" /> Sign out
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-3xl border-2 border-red-500/30 bg-red-50 shadow-sm dark:border-red-500/30 dark:bg-red-900/20">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+                          <Trash2 className="w-5 h-5 text-red-600 dark:text-red-300" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Danger zone</CardTitle>
+                          <CardDescription className="text-[#8E8E93] dark:text-gray-400">
+                            Delete your account and all data.
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <button
+                        type="button"
+                        onClick={handleDeleteAccount}
+                        className="w-full flex items-center justify-between rounded-2xl border-2 border-red-500/40 dark:border-red-500/40 bg-white dark:bg-[#1C1C1E] p-4 text-left text-sm font-medium text-red-600 dark:text-red-300 transition hover:opacity-80"
+                      >
+                        Delete account
+                        <ArrowRight className="h-4 w-4 text-red-400" />
+                      </button>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
           </div>
-          <MobileDock />
         </main>
       </div>
     </SidebarProvider>

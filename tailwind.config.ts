@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				geist: ['"Geist Variable"', 'Geist', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Inter', 'sans-serif'],
+				'geist-mono': ['"Geist Mono Variable"', 'Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -95,6 +99,14 @@ export default {
 					"0%": { opacity: "0", transform: "scale(0.96)" },
 					"100%": { opacity: "1", transform: "scale(1)" },
 				},
+				"gradient-x": {
+					"0%, 100%": { backgroundPosition: "0% 50%" },
+					"50%": { backgroundPosition: "100% 50%" },
+				},
+				"marquee": {
+					"0%": { transform: "translateX(0)" },
+					"100%": { transform: "translateX(-50%)" },
+				},
 			},
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
@@ -102,11 +114,12 @@ export default {
 				"fade-in-up": "fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
 				"fade-in": "fade-in 0.4s ease-out both",
 				"scale-in": "scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both",
+				"gradient-x": "gradient-x 5s ease infinite",
+
 			},
-			backgroundImage: {
-				'gradient-brand': 'var(--gradient-brand)',
-				'gradient-rose': 'var(--gradient-rose)',
-			},
+		backgroundImage: {
+			'gradient-brand': 'var(--gradient-brand)',
+		},
 			boxShadow: {
 				'rose': 'var(--shadow-rose)',
 			},

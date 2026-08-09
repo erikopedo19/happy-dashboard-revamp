@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { toast } from "sonner";
 import { Lock, Users, Briefcase, Calendar, Building2, MapPin } from "lucide-react";
 
@@ -37,21 +37,29 @@ interface StatsData {
 }
 
 const DbPrevStats = () => {
-  const [accessCode, setAccessCode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const checkAccess = () => {
-    if (accessCode === "1900") {
-      setIsAuthorized(true);
-      fetchStats();
-    } else {
-      toast.error("Invalid access code");
-    }
-  };
+  // Server-side admin check — no client-side passcode.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any).rpc("is_super_admin");
+      if (cancelled) return;
+      setIsAuthorized(data === true);
+      setCheckingAccess(false);
+      if (data === true) fetchStats();
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -132,29 +140,22 @@ const DbPrevStats = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Access Required
+              {checkingAccess ? "Checking access…" : "Access Required"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Enter access code"
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value)}
-              className="text-lg tracking-wider"
-            />
-            <Button 
-              className="w-full" 
-              onClick={checkAccess}
-              size="lg"
-            >
-              Continue
-            </Button>
+            <p className="text-sm text-gray-500">
+              {checkingAccess
+                ? "Verifying your permissions…"
+                : "This page is restricted to super admins."}
+            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen w-full bg-[#f8f9fa] p-6 md:p-8">
@@ -164,10 +165,10 @@ const DbPrevStats = () => {
             <h1 className="text-2xl font-bold text-gray-900">Statistics Overview</h1>
             <p className="text-gray-500">Comprehensive analysis of onboarding data</p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={fetchStats} 
-            disabled={isLoading}
+          <Button
+            variant="bordered"
+            onPress={fetchStats}
+            isDisabled={isLoading}
           >
             Refresh Data
           </Button>

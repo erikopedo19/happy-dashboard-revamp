@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -359,17 +359,17 @@ const CompleteProfile = () => {
         <div className="mt-8 flex items-center gap-3 pt-4">
           {step > 0 && (
             <Button
-              variant="ghost"
-              onClick={() => setStep(step - 1)}
-              disabled={submitting}
+              variant="light"
+              onPress={() => setStep(step - 1)}
+              isDisabled={submitting}
               className="flex-shrink-0"
             >
-              <ArrowLeft className="mr-1 h-4 w-4" /> Back
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back
             </Button>
           )}
           <Button
-            onClick={handleNext}
-            disabled={!canNext() || submitting}
+            onPress={handleNext}
+            isDisabled={!canNext() || submitting}
             className="ml-auto flex-1 bg-gradient-rose text-white shadow-rose hover:opacity-95 h-12 rounded-2xl text-sm font-semibold"
           >
             {submitting ? (

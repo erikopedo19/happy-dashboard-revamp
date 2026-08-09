@@ -23,111 +23,249 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }
 
+function localToUtc(dateIso: string, time: string, timeZone?: string | null): Date {
+  if (!timeZone || timeZone === "UTC") {
+    const [y, m, d] = dateIso.split("-").map(Number);
+    const [hh, mm] = time.split(":").map(Number);
+    return new Date(Date.UTC(y, m - 1, d, hh, mm));
+  }
+  const [y, mo, d] = dateIso.split("-").map(Number);
+  const [h, m] = time.split(":").map(Number);
+  const wall = new Date(Date.UTC(y, mo - 1, d, h, m));
+  const getParts = (dt: Date) => {
+    const parts: Record<string, number> = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(dt).forEach((p) => {
+      if (p.type !== "literal") parts[p.type] = Number(p.value);
+    });
+    return parts;
+  };
+  let current = wall;
+  for (let i = 0; i < 4; i++) {
+    const p = getParts(current);
+    const tzLocal = new Date(Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second));
+    const diff = wall.getTime() - tzLocal.getTime();
+    if (Math.abs(diff) < 1000) break;
+    current = new Date(current.getTime() + diff);
+  }
+  return current;
+}
+
+// Build a minimal ICS calendar file (VEVENT).
+function buildIcs(opts: {
+  uid: string;
+  summary: string;
+  description: string;
+  location?: string | null;
+  startIso: string; // YYYY-MM-DD
+  startTime: string; // HH:MM
+  durationMinutes: number;
+  timeZone?: string | null;
+}) {
+  const start = localToUtc(opts.startIso, opts.startTime, opts.timeZone);
+  const end = new Date(start.getTime() + opts.durationMinutes * 60000);
+  const fmt = (dt: Date) =>
+    dt.getUTCFullYear().toString().padStart(4, "0") +
+    (dt.getUTCMonth() + 1).toString().padStart(2, "0") +
+    dt.getUTCDate().toString().padStart(2, "0") + "T" +
+    dt.getUTCHours().toString().padStart(2, "0") +
+    dt.getUTCMinutes().toString().padStart(2, "0") + "00Z";
+  const esc = (s: string) => (s || "").replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Cutzioo//Booking//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    `UID:${opts.uid}@cutzioo.com`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${esc(opts.summary)}`,
+    `DESCRIPTION:${esc(opts.description)}`,
+    opts.location ? `LOCATION:${esc(opts.location)}` : "",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].filter(Boolean);
+  return lines.join("\r\n");
+}
+
+function googleCalUrl(opts: {
+  summary: string;
+  details: string;
+  location?: string | null;
+  startIso: string;
+  startTime: string;
+  durationMinutes: number;
+  timeZone?: string | null;
+}) {
+  const start = localToUtc(opts.startIso, opts.startTime, opts.timeZone);
+  const end = new Date(start.getTime() + opts.durationMinutes * 60000);
+  const fmt = (dt: Date) =>
+    dt.getUTCFullYear().toString().padStart(4, "0") +
+    (dt.getUTCMonth() + 1).toString().padStart(2, "0") +
+    dt.getUTCDate().toString().padStart(2, "0") + "T" +
+    dt.getUTCHours().toString().padStart(2, "0") +
+    dt.getUTCMinutes().toString().padStart(2, "0") + "00Z";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: opts.summary,
+    details: opts.details,
+    dates: `${fmt(start)}/${fmt(end)}`,
+  });
+  if (opts.location) params.set("location", opts.location);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 function buildHtml(opts: {
   businessName: string;
   customerName: string;
   serviceName: string;
   appointmentDate: string;
   appointmentTime: string;
+  durationMinutes: number;
   price?: number | string | null;
   notes?: string | null;
   manageUrl?: string | null;
   accent: string;
   bookingId?: string;
+  address?: string | null;
+  stylistName?: string | null;
+  stylistAvatar?: string | null;
+  gcalUrl: string;
 }) {
   const {
     businessName, customerName, serviceName, appointmentDate, appointmentTime,
-    price, notes, manageUrl, accent, bookingId,
+    durationMinutes, price, notes, manageUrl, accent, bookingId,
+    address, stylistName, stylistAvatar, gcalUrl,
   } = opts;
 
   const cancelUrl = manageUrl ? `${manageUrl}` : "";
   const rescheduleUrl = manageUrl ? `${manageUrl}` : "";
+  const mapUrl = address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+    : "";
+
+  const row = (label: string, value: string, accentColor?: string) => `
+    <tr><td style="padding:0 0 6px;font-size:12px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">${escapeHtml(label)}</td></tr>
+    <tr><td style="padding:0 0 16px;font-size:16px;font-weight:600;color:${accentColor || "#121214"};">${value}</td></tr>`;
+
+  const stylistBlock = stylistName ? `
+    <tr>
+      <td style="padding:18px 22px 4px;">
+        <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <tr>
+            <td style="vertical-align:middle;padding-right:12px;">
+              ${stylistAvatar
+                ? `<img src="${escapeHtml(stylistAvatar)}" width="36" height="36" style="border-radius:50%;display:block;border:1px solid #eee;" alt="">`
+                : `<div style="width:36px;height:36px;border-radius:50%;background:${accent};opacity:0.85;"></div>`}
+            </td>
+            <td style="vertical-align:middle;">
+              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Your stylist</div>
+              <div style="font-size:15px;font-weight:650;color:#121214;">${escapeHtml(stylistName)}</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>` : "";
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1c1c1e;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:40px 16px;">
-  <tr><td align="center">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:28px;overflow:hidden;border:1px solid #e5e5ea;box-shadow:0 20px 60px rgba(0,0,0,0.08);">
-      <!-- Header -->
-      <tr><td style="padding:36px 32px 24px;text-align:center;background:linear-gradient(135deg, #fff0f3 0%, #ffffff 60%);">
-        <div style="display:inline-block;width:64px;height:64px;border-radius:20px;background:${accent};color:#ffffff;font-size:26px;font-weight:700;line-height:64px;text-align:center;margin-bottom:16px;box-shadow:0 8px 24px ${accent}44;">
-          ${escapeHtml(businessName.charAt(0).toUpperCase())}
-        </div>
-        <div style="font-size:12px;color:#8e8e93;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Booking Confirmed</div>
-        <h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1c1e;letter-spacing:-0.02em;line-height:1.3;">${escapeHtml(businessName)}</h1>
-      </td></tr>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f6f6f8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1c;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f8;padding:48px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#ffffff;border-radius:28px;overflow:hidden;border:1px solid #e8e8ec;">
 
-      <!-- Greeting -->
-      <tr><td style="padding:8px 32px 4px;">
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.65;color:#48484a;">
-          Hi <strong style="color:#1c1c1e;">${escapeHtml(customerName || "there")}</strong>, your appointment is all set. We look forward to seeing you.
-        </p>
-      </td></tr>
+        <tr><td style="padding:32px 32px 0;text-align:center;">
+          <div style="display:inline-block;width:40px;height:40px;border-radius:12px;background:${accent};opacity:0.9;"></div>
+        </td></tr>
 
-      <!-- Details Card -->
-      <tr><td style="padding:0 32px 8px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f7;border:1px solid #e5e5ea;border-radius:20px;overflow:hidden;">
-          <tr><td style="padding:20px 22px;border-bottom:1px solid #e5e5ea;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8e8e93;margin-bottom:6px;font-weight:600;">Service</div>
-            <div style="font-size:17px;font-weight:600;color:#1c1c1e;">${escapeHtml(serviceName)}${price != null ? ` <span style="color:${accent};font-weight:700;">· €${escapeHtml(String(price))}</span>` : ""}</div>
-          </td></tr>
-          <tr>
-            <td style="padding:20px 22px;width:50%;border-right:1px solid #e5e5ea;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8e8e93;margin-bottom:6px;font-weight:600;">Date</div>
-              <div style="font-size:15px;font-weight:600;color:#1c1c1e;">${escapeHtml(appointmentDate)}</div>
-            </td>
-            <td style="padding:20px 22px;width:50%;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8e8e93;margin-bottom:6px;font-weight:600;">Time</div>
-              <div style="font-size:15px;font-weight:600;color:#1c1c1e;">${escapeHtml(appointmentTime)}</div>
-            </td>
-          </tr>
-          ${notes ? `<tr><td colspan="2" style="padding:18px 22px;border-top:1px solid #e5e5ea;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8e8e93;margin-bottom:6px;font-weight:600;">Note</div>
-            <div style="font-size:14px;color:#48484a;line-height:1.5;">${escapeHtml(notes)}</div>
-          </td></tr>` : ""}
-        </table>
-      </td></tr>
+        <tr><td style="padding:18px 32px 0;text-align:center;">
+          <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#8c8c92;">Booking confirmed</p>
+          <h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-0.02em;line-height:1.2;color:#121214;">${escapeHtml(businessName)}</h1>
+        </td></tr>
 
-      <!-- Actions -->
-      ${manageUrl ? `<tr><td style="padding:28px 32px 8px;">
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding-right:8px;width:50%;">
-              <a href="${escapeHtml(rescheduleUrl)}" style="display:block;text-align:center;background:${accent};color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:16px 0;border-radius:16px;box-shadow:0 4px 16px ${accent}33;">Reschedule</a>
-            </td>
-            <td style="padding-left:8px;width:50%;">
-              <a href="${escapeHtml(cancelUrl)}" style="display:block;text-align:center;background:#f2f2f7;color:#1c1c1e;text-decoration:none;font-weight:600;font-size:14px;padding:15px 0;border-radius:16px;border:1px solid #d1d1d6;">Cancel</a>
-            </td>
-          </tr>
-        </table>
-        <p style="margin:16px 0 0;text-align:center;font-size:12px;color:#8e8e93;">Manage your booking anytime — no login needed.</p>
-      </td></tr>` : ""}
+        <tr><td style="padding:20px 32px 0;">
+          <p style="margin:0;font-size:15px;line-height:1.55;color:#4a4a50;text-align:center;">
+            Hi ${escapeHtml(customerName || "there")}, you're booked for <strong style="color:#121214;">${escapeHtml(serviceName)}</strong>.
+          </p>
+        </td></tr>
 
-      <!-- Divider -->
-      <tr><td style="padding:24px 32px 0;">
-        <div style="height:1px;background:#e5e5ea;"></div>
-      </td></tr>
+        <!-- Appointment card -->
+        <tr><td style="padding:24px 32px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafb;border-radius:20px;border:1px solid #eeeff2;">
+            <tr><td style="padding:22px 22px 6px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                ${row("Date", escapeHtml(appointmentDate))}
+                ${row("Time", `${escapeHtml(appointmentTime)}  <span style="color:#8c8c92;font-weight:500;font-size:14px;">· ${durationMinutes} min</span>`)}
+                ${row("Service", escapeHtml(serviceName))}
+                ${price != null ? row("Price", `€${escapeHtml(String(price))}`, accent) : ""}
+              </table>
+            </td></tr>
+            ${stylistBlock}
+            ${address ? `
+            <tr><td style="padding:14px 22px 20px;">
+              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">Location</div>
+              <div style="font-size:14px;color:#3a3a3f;line-height:1.5;">${escapeHtml(address)}</div>
+              <a href="${escapeHtml(mapUrl)}" style="display:inline-block;margin-top:8px;font-size:13px;color:${accent};text-decoration:none;font-weight:600;">Open in Maps →</a>
+            </td></tr>` : ""}
+            ${notes ? `
+            <tr><td style="padding:0 22px 20px;">
+              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">Note</div>
+              <div style="font-size:14px;color:#3a3a3f;line-height:1.5;">${escapeHtml(notes)}</div>
+            </td></tr>` : ""}
+          </table>
+        </td></tr>
 
-      <!-- Footer -->
-      <tr><td style="padding:24px 32px 32px;text-align:center;">
-        ${bookingId ? `<span style="font-size:11px;color:#aeaeb2;font-family:'SF Mono',Menlo,monospace;letter-spacing:0.04em;">REF · ${escapeHtml(String(bookingId).slice(0, 8))}</span>
-        <div style="height:16px;"></div>` : ""}
-        <a href="${APP_URL}" style="text-decoration:none;display:inline-block;">
-          <div style="font-size:12px;color:#8e8e93;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">
-            Powered by <span style="color:${accent};font-weight:700;">Cutzioo</span>
-          </div>
-          <div style="font-size:11px;color:#aeaeb2;margin-top:4px;letter-spacing:0.02em;">cutzioo.com</div>
-        </a>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
+        <!-- Actions -->
+        ${manageUrl ? `<tr><td style="padding:24px 32px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:0 0 8px;">
+              <a href="${escapeHtml(rescheduleUrl)}" style="display:block;text-align:center;background:#121214;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 0;border-radius:14px;">Reschedule</a>
+            </td></tr>
+            <tr><td style="padding:0 0 8px;">
+              <a href="${escapeHtml(gcalUrl)}" style="display:block;text-align:center;background:#ffffff;color:#121214;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">Add to Calendar</a>
+            </td></tr>
+            <tr><td>
+              <a href="${escapeHtml(cancelUrl)}" style="display:block;text-align:center;background:#ffffff;color:#ff3b30;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">Cancel</a>
+            </td></tr>
+          </table>
+          <p style="margin:14px 0 0;text-align:center;font-size:12px;color:#8c8c92;">An .ics invite is attached — tap it on iPhone or Android to add.</p>
+        </td></tr>` : ""}
+
+        <tr><td style="padding:28px 32px 32px;text-align:center;">
+          <div style="height:1px;background:#eeeff2;margin-bottom:22px;"></div>
+          ${bookingId ? `<div style="font-size:11px;color:#9a9aa2;font-family:'SF Mono',SFMono-Regular,monospace;letter-spacing:0.04em;margin-bottom:10px;">REF · ${escapeHtml(String(bookingId).slice(0, 8))}</div>` : ""}
+          <a href="${APP_URL}" style="text-decoration:none;font-size:11px;color:#8c8c92;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;">Powered by <span style="color:${accent};font-weight:700;">Cutzioo</span></a>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
 </body></html>`;
 }
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const functionSecret = Deno.env.get("FUNCTION_SECRET");
+  const providedSecret = req.headers.get("x-functions-secret") ?? "";
+  if (functionSecret && providedSecret !== functionSecret) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Forbidden" }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -141,47 +279,113 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const {
-      userId, customerEmail, customerName, customerPhone, businessName, serviceName,
-      appointmentDate, appointmentTime, price, notes, bookingId,
-      accentColor, manageUrl, cancelToken,
-    } = body;
+    const { cancelToken, accentColor } = body as { cancelToken?: string; accentColor?: string };
 
-    if (!businessName || !serviceName) {
-      return new Response(JSON.stringify({ success: false, error: "Missing required fields" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
+    if (!cancelToken) {
+      return new Response(JSON.stringify({ success: false, error: "cancelToken required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
     }
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(JSON.stringify({ success: false, error: "Server misconfigured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 });
+    }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const { data: apptRow, error: apptErr } = await supabase
+      .from("appointments")
+      .select("id, user_id, stylist_id, appointment_date, appointment_time, price, notes, customer_id, service_id, created_at")
+      .eq("cancel_token", cancelToken)
+      .maybeSingle();
+
+    if (apptErr || !apptRow) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid token" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+    }
+
+    const createdMs = new Date(apptRow.created_at as string).getTime();
+    if (Date.now() - createdMs > 15 * 60 * 1000) {
+      return new Response(JSON.stringify({ success: false, error: "Token expired" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+    }
+
+    const [{ data: customer }, { data: service }, { data: profile }, stylistRes] = await Promise.all([
+      supabase.from("customers").select("name, email, phone").eq("id", apptRow.customer_id).maybeSingle(),
+      supabase.from("services").select("name, price, duration").eq("id", apptRow.service_id).maybeSingle(),
+      supabase.from("profiles").select("business_name, full_name, brand_color, sender_email, sender_name, address, timezone").eq("id", apptRow.user_id).maybeSingle(),
+      apptRow.stylist_id
+        ? supabase.from("stylists").select("name, avatar_url").eq("id", apptRow.stylist_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const stylist = (stylistRes as any)?.data ?? null;
+
+    const userId = apptRow.user_id;
+    const customerEmail = customer?.email ?? null;
+    const customerName = customer?.name ?? "there";
+    const customerPhone = customer?.phone ?? null;
+    const businessName = profile?.business_name || profile?.full_name || "Cutzioo";
+    const serviceName = service?.name || "Service";
+    const durationMinutes = service?.duration ?? 30;
+    const price = apptRow.price ?? service?.price ?? null;
+    const notes = apptRow.notes ?? null;
+    const address = profile?.address ?? null;
+    const bookingId = String(apptRow.id).slice(0, 8);
+    const startIso = String(apptRow.appointment_date);
+    const startTime = String(apptRow.appointment_time).slice(0, 5);
+    const tz = profile?.timezone || "UTC";
+    const appointmentDate = new Intl.DateTimeFormat("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+      timeZone: tz,
+    }).format(localToUtc(startIso, startTime, tz));
+    const appointmentTime = startTime;
 
     let template: any = null;
-    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const { data } = await supabase.from("message_templates").select("*").eq("user_id", userId).maybeSingle();
-      template = data;
-    }
+    const { data: tplData } = await supabase.from("message_templates").select("*").eq("user_id", userId).maybeSingle();
+    template = tplData;
 
     if (template?.enabled === false) {
       return new Response(JSON.stringify({ success: true, skipped: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const accent = template?.accent_color || accentColor || "#e0c4a8";
-    const finalManageUrl = manageUrl || (cancelToken ? `${APP_URL}/manage/${cancelToken}` : null);
+    const accent = template?.accent_color || accentColor || profile?.brand_color || "#e0c4a8";
+    const finalManageUrl = `${APP_URL}/manage/${cancelToken}`;
 
-    const vars = { customerName: customerName || "there", customerEmail, customerPhone, businessName, serviceName, appointmentDate, appointmentTime, price };
-
+    const vars = { customerName, customerEmail, customerPhone, businessName, serviceName, appointmentDate, appointmentTime, price };
     const subject = render(template?.email_subject || "Your booking at {{businessName}} is confirmed", vars);
     const smsText = render(
       template?.sms_body || "{{businessName}}: {{serviceName}} on {{appointmentDate}} at {{appointmentTime}} confirmed.",
       vars
-    ) + (finalManageUrl ? ` Manage: ${finalManageUrl}` : "");
+    ) + ` Manage: ${finalManageUrl}`;
 
-    const html = buildHtml({
-      businessName, customerName: customerName || "there", serviceName,
-      appointmentDate, appointmentTime, price, notes,
-      manageUrl: finalManageUrl, accent, bookingId,
+    const gcalUrl = googleCalUrl({
+      summary: `${businessName} — ${serviceName}`,
+      details: `Booking at ${businessName}${notes ? `\n\nNote: ${notes}` : ""}\n\nManage: ${finalManageUrl}`,
+      location: address,
+      startIso, startTime, durationMinutes,
+      timeZone: profile?.timezone || "UTC",
     });
 
-    const textBody = `${subject}\n\nHi ${customerName || "there"},\n\n${serviceName} on ${appointmentDate} at ${appointmentTime}${price != null ? ` · €${price}` : ""}\n\n${finalManageUrl ? `Manage your booking: ${finalManageUrl}\n\n` : ""}Powered by Cutzioo — https://cutzioo.com`;
+    const html = buildHtml({
+      businessName, customerName, serviceName,
+      appointmentDate, appointmentTime, durationMinutes,
+      price, notes, manageUrl: finalManageUrl, accent, bookingId,
+      address, stylistName: stylist?.name ?? null, stylistAvatar: stylist?.avatar_url ?? null,
+      gcalUrl,
+    });
+
+    const textBody = `${subject}\n\nHi ${customerName || "there"},\n\n${serviceName} on ${appointmentDate} at ${appointmentTime} (${durationMinutes} min)${price != null ? ` · €${price}` : ""}${address ? `\n${address}` : ""}${stylist?.name ? `\nStylist: ${stylist.name}` : ""}\n\n${finalManageUrl ? `Manage your booking: ${finalManageUrl}\n\n` : ""}Powered by Cutzioo — https://cutzioo.com`;
+
+    const ics = buildIcs({
+      uid: String(apptRow.id),
+      summary: `${businessName} — ${serviceName}`,
+      description: `Booking at ${businessName}${notes ? `\n\nNote: ${notes}` : ""}\n\nManage: ${finalManageUrl}`,
+      location: address,
+      startIso, startTime, durationMinutes,
+      timeZone: profile?.timezone || "UTC",
+    });
+    // base64 encode
+    const icsB64 = btoa(unescape(encodeURIComponent(ics)));
 
     const results: any = {};
 
@@ -200,6 +404,7 @@ serve(async (req: Request) => {
           subject,
           htmlContent: html,
           textContent: textBody,
+          attachment: [{ name: "booking.ics", content: icsB64 }],
         }),
       });
       const data = await emailRes.json().catch(() => ({}));

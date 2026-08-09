@@ -38,7 +38,9 @@ export async function enableBookingPush(): Promise<{ ok: boolean; reason?: strin
   if (!user) return { ok: false, reason: "Not signed in" };
 
   const perm = await Notification.requestPermission();
-  if (perm !== "granted") return { ok: false, reason: "Permission denied" };
+  if (perm !== "granted") {
+    return { ok: false, reason: perm === "denied" ? "Notifications are blocked. Enable them in your browser/site settings to receive alerts." : "Permission not granted" };
+  }
 
   const reg = (await navigator.serviceWorker.getRegistration()) || (await registerSW());
   if (!reg) return { ok: false, reason: "Could not register service worker" };

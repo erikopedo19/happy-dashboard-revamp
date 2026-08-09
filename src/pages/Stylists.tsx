@@ -1,21 +1,20 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MobileDock } from "@/components/MobileDock";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@heroui/react";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Search, Edit, Trash2, UserCheck, MoreHorizontal, X, Star, Calendar, Clock, Briefcase } from "lucide-react";
+import { Avatar } from "@heroui/react";
+import { Plus, Search, Edit, Trash2, UserCheck, X, Star, Clock, Briefcase, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Stylist {
@@ -30,11 +29,13 @@ interface Stylist {
   next_availability: string | null;
   user_id: string;
   created_at: string;
+  deleted_at?: string | null;
 }
 
 const Stylists = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const requireAuth = useRequireAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,12 +46,16 @@ const Stylists = () => {
     name: "",
     title: "",
     specialties: "",
-    status: "available"
+    status: "available",
+    avatar_url: "" as string,
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; stylist: Stylist } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Stylist | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Fetch stylists
-  const { data: stylists = [], isLoading } = useQuery<Stylist[]>({
+  // Fetch stylists (including soft-deleted — we filter them below).
+  const { data: allStylists = [], isLoading } = useQuery<Stylist[]>({
     queryKey: ["stylists", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -65,6 +70,32 @@ const Stylists = () => {
     },
     enabled: !!user,
   });
+
+  // Stylist ids that still have an upcoming (non-cancelled) appointment.
+  // A soft-deleted stylist stays visible on the team until this is empty.
+  const { data: busyStylistIds = [] } = useQuery<string[]>({
+    queryKey: ["stylists-busy", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await (supabase as any)
+        .from("appointments")
+        .select("stylist_id")
+        .eq("user_id", user.id)
+        .neq("status", "cancelled")
+        .not("stylist_id", "is", null)
+        .gte("appointment_date", today);
+      if (error) return [];
+      return Array.from(new Set((data || []).map((a: any) => a.stylist_id).filter(Boolean)));
+    },
+    enabled: !!user,
+  });
+
+  // Active stylists + soft-deleted ones that still have upcoming appointments.
+  const stylists = allStylists.filter(
+    (s) => !s.deleted_at || busyStylistIds.includes(s.id)
+  );
+  const isLeaving = (s: Stylist) => !!s.deleted_at;
 
   // Create stylist mutation
   const createStylistMutation = useMutation({
@@ -81,6 +112,7 @@ const Stylists = () => {
         title: data.title || null,
         specialties: specialtiesArray,
         status: data.status,
+        avatar_url: data.avatar_url || null,
         is_public: true,
         satisfaction: 5.0,
         bookings_today: 0
@@ -91,7 +123,7 @@ const Stylists = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stylists"] });
       setIsCreateDialogOpen(false);
-      setFormData({ name: "", title: "", specialties: "", status: "available" });
+      setFormData({ name: "", title: "", specialties: "", status: "available", avatar_url: "" });
       toast({ title: "Stylist created successfully" });
     },
     onError: (error: any) => {
@@ -117,7 +149,8 @@ const Stylists = () => {
           name: data.name,
           title: data.title || null,
           specialties: specialtiesArray,
-          status: data.status
+          status: data.status,
+          avatar_url: data.avatar_url || null,
         })
         .eq("id", data.id);
       
@@ -139,17 +172,29 @@ const Stylists = () => {
     },
   });
 
-  // Delete stylist mutation
+  // Delete stylist mutation (soft delete).
+  // Hides the stylist from booking/public immediately. The row is kept until
+  // their last appointment passes, then cleanup_pending_stylists() removes it.
   const deleteStylistMutation = useMutation({
     mutationFn: async (stylistId: string) => {
-      const { error } = await (supabase as any).from("stylists").delete().eq("id", stylistId);
+      const { error } = await (supabase as any)
+        .from("stylists")
+        .update({ deleted_at: new Date().toISOString(), is_public: false })
+        .eq("id", stylistId);
       if (error) throw error;
+    },
+    onMutate: (stylistId: string) => {
+      setDeletingId(stylistId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stylists"] });
-      toast({ title: "Stylist deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["stylists-busy"] });
+      setDeleteTarget(null);
+      setDeletingId(null);
+      toast({ title: "Stylist removed" });
     },
     onError: (error: any) => {
+      setDeletingId(null);
       const errorMessage = error?.message || "Failed to delete stylist";
       toast({ 
         title: "Failed to delete stylist", 
@@ -160,10 +205,12 @@ const Stylists = () => {
   });
 
   const handleCreateStylist = () => {
+    if (!requireAuth("Sign in to add stylists")) return;
     createStylistMutation.mutate(formData);
   };
 
   const handleUpdateStylist = () => {
+    if (!requireAuth("Sign in to edit stylists")) return;
     if (selectedStylist) {
       updateStylistMutation.mutate({ ...formData, id: selectedStylist.id });
     }
@@ -175,15 +222,39 @@ const Stylists = () => {
       name: stylist.name,
       title: stylist.title || "",
       specialties: stylist.specialties ? stylist.specialties.join(", ") : "",
-      status: stylist.status || "available"
+      status: stylist.status || "available",
+      avatar_url: stylist.avatar_url || "",
     });
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (stylist: Stylist) => {
-    if (confirm(`Are you sure you want to delete ${stylist.name}?`)) {
-      deleteStylistMutation.mutate(stylist.id);
+  // Upload stylist avatar to the shared brand-images bucket
+  const handleAvatarUpload = async (file: File) => {
+    if (!user || !file) return;
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/stylists/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await (supabase as any).storage
+        .from("brand-images")
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = (supabase as any).storage.from("brand-images").getPublicUrl(path);
+      setFormData((f) => ({ ...f, avatar_url: pub.publicUrl }));
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e?.message || "Try another image", variant: "destructive" });
+    } finally {
+      setUploadingAvatar(false);
     }
+  };
+
+  const handleDeleteClick = (stylist: Stylist) => {
+    setDeleteTarget(stylist);
+  };
+
+  const confirmDelete = () => {
+    if (!requireAuth("Sign in to remove stylists")) return;
+    if (deleteTarget) deleteStylistMutation.mutate(deleteTarget.id);
   };
 
   const filteredStylists = stylists.filter(stylist => 
@@ -202,7 +273,7 @@ const Stylists = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F5F5F7] dark:bg-[#0a0a0a] overflow-hidden">
+      <div className="h-screen flex w-full bg-[#0A0A0C] text-white overflow-hidden">
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Mobile top bar */}
@@ -210,13 +281,7 @@ const Stylists = () => {
             <div className="flex items-center justify-between">
               <SidebarTrigger className="text-[#1C1C1E] dark:text-[#F2F2F7]" />
               <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-              <button
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="w-9 h-9 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center active:scale-95 transition"
-                aria-label="Add stylist"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+              <div className="w-9" />
             </div>
           </div>
 
@@ -229,7 +294,14 @@ const Stylists = () => {
                   <h1 className="text-4xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
                   <p className="text-[#8E8E93] mt-1.5">Manage your team, schedules, and specialties.</p>
                 </div>
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#1C1C1E] hover:bg-[#1C1C1E]/90 text-white dark:bg-white dark:text-[#1C1C1E] dark:hover:bg-white/90">
+                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+                  <Plus className="h-4 w-4 mr-1.5" /> Add stylist
+                </Button>
+              </div>
+
+              <div className="flex lg:hidden items-center justify-between gap-4 mb-4">
+                <h1 className="text-2xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
+                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-4 h-9 bg-[#FF2D6F] hover:bg-[#e0205e] text-white text-sm">
                   <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                 </Button>
               </div>
@@ -257,64 +329,106 @@ const Stylists = () => {
               {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="rounded-3xl bg-white dark:bg-[#1C1C1E] p-5 h-44 animate-pulse" />
+                    <div key={i} className="rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] p-5 h-44 animate-pulse" />
                   ))}
                 </div>
               ) : filteredStylists.length === 0 ? (
-                <div className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-dashed border-black/10 dark:border-white/10 p-10 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] mx-auto flex items-center justify-center mb-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                  className="rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-dashed border-black/[0.08] dark:border-white/[0.08] p-10 text-center"
+                >
+                  <div className="w-14 h-14 rounded-[18px] bg-black/[0.04] dark:bg-white/[0.06] mx-auto flex items-center justify-center mb-3">
                     <UserCheck className="h-6 w-6 text-[#8E8E93]" />
                   </div>
                   <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">No stylists yet</h3>
                   <p className="text-sm text-[#8E8E93] mt-1 mb-4">Add your first teammate to start assigning bookings.</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#1C1C1E] text-white dark:bg-white dark:text-[#1C1C1E]">
+                  <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
                     <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                   </Button>
-                </div>
+                </motion.div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {filteredStylists.map((stylist) => {
+                <motion.div
+                  layout
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+                >
+                  <AnimatePresence mode="popLayout">
+                  {filteredStylists.map((stylist, index) => {
                     const initials = stylist.name
                       .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
+                    const isBeingDeleted = deletingId === stylist.id;
+                    const leaving = isLeaving(stylist);
                     return (
-                      <div
+                      <motion.div
                         key={stylist.id}
+                        layout
+                        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                        animate={isBeingDeleted
+                          ? { opacity: 0.4, scale: 0.93, filter: "blur(2px)" }
+                          : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+                        }
+                        exit={{ opacity: 0, scale: 0.88, y: -8, filter: "blur(4px)", transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }}
+                        transition={{ delay: isBeingDeleted ? 0 : index * 0.05, type: "spring", stiffness: 380, damping: 30 }}
+                        whileTap={{ scale: isBeingDeleted ? 1 : 0.98 }}
                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, stylist }); }}
-                        className="group relative rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-5"
+                        className="group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-shadow p-5"
                       >
+                        {/* Deleting overlay */}
+                        {isBeingDeleted && (
+                          <div className="absolute inset-0 rounded-[24px] flex items-center justify-center bg-white/70 dark:bg-[#1C1C1E]/70 z-10">
+                            <Loader2 className="w-5 h-5 text-[#8E8E93] animate-spin" />
+                          </div>
+                        )}
+
                         <div className="flex items-start gap-3.5">
                           <div className="relative">
-                            <Avatar className="h-14 w-14 ring-2 ring-white dark:ring-[#1C1C1E] shadow-sm">
-                              <AvatarImage src={stylist.avatar_url || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
+                            <Avatar
+                              src={stylist.avatar_url || undefined}
+                              name={initials}
+                              className="h-14 w-14"
+                              isBordered
+                            />
                             <span className={cn("absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-[#1C1C1E]", statusDot(stylist.status))} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
-                            <p className="text-xs text-[#8E8E93] truncate">{stylist.title || "Stylist"}</p>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
+                              {leaving && (
+                                <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Leaving</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-[#8E8E93] truncate">{leaving ? "Removed · finishing booked appointments" : (stylist.title || "Stylist")}</p>
                             <div className="flex items-center gap-1 mt-1.5">
                               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                               <span className="text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.satisfaction?.toFixed(1) || "5.0"}</span>
                               <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
-                            <button onClick={() => handleEditClick(stylist)} className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]">
-                              <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                            </button>
-                            <button onClick={() => handleDeleteClick(stylist)} className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100">
-                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                            </button>
-                          </div>
+                          {!leaving && (
+                            <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                              <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleEditClick(stylist)}
+                                className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] transition-colors"
+                              >
+                                <Edit className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
+                              </motion.button>
+                              <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleDeleteClick(stylist)}
+                                className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              </motion.button>
+                            </div>
+                          )}
                         </div>
 
                         {stylist.specialties && stylist.specialties.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-4">
                             {stylist.specialties.slice(0, 4).map((s, i) => (
-                              <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
+                              <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
                                 {s}
                               </span>
                             ))}
@@ -323,14 +437,14 @@ const Stylists = () => {
                             )}
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     );
                   })}
-                </div>
+                  </AnimatePresence>
+                </motion.div>
               )}
             </div>
           </div>
-          <MobileDock />
         </main>
       </div>
 
@@ -339,31 +453,33 @@ const Stylists = () => {
       {contextMenu && (
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
-          <div
-            className="fixed z-[101] w-80 bg-card dark:bg-gray-900 rounded-2xl shadow-2xl border border-border dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 420, damping: 32 }}
+            className="fixed z-[101] w-[19rem] bg-white dark:bg-[#1C1C1E] rounded-[22px] shadow-[0_24px_64px_rgba(0,0,0,0.22)] border border-black/[0.05] dark:border-white/[0.08] overflow-hidden"
             style={{
-              left: Math.min(contextMenu.x, window.innerWidth - 340),
-              top: Math.min(contextMenu.y, window.innerHeight - 420),
+              left: Math.min(contextMenu.x, window.innerWidth - 320),
+              top: Math.min(contextMenu.y, window.innerHeight - 400),
             }}
           >
             {/* Header */}
-            <div className="relative p-4 pb-3 bg-gradient-to-r from-blue-500 to-indigo-600">
-              <div className="absolute inset-0 bg-black/10" />
-              <div className="relative z-10 flex items-center gap-3">
-                <Avatar className="h-12 w-12 border-2 border-white/30">
-                  <AvatarImage src={contextMenu.stylist.avatar_url || undefined} />
-                  <AvatarFallback className="bg-card/20 text-white font-semibold text-lg">
-                    {contextMenu.stylist.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <h3 className="text-white font-semibold text-base">{contextMenu.stylist.name}</h3>
+            <div className="p-4 border-b border-black/[0.05] dark:border-white/[0.08]">
+              <div className="flex items-center gap-3">
+                <Avatar
+                  src={contextMenu.stylist.avatar_url || undefined}
+                  name={contextMenu.stylist.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                  className="h-12 w-12"
+                  isBordered
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{contextMenu.stylist.name}</h3>
                   {contextMenu.stylist.title && (
-                    <p className="text-white/80 text-xs mt-0.5">{contextMenu.stylist.title}</p>
+                    <p className="text-xs text-[#8E8E93] mt-0.5 truncate">{contextMenu.stylist.title}</p>
                   )}
                 </div>
-                <button onClick={() => setContextMenu(null)} className="w-7 h-7 rounded-full bg-card/20 flex items-center justify-center hover:bg-card/30 transition-colors">
-                  <X className="w-3.5 h-3.5 text-white" />
+                <button onClick={() => setContextMenu(null)} className="w-7 h-7 rounded-full bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors">
+                  <X className="w-3.5 h-3.5 text-[#1C1C1E] dark:text-[#F2F2F7]" />
                 </button>
               </div>
             </div>
@@ -371,23 +487,23 @@ const Stylists = () => {
             {/* Info Grid */}
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-3 gap-2">
-                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Status</p>
+                <div className="bg-black/[0.03] dark:bg-white/[0.05] rounded-[16px] p-2.5 text-center">
+                  <p className="text-[9px] font-medium text-[#8E8E93] uppercase tracking-wider">Status</p>
                   <p className={cn(
-                    "text-sm font-semibold mt-0.5 capitalize",
-                    contextMenu.stylist.status === 'available' ? 'text-green-600' :
-                    contextMenu.stylist.status === 'booked' ? 'text-amber-600' : 'text-muted-foreground'
+                    "text-[13px] font-semibold mt-0.5 capitalize",
+                    contextMenu.stylist.status === 'available' ? 'text-emerald-600' :
+                    contextMenu.stylist.status === 'booked' ? 'text-amber-600' : 'text-[#8E8E93]'
                   )}>{contextMenu.stylist.status || 'Unknown'}</p>
                 </div>
-                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Today</p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{contextMenu.stylist.bookings_today || 0}</p>
+                <div className="bg-black/[0.03] dark:bg-white/[0.05] rounded-[16px] p-2.5 text-center">
+                  <p className="text-[9px] font-medium text-[#8E8E93] uppercase tracking-wider">Today</p>
+                  <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mt-0.5">{contextMenu.stylist.bookings_today || 0}</p>
                 </div>
-                <div className="bg-secondary/40 dark:bg-gray-800 rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Rating</p>
+                <div className="bg-black/[0.03] dark:bg-white/[0.05] rounded-[16px] p-2.5 text-center">
+                  <p className="text-[9px] font-medium text-[#8E8E93] uppercase tracking-wider">Rating</p>
                   <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{contextMenu.stylist.satisfaction?.toFixed(1) || 'N/A'}</p>
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{contextMenu.stylist.satisfaction?.toFixed(1) || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -395,23 +511,23 @@ const Stylists = () => {
               {/* Details */}
               <div className="space-y-2">
                 {contextMenu.stylist.next_availability && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <div className="w-7 h-7 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
-                      <Clock className="h-3.5 w-3.5 text-green-600" />
+                  <div className="flex items-center gap-2.5 text-sm text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    <div className="w-7 h-7 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center">
+                      <Clock className="h-3.5 w-3.5 text-[#8E8E93]" />
                     </div>
-                    <span className="text-foreground/80 dark:text-gray-300">Next: {contextMenu.stylist.next_availability}</span>
+                    <span className="text-[13px]">Next: {contextMenu.stylist.next_availability}</span>
                   </div>
                 )}
                 {contextMenu.stylist.specialties && contextMenu.stylist.specialties.length > 0 && (
                   <div className="flex items-start gap-2.5 text-sm">
-                    <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-                      <Briefcase className="h-3.5 w-3.5 text-purple-600" />
+                    <div className="w-7 h-7 rounded-[10px] bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="h-3.5 w-3.5 text-[#8E8E93]" />
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {contextMenu.stylist.specialties.map((spec, i) => (
-                        <Badge key={i} variant="outline" className="text-[10px] font-normal px-1.5 py-0">
+                        <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
                           {spec}
-                        </Badge>
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -426,7 +542,7 @@ const Stylists = () => {
                     setContextMenu(null);
                     handleEditClick(s);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-[13px] font-medium bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   Edit
@@ -437,56 +553,132 @@ const Stylists = () => {
                     setContextMenu(null);
                     handleDeleteClick(s);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[12px] text-[13px] font-medium bg-rose-50 dark:bg-rose-900/20 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Delete
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </>
       )}
 
-      {/* Create Stylist Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Stylist</DialogTitle>
-            <DialogDescription>Add a new stylist to your salon team</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+      {/* ── Delete confirmation sheet ── */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="delete-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm"
+              onClick={() => !deleteStylistMutation.isPending && setDeleteTarget(null)}
+            />
+            {/* Sheet */}
+            <motion.div
+              key="delete-sheet"
+              initial={{ opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 32, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              className="fixed z-[121] left-0 right-0 bottom-0 sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto -translate-x-0 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-auto sm:max-w-sm"
+            >
+              <div className="rounded-t-[28px] sm:rounded-[28px] pb-[env(safe-area-inset-bottom,0px)] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.22)] overflow-hidden">
+                {/* Header */}
+                <div className="px-6 pt-6 pb-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[16px] bg-rose-500/10 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-rose-500" strokeWidth={2.3} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">Remove {deleteTarget.name}?</p>
+                    <p className="text-[12px] text-[#8E8E93] mt-0.5">This will unassign them from future bookings.</p>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 pb-4">
+                  <p className="text-[13px] text-[#8E8E93] leading-relaxed">
+                    Past appointments will not be affected. You can always add this stylist again later.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="px-6 pb-6 flex flex-col gap-2">
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={confirmDelete}
+                    disabled={deleteStylistMutation.isPending}
+                    className="w-full h-12 rounded-[14px] bg-rose-500 text-white font-semibold text-[15px] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    {deleteStylistMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Removing…</>
+                    ) : (
+                      <><Trash2 className="w-4 h-4" strokeWidth={2.3} /> Remove</>
+                    )}
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setDeleteTarget(null)}
+                    disabled={deleteStylistMutation.isPending}
+                    className="w-full h-12 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[15px] transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Create Stylist Sheet */}
+      <Sheet open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90vh] overflow-y-auto">
+          <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-white/20" />
+          <SheetHeader className="px-6 pt-4 pb-2">
+            <SheetTitle className="text-white text-lg">Add New Stylist</SheetTitle>
+            <SheetDescription className="text-white/60">Add a new stylist to your salon team</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 px-6">
+            <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
-              <Label htmlFor="name">Stylist Name</Label>
+              <Label htmlFor="name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., John Smith"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="title">Title/Position</Label>
+              <Label htmlFor="title" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Title/Position</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Senior Stylist"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="specialties">Specialties</Label>
+              <Label htmlFor="specialties" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Specialties</Label>
               <Input
                 id="specialties"
                 value={formData.specialties}
                 onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                 placeholder="e.g., Coloring, Cutting, Styling (comma separated)"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-[12px] h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -497,54 +689,59 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+          <SheetFooter className="px-6 pb-8 pt-2 gap-2">
+            <Button variant="bordered" onPress={() => setIsCreateDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
-            <Button onClick={handleCreateStylist} disabled={!formData.name}>
-              Add Stylist
+            <Button onPress={handleCreateStylist} isDisabled={!formData.name || createStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+              {createStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding…</> : "Add Stylist"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      {/* Edit Stylist Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Stylist</DialogTitle>
-            <DialogDescription>Update stylist information</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+      {/* Edit Stylist Sheet */}
+      <Sheet open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90vh] overflow-y-auto">
+          <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-white/20" />
+          <SheetHeader className="px-6 pt-4 pb-2">
+            <SheetTitle className="text-white text-lg">Edit Stylist</SheetTitle>
+            <SheetDescription className="text-white/60">Update stylist information</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 px-6">
+            <AvatarUploader value={formData.avatar_url} onFile={handleAvatarUpload} uploading={uploadingAvatar} name={formData.name} />
             <div>
-              <Label htmlFor="edit-name">Stylist Name</Label>
+              <Label htmlFor="edit-name" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Stylist Name *</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="edit-title">Title/Position</Label>
+              <Label htmlFor="edit-title" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Title/Position</Label>
               <Input
                 id="edit-title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="edit-specialties">Specialties</Label>
+              <Label htmlFor="edit-specialties" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Specialties</Label>
               <Input
                 id="edit-specialties"
                 value={formData.specialties}
                 onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                 placeholder="Comma separated list"
+                className="rounded-[12px] h-12"
               />
             </div>
             <div>
-              <Label htmlFor="edit-status">Status</Label>
+              <Label htmlFor="edit-status" className="text-[#1C1C1E] dark:text-[#F2F2F7]">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-[12px] h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -555,16 +752,16 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <SheetFooter className="px-6 pb-8 pt-2 gap-2">
+            <Button variant="bordered" onPress={() => setIsEditDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
-            <Button onClick={handleUpdateStylist} disabled={!formData.name}>
-              Update Stylist
+            <Button onPress={handleUpdateStylist} isDisabled={!formData.name || updateStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+              {updateStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : "Update Stylist"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </SidebarProvider>
   );
 };
@@ -576,9 +773,58 @@ function StatPill({ label, value, accent }: { label: string; value: number; acce
     ? "text-amber-600 dark:text-amber-400"
     : "text-[#1C1C1E] dark:text-[#F2F2F7]";
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 px-3 py-2.5">
+    <div className="rounded-[18px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] px-4 py-3">
       <p className="text-[10px] uppercase tracking-wider text-[#8E8E93]">{label}</p>
-      <p className={cn("text-xl font-semibold mt-0.5", color)}>{value}</p>
+      <p className={cn("text-[19px] font-semibold mt-0.5", color)}>{value}</p>
+    </div>
+  );
+}
+
+function AvatarUploader({
+  value,
+  onFile,
+  uploading,
+  name,
+}: {
+  value: string;
+  onFile: (file: File) => void;
+  uploading: boolean;
+  name: string;
+}) {
+  const initials = (name || "S")
+    .split(/\s+/).map((w) => w.charAt(0)).filter(Boolean).join("").slice(0, 2).toUpperCase() || "S";
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative">
+        <Avatar
+          src={value || undefined}
+          name={initials}
+          className="h-16 w-16"
+          isBordered
+        />
+        {uploading && (
+          <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+            <Loader2 className="w-4 h-4 text-white animate-spin" />
+          </div>
+        )}
+      </div>
+      <div className="flex-1">
+        <Label className="text-[#1C1C1E] dark:text-[#F2F2F7]">Profile photo</Label>
+        <p className="text-[11px] text-[#8E8E93] mb-2">PNG or JPG, up to 5MB</p>
+        <label className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-[#FF2D6F] hover:bg-[#e0205e] text-[13px] font-medium text-white cursor-pointer transition-colors">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onFile(f);
+              e.currentTarget.value = "";
+            }}
+          />
+          {value ? "Change photo" : "Upload photo"}
+        </label>
+      </div>
     </div>
   );
 }

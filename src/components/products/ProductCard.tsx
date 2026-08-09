@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical, Edit, Trash2, Package, Eye, EyeOff } from "lucide-react";
@@ -20,88 +19,53 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, onEdit, onRefetch }: ProductCardProps) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
+  const [busy, setBusy] = useState(false);
   const { toast } = useToast();
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", product.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Product deleted successfully" });
-      onRefetch();
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      toast({ 
-        title: "Error deleting product", 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsDeleting(false);
-    }
+    if (!confirm("Delete this product?")) return;
+    setBusy(true);
+    const { error } = await supabase.from("products").delete().eq("id", product.id);
+    setBusy(false);
+    if (error) return toast({ title: "Couldn't delete", variant: "destructive" });
+    toast({ title: "Product deleted" });
+    onRefetch();
   };
 
   const toggleActive = async () => {
-    setIsToggling(true);
-    try {
-      const { error } = await supabase
-        .from("products")
-        .update({ is_active: !product.is_active })
-        .eq("id", product.id);
-
-      if (error) throw error;
-      
-      toast({ 
-        title: `Product ${product.is_active ? 'deactivated' : 'activated'}` 
-      });
-      onRefetch();
-    } catch (error) {
-      console.error("Error toggling product status:", error);
-      toast({ 
-        title: "Error updating product", 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsToggling(false);
-    }
+    setBusy(true);
+    const { error } = await supabase
+      .from("products")
+      .update({ is_active: !product.is_active })
+      .eq("id", product.id);
+    setBusy(false);
+    if (error) return toast({ title: "Couldn't update", variant: "destructive" });
+    onRefetch();
   };
 
-  const formatPrice = (price?: number) => {
-    if (!price) return "Free";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price);
-  };
+  const price = product.price
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(product.price)
+    : "Free";
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 overflow-hidden">
-      <div className="aspect-square bg-gradient-to-br from-primary/5 to-primary/10 relative overflow-hidden">
+    <div className="group relative rounded-3xl overflow-hidden bg-[#15151A] border border-white/5 hover:border-rose-500/30 transition-all duration-200">
+      <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-white/[0.03] to-white/[0.01]">
         {product.image_url ? (
           <img
             src={product.image_url}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="h-16 w-16 text-muted-foreground/50" />
+            <Package className="h-10 w-10 text-white/20" />
           </div>
         )}
-        
+
         {!product.is_active && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge variant="secondary" className="bg-white/90 text-black">
-              Inactive
-            </Badge>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+            <Badge className="bg-white/10 text-white/80 border-white/10">Inactive</Badge>
           </div>
         )}
 
@@ -111,74 +75,50 @@ export const ProductCard = ({ product, onEdit, onRefetch }: ProductCardProps) =>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 bg-white/80 hover:bg-white/90 backdrop-blur-sm"
+                className="h-8 w-8 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white border-0"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onClick={() => onEdit(product)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+                <Edit className="h-4 w-4 mr-2" /> Edit
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={toggleActive}
-                disabled={isToggling}
-              >
+              <DropdownMenuItem onClick={toggleActive} disabled={busy}>
                 {product.is_active ? (
-                  <>
-                    <EyeOff className="h-4 w-4 mr-2" />
-                    Deactivate
-                  </>
+                  <><EyeOff className="h-4 w-4 mr-2" /> Deactivate</>
                 ) : (
-                  <>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Activate
-                  </>
+                  <><Eye className="h-4 w-4 mr-2" /> Activate</>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+              <DropdownMenuItem onClick={handleDelete} disabled={busy} className="text-destructive focus:text-destructive">
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <CardContent className="p-4">
-        <div className="space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-lg leading-tight line-clamp-2">
-              {product.name}
-            </h3>
-            {product.category && (
-              <Badge variant="outline" className="text-xs">
-                {product.category}
-              </Badge>
-            )}
-          </div>
-          
-          {product.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {product.description}
-            </p>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-primary">
-              {formatPrice(product.price)}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Stock: {product.stock_quantity}
-            </span>
-          </div>
+      <div className="p-3.5 space-y-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-sm leading-tight text-white line-clamp-1 flex-1">
+            {product.name}
+          </h3>
         </div>
-      </CardContent>
-    </Card>
+
+        {product.description && (
+          <p className="text-xs text-white/50 line-clamp-1">{product.description}</p>
+        )}
+
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-base font-bold bg-gradient-to-r from-rose-400 to-rose-300 bg-clip-text text-transparent">
+            {price}
+          </span>
+          <span className="text-[10px] text-white/40 uppercase tracking-wide">
+            {product.stock_quantity} in stock
+          </span>
+        </div>
+      </div>
+    </div>
   );
 };

@@ -20,6 +20,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,12 +41,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const maybeSendWelcome = async (uid: string) => {
+      const key = `cutzio:welcome-sent:${uid}`;
+      if (localStorage.getItem(key)) return;
+      try {
+        await supabase.functions.invoke("send-welcome-premium");
+        localStorage.setItem(key, "1");
+        window.dispatchEvent(new Event("premium:refresh"));
+      } catch (e) {
+        console.warn("welcome email invoke failed", e);
+      }
+    };
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        setTimeout(() => maybeSendWelcome(session.user.id), 0);
+      }
     });
 
     supabase.auth.getSession().then(({ data, error }) => {
@@ -55,6 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSession(data?.session ?? null);
       setUser(data?.session?.user ?? null);
       setLoading(false);
+      if (data?.session?.user) {
+        setTimeout(() => maybeSendWelcome(data.session!.user.id), 0);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -115,19 +134,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signInWithGoogle = async () => {
-    const redirectTo = `${window.location.origin}/`;
+    // Preserve the ?next= target in sessionStorage so the redirect URL can stay
+    // exactly /auth, which is easier to add in Supabase Auth redirect allowlist.
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next") || "/";
+    try { sessionStorage.setItem("auth:next", next); } catch { /* ignore */ }
+    const redirectTo = `${window.location.origin}/auth`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo,
-        queryParams: { access_type: "offline", prompt: "select_account" },
+        queryParams: { prompt: "select_account" },
       },
     });
     return { error };
   };
 
   const signOut = async () => {
+    try { localStorage.removeItem("cutzio:mode-choice"); } catch {}
     await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
+  const refreshUser = async () => {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (!error && data.session) {
+      setSession(data.session);
+      setUser(data.session.user);
+    }
   };
 
   const value: AuthContextType = {
@@ -139,6 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     resetPassword,
     signInWithGoogle,
     signOut,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

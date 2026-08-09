@@ -6,11 +6,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import {
   Loader2, Calendar, Heart, Star, Scissors, ChevronRight,
-  LogOut, Bell, Shield, Sparkles, Settings, BellRing,
+  LogOut, Bell, Shield, Sparkles, Settings, BellRing, Flame, Award, Zap,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
+import { useRoleSwitch } from "@/hooks/use-role-switch";
+import { PushToggle } from "@/components/PushToggle";
 
 interface BookingRow {
   id: string;
@@ -25,6 +28,7 @@ const Me = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setRole, switching } = useRoleSwitch();
   const [waitlistAlerts, setWaitlistAlerts] = useState(true);
   const [waitlistSaving, setWaitlistSaving] = useState(false);
 
@@ -96,7 +100,7 @@ const Me = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
       </div>
     );
@@ -107,7 +111,7 @@ const Me = () => {
     .split(" ").map((s: string) => s[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
+    <div className="min-h-screen bg-[#0A0A0C] text-white pb-28">
       {/* Hero */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-br from-[#007AFF] via-[#5856D6] to-[#AF52DE]" />
@@ -144,27 +148,79 @@ const Me = () => {
           <StatCard icon={<Heart className="w-4 h-4 text-[#FF2D55]" />} label="Favorites" value={favoritesCount} />
         </motion.div>
 
-        {/* Best barber */}
+        {/* Streaks & Achievements */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 380, damping: 30 }}
-          className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4"
+          className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4 overflow-hidden"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FFB800] to-[#FF9500] flex items-center justify-center shrink-0">
-              <Star className="w-6 h-6 text-white fill-white" />
+          <Tabs defaultValue="streak" className="w-full">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[11px] uppercase tracking-wide text-[#8E8E93] font-semibold">Loyalty</p>
+              <TabsList className="bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+                <TabsTrigger value="streak" className="text-xs px-2.5 py-1">Streak</TabsTrigger>
+                <TabsTrigger value="badges" className="text-xs px-2.5 py-1">Badges</TabsTrigger>
+                <TabsTrigger value="stats" className="text-xs px-2.5 py-1">Stats</TabsTrigger>
+              </TabsList>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-wide text-[#8E8E93] font-semibold">Top barber</p>
-              <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                {stats.best?.name || "—"}
-              </p>
-              <p className="text-[12px] text-[#8E8E93]">
-                {stats.best ? `${stats.best.count} visit${stats.best.count > 1 ? "s" : ""}` : "Book to start your streak"}
-              </p>
-            </div>
-          </div>
+
+            <TabsContent value="streak" className="mt-0">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF9500] to-[#FF2D55] flex items-center justify-center shrink-0 shadow-lg shadow-[#FF2D55]/20"
+                >
+                  <Flame className="w-6 h-6 text-white fill-white" />
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {stats.best ? `${stats.best.count} visit streak` : "Start your streak"}
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {stats.best
+                      ? `Keep booking ${stats.best.name} to unlock rewards`
+                      : "Book your first appointment to begin"}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="badges" className="mt-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FFD60A] to-[#FFB800] flex items-center justify-center shrink-0">
+                  <Award className="w-6 h-6 text-black" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {stats.total >= 5 ? "Regular" : stats.total >= 1 ? "Rookie" : "No badges yet"}
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {stats.total >= 5
+                      ? "You're a loyal client — keep it up"
+                      : `${5 - stats.total} more booking${5 - stats.total !== 1 ? "s" : ""} to earn Regular`}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="stats" className="mt-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#34C759] to-[#30D158] flex items-center justify-center shrink-0">
+                  <Zap className="w-6 h-6 text-white fill-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {stats.total} lifetime bookings
+                  </p>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {stats.upcoming} upcoming · {stats.best?.name ?? "—"} is your favorite
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </motion.div>
 
         {/* Action list */}
@@ -196,9 +252,29 @@ const Me = () => {
             </div>
             <Switch checked={waitlistAlerts} onCheckedChange={toggleWaitlistAlerts} disabled={waitlistSaving} />
           </div>
-          <Row icon={<Bell className="w-5 h-5 text-[#FF9500]" />} label="Notifications" disabled />
+          <div className="px-4 border-b border-black/5 dark:border-white/5">
+            <PushToggle />
+          </div>
           <Row icon={<Shield className="w-5 h-5 text-[#34C759]" />} label="Privacy" disabled />
         </motion.div>
+
+        <motion.button
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, type: "spring", stiffness: 380, damping: 30 }}
+          onClick={() => setRole("barber")}
+          disabled={switching}
+          className="w-full rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 p-4 flex items-center gap-3 active:scale-[0.98] transition-transform disabled:opacity-60"
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF9500] to-[#FF2D55] flex items-center justify-center shrink-0">
+            <Scissors className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7]">Switch to barber mode</div>
+            <div className="text-[11px] text-[#8E8E93]">Manage bookings, agenda & your chair</div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#C7C7CC]" />
+        </motion.button>
 
         <motion.button
           initial={{ opacity: 0, y: 18 }}

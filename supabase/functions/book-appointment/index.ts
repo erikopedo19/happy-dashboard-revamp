@@ -66,21 +66,87 @@ const isSameDateString = (dateStr: string, compare: Date) => {
   );
 };
 
-const formatDateLong = (dateStr: string) => {
-  const [y, m, d] = dateStr.split("-").map((n) => Number(n));
-  if (!y || !m || !d) return dateStr;
-  const dt = new Date(Date.UTC(y, m - 1, d));
+function localToUtc(dateIso: string, time: string, timeZone?: string | null): Date {
+  if (!timeZone || timeZone === "UTC") {
+    const [y, m, d] = dateIso.split("-").map(Number);
+    const [hh, mm] = time.split(":").map(Number);
+    return new Date(Date.UTC(y, m - 1, d, hh, mm));
+  }
+  const [y, mo, d] = dateIso.split("-").map(Number);
+  const [h, m] = time.split(":").map(Number);
+  const wall = new Date(Date.UTC(y, mo - 1, d, h, m));
+  const getParts = (dt: Date) => {
+    const parts: Record<string, number> = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(dt).forEach((p) => {
+      if (p.type !== "literal") parts[p.type] = Number(p.value);
+    });
+    return parts;
+  };
+  let current = wall;
+  for (let i = 0; i < 4; i++) {
+    const p = getParts(current);
+    const tzLocal = new Date(Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second));
+    const diff = wall.getTime() - tzLocal.getTime();
+    if (Math.abs(diff) < 1000) break;
+    current = new Date(current.getTime() + diff);
+  }
+  return current;
+}
+
+const formatDateLong = (dateStr: string, time: string, timeZone?: string | null) => {
+  if (!timeZone || timeZone === "UTC") {
+    const [y, m, d] = dateStr.split("-").map((n) => Number(n));
+    if (!y || !m || !d) return dateStr;
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+    }).format(dt);
+  }
+  const dt = localToUtc(dateStr, time, timeZone);
   return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    timeZone,
   }).format(dt);
 };
+
+// --- Simple in-memory IP rate limiting: max 5 booking attempts per IP per hour ---
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const rateBuckets = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const hits = (rateBuckets.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  hits.push(now);
+  rateBuckets.set(ip, hits);
+  if (rateBuckets.size > 5000) {
+    for (const [k, v] of rateBuckets) {
+      if (!v.some((t) => now - t < RATE_LIMIT_WINDOW_MS)) rateBuckets.delete(k);
+    }
+  }
+  return hits.length > RATE_LIMIT_MAX;
+}
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  const clientIp =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("cf-connecting-ip") ||
+    "unknown";
+  if (req.method === "POST" && isRateLimited(clientIp)) {
+    return json({ error: "Too many booking attempts. Please try again later." }, 429);
   }
 
   if (req.method !== "POST") {
@@ -332,6 +398,20 @@ serve(async (req: Request) => {
       );
     }
 
+    // In-app + push notification for the business
+    try {
+      const serviceNames = services.map((s: { name?: string | null }) => s?.name).filter(Boolean).join(", ");
+      await supabase.from("notifications").insert({
+        user_id: payload.businessId,
+        type: "booking_created",
+        title: "New booking",
+        body: `${payload.customerName} booked ${serviceNames || "a service"} on ${formatDateLong(payload.appointmentDate, payload.appointmentTime, profile.timezone)} at ${payload.appointmentTime}`,
+        appointment_id: appointment.id,
+      });
+    } catch (notifErr) {
+      console.error("Booking notification insert failed:", notifErr);
+    }
+
     // Fetch stylist details if present
     let stylistName: string | undefined;
     let stylistTitle: string | undefined;
@@ -354,36 +434,18 @@ serve(async (req: Request) => {
 
     // Fire-and-forget confirmation email + SMS
     try {
-      const ANON = Deno.env.get("SUPABASE_ANON_KEY") || "";
+      const FUNCTION_SECRET = Deno.env.get("FUNCTION_SECRET") || "";
       await fetch(
         `${SUPABASE_URL}/functions/v1/send-booking-confirmation`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${ANON}`,
-            apikey: ANON,
+            "x-functions-secret": FUNCTION_SECRET,
           },
           body: JSON.stringify({
-            userId: payload.businessId,
-            customerEmail: payload.customerEmail,
-            customerName: payload.customerName,
-            customerPhone: payload.customerPhone ?? undefined,
-            businessName: profile.business_name || profile.full_name,
-            serviceName: primaryService.name || "Service",
-            appointmentDate: formatDateLong(payload.appointmentDate),
-            appointmentTime: payload.appointmentTime,
-            price: services.reduce(
-              (sum: number, s: { price?: number | null }) => sum + (s?.price || 0),
-              0,
-            ),
-            notes: notesText || undefined,
-            bookingId: appointment.id?.toString().substring(0, 8),
+            cancelToken: appointment.cancel_token,
             accentColor: payload.accentColor || profile.brand_color || "#2563eb",
-            stylistName,
-            stylistTitle,
-            senderEmail: senderProfile?.sender_email || "noreply@cutzioo.com",
-            senderName: senderProfile?.sender_name || senderProfile?.business_name || senderProfile?.full_name || "Cutzioo",
           }),
         },
       );

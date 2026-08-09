@@ -1,5 +1,6 @@
-import { Calendar, Users, Settings, Home, Package, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Bookmark, Crown, AlertCircle } from "lucide-react";
+import { Calendar, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Crown, AlertCircle } from "lucide-react";
 import logoMark from "@/assets/logo-mark.webp";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   Sidebar,
   SidebarContent,
@@ -16,7 +17,7 @@ import {
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,11 +59,6 @@ const mainItems = [
     title: "Stylists",
     url: "/stylists",
     icon: UserCheck,
-  },
-  {
-    title: "Products",
-    url: "/products",
-    icon: Package,
   },
   {
     title: "Teams",
@@ -130,7 +126,7 @@ export function AppSidebar() {
       <SidebarGroupContent>
         <SidebarMenu className="space-y-1">
           {items.map((item) => {
-            const isActive = location.pathname === item.url;
+            const isActive = location.pathname === item.url || location.pathname.startsWith(item.url);
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
@@ -162,11 +158,16 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className="bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out"
+      className="bg-sidebar border-r-0 transition-all duration-300 ease-in-out [&>div]:border-r-0"
       collapsible="icon"
     >
       <SidebarHeader className="p-2 border-b border-sidebar-border">
-        {isMobile && <SidebarTrigger className="lg:hidden mb-2" />}
+        {isMobile && (
+          ((user?.user_metadata as any)?.role === "client"
+            ? <SidebarTrigger className="lg:hidden mb-2" />
+            : <div className="mb-2"><NotificationBell /></div>
+          )
+        )}
         {sidebar.state !== "collapsed" && (
           <div className="px-2 py-2 rounded-xl bg-sidebar-accent/50 border border-sidebar-border transition-all duration-200 flex items-center gap-2 min-h-[42px]">
             <img src={logoMark} alt="Logo" className="h-8 w-8 rounded-lg object-contain shrink-0" />
@@ -211,25 +212,29 @@ export function AppSidebar() {
         {/* Remember Me Indicator */}
         {sidebar.state !== "collapsed" && (
           <div className="flex items-center gap-2 px-2 py-1.5 mb-2 text-xs text-muted-foreground">
-            <Bookmark className="h-3 w-3" />
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-black/60 shrink-0">
+              <img src="/ios-checkmark.svg" alt="" className="h-3 w-3 invert" />
+            </span>
             <span>Remember: {localStorage.getItem('rememberMe') === 'true' ? 'On' : 'Off'}</span>
           </div>
         )}
         {sidebar.state === "collapsed" && localStorage.getItem('rememberMe') === 'true' && (
           <div className="flex justify-center mb-2">
-            <Bookmark className="h-3 w-3 text-green-500" />
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-black/60">
+              <img src="/ios-checkmark.svg" alt="" className="h-3 w-3 invert" />
+            </span>
           </div>
         )}
         {sidebar.state !== "collapsed" ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/40 border border-sidebar-border cursor-pointer hover:bg-sidebar-accent/60 transition-colors">
-                <Avatar className="h-7 w-7 border border-sidebar-border">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-sidebar-ring/80 text-white font-semibold">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  src={user?.user_metadata?.avatar_url}
+                  name={userInitials}
+                  className="h-7 w-7"
+                  isBordered
+                />
                 <div className="flex-1 overflow-hidden">
                   {userName && <p className="font-medium text-sm text-foreground truncate">{userName}</p>}
                   {user?.email && (
@@ -247,27 +252,33 @@ export function AppSidebar() {
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-[#e11d48] focus:text-[#e11d48]">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
+              {user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-[#e11d48] focus:text-[#e11d48]">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <div className="space-y-3">
-            <Avatar className="h-8 w-8 mx-auto border border-blue-100">
-              <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-rose-100 text-rose-600 font-semibold text-xs">
-                {userInitials}
-              </AvatarFallback>
-            </Avatar>
-            <button
-              onClick={handleSignOut}
-              className="w-full flex justify-center p-2 rounded-md text-[#e11d48] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <Avatar
+              src={user?.user_metadata?.avatar_url}
+              name={userInitials}
+              className="h-8 w-8 mx-auto"
+              isBordered
+            />
+            {user && (
+              <button
+                onClick={handleSignOut}
+                className="w-full flex justify-center p-2 rounded-md text-[#e11d48] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </SidebarFooter>

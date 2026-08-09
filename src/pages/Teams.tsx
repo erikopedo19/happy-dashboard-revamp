@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
 
 interface Team {
@@ -96,7 +96,7 @@ const Teams = () => {
 
   // Fetch stylists
   const { data: stylists = [] } = useQuery<Stylist[]>({
-    queryKey: ["stylists", user?.id],
+    queryKey: ["stylists-team", user?.id],
     queryFn: async () => {
       if (!user) return [];
       try {
@@ -104,7 +104,8 @@ const Teams = () => {
         const result = await (db
           .from("stylists")
           .select("id, name, avatar_url, title") as any)
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .is("deleted_at", null);
         const { data, error } = result as any;
         
         if (error) {
@@ -340,7 +341,7 @@ const Teams = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-[#F5F5F7] dark:bg-[#0c0c0c]">
+      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
         <AppSidebar />
         <main className="flex-1">
           <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] p-4 lg:hidden">
@@ -365,7 +366,7 @@ const Teams = () => {
                 </p>
               </div>
               <Button
-                onClick={() => setIsCreateDialogOpen(true)}
+                onPress={() => setIsCreateDialogOpen(true)}
                 className="h-10 rounded-full bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] hover:bg-[#1C1C1E]/90 dark:hover:bg-white/90 px-5 font-medium text-sm"
               >
                 <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
@@ -387,7 +388,7 @@ const Teams = () => {
                   Create a team to group stylists, share schedules, and track performance together.
                 </p>
                 <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
+                  onPress={() => setIsCreateDialogOpen(true)}
                   className="mt-6 h-10 rounded-full bg-[#e11d48] hover:bg-[#e11d48]/90 text-white px-5"
                 >
                   <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
@@ -444,12 +445,13 @@ const Teams = () => {
                             {teamMembers.length > 0 ? (
                               <div className="flex -space-x-2">
                                 {teamMembers.map((m) => (
-                                  <Avatar key={m.id} className="h-7 w-7 border-2 border-white dark:border-[#1C1C1E]">
-                                    <AvatarImage src={m.stylist?.avatar_url || undefined} />
-                                    <AvatarFallback className="text-[10px] bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white">
-                                      {m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
-                                    </AvatarFallback>
-                                  </Avatar>
+                                  <Avatar
+                                    key={m.id}
+                                    src={m.stylist?.avatar_url || undefined}
+                                    name={m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
+                                    className="h-7 w-7"
+                                    isBordered
+                                  />
                                 ))}
                                 {memberCount > teamMembers.length && (
                                   <div className="h-7 w-7 rounded-full bg-[#F5F5F7] dark:bg-[#2C2C2E] border-2 border-white dark:border-[#1C1C1E] flex items-center justify-center text-[10px] font-semibold text-[#8E8E93]">
@@ -463,9 +465,9 @@ const Teams = () => {
                           </div>
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="light"
                             className="h-8 rounded-full text-xs font-medium text-[#1C1C1E] dark:text-white hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E]"
-                            onClick={() => {
+                            onPress={() => {
                               setSelectedTeam(team);
                               setIsAddMemberDialogOpen(true);
                             }}
@@ -503,7 +505,7 @@ const Teams = () => {
                 <p className="text-sm font-medium">{selectedTeam?.name || "Select a team"}</p>
                 <p className="text-xs text-muted-foreground">Pending invites will show in Settings → Notifications.</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setIsInviteDialogOpen(true)}>
+              <Button variant="bordered" size="sm" onPress={() => setIsInviteDialogOpen(true)}>
                 Invite by email
               </Button>
             </div>
@@ -532,10 +534,11 @@ const Teams = () => {
                           );
                         }}
                       />
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={stylist.avatar_url || undefined} alt={stylist.name} />
-                        <AvatarFallback>{stylist.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
+                      <Avatar
+                        src={stylist.avatar_url || undefined}
+                        name={stylist.name?.slice(0, 2).toUpperCase()}
+                        className="h-8 w-8"
+                      />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{stylist.name}</p>
                         <p className="text-xs text-muted-foreground">{stylist.title || "Stylist"}</p>
@@ -552,10 +555,10 @@ const Teams = () => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(false)}>
+            <Button variant="bordered" onPress={() => setIsAddMemberDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddMembers} disabled={!selectedTeam || selectedStylistIds.length === 0 || addMembersMutation.isPending}>
+            <Button onPress={handleAddMembers} isDisabled={!selectedTeam || selectedStylistIds.length === 0 || addMembersMutation.isPending}>
               {addMembersMutation.isPending ? "Adding..." : "Add selected"}
             </Button>
           </DialogFooter>
@@ -611,10 +614,10 @@ const Teams = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="bordered" onPress={() => setIsCreateDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateTeam} disabled={!formData.name}>
+            <Button onPress={handleCreateTeam} isDisabled={!formData.name}>
               Create Team
             </Button>
           </DialogFooter>
@@ -665,16 +668,15 @@ const Teams = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="bordered" onPress={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateTeam} disabled={!formData.name}>
+            <Button onPress={handleUpdateTeam} isDisabled={!formData.name}>
               Update Team
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <MobileDock />
     </SidebarProvider>
   );
 };

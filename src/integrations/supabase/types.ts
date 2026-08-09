@@ -14,13 +14,46 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_blocked_slots: {
+        Row: {
+          blocked_date: string
+          created_at: string
+          end_time: string
+          id: string
+          reason: string | null
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string
+          end_time: string
+          id?: string
+          reason?: string | null
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          reason?: string | null
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agenda_settings: {
         Row: {
           created_at: string | null
           end_hour: string | null
           id: string
           "public.brand_profiles": string | null
-          service_duration: number | null
+          service_duration: number
           start_hour: string | null
           updated_at: string | null
           user_id: string
@@ -31,7 +64,7 @@ export type Database = {
           end_hour?: string | null
           id?: string
           "public.brand_profiles"?: string | null
-          service_duration?: number | null
+          service_duration?: number
           start_hour?: string | null
           updated_at?: string | null
           user_id: string
@@ -42,7 +75,7 @@ export type Database = {
           end_hour?: string | null
           id?: string
           "public.brand_profiles"?: string | null
-          service_duration?: number | null
+          service_duration?: number
           start_hour?: string | null
           updated_at?: string | null
           user_id?: string
@@ -75,10 +108,13 @@ export type Database = {
           cancel_token: string | null
           created_at: string
           customer_id: string
+          discount_percent: number
           id: string
           notes: string | null
           org_id: string | null
+          original_price: number | null
           price: number | null
+          review_email_sent_at: string | null
           service_id: string
           status: string | null
           stylist_id: string | null
@@ -91,10 +127,13 @@ export type Database = {
           cancel_token?: string | null
           created_at?: string
           customer_id: string
+          discount_percent?: number
           id?: string
           notes?: string | null
           org_id?: string | null
+          original_price?: number | null
           price?: number | null
+          review_email_sent_at?: string | null
           service_id: string
           status?: string | null
           stylist_id?: string | null
@@ -107,10 +146,13 @@ export type Database = {
           cancel_token?: string | null
           created_at?: string
           customer_id?: string
+          discount_percent?: number
           id?: string
           notes?: string | null
           org_id?: string | null
+          original_price?: number | null
           price?: number | null
+          review_email_sent_at?: string | null
           service_id?: string
           status?: string | null
           stylist_id?: string | null
@@ -126,11 +168,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["customer_exists"]
+          },
+          {
             foreignKeyName: "appointments_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
           },
           {
             foreignKeyName: "appointments_service_id_fkey"
@@ -147,6 +203,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      banners: {
+        Row: {
+          active: boolean
+          auto_dismiss: number | null
+          button_link: string | null
+          button_text: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          dismissable: boolean
+          gradient_colors: Json | null
+          id: string
+          priority: number
+          title: string
+          updated_at: string
+          variant: string
+        }
+        Insert: {
+          active?: boolean
+          auto_dismiss?: number | null
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dismissable?: boolean
+          gradient_colors?: Json | null
+          id?: string
+          priority?: number
+          title: string
+          updated_at?: string
+          variant?: string
+        }
+        Update: {
+          active?: boolean
+          auto_dismiss?: number | null
+          button_link?: string | null
+          button_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dismissable?: boolean
+          gradient_colors?: Json | null
+          id?: string
+          priority?: number
+          title?: string
+          updated_at?: string
+          variant?: string
+        }
+        Relationships: []
       }
       brand_profiles_raw: {
         Row: {
@@ -348,6 +455,57 @@ export type Database = {
         }
         Relationships: []
       }
+      fake_barbershops: {
+        Row: {
+          avatar_url: string | null
+          banner_url: string | null
+          brand_color: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          id: string
+          latitude: number | null
+          locale: string | null
+          longitude: number | null
+          name: string
+          rating: number | null
+          rating_count: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          brand_color?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude?: number | null
+          locale?: string | null
+          longitude?: number | null
+          name: string
+          rating?: number | null
+          rating_count?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          brand_color?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude?: number | null
+          locale?: string | null
+          longitude?: number | null
+          name?: string
+          rating?: number | null
+          rating_count?: number | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -391,6 +549,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marketing_email_log: {
+        Row: {
+          campaign: string
+          created_at: string
+          id: string
+          period: string
+          recipient_email: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          campaign: string
+          created_at?: string
+          id?: string
+          period?: string
+          recipient_email: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          campaign?: string
+          created_at?: string
+          id?: string
+          period?: string
+          recipient_email?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       memberships: {
         Row: {
@@ -457,6 +645,69 @@ export type Database = {
           sms_body?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      microsites: {
+        Row: {
+          about: string | null
+          address: string | null
+          created_at: string
+          facebook: string | null
+          gallery: Json
+          headline: string | null
+          hero_url: string | null
+          hours: string | null
+          id: string
+          instagram: string | null
+          logo_url: string | null
+          published: boolean
+          tagline: string | null
+          theme: string
+          tiktok: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          about?: string | null
+          address?: string | null
+          created_at?: string
+          facebook?: string | null
+          gallery?: Json
+          headline?: string | null
+          hero_url?: string | null
+          hours?: string | null
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          published?: boolean
+          tagline?: string | null
+          theme?: string
+          tiktok?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          about?: string | null
+          address?: string | null
+          created_at?: string
+          facebook?: string | null
+          gallery?: Json
+          headline?: string | null
+          hero_url?: string | null
+          hours?: string | null
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          published?: boolean
+          tagline?: string | null
+          theme?: string
+          tiktok?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -567,99 +818,144 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms: boolean | null
           accepts_waitlist: boolean | null
           address: string | null
           ask_notes: boolean | null
           ask_phone: boolean | null
+          auto_review_emails: boolean
           avatar_url: string | null
           banner_url: string | null
           booking_link: string | null
+          booking_locale: string
           booking_theme: string | null
           brand_color: string | null
           business_name: string | null
           created_at: string
+          currency: string
+          dark_mode: boolean | null
+          deleted_at: string | null
           description: string | null
           email_template_html: string | null
+          freelancer_mode: boolean
           full_name: string | null
           google_maps_url: string | null
+          heard_from: string | null
           id: string
           is_public: boolean | null
           latitude: number | null
           longitude: number | null
+          loyalty_discount_enabled: boolean
+          loyalty_discount_percent: number
           notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
           phone: string | null
           rating: number | null
           rating_count: number | null
+          review_email_delay_hours: number
+          role: string | null
           sender_email: string | null
           sender_name: string | null
+          show_public_reviews: boolean | null
           timezone: string | null
           updated_at: string
           website: string | null
+          website_design_requested: boolean | null
+          welcome_email_sent: boolean
           years_experience: number | null
         }
         Insert: {
+          accepted_terms?: boolean | null
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
+          auto_review_emails?: boolean
           avatar_url?: string | null
           banner_url?: string | null
           booking_link?: string | null
+          booking_locale?: string
           booking_theme?: string | null
           brand_color?: string | null
           business_name?: string | null
           created_at?: string
+          currency?: string
+          dark_mode?: boolean | null
+          deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
+          freelancer_mode?: boolean
           full_name?: string | null
           google_maps_url?: string | null
+          heard_from?: string | null
           id: string
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          loyalty_discount_enabled?: boolean
+          loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
+          review_email_delay_hours?: number
+          role?: string | null
           sender_email?: string | null
           sender_name?: string | null
+          show_public_reviews?: boolean | null
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          website_design_requested?: boolean | null
+          welcome_email_sent?: boolean
           years_experience?: number | null
         }
         Update: {
+          accepted_terms?: boolean | null
           accepts_waitlist?: boolean | null
           address?: string | null
           ask_notes?: boolean | null
           ask_phone?: boolean | null
+          auto_review_emails?: boolean
           avatar_url?: string | null
           banner_url?: string | null
           booking_link?: string | null
+          booking_locale?: string
           booking_theme?: string | null
           brand_color?: string | null
           business_name?: string | null
           created_at?: string
+          currency?: string
+          dark_mode?: boolean | null
+          deleted_at?: string | null
           description?: string | null
           email_template_html?: string | null
+          freelancer_mode?: boolean
           full_name?: string | null
           google_maps_url?: string | null
+          heard_from?: string | null
           id?: string
           is_public?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          loyalty_discount_enabled?: boolean
+          loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
+          review_email_delay_hours?: number
+          role?: string | null
           sender_email?: string | null
           sender_name?: string | null
+          show_public_reviews?: boolean | null
           timezone?: string | null
           updated_at?: string
           website?: string | null
+          website_design_requested?: boolean | null
+          welcome_email_sent?: boolean
           years_experience?: number | null
         }
         Relationships: []
@@ -731,6 +1027,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
@@ -759,7 +1062,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           deleted_at?: string | null
-          duration: number
+          duration?: number
           icon?: string | null
           id?: string
           name: string
@@ -792,6 +1095,54 @@ export type Database = {
           },
         ]
       }
+      stories: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          expires_at: string
+          id: string
+          media_path: string
+          media_type: string
+          music_artist: string | null
+          music_artwork_url: string | null
+          music_preview_url: string | null
+          music_title: string | null
+          music_track_id: string | null
+          user_id: string
+          views_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          expires_at?: string
+          id?: string
+          media_path: string
+          media_type: string
+          music_artist?: string | null
+          music_artwork_url?: string | null
+          music_preview_url?: string | null
+          music_title?: string | null
+          music_track_id?: string | null
+          user_id: string
+          views_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          expires_at?: string
+          id?: string
+          media_path?: string
+          media_type?: string
+          music_artist?: string | null
+          music_artwork_url?: string | null
+          music_preview_url?: string | null
+          music_title?: string | null
+          music_track_id?: string | null
+          user_id?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       stylist_services: {
         Row: {
           created_at: string | null
@@ -819,6 +1170,13 @@ export type Database = {
             foreignKeyName: "stylist_services_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
+          },
+          {
+            foreignKeyName: "stylist_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
             referencedRelation: "services"
             referencedColumns: ["id"]
           },
@@ -836,6 +1194,7 @@ export type Database = {
           avatar_url: string | null
           bookings_today: number | null
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_public: boolean | null
           name: string
@@ -852,6 +1211,7 @@ export type Database = {
           avatar_url?: string | null
           bookings_today?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_public?: boolean | null
           name: string
@@ -868,6 +1228,7 @@ export type Database = {
           avatar_url?: string | null
           bookings_today?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_public?: boolean | null
           name?: string
@@ -1036,6 +1397,30 @@ export type Database = {
           },
         ]
       }
+      time_off: {
+        Row: {
+          created_at: string
+          id: string
+          off_date: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          off_date: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          off_date?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       brand_profiles: {
@@ -1059,13 +1444,65 @@ export type Database = {
         }
         Relationships: []
       }
+      diag_orphaned_appointments: {
+        Row: {
+          appointment_date: string | null
+          appointment_time: string | null
+          customer_exists: string | null
+          customer_id: string | null
+          customer_issue: string | null
+          id: string | null
+          service_exists: string | null
+          service_id: string | null
+          service_issue: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["customer_exists"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
+      cancel_appointment_by_barber: {
+        Args: { _appointment_id: string }
+        Returns: Json
+      }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
+      clean_booking_link: { Args: { raw: string }; Returns: string }
+      clean_display_name: { Args: { raw: string }; Returns: string }
+      cleanup_expired_stories: { Args: never; Returns: undefined }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_pending_services: { Args: never; Returns: undefined }
+      cleanup_pending_stylists: { Args: never; Returns: undefined }
       create_public_booking: {
         Args: {
           p_appointment_date: string
@@ -1076,10 +1513,21 @@ export type Database = {
           p_customer_phone: string
           p_notes?: string
           p_service_id: string
+          p_stylist_id?: string
         }
         Returns: Json
       }
       create_workspace: { Args: { workspace_name: string }; Returns: Json }
+      ensure_profile_identity: {
+        Args: {
+          p_avatar_url?: string
+          p_banner_url?: string
+          p_business_name?: string
+          p_full_name?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       expire_waitlist_offers: { Args: never; Returns: undefined }
       generate_org_slug: { Args: { org_name: string }; Returns: string }
       get_appointment_by_token: { Args: { _token: string }; Returns: Json }
@@ -1087,8 +1535,19 @@ export type Database = {
         Args: { _business_id: string; _date: string }
         Returns: {
           appointment_time: string
+          service_duration: number
           service_id: string
+          stylist_id: string
         }[]
+      }
+      get_business_analytics_summary: {
+        Args: { _business_id: string; _end_date: string; _start_date: string }
+        Returns: Json
+      }
+      get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
+      get_mobile_dashboard_metrics: {
+        Args: { p_today?: string }
+        Returns: Json
       }
       get_my_bookings: {
         Args: never
@@ -1105,14 +1564,46 @@ export type Database = {
           status: string
         }[]
       }
+      get_pending_review_requests: {
+        Args: never
+        Returns: {
+          appointment_date: string
+          appointment_id: string
+          appointment_time: string
+          brand_color: string
+          business_id: string
+          business_name: string
+          cancel_token: string
+          customer_email: string
+          customer_name: string
+          sender_email: string
+          sender_name: string
+          service_name: string
+        }[]
+      }
+      get_public_agenda_settings: {
+        Args: { _user_id: string }
+        Returns: {
+          end_hour: string
+          service_duration: number
+          start_hour: string
+          user_id: string
+          working_days: number[]
+        }[]
+      }
       get_public_profile_by_booking_link: {
         Args: { _booking_link: string }
         Returns: {
           address: string
+          ask_notes: boolean
+          ask_phone: boolean
           avatar_url: string
           banner_url: string
           booking_link: string
+          booking_locale: string
+          booking_theme: string
           brand_color: string
+          currency: string
           description: string
           full_name: string
           id: string
@@ -1122,7 +1613,6 @@ export type Database = {
           services_count: number
           stylists_count: number
           total_bookings: number
-          years_experience: number
         }[]
       }
       get_public_stylist_services: {
@@ -1142,10 +1632,36 @@ export type Database = {
           reviewer_name: string
         }[]
       }
+      get_time_off_dates: {
+        Args: { _user_id: string }
+        Returns: {
+          off_date: string
+        }[]
+      }
+      get_total_bookings: { Args: never; Returns: number }
+      get_user_appointments: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
+      increment_story_views: { Args: { _story_id: string }; Returns: Json }
+      is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_creator: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_owner: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_super_admin: { Args: never; Returns: boolean }
       join_cancellation_waitlist: {
         Args: { _barber_id: string }
         Returns: Json
       }
+      list_active_stories: { Args: never; Returns: Json }
       list_public_profiles: {
         Args: never
         Returns: {
@@ -1153,6 +1669,7 @@ export type Database = {
           banner_url: string
           booking_link: string
           brand_color: string
+          business_name: string
           description: string
           full_name: string
           id: string
@@ -1163,10 +1680,37 @@ export type Database = {
         }[]
       }
       list_public_shops: { Args: never; Returns: Json }
+      list_today_booking_counts: {
+        Args: never
+        Returns: {
+          count: number
+          user_id: string
+        }[]
+      }
+      mark_review_email_sent: {
+        Args: { _appointment_id: string }
+        Returns: undefined
+      }
+      marketing_email_candidates: {
+        Args: { _limit?: number }
+        Returns: {
+          campaign: string
+          cancelled_appointments: number
+          full_name: string
+          month_appointments: number
+          period: string
+          priority: number
+          total_appointments: number
+          user_id: string
+          weekly_counts: Json
+        }[]
+      }
+      marketing_emails_sent_today: { Args: never; Returns: number }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json
       }
+      soft_delete_account: { Args: { _user_id: string }; Returns: Json }
       submit_review: {
         Args: { _cancel_token: string; _comment?: string; _rating: number }
         Returns: Json

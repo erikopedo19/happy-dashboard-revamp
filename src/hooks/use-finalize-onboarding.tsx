@@ -17,8 +17,13 @@ export function useFinalizeOnboarding() {
   const navigate = useNavigate();
   const location = useLocation();
   const ran = useRef(false);
+  const lastPath = useRef(location.pathname);
 
   useEffect(() => {
+    if (lastPath.current !== location.pathname) {
+      lastPath.current = location.pathname;
+      ran.current = false;
+    }
     if (!user || ran.current) return;
 
     const raw = (() => {
@@ -41,8 +46,7 @@ export function useFinalizeOnboarding() {
           if (draft.clientFullName?.trim()) {
             await supabase
               .from("profiles")
-              .update({ full_name: draft.clientFullName.trim(), updated_at: new Date().toISOString() } as any)
-              .eq("id", user.id);
+              .upsert({ id: user.id, full_name: draft.clientFullName.trim(), updated_at: new Date().toISOString() } as any);
           }
           localStorage.removeItem(ONBOARDING_STORAGE_KEY);
           toast.success("Welcome to Cutzio!");
@@ -50,24 +54,94 @@ export function useFinalizeOnboarding() {
           return;
         }
 
-        // 2. Profile (barber)
+        // 2. Team invite (if barber pasted an invite link/code)
+        const rawInvite = (draft.teamInviteCode || "").trim();
+        if (rawInvite) {
+          // Accept full URLs or bare tokens: pull the last path/query segment.
+          const token = (() => {
+            try {
+              const url = new URL(rawInvite);
+              const qsToken = url.searchParams.get("token") || url.searchParams.get("code");
+              if (qsToken) return qsToken.trim();
+              const segs = url.pathname.split("/").filter(Boolean);
+              return segs[segs.length - 1] || rawInvite;
+            } catch {
+              return rawInvite;
+            }
+          })();
+
+          try {
+            const { data: res, error } = await (supabase as any).rpc("accept_invitation", { token_str: token });
+            if (error) throw error;
+            if (res?.success) {
+              localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+              toast.success("You've joined the team!");
+              navigate("/admin", { replace: true });
+              return;
+            }
+            toast.error("Invite couldn't be applied", { description: res?.error || "Continuing as solo — ask your owner for a fresh invite link." });
+          } catch (e: any) {
+            toast.error("Invalid invite link", { description: e?.message || "Continuing as solo — ask your owner for a fresh invite link." });
+          }
+        }
+
+        // 3. Profile (barber)
         const fullAddress = [draft.address, draft.city].filter(Boolean).join(", ");
         const years = parseInt(draft.yearsExperience) || null;
+        const cleanSlug = (raw: string) =>
+          raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+        const desiredSlug = cleanSlug(draft.bookingLink || draft.businessName || "");
+
+        // Ensure the booking link is unique; append -2, -3... if taken.
+        let finalSlug: string | null = null;
+        if (desiredSlug) {
+          finalSlug = desiredSlug;
+          for (let i = 0; i < 10; i++) {
+            const { data: taken } = await (supabase as any)
+              .from("profiles")
+              .select("id")
+              .eq("booking_link", finalSlug)
+              .neq("id", user.id)
+              .maybeSingle();
+            if (!taken) break;
+            finalSlug = `${desiredSlug}-${i + 2}`;
+          }
+        }
 
         await supabase
           .from("profiles")
-          .update({
+          .upsert({
+            id: user.id,
             full_name: draft.businessName || undefined,
             business_name: draft.businessName || undefined,
             address: fullAddress || null,
             description: draft.description || null,
             years_experience: years,
             is_public: true,
+            booking_link: finalSlug ?? undefined,
+            booking_locale: draft.appLanguage || "en",
+            currency: (draft as any).currency || "EUR",
             accepts_waitlist: !!draft.acceptsWaitlist,
+            heard_from: draft.heardFrom || null,
             onboarding_completed: true,
             updated_at: new Date().toISOString(),
-          } as any)
-          .eq("id", user.id);
+          } as any);
+
+        // 3b. Stylists (from onboarding)
+        if (draft.stylists?.length) {
+          try {
+            await supabase.from("stylists").insert(
+              draft.stylists.map((s) => ({
+                user_id: user.id,
+                name: s.name,
+                title: s.title || "Stylist",
+                is_public: true,
+              }))
+            );
+          } catch (err) {
+            console.warn("Stylist insert failed", err);
+          }
+        }
 
         // 3. Services
         if (draft.services?.length) {

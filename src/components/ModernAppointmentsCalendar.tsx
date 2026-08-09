@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useForm } from 'react-hook-form';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from '@tanstack/react-query';
+import { cn } from "@/lib/utils";
 
 // Simple RadialMenu replacement - just renders children with right-click menu
 const RadialMenu = ({ children, menuItems, onSelect }: {
@@ -116,6 +117,10 @@ export const ModernAppointmentsCalendar = ({
     user
   } = useAuth();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentDay = format(now, 'yyyy-MM-dd');
   const [isLongPressing, setIsLongPressing] = useState(false);
 
   // Fetch agenda settings for dynamic time slots
@@ -177,18 +182,11 @@ export const ModernAppointmentsCalendar = ({
     weekStartsOn: 1
   });
   const weekDays = useMemo(() => {
-    const days = eachDayOfInterval({
+    return eachDayOfInterval({
       start: startOfCurrentWeek,
       end: endOfCurrentWeek
     });
-
-    const workingDays = agendaSettings?.working_days;
-    if (!workingDays || workingDays.length === 0) {
-      return days;
-    }
-
-    return days.filter(day => workingDays.includes(day.getDay()));
-  }, [startOfCurrentWeek, endOfCurrentWeek, agendaSettings?.working_days]);
+  }, [startOfCurrentWeek, endOfCurrentWeek]);
   const handlePreviousWeek = () => {
     setCurrentWeek(subWeeks(currentWeek, 1));
   };
@@ -231,27 +229,30 @@ export const ModernAppointmentsCalendar = ({
     return Math.ceil(serviceDuration / slotDuration);
   };
 
-  // Check if a slot is occupied by a spanning appointment from an earlier slot
-  const isSlotOccupied = (date: Date, time: string) => {
+  // Precompute all date|time slots that are spanned by an earlier appointment
+  const occupiedSlots = useMemo(() => {
+    const set = new Set<string>();
     const slotDuration = agendaSettings?.service_duration || 60;
-    const currentSlotIndex = timeSlots.indexOf(time);
-    if (currentSlotIndex === -1) return false;
-
-    // Check previous slots to see if any appointments span into this slot
-    for (let i = 0; i < currentSlotIndex; i++) {
-      const prevTime = timeSlots[i];
-      const prevAppointments = getAppointmentsForDateTime(date, prevTime);
-
-      for (const apt of prevAppointments) {
-        const span = getSlotSpan(apt);
-        const aptSlotIndex = timeSlots.indexOf(prevTime);
-        // If this appointment spans into the current slot
-        if (aptSlotIndex + span > currentSlotIndex) {
-          return true;
+    for (const [key, appts] of appointmentMap.entries()) {
+      const [dateStr, time] = key.split("|");
+      const startIndex = timeSlots.indexOf(time);
+      if (startIndex === -1) continue;
+      for (const apt of appts) {
+        const serviceDuration = apt.totalDurationMinutes || apt.service.duration;
+        const span = Math.ceil(serviceDuration / slotDuration);
+        for (let i = 1; i < span; i++) {
+          const nextIndex = startIndex + i;
+          if (nextIndex >= timeSlots.length) break;
+          set.add(`${dateStr}|${timeSlots[nextIndex]}`);
         }
       }
     }
-    return false;
+    return set;
+  }, [appointmentMap, timeSlots, agendaSettings?.service_duration]);
+
+  const isSlotOccupied = (date: Date, time: string) => {
+    const key = `${format(date, "yyyy-MM-dd")}|${time.slice(0, 5)}`;
+    return occupiedSlots.has(key);
   };
   const toggleBreakSlot = (date: Date, time: string) => {
     const key = `${format(date, 'yyyy-MM-dd')}|${time}`;
@@ -363,6 +364,33 @@ export const ModernAppointmentsCalendar = ({
       });
     }
   };
+  const getServiceDotColor = (service: Service) => {
+    if (service.color?.startsWith('#')) return service.color;
+    const colorMap: Record<string, string> = {
+      'bg-blue-50': '#3b82f6', 'bg-blue-500': '#3b82f6',
+      'bg-emerald-50': '#10b981', 'bg-emerald-500': '#10b981',
+      'bg-purple-50': '#8b5cf6', 'bg-purple-500': '#8b5cf6',
+      'bg-teal-50': '#14b8a6', 'bg-teal-500': '#14b8a6',
+      'bg-pink-50': '#ec4899', 'bg-pink-500': '#ec4899',
+      'bg-red-50': '#ef4444', 'bg-red-500': '#ef4444',
+      'bg-orange-50': '#f97316', 'bg-orange-500': '#f97316',
+      'bg-yellow-50': '#eab308', 'bg-yellow-500': '#eab308',
+      'bg-indigo-50': '#6366f1', 'bg-indigo-500': '#6366f1',
+      'bg-green-50': '#22c55e', 'bg-green-500': '#22c55e',
+      'bg-cyan-50': '#06b6d4', 'bg-cyan-500': '#06b6d4',
+      'bg-rose-50': '#f43f5e', 'bg-rose-500': '#f43f5e',
+    };
+    return colorMap[service.color] || '#6b7280';
+  };
+
+  const formatTimeLabel12 = (time: string) => {
+    const [h, m] = time.split(':').map(Number);
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    if (m === 0) return `${hour} ${suffix}`;
+    return `${hour}:${m.toString().padStart(2, '0')} ${suffix}`;
+  };
+
   const getServiceGradient = (service: Service) => {
     const gradientMap: {
       [key: string]: string;
@@ -543,9 +571,20 @@ export const ModernAppointmentsCalendar = ({
     setContextMenu({ x: e.clientX, y: e.clientY, appointment });
   };
 
+  const isPastDateTime = (date: Date, time: string) => {
+    const [h, m] = time.split(':').map(Number);
+    const slot = new Date(date);
+    slot.setHours(h, m, 0, 0);
+    return slot.getTime() < Date.now();
+  };
+
   // Handle right click for quick booking
   const handleSlotRightClick = (e: React.MouseEvent, date: Date, time: string) => {
     e.preventDefault();
+    if (isPastDateTime(date, time)) {
+      toast({ title: "Past slot", description: "You can't quick-book a time that has already passed." });
+      return;
+    }
     const appointments = getAppointmentsForDateTime(date, time);
     if (appointments.length === 0 && !isBreakSlot(date, time)) {
       setQuickBookingDate(format(date, 'yyyy-MM-dd'));
@@ -556,6 +595,11 @@ export const ModernAppointmentsCalendar = ({
 
   // Quick booking submission
   const handleQuickBooking = async (data: { customerName: string; serviceId: string }) => {
+    const slot = new Date(`${quickBookingDate}T${quickBookingTime}`);
+    if (slot.getTime() < Date.now()) {
+      toast({ title: "Past slot", description: "You can't book a time that has already passed.", variant: "destructive" });
+      return;
+    }
     try {
       // First create or find customer
       const { data: existingCustomer } = await (supabase as any)
@@ -860,49 +904,60 @@ export const ModernAppointmentsCalendar = ({
         </div>
       ) : (
         /* Day/Detail View Mode */
-        <div className="p-6">
-          <div className="bg-white/40 dark:bg-[#1C1C1E]/40 rounded-2xl border border-gray-200 dark:border-[#2C2C2E] overflow-hidden">
+        <div className="p-4 md:p-6">
+          <div className="bg-[#0A0A0C] rounded-2xl border border-white/[0.08] overflow-hidden">
             {/* Grid Container */}
             <div
               className="grid gap-0"
-              style={{ gridTemplateColumns: `80px repeat(${Math.max(weekDays.length, 1)}, minmax(0, 1fr))` }}
+              style={{ gridTemplateColumns: `72px repeat(${Math.max(weekDays.length, 1)}, minmax(0, 1fr))` }}
             >
               {/* Time Column Header */}
-              <div className="h-[60px] flex items-center justify-center border-b border-r border-gray-200 dark:border-[#2C2C2E] bg-white/50 dark:bg-[#1C1C1E]/60">
-                <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <div className="h-[56px] flex items-center justify-center border-b border-r border-white/[0.08] bg-[#15151A]">
+                <Clock className="h-4 w-4 text-white/40" />
               </div>
 
               {/* Day Headers */}
-              {weekDays.map(day => <div key={day.toISOString()} className="h-[60px] flex flex-col justify-center items-center border-b border-r border-gray-200 dark:border-[#2C2C2E] last:border-r-0 bg-white/50 dark:bg-[#1C1C1E]/60">
-                <div className="text-[14px] font-medium text-gray-800 dark:text-gray-100">
-                  {format(day, 'EEE')}
-                </div>
-                <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
-                  {format(day, 'd')}
-                </div>
-                {isSameDay(day, new Date()) && <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1" />}
-              </div>)}
+              {weekDays.map(day => {
+                const today = isSameDay(day, new Date());
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={cn(
+                      "h-[56px] flex flex-col justify-center items-center border-b border-r border-white/[0.08] last:border-r-0 bg-[#15151A]",
+                      today && "bg-[#FF375F]/10"
+                    )}
+                  >
+                    <div className="text-[15px] font-semibold text-white leading-none">
+                      {format(day, 'd')}
+                    </div>
+                    <div className="text-[10px] font-medium uppercase text-white/50 mt-1">
+                      {format(day, 'EEE')}
+                    </div>
+                    {today && <div className="w-1 h-1 rounded-full bg-[#FF375F] mt-1" />}
+                  </div>
+                );
+              })}
 
               {/* Time Slots Grid */}
               {timeSlots.map((time, index) => (
                 <React.Fragment key={`timeslot-${time}-${index}`}>
                   {/* Time Label */}
-                  <div key={`time-${time}`} className="h-[80px] flex items-center justify-center border-b border-r border-gray-200 dark:border-[#2C2C2E] bg-white/50 dark:bg-[#1C1C1E]/50 last:border-b-0">
-                    <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400">{time}</span>
+                  <div key={`time-${time}`} className="h-[80px] flex items-center justify-center border-b border-r border-white/[0.08] bg-[#15151A] last:border-b-0">
+                    <span className="text-[11px] font-medium text-white/40">{formatTimeLabel12(time)}</span>
                   </div>
 
                   {/* Day Cells */}
                   {weekDays.map(day => {
+                    const dayKey = format(day, 'yyyy-MM-dd');
                     const dayAppointments = getAppointmentsForDateTime(day, time);
                     const hasAppointments = dayAppointments.length > 0;
                     const isBreak = isBreakSlot(day, time);
-                    const isCurrentHour = isSameDay(day, new Date()) && parseInt(time.split(':')[0]) === new Date().getHours();
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const isCurrentHour = dayKey === currentDay && hours === currentHour;
                     const occupied = isSlotOccupied(day, time);
 
                     // Check if this time slot is in the past
-                    const now = new Date();
                     const slotDateTime = new Date(day);
-                    const [hours, minutes] = time.split(':').map(Number);
                     slotDateTime.setHours(hours, minutes, 0, 0);
                     const isPastSlot = slotDateTime < now;
 
@@ -914,70 +969,62 @@ export const ModernAppointmentsCalendar = ({
                       return null;
                     }
 
-                    // Simple slot design - thin lines, gradients, just + for empty
-                    const slotGradient = hasAppointments 
-                      ? 'linear-gradient(135deg, #34c759 0%, #30d158 100%)'
-                      : isBreak
-                        ? 'linear-gradient(135deg, #ff9500 0%, #ff6b00 100%)'
-                        : isPastSlot
-                          ? 'linear-gradient(135deg, #8e8e93 0%, #636366 100%)'
-                          : isCurrentHour
-                            ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
-                            : 'linear-gradient(135deg, #2eadff 0%, #3d83ff 100%)';
+                    const serviceColor = hasAppointments ? getServiceDotColor(dayAppointments[0].service) : '#6b7280';
 
                     return <div
                       key={`${day.toISOString()}-${time}`}
-                      className={`h-[80px] border-r border-b-[0.5px] border-gray-200/50 dark:border-[#2C2C2E]/50 last:border-r-0 p-1 group relative transition-all ${isCurrentHour ? 'bg-[#e11d48]/5 dark:bg-[#e11d48]/10' : ''} ${isBreak ? 'bg-orange-500/5 dark:bg-orange-500/10' : ''} ${isPastSlot ? 'bg-gray-500/5 dark:bg-gray-500/10' : ''}`}
+                      className={cn(
+                        "h-[80px] border-r border-b border-white/[0.06] last:border-r-0 p-1.5 group relative",
+                        isCurrentHour && "bg-[#FF375F]/5",
+                        isPastSlot && "bg-white/[0.02]",
+                        !isCurrentHour && !isPastSlot && "hover:bg-white/[0.03]"
+                      )}
                       style={hasAppointments ? { gridRow: `span ${rowSpan}`, height: `${rowSpan * 80}px` } : {}}
                       onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (hasAppointments) {
-                        handleAppointmentRightClick(e, dayAppointments[0]);
-                      } else if (!isBreak) {
-                        handleSlotRightClick(e, day, time);
-                      } else {
-                        toggleBreakSlot(day, time);
-                      }
-                    }}>
-                      {isCurrentHour && <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-red-500 to-transparent z-10" />}
+                        e.preventDefault();
+                        if (hasAppointments) {
+                          handleAppointmentRightClick(e, dayAppointments[0]);
+                        } else if (!isBreak) {
+                          handleSlotRightClick(e, day, time);
+                        } else {
+                          toggleBreakSlot(day, time);
+                        }
+                      }}
+                    >
+                      {isCurrentHour && <div className="absolute top-0 left-0 right-0 h-[1px] bg-[#FF375F]/40 z-10" />}
 
                       {isBreak ? (
-                        // Break slot - simple diagonal pattern
-                        <div className="w-full h-full rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-l-2 border-orange-500/50 flex items-center justify-center cursor-pointer hover:from-orange-500/15 hover:to-orange-600/10 transition-all">
-                          <div className="absolute inset-0 opacity-10" style={{
-                            backgroundImage: `repeating-linear-gradient(
-                              45deg,
-                              transparent,
-                              transparent 4px,
-                              rgba(255, 149, 0, 0.3) 4px,
-                              rgba(255, 149, 0, 0.3) 8px
-                            )`
-                          }} />
-                          <Coffee className="h-3 w-3 text-orange-500/70" />
+                        // Break slot
+                        <div className="w-full h-full rounded-xl bg-[#FF9500]/10 border border-[#FF9500]/20 flex items-center justify-center cursor-pointer hover:bg-[#FF9500]/15">
+                          <Coffee className="h-3 w-3 text-[#FF9500]/70" />
                         </div>
                       ) : hasAppointments ? (
-                        // Appointment slot - simple card with gradient border
+                        // Appointment slot - dark card with colored service dot
                         <div
-                          className={`w-full h-full rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/5 border-l-2 border-green-500/50 cursor-pointer hover:from-green-500/15 hover:to-green-600/10 transition-all relative overflow-hidden p-2 ${isLongPressing && longPressedId === dayAppointments[0].id ? 'animate-pulse' : ''}`}
+                          className={cn(
+                            "w-full h-full rounded-xl bg-[#1C1C1E] border border-white/[0.08] cursor-pointer hover:bg-[#22222A] relative overflow-hidden p-2",
+                            isLongPressing && longPressedId === dayAppointments[0].id && "animate-pulse"
+                          )}
                           onClick={() => {
                             setSelectedAppointment(dayAppointments[0]);
                             setShowAppointmentDetails(true);
                           }}
                         >
-                          <div className="relative z-10 flex flex-col justify-center h-full">
-                            <div className="text-[11px] font-medium text-gray-800 dark:text-gray-200 leading-tight mb-0.5 truncate">
+                          <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full" style={{ backgroundColor: serviceColor }} />
+                          <div className="relative z-10 flex flex-col justify-center h-full pl-2">
+                            <div className="text-[11px] font-semibold text-white leading-tight mb-0.5 truncate">
                               {dayAppointments[0].service.name}
                             </div>
-                            <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                            <div className="text-[10px] text-white/50 truncate">
                               {dayAppointments[0].customer.name}
                             </div>
-                            <div className="text-[9px] text-gray-500 dark:text-gray-500 mt-0.5">
+                            <div className="text-[9px] text-white/40 mt-0.5">
                               {dayAppointments[0].appointment_time.slice(0, 5)}
                               {rowSpan > 1 && (() => {
                                 const startTime = dayAppointments[0].appointment_time.slice(0, 5);
-                                const [hours, minutes] = startTime.split(':').map(Number);
+                                const [startHours, startMinutes] = startTime.split(':').map(Number);
                                 const startDate = new Date();
-                                startDate.setHours(hours, minutes, 0, 0);
+                                startDate.setHours(startHours, startMinutes, 0, 0);
                                 const endDate = addMinutes(startDate, dayAppointments[0].totalDurationMinutes || dayAppointments[0].service.duration);
                                 return ` - ${format(endDate, 'HH:mm')}`;
                               })()}
@@ -985,19 +1032,16 @@ export const ModernAppointmentsCalendar = ({
                           </div>
                         </div>
                       ) : isPastSlot ? (
-                        // Past slot - disabled
-                        <div className="w-full h-full rounded-lg bg-gray-500/5 border-l-2 border-gray-500/30 flex items-center justify-center opacity-50">
-                          <Clock className="h-3 w-3 text-gray-500/50" />
-                        </div>
+                        // Past slot
+                        <div className="w-full h-full rounded-xl bg-transparent opacity-40" />
                       ) : (
-                        // Empty slot - visible + so quick-add is obvious
-                        <button 
-                          onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)} 
-                          className="w-full h-full rounded-lg border border-dashed border-gray-200 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500/60 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all flex items-center justify-center text-gray-300 dark:text-white/20 hover:text-blue-500 dark:hover:text-blue-400"
+                        // Empty slot
+                        <button
+                          type="button"
+                          onClick={() => onDateTimeClick(format(day, 'yyyy-MM-dd'), time)}
+                          className="w-full h-full rounded-xl border border-dashed border-white/[0.06] group-hover:border-white/[0.12]"
                           title={`Book at ${time}`}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
+                        />
                       )}
                     </div>
                   })}

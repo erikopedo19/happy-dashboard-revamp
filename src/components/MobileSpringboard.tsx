@@ -7,8 +7,6 @@ import {
   Users,
   Globe,
   UserCheck,
-  Briefcase,
-  Package,
   Brush,
 } from "lucide-react";
 import { motion } from "framer-motion";
