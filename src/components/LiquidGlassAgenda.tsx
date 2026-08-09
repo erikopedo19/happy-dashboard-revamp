@@ -340,7 +340,7 @@ export const LiquidGlassAgenda = ({
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   // Scrollable day strip (3 weeks) so users can swipe to more dates
-  const scrollDays = Array.from({ length: 21 }, (_, i) => addDays(weekStart, i));
+  const scrollDays = Array.from({ length: 56 }, (_, i) => addDays(weekStart, i - 14));
 
   // Get appointments for selected day, sorted by time
   const dayAppointments = useMemo(() => {
@@ -673,20 +673,13 @@ export const LiquidGlassAgenda = ({
 
         {/* Day Selector Row */}
         <div className="flex items-center gap-0">
-          {/* Menu / back button area */}
-          <button
-            onClick={() => onWeekChange(addDays(currentWeek, -7))}
-            className="w-6 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          {/* Scrollable day strip */}
+          {/* Scrollable day strip — swipe to move through dates */}
           <motion.div
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
-            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory flex items-center gap-2 px-0.5 py-1"
+            className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex items-center gap-2 px-0.5 py-1"
           >
+
 
             {scrollDays.map((day) => {
               const isToday = isSameDay(day, new Date());
@@ -700,6 +693,11 @@ export const LiquidGlassAgenda = ({
               return (
                 <button
                   key={day.toISOString()}
+                  ref={(el) => {
+                    if (el && isSelected) {
+                      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                    }
+                  }}
                   onClick={() => {
                     if (dayLongPressFired.current) { dayLongPressFired.current = false; return; }
                     haptic("selection");
@@ -712,54 +710,58 @@ export const LiquidGlassAgenda = ({
                   onPointerCancel={clearDayLongPress}
                   onContextMenu={(e) => { e.preventDefault(); openTimeOff(day); }}
                   className={cn(
-                    "snap-start shrink-0 flex flex-col items-center transition-all select-none touch-manipulation active:scale-95",
+                    "relative snap-start shrink-0 flex flex-col items-center select-none touch-manipulation active:scale-95 transition-transform duration-200",
                     isMobile
-                      ? cn(
-                          "w-[58px] py-2.5 rounded-[18px] border",
-                          isSelected
-                            ? "bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
-                            : "bg-transparent border-transparent"
-                        )
+                      ? "w-[58px] py-2.5 rounded-[18px]"
                       : cn(
-                          "py-1.5 px-2 rounded-xl",
+                          "py-1.5 px-2 rounded-xl transition-all",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
                         ),
                     isOff && !isSelected && "bg-rose-500/10 ring-1 ring-rose-500/40",
                     isOff && isSelected && !isMobile && "!bg-rose-500"
                   )}
                 >
+                  {isMobile && isSelected && (
+                    <motion.span
+                      layoutId="agenda-day-pill"
+                      transition={{ type: "spring", stiffness: 480, damping: 38, mass: 0.7 }}
+                      className="absolute inset-0 rounded-[18px] border bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+                    />
+                  )}
                   {isMobile ? (
                     <>
                       <span className={cn(
-                        "text-[12px] font-medium leading-none",
+                        "relative z-10 text-[12px] font-medium leading-none",
                         isOff
                           ? "text-rose-400/90"
-                          : isSelected
-                            ? "text-gray-500 dark:text-white/50"
-                            : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                          : isToday
+                            ? "text-blue-500/70 dark:text-blue-400/70"
+                            : isSelected
+                              ? "text-gray-500 dark:text-white/50"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
                       <span className={cn(
-                        "mt-1.5 text-[18px] font-semibold leading-none transition-all",
+                        "relative z-10 mt-1.5 text-[18px] font-semibold leading-none transition-colors duration-200",
                         isOff
                           ? "text-rose-500 dark:text-rose-400"
-                          : isSelected
-                            ? "text-gray-900 dark:text-white"
-                            : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                          : isToday
+                            ? "text-blue-600 dark:text-blue-400"
+                            : isSelected
+                              ? "text-gray-900 dark:text-white"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
+
                       {hasAppointments && !isOff && (
                         <div className={cn(
-                          "mt-1 h-1 w-1 rounded-full",
+                          "relative z-10 mt-1 h-1 w-1 rounded-full",
                           isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
                         )} />
                       )}
+
                     </>
                   ) : (
                     <>
@@ -803,29 +805,6 @@ export const LiquidGlassAgenda = ({
 
           </motion.div>
 
-          {/* Right arrow for mobile */}
-          {isMobile && (
-            <>
-              <button
-                onClick={() => {
-                  haptic("selection");
-                  setSelectedDay(new Date());
-                  const today = new Date();
-                  const newWeek = startOfWeek(today, { weekStartsOn: 1 });
-                  onWeekChange(newWeek);
-                }}
-                className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[12px] font-semibold hover:bg-blue-600 transition-colors"
-              >
-                {format(new Date(), 'MMM d')}
-              </button>
-              <button
-                onClick={() => onWeekChange(addDays(currentWeek, 7))}
-                className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </>
-          )}
 
 
         </div>
@@ -1267,30 +1246,35 @@ export const LiquidGlassAgenda = ({
                     <div className="pl-[60px] mb-1">
                       <div
                         className={cn(
-                          "w-full h-12 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 relative overflow-hidden cursor-not-allowed",
-                          isDark
-                            ? "border-rose-500/30 bg-rose-500/5 text-rose-400/70"
-                            : "border-rose-300 bg-rose-50 text-rose-600"
+                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
+                          selectedDayIsOff
+                            ? "border-rose-500/30 text-rose-500/80 dark:text-rose-300/80"
+                            : isDark
+                              ? "border-white/10 text-white/40"
+                              : "border-gray-300/60 text-gray-500"
                         )}
                         style={{
-                          backgroundImage: isDark
-                            ? "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(244,63,94,0.08) 6px, rgba(244,63,94,0.08) 12px)"
-                            : "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(244,63,94,0.1) 6px, rgba(244,63,94,0.1) 12px)",
+                          backgroundImage: selectedDayIsOff
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(244,63,94,0.10) 7px, rgba(244,63,94,0.10) 14px)"
+                            : isDark
+                              ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
+                              : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
                         }}
                       >
-                        {/* Additional diagonal lines overlay */}
-                        <div 
-                          className="absolute inset-0 pointer-events-none"
-                          style={{
-                            backgroundImage: isDark
-                              ? "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(244,63,94,0.06) 10px, rgba(244,63,94,0.06) 20px)"
-                              : "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(244,63,94,0.08) 10px, rgba(244,63,94,0.08) 20px)",
-                          }}
-                        />
-                        <Ban className="w-3.5 h-3.5 relative z-10" />
-                        <span className="text-[12px] font-semibold relative z-10">Blocked</span>
+                        {selectedDayIsOff ? (
+                          <>
+                            {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3.5 h-3.5" />; })()}
+                            <span className="text-[12px] font-medium">{selectedDayOffReason}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Ban className="w-3.5 h-3.5" />
+                            <span className="text-[12px] font-medium">Blocked</span>
+                          </>
+                        )}
                       </div>
                     </div>
+
                   )}
 
                   {/* Spacer between hours */}

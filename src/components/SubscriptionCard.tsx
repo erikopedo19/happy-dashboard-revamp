@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Crown } from "lucide-react";
 import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
-import { cn } from "@/lib/utils";
 
 export function SubscriptionCard() {
   const navigate = useNavigate();
@@ -30,19 +29,16 @@ export function SubscriptionCard() {
   }, []);
 
   return (
-    <Card className="rounded-3xl border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
-      <CardContent className="p-5 flex items-center justify-between gap-4 relative">
-        <div className="flex items-center gap-3 min-w-0 relative z-10">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-muted">
+    <Card className="rounded-3xl border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+      <CardContent className="p-5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-2xl bg-muted flex items-center justify-center shrink-0">
             <Crown className="w-5 h-5 text-foreground" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Your plan</p>
-              <Badge 
-                variant={subscribed ? "default" : "secondary"} 
-                className="rounded-full text-[11px] font-semibold"
-              >
+              <Badge variant={subscribed ? "default" : "secondary"} className="rounded-full text-[11px]">
                 {loading ? "…" : subscribed ? "Pro" : "Free"}
               </Badge>
             </div>
@@ -63,8 +59,8 @@ export function SubscriptionCard() {
               navigate("/pricing");
             }
           }}
-          className="rounded-full h-10 px-5 shrink-0 transition-all text-[14px] font-semibold bg-[#0A84FF] text-white border-0 hover:bg-[#0066d6]"
-          variant="default"
+          className="rounded-full h-10 px-5 shrink-0"
+          variant={subscribed ? "outline" : "default"}
         >
           {subscribed ? "Manage" : "Upgrade"}
         </Button>
@@ -72,5 +68,3 @@ export function SubscriptionCard() {
     </Card>
   );
 }
-
-
