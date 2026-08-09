@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { X, Check, Crown, Star, CalendarClock, Users, BellRing, ShieldCheck } from "lucide-react";
+import { X, Check, Crown, Star, CalendarClock, Users, ShieldCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { STRIPE_PAYMENT_LINK, STRIPE_PAYMENT_LINK_YEARLY, STRIPE_TRIAL_ENABLED } from "@/lib/billingsdk-config";
@@ -12,7 +12,6 @@ import { haptic } from "@/lib/haptics";
 const PERKS = [
   { icon: CalendarClock, label: "Unlimited bookings & clients" },
   { icon: Users, label: "Team members, stylists & map listing" },
-  { icon: BellRing, label: "Review emails, reports & branding" },
 ];
 
 type PlanKey = "yearly" | "monthly";
@@ -125,11 +124,6 @@ export default function Pricing() {
 
           {/* Highlight offer block */}
           <div className="mt-5 rounded-[26px] bg-rose-500/[0.08] ring-1 ring-rose-400/20 p-4">
-            <p className="text-center text-[15px] font-semibold leading-snug">
-              Cutzioo barbers save{" "}
-              <span className="text-rose-400">2 months</span> a year on the yearly plan
-            </p>
-
             <div className="mt-3.5 space-y-2.5">
               {OPTIONS.map((o) => {
                 const isActive = plan === o.key;
