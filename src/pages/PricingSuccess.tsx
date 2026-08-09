@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { usePremium } from "@/hooks/use-premium";
 
-const COLORS = ["#f43f5e", "#f59e0b", "#3b82f6", "#22c55e", "#a855f7", "#ec4899"];
+const COLORS = ["#22c55e", "#f43f5e", "#f59e0b", "#3b82f6", "#22c55e", "#a855f7", "#ec4899"];
 
 export default function PricingSuccess() {
   const navigate = useNavigate();
@@ -59,10 +59,9 @@ export default function PricingSuccess() {
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden bg-[#0B0B0E]">
-      <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_0%,rgba(244,63,94,0.45),rgba(11,11,14,0)_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_0%,rgba(34,197,94,0.55),rgba(11,11,14,0)_72%)]" />
 
-      {done &&
-        confetti.map((c) => (
+      {confetti.map((c) => (
           <motion.span
             key={c.id}
             className={c.round ? "absolute rounded-full" : "absolute rounded-[2px]"}
@@ -84,7 +83,7 @@ export default function PricingSuccess() {
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 18 }}
-          className="w-[92px] h-[92px] rounded-full bg-rose-500 flex items-center justify-center shadow-[0_16px_50px_rgba(244,63,94,0.45)]"
+          className="w-[92px] h-[92px] rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_16px_50px_rgba(34,197,94,0.45)]"
         >
           <Check className="w-12 h-12 text-white" strokeWidth={3} />
         </motion.div>
