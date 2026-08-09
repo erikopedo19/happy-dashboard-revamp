@@ -764,10 +764,11 @@ export const LiquidGlassAgenda = ({
 
                       {hasAppointments && !isOff && (
                         <div className={cn(
-                          "mt-1 h-1 w-1 rounded-full",
+                          "relative z-10 mt-1 h-1 w-1 rounded-full",
                           isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
                         )} />
                       )}
+
                     </>
                   ) : (
                     <>
