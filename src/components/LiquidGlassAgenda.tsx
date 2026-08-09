@@ -340,7 +340,7 @@ export const LiquidGlassAgenda = ({
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   // Scrollable day strip (3 weeks) so users can swipe to more dates
-  const scrollDays = Array.from({ length: 21 }, (_, i) => addDays(weekStart, i));
+  const scrollDays = Array.from({ length: 56 }, (_, i) => addDays(weekStart, i - 14));
 
   // Get appointments for selected day, sorted by time
   const dayAppointments = useMemo(() => {
@@ -675,7 +675,6 @@ export const LiquidGlassAgenda = ({
         <div className="flex items-center gap-0">
           {/* Scrollable day strip — swipe to move through dates */}
           <motion.div
-            ref={dayStripRef}
             animate={showDaysOffHint ? { x: [0, -14, 6, -8, 0] } : { x: 0 }}
             transition={showDaysOffHint ? { duration: 1.6, repeat: 2, ease: "easeInOut" } : { duration: 0.2 }}
             className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scroll-smooth overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex items-center gap-2 px-0.5 py-1"
@@ -806,15 +805,6 @@ export const LiquidGlassAgenda = ({
 
           </motion.div>
 
-          {/* Right arrow for mobile */}
-          {isMobile && (
-            <button
-              onClick={() => onWeekChange(addDays(currentWeek, 7))}
-              className="w-6 h-9 -mr-1 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
 
 
         </div>
