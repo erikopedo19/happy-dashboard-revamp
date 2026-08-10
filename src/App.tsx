@@ -63,7 +63,7 @@ import Favorites from "./pages/Favorites";
 import ManageBooking from "./pages/ManageBooking";
 import ReviewPage from "./pages/ReviewPage";
 import WaitlistClaim from "./pages/WaitlistClaim";
-import Landing from "./pages/Landing";
+import LandingNew from "./pages/LandingNew";
 import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
@@ -111,7 +111,7 @@ const LandingRoute = () => {
   }
 
   // Logged out → marketing landing page
-  return <Landing />;
+  return <LandingNew />;
 }
 
 const RESERVED_SUBDOMAINS = new Set([
