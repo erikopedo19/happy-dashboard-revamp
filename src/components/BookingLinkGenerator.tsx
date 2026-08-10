@@ -198,6 +198,27 @@ const BookingLinkGenerator = () => {
     }
   };
 
+  const saveLocale = async (value: string) => {
+    setBookingLocale(value);
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          booking_locale: value,
+          currency: CURRENCY_BY_LOCALE[value] || "EUR",
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["profile-booking-link"] });
+      toast({ title: "Language updated", description: "Booking page and emails will use it." });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Couldn't save language", variant: "destructive" });
+    }
+  };
+
   const resetToSuggested = () => setCustomSlug(suggestedSlug);
 
   const copyToClipboard = async () => {
@@ -371,6 +392,38 @@ const BookingLinkGenerator = () => {
         )}
       </div>
 
+
+      {/* Language */}
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
+        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Booking language
+        </Label>
+        <p className="text-[11px] text-white/40 -mt-1">
+          Used on your booking link and confirmation emails.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {LANGS.map((l) => {
+            const active = bookingLocale === l.value;
+            return (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => saveLocale(l.value)}
+                className={cn(
+                  "h-12 rounded-[18px] border px-3 flex items-center gap-2 text-[13px] font-medium transition",
+                  active
+                    ? "bg-white/10 border-rose-500/50 text-white"
+                    : "bg-[#2C2C2E] border-white/5 text-white/60 hover:text-white"
+                )}
+              >
+                <span className="text-base">{l.flag}</span>
+                <span className="truncate">{l.label}</span>
+                {active && <Check className="ml-auto h-4 w-4 text-rose-400" />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Theme */}
       <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-4 overflow-hidden">
