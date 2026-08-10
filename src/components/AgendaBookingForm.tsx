@@ -413,12 +413,10 @@ const AgendaBookingForm = ({
             <Check className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-2xl font-semibold text-white mb-2">
-            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : locale === "es" ? "Reserva actualizada" : "Appointment updated") : copy.booked}
+            {rescheduleAppointment ? copy.updated : copy.booked}
           </h2>
           <p className="text-[#8E8E93] mb-6">
-            {rescheduleAppointment
-              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "es" ? "Tu reserva se ha modificado." : "Your appointment has been rescheduled successfully.")
-              : copy.confirmation}
+            {rescheduleAppointment ? copy.rescheduled : copy.confirmation}
           </p>
           <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
             {selectedServices.map((service, index) => (
@@ -426,14 +424,14 @@ const AgendaBookingForm = ({
                 <img src={avatarUrl} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-medium truncate">{service.name}</p>
-                  <p className="text-[#8E8E93] text-sm">{service.duration} mins · {formatCurrency(service.price)}</p>
+                  <p className="text-[#8E8E93] text-sm">{service.duration} {copy.mins} · {formatCurrency(service.price)}</p>
                 </div>
               </div>
             ))}
             <div className="border-t border-white/10 pt-4 mt-4 space-y-2 text-sm">
               <div className="flex items-center gap-2 text-[#8E8E93]">
                 <CalendarIcon className="w-4 h-4" />
-                <span>{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+                <span>{selectedDate && fmt(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
               </div>
               <div className="flex items-center gap-2 text-[#8E8E93]">
                 <Clock className="w-4 h-4" />
@@ -455,15 +453,15 @@ const AgendaBookingForm = ({
 
   const activeTabKey = step === "stylist" ? "datetime" : step;
   const stepTabs = [
-    { key: "service", label: locale === "el" ? "Υπηρεσία" : locale === "es" ? "Servicio" : "Service", enabled: true },
+    { key: "service", label: copy.tabService, enabled: true },
     {
       key: "datetime",
-      label: locale === "el" ? "Ώρα" : locale === "es" ? "Hora" : "Time",
+      label: copy.tabTime,
       enabled: selectedServiceIds.length > 0,
     },
     {
       key: "details",
-      label: locale === "el" ? "Στοιχεία" : locale === "es" ? "Datos" : "Details",
+      label: copy.tabDetails,
       enabled: selectedServiceIds.length > 0 && !!selectedTime,
     },
   ];
@@ -517,7 +515,7 @@ const AgendaBookingForm = ({
               <div className="space-y-1.5 text-sm text-[#8E8E93]">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{businessProfile?.address || "In-person"}</span>
+                  <span className="truncate">{businessProfile?.address || copy.inPerson}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 shrink-0" />
@@ -601,7 +599,7 @@ const AgendaBookingForm = ({
                         </div>
                         <div className="flex items-center gap-3 text-[#8E8E93]">
                           <MapPin className="w-4 h-4 shrink-0" />
-                          <span className="truncate">{businessProfile?.address || "In-person"}</span>
+                          <span className="truncate">{businessProfile?.address || copy.inPerson}</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#8E8E93]">
                           <Globe className="w-4 h-4 shrink-0" />
@@ -623,7 +621,7 @@ const AgendaBookingForm = ({
                       </div>
                     </div>
                   ) : (
-                    <p className="text-[#8E8E93] text-sm mt-3">{locale === "el" ? "Επιλέξτε μια υπηρεσία δεξιά για να ξεκινήσετε." : "Select a service on the right to get started."}</p>
+                    <p className="text-[#8E8E93] text-sm mt-3">{copy.pickServiceHint}</p>
                   )}
                 </div>
               </div>
@@ -737,14 +735,14 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="text-[26px] font-semibold tracking-tight text-white">
-                      {locale === "el" ? "Ημερομηνία & ώρα" : "Date & time"}
+                      {copy.dateTimeShort}
                     </h2>
                     <button
                       onClick={handleBack}
                       className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      {locale === "el" ? "Πίσω" : "Back"}
+                      {copy.back}
                     </button>
                   </div>
 
@@ -754,7 +752,7 @@ const AgendaBookingForm = ({
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">
-                          {format(currentMonth, 'MMMM')} <span className="text-[#8E8E93]">{format(currentMonth, 'yyyy')}</span>
+                          {fmt(currentMonth, 'MMMM')} <span className="text-[#8E8E93]">{format(currentMonth, 'yyyy')}</span>
                         </h3>
                         <div className="flex gap-1">
                           <button
@@ -810,7 +808,7 @@ const AgendaBookingForm = ({
                       </div>
                       {selectedDate && (
                         <p className="text-sm text-[#8E8E93] mt-4">
-                          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                          {fmt(selectedDate, 'EEEE, MMMM d, yyyy')}
                         </p>
                       )}
                     </div>
@@ -819,7 +817,7 @@ const AgendaBookingForm = ({
                     <div className="flex flex-col h-full">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold text-white">
-                          {selectedDate ? format(selectedDate, 'EEE dd') : 'Select a date'}
+                          {selectedDate ? fmt(selectedDate, 'EEE dd') : copy.selectDate}
                         </h4>
                         <div className="flex gap-1 bg-[#1C1C1E] rounded-lg p-1">
                           <button
@@ -844,7 +842,7 @@ const AgendaBookingForm = ({
                       </div>
                       <div className="flex items-center gap-1.5 mb-3 text-xs text-[#8E8E93]">
                         <Globe className="w-3 h-3" />
-                        <span>Times in {formatTzLabel(timezone)}</span>
+                        <span>{copy.timesIn} {formatTzLabel(timezone)}</span>
                       </div>
                       <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-2 max-h-[480px] pr-1 auto-rows-[52px]">
                         {selectedDate ? (
@@ -881,12 +879,12 @@ const AgendaBookingForm = ({
                           ) : (
 
                             <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
-                              No available times
+                              {copy.noTimes}
                             </div>
                           )
                         ) : (
                           <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
-                            Select a date to see times
+                            {copy.selectDateForTimes}
                           </div>
                         )}
                       </div>
@@ -908,14 +906,14 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-white">Select stylist</h2>
+                      <h2 className="text-2xl font-semibold text-white">{copy.selectStylist}</h2>
                     </div>
                     <button
                       onClick={handleBack}
                       className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {copy.back}
                     </button>
                   </div>
                   <div className="grid gap-3">
@@ -941,7 +939,7 @@ const AgendaBookingForm = ({
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-white font-semibold truncate">{stylist.name}</p>
-                              <p className="text-[#8E8E93] text-sm truncate">{stylist.title || "Stylist"}</p>
+                              <p className="text-[#8E8E93] text-sm truncate">{stylist.title || copy.stylist}</p>
                             </div>
                             {active && (
                               <div
@@ -956,14 +954,14 @@ const AgendaBookingForm = ({
                       })
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-[#8E8E93] mb-4">No stylists available for this time</p>
+                        <p className="text-[#8E8E93] mb-4">{copy.noStylists}</p>
                         <Button
                           onClick={handleBack}
                           variant="outline"
                           className="rounded-full border-white/[0.08] text-white hover:bg-[#2C2C2E]"
                         >
                           <ChevronLeft className="w-4 h-4 mr-1.5" />
-                          Pick another time
+                          {copy.pickAnotherTime}
                         </Button>
                       </div>
                     )}
@@ -975,14 +973,14 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-white">Your details</h2>
+                      <h2 className="text-2xl font-semibold text-white">{copy.details}</h2>
                     </div>
                     <button
                       onClick={handleBack}
                       className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {copy.back}
                     </button>
                   </div>
 
@@ -998,14 +996,14 @@ const AgendaBookingForm = ({
                         name="customer_name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[#8E8E93] text-sm">Name</FormLabel>
+                            <FormLabel className="text-[#8E8E93] text-sm">{copy.name}</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
                                 <Input
                                   {...field}
                                   className="w-full pl-10 pr-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
-                                  placeholder="Your name"
+                                  placeholder={copy.namePh}
                                 />
                               </div>
                             </FormControl>
@@ -1019,7 +1017,7 @@ const AgendaBookingForm = ({
                         name="customer_email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[#8E8E93] text-sm">Email</FormLabel>
+                            <FormLabel className="text-[#8E8E93] text-sm">{copy.email}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -1038,7 +1036,7 @@ const AgendaBookingForm = ({
                           name="customer_phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-[#8E8E93] text-sm">Phone</FormLabel>
+                              <FormLabel className="text-[#8E8E93] text-sm">{copy.phone}</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
@@ -1058,13 +1056,13 @@ const AgendaBookingForm = ({
                           name="notes"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-[#8E8E93] text-sm">Notes</FormLabel>
+                              <FormLabel className="text-[#8E8E93] text-sm">{copy.notes}</FormLabel>
                               <FormControl>
                                 <textarea
                                   {...field}
                                   rows={3}
                                   className="w-full px-3 py-2.5 bg-[#1C1C1E] border border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0 resize-none"
-                                  placeholder="Anything we should know?"
+                                  placeholder={copy.notesPh}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1076,7 +1074,7 @@ const AgendaBookingForm = ({
                       <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
                           type="button"
-                          text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : submitLabel || copy.book}
+                          text={isLoading ? copy.processing : rescheduleAppointment ? copy.confirmChange : submitLabel || copy.book}
                           disabled={isLoading}
                           onClick={() => { form.handleSubmit(handleSubmit)(); }}
                         />
