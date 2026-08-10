@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_booking_locale_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_booking_locale_check CHECK (booking_locale IN ('en','el','es','nl','pl'));
