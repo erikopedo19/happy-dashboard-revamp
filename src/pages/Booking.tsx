@@ -403,6 +403,15 @@ const Booking = () => {
     }
   }, [businessProfile?.brand_color]);
 
+  // Language configured by the barber on the booking link (URL ?lang= wins)
+  useEffect(() => {
+    const urlLang = new URLSearchParams(window.location.search).get('lang');
+    if (urlLang) return;
+    const l = businessProfile?.booking_locale;
+    if (l === 'el' || l === 'es' || l === 'en' || l === 'pl' || l === 'nl') setLocale(l);
+  }, [businessProfile?.booking_locale]);
+
+
   // Parse query params for theme/accent
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
