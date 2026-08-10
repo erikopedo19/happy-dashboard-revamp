@@ -59,7 +59,7 @@ interface AgendaBookingFormProps {
 
   timezone?: string;
   rescheduleAppointment?: any;
-  locale?: "en" | "el" | "es" | "pl";
+  locale?: "en" | "el" | "es" | "pl" | "nl";
   askPhone?: boolean;
   askNotes?: boolean;
   submitLabel?: string;
@@ -184,6 +184,21 @@ const AgendaBookingForm = ({
         bookAnother: "Νέα κράτηση",
         booked: "Η κράτησή σας ολοκληρώθηκε",
         confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
+      }
+    : locale === "nl"
+    ? {
+        service: "Kies een dienst",
+        dateTime: "Kies datum en tijd",
+        details: "Jouw gegevens",
+        continue: "Doorgaan",
+        back: "Terug",
+        selectedService: "Gekozen dienst",
+        selectedServices: "Gekozen diensten",
+        total: "Totaal",
+        book: "Afspraak boeken",
+        bookAnother: "Nieuwe afspraak",
+        booked: "Je afspraak staat",
+        confirmation: "De bevestiging is naar je e-mail gestuurd.",
       }
     : locale === "es"
     ? {

@@ -45,14 +45,15 @@ const cleanSlug = (raw: string) =>
 const LANGS = [
   { value: "en", label: "English", flag: "🇬🇧" },
   { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
-  { value: "es", label: "Español", flag: "��" },
-  { value: "pl", label: "Polski", flag: "🇵🇱" },
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "nl", label: "Nederlands", flag: "🇳🇱" },
 ] as const;
 
 const CURRENCY_BY_LOCALE: Record<string, string> = {
   en: "GBP",
   el: "EUR",
   es: "EUR",
+  nl: "EUR",
   pl: "PLN",
 };
 

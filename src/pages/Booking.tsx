@@ -101,7 +101,7 @@ const Booking = () => {
   const [bookingError, setBookingError] = useState<BookingError | null>(null);
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
-  const [locale, setLocale] = useState<"en" | "el" | "es" | "pl">("en");
+  const [locale, setLocale] = useState<"en" | "el" | "es" | "pl" | "nl">("en");
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -411,7 +411,7 @@ const Booking = () => {
     const lang = params.get('lang');
     if (theme) setEmailTheme(theme);
     if (accent) setAccentColor(accent);
-    if (lang === 'el' || lang === 'es' || lang === 'en' || lang === 'pl') setLocale(lang);
+    if (lang === 'el' || lang === 'es' || lang === 'en' || lang === 'pl' || lang === 'nl') setLocale(lang);
   }, []);
 
   // Check if a time slot is available
