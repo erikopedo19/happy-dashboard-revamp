@@ -71,6 +71,7 @@ import { GlobalBanner } from "./components/GlobalBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
+import { useBannerReminder } from "./hooks/use-banner-reminder";
 
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
@@ -191,6 +192,9 @@ const HeaderActions = () => {
     location.pathname === "/admin" ||
     location.pathname === "/find-barbershop" ||
     location.pathname === "/settings" ||
+    location.pathname === "/pricing" ||
+    location.pathname === "/pricing/success" ||
+    location.pathname === "/pricing/failure" ||
     (isMobile && location.pathname.startsWith("/find-barber")) ||
     (isMobile && location.pathname === "/agenda");
   if (hasOwnBell) return null;

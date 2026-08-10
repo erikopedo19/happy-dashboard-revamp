@@ -69,7 +69,7 @@ export default function Pricing() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 240, damping: 30 }}
-        className="min-h-screen mt-3 rounded-t-[32px] bg-[#0B0B0E] text-white flex flex-col overflow-hidden"
+        className="min-h-screen rounded-t-[32px] bg-[#0B0B0E] text-white flex flex-col overflow-hidden"
       >
         <div className="flex-1 overflow-y-auto px-6 pt-6 pb-8">
           <div className="flex justify-end">

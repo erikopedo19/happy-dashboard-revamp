@@ -1142,27 +1142,33 @@ const Settings = () => {
                             <div className="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                               <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                             </div>
-                            <div>
+                            <div className="flex items-center gap-2">
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Business identity</CardTitle>
-                              <CardDescription className="text-[#8E8E93] dark:text-gray-500">
-                                Persist the business details used across the app and public booking.
-                              </CardDescription>
+                              <div className="w-2 h-2 rounded-full pulse-dot pulse-dot-rose" />
                             </div>
                           </div>
+                          <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                            Persist the business details used across the app and public booking.
+                          </CardDescription>
                         </CardHeader>
 
                         <CardContent className="space-y-5">
                           {/* Brand media — organised at the top */}
                           <div className="space-y-5">
-                            <BrandImageUpload
-                              label="Banner"
-                              path={brandForm.banner_url}
-                              folder="banner"
-                              onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
-                              className="w-full"
-                              maxSizeMB={bannerMaxMB}
-                              helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
-                            />
+                            <div className="flex items-center gap-2">
+                              <BrandImageUpload
+                                label="Banner"
+                                path={brandForm.banner_url}
+                                folder="banner"
+                                onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
+                                className="w-full"
+                                maxSizeMB={bannerMaxMB}
+                                helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
+                              />
+                              {!brandForm.banner_url && (
+                                <div className="w-2 h-2 rounded-full pulse-dot pulse-dot-rose shrink-0 mt-6" />
+                              )}
+                            </div>
 
                             <BrandImageUpload
                               label="Profile photo"

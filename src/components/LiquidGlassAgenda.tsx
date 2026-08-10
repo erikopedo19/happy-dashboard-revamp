@@ -162,6 +162,7 @@ export const LiquidGlassAgenda = ({
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [pressingSlot, setPressingSlot] = useState<string | null>(null);
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
+  const [pendingUnblockSlot, setPendingUnblockSlot] = useState<{ id: string; start_time: string; end_time: string } | null>(null);
   const blockTimerRef = useRef<number | null>(null);
   const isLongPressBlock = useRef(false);
   const [timeOffOpen, setTimeOffOpen] = useState(false);
@@ -283,6 +284,40 @@ export const LiquidGlassAgenda = ({
     } catch (e: any) {
       haptic("error");
       toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
+
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const reopenAppointment = async (id: string) => {
+    const target = appointments.find((a) => a.id === id);
+    if (target && isAppointmentPast(target)) {
+      haptic("error");
+      toast({
+        title: "Can't reopen past appointments",
+        description: "This booking has already passed.",
+        variant: "destructive",
+      });
+      setContextMenu(null);
+      return;
+    }
+    haptic("warning");
+    setCancellingId(id);
+    try {
+      const { error } = await (supabase as any)
+        .from("appointments")
+        .update({ status: "scheduled", updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+      haptic("success");
+      toast({ title: "Slot reopened", description: "The appointment is now available for booking again." });
+      setContextMenu(null);
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      haptic("error");
+      toast({ title: "Couldn't reopen", description: e?.message || "Please try again.", variant: "destructive" });
 
     } finally {
       setCancellingId(null);
@@ -483,17 +518,29 @@ export const LiquidGlassAgenda = ({
       await queryClient.invalidateQueries({ queryKey: ["agenda_blocked_slots"] });
       window.dispatchEvent(new Event("appointmentUpdated"));
     } catch (e: any) {
-      toast({ title: "Couldn’t block slot", description: e?.message || "Please try again.", variant: "destructive" });
+      toast({ title: "Couldn't block slot", description: e?.message || "Please try again.", variant: "destructive" });
     } finally {
       setPendingBlockSlot(null);
       isLongPressBlock.current = false;
     }
   };
 
-  const handleAppointmentContextMenu = (event: React.MouseEvent, appointment: Appointment) => {
-    event.preventDefault();
-    event.stopPropagation();
-    openAppointmentInfo(appointment, event.clientX, event.clientY);
+  const confirmUnblockSlot = async () => {
+    if (!pendingUnblockSlot || !user) return;
+    try {
+      const { error } = await (supabase as any)
+        .from("agenda_blocked_slots")
+        .delete()
+        .eq("id", pendingUnblockSlot.id);
+      if (error) throw error;
+      toast({ title: "Slot unblocked", description: `${pendingUnblockSlot.start_time} – ${pendingUnblockSlot.end_time} is now available.` });
+      await queryClient.invalidateQueries({ queryKey: ["agenda_blocked_slots"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      toast({ title: "Couldn't unblock slot", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setPendingUnblockSlot(null);
+    }
   };
 
   const handleAppointmentTouchStart = (event: React.TouchEvent, appointment: Appointment) => {
@@ -897,88 +944,163 @@ export const LiquidGlassAgenda = ({
         ) : dayAppointments.length === 0 ? (
           /* Animated iOS-style Empty State */
           <AnimatePresence mode="wait">
-            <motion.div
-              key={selectedDay.toISOString()}
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
-            >
-              {/* Floating Clock Icon */}
+            {selectedDayIsOff ? (
               <motion.div
-                animate={{
-                  y: [0, -10, 0],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{
-                  duration: 4.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className={cn(
-                  "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
-                  "bg-gradient-to-tr from-blue-500/10 to-indigo-500/5 dark:from-[#007AFF]/15 dark:to-[#5856D6]/5",
-                  "border border-blue-500/10 dark:border-[#007AFF]/10 shadow-[0_12px_30px_rgba(0,122,255,0.08)]",
-                  "backdrop-blur-xl"
-                )}
+                key="day-off"
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -15 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
               >
-                <Clock className="w-10 h-10 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={2.2} />
+                {/* Reason Icon */}
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 4.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className={cn(
+                    "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
+                    "bg-gradient-to-tr from-rose-500/10 to-orange-500/5 dark:from-rose-500/15 dark:to-orange-500/5",
+                    "border border-rose-500/10 dark:border-rose-500/10 shadow-[0_12px_30px_rgba(244,63,94,0.08)]",
+                    "backdrop-blur-xl"
+                  )}
+                >
+                  {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-10 h-10 text-rose-500 dark:text-rose-400" strokeWidth={2.2} />; })()}
+                </motion.div>
+
+                <motion.h3
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+                >
+                  This day is off
+                </motion.h3>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 }}
+                  className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
+                >
+                  {selectedDayOffReason}
+                </motion.p>
+
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
+                  onClick={async () => {
+                    haptic("warning");
+                    try {
+                      const { error } = await (supabase as any)
+                        .from("time_off")
+                        .delete()
+                        .eq("user_id", user.id)
+                        .eq("off_date", selectedDayKey);
+                      if (error) throw error;
+                      toast({ title: "Day off removed", description: "This day is now available for booking." });
+                      await queryClient.invalidateQueries({ queryKey: ["time_off"] });
+                      window.dispatchEvent(new Event("appointmentUpdated"));
+                    } catch (e: any) {
+                      toast({ title: "Couldn't remove", description: e?.message || "Please try again.", variant: "destructive" });
+                    }
+                  }}
+                  className="mt-6 px-6 h-11 rounded-full bg-rose-500 text-white text-sm font-semibold active:scale-[0.98] transition"
+                >
+                  Remove day off
+                </motion.button>
               </motion.div>
-
-              <motion.h3
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+            ) : (
+              <motion.div
+                key={selectedDay.toISOString()}
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -15 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
               >
-                No bookings today
-              </motion.h3>
+                {/* Floating Clock Icon */}
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 4.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className={cn(
+                    "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
+                    "bg-gradient-to-tr from-blue-500/10 to-indigo-500/5 dark:from-[#007AFF]/15 dark:to-[#5856D6]/5",
+                    "border border-blue-500/10 dark:border-[#007AFF]/10 shadow-[0_12px_30px_rgba(0,122,255,0.08)]",
+                    "backdrop-blur-xl"
+                  )}
+                >
+                  <Clock className="w-10 h-10 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={2.2} />
+                </motion.div>
 
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18 }}
-                className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
-              >
-                {isSameDay(selectedDay, new Date()) ? (
-                  "Your agenda is clear for today. Keep resting or add a slot."
-                ) : (
-                  format(selectedDay, 'EEEE, MMMM d')
-                )}
-              </motion.p>
+                <motion.h3
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+                >
+                  No bookings today
+                </motion.h3>
 
-              {/* Prevent booking on past days entirely */}
-              {(() => {
-                const now = new Date();
-                const isPastDay = !isSameDay(selectedDay, now) && selectedDay.getTime() < now.getTime();
-                
-                if (isPastDay) {
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 }}
+                  className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
+                >
+                  {isSameDay(selectedDay, new Date()) ? (
+                    "Your agenda is clear for today. Keep resting or add a slot."
+                  ) : (
+                    format(selectedDay, 'EEEE, MMMM d')
+                  )}
+                </motion.p>
+
+                {/* Prevent booking on past days entirely */}
+                {(() => {
+                  const now = new Date();
+                  const isPastDay = !isSameDay(selectedDay, now) && selectedDay.getTime() < now.getTime();
+                  
+                  if (isPastDay) {
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-6 text-[11px] font-medium text-gray-400 dark:text-gray-600 bg-gray-100/50 dark:bg-white/5 px-3 py-1.5 rounded-full"
+                      >
+                        📅 Calendar day has passed
+                      </motion.div>
+                    );
+                  }
+
                   return (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="mt-6 text-[11px] font-medium text-gray-400 dark:text-gray-600 bg-gray-100/50 dark:bg-white/5 px-3 py-1.5 rounded-full"
-                    >
-                      📅 Calendar day has passed
-                    </motion.div>
-                  );
-                }
-
-                return (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
-                    onClick={() => {
-                      let time = '09:00';
-                      if (isSameDay(selectedDay, now)) {
-                        const nextHour = Math.min(now.getHours() + 1, 23);
-                        time = `${nextHour.toString().padStart(2, '0')}:00`;
-                      }
-                      onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
-                    }}
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
+                      onClick={() => {
+                        let time = '09:00';
+                        if (isSameDay(selectedDay, now)) {
+                          const nextHour = Math.min(now.getHours() + 1, 23);
+                          time = `${nextHour.toString().padStart(2, '0')}:00`;
+                        }
+                        onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
+                      }}
                     className={cn(
                       "mt-7 flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all",
                       "bg-[#007AFF] text-white hover:bg-[#0062CC]",
@@ -989,8 +1111,9 @@ export const LiquidGlassAgenda = ({
                     New appointment
                   </motion.button>
                 );
-              })()}
+                })()}
             </motion.div>
+            )}
           </AnimatePresence>
         ) : (
           /* Timeline with appointments */
@@ -1244,14 +1367,30 @@ export const LiquidGlassAgenda = ({
                   {/* Blocked slot */}
                   {hourAppointments.length === 0 && !isOccupied && isBlocked && (
                     <div className="pl-[60px] mb-1">
-                      <div
+                      <button
+                        onClick={() => {
+                          const blockedSlot = (blockedSlots || []).find((b: any) => {
+                            const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
+                            const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
+                            const startMin = sh * 60 + sm;
+                            const endMin = eh * 60 + em;
+                            return slotStartMin >= startMin && slotStartMin < endMin;
+                          });
+                          if (blockedSlot) {
+                            setPendingUnblockSlot({
+                              id: blockedSlot.id,
+                              start_time: blockedSlot.start_time,
+                              end_time: blockedSlot.end_time,
+                            });
+                          }
+                        }}
                         className={cn(
-                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
+                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
                           selectedDayIsOff
                             ? "border-rose-500/30 text-rose-500/80 dark:text-rose-300/80"
                             : isDark
-                              ? "border-white/10 text-white/40"
-                              : "border-gray-300/60 text-gray-500"
+                              ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
+                              : "border-gray-300/60 text-gray-500 hover:border-gray-400 hover:text-gray-600"
                         )}
                         style={{
                           backgroundImage: selectedDayIsOff
@@ -1272,7 +1411,7 @@ export const LiquidGlassAgenda = ({
                             <span className="text-[12px] font-medium">Blocked</span>
                           </>
                         )}
-                      </div>
+                      </button>
                     </div>
 
                   )}
@@ -1419,6 +1558,28 @@ export const LiquidGlassAgenda = ({
                   )}
                 </button>
               )}
+
+              {contextMenu.appointment.status === "cancelled" && !isAppointmentPast(contextMenu.appointment) && (
+                <button
+                  onClick={() => {
+                    if (cancellingId) return;
+                    reopenAppointment(contextMenu.appointment.id);
+                  }}
+                  disabled={cancellingId === contextMenu.appointment.id}
+                  className={cn(
+                    "mt-3 w-full h-11 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60",
+                    isDark
+                      ? "bg-green-500/15 hover:bg-green-500/25 text-green-300 border border-green-500/20"
+                      : "bg-green-50 hover:bg-green-100 text-green-600 border border-green-100"
+                  )}
+                >
+                  {cancellingId === contextMenu.appointment.id ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Reopening…</>
+                  ) : (
+                    <><CheckCircle2 className="h-4 w-4" /> Reopen slot</>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </>
@@ -1449,6 +1610,33 @@ export const LiquidGlassAgenda = ({
               onClick={confirmBlockSlot}
             >
               Block slot
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pendingUnblockSlot} onOpenChange={(open) => { if (!open) setPendingUnblockSlot(null); }}>
+        <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>
+          <DialogHeader>
+            <DialogTitle>Unblock this slot?</DialogTitle>
+            <DialogDescription className={cn(isDark ? "text-white/60" : "text-gray-600")}>
+              {pendingUnblockSlot && `${pendingUnblockSlot.start_time} – ${pendingUnblockSlot.end_time}`} will be available for booking again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPendingUnblockSlot(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-green-500 hover:bg-green-600 text-white"
+              onClick={confirmUnblockSlot}
+            >
+              Unblock slot
             </Button>
           </DialogFooter>
         </DialogContent>
