@@ -43,7 +43,6 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
-import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@heroui/react";
@@ -1334,70 +1333,6 @@ const Settings = () => {
                           </div>
 
 
-                          <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                              Map Location
-                            </Label>
-                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-3">
-                              Search your city/address, then tap the exact place where your barbershop is.
-                            </p>
-                            <BarbershopMap
-                              barbershops={brandForm.latitude && brandForm.longitude ? [{
-                                id: 'current',
-                                name: brandForm.name || 'Your Business',
-                                location: brandForm.location || '',
-                                latitude: brandForm.latitude,
-                                longitude: brandForm.longitude,
-                                contact_phone: brandForm.contact_phone,
-                              }] : []}
-                              height="300px"
-                              pickMode
-                              initialCenter={brandForm.latitude && brandForm.longitude ? {
-                                lat: brandForm.latitude,
-                                lng: brandForm.longitude,
-                              } : undefined}
-                              onLocationPick={({ lat, lng }) =>
-                                setBrandForm((prev) => ({
-                                  ...prev,
-                                  latitude: lat,
-                                  longitude: lng,
-                                  google_maps_url: prev.google_maps_url || buildGoogleMapsUrl(lat, lng),
-                                }))
-                              }
-                            />
-                            <div className="grid grid-cols-2 gap-4 mt-3">
-                              <div>
-                                <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-1 block">
-                                  Latitude
-                                </Label>
-                                <Input
-                                  type="number"
-                                  step="any"
-                                  value={brandForm.latitude || ''}
-                                  onChange={(e) =>
-                                    setBrandForm((prev) => ({ ...prev, latitude: e.target.value ? parseFloat(e.target.value) : undefined }))
-                                  }
-                                  placeholder="40.7128"
-                                  className="h-10 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-1 block">
-                                  Longitude
-                                </Label>
-                                <Input
-                                  type="number"
-                                  step="any"
-                                  value={brandForm.longitude || ''}
-                                  onChange={(e) =>
-                                    setBrandForm((prev) => ({ ...prev, longitude: e.target.value ? parseFloat(e.target.value) : undefined }))
-                                  }
-                                  placeholder="-74.0060"
-                                  className="h-10 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                                />
-                              </div>
-                            </div>
-                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>
