@@ -40,7 +40,7 @@ import { enableBookingPush } from "@/lib/push";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
@@ -819,7 +819,7 @@ export function MobileSettings(props: any) {
 
             {panel === "subscription" && (
               <PanelStack>
-                <SubscriptionCard />
+                <SubscriptionPanel />
               </PanelStack>
             )}
 

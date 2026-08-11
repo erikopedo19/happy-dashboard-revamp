@@ -44,7 +44,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { Button } from "@heroui/react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
@@ -1133,7 +1133,7 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
-                      <SubscriptionCard />
+                      <SubscriptionPanel />
                       {/* Public visibility toggle removed — all profiles are public by default */}
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
