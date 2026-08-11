@@ -825,6 +825,7 @@ export type Database = {
           ask_phone: boolean | null
           auto_review_emails: boolean
           avatar_url: string | null
+          banner_reminder_sent_at: string | null
           banner_url: string | null
           booking_link: string | null
           booking_locale: string
@@ -872,6 +873,7 @@ export type Database = {
           ask_phone?: boolean | null
           auto_review_emails?: boolean
           avatar_url?: string | null
+          banner_reminder_sent_at?: string | null
           banner_url?: string | null
           booking_link?: string | null
           booking_locale?: string
@@ -919,6 +921,7 @@ export type Database = {
           ask_phone?: boolean | null
           auto_review_emails?: boolean
           avatar_url?: string | null
+          banner_reminder_sent_at?: string | null
           banner_url?: string | null
           booking_link?: string | null
           booking_locale?: string
