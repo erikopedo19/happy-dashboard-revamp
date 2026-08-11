@@ -67,6 +67,7 @@ export default function Events() {
       <Seo
         title="Barber Events & Seminars | Cutzioo"
         description="Discover barber seminars, workshops and education events near you on Cutzioo."
+        path="/events"
       />
       <div className="max-w-3xl mx-auto px-4 pt-6">
         <h1 className="text-[28px] font-bold tracking-tight">Events</h1>
