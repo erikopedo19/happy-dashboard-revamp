@@ -543,6 +543,11 @@ export const LiquidGlassAgenda = ({
     }
   };
 
+  const handleAppointmentContextMenu = (event: React.MouseEvent, appointment: Appointment) => {
+    event.preventDefault();
+    openAppointmentInfo(appointment, event.clientX, event.clientY);
+  };
+
   const handleAppointmentTouchStart = (event: React.TouchEvent, appointment: Appointment) => {
     const touch = event.touches[0];
     if (!touch) return;

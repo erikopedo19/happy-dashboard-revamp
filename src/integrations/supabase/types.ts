@@ -455,6 +455,69 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_time: string | null
+          event_date: string
+          featured: boolean
+          id: string
+          location: string | null
+          map_url: string | null
+          organizer: string | null
+          published: boolean
+          registration_url: string | null
+          short_description: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          featured?: boolean
+          id?: string
+          location?: string | null
+          map_url?: string | null
+          organizer?: string | null
+          published?: boolean
+          registration_url?: string | null
+          short_description?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          featured?: boolean
+          id?: string
+          location?: string | null
+          map_url?: string | null
+          organizer?: string | null
+          published?: boolean
+          registration_url?: string | null
+          short_description?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fake_barbershops: {
         Row: {
           avatar_url: string | null
@@ -1256,34 +1319,52 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          auto_renew: boolean
+          cancel_at_period_end: boolean
           created_at: string
           email: string
+          expiration_email_sent_at: string | null
           id: string
+          renewal_amount: number | null
+          renewal_currency: string
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
+          subscription_start: string | null
           subscription_tier: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          auto_renew?: boolean
+          cancel_at_period_end?: boolean
           created_at?: string
           email: string
+          expiration_email_sent_at?: string | null
           id?: string
+          renewal_amount?: number | null
+          renewal_currency?: string
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
+          subscription_start?: string | null
           subscription_tier?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          auto_renew?: boolean
+          cancel_at_period_end?: boolean
           created_at?: string
           email?: string
+          expiration_email_sent_at?: string | null
           id?: string
+          renewal_amount?: number | null
+          renewal_currency?: string
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
+          subscription_start?: string | null
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string
