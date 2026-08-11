@@ -1580,6 +1580,7 @@ export type Database = {
         Returns: Json
       }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
+      cancel_subscription_at_period_end: { Args: never; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       clean_booking_link: { Args: { raw: string }; Returns: string }
       clean_display_name: { Args: { raw: string }; Returns: string }
@@ -1792,6 +1793,10 @@ export type Database = {
       marketing_emails_sent_today: { Args: never; Returns: number }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
+        Returns: Json
+      }
+      set_subscription_auto_renew: {
+        Args: { _enabled: boolean }
         Returns: Json
       }
       soft_delete_account: { Args: { _user_id: string }; Returns: Json }
