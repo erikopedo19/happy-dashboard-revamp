@@ -60,6 +60,8 @@ import Reports from "./pages/Reports";
 import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
+import Events from "./pages/Events";
+import EventsManage from "./pages/EventsManage";
 import ManageBooking from "./pages/ManageBooking";
 import ReviewPage from "./pages/ReviewPage";
 import WaitlistClaim from "./pages/WaitlistClaim";
@@ -151,6 +153,8 @@ function AnimatedRoutes() {
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/me" element={<Me />} />
       <Route path="/favorites" element={<Favorites />} />
+      <Route path="/events" element={<Events />} />
+      <Route path="/events/manage" element={<ProtectedRoute><EventsManage /></ProtectedRoute>} />
       <Route path="/" element={<LandingRoute />} />
       <Route path="/app" element={<LandingRoute />} />
       <Route path="/superadmin" element={<SuperAdminLogin />} />
