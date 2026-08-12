@@ -183,7 +183,7 @@ const Agenda = () => {
     },
     enabled: !!user,
     staleTime: 0, // Always consider data stale to enable immediate refetch
-    refetchInterval: 30000, // Refetch every 30 seconds as backup
+    refetchInterval: 8000, // Fast fallback so new bookings appear live
   });
 
   const hydratedAppointments = useMemo(
