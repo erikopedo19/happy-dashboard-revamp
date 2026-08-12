@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Sparkles, Lock, Check, Loader2 } from "lucide-react";
+import { Crown, Sparkles, Lock, Check, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePremium } from "@/hooks/use-premium";
 import { motion } from "framer-motion";
@@ -18,13 +18,28 @@ export function PremiumGate({
   description = "This feature is part of Cutzioo Pro. Upgrade to unlock unlimited power.",
   perks,
 }: PremiumGateProps) {
-  const { loading, isPremium } = usePremium();
+  const { loading, isPremium, error, refresh } = usePremium();
   const navigate = useNavigate();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
         <Loader2 className="h-6 w-6 animate-spin text-rose-500" />
+      </div>
+    );
+  }
+
+  if (error && !isPremium) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c] p-6">
+        <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] p-6 text-center">
+          <AlertCircle className="w-6 h-6 text-red-500 mx-auto" />
+          <p className="mt-2 text-[15px] font-semibold text-[#1C1C1E] dark:text-white">Something went wrong</p>
+          <p className="text-sm text-[#8E8E93] mt-1">{error} Please check your connection and try again.</p>
+          <Button onClick={() => refresh()} variant="outline" className="mt-4 rounded-full">
+            <RefreshCw className="w-4 h-4 mr-2" /> Retry
+          </Button>
+        </div>
       </div>
     );
   }
