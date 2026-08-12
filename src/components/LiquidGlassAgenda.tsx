@@ -1135,11 +1135,11 @@ export const LiquidGlassAgenda = ({
               const slotStartMin = slotHour * 60 + slotMinute;
               const slotInterval = agendaSettings?.service_duration || 60;
 
-              // Find appointments that START exactly in this slot
-              const hourAppointments = dayAppointments.filter((apt) => {
-                const [aptHour, aptMinute] = apt.appointment_time.split(':').map(Number);
-                return aptHour === slotHour && aptMinute === slotMinute;
-              });
+              // Bucket appointments into the slot they fall inside (handles
+              // off-grid times like 10:30 with a 60-min grid, plus anything
+              // before/after the configured range).
+              const hourAppointments = appointmentsBySlot[hour] ?? [];
+
 
               // Check if any previous appointment spans into this slot
               const isOccupied = dayAppointments.some((apt) => {
