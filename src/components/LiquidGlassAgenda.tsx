@@ -437,6 +437,30 @@ export const LiquidGlassAgenda = ({
     return result;
   }, [agendaSettings, timeRange]);
 
+  // Map every appointment of the day onto the slot row it belongs to, so
+  // bookings made off the slot grid (or outside working hours) still render.
+  const appointmentsBySlot = useMemo(() => {
+    const map: Record<string, typeof dayAppointments> = {};
+    if (!hours.length) return map;
+    const slotMins = hours.map((h) => {
+      const [hh, mm] = h.split(":").map(Number);
+      return hh * 60 + mm;
+    });
+    for (const apt of dayAppointments) {
+      const [ah, am] = apt.appointment_time.split(":").map(Number);
+      const aptMin = ah * 60 + am;
+      let idx = 0;
+      for (let i = 0; i < slotMins.length; i++) {
+        if (slotMins[i] <= aptMin) idx = i;
+      }
+      if (aptMin > slotMins[slotMins.length - 1] + 59) idx = slotMins.length - 1;
+      const key = hours[idx];
+      (map[key] ||= []).push(apt);
+    }
+    return map;
+  }, [dayAppointments, hours]);
+
+
   // Auto-scroll to current hour when viewing today
   useEffect(() => {
     if (!isSameDay(selectedDay, new Date())) return;
@@ -1135,11 +1159,11 @@ export const LiquidGlassAgenda = ({
               const slotStartMin = slotHour * 60 + slotMinute;
               const slotInterval = agendaSettings?.service_duration || 60;
 
-              // Find appointments that START exactly in this slot
-              const hourAppointments = dayAppointments.filter((apt) => {
-                const [aptHour, aptMinute] = apt.appointment_time.split(':').map(Number);
-                return aptHour === slotHour && aptMinute === slotMinute;
-              });
+              // Bucket appointments into the slot they fall inside (handles
+              // off-grid times like 10:30 with a 60-min grid, plus anything
+              // before/after the configured range).
+              const hourAppointments = appointmentsBySlot[hour] ?? [];
+
 
               // Check if any previous appointment spans into this slot
               const isOccupied = dayAppointments.some((apt) => {
