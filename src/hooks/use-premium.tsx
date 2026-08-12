@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface PremiumState {
   loading: boolean;
   isPremium: boolean;
+  error: string | null;
   tier: string | null;
   endDate: string | null;
   refresh: () => Promise<void>;
@@ -20,6 +21,7 @@ export function usePremium(): PremiumState {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [tier, setTier] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
@@ -29,8 +31,9 @@ export function usePremium(): PremiumState {
       setIsPremium(false);
       return;
     }
+    setError(null);
     try {
-      const { data } = await supabase
+      const { data, error: err } = await supabase
         .from("subscribers")
         .select("subscribed, subscription_tier, subscription_end")
         .or(`user_id.eq.${user.id},email.eq.${user.email}`)
@@ -38,6 +41,7 @@ export function usePremium(): PremiumState {
         .limit(1)
         .maybeSingle();
 
+      if (err) throw err;
       const active = !!data?.subscribed &&
         (!data?.subscription_end || new Date(data.subscription_end) > new Date());
       setIsPremium(active);
@@ -45,6 +49,7 @@ export function usePremium(): PremiumState {
       setEndDate(data?.subscription_end ?? null);
     } catch {
       setIsPremium(false);
+      setError("We couldn't check your subscription.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +69,7 @@ export function usePremium(): PremiumState {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  return { loading, isPremium, tier, endDate, refresh: load };
+  return { loading, isPremium, error, tier, endDate, refresh: load };
 }
 
 export const PREMIUM_LIMITS = LIMITS;
