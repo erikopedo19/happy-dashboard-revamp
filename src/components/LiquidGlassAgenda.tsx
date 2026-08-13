@@ -1363,10 +1363,13 @@ export const LiquidGlassAgenda = ({
                       </motion.div>
                     );
                   })}
+                  </div>
+                  )}
 
                   {/* Empty slot - visible quick-add (disabled if past) */}
                   {hourAppointments.length === 0 && !isOccupied && !isBlocked && (
-                    <div className="pl-[60px] mb-1">
+                    <div className="absolute left-[60px] right-0 top-0 bottom-3">
+
                       <button
                         onClick={() => {
                           if (isLongPressBlock.current) {
