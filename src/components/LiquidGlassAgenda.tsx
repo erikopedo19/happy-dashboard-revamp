@@ -1194,10 +1194,20 @@ export const LiquidGlassAgenda = ({
               });
 
 
+              const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
+              const maxSpan = hourAppointments.reduce((acc, apt) => {
+                const d = apt.totalDurationMinutes || apt.service.duration || 30;
+                return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
+              }, 1);
+
               return (
-                <div key={hour} className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}>
+                <div
+                  key={hour}
+                  className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}
+                  style={{ height: ROW_H }}
+                >
                   {/* Time label */}
-                  <div className="flex items-start gap-3 mb-1">
+                  <div className="absolute left-0 top-0 flex items-start gap-3 w-full pointer-events-none">
                     <div className="w-12 flex-shrink-0 pt-0.5">
                       <span className={cn(
                         "text-[11px] font-medium",
@@ -1214,14 +1224,15 @@ export const LiquidGlassAgenda = ({
                   </div>
 
 
-                  {/* Appointments in this hour */}
+                  {/* Appointments in this hour — stretched to their real end time */}
+                  {hourAppointments.length > 0 && (
+                  <div
+                    className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-1"
+                    style={{ height: maxSpan * ROW_H - 12 }}
+                  >
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
                     const endTime = getEndTime(apt.appointment_time, duration);
-                    const slotsSpanned = Math.max(Math.ceil(duration / slotInterval), 1);
-                    const minHeight = isMobile
-                      ? Math.max(Math.round(duration * 1.15), 64)
-                      : Math.max(slotsSpanned * 64, 56);
                     const isCompleted = apt.status === 'completed';
                     const isCancelled = apt.status === 'cancelled';
                     const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
@@ -1230,8 +1241,9 @@ export const LiquidGlassAgenda = ({
                       <motion.div
                         variants={slotItemVariants}
                         key={apt.id}
-                        className="pl-[60px] pr-0 mb-2"
+                        className="flex-1 min-h-0"
                       >
+
                         {/* Liquid Glass Card */}
                         <button
                           onClick={() => onAppointmentClick?.(apt)}
