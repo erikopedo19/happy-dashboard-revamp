@@ -1383,7 +1383,7 @@ export const LiquidGlassAgenda = ({
                         onPointerLeave={cancelBlockLongPress}
                         disabled={isPastSlot}
                         className={cn(
-                          "relative w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none overflow-hidden",
+                          "relative w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none overflow-hidden",
                           isPastSlot
                             ? "border-gray-200 dark:border-white/5 bg-transparent text-gray-300 dark:text-white/20 cursor-not-allowed"
                             : pressingSlot === hour
@@ -1410,7 +1410,7 @@ export const LiquidGlassAgenda = ({
 
                   {/* Blocked slot */}
                   {hourAppointments.length === 0 && !isOccupied && isBlocked && (
-                    <div className="pl-[60px] mb-1">
+                    <div className="absolute left-[60px] right-0 top-0 bottom-3">
                       <button
                         onClick={() => {
                           const blockedSlot = (blockedSlots || []).find((b: any) => {
@@ -1429,7 +1429,7 @@ export const LiquidGlassAgenda = ({
                           }
                         }}
                         className={cn(
-                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
+                          "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
                           selectedDayIsOff
                             ? "border-rose-500/30 text-rose-500/80 dark:text-rose-300/80"
                             : isDark
@@ -1460,8 +1460,6 @@ export const LiquidGlassAgenda = ({
 
                   )}
 
-                  {/* Spacer between hours */}
-                  <div className="h-3" />
                 </div>
               );
             })}
