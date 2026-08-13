@@ -458,6 +458,7 @@ export type Database = {
       events: {
         Row: {
           category: string
+          color: string | null
           cover_url: string | null
           created_at: string
           created_by: string | null
@@ -478,6 +479,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          color?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -498,6 +500,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          color?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null

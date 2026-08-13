@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   List,
   Plus,
+  CalendarPlus,
   Filter,
   DollarSign,
   Settings,
@@ -26,6 +27,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppointmentForm } from "@/components/AppointmentForm";
 import { ModernAppointmentsCalendar } from "@/components/ModernAppointmentsCalendar";
 import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
+import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -99,6 +101,7 @@ const Agenda = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
 
   // Always default to grid (day) view; user can switch to weekly overview manually.
   useEffect(() => {
@@ -584,6 +587,14 @@ const Agenda = () => {
                       <Settings className="h-4 w-4" />
                     </Button>
                     <Button
+                      onPress={() => setEventDialogOpen(true)}
+                      variant="flat"
+                      className="h-9 rounded-xl bg-[#22222A] text-white/80 hover:text-white text-sm font-semibold px-3 md:px-4 shadow-none"
+                    >
+                      <CalendarPlus className="h-4 w-4 md:mr-1.5" />
+                      <span className="hidden md:inline">Event</span>
+                    </Button>
+                    <Button
                       onPress={handleNewAppointment}
                       className="h-9 rounded-xl bg-[#FF375F] hover:bg-[#FF375F]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
                     >
@@ -809,7 +820,14 @@ const Agenda = () => {
             initialServiceId={selectedServiceId}
           />
         )}
+        <QuickEventDialog
+          open={eventDialogOpen}
+          onOpenChange={setEventDialogOpen}
+          defaultDate={selectedTimeSlot.date}
+          defaultTime={selectedTimeSlot.time}
+        />
       </div>
+
     </SidebarProvider>
   );
 };
