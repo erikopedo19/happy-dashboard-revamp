@@ -820,7 +820,14 @@ const Agenda = () => {
             initialServiceId={selectedServiceId}
           />
         )}
+        <QuickEventDialog
+          open={eventDialogOpen}
+          onOpenChange={setEventDialogOpen}
+          defaultDate={selectedTimeSlot.date}
+          defaultTime={selectedTimeSlot.time}
+        />
       </div>
+
     </SidebarProvider>
   );
 };
