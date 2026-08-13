@@ -1252,7 +1252,7 @@ export const LiquidGlassAgenda = ({
                           onTouchEnd={clearLongPressTimer}
                           onTouchMove={clearLongPressTimer}
                           className={cn(
-                            "w-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
+                            "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1267,7 +1267,7 @@ export const LiquidGlassAgenda = ({
                                     : "border-gray-200/60 shadow-sm")
                           )}
                           style={{
-                            minHeight: `${minHeight}px`,
+
                             background: isCancelled
                               ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
                               : isMobile
