@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { haptic } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
+import { QuickEventDialog } from "@/components/QuickEventDialog";
 
 
 interface Service {
@@ -324,6 +325,8 @@ export const LiquidGlassAgenda = ({
     }
   };
 
+  const [eventDialog, setEventDialog] = useState<{ date: string; time: string } | null>(null);
+
   const { data: agendaSettings } = useQuery<AgendaSettings | null>({
     queryKey: ["agenda_settings", user?.id],
     queryFn: async () => {
@@ -355,6 +358,24 @@ export const LiquidGlassAgenda = ({
         .select("id, start_time, end_time, reason")
         .eq("user_id", user.id)
         .eq("blocked_date", format(selectedDay, "yyyy-MM-dd"))
+        .order("start_time", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: dayEvents } = useQuery<
+    { id: string; title: string; start_time: string | null; end_time: string | null; color: string | null; description: string | null }[]
+  >({
+    queryKey: ["agenda-events", user?.id, format(selectedDay, "yyyy-MM-dd")],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("events")
+        .select("id, title, start_time, end_time, color, description")
+        .eq("created_by", user.id)
+        .eq("event_date", format(selectedDay, "yyyy-MM-dd"))
         .order("start_time", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -460,6 +481,32 @@ export const LiquidGlassAgenda = ({
     return map;
   }, [dayAppointments, hours]);
 
+
+  // Bucket events onto the slot row they start in (same rule as appointments).
+  const eventsBySlot = useMemo(() => {
+    const map: Record<string, NonNullable<typeof dayEvents>> = {};
+    if (!hours.length) return map;
+    const slotMins = hours.map((h) => {
+      const [hh, mm] = h.split(":").map(Number);
+      return hh * 60 + mm;
+    });
+    for (const ev of dayEvents || []) {
+      const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
+      const evMin = eh * 60 + em;
+      let idx = 0;
+      for (let i = 0; i < slotMins.length; i++) {
+        if (slotMins[i] <= evMin) idx = i;
+      }
+      (map[hours[idx]] ||= []).push(ev);
+    }
+    return map;
+  }, [dayEvents, hours]);
+
+  const eventDuration = (ev: { start_time: string | null; end_time: string | null }) => {
+    const [sh, sm] = (ev.start_time || "00:00").split(":").map(Number);
+    const [eh, em] = (ev.end_time || ev.start_time || "00:00").split(":").map(Number);
+    return Math.max(eh * 60 + em - (sh * 60 + sm), 30);
+  };
 
   // Auto-scroll to current hour when viewing today
   useEffect(() => {
@@ -705,6 +752,16 @@ export const LiquidGlassAgenda = ({
                     </DropdownMenuItem>
                   </>
                 )}
+                <DropdownMenuItem
+                  onClick={() => {
+                    haptic("light");
+                    setEventDialog({ date: format(selectedDay, "yyyy-MM-dd"), time: "09:00" });
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Add event
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
                   className="text-rose-500 dark:text-rose-300 focus:bg-rose-500/10 cursor-pointer"
