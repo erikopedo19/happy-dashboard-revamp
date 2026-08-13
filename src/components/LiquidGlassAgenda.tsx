@@ -1220,10 +1220,16 @@ export const LiquidGlassAgenda = ({
               // off-grid times like 10:30 with a 60-min grid, plus anything
               // before/after the configured range).
               const hourAppointments = appointmentsBySlot[hour] ?? [];
+              const hourEvents = eventsBySlot[hour] ?? [];
 
 
               // Check if any previous appointment spans into this slot
-              const isOccupied = dayAppointments.some((apt) => {
+              const isOccupiedByEvent = (dayEvents || []).some((ev) => {
+                const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
+                const evStart = eh * 60 + em;
+                return evStart < slotStartMin && evStart + eventDuration(ev) > slotStartMin;
+              });
+              const isOccupied = isOccupiedByEvent || dayAppointments.some((apt) => {
                 const [ah, am] = apt.appointment_time.split(':').map(Number);
                 const aptStartMin = ah * 60 + am;
                 const aptEndMin =
@@ -1256,6 +1262,9 @@ export const LiquidGlassAgenda = ({
                 const d = apt.totalDurationMinutes || apt.service.duration || 30;
                 return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
               }, 1);
+              const maxSpanAll = hourEvents.reduce((acc, ev) => {
+                return Math.max(acc, Math.max(Math.ceil(eventDuration(ev) / slotInterval), 1));
+              }, maxSpan);
 
               return (
                 <div
@@ -1282,10 +1291,10 @@ export const LiquidGlassAgenda = ({
 
 
                   {/* Appointments in this hour — stretched to their real end time */}
-                  {hourAppointments.length > 0 && (
+                  {(hourAppointments.length > 0 || hourEvents.length > 0) && (
                   <div
                     className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-1"
-                    style={{ height: maxSpan * ROW_H - 12 }}
+                    style={{ height: maxSpanAll * ROW_H - 12 }}
                   >
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
@@ -1420,11 +1429,51 @@ export const LiquidGlassAgenda = ({
                       </motion.div>
                     );
                   })}
+
+                  {hourEvents.map((ev) => {
+                    const evColor = ev.color || "#0A84FF";
+                    return (
+                      <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-0">
+                        <div
+                          className={cn(
+                            "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden border flex flex-col justify-between",
+                            isDark ? "border-white/[0.07]" : "border-black/[0.05]"
+                          )}
+                          style={{
+                            background: isDark ? "#161618" : "#FFFFFF",
+                            borderLeft: `4px solid ${evColor}`,
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h3 className={cn("text-[15px] font-semibold leading-tight truncate", isDark ? "text-white" : "text-gray-900")}>
+                                {ev.title}
+                              </h3>
+                              {ev.description && (
+                                <p className={cn("text-[12px] truncate mt-1", isDark ? "text-white/55" : "text-gray-600")}>
+                                  {ev.description}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
+                              style={{ backgroundColor: colorToRgba(evColor, 0.15), color: evColor }}
+                            >
+                              Event
+                            </span>
+                          </div>
+                          <span className={cn("text-[11px] font-medium mt-2", isDark ? "text-white/50" : "text-gray-500")}>
+                            {(ev.start_time || "").slice(0, 5)} → {(ev.end_time || "").slice(0, 5)}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                   </div>
                   )}
 
                   {/* Empty slot - visible quick-add (disabled if past) */}
-                  {hourAppointments.length === 0 && !isOccupied && !isBlocked && (
+                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && !isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
 
                       <button
@@ -1466,7 +1515,7 @@ export const LiquidGlassAgenda = ({
                   )}
 
                   {/* Blocked slot */}
-                  {hourAppointments.length === 0 && !isOccupied && isBlocked && (
+                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
                       <button
                         onClick={() => {
@@ -1525,6 +1574,13 @@ export const LiquidGlassAgenda = ({
       </div>
 
       {/* Floating Action Button - hidden on past days */}
+
+      <QuickEventDialog
+        open={!!eventDialog}
+        onOpenChange={(o) => !o && setEventDialog(null)}
+        defaultDate={eventDialog?.date}
+        defaultTime={eventDialog?.time}
+      />
 
       {contextMenu && (
         <>
