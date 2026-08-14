@@ -1637,6 +1637,20 @@ export type Database = {
         Args: { p_today?: string }
         Returns: Json
       }
+      get_most_active_barbers: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          activity_score: number
+          bookings: number
+          business_name: string
+          calendar_updates: number
+          clients: number
+          full_name: string
+          last_active: string
+          services: number
+          user_id: string
+        }[]
+      }
       get_my_bookings: {
         Args: never
         Returns: {
