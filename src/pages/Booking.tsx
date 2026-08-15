@@ -102,6 +102,7 @@ const Booking = () => {
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
   const [locale, setLocale] = useState<"en" | "el" | "es" | "pl" | "nl">("en");
+  const [checkoutItem, setCheckoutItem] = useState<CheckoutItem | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
