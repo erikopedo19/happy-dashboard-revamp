@@ -1851,6 +1851,7 @@ export type Database = {
           description: string
           full_name: string
           id: string
+          payments_enabled: boolean
           phone: string
           rating: number
           rating_count: number

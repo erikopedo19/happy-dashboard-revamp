@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
+import { CheckoutDialog, type CheckoutItem } from "@/components/CheckoutDialog";
 
 
 const bookingSchema = z.object({
@@ -102,6 +103,7 @@ const Booking = () => {
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
   const [locale, setLocale] = useState<"en" | "el" | "es" | "pl" | "nl">("en");
+  const [checkoutItem, setCheckoutItem] = useState<CheckoutItem | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -680,6 +682,21 @@ const Booking = () => {
       });
       await queryClient.refetchQueries({ queryKey: ['public-appointments'], exact: false });
 
+      // Offer online payment when the business has a connected payout account and the service is priced.
+      if ((businessProfile as any)?.payments_enabled && Number(primaryService.price) > 0) {
+        setCheckoutItem({
+          business_id: businessProfile.id,
+          kind: "booking",
+          service_id: primaryService.id,
+          appointment_id: rpcResult.appointment_id,
+          title: primaryService.name,
+          amount: Number(primaryService.price),
+          currency: (businessProfile as any)?.currency || "EUR",
+          customer_email: values.customer_email,
+          customer_name: values.customer_name,
+        });
+      }
+
       form.reset();
       setSelectedTime("");
       return { success: true }; // Return success to advance to success step
@@ -822,31 +839,38 @@ const Booking = () => {
   const showNotes = askNotesParam === 'true' ? true : askNotesParam === 'false' ? false : businessProfile?.ask_notes ?? true;
 
   return (
-    <AgendaBookingForm
-      form={form}
-      services={services || []}
-      stylists={stylists}
-      stylistServices={stylistServices}
-      existingAppointments={existingAppointments}
-      selectedDate={selectedDate}
-      setSelectedDate={setSelectedDate}
-      selectedTime={selectedTime}
-      setSelectedTime={setSelectedTime}
-      timeSlots={timeSlots}
-      isTimeSlotAvailable={isTimeSlotAvailable}
-      getAvailableStylistsForTime={getAvailableStylistsForTime}
-      onSubmit={onSubmit}
-      isLoading={isLoading}
-      businessProfile={businessProfile}
-      workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
-      disabledDates={timeOffDates}
+    <>
+      <AgendaBookingForm
+        form={form}
+        services={services || []}
+        stylists={stylists}
+        stylistServices={stylistServices}
+        existingAppointments={existingAppointments}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        selectedTime={selectedTime}
+        setSelectedTime={setSelectedTime}
+        timeSlots={timeSlots}
+        isTimeSlotAvailable={isTimeSlotAvailable}
+        getAvailableStylistsForTime={getAvailableStylistsForTime}
+        onSubmit={onSubmit}
+        isLoading={isLoading}
+        businessProfile={businessProfile}
+        workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
+        disabledDates={timeOffDates}
 
-      timezone={settings?.timezone || getBrowserTimezone()}
-      locale={locale}
-      askPhone={showPhone}
-      askNotes={showNotes}
-      submitLabel={buttonParam ?? undefined}
-    />
+        timezone={settings?.timezone || getBrowserTimezone()}
+        locale={locale}
+        askPhone={showPhone}
+        askNotes={showNotes}
+        submitLabel={buttonParam ?? undefined}
+      />
+      <CheckoutDialog
+        open={!!checkoutItem}
+        onOpenChange={(o) => !o && setCheckoutItem(null)}
+        item={checkoutItem}
+      />
+    </>
   );
 };
 
