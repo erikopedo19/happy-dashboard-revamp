@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
+import { CheckoutDialog, type CheckoutItem } from "@/components/CheckoutDialog";
 
 
 const bookingSchema = z.object({
