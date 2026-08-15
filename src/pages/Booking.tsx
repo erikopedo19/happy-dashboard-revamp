@@ -687,11 +687,13 @@ const Booking = () => {
         setCheckoutItem({
           business_id: businessProfile.id,
           kind: "booking",
-          item_id: rpcResult.appointment_id,
+          service_id: primaryService.id,
+          appointment_id: rpcResult.appointment_id,
           title: primaryService.name,
           amount: Number(primaryService.price),
           currency: (businessProfile as any)?.currency || "EUR",
           customer_email: values.customer_email,
+          customer_name: values.customer_name,
         });
       }
 

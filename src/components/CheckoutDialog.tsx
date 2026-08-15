@@ -10,11 +10,17 @@ import { cn } from "@/lib/utils";
 export interface CheckoutItem {
   business_id: string;
   kind: "booking" | "product";
-  item_id: string;
+  /** Required when kind === "booking". */
+  service_id?: string;
+  appointment_id?: string;
+  /** Required when kind === "product". */
+  product_id?: string;
+  quantity?: number;
   title: string;
   amount: number;
   currency?: string;
-  customer_email?: string | null;
+  customer_email: string;
+  customer_name?: string;
 }
 
 interface CheckoutDialogProps {
@@ -40,12 +46,13 @@ export function CheckoutDialog({ open, onOpenChange, item }: CheckoutDialogProps
       body: {
         business_id: item.business_id,
         kind: item.kind,
-        item_id: item.item_id,
-        title: item.title,
-        amount: item.amount,
-        currency,
-        customer_email: item.customer_email || undefined,
-        accepted_terms: true,
+        service_id: item.service_id,
+        appointment_id: item.appointment_id,
+        product_id: item.product_id,
+        quantity: item.quantity ?? 1,
+        customer_email: item.customer_email,
+        customer_name: item.customer_name,
+        terms_accepted: true,
         success_url: `${window.location.origin}${window.location.pathname}?paid=1`,
         cancel_url: window.location.href,
       },
