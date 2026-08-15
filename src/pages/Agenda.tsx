@@ -823,8 +823,8 @@ const Agenda = () => {
         <QuickEventDialog
           open={eventDialogOpen}
           onOpenChange={setEventDialogOpen}
-          defaultDate={selectedTimeSlot.date}
-          defaultTime={selectedTimeSlot.time}
+          defaultDate={selectedTimeSlot?.date}
+          defaultTime={selectedTimeSlot?.time}
         />
       </div>
 
