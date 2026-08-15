@@ -682,6 +682,19 @@ const Booking = () => {
       });
       await queryClient.refetchQueries({ queryKey: ['public-appointments'], exact: false });
 
+      // Offer online payment when the business has a connected payout account and the service is priced.
+      if ((businessProfile as any)?.payments_enabled && Number(primaryService.price) > 0) {
+        setCheckoutItem({
+          business_id: businessProfile.id,
+          kind: "booking",
+          item_id: rpcResult.appointment_id,
+          title: primaryService.name,
+          amount: Number(primaryService.price),
+          currency: (businessProfile as any)?.currency || "EUR",
+          customer_email: values.customer_email,
+        });
+      }
+
       form.reset();
       setSelectedTime("");
       return { success: true }; // Return success to advance to success step
