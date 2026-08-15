@@ -840,6 +840,130 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount_subtotal: number
+          amount_tax: number
+          amount_total: number
+          application_fee_amount: number
+          appointment_id: string | null
+          business_id: string
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          description: string | null
+          id: string
+          kind: string
+          product_id: string | null
+          quantity: number
+          service_id: string | null
+          status: string
+          stripe_account_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          terms_accepted: boolean
+          terms_accepted_at: string | null
+          terms_version: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_subtotal?: number
+          amount_tax?: number
+          amount_total?: number
+          application_fee_amount?: number
+          appointment_id?: string | null
+          business_id: string
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          description?: string | null
+          id?: string
+          kind: string
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          status?: string
+          stripe_account_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          terms_version?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_subtotal?: number
+          amount_tax?: number
+          amount_total?: number
+          application_fee_amount?: number
+          appointment_id?: string | null
+          business_id?: string
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          description?: string | null
+          id?: string
+          kind?: string
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          status?: string
+          stripe_account_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          terms_version?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
+          },
+          {
+            foreignKeyName: "payments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string | null
@@ -916,6 +1040,7 @@ export type Database = {
           loyalty_discount_percent: number
           notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
+          payments_enabled: boolean
           phone: string | null
           rating: number | null
           rating_count: number | null
@@ -924,6 +1049,11 @@ export type Database = {
           sender_email: string | null
           sender_name: string | null
           show_public_reviews: boolean | null
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean
+          stripe_details_submitted: boolean
+          stripe_onboarded_at: string | null
+          stripe_payouts_enabled: boolean
           timezone: string | null
           updated_at: string
           website: string | null
@@ -964,6 +1094,7 @@ export type Database = {
           loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
+          payments_enabled?: boolean
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
@@ -972,6 +1103,11 @@ export type Database = {
           sender_email?: string | null
           sender_name?: string | null
           show_public_reviews?: boolean | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
+          stripe_details_submitted?: boolean
+          stripe_onboarded_at?: string | null
+          stripe_payouts_enabled?: boolean
           timezone?: string | null
           updated_at?: string
           website?: string | null
@@ -1012,6 +1148,7 @@ export type Database = {
           loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
+          payments_enabled?: boolean
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
@@ -1020,6 +1157,11 @@ export type Database = {
           sender_email?: string | null
           sender_name?: string | null
           show_public_reviews?: boolean | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
+          stripe_details_submitted?: boolean
+          stripe_onboarded_at?: string | null
+          stripe_payouts_enabled?: boolean
           timezone?: string | null
           updated_at?: string
           website?: string | null
