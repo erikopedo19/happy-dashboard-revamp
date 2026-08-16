@@ -41,6 +41,7 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
+import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
@@ -820,6 +821,7 @@ export function MobileSettings(props: any) {
             {panel === "subscription" && (
               <PanelStack>
                 <SubscriptionPanel />
+                <PayoutSettingsCard />
               </PanelStack>
             )}
 
