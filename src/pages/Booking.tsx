@@ -853,6 +853,8 @@ const Booking = () => {
         about={`At ${venueName}, every appointment is booked in seconds. Pick a service, choose a time that works for you, and get a confirmation instantly — no calls, no waiting.`}
         imageUrl={businessProfile?.banner_url || businessProfile?.avatar_url || null}
         servicesCount={services?.length ?? 0}
+        services={(services || []).map((s: any) => ({ id: s.id, name: s.name, duration: s.duration, price: s.price }))}
+        currency={(businessProfile as any)?.currency_symbol || '$'}
         onBook={() => setShowBookingForm(true)}
       />
     );
