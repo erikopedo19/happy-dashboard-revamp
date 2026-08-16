@@ -820,6 +820,7 @@ export function MobileSettings(props: any) {
             {panel === "subscription" && (
               <PanelStack>
                 <SubscriptionPanel />
+                <PayoutSettingsCard />
               </PanelStack>
             )}
 
