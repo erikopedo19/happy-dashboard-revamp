@@ -34,3 +34,17 @@ vite.config.ts.timestamp-*
 # Local Netlify folder
 .netlify
 .vercel
+
+# Supabase build artifacts
+supabase/_nce/
+supabase/_remote/
+supabase/*.zip
+supabase/*.html
+supabase/*.json
+supabase/*.toml
+supabase/netlify.toml
+supabase/vercel.json
+supabase/_headers
+supabase/robots.txt
+supabase/sitemap.xml
+package-lock.json
