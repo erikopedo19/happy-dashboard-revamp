@@ -1,6 +1,7 @@
 // Stripe Connect onboarding for app owners (barbers/shops).
 // Actions: status | onboard | dashboard
 // Requires a signed-in user; the connected account always belongs to that user.
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 // CORS headers
@@ -43,7 +44,7 @@ const json = (data: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
