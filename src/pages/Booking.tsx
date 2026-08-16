@@ -838,6 +838,24 @@ const Booking = () => {
   const showPhone = askPhoneParam === 'true' ? true : askPhoneParam === 'false' ? false : businessProfile?.ask_phone ?? true;
   const showNotes = askNotesParam === 'true' ? true : askNotesParam === 'false' ? false : businessProfile?.ask_notes ?? true;
 
+  const venueName = businessProfile?.business_name || businessProfile?.full_name || 'Book an appointment';
+
+  if (!showBookingForm) {
+    return (
+      <BookingVenueIntro
+        name={venueName}
+        category={businessProfile?.business_name ? 'Barber' : null}
+        rating={businessProfile?.rating ?? null}
+        ratingCount={businessProfile?.rating_count ?? null}
+        address={businessProfile?.address ?? null}
+        about={`At ${venueName}, every appointment is booked in seconds. Pick a service, choose a time that works for you, and get a confirmation instantly — no calls, no waiting.`}
+        imageUrl={businessProfile?.banner_url || businessProfile?.avatar_url || null}
+        servicesCount={services?.length ?? 0}
+        onBook={() => setShowBookingForm(true)}
+      />
+    );
+  }
+
   return (
     <>
       <AgendaBookingForm
