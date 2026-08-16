@@ -20,11 +20,26 @@ export function PayoutSettingsCard() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("stripe-connect", {
-      body: { action: "status" },
-    });
-    if (!error && data) setStatus(data as Status);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-connect", {
+        body: { action: "status" },
+      });
+      
+      if (error) {
+        console.error("Failed to load Stripe status:", error);
+        toast({
+          title: "Connection Error",
+          description: "Could not check Stripe status. Please try again.",
+          variant: "destructive"
+        });
+      } else if (data) {
+        setStatus(data as Status);
+      }
+    } catch (err) {
+      console.error("Unexpected error loading status:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

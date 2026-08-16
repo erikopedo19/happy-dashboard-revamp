@@ -80,7 +80,12 @@ Deno.serve(async (req) => {
     
     if (profileError) {
       console.error("Profile fetch error:", profileError);
-      return json({ error: "Failed to fetch profile" }, 500);
+      return json({ error: "Failed to fetch profile", details: profileError.message }, 500);
+    }
+    
+    if (!profile) {
+      console.error("No profile found for user:", user.id);
+      return json({ error: "No profile found. Please complete your profile first." }, 400);
     }
 
     let accountId: string | null = profile?.stripe_account_id ?? null;
