@@ -12,6 +12,8 @@ export interface BookingVenueIntroProps {
   about?: string | null;
   imageUrl?: string | null;
   servicesCount: number;
+  services?: { id: string; name: string; duration?: number | null; price?: number | null }[];
+  currency?: string;
   openLabel?: string | null;
   onBook: () => void;
 }
@@ -29,6 +31,8 @@ export function BookingVenueIntro({
   about,
   imageUrl,
   servicesCount,
+  services = [],
+  currency = "$",
   openLabel,
   onBook,
 }: BookingVenueIntroProps) {
@@ -109,6 +113,33 @@ export function BookingVenueIntro({
           <div className="mt-5 flex items-center gap-2.5 rounded-2xl bg-[#F2F2F7] dark:bg-white/[0.05] px-4 py-3.5">
             <MapPin className="w-4.5 h-4.5 w-[18px] h-[18px] shrink-0 text-black/70 dark:text-white/70" />
             <span className="text-[15.5px] text-black dark:text-white/90 truncate">{address}</span>
+          </div>
+        )}
+
+        {services.length > 0 && (
+          <div className="mt-7">
+            <h2 className="text-[20px] font-bold text-black dark:text-white">Services</h2>
+            <div className="mt-3 space-y-2">
+              {services.slice(0, 6).map((s) => (
+                <button
+                  key={s.id}
+                  onClick={onBook}
+                  className="w-full flex items-center justify-between gap-4 rounded-2xl bg-[#F2F2F7] dark:bg-white/[0.05] px-4 py-3.5 text-left active:scale-[0.99] transition"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15.5px] font-medium text-black dark:text-white">{s.name}</span>
+                    {!!s.duration && (
+                      <span className="block text-[13px] text-black/45 dark:text-white/45">{s.duration} min</span>
+                    )}
+                  </span>
+                  {s.price != null && (
+                    <span className="shrink-0 text-[15.5px] font-semibold text-black dark:text-white">
+                      {currency}{s.price}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
