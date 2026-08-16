@@ -13,6 +13,7 @@ const corsHeaders = {
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const STRIPE_API = "https://api.stripe.com/v1";
+const PLATFORM_FEE_CENTS = 25; // 25 cent platform fee
 
 function form(obj: Record<string, string | number | boolean | undefined>) {
   const p = new URLSearchParams();
@@ -51,6 +52,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Stripe Connect function called");
+    
     if (!STRIPE_SECRET_KEY) {
       console.error("STRIPE_SECRET_KEY is not configured");
       return json({ error: "STRIPE_SECRET_KEY is not configured" }, 500);
@@ -114,7 +117,7 @@ serve(async (req) => {
     };
 
     if (action === "status") {
-      if (!accountId) return json({ connected: false });
+      if (!accountId) return json({ connected: false, platform_fee: PLATFORM_FEE_CENTS });
       
       try {
         console.log("Fetching account status for:", accountId);
@@ -128,12 +131,14 @@ serve(async (req) => {
           payouts_enabled: fields.stripe_payouts_enabled,
           details_submitted: fields.stripe_details_submitted,
           requirements_due: acct.requirements?.currently_due ?? [],
+          platform_fee: PLATFORM_FEE_CENTS,
         });
       } catch (stripeError) {
         console.error("Stripe status error:", stripeError);
         return json({ 
           connected: false, 
-          error: `Failed to fetch account status: ${(stripeError as Error).message}` 
+          error: `Failed to fetch account status: ${(stripeError as Error).message}`,
+          platform_fee: PLATFORM_FEE_CENTS,
         }, 500);
       }
     }
@@ -146,10 +151,14 @@ serve(async (req) => {
             "/accounts",
             form({
               type: "express",
+              country: "US",
               email: profile?.sender_email || user.email,
+              "business_profile[url]": `https://cutzioo.com/book/${user.id}`,
               "business_profile[name]": profile?.business_name || profile?.full_name || "",
               "capabilities[card_payments][requested]": "true",
               "capabilities[transfers][requested]": "true",
+              "settings[payouts][debit_negative_balances]": "true",
+              "settings[payouts][schedule][interval]": "daily",
             }),
           );
           accountId = acct.id;
@@ -179,7 +188,7 @@ serve(async (req) => {
         }
         
         console.log("Successfully created account link");
-        return json({ url: link.url });
+        return json({ url: link.url, platform_fee: PLATFORM_FEE_CENTS });
       } catch (stripeError) {
         console.error("Stripe onboarding error:", stripeError);
         return json({ error: `Stripe onboarding failed: ${(stripeError as Error).message}` }, 500);

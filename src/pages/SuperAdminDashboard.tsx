@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Avatar } from "@heroui/react";
@@ -60,7 +60,7 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings" | "offers">("users");
+  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings" | "offers" | "stripe">("users");
   const [showGoogleButton, setShowGoogleButton] = useState(true);
   const [totalBookings, setTotalBookings] = useState(0);
   const [fakeShopsEnabled, setFakeShopsEnabled] = useState(false);
@@ -72,6 +72,13 @@ export default function SuperAdminDashboard() {
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES.default.preBody);
   const [emailTarget, setEmailTarget] = useState<"all" | "premium" | "free">("all");
   const [sendingCampaign, setSendingCampaign] = useState(false);
+  const [stripeConfig, setStripeConfig] = useState({
+    secretKey: "",
+    publishableKey: "",
+    platformFee: 25,
+    webhookSecret: "",
+  });
+  const [showStripeConfig, setShowStripeConfig] = useState(false);
 
   const pickTheme = (t: EmailTheme) => {
     setEmailTheme(t);
@@ -116,6 +123,16 @@ export default function SuperAdminDashboard() {
       setShowGoogleButton(data?.settings?.auth?.show_google_button !== false);
       setFakeShopsEnabled(data?.settings?.fake_shops?.enabled === true);
       setFakeShopsCount(Number(data?.settings?.fake_shops?.count ?? 0));
+      // Load Stripe config
+      const { data: stripeData } = await (supabase as any).functions.invoke("superadmin-stripe-config", {
+        body: { action: "get_config" },
+      });
+      if (stripeData) {
+        setStripeConfig(prev => ({
+          ...prev,
+          platformFee: stripeData.platform_fee || 25,
+        }));
+      }
     }
     setBusy(false);
   };
@@ -293,7 +310,7 @@ export default function SuperAdminDashboard() {
       {/* Tab nav */}
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
         <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
-          {(["users", "campaigns", "gifts", "settings", "offers"] as const).map((t) => (
+          {(["users", "campaigns", "gifts", "settings", "offers", "stripe"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -301,14 +318,38 @@ export default function SuperAdminDashboard() {
                 tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : t === "offers" ? <Gift className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : t === "offers" ? "Offers" : "Settings"}
+              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : t === "offers" ? <Gift className="w-3.5 h-3.5" /> : t === "stripe" ? <Crown className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : t === "offers" ? "Offers" : t === "stripe" ? "Stripe" : "Settings"}
             </button>
           ))}
         </div>
       </div>
 
       <AnimatePresence mode="wait">
+      {tab === "stripe" && (
+        <StripeConfigTab
+          config={stripeConfig}
+          onChange={(key, value) => setStripeConfig(prev => ({ ...prev, [key]: value }))}
+          onSave={async () => {
+            setSaving(true);
+            try {
+              const { error } = await (supabase as any).functions.invoke("superadmin-stripe-config", {
+                body: { action: "update_config", ...stripeConfig },
+              });
+              if (error) {
+                toast.error("Failed to save Stripe configuration", { description: error.message });
+              } else {
+                toast.success("Stripe configuration saved successfully");
+              }
+            } catch (err) {
+              toast.error("Failed to save Stripe configuration");
+            } finally {
+              setSaving(false);
+            }
+          }}
+          saving={saving}
+        />
+      )}
       {tab === "users" && (
       <motion.div key="users" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
@@ -686,6 +727,105 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
         <div className="text-2xl font-semibold mt-1">{value}</div>
       </CardContent>
     </Card>
+  );
+}
+
+function StripeConfigTab({ config, onChange, onSave, saving }: {
+  config: { secretKey: string; publishableKey: string; platformFee: number; webhookSecret: string };
+  onChange: (key: string, value: string | number) => void;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  return (
+    <motion.div key="stripe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        <Card className="rounded-3xl">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-500" />
+              Stripe Configuration
+            </CardTitle>
+            <CardDescription>
+              Configure Stripe integration for secure payment processing. All keys are stored securely in Supabase environment variables.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Stripe Secret Key</Label>
+              <Input
+                type="password"
+                placeholder="sk_live_..."
+                value={config.secretKey}
+                onChange={(e) => onChange("secretKey", e.target.value)}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">Your Stripe secret key (starts with sk_live_ for production)</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Stripe Publishable Key</Label>
+              <Input
+                type="text"
+                placeholder="pk_live_..."
+                value={config.publishableKey}
+                onChange={(e) => onChange("publishableKey", e.target.value)}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">Your Stripe publishable key (starts with pk_live_ for production)</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Platform Fee (cents)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                value={config.platformFee}
+                onChange={(e) => onChange("platformFee", parseInt(e.target.value) || 0)}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">Platform fee per transaction in cents (e.g., 25 = $0.25)</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Webhook Secret</Label>
+              <Input
+                type="password"
+                placeholder="whsec_..."
+                value={config.webhookSecret}
+                onChange={(e) => onChange("webhookSecret", e.target.value)}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">Stripe webhook signing secret for verifying webhook events</p>
+            </div>
+
+            <div className="pt-4 border-t">
+              <button
+                onClick={onSave}
+                disabled={saving}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Shield className="w-4 h-4" /> Save Configuration</>}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-amber-500 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-amber-700 dark:text-amber-400">Security Notice</h4>
+                <p className="text-xs text-amber-600/80 dark:text-amber-400/80">
+                  These credentials will be stored as environment variables in Supabase. Never share your secret keys or commit them to version control.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </motion.div>
   );
 }
 
