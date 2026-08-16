@@ -96,6 +96,7 @@ const Booking = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [showBookingForm, setShowBookingForm] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
