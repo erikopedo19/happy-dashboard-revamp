@@ -34,15 +34,42 @@ export function PayoutSettingsCard() {
 
   const run = async (action: "onboard" | "dashboard") => {
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke("stripe-connect", {
-      body: { action, return_url: `${window.location.origin}/settings` },
-    });
-    setBusy(false);
-    if (error || !data?.url) {
-      toast({ title: "Couldn't open Stripe", description: "Please try again in a moment.", variant: "destructive" });
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-connect", {
+        body: { action, return_url: `${window.location.origin}/settings` },
+      });
+      
+      if (error) {
+        console.error("Stripe function error:", error);
+        toast({ 
+          title: "Couldn't open Stripe", 
+          description: error.message || "Please try again in a moment.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      
+      if (!data?.url) {
+        console.error("No URL returned from stripe-connect:", data);
+        toast({ 
+          title: "Couldn't open Stripe", 
+          description: "No URL returned from Stripe service. Please contact support.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast({ 
+        title: "Couldn't open Stripe", 
+        description: "An unexpected error occurred. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setBusy(false);
     }
-    window.location.href = data.url;
   };
 
   const ready = !!status?.charges_enabled && !!status?.payouts_enabled;

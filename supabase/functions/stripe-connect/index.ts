@@ -41,11 +41,17 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    if (!STRIPE_SECRET_KEY) return json({ error: "STRIPE_SECRET_KEY is not configured" }, 500);
+    if (!STRIPE_SECRET_KEY) {
+      console.error("STRIPE_SECRET_KEY is not configured");
+      return json({ error: "STRIPE_SECRET_KEY is not configured" }, 500);
+    }
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "").trim();
-    if (!token) return json({ error: "Not authenticated" }, 401);
+    if (!token) {
+      console.error("No authorization token provided");
+      return json({ error: "Not authenticated" }, 401);
+    }
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -55,17 +61,27 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await admin.auth.getUser(token);
     const user = userData?.user;
-    if (userErr || !user) return json({ error: "Not authenticated" }, 401);
+    if (userErr || !user) {
+      console.error("User authentication failed:", userErr);
+      return json({ error: "Not authenticated" }, 401);
+    }
 
     const body = await req.json().catch(() => ({}));
     const action = String(body.action ?? "status");
     const returnUrl = typeof body.return_url === "string" ? body.return_url : "";
 
-    const { data: profile } = await admin
+    console.log(`Processing stripe-connect action: ${action} for user: ${user.id}`);
+
+    const { data: profile, error: profileError } = await admin
       .from("profiles")
       .select("stripe_account_id, currency, business_name, full_name, sender_email")
       .eq("id", user.id)
       .maybeSingle();
+    
+    if (profileError) {
+      console.error("Profile fetch error:", profileError);
+      return json({ error: "Failed to fetch profile" }, 500);
+    }
 
     let accountId: string | null = profile?.stripe_account_id ?? null;
 
@@ -84,50 +100,98 @@ Deno.serve(async (req) => {
 
     if (action === "status") {
       if (!accountId) return json({ connected: false });
-      const acct = await stripe(`/accounts/${accountId}`);
-      const fields = await syncFromAccount(acct);
-      return json({
-        connected: true,
-        account_id: acct.id,
-        charges_enabled: fields.stripe_charges_enabled,
-        payouts_enabled: fields.stripe_payouts_enabled,
-        details_submitted: fields.stripe_details_submitted,
-        requirements_due: acct.requirements?.currently_due ?? [],
-      });
+      
+      try {
+        console.log("Fetching account status for:", accountId);
+        const acct = await stripe(`/accounts/${accountId}`);
+        const fields = await syncFromAccount(acct);
+        
+        return json({
+          connected: true,
+          account_id: acct.id,
+          charges_enabled: fields.stripe_charges_enabled,
+          payouts_enabled: fields.stripe_payouts_enabled,
+          details_submitted: fields.stripe_details_submitted,
+          requirements_due: acct.requirements?.currently_due ?? [],
+        });
+      } catch (stripeError) {
+        console.error("Stripe status error:", stripeError);
+        return json({ 
+          connected: false, 
+          error: `Failed to fetch account status: ${(stripeError as Error).message}` 
+        }, 500);
+      }
     }
 
     if (action === "onboard") {
-      if (!accountId) {
-        const acct = await stripe(
-          "/accounts",
+      try {
+        if (!accountId) {
+          console.log("Creating new Stripe account for user:", user.id);
+          const acct = await stripe(
+            "/accounts",
+            form({
+              type: "express",
+              email: profile?.sender_email || user.email,
+              "business_profile[name]": profile?.business_name || profile?.full_name || "",
+              "capabilities[card_payments][requested]": "true",
+              "capabilities[transfers][requested]": "true",
+            }),
+          );
+          accountId = acct.id;
+          console.log("Created Stripe account:", accountId);
+          
+          const { error: updateError } = await admin.from("profiles").update({ stripe_account_id: accountId }).eq("id", user.id);
+          if (updateError) {
+            console.error("Failed to update profile with stripe_account_id:", updateError);
+            return json({ error: "Failed to save account ID" }, 500);
+          }
+        }
+
+        console.log("Creating account link for:", accountId);
+        const link = await stripe(
+          "/account_links",
           form({
-            type: "express",
-            email: profile?.sender_email || user.email,
-            "business_profile[name]": profile?.business_name || profile?.full_name || "",
-            "capabilities[card_payments][requested]": "true",
-            "capabilities[transfers][requested]": "true",
+            account: accountId!,
+            refresh_url: returnUrl || "https://cutzioo.com/settings",
+            return_url: returnUrl || "https://cutzioo.com/settings",
+            type: "account_onboarding",
           }),
         );
-        accountId = acct.id;
-        await admin.from("profiles").update({ stripe_account_id: accountId }).eq("id", user.id);
+        
+        if (!link.url) {
+          console.error("No URL returned from account_links creation");
+          return json({ error: "Failed to generate onboarding link" }, 500);
+        }
+        
+        console.log("Successfully created account link");
+        return json({ url: link.url });
+      } catch (stripeError) {
+        console.error("Stripe onboarding error:", stripeError);
+        return json({ error: `Stripe onboarding failed: ${(stripeError as Error).message}` }, 500);
       }
-
-      const link = await stripe(
-        "/account_links",
-        form({
-          account: accountId!,
-          refresh_url: returnUrl || "https://cutzioo.com/settings",
-          return_url: returnUrl || "https://cutzioo.com/settings",
-          type: "account_onboarding",
-        }),
-      );
-      return json({ url: link.url });
     }
 
     if (action === "dashboard") {
-      if (!accountId) return json({ error: "No connected account" }, 400);
-      const link = await stripe(`/accounts/${accountId}/login_links`, form({}));
-      return json({ url: link.url });
+      if (!accountId) {
+        console.error("No connected account for dashboard action");
+        return json({ error: "No connected account" }, 400);
+      }
+      
+      try {
+        console.log("Creating dashboard link for:", accountId);
+        const link = await stripe(`/accounts/${accountId}/login_links`, form({}));
+        
+        if (!link.url) {
+          console.error("No URL returned from login_links creation");
+          return json({ error: "Failed to generate dashboard link" }, 500);
+        }
+        
+        console.log("Successfully created dashboard link");
+        return json({ url: link.url });
+      } catch (stripeError) {
+        console.error("Stripe dashboard error:", stripeError);
+        return json({ error: `Stripe dashboard failed: ${(stripeError as Error).message}` }, 500);
+      }
     }
 
     return json({ error: "Unknown action" }, 400);
