@@ -69,6 +69,23 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object;
+        // Marketplace (Connect) checkout — booking / product sale, not a subscription.
+        if (s.metadata?.lovable_kind === "marketplace") {
+          await supabase
+            .from("payments")
+            .update({
+              status: s.payment_status === "paid" ? "paid" : "pending",
+              amount_subtotal: s.amount_subtotal ?? 0,
+              amount_tax: s.total_details?.amount_tax ?? 0,
+              amount_total: s.amount_total ?? 0,
+              currency: (s.currency ?? "eur").toLowerCase(),
+              stripe_payment_intent_id: s.payment_intent ?? null,
+              customer_email: s.customer_details?.email ?? s.customer_email ?? null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_session_id", s.id);
+          break;
+        }
         const email = s.customer_email || s.customer_details?.email;
         if (email) {
           await upsert(email, {
@@ -81,6 +98,30 @@ serve(async (req) => {
         }
         break;
       }
+      case "checkout.session.expired": {
+        const s = event.data.object;
+        if (s.metadata?.lovable_kind === "marketplace") {
+          await supabase
+            .from("payments")
+            .update({ status: "expired", updated_at: new Date().toISOString() })
+            .eq("stripe_session_id", s.id);
+        }
+        break;
+      }
+      case "account.updated": {
+        const acct = event.data.object;
+        await supabase
+          .from("profiles")
+          .update({
+            stripe_charges_enabled: !!acct.charges_enabled,
+            stripe_payouts_enabled: !!acct.payouts_enabled,
+            stripe_details_submitted: !!acct.details_submitted,
+            payments_enabled: !!acct.charges_enabled && !!acct.payouts_enabled,
+          })
+          .eq("stripe_account_id", acct.id);
+        break;
+      }
+
       case "invoice.payment_succeeded": {
         const inv = event.data.object;
         const email = inv.customer_email || (await emailFromCustomer(inv.customer));

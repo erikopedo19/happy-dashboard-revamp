@@ -17,6 +17,7 @@ import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, Refresh
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { OffersPanel } from "@/components/OffersPanel";
+import { ActiveBarbersCard } from "@/components/ActiveBarbersCard";
 
 
 
@@ -317,6 +318,8 @@ export default function SuperAdminDashboard() {
           <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Free" value={stats.free} />
           <StatCard icon={<Calendar className="w-4 h-4 text-emerald-500" />} label="Bookings" value={totalBookings} />
         </div>
+
+        <ActiveBarbersCard />
 
         <Card className="rounded-3xl">
           <CardHeader>

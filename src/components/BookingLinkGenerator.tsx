@@ -23,6 +23,7 @@ import { usePremium } from "@/hooks/use-premium";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
 import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
+import BookingLinkPreview from "@/components/BookingLinkPreview";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const BUTTON_COLORS: { value: string; label: string; tw: string }[] = [
@@ -81,7 +82,7 @@ const BookingLinkGenerator = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_theme, booking_locale"
+          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_theme, booking_locale, avatar_url, banner_url, address, description, rating, rating_count, website_design_requested"
         )
         .eq("id", user.id)
         .single();
@@ -108,6 +109,20 @@ const BookingLinkGenerator = () => {
         throw error;
       }
       return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: servicesCount = 0 } = useQuery({
+    queryKey: ["services-count", user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { count } = await supabase
+        .from("services")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("deleted_at", null);
+      return count ?? 0;
     },
     enabled: !!user,
   });
@@ -297,6 +312,20 @@ const BookingLinkGenerator = () => {
           </p>
         </div>
       </div>
+
+      {/* Live booking page preview */}
+      <BookingLinkPreview
+        name={(profile as any)?.business_name || profile?.full_name || "Your business"}
+        subtitle={(profile as any)?.business_name ? profile?.full_name || "Barber" : "Barber"}
+        about={(profile as any)?.description}
+        address={(profile as any)?.address}
+        avatarUrl={(profile as any)?.avatar_url}
+        bannerUrl={(profile as any)?.banner_url}
+        rating={(profile as any)?.rating}
+        ratingCount={(profile as any)?.rating_count}
+        servicesCount={servicesCount}
+        brandColor={brandColor}
+      />
 
       {/* URL preview */}
       <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">

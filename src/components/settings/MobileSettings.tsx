@@ -29,6 +29,7 @@ import {
   Search,
   Tag,
   Home,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -40,7 +41,8 @@ import { enableBookingPush } from "@/lib/push";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { SubscriptionPanel } from "@/components/SubscriptionPanel";
+import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
@@ -84,7 +86,8 @@ type Panel =
   | "booking"
   | "business"
   | "location"
-  | "subscription";
+  | "subscription"
+  | "payments";
 
 export function MobileSettings(props: any) {
   const {
@@ -310,6 +313,13 @@ export function MobileSettings(props: any) {
             label="Message templates"
             value="WhatsApp & SMS"
             onClick={() => setPanel("messages")}
+          />
+          <Row
+            icon={Banknote}
+            tint="#22c55e"
+            label="Payments & payouts"
+            value="Stripe Connect"
+            onClick={() => setPanel("payments")}
           />
           <Row
             icon={CalendarIcon}
@@ -819,7 +829,20 @@ export function MobileSettings(props: any) {
 
             {panel === "subscription" && (
               <PanelStack>
-                <SubscriptionCard />
+                <SubscriptionPanel />
+              </PanelStack>
+            )}
+
+            {panel === "payments" && (
+              <PanelStack>
+                <PayoutSettingsCard />
+                <div className="rounded-[28px] bg-[#1C1C1E] p-5">
+                  <p className="text-[13px] leading-5 text-[#8E8E93]">
+                    Payouts go straight to your connected account. Sales tax is calculated automatically at
+                    checkout and a flat $0.25 platform fee is deducted per transaction — the price your client
+                    pays never changes.
+                  </p>
+                </div>
               </PanelStack>
             )}
 
@@ -1210,6 +1233,8 @@ function titleFor(p: Panel): string {
       return "Map location";
     case "subscription":
       return "Subscription";
+    case "payments":
+      return "Payments & payouts";
     default:
       return "";
   }
