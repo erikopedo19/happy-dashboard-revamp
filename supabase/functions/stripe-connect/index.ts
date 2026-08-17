@@ -59,6 +59,15 @@ serve(async (req) => {
       return json({ error: "STRIPE_SECRET_KEY is not configured" }, 500);
     }
 
+    if (!/^(sk|rk)_(live|test)_/.test(STRIPE_SECRET_KEY)) {
+      console.error("STRIPE_SECRET_KEY has an invalid format (expected sk_live_/sk_test_)");
+      return json(
+        { error: "STRIPE_SECRET_KEY is invalid. It must be a Stripe secret key starting with sk_live_ or sk_test_." },
+        500,
+      );
+    }
+
+
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "").trim();
     if (!token) {
