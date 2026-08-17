@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
