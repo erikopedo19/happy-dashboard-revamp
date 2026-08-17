@@ -38,7 +38,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { enableBookingPush } from "@/lib/push";
-import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
@@ -82,7 +81,6 @@ type Panel =
   | "appearance"
   | "notifications"
   | "loyalty"
-  | "messages"
   | "booking"
   | "business"
   | "location"
@@ -134,7 +132,10 @@ export function MobileSettings(props: any) {
   useEffect(() => {
     window.scrollTo(0, 0);
     document.scrollingElement?.scrollTo({ top: 0 });
-  }, []);
+    // Also reset any overflow containers
+    const mainContainer = document.querySelector('main') || document.body;
+    mainContainer.scrollTo(0, 0);
+  }, [panel]);
 
   useEffect(() => {
     setAvatarFailed(false);
@@ -306,13 +307,6 @@ export function MobileSettings(props: any) {
             label="Booking link"
             value="Share & embed"
             onClick={() => setPanel("booking")}
-          />
-          <Row
-            icon={Sparkles}
-            tint="#ec4899"
-            label="Message templates"
-            value="WhatsApp & SMS"
-            onClick={() => setPanel("messages")}
           />
           <Row
             icon={Banknote}
@@ -812,12 +806,6 @@ export function MobileSettings(props: any) {
                   {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save loyalty setting
                 </motion.button>
-              </PanelStack>
-            )}
-
-            {panel === "messages" && (
-              <PanelStack>
-                <MessageTemplates />
               </PanelStack>
             )}
 
