@@ -14,6 +14,7 @@ const corsHeaders = {
 const STRIPE_SECRET_KEY = (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
 const STRIPE_API = "https://api.stripe.com/v1";
 const PLATFORM_FEE_CENTS = 25; // 25 cent platform fee
+const STRIPE_CONNECT_SETUP_URL = "https://dashboard.stripe.com/connect";
 
 function form(obj: Record<string, string | number | boolean | undefined>) {
   const p = new URLSearchParams();
@@ -180,11 +181,15 @@ serve(async (req) => {
           }
         }
 
+        if (!accountId) {
+          return json({ error: "Unable to create a Stripe connected account." }, 500);
+        }
+
         console.log("Creating account link for:", accountId);
         const link = await stripe(
           "/account_links",
           form({
-            account: accountId!,
+            account: accountId,
             refresh_url: returnUrl || "https://cutzioo.com/settings",
             return_url: returnUrl || "https://cutzioo.com/settings",
             type: "account_onboarding",
@@ -200,7 +205,15 @@ serve(async (req) => {
         return json({ url: link.url, platform_fee: PLATFORM_FEE_CENTS });
       } catch (stripeError) {
         console.error("Stripe onboarding error:", stripeError);
-        return json({ error: `Stripe onboarding failed: ${(stripeError as Error).message}` }, 500);
+        const message = (stripeError as Error).message;
+        if (message.includes("signed up for Connect")) {
+          return json({
+            requires_connect_activation: true,
+            setup_url: STRIPE_CONNECT_SETUP_URL,
+            error: "Stripe Connect must be activated on your Stripe account before payout accounts can be created.",
+          });
+        }
+        return json({ error: `Stripe onboarding failed: ${message}` }, 500);
       }
     }
 
