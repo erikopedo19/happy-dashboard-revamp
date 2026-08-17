@@ -63,6 +63,15 @@ export function PayoutSettingsCard() {
         });
         return;
       }
+
+      if (data?.requires_connect_activation && data?.setup_url) {
+        toast({
+          title: "Activate Stripe Connect",
+          description: "Complete Stripe's Connect setup, then return here to connect payouts.",
+        });
+        window.location.href = data.setup_url;
+        return;
+      }
       
       if (!data?.url) {
         console.error("No URL returned from stripe-connect:", data);
