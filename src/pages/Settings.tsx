@@ -21,8 +21,6 @@ import {
   ArrowRight,
   Trash2,
   LogOut,
-  Plus,
-  Edit,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -44,7 +42,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-
+import { MessageTemplates } from "@/components/MessageTemplates";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
@@ -673,7 +671,7 @@ const Settings = () => {
                         { v: "overview", icon: Settings2, label: "Overview" },
                         { v: "general", icon: User, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
-                        { v: "events", icon: Calendar, label: "Events" },
+                        { v: "messages", icon: Sparkles, label: "Messages" },
                         { v: "notifications", icon: Bell, label: "Alerts", badge: "New" },
                         { v: "business", icon: Store, label: "Business" },
                       ].map(({ v, icon: Icon, label, badge }) => (
@@ -739,47 +737,10 @@ const Settings = () => {
                             </Card>
                           ))}
                       </div>
-                    </TabsContent>                    <TabsContent value="events" className="mt-0 space-y-6 animate-fade-in">
-                      <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                                <Calendar className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-                              </div>
-                              <div>
-                                <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Event Management</CardTitle>
-                                <CardDescription className="text-[#8E8E93] dark:text-gray-500">
-                                  Create and manage events and seminars
-                                </CardDescription>
-                              </div>
-                            </div>
-                            <Button
-                              onClick={() => navigate("/events/manage")}
-                              className="rounded-full h-9 px-4 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Event
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-col items-center justify-center py-8 text-center">
-                            <Calendar className="w-12 h-12 text-muted-foreground mb-3" />
-                            <p className="text-sm text-muted-foreground mb-4">
-                              Manage your events from the events management page
-                            </p>
-                            <Button
-                              onClick={() => navigate("/events/manage")}
-                              variant="outline"
-                              className="rounded-full"
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Manage Events
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    </TabsContent>
+
+                    <TabsContent value="messages" className="mt-0 space-y-6 animate-fade-in">
+                      <MessageTemplates />
                     </TabsContent>
 
                     <TabsContent value="general" className="mt-0 space-y-6 animate-fade-in">
