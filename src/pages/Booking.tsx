@@ -724,6 +724,11 @@ const Booking = () => {
     }
   };
 
+  // Reserved/system slugs are not booking links — send the user to the app home
+  if (isReservedSlug) {
+    return <Navigate to="/" replace />;
+  }
+
   // Show loading state (also while bookingLink is missing or query is fetching)
   if (!bookingLink || profileLoading || servicesLoading || (!businessProfile && !profileError)) {
     return (
