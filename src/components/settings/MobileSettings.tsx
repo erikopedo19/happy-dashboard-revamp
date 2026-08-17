@@ -10,7 +10,6 @@ import {
   Clock,
   User,
   Store,
-  Sparkles,
   Link2,
   Moon,
   Sun,
@@ -21,10 +20,9 @@ import {
   UserCircle2,
   LogOut,
   Trash2,
-  FileText,
   Shield,
   ChevronLeft,
-  Calendar as CalendarIcon,
+  Calendar,
   MapPin,
   Search,
   Tag,
@@ -316,7 +314,14 @@ export function MobileSettings(props: any) {
             onClick={() => setPanel("payments")}
           />
           <Row
-            icon={CalendarIcon}
+            icon={Calendar}
+            tint="#8b5cf6"
+            label="Events"
+            value="Manage events"
+            onClick={() => navigate("/events/manage")}
+          />
+          <Row
+            icon={Calendar}
             tint="#8b5cf6"
             label="Subscription"
             value="Plan & billing"
