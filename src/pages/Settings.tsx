@@ -10,6 +10,7 @@ import {
   Loader2,
   Save,
   Settings2,
+  Sparkles,
   Store,
   User,
   UserCircle2,
