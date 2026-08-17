@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
@@ -93,7 +93,10 @@ interface Appointment {
 
 const Booking = () => {
   const params = useParams();
-  const bookingLink = params.bookingLink;
+  const RESERVED_SLUGS = ['index', 'index.html', 'home', 'app', 'null', 'undefined', 'favicon.ico'];
+  const rawBookingLink = params.bookingLink;
+  const isReservedSlug = !!rawBookingLink && RESERVED_SLUGS.includes(rawBookingLink.toLowerCase());
+  const bookingLink = isReservedSlug ? undefined : rawBookingLink;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -720,6 +723,11 @@ const Booking = () => {
       setIsLoading(false);
     }
   };
+
+  // Reserved/system slugs are not booking links — send the user to the app home
+  if (isReservedSlug) {
+    return <Navigate to="/" replace />;
+  }
 
   // Show loading state (also while bookingLink is missing or query is fetching)
   if (!bookingLink || profileLoading || servicesLoading || (!businessProfile && !profileError)) {
