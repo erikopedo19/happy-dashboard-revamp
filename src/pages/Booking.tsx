@@ -93,7 +93,10 @@ interface Appointment {
 
 const Booking = () => {
   const params = useParams();
-  const bookingLink = params.bookingLink;
+  const RESERVED_SLUGS = ['index', 'index.html', 'home', 'app', 'null', 'undefined', 'favicon.ico'];
+  const rawBookingLink = params.bookingLink;
+  const isReservedSlug = !!rawBookingLink && RESERVED_SLUGS.includes(rawBookingLink.toLowerCase());
+  const bookingLink = isReservedSlug ? undefined : rawBookingLink;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
