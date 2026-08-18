@@ -1069,7 +1069,46 @@ const AgendaBookingForm = ({
                         />
                       )}
 
-                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
+                      {totalPrice > 0 && (
+                        <div>
+                          <p className="text-[#8E8E93] text-sm mb-2">{copy.payment}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {([
+                              { key: "shop", label: copy.payAtShop, enabled: true },
+                              { key: "card", label: copy.payCard, enabled: !!paymentsEnabled },
+                            ] as const).map((opt) => {
+                              const active = payMethod === opt.key;
+                              return (
+                                <button
+                                  key={opt.key}
+                                  type="button"
+                                  disabled={!opt.enabled}
+                                  onClick={() => {
+                                    setPayMethod(opt.key);
+                                    form.setValue("pay_method", opt.key);
+                                  }}
+                                  className={cn(
+                                    "h-[52px] rounded-xl border text-[15px] font-medium transition-all px-3",
+                                    !opt.enabled
+                                      ? "border-black/[0.06] dark:border-white/[0.06] text-black/25 dark:text-white/25 cursor-not-allowed"
+                                      : active
+                                      ? "border-transparent text-white"
+                                      : "border-black/[0.08] dark:border-white/[0.12] text-black dark:text-white"
+                                  )}
+                                  style={active && opt.enabled ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {!paymentsEnabled && (
+                            <p className="mt-2 text-[12.5px] text-[#8E8E93]">{copy.cardUnavailable}</p>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#0A0A0C]/95 backdrop-blur border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
                           type="button"
                           text={isLoading ? copy.processing : rescheduleAppointment ? copy.confirmChange : submitLabel || copy.book}
