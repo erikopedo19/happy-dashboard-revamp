@@ -9,7 +9,6 @@ import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
-import { getIconByName } from "@/components/IconPicker";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
 
 
@@ -147,7 +146,7 @@ const AgendaBookingForm = ({
         whileTap={disabled ? undefined : { scale: 0.975 }}
         transition={{ type: "spring", stiffness: 520, damping: 32 }}
         className={cn(
-          "w-full h-[54px] rounded-[16px] font-semibold text-[16px] text-white border-0",
+          "w-full h-[54px] rounded-[16px] font-semibold text-[16px] text-black dark:text-white border-0",
           "flex items-center justify-center gap-2 select-none relative overflow-hidden",
           "transition-shadow disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
           className
@@ -404,7 +403,7 @@ const AgendaBookingForm = ({
 
   if (step === "success") {
     return (
-      <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center p-4 md:p-8">
+      <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0a0a0c] flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-md text-center">
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
@@ -412,23 +411,23 @@ const AgendaBookingForm = ({
           >
             <Check className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-2xl font-semibold text-white mb-2">
+          <h2 className="text-2xl font-semibold text-black dark:text-white mb-2">
             {rescheduleAppointment ? copy.updated : copy.booked}
           </h2>
           <p className="text-[#8E8E93] mb-6">
             {rescheduleAppointment ? copy.rescheduled : copy.confirmation}
           </p>
-          <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
+          <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/[0.07] dark:border-white/[0.08] p-6 text-left mb-6">
             {selectedServices.map((service, index) => (
-              <div key={service.id} className={cn("flex items-center gap-4", index > 0 && "pt-4 border-t border-white/10 mt-4")}>
+              <div key={service.id} className={cn("flex items-center gap-4", index > 0 && "pt-4 border-t border-black/10 dark:border-white/10 mt-4")}>
                 <img src={avatarUrl} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{service.name}</p>
+                  <p className="text-black dark:text-white font-medium truncate">{service.name}</p>
                   <p className="text-[#8E8E93] text-sm">{service.duration} {copy.mins} · {formatCurrency(service.price)}</p>
                 </div>
               </div>
             ))}
-            <div className="border-t border-white/10 pt-4 mt-4 space-y-2 text-sm">
+            <div className="border-t border-black/10 dark:border-white/10 pt-4 mt-4 space-y-2 text-sm">
               <div className="flex items-center gap-2 text-[#8E8E93]">
                 <CalendarIcon className="w-4 h-4" />
                 <span>{selectedDate && fmt(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
@@ -469,7 +468,7 @@ const AgendaBookingForm = ({
 
   const MobileSummary = () => (
     <div className="lg:hidden mb-5 px-4 pt-4">
-      <div className="rounded-[28px] bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+      <div className="rounded-[28px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
         <div className="h-28 w-full relative">
           {bannerUrl ? (
             <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -480,15 +479,15 @@ const AgendaBookingForm = ({
         </div>
         <div className="px-4 pb-5 -mt-7 relative">
           <div className="flex items-end gap-3 mb-4">
-            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-[#141416] bg-[#2C2C2E]">
+            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-black/[0.05] dark:bg-[#2C2C2E]">
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
             <div className="pb-1 min-w-0">
-              <h1 className="text-lg font-semibold tracking-tight text-white truncate">{displayName}</h1>
+              <h1 className="text-lg font-semibold tracking-tight text-black dark:text-white truncate">{displayName}</h1>
               {businessProfile?.rating != null && (
                 <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
                   <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
-                  <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
+                  <span className="font-medium text-black dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
                   <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                 </div>
               )}
@@ -496,18 +495,18 @@ const AgendaBookingForm = ({
           </div>
 
           {selectedService && (
-            <div className="rounded-[20px] bg-[#1C1C1E] border border-white/[0.06] p-4 space-y-3">
+            <div className="rounded-[20px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.06] p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
                     {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
                   </p>
-                  <p className="text-white font-medium truncate">
+                  <p className="text-black dark:text-white font-medium truncate">
                     {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-white font-bold">{formatCurrency(totalPrice)}</p>
+                  <p className="text-black dark:text-white font-bold">{formatCurrency(totalPrice)}</p>
                   <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
                 </div>
               </div>
@@ -523,9 +522,9 @@ const AgendaBookingForm = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-                <span className="text-sm font-medium text-white">{copy.total}</span>
-                <span className="text-lg font-bold text-white">{formatCurrency(totalPrice)}</span>
+              <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] dark:border-white/[0.06]">
+                <span className="text-sm font-medium text-black dark:text-white">{copy.total}</span>
+                <span className="text-lg font-bold text-black dark:text-white">{formatCurrency(totalPrice)}</span>
               </div>
             </div>
           )}
@@ -535,8 +534,8 @@ const AgendaBookingForm = ({
   );
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 relative">
-      <div className="w-full max-w-6xl mx-auto bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden p-4 md:p-6 lg:p-8 relative z-10">
+    <div className="min-h-screen overflow-y-auto bg-[#F2F2F7] dark:bg-[#0a0a0c] text-black dark:text-white p-3 md:p-8 lg:p-12 relative">
+      <div className="w-full max-w-6xl mx-auto bg-transparent lg:bg-white lg:dark:bg-[#111114] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] rounded-[28px] lg:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] overflow-hidden p-0 lg:p-8 relative z-10">
         <MobileSummary />
         <AnimatePresence mode="wait">
           <motion.div
@@ -549,7 +548,7 @@ const AgendaBookingForm = ({
           >
             {/* Left panel — brand + booking info */}
             <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden rounded-2xl shadow-2xl">
+              <div className="bg-white dark:bg-[#1a1a1a] border border-black/[0.07] dark:border-[#2a2a2a] overflow-hidden rounded-2xl shadow-2xl">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -563,20 +562,20 @@ const AgendaBookingForm = ({
                 </div>
                 <div className="px-5 pb-5 -mt-10 relative">
                   <div className="flex items-end gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-[#1C1C1E] bg-[#2C2C2E]">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white dark:ring-[#1C1C1E] bg-black/[0.05] dark:bg-[#2C2C2E]">
                       <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                     </div>
                     <div className="pb-1">
                       {businessProfile?.rating != null && (
                         <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
                           <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
-                          <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
+                          <span className="font-medium text-black dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
                           <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <h1 className="text-xl font-semibold tracking-tight text-white mb-1">{displayName}</h1>
+                  <h1 className="text-xl font-semibold tracking-tight text-black dark:text-white mb-1">{displayName}</h1>
 
                   {selectedService ? (
                     <div className="mt-4 space-y-4">
@@ -584,7 +583,7 @@ const AgendaBookingForm = ({
                         <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">
                           {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
                         </p>
-                        <h2 className="text-lg font-semibold text-white">
+                        <h2 className="text-lg font-semibold text-black dark:text-white">
                           {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
                         </h2>
                         {selectedService.description && selectedServices.length === 1 && (
@@ -613,10 +612,10 @@ const AgendaBookingForm = ({
                         )}
                       </div>
 
-                      <div className="pt-4 border-t border-white/[0.08]">
+                      <div className="pt-4 border-t border-black/[0.07] dark:border-white/[0.08]">
                         <div className="flex items-center justify-between">
                           <span className="text-[#8E8E93]">{copy.total}</span>
-                          <span className="text-xl font-bold text-white">{formatCurrency(totalPrice)}</span>
+                          <span className="text-xl font-bold text-black dark:text-white">{formatCurrency(totalPrice)}</span>
                         </div>
                       </div>
                     </div>
@@ -628,9 +627,9 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-4 md:p-8 min-h-[520px] rounded-2xl">
+            <div className="bg-transparent lg:bg-white lg:dark:bg-[#15151A] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] p-4 md:p-6 lg:p-8 min-h-[520px] rounded-[24px]">
               {/* Equal-width segmented step tabs (cal.com inspired) */}
-              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-[#1C1C1E] mb-6">
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-black/[0.05] dark:bg-[#1C1C1E] mb-6">
                 {stepTabs.map((tab) => {
                   const active = tab.key === activeTabKey;
                   return (
@@ -641,14 +640,14 @@ const AgendaBookingForm = ({
                       disabled={!tab.enabled}
                       className={cn(
                         "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
-                        active ? "text-white" : tab.enabled ? "text-[#8E8E93] hover:text-white" : "text-[#48484A] cursor-not-allowed"
+                        active ? "text-black dark:text-white" : tab.enabled ? "text-[#8E8E93] hover:text-black dark:hover:text-white" : "text-[#48484A] cursor-not-allowed"
                       )}
                     >
                       {active && (
                         <motion.span
                           layoutId="booking-tab"
                           transition={{ type: "spring", stiffness: 480, damping: 38 }}
-                          className="absolute inset-0 rounded-[12px] bg-[#2C2C2E]"
+                          className="absolute inset-0 rounded-[12px] bg-white shadow-sm dark:bg-[#2C2C2E] dark:shadow-none"
                         />
                       )}
                       <span className="relative z-10">{tab.label}</span>
@@ -659,67 +658,64 @@ const AgendaBookingForm = ({
 
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
-                  <div className="mb-5">
-                    <h2 className="text-[26px] font-semibold tracking-tight text-white">{copy.service}</h2>
+                  <div className="mb-6">
+                    <h2 className="text-[34px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">
+                      {copy.service}
+                    </h2>
                   </div>
                   <div className="grid gap-3">
                     {services.map((service, idx) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
-                      const ServiceIcon = service.icon ? getIconByName(service.icon) : null;
                       return (
                         <motion.button
                           key={service.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.035, 0.25) }}
-                          whileTap={{ scale: 0.985 }}
+                          whileTap={{ scale: 0.99 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-2xl border text-left transition-all bg-[#2a2a2a]/30",
+                            "w-full p-5 rounded-[20px] border text-left transition-all bg-white dark:bg-[#15151A]",
                             active
-                              ? "ring-2 ring-white/30 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
-                              : "border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#2a2a2a]/50"
+                              ? "border-transparent shadow-[0_10px_30px_-16px_rgba(0,0,0,0.45)]"
+                              : "border-black/[0.06] dark:border-white/[0.07] hover:border-black/15 dark:hover:border-white/15"
                           )}
-                          style={active ? { borderColor: swatch, backgroundColor: `${swatch}14` } : {}}
+                          style={active ? { borderColor: swatch, boxShadow: `0 0 0 1.5px ${swatch}` } : {}}
                         >
-                          <div className="flex items-center gap-4">
-                            <div
-                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner flex items-center justify-center text-white"
-                              style={{ backgroundColor: swatch }}
-                            >
-                              {ServiceIcon ? (
-                                <ServiceIcon className="w-6 h-6" />
-                              ) : (
-                                <span className="w-3 h-3 rounded-full bg-white/30" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-3">
-                                <p className="font-semibold text-white text-[16px] truncate">{service.name}</p>
-                                <p className="text-[16px] font-semibold text-white tabular-nums shrink-0">{formatCurrency(service.price)}</p>
-                              </div>
-                              <div className="flex items-center gap-1.5 text-[#8E8E93] text-[13px] mt-1">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span className="tabular-nums">{service.duration} min</span>
-                              </div>
-                            </div>
-                            <div
+                          <p className="text-[18px] font-semibold tracking-tight text-black dark:text-white">
+                            {service.name}
+                          </p>
+                          <p className="mt-1 text-[15px] text-black/45 dark:text-white/45 tabular-nums">
+                            {service.duration} {copy.mins}
+                          </p>
+                          {service.description && (
+                            <p className="mt-2.5 text-[15px] leading-[1.5] text-black/55 dark:text-white/55 line-clamp-2">
+                              {service.description}
+                            </p>
+                          )}
+                          <div className="mt-4 flex items-center justify-between gap-4">
+                            <span className="text-[17px] font-semibold text-black dark:text-white tabular-nums">
+                              {formatCurrency(service.price)}
+                            </span>
+                            <span
                               className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-opacity",
-                                active ? "opacity-100" : "opacity-0"
+                                "w-11 h-11 rounded-full flex items-center justify-center border transition-all shrink-0",
+                                active
+                                  ? "border-transparent text-white"
+                                  : "border-black/10 dark:border-white/15 text-black dark:text-white"
                               )}
-                              style={{ backgroundColor: accentColor }}
+                              style={active ? { backgroundColor: swatch } : {}}
                             >
-                              <Check className="w-3.5 h-3.5 text-white" />
-                            </div>
+                              {active ? <Check className="w-5 h-5" /> : <span className="text-[22px] leading-none -mt-0.5">+</span>}
+                            </span>
                           </div>
                         </motion.button>
                       );
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
+                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-black/[0.06] dark:sm:border-white/[0.06]">
                       <BookingButton
                         text={copy.continue}
                         onClick={handleServiceContinue}
@@ -731,15 +727,17 @@ const AgendaBookingForm = ({
               )}
 
 
+
+
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-[26px] font-semibold tracking-tight text-white">
+                    <h2 className="text-[26px] font-semibold tracking-tight text-black dark:text-white">
                       {copy.dateTimeShort}
                     </h2>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
+                      className="text-sm text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       {copy.back}
@@ -751,19 +749,19 @@ const AgendaBookingForm = ({
                     {/* Calendar */}
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-lg font-semibold text-black dark:text-white">
                           {fmt(currentMonth, 'MMMM')} <span className="text-[#8E8E93]">{format(currentMonth, 'yyyy')}</span>
                         </h3>
                         <div className="flex gap-1">
                           <button
                             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-white transition"
+                            className="w-8 h-8 rounded-lg bg-white dark:bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition"
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-white transition"
+                            className="w-8 h-8 rounded-lg bg-white dark:bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -792,12 +790,12 @@ const AgendaBookingForm = ({
                                 isSelected
                                   ? "text-white"
                                   : isDisabled
-                                  ? "text-[#636366] cursor-not-allowed"
+                                  ? "text-black/25 dark:text-[#636366] cursor-not-allowed"
                                   : !isCurrentMonth
-                                  ? "text-[#636366]"
+                                  ? "text-black/25 dark:text-[#636366]"
                                   : isToday
-                                  ? "text-white border border-[#3a3a3a]"
-                                  : "text-white hover:bg-[#2a2a2a] bg-[#2a2a2a]/40"
+                                  ? "text-black dark:text-white border border-black/15 dark:border-[#3a3a3a]"
+                                  : "text-black dark:text-white bg-black/[0.03] dark:bg-[#2a2a2a]/40 hover:bg-black/[0.06] dark:hover:bg-[#2a2a2a]"
                               )}
                               style={isSelected ? { backgroundColor: accentColor } : {}}
                             >
@@ -816,15 +814,15 @@ const AgendaBookingForm = ({
                     {/* Time slots */}
                     <div className="flex flex-col h-full">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-white">
+                        <h4 className="text-sm font-semibold text-black dark:text-white">
                           {selectedDate ? fmt(selectedDate, 'EEE dd') : copy.selectDate}
                         </h4>
-                        <div className="flex gap-1 bg-[#1C1C1E] rounded-lg p-1">
+                        <div className="flex gap-1 bg-white dark:bg-[#1C1C1E] rounded-lg p-1">
                           <button
                             onClick={() => setTimeFormat("12h")}
                             className={cn(
                               "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "12h" ? "bg-[#2C2C2E] text-white" : "text-[#8E8E93] hover:text-white"
+                              timeFormat === "12h" ? "bg-black/[0.05] dark:bg-[#2C2C2E] text-black dark:text-white" : "text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white"
                             )}
                           >
                             12h
@@ -833,7 +831,7 @@ const AgendaBookingForm = ({
                             onClick={() => setTimeFormat("24h")}
                             className={cn(
                               "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "24h" ? "bg-[#2C2C2E] text-white" : "text-[#8E8E93] hover:text-white"
+                              timeFormat === "24h" ? "bg-black/[0.05] dark:bg-[#2C2C2E] text-black dark:text-white" : "text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white"
                             )}
                           >
                             24h
@@ -862,7 +860,7 @@ const AgendaBookingForm = ({
                                     "w-full h-[52px] rounded-xl border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-[#2a2a2a] bg-transparent text-white hover:bg-[#2a2a2a]"
+                                      : "border-black/[0.07] dark:border-[#2a2a2a] bg-transparent text-black dark:text-white hover:bg-black/[0.04] dark:hover:bg-[#2a2a2a]"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >
@@ -889,7 +887,7 @@ const AgendaBookingForm = ({
                         )}
                       </div>
                       {selectedDate && availableTimeSlots.length > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-white/95 dark:bg-[#141416]/95 backdrop-blur border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
                           <BookingButton
                             text={copy.continue}
                             onClick={handleContinue}
@@ -906,11 +904,11 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-white">{copy.selectStylist}</h2>
+                      <h2 className="text-2xl font-semibold text-black dark:text-white">{copy.selectStylist}</h2>
                     </div>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
+                      className="text-sm text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       {copy.back}
@@ -925,12 +923,12 @@ const AgendaBookingForm = ({
                             key={stylist.id}
                             onClick={() => handleStylistSelect(stylist.id)}
                             className={cn(
-                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-[#1C1C1E] flex items-center gap-4",
-                              active ? "ring-2 ring-white/30" : "border-white/[0.06] hover:border-white/[0.12]"
+                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-white dark:bg-[#1C1C1E] flex items-center gap-4",
+                              active ? "ring-2 ring-white/30" : "border-black/[0.06] dark:border-white/[0.06] hover:border-white/[0.12]"
                             )}
                             style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12` } : {}}
                           >
-                            <div className="h-12 w-12 rounded-full bg-[#2C2C2E] overflow-hidden flex items-center justify-center text-lg font-semibold text-white shrink-0">
+                            <div className="h-12 w-12 rounded-full bg-black/[0.05] dark:bg-[#2C2C2E] overflow-hidden flex items-center justify-center text-lg font-semibold text-black dark:text-white shrink-0">
                               {stylist.avatar_url ? (
                                 <img src={stylist.avatar_url} alt={stylist.name} className="h-full w-full object-cover" />
                               ) : (
@@ -938,7 +936,7 @@ const AgendaBookingForm = ({
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-white font-semibold truncate">{stylist.name}</p>
+                              <p className="text-black dark:text-white font-semibold truncate">{stylist.name}</p>
                               <p className="text-[#8E8E93] text-sm truncate">{stylist.title || copy.stylist}</p>
                             </div>
                             {active && (
@@ -958,7 +956,7 @@ const AgendaBookingForm = ({
                         <Button
                           onClick={handleBack}
                           variant="outline"
-                          className="rounded-full border-white/[0.08] text-white hover:bg-[#2C2C2E]"
+                          className="rounded-full border-black/[0.07] dark:border-white/[0.08] text-black dark:text-white hover:bg-black/[0.05] dark:bg-[#2C2C2E]"
                         >
                           <ChevronLeft className="w-4 h-4 mr-1.5" />
                           {copy.pickAnotherTime}
@@ -973,11 +971,11 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-white">{copy.details}</h2>
+                      <h2 className="text-2xl font-semibold text-black dark:text-white">{copy.details}</h2>
                     </div>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
+                      className="text-sm text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       {copy.back}
@@ -1002,7 +1000,7 @@ const AgendaBookingForm = ({
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
                                 <Input
                                   {...field}
-                                  className="w-full pl-10 pr-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
+                                  className="w-full pl-10 pr-3 h-12 bg-white dark:bg-[#1C1C1E] border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
                                   placeholder={copy.namePh}
                                 />
                               </div>
@@ -1021,7 +1019,7 @@ const AgendaBookingForm = ({
                             <FormControl>
                               <Input
                                 {...field}
-                                className="w-full px-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
+                                className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
                                 placeholder="email@example.com"
                               />
                             </FormControl>
@@ -1040,7 +1038,7 @@ const AgendaBookingForm = ({
                               <FormControl>
                                 <Input
                                   {...field}
-                                  className="w-full px-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
+                                  className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
                                   placeholder="+1 555 123 4567"
                                 />
                               </FormControl>
@@ -1061,7 +1059,7 @@ const AgendaBookingForm = ({
                                 <textarea
                                   {...field}
                                   rows={3}
-                                  className="w-full px-3 py-2.5 bg-[#1C1C1E] border border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0 resize-none"
+                                  className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1E] border border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0 resize-none"
                                   placeholder={copy.notesPh}
                                 />
                               </FormControl>
@@ -1071,7 +1069,7 @@ const AgendaBookingForm = ({
                         />
                       )}
 
-                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
+                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
                           type="button"
                           text={isLoading ? copy.processing : rescheduleAppointment ? copy.confirmChange : submitLabel || copy.book}
