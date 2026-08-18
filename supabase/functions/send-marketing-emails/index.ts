@@ -265,7 +265,7 @@ serve(async (req: Request) => {
     let sent = 0;
     const results: any[] = [];
 
-    for (const c of (candidates ?? []) as any[]) {
+    for (const c of allCandidates) {
       if (remainingBudget <= 0) break;
       const email = emailById.get(c.user_id);
       const campaign = CAMPAIGNS[c.campaign];
