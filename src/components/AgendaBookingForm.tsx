@@ -382,6 +382,7 @@ const AgendaBookingForm = ({
     setSubmitError(null);
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) values.stylist_id = selectedStylistId;
+    values.pay_method = paymentsEnabled ? payMethod : "shop";
     const result = await onSubmit(values);
     if (!result) return;
     if (typeof result === 'object' && 'success' in result) {
@@ -1088,7 +1089,6 @@ const AgendaBookingForm = ({
                                   disabled={!opt.enabled}
                                   onClick={() => {
                                     setPayMethod(opt.key);
-                                    form.setValue("pay_method", opt.key);
                                   }}
                                   className={cn(
                                     "h-[52px] rounded-xl border text-[15px] font-medium transition-all px-3",
