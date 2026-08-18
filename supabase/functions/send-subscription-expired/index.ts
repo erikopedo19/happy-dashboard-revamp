@@ -96,7 +96,7 @@ serve(async (req: Request) => {
     try {
       const res = await fetch(`${GATEWAY_URL}/smtp/email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Connection-Api-Key": BREVO_API_KEY },
+        headers: { "Content-Type": "application/json", "X-Connection-Api-Key": BREVO_API_KEY, ...(Deno.env.get("LOVABLE_API_KEY") ? { Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}` } : {}) },
         body: JSON.stringify({
           sender: { email: SENDER_EMAIL, name: SENDER_NAME },
           to: [{ email: row.email }],
