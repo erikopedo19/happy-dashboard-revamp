@@ -884,6 +884,7 @@ const Booking = () => {
         isTimeSlotAvailable={isTimeSlotAvailable}
         getAvailableStylistsForTime={getAvailableStylistsForTime}
         onSubmit={onSubmit}
+        paymentsEnabled={!!(businessProfile as any)?.payments_enabled}
         isLoading={isLoading}
         businessProfile={businessProfile}
         workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
