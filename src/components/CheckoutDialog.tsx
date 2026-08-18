@@ -71,22 +71,22 @@ export function CheckoutDialog({ open, onOpenChange, item }: CheckoutDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-[28px] bg-[#15151A] border-white/[0.06] text-white p-6">
+      <DialogContent className="max-w-sm rounded-[28px] bg-white dark:bg-[#15151A] border-black/[0.06] dark:border-white/[0.06] text-black dark:text-white p-6">
         <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center">
           <Receipt className="w-5 h-5 text-rose-400" />
         </div>
         <h2 className="mt-3 text-[19px] font-semibold leading-tight">Pay for {item?.title}</h2>
-        <p className="text-[13px] text-white/45">
+        <p className="text-[13px] text-black/45 dark:text-white/45">
           {price} · sales tax is calculated at checkout based on your location and shown as a separate line.
         </p>
 
-        <label className="mt-4 flex items-start gap-3 rounded-2xl bg-white/[0.04] p-3.5 cursor-pointer">
+        <label className="mt-4 flex items-start gap-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] p-3.5 cursor-pointer">
           <Checkbox
             checked={accepted}
             onCheckedChange={(v) => setAccepted(v === true)}
-            className="mt-0.5 border-white/25 data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500"
+            className="mt-0.5 border-black/25 dark:border-white/25 data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500"
           />
-          <span className="text-[12.5px] leading-relaxed text-white/70">
+          <span className="text-[12.5px] leading-relaxed text-black/70 dark:text-white/70">
             I agree to the{" "}
             <Link to="/terms" target="_blank" className="text-rose-400 underline underline-offset-2">
               Terms of Service
@@ -104,13 +104,13 @@ export function CheckoutDialog({ open, onOpenChange, item }: CheckoutDialogProps
           disabled={!accepted || busy}
           className={cn(
             "mt-4 w-full h-[52px] rounded-full text-[16px] font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2",
-            accepted && !busy ? "bg-rose-500 text-white" : "bg-white/[0.07] text-white/35"
+            accepted && !busy ? "bg-rose-500 text-white" : "bg-black/[0.06] dark:bg-white/[0.07] text-black/35 dark:text-white/35"
           )}
         >
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : `Pay ${price}`}
         </button>
 
-        <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11.5px] text-white/30">
+        <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11.5px] text-black/35 dark:text-white/30">
           <ShieldCheck className="w-3.5 h-3.5" /> Secure payment by Stripe · card & PayPal
         </p>
       </DialogContent>
