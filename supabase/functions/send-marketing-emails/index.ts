@@ -150,6 +150,24 @@ const CAMPAIGNS: Record<string, Campaign> = {
         ctaUrl: `${APP_URL}/agenda`,
       }),
   },
+  login_tips_3d: {
+    key: "login_tips_3d",
+    subject: () => "3 quick wins while you were away",
+    html: (c) =>
+      shell({
+        kicker: "Quick tips",
+        title: `A few minutes today, ${esc(c.firstName)}`,
+        body: `<p style="margin:0 0 14px;">You haven't opened Cutzioo for a few days. Here are three small things that make the biggest difference:</p>
+<ol style="margin:0 0 14px;padding-left:20px;">
+  <li style="margin-bottom:8px;"><strong>Pin your booking link</strong> in your Instagram bio and WhatsApp status.</li>
+  <li style="margin-bottom:8px;"><strong>Block your days off</strong> so clients never book you on a break.</li>
+  <li><strong>Turn on review requests</strong> — ratings bring in new clients on their own.</li>
+</ol>
+<p style="margin:0;font-size:14px;color:#8e8e93;">We only send this once a month.</p>`,
+        ctaLabel: "Open Cutzioo",
+        ctaUrl: `${APP_URL}/agenda`,
+      }),
+  },
   monthly_recap: {
     key: "monthly_recap",
     subject: () => "Your Cutzioo month in numbers",
@@ -213,10 +231,41 @@ serve(async (req: Request) => {
     const emailById = new Map<string, string>();
     for (const u of usersPage?.users ?? []) if (u.email) emailById.set(u.id, u.email);
 
+    // --- Re-engagement tips: inactive 3+ days, at most once per calendar month,
+    // and never for anyone who has been away for more than 15 days.
+    const allCandidates: any[] = [...((candidates ?? []) as any[])];
+    const alreadyQueued = new Set(allCandidates.map((c) => c.user_id));
+    const now = Date.now();
+    const period = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const tipsUserIds: string[] = [];
+    for (const u of usersPage?.users ?? []) {
+      if (!u.email || alreadyQueued.has(u.id)) continue;
+      const last = u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : null;
+      if (!last) continue;
+      const days = (now - last) / 86_400_000;
+      if (days < 3 || days > 15) continue;
+      tipsUserIds.push(u.id);
+    }
+    if (tipsUserIds.length) {
+      const { data: tipProfiles } = await admin
+        .from("profiles")
+        .select("id, full_name, deleted_at")
+        .in("id", tipsUserIds.slice(0, 200));
+      for (const p of tipProfiles ?? []) {
+        if ((p as any).deleted_at) continue;
+        allCandidates.push({
+          user_id: (p as any).id,
+          campaign: "login_tips_3d",
+          full_name: (p as any).full_name,
+          period,
+        });
+      }
+    }
+
     let sent = 0;
     const results: any[] = [];
 
-    for (const c of (candidates ?? []) as any[]) {
+    for (const c of allCandidates) {
       if (remainingBudget <= 0) break;
       const email = emailById.get(c.user_id);
       const campaign = CAMPAIGNS[c.campaign];

@@ -110,15 +110,71 @@ serve(async (req) => {
       }
       case "account.updated": {
         const acct = event.data.object;
+        const active = !!acct.charges_enabled && !!acct.payouts_enabled;
         await supabase
           .from("profiles")
           .update({
             stripe_charges_enabled: !!acct.charges_enabled,
             stripe_payouts_enabled: !!acct.payouts_enabled,
             stripe_details_submitted: !!acct.details_submitted,
-            payments_enabled: !!acct.charges_enabled && !!acct.payouts_enabled,
+            payments_enabled: active,
+            ...(active ? { stripe_onboarded_at: new Date().toISOString() } : {}),
           })
           .eq("stripe_account_id", acct.id);
+        break;
+      }
+
+      // Connect account created/authorized for the platform.
+      case "account.application.authorized": {
+        const acctId = event.account;
+        if (acctId) {
+          await supabase
+            .from("profiles")
+            .update({ stripe_details_submitted: true })
+            .eq("stripe_account_id", acctId);
+        }
+        break;
+      }
+
+      // Barber disconnected the account from the platform.
+      case "account.application.deauthorized": {
+        const acctId = event.account;
+        if (acctId) {
+          await supabase
+            .from("profiles")
+            .update({
+              stripe_charges_enabled: false,
+              stripe_payouts_enabled: false,
+              stripe_details_submitted: false,
+              payments_enabled: false,
+              stripe_account_id: null,
+            })
+            .eq("stripe_account_id", acctId);
+        }
+        break;
+      }
+
+      // Capability flips (card_payments / transfers) — keep payout status live.
+      case "capability.updated": {
+        const acctId = event.account;
+        const cap = event.data.object;
+        if (acctId && cap?.id === "card_payments") {
+          const enabled = cap.status === "active";
+          await supabase
+            .from("profiles")
+            .update({
+              stripe_charges_enabled: enabled,
+              payments_enabled: enabled,
+              ...(enabled ? { stripe_onboarded_at: new Date().toISOString() } : {}),
+            })
+            .eq("stripe_account_id", acctId);
+        }
+        if (acctId && cap?.id === "transfers") {
+          await supabase
+            .from("profiles")
+            .update({ stripe_payouts_enabled: cap.status === "active" })
+            .eq("stripe_account_id", acctId);
+        }
         break;
       }
 
