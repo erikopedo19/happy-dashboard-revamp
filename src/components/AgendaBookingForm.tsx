@@ -63,6 +63,7 @@ interface AgendaBookingFormProps {
   askPhone?: boolean;
   askNotes?: boolean;
   submitLabel?: string;
+  paymentsEnabled?: boolean;
 }
 
 const AgendaBookingForm = ({
@@ -88,12 +89,14 @@ const AgendaBookingForm = ({
   askPhone = true,
   askNotes = true,
   submitLabel,
+  paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [payMethod, setPayMethod] = useState<"shop" | "card">("shop");
 
   const bookingTheme = businessProfile?.booking_theme || "default";
   const themeColors: Record<string, string> = {
@@ -1071,11 +1074,11 @@ const AgendaBookingForm = ({
 
                       {totalPrice > 0 && (
                         <div>
-                          <p className="text-[#8E8E93] text-sm mb-2">{copy.payment}</p>
+                          <p className="text-[#8E8E93] text-sm mb-2">{Payment}</p>
                           <div className="grid grid-cols-2 gap-2">
                             {([
-                              { key: "shop", label: copy.payAtShop, enabled: true },
-                              { key: "card", label: copy.payCard, enabled: !!paymentsEnabled },
+                              { key: "shop", label: "Pay at the shop", enabled: true },
+                              { key: "card", label: "Pay with card", enabled: !!paymentsEnabled },
                             ] as const).map((opt) => {
                               const active = payMethod === opt.key;
                               return (
@@ -1103,7 +1106,7 @@ const AgendaBookingForm = ({
                             })}
                           </div>
                           {!paymentsEnabled && (
-                            <p className="mt-2 text-[12.5px] text-[#8E8E93]">{copy.cardUnavailable}</p>
+                            <p className="mt-2 text-[12.5px] text-[#8E8E93]">This business hasn’t enabled card payments yet.</p>
                           )}
                         </div>
                       )}
