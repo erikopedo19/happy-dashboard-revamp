@@ -1075,7 +1075,7 @@ const AgendaBookingForm = ({
 
                       {totalPrice > 0 && (
                         <div>
-                          <p className="text-[#8E8E93] text-sm mb-2">{Payment}</p>
+                          <p className="text-[#8E8E93] text-sm mb-2">Payment</p>
                           <div className="grid grid-cols-2 gap-2">
                             {([
                               { key: "shop", label: "Pay at the shop", enabled: true },
