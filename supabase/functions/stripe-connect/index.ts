@@ -154,6 +154,51 @@ serve(async (req) => {
       }
     }
 
+    // Read-only earnings snapshot for the owner's own connected account.
+    // Uses the platform key with the Stripe-Account header — no extra credentials needed.
+    if (action === "balance") {
+      if (!accountId) return json({ connected: false, available: 0, pending: 0, currency: "usd", payouts: [], transactions: [] });
+      try {
+        const [balance, payouts, txns] = await Promise.all([
+          stripe(`/balance`, undefined, "GET", accountId),
+          stripe(`/payouts?limit=5`, undefined, "GET", accountId).catch(() => ({ data: [] })),
+          stripe(`/balance_transactions?limit=8`, undefined, "GET", accountId).catch(() => ({ data: [] })),
+        ]);
+        const sum = (arr: any[]) => (arr ?? []).reduce((t, b) => t + (b.amount ?? 0), 0);
+        const currency = balance?.available?.[0]?.currency ?? balance?.pending?.[0]?.currency ?? "usd";
+        const lifetime = (txns?.data ?? [])
+          .filter((t: any) => t.type === "charge" || t.type === "payment")
+          .reduce((t: number, x: any) => t + (x.net ?? 0), 0);
+        return json({
+          connected: true,
+          currency,
+          available: sum(balance?.available) / 100,
+          pending: sum(balance?.pending) / 100,
+          recent_net: lifetime / 100,
+          payouts: (payouts?.data ?? []).map((p: any) => ({
+            id: p.id,
+            amount: (p.amount ?? 0) / 100,
+            currency: p.currency,
+            status: p.status,
+            arrival_date: p.arrival_date,
+          })),
+          transactions: (txns?.data ?? []).map((t: any) => ({
+            id: t.id,
+            amount: (t.amount ?? 0) / 100,
+            net: (t.net ?? 0) / 100,
+            currency: t.currency,
+            type: t.type,
+            description: t.description,
+            created: t.created,
+          })),
+        });
+      } catch (e) {
+        console.error("Stripe balance error:", e);
+        return json({ connected: true, error: `Failed to load balance: ${(e as Error).message}` }, 500);
+      }
+    }
+
+
     if (action === "onboard") {
       try {
         if (!accountId) {
