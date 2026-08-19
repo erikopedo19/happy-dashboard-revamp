@@ -736,7 +736,7 @@ const AgendaBookingForm = ({
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-[26px] font-semibold tracking-tight text-black dark:text-white">
+                    <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">
                       {copy.dateTimeShort}
                     </h2>
                     <button
@@ -908,7 +908,7 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-black dark:text-white">{copy.selectStylist}</h2>
+                      <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">{copy.selectStylist}</h2>
                     </div>
                     <button
                       onClick={handleBack}
@@ -927,7 +927,7 @@ const AgendaBookingForm = ({
                             key={stylist.id}
                             onClick={() => handleStylistSelect(stylist.id)}
                             className={cn(
-                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-white dark:bg-[#1C1C1E] flex items-center gap-4",
+                              "w-full p-4 rounded-[20px] border text-left transition-all bg-white dark:bg-[#15151A] flex items-center gap-4",
                               active ? "ring-2 ring-white/30" : "border-black/[0.06] dark:border-white/[0.06] hover:border-white/[0.12]"
                             )}
                             style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12` } : {}}
@@ -975,7 +975,7 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-black dark:text-white">{copy.details}</h2>
+                      <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">{copy.details}</h2>
                     </div>
                     <button
                       onClick={handleBack}
@@ -1004,7 +1004,7 @@ const AgendaBookingForm = ({
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
                                 <Input
                                   {...field}
-                                  className="w-full pl-10 pr-3 h-12 bg-white dark:bg-[#1C1C1E] border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
+                                  className="w-full pl-10 pr-3 h-[52px] bg-white dark:bg-[#15151A] border-black/[0.07] dark:border-white/[0.08] rounded-[16px] text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
                                   placeholder={copy.namePh}
                                 />
                               </div>
@@ -1023,7 +1023,7 @@ const AgendaBookingForm = ({
                             <FormControl>
                               <Input
                                 {...field}
-                                className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
+                                className="w-full px-3 h-[52px] bg-white dark:bg-[#15151A] border-black/[0.07] dark:border-white/[0.08] rounded-[16px] text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
                                 placeholder="email@example.com"
                               />
                             </FormControl>
@@ -1042,7 +1042,7 @@ const AgendaBookingForm = ({
                               <FormControl>
                                 <Input
                                   {...field}
-                                  className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
+                                  className="w-full px-3 h-[52px] bg-white dark:bg-[#15151A] border-black/[0.07] dark:border-white/[0.08] rounded-[16px] text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0"
                                   placeholder="+1 555 123 4567"
                                 />
                               </FormControl>
@@ -1063,7 +1063,7 @@ const AgendaBookingForm = ({
                                 <textarea
                                   {...field}
                                   rows={3}
-                                  className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1E] border border-black/[0.07] dark:border-white/[0.08] rounded-xl text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0 resize-none"
+                                  className="w-full px-3 py-2.5 bg-white dark:bg-[#15151A] border border-black/[0.07] dark:border-white/[0.08] rounded-[16px] text-black dark:text-white placeholder:text-black/35 dark:placeholder:text-[#636366] focus:border-black/25 dark:focus:border-white/20 focus:ring-0 resize-none"
                                   placeholder={copy.notesPh}
                                 />
                               </FormControl>
