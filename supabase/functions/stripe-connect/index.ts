@@ -22,13 +22,14 @@ function form(obj: Record<string, string | number | boolean | undefined>) {
   return p;
 }
 
-async function stripe(path: string, body?: URLSearchParams, method = "POST") {
+async function stripe(path: string, body?: URLSearchParams, method = "POST", onBehalfOf?: string) {
   const res = await fetch(`${STRIPE_API}${path}`, {
     method: body ? method : "GET",
     headers: {
       Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
       "Content-Type": "application/x-www-form-urlencoded",
       "Stripe-Version": "2024-06-20",
+      ...(onBehalfOf ? { "Stripe-Account": onBehalfOf } : {}),
     },
     body,
   });
