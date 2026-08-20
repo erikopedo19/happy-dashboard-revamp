@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, Share2, Heart } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { el as elLocale, es as esLocale, nl as nlLocale, pl as plLocale } from 'date-fns/locale';
 import { UseFormReturn } from "react-hook-form";
@@ -470,6 +470,25 @@ const AgendaBookingForm = ({
   ];
 
 
+  const [liked, setLiked] = useState(false);
+  const likeKey = `cutzioo_fav_${typeof window !== "undefined" ? window.location.pathname : ""}`;
+  useEffect(() => {
+    try { setLiked(localStorage.getItem(likeKey) === "1"); } catch { /* ignore */ }
+  }, [likeKey]);
+  const toggleLike = () => {
+    setLiked((v) => {
+      const next = !v;
+      try { localStorage.setItem(likeKey, next ? "1" : "0"); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const shareVenue = async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: displayName, url: window.location.href });
+      else await navigator.clipboard.writeText(window.location.href);
+    } catch { /* dismissed */ }
+  };
+
   const MobileSummary = () => (
     <div className="lg:hidden mb-5 px-4 pt-4">
       <div className="rounded-[28px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
@@ -480,7 +499,26 @@ const AgendaBookingForm = ({
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Share"
+              onClick={shareVenue}
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+            >
+              <Share2 className="w-4 h-4 text-black dark:text-white" />
+            </button>
+            <button
+              type="button"
+              aria-label={liked ? "Unsave" : "Save"}
+              onClick={toggleLike}
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+            >
+              <Heart className={cn("w-4 h-4", liked ? "fill-[#FF2D6F] text-[#FF2D6F]" : "text-black dark:text-white")} />
+            </button>
+          </div>
         </div>
+
         <div className="px-4 pb-5 -mt-7 relative">
           <div className="flex items-end gap-3 mb-4">
             <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-black/[0.05] dark:bg-[#2C2C2E]">
