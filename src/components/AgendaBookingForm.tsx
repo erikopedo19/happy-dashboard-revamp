@@ -776,7 +776,7 @@ const AgendaBookingForm = ({
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">
+                    <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white">
                       {copy.dateTimeShort}
                     </h2>
                     <button
@@ -948,7 +948,7 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">{copy.selectStylist}</h2>
+                      <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white">{copy.selectStylist}</h2>
                     </div>
                     <button
                       onClick={handleBack}
@@ -1015,7 +1015,7 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">{copy.details}</h2>
+                      <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white">{copy.details}</h2>
                     </div>
                     <button
                       onClick={handleBack}
