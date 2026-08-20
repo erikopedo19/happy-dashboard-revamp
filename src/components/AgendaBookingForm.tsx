@@ -480,7 +480,26 @@ const AgendaBookingForm = ({
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Share"
+              onClick={shareVenue}
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+            >
+              <Share2 className="w-4 h-4 text-black dark:text-white" />
+            </button>
+            <button
+              type="button"
+              aria-label={liked ? "Unsave" : "Save"}
+              onClick={toggleLike}
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+            >
+              <Heart className={cn("w-4 h-4", liked ? "fill-[#FF2D6F] text-[#FF2D6F]" : "text-black dark:text-white")} />
+            </button>
+          </div>
         </div>
+
         <div className="px-4 pb-5 -mt-7 relative">
           <div className="flex items-end gap-3 mb-4">
             <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-black/[0.05] dark:bg-[#2C2C2E]">
