@@ -701,12 +701,12 @@ const AgendaBookingForm = ({
 
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
-                  <div className="mb-6">
-                    <h2 className="text-[34px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">
+                  <div className="mb-5">
+                    <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white break-words">
                       {copy.service}
                     </h2>
                   </div>
-                  <div className="grid gap-3">
+                  <div className="grid gap-2.5">
                     {services.map((service, idx) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
@@ -719,44 +719,45 @@ const AgendaBookingForm = ({
                           whileTap={{ scale: 0.99 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-[20px] border text-left transition-all bg-white dark:bg-[#15151A]",
+                            "w-full px-4 py-3.5 rounded-[18px] border text-left transition-all bg-white dark:bg-[#15151A] flex items-center gap-3",
                             active
-                              ? "border-transparent shadow-[0_10px_30px_-16px_rgba(0,0,0,0.45)]"
+                              ? "border-transparent"
                               : "border-black/[0.06] dark:border-white/[0.07] hover:border-black/15 dark:hover:border-white/15"
                           )}
                           style={active ? { borderColor: swatch, boxShadow: `0 0 0 1.5px ${swatch}` } : {}}
                         >
-                          <p className="text-[18px] font-semibold tracking-tight text-black dark:text-white">
-                            {service.name}
-                          </p>
-                          <p className="mt-1 text-[15px] text-black/45 dark:text-white/45 tabular-nums">
-                            {service.duration} {copy.mins}
-                          </p>
-                          {service.description && (
-                            <p className="mt-2.5 text-[15px] leading-[1.5] text-black/55 dark:text-white/55 line-clamp-2">
-                              {service.description}
-                            </p>
-                          )}
-                          <div className="mt-4 flex items-center justify-between gap-4">
-                            <span className="text-[17px] font-semibold text-black dark:text-white tabular-nums">
-                              {formatCurrency(service.price)}
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[16px] font-semibold tracking-tight text-black dark:text-white truncate">
+                              {service.name}
                             </span>
-                            <span
-                              className={cn(
-                                "w-11 h-11 rounded-full flex items-center justify-center border transition-all shrink-0",
-                                active
-                                  ? "border-transparent text-white"
-                                  : "border-black/10 dark:border-white/15 text-black dark:text-white"
-                              )}
-                              style={active ? { backgroundColor: swatch } : {}}
-                            >
-                              {active ? <Check className="w-5 h-5" /> : <span className="text-[22px] leading-none -mt-0.5">+</span>}
+                            <span className="mt-0.5 block text-[13.5px] text-black/45 dark:text-white/45 tabular-nums">
+                              {service.duration} {copy.mins}
                             </span>
-                          </div>
+                            {service.description && (
+                              <span className="mt-1 block text-[13.5px] leading-snug text-black/50 dark:text-white/50 line-clamp-1">
+                                {service.description}
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-[16px] font-semibold text-black dark:text-white tabular-nums shrink-0">
+                            {formatCurrency(service.price)}
+                          </span>
+                          <span
+                            className={cn(
+                              "w-9 h-9 rounded-full flex items-center justify-center border transition-all shrink-0",
+                              active
+                                ? "border-transparent text-white"
+                                : "border-black/10 dark:border-white/15 text-black dark:text-white"
+                            )}
+                            style={active ? { backgroundColor: swatch } : {}}
+                          >
+                            {active ? <Check className="w-4.5 h-4.5 w-[18px] h-[18px]" /> : <span className="text-[20px] leading-none -mt-0.5">+</span>}
+                          </span>
                         </motion.button>
                       );
                     })}
                   </div>
+
                   {selectedServiceIds.length > 0 && (
                     <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-black/[0.06] dark:sm:border-white/[0.06]">
                       <BookingButton
