@@ -538,7 +538,7 @@ const AgendaBookingForm = ({
 
 
           {selectedService && (
-            <div className="rounded-[20px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.06] p-4 space-y-3">
+            <div className="mt-4 rounded-[18px] bg-[#F7F7F8] dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
