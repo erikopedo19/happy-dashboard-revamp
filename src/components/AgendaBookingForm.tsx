@@ -490,21 +490,21 @@ const AgendaBookingForm = ({
   };
 
   const MobileSummary = () => (
-    <div className="lg:hidden mb-5 px-4 pt-4">
-      <div className="rounded-[28px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-        <div className="h-28 w-full relative">
+    <div className="lg:hidden mb-4 px-1 pt-1">
+      <div className="rounded-[24px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_16px_40px_-24px_rgba(0,0,0,0.5)]">
+        <div className="h-24 w-full relative">
           {bannerUrl ? (
             <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
-          <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-2">
             <button
               type="button"
               aria-label="Share"
               onClick={shareVenue}
-              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
             >
               <Share2 className="w-4 h-4 text-black dark:text-white" />
             </button>
@@ -512,29 +512,30 @@ const AgendaBookingForm = ({
               type="button"
               aria-label={liked ? "Unsave" : "Save"}
               onClick={toggleLike}
-              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
             >
               <Heart className={cn("w-4 h-4", liked ? "fill-[#FF2D6F] text-[#FF2D6F]" : "text-black dark:text-white")} />
             </button>
           </div>
         </div>
 
-        <div className="px-4 pb-5 -mt-7 relative">
-          <div className="flex items-end gap-3 mb-4">
-            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-black/[0.05] dark:bg-[#2C2C2E]">
+        <div className="px-4 pb-4 pt-3 relative">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 shrink-0 rounded-[14px] overflow-hidden bg-black/[0.05] dark:bg-[#2C2C2E]">
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
-            <div className="pb-1 min-w-0">
-              <h1 className="text-lg font-semibold tracking-tight text-black dark:text-white truncate">{displayName}</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[17px] font-semibold tracking-tight text-black dark:text-white truncate">{displayName}</h1>
               {businessProfile?.rating != null && (
-                <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
-                  <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
+                <div className="flex items-center gap-1 text-[13px]">
+                  <Star className="w-3.5 h-3.5 fill-[#FFCC00] text-[#FFCC00]" />
                   <span className="font-medium text-black dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
                   <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                 </div>
               )}
             </div>
           </div>
+
 
           {selectedService && (
             <div className="rounded-[20px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.06] p-4 space-y-3">
