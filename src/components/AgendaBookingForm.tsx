@@ -490,21 +490,21 @@ const AgendaBookingForm = ({
   };
 
   const MobileSummary = () => (
-    <div className="lg:hidden mb-5 px-4 pt-4">
-      <div className="rounded-[28px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-        <div className="h-28 w-full relative">
+    <div className="lg:hidden mb-4 px-1 pt-1">
+      <div className="rounded-[24px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_16px_40px_-24px_rgba(0,0,0,0.5)]">
+        <div className="h-24 w-full relative">
           {bannerUrl ? (
             <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
-          <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-2">
             <button
               type="button"
               aria-label="Share"
               onClick={shareVenue}
-              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
             >
               <Share2 className="w-4 h-4 text-black dark:text-white" />
             </button>
@@ -512,23 +512,23 @@ const AgendaBookingForm = ({
               type="button"
               aria-label={liked ? "Unsave" : "Save"}
               onClick={toggleLike}
-              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
             >
               <Heart className={cn("w-4 h-4", liked ? "fill-[#FF2D6F] text-[#FF2D6F]" : "text-black dark:text-white")} />
             </button>
           </div>
         </div>
 
-        <div className="px-4 pb-5 -mt-7 relative">
-          <div className="flex items-end gap-3 mb-4">
-            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-black/[0.05] dark:bg-[#2C2C2E]">
+        <div className="px-4 pb-4 pt-3 relative">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 shrink-0 rounded-[14px] overflow-hidden bg-black/[0.05] dark:bg-[#2C2C2E]">
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
-            <div className="pb-1 min-w-0">
-              <h1 className="text-lg font-semibold tracking-tight text-black dark:text-white truncate">{displayName}</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[17px] font-semibold tracking-tight text-black dark:text-white truncate">{displayName}</h1>
               {businessProfile?.rating != null && (
-                <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
-                  <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
+                <div className="flex items-center gap-1 text-[13px]">
+                  <Star className="w-3.5 h-3.5 fill-[#FFCC00] text-[#FFCC00]" />
                   <span className="font-medium text-black dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
                   <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                 </div>
@@ -536,8 +536,9 @@ const AgendaBookingForm = ({
             </div>
           </div>
 
+
           {selectedService && (
-            <div className="rounded-[20px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.06] p-4 space-y-3">
+            <div className="mt-4 rounded-[18px] bg-[#F7F7F8] dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
@@ -700,12 +701,12 @@ const AgendaBookingForm = ({
 
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
-                  <div className="mb-6">
-                    <h2 className="text-[34px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">
+                  <div className="mb-5">
+                    <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white break-words">
                       {copy.service}
                     </h2>
                   </div>
-                  <div className="grid gap-3">
+                  <div className="grid gap-2.5">
                     {services.map((service, idx) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
@@ -718,44 +719,45 @@ const AgendaBookingForm = ({
                           whileTap={{ scale: 0.99 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-[20px] border text-left transition-all bg-white dark:bg-[#15151A]",
+                            "w-full px-4 py-3.5 rounded-[18px] border text-left transition-all bg-white dark:bg-[#15151A] flex items-center gap-3",
                             active
-                              ? "border-transparent shadow-[0_10px_30px_-16px_rgba(0,0,0,0.45)]"
+                              ? "border-transparent"
                               : "border-black/[0.06] dark:border-white/[0.07] hover:border-black/15 dark:hover:border-white/15"
                           )}
                           style={active ? { borderColor: swatch, boxShadow: `0 0 0 1.5px ${swatch}` } : {}}
                         >
-                          <p className="text-[18px] font-semibold tracking-tight text-black dark:text-white">
-                            {service.name}
-                          </p>
-                          <p className="mt-1 text-[15px] text-black/45 dark:text-white/45 tabular-nums">
-                            {service.duration} {copy.mins}
-                          </p>
-                          {service.description && (
-                            <p className="mt-2.5 text-[15px] leading-[1.5] text-black/55 dark:text-white/55 line-clamp-2">
-                              {service.description}
-                            </p>
-                          )}
-                          <div className="mt-4 flex items-center justify-between gap-4">
-                            <span className="text-[17px] font-semibold text-black dark:text-white tabular-nums">
-                              {formatCurrency(service.price)}
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[16px] font-semibold tracking-tight text-black dark:text-white truncate">
+                              {service.name}
                             </span>
-                            <span
-                              className={cn(
-                                "w-11 h-11 rounded-full flex items-center justify-center border transition-all shrink-0",
-                                active
-                                  ? "border-transparent text-white"
-                                  : "border-black/10 dark:border-white/15 text-black dark:text-white"
-                              )}
-                              style={active ? { backgroundColor: swatch } : {}}
-                            >
-                              {active ? <Check className="w-5 h-5" /> : <span className="text-[22px] leading-none -mt-0.5">+</span>}
+                            <span className="mt-0.5 block text-[13.5px] text-black/45 dark:text-white/45 tabular-nums">
+                              {service.duration} {copy.mins}
                             </span>
-                          </div>
+                            {service.description && (
+                              <span className="mt-1 block text-[13.5px] leading-snug text-black/50 dark:text-white/50 line-clamp-1">
+                                {service.description}
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-[16px] font-semibold text-black dark:text-white tabular-nums shrink-0">
+                            {formatCurrency(service.price)}
+                          </span>
+                          <span
+                            className={cn(
+                              "w-9 h-9 rounded-full flex items-center justify-center border transition-all shrink-0",
+                              active
+                                ? "border-transparent text-white"
+                                : "border-black/10 dark:border-white/15 text-black dark:text-white"
+                            )}
+                            style={active ? { backgroundColor: swatch } : {}}
+                          >
+                            {active ? <Check className="w-4.5 h-4.5 w-[18px] h-[18px]" /> : <span className="text-[20px] leading-none -mt-0.5">+</span>}
+                          </span>
                         </motion.button>
                       );
                     })}
                   </div>
+
                   {selectedServiceIds.length > 0 && (
                     <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-black/[0.06] dark:sm:border-white/[0.06]">
                       <BookingButton
@@ -774,7 +776,7 @@ const AgendaBookingForm = ({
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">
+                    <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white">
                       {copy.dateTimeShort}
                     </h2>
                     <button
@@ -946,7 +948,7 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">{copy.selectStylist}</h2>
+                      <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white">{copy.selectStylist}</h2>
                     </div>
                     <button
                       onClick={handleBack}
@@ -1013,7 +1015,7 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white">{copy.details}</h2>
+                      <h2 className="text-[24px] sm:text-[28px] leading-[1.15] font-bold tracking-tight text-black dark:text-white">{copy.details}</h2>
                     </div>
                     <button
                       onClick={handleBack}
