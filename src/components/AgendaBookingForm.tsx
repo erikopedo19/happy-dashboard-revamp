@@ -584,7 +584,7 @@ const AgendaBookingForm = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={spring}
-            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 md:gap-6 lg:gap-8 items-start"
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-0 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
             <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
