@@ -490,88 +490,84 @@ const AgendaBookingForm = ({
   };
 
   const MobileSummary = () => (
-    <div className="lg:hidden mb-4 px-1 pt-1">
-      <div className="rounded-[24px] bg-white dark:bg-[#141416] border border-black/[0.06] dark:border-white/[0.06] overflow-hidden shadow-[0_16px_40px_-24px_rgba(0,0,0,0.5)]">
-        <div className="h-24 w-full relative">
-          {bannerUrl ? (
-            <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-          <div className="absolute top-2.5 right-2.5 flex items-center gap-2">
+    <div className="lg:hidden -mx-3 -mt-3">
+      {/* Full-bleed venue hero — shown on every stage */}
+      <div className="relative h-[36vh] min-h-[230px] w-full overflow-hidden bg-neutral-300 dark:bg-[#15151A]">
+        {bannerUrl ? (
+          <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}45 0%, ${accentColor}10 100%)` }} />
+        )}
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent" />
+
+        <div className="absolute top-4 inset-x-4 flex items-center justify-between">
+          <button
+            type="button"
+            aria-label="Go back"
+            onClick={() => (step === "service" ? window.history.back() : handleBack())}
+            className="w-11 h-11 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+          >
+            <ChevronLeft className="w-5 h-5 text-black dark:text-white" />
+          </button>
+          <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label="Share"
               onClick={shareVenue}
-              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+              className="w-11 h-11 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
             >
-              <Share2 className="w-4 h-4 text-black dark:text-white" />
+              <Share2 className="w-5 h-5 text-black dark:text-white" />
             </button>
             <button
               type="button"
               aria-label={liked ? "Unsave" : "Save"}
               onClick={toggleLike}
-              className="w-9 h-9 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
+              className="w-11 h-11 rounded-full bg-white/85 dark:bg-black/55 backdrop-blur-xl flex items-center justify-center shadow-sm active:scale-95 transition"
             >
-              <Heart className={cn("w-4 h-4", liked ? "fill-[#FF2D6F] text-[#FF2D6F]" : "text-black dark:text-white")} />
+              <Heart className={cn("w-5 h-5", liked ? "fill-[#FF2D6F] text-[#FF2D6F]" : "text-black dark:text-white")} />
             </button>
           </div>
         </div>
+      </div>
 
-        <div className="px-4 pb-4 pt-3 relative">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 shrink-0 rounded-[14px] overflow-hidden bg-black/[0.05] dark:bg-[#2C2C2E]">
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-[17px] font-semibold tracking-tight text-black dark:text-white truncate">{displayName}</h1>
-              {businessProfile?.rating != null && (
-                <div className="flex items-center gap-1 text-[13px]">
-                  <Star className="w-3.5 h-3.5 fill-[#FFCC00] text-[#FFCC00]" />
-                  <span className="font-medium text-black dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
-                  <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-
-          {selectedService && (
-            <div className="mt-4 rounded-[18px] bg-[#F7F7F8] dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
-                    {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
-                  </p>
-                  <p className="text-black dark:text-white font-medium truncate">
-                    {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-black dark:text-white font-bold">{formatCurrency(totalPrice)}</p>
-                  <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 text-sm text-[#8E8E93]">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{businessProfile?.address || copy.inPerson}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 shrink-0" />
-                  <span>{formatTzLabel(timezone)}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] dark:border-white/[0.06]">
-                <span className="text-sm font-medium text-black dark:text-white">{copy.total}</span>
-                <span className="text-lg font-bold text-black dark:text-white">{formatCurrency(totalPrice)}</span>
-              </div>
-            </div>
+      {/* Sheet header */}
+      <div className="relative -mt-7 rounded-t-[28px] bg-white dark:bg-[#111114] px-5 pt-6 pb-1">
+        <h1 className="text-[30px] leading-[1.1] font-bold tracking-tight text-black dark:text-white break-words">
+          {displayName}
+        </h1>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px]">
+          {businessProfile?.rating != null && (
+            <span className="flex items-center gap-1.5 font-semibold text-black dark:text-white">
+              <Star className="w-4 h-4 fill-[#FFCC00] text-[#FFCC00]" />
+              {Number(businessProfile.rating).toFixed(1)}
+              <span className="font-normal text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
+            </span>
+          )}
+          {businessProfile?.address && (
+            <span className="flex items-center gap-1.5 text-[#8E8E93] min-w-0">
+              <MapPin className="w-4 h-4 shrink-0" />
+              <span className="truncate max-w-[200px]">{businessProfile.address}</span>
+            </span>
           )}
         </div>
+
+        {selectedService && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-[18px] bg-[#F2F2F7] dark:bg-white/[0.05] px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold">
+                {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
+              </p>
+              <p className="truncate text-[15px] font-medium text-black dark:text-white">
+                {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
+                {selectedTime ? ` · ${selectedTime}` : ""}
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-[15px] font-bold text-black dark:text-white">{formatCurrency(totalPrice)}</p>
+              <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -580,6 +576,7 @@ const AgendaBookingForm = ({
     <div className="min-h-screen overflow-y-auto bg-[#F2F2F7] dark:bg-[#0a0a0c] text-black dark:text-white p-3 md:p-8 lg:p-12 relative">
       <div className="w-full max-w-6xl mx-auto bg-transparent lg:bg-white lg:dark:bg-[#111114] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] rounded-[28px] lg:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] overflow-hidden p-0 lg:p-8 relative z-10">
         <MobileSummary />
+
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -587,7 +584,7 @@ const AgendaBookingForm = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={spring}
-            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 md:gap-6 lg:gap-8 items-start"
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-0 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
             <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
@@ -670,7 +667,7 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-transparent lg:bg-white lg:dark:bg-[#15151A] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] p-4 md:p-6 lg:p-8 min-h-[520px] rounded-[24px]">
+            <div className="-mx-3 md:mx-0 bg-white dark:bg-[#111114] lg:bg-white lg:dark:bg-[#15151A] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] px-5 pt-3 pb-8 md:p-6 lg:p-8 min-h-[520px] rounded-none md:rounded-[24px]">
               {/* Equal-width segmented step tabs (cal.com inspired) */}
               <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-black/[0.05] dark:bg-[#1C1C1E] mb-6">
                 {stepTabs.map((tab) => {
