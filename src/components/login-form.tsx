@@ -1,7 +1,7 @@
 import checkLogo from "@/assets/cutzioo-check.png.asset.json";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Chrome } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -32,6 +32,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
