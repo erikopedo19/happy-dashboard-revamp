@@ -667,7 +667,7 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-transparent lg:bg-white lg:dark:bg-[#15151A] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] p-4 md:p-6 lg:p-8 min-h-[520px] rounded-[24px]">
+            <div className="-mx-3 md:mx-0 bg-white dark:bg-[#111114] lg:bg-white lg:dark:bg-[#15151A] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] px-5 pt-3 pb-8 md:p-6 lg:p-8 min-h-[520px] rounded-none md:rounded-[24px]">
               {/* Equal-width segmented step tabs (cal.com inspired) */}
               <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-black/[0.05] dark:bg-[#1C1C1E] mb-6">
                 {stepTabs.map((tab) => {
