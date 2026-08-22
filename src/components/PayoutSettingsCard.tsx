@@ -350,5 +350,6 @@ export function PayoutSettingsCard() {
         )}
       </div>
     </motion.div>
+    </div>
   );
 }
