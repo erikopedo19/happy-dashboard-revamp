@@ -1673,6 +1673,10 @@ function MobileReportsView({
         />
       </div>
 
+      <RevenuePipelineCard />
+
+
+
       {/* Status + busiest days charts */}
       <div className="grid grid-cols-2 gap-3">
         <MobileCard title="Status" subtitle="Bookings" delay={0.22}>
