@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
+import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
 
 type RangeValue =
   | "today"
@@ -642,6 +643,9 @@ const Reports = () => {
                   tint={iOS.indigo}
                 />
               </div>
+
+              <RevenuePipelineCard />
+
 
               {/* Status + busiest days */}
               <div id="status" ref={sectionRefs.status} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
@@ -1668,6 +1672,10 @@ function MobileReportsView({
           tint={iOS.indigo}
         />
       </div>
+
+      <RevenuePipelineCard />
+
+
 
       {/* Status + busiest days charts */}
       <div className="grid grid-cols-2 gap-3">
