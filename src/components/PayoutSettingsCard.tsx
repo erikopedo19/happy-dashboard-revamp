@@ -13,6 +13,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
 
 type Status = {
   stripe_account_id: string | null;
@@ -151,6 +152,8 @@ export function PayoutSettingsCard() {
   const cur = balance?.currency;
 
   return (
+    <div className="space-y-4">
+    <RevenuePipelineCard compact />
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
