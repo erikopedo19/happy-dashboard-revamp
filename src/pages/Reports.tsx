@@ -643,6 +643,9 @@ const Reports = () => {
                 />
               </div>
 
+              <RevenuePipelineCard />
+
+
               {/* Status + busiest days */}
               <div id="status" ref={sectionRefs.status} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                 <SectionCard title="Booking status" subtitle="Distribution this period" delay={0.05}>
