@@ -737,11 +737,14 @@ const AgendaBookingForm = ({
                       return (
                         <motion.button
                           key={service.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.035, 0.25) }}
-                          whileTap={{ scale: 0.99 }}
-                          onClick={() => handleServiceToggle(service.id)}
+                          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.04, 0.28) }}
+                          whileTap={{ scale: 0.965 }}
+                          onClick={() => {
+                            hapticSelection();
+                            handleServiceToggle(service.id);
+                          }}
                           className={cn(
                             "w-full px-4 py-3.5 rounded-[18px] border text-left transition-all bg-white dark:bg-[#15151A] flex items-center gap-3",
                             active
