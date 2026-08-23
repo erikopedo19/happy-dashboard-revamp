@@ -808,7 +808,7 @@ const AgendaBookingForm = ({
                     </h2>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition flex items-center gap-1"
+                      className="text-sm text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       {copy.back}
@@ -826,13 +826,13 @@ const AgendaBookingForm = ({
                         <div className="flex gap-1">
                           <button
                             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-white dark:bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition"
+                            className="w-8 h-8 rounded-lg bg-white dark:bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white transition"
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-white dark:bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition"
+                            className="w-8 h-8 rounded-lg bg-white dark:bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white transition"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -893,7 +893,7 @@ const AgendaBookingForm = ({
                             onClick={() => setTimeFormat("12h")}
                             className={cn(
                               "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "12h" ? "bg-black/[0.05] dark:bg-[#2C2C2E] text-black dark:text-white" : "text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white"
+                              timeFormat === "12h" ? "bg-black/[0.05] dark:bg-[#2C2C2E] text-black dark:text-white" : "text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white"
                             )}
                           >
                             12h
@@ -902,7 +902,7 @@ const AgendaBookingForm = ({
                             onClick={() => setTimeFormat("24h")}
                             className={cn(
                               "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "24h" ? "bg-black/[0.05] dark:bg-[#2C2C2E] text-black dark:text-white" : "text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white"
+                              timeFormat === "24h" ? "bg-black/[0.05] dark:bg-[#2C2C2E] text-black dark:text-white" : "text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white"
                             )}
                           >
                             24h
@@ -961,7 +961,7 @@ const AgendaBookingForm = ({
                         )}
                       </div>
                       {selectedDate && availableTimeSlots.length > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-white/95 dark:bg-[#141416]/95 backdrop-blur border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#141416]/95 backdrop-blur border-t border-black/[0.07] dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
                           <BookingButton
                             text={copy.continue}
                             onClick={handleContinue}
@@ -982,7 +982,7 @@ const AgendaBookingForm = ({
                     </div>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition flex items-center gap-1"
+                      className="text-sm text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       {copy.back}
@@ -1049,7 +1049,7 @@ const AgendaBookingForm = ({
                     </div>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-black dark:hover:text-black dark:text-white transition flex items-center gap-1"
+                      className="text-sm text-[#8E8E93] hover:text-black dark:text-white dark:hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       {copy.back}
