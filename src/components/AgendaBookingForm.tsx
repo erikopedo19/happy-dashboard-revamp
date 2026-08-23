@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+import { hapticSelection, hapticImpact } from "@/lib/haptics";
 
 
 interface Service {
@@ -92,6 +93,13 @@ const AgendaBookingForm = ({
   paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
+  // Direction-aware iOS step transitions (1 = forward / push, -1 = back / pop)
+  const STEP_ORDER = ["service", "datetime", "stylist", "details", "success"] as const;
+  const prevStepRef = useRef<string>("service");
+  const stepDirection = STEP_ORDER.indexOf(step as typeof STEP_ORDER[number]) >= STEP_ORDER.indexOf(prevStepRef.current as typeof STEP_ORDER[number]) ? 1 : -1;
+  useEffect(() => {
+    prevStepRef.current = step;
+  }, [step]);
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
@@ -577,13 +585,19 @@ const AgendaBookingForm = ({
       <div className="w-full max-w-6xl mx-auto bg-transparent lg:bg-white lg:dark:bg-[#111114] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] rounded-[28px] lg:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] overflow-hidden p-0 lg:p-8 relative z-10">
         <MobileSummary />
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={stepDirection} initial={false}>
           <motion.div
             key={step}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={spring}
+            custom={stepDirection}
+            variants={{
+              enter: (d: number) => ({ opacity: 0, x: d * 34, scale: 0.985 }),
+              center: { opacity: 1, x: 0, scale: 1 },
+              exit: (d: number) => ({ opacity: 0, x: d * -28, scale: 0.99 }),
+            }}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.9 }}
             className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-0 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
@@ -673,11 +687,17 @@ const AgendaBookingForm = ({
                 {stepTabs.map((tab) => {
                   const active = tab.key === activeTabKey;
                   return (
-                    <button
+                    <motion.button
                       key={tab.key}
                       type="button"
-                      onClick={() => tab.enabled && setStep(tab.key as any)}
+                      onClick={() => {
+                        if (!tab.enabled) return;
+                        hapticSelection();
+                        setStep(tab.key as any);
+                      }}
                       disabled={!tab.enabled}
+                      whileTap={tab.enabled ? { scale: 0.94 } : undefined}
+                      transition={{ type: "spring", stiffness: 560, damping: 30 }}
                       className={cn(
                         "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
                         active ? "text-black dark:text-white" : tab.enabled ? "text-[#8E8E93] hover:text-black dark:hover:text-white" : "text-[#48484A] cursor-not-allowed"
@@ -690,8 +710,15 @@ const AgendaBookingForm = ({
                           className="absolute inset-0 rounded-[12px] bg-white shadow-sm dark:bg-[#2C2C2E] dark:shadow-none"
                         />
                       )}
-                      <span className="relative z-10">{tab.label}</span>
-                    </button>
+                      <motion.span
+                        key={`${tab.key}-${active}`}
+                        initial={{ opacity: 0.6 }}
+                        animate={{ opacity: 1 }}
+                        className="relative z-10"
+                      >
+                        {tab.label}
+                      </motion.span>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -710,11 +737,14 @@ const AgendaBookingForm = ({
                       return (
                         <motion.button
                           key={service.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.035, 0.25) }}
-                          whileTap={{ scale: 0.99 }}
-                          onClick={() => handleServiceToggle(service.id)}
+                          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 34, delay: Math.min(idx * 0.04, 0.28) }}
+                          whileTap={{ scale: 0.965 }}
+                          onClick={() => {
+                            hapticSelection();
+                            handleServiceToggle(service.id);
+                          }}
                           className={cn(
                             "w-full px-4 py-3.5 rounded-[18px] border text-left transition-all bg-white dark:bg-[#15151A] flex items-center gap-3",
                             active
@@ -895,8 +925,11 @@ const AgendaBookingForm = ({
                                   initial={{ opacity: 0, y: 6 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ ...spring, delay: Math.min(idx * 0.015, 0.3) }}
-                                  whileTap={{ scale: 0.97 }}
-                                  onClick={() => handleTimeSelect(time)}
+                                  whileTap={{ scale: 0.955 }}
+                                  onClick={() => {
+                                    hapticImpact();
+                                    handleTimeSelect(time);
+                                  }}
                                   className={cn(
                                     "w-full h-[52px] rounded-xl border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
