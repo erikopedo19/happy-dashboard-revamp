@@ -925,8 +925,11 @@ const AgendaBookingForm = ({
                                   initial={{ opacity: 0, y: 6 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ ...spring, delay: Math.min(idx * 0.015, 0.3) }}
-                                  whileTap={{ scale: 0.97 }}
-                                  onClick={() => handleTimeSelect(time)}
+                                  whileTap={{ scale: 0.955 }}
+                                  onClick={() => {
+                                    hapticImpact();
+                                    handleTimeSelect(time);
+                                  }}
                                   className={cn(
                                     "w-full h-[52px] rounded-xl border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
