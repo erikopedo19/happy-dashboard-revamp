@@ -585,13 +585,19 @@ const AgendaBookingForm = ({
       <div className="w-full max-w-6xl mx-auto bg-transparent lg:bg-white lg:dark:bg-[#111114] lg:border lg:border-black/[0.06] lg:dark:border-white/[0.06] rounded-[28px] lg:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] overflow-hidden p-0 lg:p-8 relative z-10">
         <MobileSummary />
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={stepDirection} initial={false}>
           <motion.div
             key={step}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={spring}
+            custom={stepDirection}
+            variants={{
+              enter: (d: number) => ({ opacity: 0, x: d * 34, scale: 0.985 }),
+              center: { opacity: 1, x: 0, scale: 1 },
+              exit: (d: number) => ({ opacity: 0, x: d * -28, scale: 0.99 }),
+            }}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.9 }}
             className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-0 md:gap-6 lg:gap-8 items-start"
           >
             {/* Left panel — brand + booking info */}
