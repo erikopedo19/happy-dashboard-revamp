@@ -93,6 +93,13 @@ const AgendaBookingForm = ({
   paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
+  // Direction-aware iOS step transitions (1 = forward / push, -1 = back / pop)
+  const STEP_ORDER = ["service", "datetime", "stylist", "details", "success"] as const;
+  const prevStepRef = useRef<string>("service");
+  const stepDirection = STEP_ORDER.indexOf(step as typeof STEP_ORDER[number]) >= STEP_ORDER.indexOf(prevStepRef.current as typeof STEP_ORDER[number]) ? 1 : -1;
+  useEffect(() => {
+    prevStepRef.current = step;
+  }, [step]);
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
