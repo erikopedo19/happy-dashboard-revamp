@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
 import { motion, AnimatePresence } from "framer-motion";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+import { hapticSelection, hapticImpact } from "@/lib/haptics";
 
 
 interface Service {
