@@ -687,11 +687,17 @@ const AgendaBookingForm = ({
                 {stepTabs.map((tab) => {
                   const active = tab.key === activeTabKey;
                   return (
-                    <button
+                    <motion.button
                       key={tab.key}
                       type="button"
-                      onClick={() => tab.enabled && setStep(tab.key as any)}
+                      onClick={() => {
+                        if (!tab.enabled) return;
+                        hapticSelection();
+                        setStep(tab.key as any);
+                      }}
                       disabled={!tab.enabled}
+                      whileTap={tab.enabled ? { scale: 0.94 } : undefined}
+                      transition={{ type: "spring", stiffness: 560, damping: 30 }}
                       className={cn(
                         "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
                         active ? "text-black dark:text-white" : tab.enabled ? "text-[#8E8E93] hover:text-black dark:hover:text-white" : "text-[#48484A] cursor-not-allowed"
@@ -704,8 +710,15 @@ const AgendaBookingForm = ({
                           className="absolute inset-0 rounded-[12px] bg-white shadow-sm dark:bg-[#2C2C2E] dark:shadow-none"
                         />
                       )}
-                      <span className="relative z-10">{tab.label}</span>
-                    </button>
+                      <motion.span
+                        key={`${tab.key}-${active}`}
+                        initial={{ opacity: 0.6 }}
+                        animate={{ opacity: 1 }}
+                        className="relative z-10"
+                      >
+                        {tab.label}
+                      </motion.span>
+                    </motion.button>
                   );
                 })}
               </div>
