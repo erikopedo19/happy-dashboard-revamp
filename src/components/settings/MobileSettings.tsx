@@ -29,7 +29,9 @@ import {
   Search,
   Tag,
   Home,
-  Banknote,, Rocket } from "lucide-react";
+  Banknote,
+  Rocket,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
