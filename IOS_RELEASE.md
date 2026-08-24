@@ -20,7 +20,8 @@
    npx cap add ios      # only if ios/App does not exist yet
    npx cap sync ios
    ```
-4. Remove the live-reload server URL before shipping: in `capacitor.config.ts` the `server` block must be absent for store builds (the release script assumes the bundled `dist` is used).
+4. Nothing to strip manually: `scripts/ios-release.sh` exports `CAP_RELEASE=1`, which removes the live-reload `server` block from `capacitor.config.ts` so the archive ships the bundled `dist`.
+5. The script also writes `ITSAppUsesNonExemptEncryption = false` and portrait-only orientation into `ios/App/App/Info.plist`, so TestFlight skips the export-compliance prompt.
 
 ## Build + export
 
