@@ -849,7 +849,6 @@ const Booking = () => {
   const showPhone = askPhoneParam === 'true' ? true : askPhoneParam === 'false' ? false : businessProfile?.ask_phone ?? true;
   const showNotes = askNotesParam === 'true' ? true : askNotesParam === 'false' ? false : businessProfile?.ask_notes ?? true;
 
-  const venueName = businessProfile?.business_name || businessProfile?.full_name || 'Book an appointment';
 
 
 
