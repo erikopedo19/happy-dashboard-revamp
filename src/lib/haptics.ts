@@ -5,6 +5,9 @@
  * a silent no-op on devices that don't support it (most iOS Safari builds).
  */
 
+import { isNative } from "./native";
+
+
 export type HapticStyle =
   | "light"
   | "medium"
