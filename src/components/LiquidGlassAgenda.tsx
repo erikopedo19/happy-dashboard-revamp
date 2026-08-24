@@ -794,19 +794,15 @@ export const LiquidGlassAgenda = ({
           </div>
         </div>
 
-        {isMobile && (
+        {isMobile && selectedDayIsOff && (
           <div className="flex items-center gap-2 mb-2 -mt-0.5">
-            <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
-              {format(selectedDay, 'MMMM yyyy')}
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
+              {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
+              {selectedDayOffReason}
             </span>
-            {selectedDayIsOff && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
-                {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
-                {selectedDayOffReason}
-              </span>
-            )}
           </div>
         )}
+
 
 
 
