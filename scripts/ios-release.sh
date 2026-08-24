@@ -30,6 +30,8 @@ if [[ -z "$TEAM_ID" ]]; then
   exit 1
 fi
 
+export CAP_RELEASE=1   # drops the live-reload server URL from capacitor.config.ts
+
 echo "📦 1/5 Building web bundle (production)…"
 npm run build
 
