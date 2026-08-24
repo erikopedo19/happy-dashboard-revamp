@@ -17,7 +17,6 @@ import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 import { CheckoutDialog, type CheckoutItem } from "@/components/CheckoutDialog";
-import { BookingVenueIntro } from "@/components/BookingVenueIntro";
 
 
 const bookingSchema = z.object({
@@ -100,7 +99,7 @@ const Booking = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [showBookingForm, setShowBookingForm] = useState(false);
+
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
