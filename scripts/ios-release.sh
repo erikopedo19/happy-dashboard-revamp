@@ -48,6 +48,19 @@ echo "🧾 3/5 Applying release identity (bundle id / version / signing)…"
   "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" \
   "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+# Skip the export-compliance questionnaire on every TestFlight upload
+/usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" \
+  "$ROOT/ios/App/App/Info.plist" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" \
+    "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+# Portrait-only, matching the App Store listing
+/usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" \
+  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+/usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" \
+  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+/usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" \
+  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+
 
 mkdir -p "$BUILD_DIR"
 sed "s/\$(DEVELOPMENT_TEAM)/$TEAM_ID/" "$ROOT/ios/ExportOptions.plist" > "$BUILD_DIR/ExportOptions.plist"
