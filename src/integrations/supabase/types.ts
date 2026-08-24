@@ -255,6 +255,36 @@ export type Database = {
         }
         Relationships: []
       }
+      boost_campaigns: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          emails_sent: number
+          id: string
+          status: string
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       brand_profiles_raw: {
         Row: {
           booking_link: string | null
