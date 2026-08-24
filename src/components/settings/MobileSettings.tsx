@@ -42,6 +42,7 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
+import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
@@ -87,7 +88,8 @@ type Panel =
   | "business"
   | "location"
   | "subscription"
-  | "payments";
+  | "payments"
+  | "boost";
 
 export function MobileSettings(props: any) {
   const {
@@ -320,6 +322,13 @@ export function MobileSettings(props: any) {
             label="Payments & payouts"
             value="Stripe Connect"
             onClick={() => setPanel("payments")}
+          />
+          <Row
+            icon={Rocket}
+            tint="#0A84FF"
+            label="Boost your barbershop"
+            value="€3 · remind past clients"
+            onClick={() => setPanel("boost")}
           />
           <Row
             icon={CalendarIcon}
@@ -846,6 +855,12 @@ export function MobileSettings(props: any) {
               </PanelStack>
             )}
 
+            {panel === "boost" && (
+              <PanelStack>
+                <BoostBarbershopCard />
+              </PanelStack>
+            )}
+
             {panel === "business" && (
               <PanelStack>
                 <BrandImageUpload
@@ -1235,6 +1250,8 @@ function titleFor(p: Panel): string {
       return "Subscription";
     case "payments":
       return "Payments & payouts";
+    case "boost":
+      return "Boost";
     default:
       return "";
   }
