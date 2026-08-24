@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
  * Boost your barbershop — a €3 one-off payment that sends a short
  * "time for a haircut" reminder to up to 25 past clients.
  */
+const BOOST_PAYMENT_LINK = "https://buy.stripe.com/dRmaEP0X05m6gd18fa2ZO05";
+
 export function BoostBarbershopCard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
