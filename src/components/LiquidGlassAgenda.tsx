@@ -688,10 +688,17 @@ export const LiquidGlassAgenda = ({
       )}>
         <div className="flex items-center justify-between gap-3 mb-1.5">
           {isMobile ? (
-            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
-              {format(selectedDay, 'd MMM')}
-            </span>
+            <div className="flex items-baseline gap-1.5 min-w-0">
+              <span className="text-[30px] font-bold leading-none tracking-[-0.03em] text-gray-900 dark:text-white tabular-nums">
+                {format(selectedDay, 'd')}
+              </span>
+              <span className="text-[15px] font-medium text-gray-500 dark:text-white/60">
+                {format(selectedDay, 'MMM')}
+              </span>
+              <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400 dark:text-white/40" />
+            </div>
           ) : shouldShowViewToggle ? (
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onViewModeChange('week')}
