@@ -184,6 +184,7 @@ export const LiquidGlassAgenda = ({
   showViewModeToggle = true,
 }: LiquidGlassAgendaProps) => {
   const [selectedDay, setSelectedDay] = useState(new Date());
+  const isNewAppointment = useNewAppointmentTracker(appointments.map((a) => a.id));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
