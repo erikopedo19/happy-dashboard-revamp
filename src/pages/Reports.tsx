@@ -1594,7 +1594,7 @@ function MobileReportsView({
         </TabsList>
       </Tabs>
 
-      {/* Hero revenue card with gauge + sparkline */}
+      {/* Hero — big number + main graphic */}
       <MobileCard className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
@@ -1606,7 +1606,7 @@ function MobileReportsView({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.45 }}
-                className="text-[42px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.035em] leading-none mt-2"
+                className="text-[46px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.04em] leading-none mt-2"
               >
                 {isLoading ? "—" : currency.format(analytics.totalRevenue)}
               </motion.h2>
@@ -1637,41 +1637,95 @@ function MobileReportsView({
         </div>
       </MobileCard>
 
-      {/* KPI grid */}
+      {/* Three square sub-stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "Bookings", value: numberFormat.format(analytics.totalAppointments), tint: iOS.rose },
+          { label: "Clients", value: numberFormat.format(analytics.totalCustomers), tint: iOS.blue },
+          { label: "Avg ticket", value: currency.format(analytics.averageTicket || 0), tint: iOS.green },
+        ].map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * i, ...springSoft }}
+            className="aspect-square rounded-[24px] bg-[#15151A] border border-white/[0.07] p-3.5 flex flex-col justify-between"
+          >
+            <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: s.tint }} />
+            <div>
+              <p className="text-[19px] font-bold text-white tabular-nums leading-none tracking-tight">{s.value}</p>
+              <p className="text-[11px] text-white/45 mt-1.5">{s.label}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* This week strip */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18, ...springSoft }}
+        className="rounded-[24px] bg-[#15151A] border border-white/[0.07] p-4"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[13px] font-semibold text-white">This week</p>
+          <p className="text-[11px] text-white/45">{analytics.busiestDay?.day ?? "—"} is busiest</p>
+        </div>
+        <div className="flex items-end justify-between gap-1.5 h-[74px]">
+          {analytics.dayOfWeekDemand.map((d: any) => {
+            const max = Math.max(...analytics.dayOfWeekDemand.map((x: any) => x.count), 1);
+            const isTop = analytics.busiestDay?.day === d.day && d.count > 0;
+            return (
+              <div key={d.day} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: `${Math.max((d.count / max) * 100, 6)}%` }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className={cn("w-full rounded-full", isTop ? "bg-[#FF375F]" : "bg-white/12")}
+                />
+                <span className="text-[10px] text-white/40 uppercase">{String(d.day).slice(0, 1)}</span>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Summary grid */}
       <div className="grid grid-cols-2 gap-3">
         <MobileStatCard
           delay={0.05}
-          icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
-          label="Bookings"
-          value={numberFormat.format(analytics.totalAppointments)}
-          hint={`${analytics.completionRate}% done`}
-          tint={iOS.rose}
-        />
-        <MobileStatCard
-          delay={0.1}
-          icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
-          label="Clients"
-          value={numberFormat.format(analytics.totalCustomers)}
-          hint={`${analytics.activeStylists} stylists`}
-          tint={iOS.blue}
-        />
-        <MobileStatCard
-          delay={0.15}
-          icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
-          label="Avg ticket"
-          value={currency.format(analytics.averageTicket || 0)}
-          hint="Per booking"
-          tint={iOS.green}
-        />
-        <MobileStatCard
-          delay={0.2}
           icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
           label="Services"
           value={numberFormat.format(analytics.activeServices)}
-          hint={`${analytics.completedAppointments} done`}
+          hint="Active"
           tint={iOS.indigo}
         />
+        <MobileStatCard
+          delay={0.1}
+          icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
+          label="Completed"
+          value={numberFormat.format(analytics.completedAppointments)}
+          hint={`${analytics.completionRate}% rate`}
+          tint={iOS.green}
+        />
+        <MobileStatCard
+          delay={0.15}
+          icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
+          label="Stylists"
+          value={numberFormat.format(analytics.activeStylists)}
+          hint="Active"
+          tint={iOS.blue}
+        />
+        <MobileStatCard
+          delay={0.2}
+          icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
+          label="Per client"
+          value={currency.format(analytics.totalCustomers ? analytics.totalRevenue / analytics.totalCustomers : 0)}
+          hint="Average"
+          tint={iOS.rose}
+        />
       </div>
+
 
       <RevenuePipelineCard />
 
