@@ -1336,7 +1336,12 @@ export const LiquidGlassAgenda = ({
 
                         {/* Liquid Glass Card */}
                         <button
-                          onClick={() => onAppointmentClick?.(apt)}
+                          onClick={() => {
+                            haptic("light");
+                            if (onAppointmentClick) onAppointmentClick(apt);
+                            else setDetailApt(apt);
+                          }}
+
                           onContextMenu={(event) => handleAppointmentContextMenu(event, apt)}
                           onTouchStart={(event) => handleAppointmentTouchStart(event, apt)}
                           onTouchEnd={clearLongPressTimer}
