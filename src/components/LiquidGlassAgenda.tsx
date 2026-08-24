@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal, Thermometer, Lock, Sunset } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronsUpDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal, Thermometer, Lock, Sunset } from "lucide-react";
 
 // Maps a stored day-off reason to a small icon shown on the date chip
 const reasonIcon = (reason: string) => {
@@ -688,10 +688,17 @@ export const LiquidGlassAgenda = ({
       )}>
         <div className="flex items-center justify-between gap-3 mb-1.5">
           {isMobile ? (
-            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
-              {format(selectedDay, 'd MMM')}
-            </span>
+            <div className="flex items-baseline gap-1.5 min-w-0">
+              <span className="text-[30px] font-bold leading-none tracking-[-0.03em] text-gray-900 dark:text-white tabular-nums">
+                {format(selectedDay, 'd')}
+              </span>
+              <span className="text-[15px] font-medium text-gray-500 dark:text-white/60">
+                {format(selectedDay, 'MMM')}
+              </span>
+              <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400 dark:text-white/40" />
+            </div>
           ) : shouldShowViewToggle ? (
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onViewModeChange('week')}
@@ -780,26 +787,29 @@ export const LiquidGlassAgenda = ({
               </button>
             )}
             {isMobile && (
+              <span className="inline-flex items-center gap-1 h-8 px-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-[12px] font-semibold text-gray-700 dark:text-white tabular-nums">
+                <Calendar className="w-3.5 h-3.5 opacity-70" />
+                {appointments.filter((apt) => isSameDay(parseISO(apt.appointment_date), selectedDay)).length}
+              </span>
+            )}
+            {isMobile && (
               <div className="scale-[0.8]">
                 <NotificationBell />
               </div>
             )}
+
           </div>
         </div>
 
-        {isMobile && (
+        {isMobile && selectedDayIsOff && (
           <div className="flex items-center gap-2 mb-2 -mt-0.5">
-            <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
-              {format(selectedDay, 'MMMM yyyy')}
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
+              {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
+              {selectedDayOffReason}
             </span>
-            {selectedDayIsOff && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
-                {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
-                {selectedDayOffReason}
-              </span>
-            )}
           </div>
         )}
+
 
 
 
@@ -863,40 +873,42 @@ export const LiquidGlassAgenda = ({
                   )}
                   {isMobile ? (
                     <>
+                      {/* top accent bar — blue for today, subtle for days with bookings */}
                       <span className={cn(
-                        "relative z-10 text-[12px] font-medium leading-none",
+                        "relative z-10 h-[3px] w-5 rounded-full transition-colors duration-200",
+                        isOff
+                          ? "bg-rose-500/70"
+                          : isToday
+                            ? "bg-blue-500"
+                            : hasAppointments
+                              ? (isSelected ? "bg-gray-900/70 dark:bg-white/70" : "bg-gray-300 dark:bg-white/25")
+                              : "bg-transparent"
+                      )} />
+                      <span className={cn(
+                        "relative z-10 mt-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] leading-none",
                         isOff
                           ? "text-rose-400/90"
-                          : isToday
-                            ? "text-blue-500/70 dark:text-blue-400/70"
-                            : isSelected
-                              ? "text-gray-500 dark:text-white/50"
-                              : "text-gray-400 dark:text-gray-500"
+                          : isSelected
+                            ? "text-gray-500 dark:text-white/50"
+                            : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
                       <span className={cn(
-                        "relative z-10 mt-1.5 text-[18px] font-semibold leading-none transition-colors duration-200",
+                        "relative z-10 mt-1.5 text-[19px] font-semibold leading-none tabular-nums transition-colors duration-200",
                         isOff
                           ? "text-rose-500 dark:text-rose-400"
-                          : isToday
-                            ? "text-blue-600 dark:text-blue-400"
-                            : isSelected
-                              ? "text-gray-900 dark:text-white"
+                          : isSelected
+                            ? "text-gray-900 dark:text-white"
+                            : isToday
+                              ? "text-blue-600 dark:text-blue-400"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
-
-                      {hasAppointments && !isOff && (
-                        <div className={cn(
-                          "relative z-10 mt-1 h-1 w-1 rounded-full",
-                          isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
-                        )} />
-                      )}
-
                     </>
                   ) : (
+
                     <>
                       <span className={cn(
                         "text-[10px] font-semibold uppercase",

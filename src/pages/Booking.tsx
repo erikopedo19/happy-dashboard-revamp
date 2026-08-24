@@ -17,7 +17,6 @@ import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 import { CheckoutDialog, type CheckoutItem } from "@/components/CheckoutDialog";
-import { BookingVenueIntro } from "@/components/BookingVenueIntro";
 
 
 const bookingSchema = z.object({
@@ -100,7 +99,7 @@ const Booking = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [showBookingForm, setShowBookingForm] = useState(false);
+
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
@@ -702,9 +701,11 @@ const Booking = () => {
         });
       }
 
-      form.reset();
-      setSelectedTime("");
+      // NOTE: do not reset the form / clear the selected time here — the child
+      // renders a confirmation screen from this state. Resetting mid-render
+      // blanked the page. The child resets when "Book another" is pressed.
       return { success: true }; // Return success to advance to success step
+
     } catch (error: any) {
 
       const displayError = bookingError || {
@@ -848,25 +849,9 @@ const Booking = () => {
   const showPhone = askPhoneParam === 'true' ? true : askPhoneParam === 'false' ? false : businessProfile?.ask_phone ?? true;
   const showNotes = askNotesParam === 'true' ? true : askNotesParam === 'false' ? false : businessProfile?.ask_notes ?? true;
 
-  const venueName = businessProfile?.business_name || businessProfile?.full_name || 'Book an appointment';
 
-  if (!showBookingForm) {
-    return (
-      <BookingVenueIntro
-        name={venueName}
-        category={businessProfile?.business_name ? 'Barber' : null}
-        rating={businessProfile?.rating ?? null}
-        ratingCount={businessProfile?.rating_count ?? null}
-        address={businessProfile?.address ?? null}
-        about={`At ${venueName}, every appointment is booked in seconds. Pick a service, choose a time that works for you, and get a confirmation instantly — no calls, no waiting.`}
-        imageUrl={businessProfile?.banner_url || businessProfile?.avatar_url || null}
-        servicesCount={services?.length ?? 0}
-        services={(services || []).map((s: any) => ({ id: s.id, name: s.name, duration: s.duration, price: s.price }))}
-        currency={(businessProfile as any)?.currency_symbol || '$'}
-        onBook={() => setShowBookingForm(true)}
-      />
-    );
-  }
+
+
 
   return (
     <>
