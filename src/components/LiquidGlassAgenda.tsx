@@ -787,10 +787,17 @@ export const LiquidGlassAgenda = ({
               </button>
             )}
             {isMobile && (
+              <span className="inline-flex items-center gap-1 h-8 px-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-[12px] font-semibold text-gray-700 dark:text-white tabular-nums">
+                <Calendar className="w-3.5 h-3.5 opacity-70" />
+                {appointments.filter((apt) => isSameDay(parseISO(apt.appointment_date), selectedDay)).length}
+              </span>
+            )}
+            {isMobile && (
               <div className="scale-[0.8]">
                 <NotificationBell />
               </div>
             )}
+
           </div>
         </div>
 
