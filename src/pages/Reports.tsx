@@ -1594,96 +1594,94 @@ function MobileReportsView({
         </TabsList>
       </Tabs>
 
-      {/* Hero — big number + main graphic */}
-      <MobileCard className="p-5">
+      {/* Hero — headline stat + inline sub-stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={springSoft}
+        className="rounded-[30px] bg-[#15151A] border border-white/[0.07] p-5 overflow-hidden"
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">Total revenue</p>
             <AnimatePresence mode="wait">
               <motion.h2
                 key={analytics.totalRevenue}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.45 }}
-                className="text-[46px] font-bold text-white tabular-nums font-geist-mono tracking-[-0.04em] leading-none mt-2"
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
+                className="text-[38px] font-bold text-white tabular-nums tracking-[-0.04em] leading-[1.05]"
               >
                 {isLoading ? "—" : currency.format(analytics.totalRevenue)}
               </motion.h2>
             </AnimatePresence>
-            <div className="mt-3 flex items-center gap-2.5">
-              <div
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold",
-                  analytics.revenueDelta >= 0
-                    ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/20"
-                    : "bg-[#FF375F]/15 text-[#FF375F] border border-[#FF375F]/20"
-                )}
-              >
-                {analytics.revenueDelta >= 0 ? (
-                  <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
-                ) : (
-                  <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
-                )}
-                {Math.abs(analytics.revenueDelta)}%
-              </div>
-              <span className="text-xs text-white/50">vs prior</span>
+            <p className="text-[15px] text-white/45 mt-1">earned {RANGES.find(r => r.value === dateRange)?.short ?? ""}</p>
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold"
+              style={{
+                backgroundColor: analytics.revenueDelta >= 0 ? "rgba(48,209,88,0.15)" : "rgba(255,55,95,0.15)",
+                color: analytics.revenueDelta >= 0 ? iOS.green : iOS.rose,
+              }}
+            >
+              {analytics.revenueDelta >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.4} /> : <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.4} />}
+              {Math.abs(analytics.revenueDelta)}% vs prior
             </div>
           </div>
           <CompletionGauge value={completedShare} />
         </div>
-        <div className="mt-4 h-[100px]">
+
+        {/* main graphic */}
+        <div className="mt-4 h-[104px] -mx-1">
           <MobileSparkline data={analytics.revenueTrend} />
         </div>
-      </MobileCard>
 
-      {/* Three square sub-stats */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: "Bookings", value: numberFormat.format(analytics.totalAppointments), tint: iOS.rose },
-          { label: "Clients", value: numberFormat.format(analytics.totalCustomers), tint: iOS.blue },
-          { label: "Avg ticket", value: currency.format(analytics.averageTicket || 0), tint: iOS.green },
-        ].map((s, i) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * i, ...springSoft }}
-            className="aspect-square rounded-[24px] bg-[#15151A] border border-white/[0.07] p-3.5 flex flex-col justify-between"
-          >
-            <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: s.tint }} />
-            <div>
-              <p className="text-[19px] font-bold text-white tabular-nums leading-none tracking-tight">{s.value}</p>
-              <p className="text-[11px] text-white/45 mt-1.5">{s.label}</p>
+        {/* inline sub-stats */}
+        <div className="mt-4 grid grid-cols-3 gap-2 rounded-[22px] bg-white/[0.04] p-3">
+          {[
+            { label: "Bookings", value: numberFormat.format(analytics.totalAppointments) },
+            { label: "Clients", value: numberFormat.format(analytics.totalCustomers) },
+            { label: "Avg ticket", value: currency.format(analytics.averageTicket || 0) },
+          ].map((s, i) => (
+            <div key={s.label} className={cn("px-1 text-center", i < 2 && "border-r border-white/[0.07]")}>
+              <p className="text-[17px] font-bold text-white tabular-nums leading-none">{s.value}</p>
+              <p className="text-[11px] text-white/40 mt-1.5">{s.label}</p>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </motion.div>
 
-      {/* This week strip */}
+      {/* This week ring strip */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.18, ...springSoft }}
-        className="rounded-[24px] bg-[#15151A] border border-white/[0.07] p-4"
+        transition={{ delay: 0.12, ...springSoft }}
+        className="rounded-[26px] bg-[#15151A] border border-white/[0.07] p-4"
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3.5">
           <p className="text-[13px] font-semibold text-white">This week</p>
           <p className="text-[11px] text-white/45">{analytics.busiestDay?.day ?? "—"} is busiest</p>
         </div>
-        <div className="flex items-end justify-between gap-1.5 h-[74px]">
-          {analytics.dayOfWeekDemand.map((d: any) => {
-            const max = Math.max(...analytics.dayOfWeekDemand.map((x: any) => x.count), 1);
-            const isTop = analytics.busiestDay?.day === d.day && d.count > 0;
+        <div className="flex items-center justify-between">
+          {analytics.dayOfWeekDemand.map((d: any, i: number) => {
+            const isToday = new Date().getDay() === i;
+            const active = d.count > 0;
             return (
-              <div key={d.day} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+              <div key={d.day} className="flex flex-col items-center gap-2">
+                <span className="text-[11px] font-medium text-white/35 uppercase">{String(d.day).slice(0, 1)}</span>
                 <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${Math.max((d.count / max) * 100, 6)}%` }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn("w-full rounded-full", isTop ? "bg-[#FF375F]" : "bg-white/12")}
-                />
-                <span className="text-[10px] text-white/40 uppercase">{String(d.day).slice(0, 1)}</span>
+                  initial={{ scale: 0.7, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.04 * i, ...springSoft }}
+                  className={cn(
+                    "w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-semibold tabular-nums",
+                    isToday
+                      ? "bg-[#0A84FF] text-white"
+                      : active
+                        ? "bg-white/[0.08] text-white border border-white/10"
+                        : "border border-dashed border-white/10 text-white/25"
+                  )}
+                >
+                  {active ? d.count : "–"}
+                </motion.div>
               </div>
             );
           })}
@@ -1691,40 +1689,44 @@ function MobileReportsView({
       </motion.div>
 
       {/* Summary grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <MobileStatCard
-          delay={0.05}
-          icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
-          label="Services"
-          value={numberFormat.format(analytics.activeServices)}
-          hint="Active"
-          tint={iOS.indigo}
-        />
-        <MobileStatCard
-          delay={0.1}
-          icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
-          label="Completed"
-          value={numberFormat.format(analytics.completedAppointments)}
-          hint={`${analytics.completionRate}% rate`}
-          tint={iOS.green}
-        />
-        <MobileStatCard
-          delay={0.15}
-          icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
-          label="Stylists"
-          value={numberFormat.format(analytics.activeStylists)}
-          hint="Active"
-          tint={iOS.blue}
-        />
-        <MobileStatCard
-          delay={0.2}
-          icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
-          label="Per client"
-          value={currency.format(analytics.totalCustomers ? analytics.totalRevenue / analytics.totalCustomers : 0)}
-          hint="Average"
-          tint={iOS.rose}
-        />
+      <div>
+        <p className="px-1 pb-2.5 text-[13px] font-semibold text-white/70">Summary</p>
+        <div className="grid grid-cols-2 gap-3">
+          <MobileStatCard
+            delay={0.05}
+            icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
+            label="Completed"
+            value={numberFormat.format(analytics.completedAppointments)}
+            hint={`${analytics.completionRate}% rate`}
+            tint={iOS.green}
+          />
+          <MobileStatCard
+            delay={0.1}
+            icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
+            label="Services"
+            value={numberFormat.format(analytics.activeServices)}
+            hint="Active"
+            tint={iOS.indigo}
+          />
+          <MobileStatCard
+            delay={0.15}
+            icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
+            label="Stylists"
+            value={numberFormat.format(analytics.activeStylists)}
+            hint="Active"
+            tint={iOS.blue}
+          />
+          <MobileStatCard
+            delay={0.2}
+            icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
+            label="Per client"
+            value={currency.format(analytics.totalCustomers ? analytics.totalRevenue / analytics.totalCustomers : 0)}
+            hint="Average"
+            tint={iOS.rose}
+          />
+        </div>
       </div>
+
 
 
       <RevenuePipelineCard />
