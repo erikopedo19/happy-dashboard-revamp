@@ -1331,7 +1331,7 @@ export const LiquidGlassAgenda = ({
                       <motion.div
                         variants={slotItemVariants}
                         key={apt.id}
-                        className="flex-1 min-h-0"
+                        className="flex-1 min-h-[64px]"
                       >
 
                         {/* Liquid Glass Card */}
@@ -1457,7 +1457,7 @@ export const LiquidGlassAgenda = ({
                   {hourEvents.map((ev) => {
                     const evColor = ev.color || "#0A84FF";
                     return (
-                      <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-0">
+                      <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-[64px]">
                         <div
                           className={cn(
                             "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden border flex flex-col justify-between",
