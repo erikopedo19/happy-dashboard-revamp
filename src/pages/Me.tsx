@@ -157,7 +157,7 @@ const Me = () => {
         >
           <Tabs defaultValue="streak" className="w-full">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[11px] uppercase tracking-wide text-[#8E8E93] font-semibold">Loyalty</p>
+              <p className="text-[11px] uppercase tracking-wide text-[#8E8E93] font-semibold">Progress</p>
               <TabsList className="bg-[#F2F2F7] dark:bg-[#2C2C2E]">
                 <TabsTrigger value="streak" className="text-xs px-2.5 py-1">Streak</TabsTrigger>
                 <TabsTrigger value="badges" className="text-xs px-2.5 py-1">Badges</TabsTrigger>
@@ -198,7 +198,7 @@ const Me = () => {
                   </p>
                   <p className="text-[12px] text-[#8E8E93]">
                     {stats.total >= 5
-                      ? "You're a loyal client — keep it up"
+                      ? "You're a regular — keep it up"
                       : `${5 - stats.total} more booking${5 - stats.total !== 1 ? "s" : ""} to earn Regular`}
                   </p>
                 </div>
