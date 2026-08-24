@@ -93,13 +93,43 @@ const slotListVariants = {
 };
 
 const slotItemVariants: import("framer-motion").Variants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
   },
 };
+
+/**
+ * Tracks which appointment ids have already been rendered so freshly arriving
+ * bookings can play a short "arrive" animation instead of appearing instantly.
+ */
+function useNewAppointmentTracker(ids: string[]) {
+  const seen = useRef<Set<string> | null>(null);
+  const [fresh, setFresh] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (seen.current === null) {
+      seen.current = new Set(ids);
+      return;
+    }
+    const incoming = ids.filter((id) => !seen.current!.has(id));
+    if (incoming.length === 0) return;
+    incoming.forEach((id) => seen.current!.add(id));
+    setFresh((prev) => new Set([...prev, ...incoming]));
+    const t = setTimeout(() => {
+      setFresh((prev) => {
+        const next = new Set(prev);
+        incoming.forEach((id) => next.delete(id));
+        return next;
+      });
+    }, 2400);
+    return () => clearTimeout(t);
+  }, [ids.join(",")]);
+
+  return (id: string) => fresh.has(id);
+}
 
 // Parse hex or named color to rgba with opacity
 function colorToRgba(color: string, opacity: number): string {
@@ -154,6 +184,7 @@ export const LiquidGlassAgenda = ({
   showViewModeToggle = true,
 }: LiquidGlassAgendaProps) => {
   const [selectedDay, setSelectedDay] = useState(new Date());
+  const isNewAppointment = useNewAppointmentTracker(appointments.map((a) => a.id));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
@@ -1333,7 +1364,10 @@ export const LiquidGlassAgenda = ({
                       <motion.div
                         variants={slotItemVariants}
                         key={apt.id}
-                        className="flex-1 min-h-[64px]"
+                        className={cn(
+                          "flex-1 min-h-[64px] rounded-2xl",
+                          isNewAppointment(apt.id) && "animate-appt-arrive animate-arrive-ring"
+                        )}
                       >
 
                         {/* Liquid Glass Card */}

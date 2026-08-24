@@ -418,8 +418,13 @@ const Reports = () => {
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
+          {/* Ambient blue backdrop */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] z-0">
+            <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,rgba(10,132,255,0.55)_0%,rgba(10,132,255,0.18)_38%,rgba(10,10,12,0)_72%)]" />
+          </div>
+
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-[#0A0A0C]/90 backdrop-blur-xl">
+          <div className="sticky top-0 z-20 bg-gradient-to-b from-[#0A0A0C]/70 to-transparent backdrop-blur-xl">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <motion.div
