@@ -702,9 +702,11 @@ const Booking = () => {
         });
       }
 
-      form.reset();
-      setSelectedTime("");
+      // NOTE: do not reset the form / clear the selected time here — the child
+      // renders a confirmation screen from this state. Resetting mid-render
+      // blanked the page. The child resets when "Book another" is pressed.
       return { success: true }; // Return success to advance to success step
+
     } catch (error: any) {
 
       const displayError = bookingError || {
