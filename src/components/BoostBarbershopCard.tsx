@@ -46,24 +46,10 @@ export function BoostBarbershopCard() {
       .finally(() => setClaiming(false));
   }, [toast]);
 
-  const startBoost = async () => {
+  const startBoost = () => {
     haptic("medium");
     setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("boost-barbershop", {
-        body: { action: "checkout", origin: window.location.origin },
-      });
-      if (error) throw error;
-      if (data?.url) window.location.href = data.url;
-      else throw new Error("Could not start checkout");
-    } catch (e: any) {
-      toast({
-        title: "Couldn't start the boost",
-        description: e?.message ?? "Please try again.",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
+    window.location.href = BOOST_PAYMENT_LINK;
   };
 
   return (
