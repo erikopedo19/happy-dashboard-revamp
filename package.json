@@ -8,7 +8,10 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:release": "bash scripts/ios-release.sh",
+    "ios:upload": "UPLOAD=1 bash scripts/ios-release.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
