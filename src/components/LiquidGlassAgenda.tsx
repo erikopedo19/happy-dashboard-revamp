@@ -32,6 +32,7 @@ import { haptic } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 
 interface Service {
@@ -156,6 +157,7 @@ export const LiquidGlassAgenda = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
+  const [detailApt, setDetailApt] = useState<Appointment | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
