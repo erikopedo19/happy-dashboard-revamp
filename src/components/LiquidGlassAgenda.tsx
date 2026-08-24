@@ -1771,7 +1771,113 @@ export const LiquidGlassAgenda = ({
         </>
       )}
 
+      {/* Apple-style appointment detail drawer */}
+      <Drawer open={!!detailApt} onOpenChange={(open) => { if (!open) setDetailApt(null); }}>
+        <DrawerContent className="border-t border-black/5 bg-white dark:border-white/10 dark:bg-[#111113] rounded-t-[28px] px-5 pb-8 pt-1">
+          {detailApt && (() => {
+            const apt = detailApt;
+            const duration = apt.totalDurationMinutes || apt.service.duration || 30;
+            const color = apt.status === "cancelled" ? "#8E8E93" : (apt.service.color || "#22c55e");
+            const rows: { icon: typeof Clock; label: string; value: string }[] = [
+              { icon: Calendar, label: "Date", value: format(new Date(apt.appointment_date), "EEEE, MMM d") },
+              { icon: Clock, label: "Time", value: `${apt.appointment_time.slice(0, 5)} – ${getEndTime(apt.appointment_time, duration)}` },
+            ];
+            if (apt.customer.phone) rows.push({ icon: Phone, label: "Phone", value: apt.customer.phone });
+            if (apt.customer.email) rows.push({ icon: Mail, label: "Email", value: apt.customer.email });
+            if (apt.notes) rows.push({ icon: FileText, label: "Notes", value: apt.notes });
+
+            return (
+              <div className="max-w-md mx-auto w-full">
+                <div className="flex items-start gap-3 pt-2 pb-4">
+                  <span className="mt-1.5 h-9 w-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-[22px] font-bold tracking-tight text-gray-900 dark:text-white truncate">
+                      {apt.customer.name}
+                    </h2>
+                    <p className="text-[13px] text-gray-500 dark:text-white/50 truncate">{apt.service.name}</p>
+                  </div>
+                  <span
+                    className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize"
+                    style={{ backgroundColor: colorToRgba(color, 0.15), color }}
+                  >
+                    {apt.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="rounded-[18px] bg-gray-100 dark:bg-white/[0.06] p-3.5">
+                    <p className="text-[11px] uppercase tracking-wider text-gray-400 dark:text-white/40">Duration</p>
+                    <p className="mt-1 text-[19px] font-semibold tabular-nums text-gray-900 dark:text-white">{duration}m</p>
+                  </div>
+                  <div className="rounded-[18px] bg-gray-100 dark:bg-white/[0.06] p-3.5">
+                    <p className="text-[11px] uppercase tracking-wider text-gray-400 dark:text-white/40">Price</p>
+                    <p className="mt-1 text-[19px] font-semibold tabular-nums text-gray-900 dark:text-white">${apt.price || 0}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-[18px] overflow-hidden bg-gray-100 dark:bg-white/[0.06] divide-y divide-black/5 dark:divide-white/[0.06]">
+                  {rows.map((r) => (
+                    <div key={r.label} className="flex items-start gap-3 px-4 py-3">
+                      <r.icon className="w-4 h-4 mt-0.5 text-gray-400 dark:text-white/40 shrink-0" />
+                      <span className="text-[13px] text-gray-500 dark:text-white/45 w-[70px] shrink-0">{r.label}</span>
+                      <span className="text-[14px] text-gray-900 dark:text-white flex-1 break-words">{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 space-y-2.5">
+                  {apt.customer.phone && (
+                    <a
+                      href={`tel:${apt.customer.phone}`}
+                      onClick={() => haptic("light")}
+                      className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#0A84FF] text-[15px] font-semibold text-white active:scale-[0.98] transition"
+                    >
+                      <Phone className="w-4 h-4" /> Call client
+                    </a>
+                  )}
+
+                  {apt.status !== "cancelled" && !isAppointmentPast(apt) && (
+                    <button
+                      onClick={() => {
+                        if (cancellingId) return;
+                        haptic("warning");
+                        if (window.confirm("Cancel this appointment? The client's slot will be freed up.")) {
+                          cancelAppointment(apt.id);
+                          setDetailApt(null);
+                        }
+                      }}
+                      disabled={cancellingId === apt.id}
+                      className="flex w-full h-12 items-center justify-center gap-2 rounded-2xl bg-red-50 text-[15px] font-semibold text-red-600 dark:bg-red-500/15 dark:text-red-300 active:scale-[0.98] transition disabled:opacity-60"
+                    >
+                      {cancellingId === apt.id ? <><Loader2 className="w-4 h-4 animate-spin" /> Cancelling…</> : <><Ban className="w-4 h-4" /> Cancel appointment</>}
+                    </button>
+                  )}
+
+                  {apt.status === "cancelled" && !isAppointmentPast(apt) && (
+                    <button
+                      onClick={() => { if (cancellingId) return; reopenAppointment(apt.id); setDetailApt(null); }}
+                      disabled={cancellingId === apt.id}
+                      className="flex w-full h-12 items-center justify-center gap-2 rounded-2xl bg-green-50 text-[15px] font-semibold text-green-600 dark:bg-green-500/15 dark:text-green-300 active:scale-[0.98] transition disabled:opacity-60"
+                    >
+                      <CheckCircle2 className="w-4 h-4" /> Reopen slot
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setDetailApt(null)}
+                    className="flex w-full h-12 items-center justify-center rounded-2xl bg-gray-100 text-[15px] font-semibold text-gray-700 dark:bg-white/[0.08] dark:text-white active:scale-[0.98] transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+        </DrawerContent>
+      </Drawer>
+
       <TimeOffDrawer open={timeOffOpen} onOpenChange={setTimeOffOpen} initialDate={timeOffDate} />
+
 
 
       <Dialog open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
