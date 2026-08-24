@@ -866,40 +866,42 @@ export const LiquidGlassAgenda = ({
                   )}
                   {isMobile ? (
                     <>
+                      {/* top accent bar — blue for today, subtle for days with bookings */}
                       <span className={cn(
-                        "relative z-10 text-[12px] font-medium leading-none",
+                        "relative z-10 h-[3px] w-5 rounded-full transition-colors duration-200",
+                        isOff
+                          ? "bg-rose-500/70"
+                          : isToday
+                            ? "bg-blue-500"
+                            : hasAppointments
+                              ? (isSelected ? "bg-gray-900/70 dark:bg-white/70" : "bg-gray-300 dark:bg-white/25")
+                              : "bg-transparent"
+                      )} />
+                      <span className={cn(
+                        "relative z-10 mt-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] leading-none",
                         isOff
                           ? "text-rose-400/90"
-                          : isToday
-                            ? "text-blue-500/70 dark:text-blue-400/70"
-                            : isSelected
-                              ? "text-gray-500 dark:text-white/50"
-                              : "text-gray-400 dark:text-gray-500"
+                          : isSelected
+                            ? "text-gray-500 dark:text-white/50"
+                            : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
                       <span className={cn(
-                        "relative z-10 mt-1.5 text-[18px] font-semibold leading-none transition-colors duration-200",
+                        "relative z-10 mt-1.5 text-[19px] font-semibold leading-none tabular-nums transition-colors duration-200",
                         isOff
                           ? "text-rose-500 dark:text-rose-400"
-                          : isToday
-                            ? "text-blue-600 dark:text-blue-400"
-                            : isSelected
-                              ? "text-gray-900 dark:text-white"
+                          : isSelected
+                            ? "text-gray-900 dark:text-white"
+                            : isToday
+                              ? "text-blue-600 dark:text-blue-400"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
-
-                      {hasAppointments && !isOff && (
-                        <div className={cn(
-                          "relative z-10 mt-1 h-1 w-1 rounded-full",
-                          isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
-                        )} />
-                      )}
-
                     </>
                   ) : (
+
                     <>
                       <span className={cn(
                         "text-[10px] font-semibold uppercase",
