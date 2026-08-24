@@ -489,11 +489,11 @@ const ModernBookingForm = ({
               <p className={`${getTextMutedClass()} text-sm`}>Select a service to continue</p>
             </div>
 
-            {/* Streak / Loyalty card — iOS style */}
+            {/* Streak card — iOS style */}
             <div className={cn(`mb-6 rounded-2xl border p-4 ${getCardBgClass()} ${getBorderClass()} overflow-hidden`)}>
               <Tabs defaultValue="streak">
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${getTextMutedClass()}`}>Loyalty</p>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${getTextMutedClass()}`}>Progress</p>
                   <TabsList className={cn(`rounded-full p-1 ${getCardBgClassSecondary()} ${getBorderClass()} border`)}>
                     <TabsTrigger value="streak" className="text-xs px-3 py-1 rounded-full">Streak</TabsTrigger>
                     <TabsTrigger value="perks" className="text-xs px-3 py-1 rounded-full">Perks</TabsTrigger>

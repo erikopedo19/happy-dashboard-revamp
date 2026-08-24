@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
  * Boost your barbershop — a €3 one-off payment that sends a short
  * "time for a haircut" reminder to up to 25 past clients.
  */
+const BOOST_PAYMENT_LINK = "https://buy.stripe.com/dRmaEP0X05m6gd18fa2ZO05";
+
 export function BoostBarbershopCard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -46,24 +48,10 @@ export function BoostBarbershopCard() {
       .finally(() => setClaiming(false));
   }, [toast]);
 
-  const startBoost = async () => {
+  const startBoost = () => {
     haptic("medium");
     setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("boost-barbershop", {
-        body: { action: "checkout", origin: window.location.origin },
-      });
-      if (error) throw error;
-      if (data?.url) window.location.href = data.url;
-      else throw new Error("Could not start checkout");
-    } catch (e: any) {
-      toast({
-        title: "Couldn't start the boost",
-        description: e?.message ?? "Please try again.",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
+    window.location.href = BOOST_PAYMENT_LINK;
   };
 
   return (
