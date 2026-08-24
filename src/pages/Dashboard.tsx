@@ -12,10 +12,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, startOfWeek, addDays, isSameDay, subDays, isAfter } from "date-fns";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
-import { useEffect, useMemo, lazy, Suspense } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 const FirstLoginOnboarding = lazy(() =>
@@ -189,12 +189,44 @@ function MobileDashboard() {
   const numClass = "font-geist tabular-nums tracking-tight";
   const profileInitial = (user?.email || "C").charAt(0).toUpperCase();
 
+  // Keep the ambient gradient on screen for one minute after opening the dashboard
+  const [showAurora, setShowAurora] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowAurora(false), 60_000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <>
+      {/* Ambient aurora glow at the top — visible for the first minute */}
+      <AnimatePresence>
+        {showAurora && (
+          <motion.div
+            aria-hidden
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="pointer-events-none absolute inset-x-0 top-0 h-[260px] z-0 overflow-hidden"
+          >
+            <div
+              className="absolute -top-24 left-1/2 h-[320px] w-[160%] -translate-x-1/2 rounded-[50%] blur-[60px] opacity-70 animate-aurora-sweep"
+              style={{
+                backgroundSize: "200% 200%",
+                backgroundImage:
+                  "linear-gradient(100deg, #f43f5e 0%, #a855f7 22%, #3b82f6 44%, #22c55e 66%, #f59e0b 84%, #f43f5e 100%)",
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b0b0d]/60 to-[#0b0b0d]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.22 }}
+        style={{ position: "relative", zIndex: 1 }}
         className="px-5 pt-7 pb-5 flex justify-between items-center"
       >
         <div className="space-y-1">
