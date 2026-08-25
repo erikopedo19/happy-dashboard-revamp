@@ -1668,6 +1668,7 @@ function MobileReportsView({
       </motion.div>
 
       {/* This week ring strip */}
+      {/* This week strip */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1675,36 +1676,54 @@ function MobileReportsView({
         className="rounded-[26px] bg-[#15151A] border border-white/[0.07] p-4"
       >
         <div className="flex items-center justify-between mb-3.5">
-          <p className="text-[13px] font-semibold text-white">This week</p>
-          <p className="text-[11px] text-white/45">{analytics.busiestDay?.day ?? "—"} is busiest</p>
+          <p className="text-[14px] font-semibold text-white">This week</p>
+          <div className="flex items-center gap-1.5 text-[12px] font-semibold text-white/70">
+            {analytics.dayOfWeekDemand.filter((d: any) => d.count > 0).length}
+            <Flame className="w-3.5 h-3.5 text-[#FF9F0A]" strokeWidth={2.3} />
+          </div>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-end justify-between">
           {analytics.dayOfWeekDemand.map((d: any, i: number) => {
             const isToday = new Date().getDay() === i;
             const active = d.count > 0;
             return (
-              <div key={d.day} className="flex flex-col items-center gap-2">
-                <span className="text-[11px] font-medium text-white/35 uppercase">{String(d.day).slice(0, 1)}</span>
-                <motion.div
-                  initial={{ scale: 0.7, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.04 * i, ...springSoft }}
+              <motion.div
+                key={d.day}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.04 * i, ...springSoft }}
+                className={cn(
+                  "flex flex-col items-center justify-between w-[38px] py-1.5 rounded-full",
+                  isToday ? "bg-[#0A84FF] h-[74px] shadow-[0_10px_24px_-8px_rgba(10,132,255,0.8)]" : "h-[74px]"
+                )}
+              >
+                <div
                   className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-semibold tabular-nums",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold tabular-nums",
                     isToday
-                      ? "bg-[#0A84FF] text-white"
+                      ? "text-white"
                       : active
-                        ? "bg-white/[0.08] text-white border border-white/10"
-                        : "border border-dashed border-white/10 text-white/25"
+                        ? "bg-white/[0.10] text-white"
+                        : "bg-white/[0.05] text-white/25"
                   )}
                 >
-                  {active ? d.count : "–"}
-                </motion.div>
-              </div>
+                  {isToday ? <Check className="w-4 h-4" strokeWidth={3} /> : active ? d.count : "–"}
+                </div>
+                <span
+                  className={cn(
+                    "text-[15px] font-bold uppercase",
+                    isToday ? "text-white" : "text-white/30"
+                  )}
+                >
+                  {String(d.day).slice(0, 1)}
+                </span>
+              </motion.div>
             );
           })}
         </div>
       </motion.div>
+
+
 
       {/* Summary grid */}
       <div>
