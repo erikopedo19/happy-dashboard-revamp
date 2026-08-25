@@ -1643,19 +1643,26 @@ function MobileReportsView({
           <MobileSparkline data={analytics.revenueTrend} />
         </div>
 
-        {/* inline sub-stats */}
-        <div className="mt-4 grid grid-cols-3 gap-2 rounded-[22px] bg-white/[0.04] p-3">
+        {/* inline sub-stat tiles */}
+        <div className="mt-4 grid grid-cols-3 gap-2.5">
           {[
             { label: "Bookings", value: numberFormat.format(analytics.totalAppointments) },
             { label: "Clients", value: numberFormat.format(analytics.totalCustomers) },
             { label: "Avg ticket", value: currency.format(analytics.averageTicket || 0) },
           ].map((s, i) => (
-            <div key={s.label} className={cn("px-1 text-center", i < 2 && "border-r border-white/[0.07]")}>
-              <p className="text-[17px] font-bold text-white tabular-nums leading-none">{s.value}</p>
-              <p className="text-[11px] text-white/40 mt-1.5">{s.label}</p>
-            </div>
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06 * i, ...springSoft }}
+              className="rounded-[20px] bg-[#0E0E11] border border-white/[0.06] px-3 py-3.5"
+            >
+              <p className="text-[20px] font-bold text-white tabular-nums leading-none tracking-[-0.03em]">{s.value}</p>
+              <p className="text-[11px] text-white/40 mt-2">{s.label}</p>
+            </motion.div>
           ))}
         </div>
+
       </motion.div>
 
       {/* This week ring strip */}
