@@ -1679,7 +1679,6 @@ function MobileReportsView({
 
       </motion.div>
 
-      {/* This week ring strip */}
       {/* This week strip */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
