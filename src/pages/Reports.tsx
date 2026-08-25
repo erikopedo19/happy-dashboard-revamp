@@ -1358,6 +1358,7 @@ function MobileStatCard({
   hint,
   tint,
   delay = 0,
+  filled = false,
 }: {
   icon: ReactNode;
   label: string;
@@ -1365,6 +1366,7 @@ function MobileStatCard({
   hint?: string;
   tint: string;
   delay?: number;
+  filled?: boolean;
 }) {
   return (
     <motion.div
@@ -1372,20 +1374,30 @@ function MobileStatCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, ...springSoft }}
       whileTap={{ scale: 0.97 }}
-      className="rounded-[24px] bg-[#15151A] border border-white/[0.08] p-4"
+      className={cn(
+        "rounded-[24px] p-4 border",
+        filled
+          ? "bg-[#0A84FF] border-[#0A84FF] shadow-[0_16px_40px_-16px_rgba(10,132,255,0.9)]"
+          : "bg-[#15151A] border-white/[0.08]"
+      )}
     >
       <div
         className="w-10 h-10 rounded-[14px] flex items-center justify-center mb-3"
-        style={{ backgroundColor: `${tint}15`, color: tint }}
+        style={
+          filled
+            ? { backgroundColor: "rgba(255,255,255,0.18)", color: "#fff" }
+            : { backgroundColor: `${tint}15`, color: tint }
+        }
       >
         {icon}
       </div>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">{label}</p>
+      <p className={cn("text-[10px] font-semibold uppercase tracking-[0.14em]", filled ? "text-white/80" : "text-white/50")}>{label}</p>
       <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">{value}</p>
-      {hint && <p className="text-[11px] text-white/50 mt-1">{hint}</p>}
+      {hint && <p className={cn("text-[11px] mt-1", filled ? "text-white/75" : "text-white/50")}>{hint}</p>}
     </motion.div>
   );
 }
+
 
 function MobileSparkline({ data }: { data: { label: string; revenue: number }[] }) {
   if (data.length < 2) {
