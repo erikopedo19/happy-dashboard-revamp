@@ -419,8 +419,11 @@ const Reports = () => {
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
           {/* Ambient blue backdrop */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] z-0">
-            <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,rgba(10,132,255,0.55)_0%,rgba(10,132,255,0.18)_38%,rgba(10,10,12,0)_72%)]" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] z-0 overflow-hidden">
+            <div className="absolute -top-24 left-1/2 h-[420px] w-[140%] -translate-x-1/2 rounded-[50%] blur-[70px] opacity-70 bg-[radial-gradient(closest-side,rgba(10,132,255,0.45),rgba(10,132,255,0.12)_60%,transparent)]" />
+            <div className="absolute -top-10 left-[8%] h-[240px] w-[240px] rounded-full blur-[80px] opacity-45 bg-[radial-gradient(circle,rgba(191,90,242,0.5),transparent_70%)]" />
+            <div className="absolute -top-6 right-[6%] h-[220px] w-[220px] rounded-full blur-[80px] opacity-35 bg-[radial-gradient(circle,rgba(255,55,95,0.45),transparent_70%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-[220px] bg-gradient-to-b from-transparent to-[#0A0A0C]" />
           </div>
 
           {/* iOS large-title header */}

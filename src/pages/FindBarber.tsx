@@ -197,15 +197,28 @@ const FindBarber = () => {
     },
   });
 
+  // Barbershops with an active boost — always shown first.
+  const { data: boostedIds } = useQuery({
+    queryKey: ["boosted-barbers"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc("list_boosted_barbers");
+      return new Set<string>(((data as any[]) ?? []).map((r) => r.user_id));
+    },
+  });
+
+  const boostRank = (id: string) => (boostedIds?.has(id) ? 1 : 0);
+
   const sortedBarbers = useMemo(() => {
     const list = barbers ?? [];
     const counts = todayCounts ?? new Map<string, number>();
     return [...list].sort(
       (a, b) =>
+        (boostRank(b.id) - boostRank(a.id)) ||
         ((counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)) ||
         ((b.rating ?? 0) - (a.rating ?? 0))
     );
-  }, [barbers, todayCounts]);
+  }, [barbers, todayCounts, boostedIds]);
 
 
 
@@ -239,21 +252,26 @@ const FindBarber = () => {
 
     if (sortFilter === "reviews") {
       list = [...(barbers ?? [])].sort((a, b) =>
+        (boostRank(b.id) - boostRank(a.id)) ||
         (b.rating_count ?? 0) - (a.rating_count ?? 0) ||
         (b.rating ?? 0) - (a.rating ?? 0)
       );
     } else if (sortFilter === "likes") {
-      list = [...(barbers ?? [])].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      list = [...(barbers ?? [])].sort(
+        (a, b) => (boostRank(b.id) - boostRank(a.id)) || (b.rating ?? 0) - (a.rating ?? 0)
+      );
     } else if (sortFilter === "bookings") {
       const counts = todayCounts ?? new Map<string, number>();
       list = [...(barbers ?? [])].sort(
-        (a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
+        (a, b) =>
+          (boostRank(b.id) - boostRank(a.id)) ||
+          (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
       );
     }
 
     if (!term) return list;
     return list.filter((b) => b.brandName.toLowerCase().includes(term));
-  }, [sortedBarbers, barbers, searchTerm, sortFilter, todayCounts]);
+  }, [sortedBarbers, barbers, searchTerm, sortFilter, todayCounts, boostedIds]);
 
   const favoriteBarbers = sortedBarbers.filter((b) => favorites.includes(b.id));
 

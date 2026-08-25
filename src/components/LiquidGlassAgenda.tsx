@@ -1303,8 +1303,8 @@ export const LiquidGlassAgenda = ({
 
 
               const ROW_H = 76; // base grid row height (card 64 + 12 gap)
-              const CARD_MIN_H = 64;
-              const CARD_GAP = 8;
+              const CARD_MIN_H = 68;
+              const CARD_GAP = 12;
               const maxSpan = hourAppointments.reduce((acc, apt) => {
                 const d = apt.totalDurationMinutes || apt.service.duration || 30;
                 return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
@@ -1318,7 +1318,7 @@ export const LiquidGlassAgenda = ({
               const stackCount = hourAppointments.length + hourEvents.length;
               const stackHeight =
                 stackCount > 0
-                  ? stackCount * CARD_MIN_H + (stackCount - 1) * CARD_GAP + 12
+                  ? stackCount * CARD_MIN_H + (stackCount - 1) * CARD_GAP + (stackCount > 1 ? 34 : 12)
                   : 0;
               const rowHeight = Math.max(maxSpanAll * ROW_H, stackHeight);
 
@@ -1349,8 +1349,8 @@ export const LiquidGlassAgenda = ({
                   {/* Appointments in this hour — stretched to their real end time */}
                   {(hourAppointments.length > 0 || hourEvents.length > 0) && (
                   <div
-                    className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-2"
-                    style={{ height: rowHeight - 12 }}
+                    className="absolute left-[60px] right-0 z-10 flex flex-col gap-3"
+                    style={{ top: stackCount > 1 ? 22 : 0, height: rowHeight - (stackCount > 1 ? 34 : 12) }}
                   >
 
                   {hourAppointments.map((apt) => {
@@ -1365,7 +1365,7 @@ export const LiquidGlassAgenda = ({
                         variants={slotItemVariants}
                         key={apt.id}
                         className={cn(
-                          "flex-1 min-h-[64px] rounded-2xl",
+                          "flex-1 min-h-[68px] rounded-2xl",
                           isNewAppointment(apt.id) && "animate-appt-arrive animate-arrive-ring"
                         )}
                       >
