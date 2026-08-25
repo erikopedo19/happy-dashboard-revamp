@@ -252,21 +252,26 @@ const FindBarber = () => {
 
     if (sortFilter === "reviews") {
       list = [...(barbers ?? [])].sort((a, b) =>
+        (boostRank(b.id) - boostRank(a.id)) ||
         (b.rating_count ?? 0) - (a.rating_count ?? 0) ||
         (b.rating ?? 0) - (a.rating ?? 0)
       );
     } else if (sortFilter === "likes") {
-      list = [...(barbers ?? [])].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      list = [...(barbers ?? [])].sort(
+        (a, b) => (boostRank(b.id) - boostRank(a.id)) || (b.rating ?? 0) - (a.rating ?? 0)
+      );
     } else if (sortFilter === "bookings") {
       const counts = todayCounts ?? new Map<string, number>();
       list = [...(barbers ?? [])].sort(
-        (a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
+        (a, b) =>
+          (boostRank(b.id) - boostRank(a.id)) ||
+          (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
       );
     }
 
     if (!term) return list;
     return list.filter((b) => b.brandName.toLowerCase().includes(term));
-  }, [sortedBarbers, barbers, searchTerm, sortFilter, todayCounts]);
+  }, [sortedBarbers, barbers, searchTerm, sortFilter, todayCounts, boostedIds]);
 
   const favoriteBarbers = sortedBarbers.filter((b) => favorites.includes(b.id));
 
