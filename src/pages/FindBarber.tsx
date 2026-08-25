@@ -197,15 +197,28 @@ const FindBarber = () => {
     },
   });
 
+  // Barbershops with an active boost — always shown first.
+  const { data: boostedIds } = useQuery({
+    queryKey: ["boosted-barbers"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc("list_boosted_barbers");
+      return new Set<string>(((data as any[]) ?? []).map((r) => r.user_id));
+    },
+  });
+
+  const boostRank = (id: string) => (boostedIds?.has(id) ? 1 : 0);
+
   const sortedBarbers = useMemo(() => {
     const list = barbers ?? [];
     const counts = todayCounts ?? new Map<string, number>();
     return [...list].sort(
       (a, b) =>
+        (boostRank(b.id) - boostRank(a.id)) ||
         ((counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)) ||
         ((b.rating ?? 0) - (a.rating ?? 0))
     );
-  }, [barbers, todayCounts]);
+  }, [barbers, todayCounts, boostedIds]);
 
 
 
