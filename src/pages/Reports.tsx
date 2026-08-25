@@ -418,13 +418,14 @@ const Reports = () => {
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
-          {/* Ambient blue backdrop */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] z-0 overflow-hidden">
-            <div className="absolute -top-24 left-1/2 h-[420px] w-[140%] -translate-x-1/2 rounded-[50%] blur-[70px] opacity-70 bg-[radial-gradient(closest-side,rgba(10,132,255,0.45),rgba(10,132,255,0.12)_60%,transparent)]" />
-            <div className="absolute -top-10 left-[8%] h-[240px] w-[240px] rounded-full blur-[80px] opacity-45 bg-[radial-gradient(circle,rgba(191,90,242,0.5),transparent_70%)]" />
-            <div className="absolute -top-6 right-[6%] h-[220px] w-[220px] rounded-full blur-[80px] opacity-35 bg-[radial-gradient(circle,rgba(255,55,95,0.45),transparent_70%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-[220px] bg-gradient-to-b from-transparent to-[#0A0A0C]" />
+          {/* Ambient gradient backdrop — deep blue wash fading into black */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[460px] z-0 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[300px] bg-[linear-gradient(180deg,#0B4C86_0%,#0A2E52_38%,rgba(10,10,12,0.6)_78%,#0A0A0C_100%)]" />
+            <div className="absolute -top-32 left-1/2 h-[320px] w-[120%] -translate-x-1/2 rounded-[50%] blur-[90px] opacity-60 bg-[radial-gradient(closest-side,rgba(10,132,255,0.55),transparent)]" />
+            <div className="absolute top-[120px] left-[-10%] h-[220px] w-[220px] rounded-full blur-[90px] opacity-30 bg-[radial-gradient(circle,rgba(94,92,230,0.55),transparent_70%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-b from-transparent to-[#0A0A0C]" />
           </div>
+
 
           {/* iOS large-title header */}
           <div className="sticky top-0 z-20 bg-gradient-to-b from-[#0A0A0C]/70 to-transparent backdrop-blur-xl">
