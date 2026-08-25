@@ -1750,12 +1750,14 @@ function MobileReportsView({
           />
           <MobileStatCard
             delay={0.1}
+            filled
             icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
             label="Services"
             value={numberFormat.format(analytics.activeServices)}
             hint="Active"
             tint={iOS.indigo}
           />
+
           <MobileStatCard
             delay={0.15}
             icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
