@@ -40,7 +40,9 @@ import {
   ArrowUpRight,
   CalendarDays,
   ChevronRight,
+  Check,
   Clock,
+
   Crown,
   DollarSign,
   Download,
