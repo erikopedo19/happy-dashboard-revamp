@@ -1937,6 +1937,12 @@ export type Database = {
         Returns: Json
       }
       list_active_stories: { Args: never; Returns: Json }
+      list_boosted_barbers: {
+        Args: never
+        Returns: {
+          user_id: string
+        }[]
+      }
       list_public_profiles: {
         Args: never
         Returns: {
