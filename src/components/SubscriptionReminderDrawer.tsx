@@ -172,7 +172,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
           {/* Locked Features */}
           <div className="mt-6 space-y-2">
             <p className="text-[12px] font-semibold text-[#8E8E93] dark:text-white/40 uppercase tracking-wider">
-              Features you'll lose
+              {isExpired ? "Locked features" : "Features you'll lose"}
             </p>
             {LOCKED_FEATURES.map((feature, index) => (
               <motion.div
