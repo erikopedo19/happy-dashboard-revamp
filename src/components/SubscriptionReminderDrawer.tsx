@@ -59,9 +59,9 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
   }, []);
 
   useEffect(() => {
-    if (loading || !subscribed || !endDate || !daysRemaining) return;
-    
-    // Only show if subscription is ending within 7 days
+    if (loading || !subscribed || !endDate || daysRemaining === null) return;
+
+    // Show if expiring within 7 days or already expired
     if (daysRemaining > 7) return;
     
     // Check if dismissed recently (within 3 days)
@@ -105,9 +105,10 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
     setOpen(false);
   };
 
-  if (loading || !subscribed || !endDate || !daysRemaining || daysRemaining > 7) return null;
+  if (loading || !subscribed || !endDate || daysRemaining === null || daysRemaining > 7) return null;
 
-  const isUrgent = daysRemaining <= 3;
+  const isExpired = daysRemaining <= 0;
+  const isUrgent = isExpired || daysRemaining <= 3;
   const formattedDate = new Date(endDate).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric',
