@@ -121,6 +121,15 @@ export default {
 					"0%": { transform: "translateX(0)" },
 					"100%": { transform: "translateX(-50%)" },
 				},
+				"light-sweep": {
+					"0%": { transform: "translateX(-120%) skewX(-18deg)" },
+					"55%": { transform: "translateX(240%) skewX(-18deg)" },
+					"100%": { transform: "translateX(240%) skewX(-18deg)" },
+				},
+				"aurora-drift": {
+					"0%, 100%": { transform: "translate3d(0,0,0) scale(1)" },
+					"50%": { transform: "translate3d(4%, 3%, 0) scale(1.06)" },
+				},
 			},
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
@@ -132,6 +141,8 @@ export default {
 				"appt-arrive": "appt-arrive 0.42s cubic-bezier(0.22, 1, 0.36, 1) both",
 				"arrive-ring": "arrive-ring 1.1s ease-out 2",
 				"aurora-sweep": "aurora-sweep 8s ease-in-out infinite",
+				"light-sweep": "light-sweep 3.2s cubic-bezier(0.4,0,0.2,1) infinite",
+				"aurora-drift": "aurora-drift 14s ease-in-out infinite",
 
 			},
 		backgroundImage: {
