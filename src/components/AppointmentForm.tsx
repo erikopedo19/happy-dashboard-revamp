@@ -530,14 +530,11 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           <DialogTitle className="sr-only">Book Appointment</DialogTitle>
           <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
 
-          <motion.div
+          <div
           ref={contentRef}
-          initial={isMobile ? { y: 24, opacity: 0 } : false}
-          animate={isMobile ? { y: 0, opacity: 1 } : {}}
-          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "h-[100dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
+            isMobile ? "h-full overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Mobile sticky top bar with drag-handle + close */}
