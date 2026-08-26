@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@heroui/react";
+import { Drawer as BottomDrawer, DrawerContent as BottomDrawerContent } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
@@ -521,11 +522,11 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   if (!isOpen) return null;
 
-  // Mobile: use Dialog, PC: use Drawer
+  // Mobile: bottom sheet Drawer, PC: side Drawer
   if (isMobile) {
     return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="w-screen h-[100dvh] max-w-none max-h-none rounded-none m-0 bg-[#0e0e10] p-0 border-0 overflow-hidden shadow-2xl">
+      <BottomDrawer open={isOpen} onOpenChange={(v) => (!v ? handleClose() : null)}>
+        <BottomDrawerContent className="h-[94dvh] bg-[#0e0e10] border-0 rounded-t-[28px] p-0 overflow-hidden shadow-2xl">
           <DialogTitle className="sr-only">Book Appointment</DialogTitle>
           <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
 
