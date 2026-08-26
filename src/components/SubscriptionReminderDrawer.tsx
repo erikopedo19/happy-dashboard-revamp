@@ -59,9 +59,9 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
   }, []);
 
   useEffect(() => {
-    if (loading || !subscribed || !endDate || !daysRemaining) return;
-    
-    // Only show if subscription is ending within 7 days
+    if (loading || !subscribed || !endDate || daysRemaining === null) return;
+
+    // Show if expiring within 7 days or already expired
     if (daysRemaining > 7) return;
     
     // Check if dismissed recently (within 3 days)
@@ -105,9 +105,10 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
     setOpen(false);
   };
 
-  if (loading || !subscribed || !endDate || !daysRemaining || daysRemaining > 7) return null;
+  if (loading || !subscribed || !endDate || daysRemaining === null || daysRemaining > 7) return null;
 
-  const isUrgent = daysRemaining <= 3;
+  const isExpired = daysRemaining <= 0;
+  const isUrgent = isExpired || daysRemaining <= 3;
   const formattedDate = new Date(endDate).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric',
@@ -135,7 +136,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
 
           {/* Title */}
           <h2 className="text-center text-[22px] font-bold tracking-tight text-[#1C1C1E] dark:text-white">
-            {isUrgent ? "Subscription ending soon" : "Subscription expiring"}
+            {isExpired ? "Your subscription has ended" : isUrgent ? "Subscription ending soon" : "Subscription expiring"}
           </h2>
           
           {/* Date Info */}
@@ -154,13 +155,15 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
                 ? "bg-rose-500/10 text-rose-500 dark:text-rose-400"
                 : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
             )}>
-              {daysRemaining === 0 ? "Expires today" : daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`}
+              {isExpired ? "Ended" : daysRemaining === 0 ? "Expires today" : daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`}
             </span>
           </div>
 
           {/* Description */}
           <p className="mx-auto mt-4 max-w-[280px] text-center text-[13px] text-[#8E8E93] dark:text-white/50">
-            {isUrgent 
+            {isExpired
+              ? "Your Pro features are now locked. Renew to restore full access instantly."
+              : isUrgent
               ? "Your Pro features will be locked soon. Renew to keep everything running smoothly."
               : "Your Pro subscription is ending. Don't lose access to your premium features."
             }
@@ -169,7 +172,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
           {/* Locked Features */}
           <div className="mt-6 space-y-2">
             <p className="text-[12px] font-semibold text-[#8E8E93] dark:text-white/40 uppercase tracking-wider">
-              Features you'll lose
+              {isExpired ? "Locked features" : "Features you'll lose"}
             </p>
             {LOCKED_FEATURES.map((feature, index) => (
               <motion.div

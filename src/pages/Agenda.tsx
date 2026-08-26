@@ -185,8 +185,9 @@ const Agenda = () => {
       return data || [];
     },
     enabled: !!user,
-    staleTime: 0, // Always consider data stale to enable immediate refetch
-    refetchInterval: 8000, // Fast fallback so new bookings appear live
+    staleTime: 30000, // Realtime covers live updates; keep data fresh 30s
+    refetchInterval: 30000, // Fallback polling only (Realtime handles instant updates)
+    refetchIntervalInBackground: false, // Pause polling when the tab is hidden
   });
 
   const hydratedAppointments = useMemo(

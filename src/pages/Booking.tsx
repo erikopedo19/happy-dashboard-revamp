@@ -318,9 +318,10 @@ const Booking = () => {
       return (data || []) as Appointment[];
     },
     enabled: !!businessProfile?.id && !!selectedDate,
-    refetchInterval: 10000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false, // Pause polling when the tab is hidden
     refetchOnWindowFocus: true,
-    staleTime: 0,
+    staleTime: 15000,
   });
 
   // Fetch stylist-service relationships
