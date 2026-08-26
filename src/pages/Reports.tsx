@@ -421,11 +421,12 @@ const Reports = () => {
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
           {/* Ambient gradient backdrop — deep blue wash fading into black */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[460px] z-0 overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-[300px] bg-[linear-gradient(180deg,#0B4C86_0%,#0A2E52_38%,rgba(10,10,12,0.6)_78%,#0A0A0C_100%)]" />
-            <div className="absolute -top-32 left-1/2 h-[320px] w-[120%] -translate-x-1/2 rounded-[50%] blur-[90px] opacity-60 bg-[radial-gradient(closest-side,rgba(10,132,255,0.55),transparent)]" />
-            <div className="absolute top-[120px] left-[-10%] h-[220px] w-[220px] rounded-full blur-[90px] opacity-30 bg-[radial-gradient(circle,rgba(94,92,230,0.55),transparent_70%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-[200px] bg-gradient-to-b from-transparent to-[#0A0A0C]" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] z-0 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[340px] bg-[linear-gradient(180deg,#0C5494_0%,#0A3560_34%,rgba(12,20,36,0.55)_72%,#0A0A0C_100%)]" />
+            <div className="absolute -top-36 left-1/2 h-[360px] w-[125%] -translate-x-1/2 rounded-[50%] blur-[95px] opacity-70 bg-[radial-gradient(closest-side,rgba(10,132,255,0.7),transparent)] animate-aurora-drift" />
+            <div className="absolute top-[90px] left-[-12%] h-[260px] w-[260px] rounded-full blur-[95px] opacity-40 bg-[radial-gradient(circle,rgba(94,92,230,0.65),transparent_70%)] animate-aurora-drift" style={{ animationDelay: "-5s" }} />
+            <div className="absolute top-[60px] right-[-14%] h-[240px] w-[240px] rounded-full blur-[90px] opacity-30 bg-[radial-gradient(circle,rgba(255,69,120,0.6),transparent_70%)] animate-aurora-drift" style={{ animationDelay: "-10s" }} />
+            <div className="absolute inset-x-0 bottom-0 h-[220px] bg-gradient-to-b from-transparent to-[#0A0A0C]" />
           </div>
 
 

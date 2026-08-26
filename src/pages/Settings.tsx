@@ -173,14 +173,28 @@ const Settings = () => {
   const [settingsSearch, setSettingsSearch] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Always land at the top — window scroll AND the internal scroll container,
+  // re-applied after paint so async content can't push the view down.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const reset = () => {
+      window.scrollTo(0, 0);
+      document.scrollingElement?.scrollTo({ top: 0 });
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t = setTimeout(reset, 120);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
   }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
+    window.scrollTo(0, 0);
   }, [activeTab]);
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
