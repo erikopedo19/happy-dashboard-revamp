@@ -136,7 +136,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
 
           {/* Title */}
           <h2 className="text-center text-[22px] font-bold tracking-tight text-[#1C1C1E] dark:text-white">
-            {isUrgent ? "Subscription ending soon" : "Subscription expiring"}
+            {isExpired ? "Your subscription has ended" : isUrgent ? "Subscription ending soon" : "Subscription expiring"}
           </h2>
           
           {/* Date Info */}
@@ -155,13 +155,15 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
                 ? "bg-rose-500/10 text-rose-500 dark:text-rose-400"
                 : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
             )}>
-              {daysRemaining === 0 ? "Expires today" : daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`}
+              {isExpired ? "Ended" : daysRemaining === 0 ? "Expires today" : daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`}
             </span>
           </div>
 
           {/* Description */}
           <p className="mx-auto mt-4 max-w-[280px] text-center text-[13px] text-[#8E8E93] dark:text-white/50">
-            {isUrgent 
+            {isExpired
+              ? "Your Pro features are now locked. Renew to restore full access instantly."
+              : isUrgent
               ? "Your Pro features will be locked soon. Renew to keep everything running smoothly."
               : "Your Pro subscription is ending. Don't lose access to your premium features."
             }
