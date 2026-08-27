@@ -1091,6 +1091,26 @@ function Sheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+
+  // Always open a panel at the very top and stop the page behind from scrolling.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const reset = () => {
+      if (bodyRef.current) bodyRef.current.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t = setTimeout(reset, 150);
+    return () => {
+      document.body.style.overflow = prev;
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
+  }, []);
+
   return (
     <>
       <motion.div
