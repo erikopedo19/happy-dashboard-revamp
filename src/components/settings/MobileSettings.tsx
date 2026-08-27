@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -1091,6 +1091,26 @@ function Sheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+
+  // Always open a panel at the very top and stop the page behind from scrolling.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const reset = () => {
+      if (bodyRef.current) bodyRef.current.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t = setTimeout(reset, 150);
+    return () => {
+      document.body.style.overflow = prev;
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
+  }, []);
+
   return (
     <>
       <motion.div
@@ -1117,6 +1137,7 @@ function Sheet({
           <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
         </header>
         <div
+          ref={bodyRef}
           className="flex-1 overflow-y-auto overscroll-contain px-5 py-5"
           style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
         >

@@ -114,14 +114,16 @@ export function BoostBarbershopCard() {
               aria-hidden
               className="absolute inset-0 rounded-2xl"
               style={{
-                background: "linear-gradient(120deg, #0A84FF, #5E5CE6 45%, #FF4578)",
+                background:
+                  "linear-gradient(120deg, #0A84FF 0%, #5E5CE6 38%, #A855F7 62%, #FF4578 88%, #FF8A5A 100%)",
               }}
             />
             <span
               aria-hidden
               className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{
-                background: "linear-gradient(120deg, #3B9BFF, #7A76F0 45%, #FF6B94)",
+                background:
+                  "linear-gradient(120deg, #3B9BFF 0%, #7A76F0 38%, #BD7BFF 62%, #FF6B94 88%, #FFA277 100%)",
               }}
             />
             {/* Light sweep */}
