@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -1137,6 +1137,7 @@ function Sheet({
           <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
         </header>
         <div
+          ref={bodyRef}
           className="flex-1 overflow-y-auto overscroll-contain px-5 py-5"
           style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
         >
