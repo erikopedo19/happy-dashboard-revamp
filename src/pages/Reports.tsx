@@ -468,10 +468,14 @@ const Reports = () => {
             {!isMobile && (
               <div className="px-4 md:px-8 pb-4">
                 <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
-                  <TabsList className="w-full md:w-auto bg-[#15151A]">
+                  <TabsList className="w-full md:w-auto rounded-full bg-white/[0.06] p-1">
                     {RANGES.map((r) => (
                       <Fragment key={r.value}>
-                        <TabsTrigger value={r.value} className="flex-1 md:flex-none" indicatorClassName="bg-[#FF375F]">
+                        <TabsTrigger
+                          value={r.value}
+                          className="flex-1 md:flex-none rounded-full tabular-nums text-[13px] font-medium data-[state=active]:text-white"
+                          indicatorClassName="bg-white/[0.14] rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                        >
                           <span className="relative">{r.label}</span>
                         </TabsTrigger>
                       </Fragment>

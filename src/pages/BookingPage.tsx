@@ -4,6 +4,7 @@ import { usePremium } from "@/hooks/use-premium";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BookingQR } from "@/components/BookingQR";
+import MicrositeCard from "@/components/MicrositeCard";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
@@ -167,27 +168,13 @@ const BookingPage = () => {
           <div className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-8 space-y-5">
             {/* Main content */}
             <AnimatePresence mode="wait">
-              <motion.div
-                key={tab}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={springSoft}
-                className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
-              >
-                <div className="p-4 sm:p-6 md:p-8">
-                  {tab === "qr" ? (
-                    <BookingQR
-                      url={bookingUrl}
-                      businessName={profile?.business_name || profile?.full_name}
-                      isPremium={isPremium}
-                    />
-                  ) : (
-                    <BookingLinkGenerator />
-                  )}
+...
                 </div>
               </motion.div>
             </AnimatePresence>
+
+            {/* Website / microsite */}
+            <MicrositeCard />
 
             {/* How it works — iOS grouped list */}
             <motion.div
