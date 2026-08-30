@@ -59,10 +59,11 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
   }, []);
 
   useEffect(() => {
-    if (loading || !subscribed || !endDate || daysRemaining === null) return;
+    if (loading || !endDate || daysRemaining === null) return;
 
-    // Show if expiring within 7 days or already expired
-    if (daysRemaining > 7) return;
+    // Show if expiring within 7 days, or expired (even after `subscribed` flipped to false)
+    const shouldShow = subscribed ? daysRemaining <= 7 : daysRemaining <= 0;
+    if (!shouldShow) return;
     
     // Check if dismissed recently (within 3 days)
     try {
