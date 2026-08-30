@@ -106,7 +106,8 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
     setOpen(false);
   };
 
-  if (loading || !subscribed || !endDate || daysRemaining === null || daysRemaining > 7) return null;
+  const visible = !!endDate && daysRemaining !== null && (subscribed ? daysRemaining <= 7 : daysRemaining <= 0);
+  if (loading || !visible) return null;
 
   const isExpired = daysRemaining <= 0;
   const isUrgent = isExpired || daysRemaining <= 3;
