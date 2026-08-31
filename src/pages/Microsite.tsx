@@ -160,12 +160,6 @@ const Microsite = () => {
   const reviewCount = p.rating_count || 0;
   const showPublicReviews = !!p.show_public_reviews;
   const reviews: Review[] = Array.isArray(data.reviews) ? data.reviews : [];
-  const features = [
-    { icon: Zap, title: "Instant booking", desc: "Confirmed in seconds, no waiting." },
-    { icon: Shield, title: "Secure & private", desc: "Your details are always protected." },
-    { icon: Heart, title: "Loved by clients", desc: "Personalized to your style." },
-    { icon: Award, title: "Premium service", desc: "Expert care, every visit." },
-  ];
 
 
   return (
