@@ -33,6 +33,7 @@ const cleanSlug = (raw: string) =>
 const TABS = [
   { value: "link", label: "Booking Link", icon: Link2 },
   { value: "qr", label: "QR Flyer", icon: QrCode },
+  { value: "site", label: "Website", icon: Globe },
 ] as const;
 
 const STEPS = [
