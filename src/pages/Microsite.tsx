@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Check, Sparkles,
   Globe, ChevronRight, Shield, Zap, Heart, Award,
-  Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck,
+  Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck, Moon, Sun,
 } from "lucide-react";
 
 type Review = {
@@ -419,7 +419,7 @@ const Microsite = () => {
         )}
 
         {/* REVIEWS: real detailed reviews when enabled, otherwise synthetic testimonial */}
-        {showPublicReviews && reviews.length > 0 ? (
+        {reviews.length > 0 ? (
           <section className="px-3 md:px-6 mt-3">
             <div className="max-w-6xl mx-auto ms-card p-5 md:p-8" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
               <div className="flex items-center gap-3 mb-5">
