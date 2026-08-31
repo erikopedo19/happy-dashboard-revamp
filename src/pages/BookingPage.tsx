@@ -10,12 +10,14 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import {
   Globe,
   Share2,
   QrCode,
   Link2,
-  
+  ExternalLink,
+  Pencil,
   CalendarCheck,
   Printer,
 } from "lucide-react";
@@ -33,6 +35,7 @@ const cleanSlug = (raw: string) =>
 const TABS = [
   { value: "link", label: "Booking Link", icon: Link2 },
   { value: "qr", label: "QR Flyer", icon: QrCode },
+  { value: "site", label: "Website", icon: Globe },
 ] as const;
 
 const STEPS = [
@@ -42,19 +45,63 @@ const STEPS = [
   { icon: CalendarCheck, title: "Get booked 24/7", desc: "Auto-synced straight to your agenda." },
 ];
 
+const MicrositePanel = ({ slug }: { slug: string }) => {
+  const navigate = useNavigate();
+  const siteUrl = slug ? `${window.location.origin}/site/${slug}` : "";
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3.5">
+        <div className="h-11 w-11 rounded-[14px] bg-[#FF2D6F]/15 border border-[#FF2D6F]/20 flex items-center justify-center shrink-0">
+          <Globe className="h-5 w-5 text-[#FF6B95]" strokeWidth={2.2} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-[17px] font-bold text-white tracking-tight">Your website</h3>
+          <p className="text-[12px] text-[#8E8E93] mt-0.5">A one-page microsite generated from your profile.</p>
+        </div>
+      </div>
+      {siteUrl && (
+        <div className="rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[13px] text-[#8E8E93] truncate font-mono">
+          {siteUrl}
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row gap-2.5">
+        <button
+          onClick={() => navigate("/microsite")}
+          className="flex-1 h-11 rounded-[12px] bg-[#FF2D6F] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-[#ff4784] active:scale-[0.98] transition"
+        >
+          <Pencil className="h-4 w-4" strokeWidth={2.3} />
+          Customise website
+        </button>
+        {siteUrl && (
+          <a
+            href={siteUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 h-11 rounded-[12px] bg-white/[0.06] border border-white/[0.08] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] active:scale-[0.98] transition"
+          >
+            <ExternalLink className="h-4 w-4" strokeWidth={2.3} />
+            View live
+          </a>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const BookingPage = () => {
   const { user } = useAuth();
   const { isPremium } = usePremium();
   const isMobile = useIsMobile() ?? false;
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") === "qr" ? "qr" : "link";
+  const rawTab = searchParams.get("tab");
+  const tab = rawTab === "qr" || rawTab === "site" ? rawTab : "link";
   const setTab = (value: (typeof TABS)[number]["value"]) => {
     const next = new URLSearchParams(searchParams);
     next.set("tab", value);
     setSearchParams(next, { replace: true });
   };
 
-  const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value !== "qr");
+  const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value === "link");
 
   const { data: profile } = useQuery({
     queryKey: ["booking-page-profile", user?.id],
@@ -176,7 +223,9 @@ const BookingPage = () => {
                 className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
               >
                 <div className="p-4 sm:p-6 md:p-8">
-                  {tab === "qr" ? (
+                  {tab === "site" ? (
+                    <MicrositePanel slug={profile?.booking_link || fallbackSlug} />
+                  ) : tab === "qr" ? (
                     <BookingQR
                       url={bookingUrl}
                       businessName={profile?.business_name || profile?.full_name}
