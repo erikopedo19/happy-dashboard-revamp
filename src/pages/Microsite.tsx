@@ -158,7 +158,6 @@ const Microsite = () => {
   const bookingUrl = `/book/${p.booking_link}`;
   const rating = Number(p.rating) || 0;
   const reviewCount = p.rating_count || 0;
-  const showPublicReviews = !!p.show_public_reviews;
   const reviews: Review[] = Array.isArray(data.reviews) ? data.reviews : [];
 
 
