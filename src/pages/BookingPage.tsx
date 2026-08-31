@@ -4,7 +4,6 @@ import { usePremium } from "@/hooks/use-premium";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { BookingQR } from "@/components/BookingQR";
-import MicrositeCard from "@/components/MicrositeCard";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
@@ -189,9 +188,6 @@ const BookingPage = () => {
                 </div>
               </motion.div>
             </AnimatePresence>
-
-            {/* Website / microsite */}
-            <MicrositeCard />
 
             {/* How it works — iOS grouped list */}
             <motion.div
