@@ -48,7 +48,8 @@ const BookingPage = () => {
   const { isPremium } = usePremium();
   const isMobile = useIsMobile() ?? false;
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") === "qr" ? "qr" : "link";
+  const rawTab = searchParams.get("tab");
+  const tab = rawTab === "qr" || rawTab === "site" ? rawTab : "link";
   const setTab = (value: (typeof TABS)[number]["value"]) => {
     const next = new URLSearchParams(searchParams);
     next.set("tab", value);
