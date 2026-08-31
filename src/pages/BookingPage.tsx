@@ -178,7 +178,9 @@ const BookingPage = () => {
                 className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
               >
                 <div className="p-4 sm:p-6 md:p-8">
-                  {tab === "qr" ? (
+                  {tab === "site" ? (
+                    <MicrositePanel slug={profile?.booking_link || fallbackSlug} />
+                  ) : tab === "qr" ? (
                     <BookingQR
                       url={bookingUrl}
                       businessName={profile?.business_name || profile?.full_name}
