@@ -56,7 +56,7 @@ const BookingPage = () => {
     setSearchParams(next, { replace: true });
   };
 
-  const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value !== "qr");
+  const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value === "link");
 
   const { data: profile } = useQuery({
     queryKey: ["booking-page-profile", user?.id],
