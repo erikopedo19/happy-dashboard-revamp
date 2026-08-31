@@ -80,28 +80,37 @@ export function BoostBarbershopCard() {
         className="absolute inset-0 rounded-[28px]"
         style={{
           background:
-            "linear-gradient(135deg, rgba(10,132,255,0.65), rgba(255,69,120,0.45) 55%, rgba(10,132,255,0.15))",
+            "linear-gradient(135deg, rgba(255,79,129,0.75), rgba(255,140,170,0.5) 45%, rgba(255,69,120,0.18))",
         }}
       />
       <div className="relative rounded-[27px] bg-[#141417] p-5 overflow-hidden">
-        {/* Ambient glows */}
+        {/* Ambient rose glows */}
         <div
           aria-hidden
           className="pointer-events-none absolute -top-20 right-[-12%] h-48 w-48 rounded-full blur-[55px] opacity-70 animate-aurora-drift"
-          style={{ background: "radial-gradient(circle, rgba(10,132,255,0.85), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(255,69,120,0.85), transparent 70%)" }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-16 left-[-8%] h-36 w-36 rounded-full blur-[50px] opacity-40 animate-aurora-drift"
+          className="pointer-events-none absolute -bottom-16 left-[-8%] h-36 w-36 rounded-full blur-[50px] opacity-45 animate-aurora-drift"
           style={{
-            background: "radial-gradient(circle, rgba(255,69,120,0.8), transparent 70%)",
+            background: "radial-gradient(circle, rgba(255,158,185,0.75), transparent 70%)",
             animationDelay: "-7s",
+          }}
+        />
+        {/* Rose shine sweep across the card */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 w-1/3 animate-light-sweep"
+          style={{
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+            filter: "blur(6px)",
           }}
         />
 
         <div className="relative">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#0A84FF]/25 to-[#FF4578]/15 border border-white/10 flex items-center justify-center text-[#0A84FF]">
+            <div className="h-10 w-10 rounded-2xl bg-[#FF4578]/15 border border-white/10 flex items-center justify-center text-[#FF6B94]">
               <Rocket className="h-5 w-5" />
             </div>
             <div>
