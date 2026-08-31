@@ -93,7 +93,19 @@ const Microsite = () => {
     document.head.appendChild(l);
   }, []);
 
-  const themeId: ThemeId = ((data?.microsite?.theme as ThemeId) || "editorial");
+  const baseThemeId: ThemeId = ((data?.microsite?.theme as ThemeId) || "editorial");
+  const [darkPref, setDarkPref] = useState<boolean | null>(null);
+  useEffect(() => {
+    const saved = localStorage.getItem("ms-dark");
+    if (saved) setDarkPref(saved === "1");
+  }, []);
+  const isDark = darkPref === null ? baseThemeId === "noir" : darkPref;
+  const themeId: ThemeId = isDark ? "noir" : (baseThemeId === "noir" ? "mono" : baseThemeId);
+  const toggleDark = () => {
+    const next = !isDark;
+    setDarkPref(next);
+    localStorage.setItem("ms-dark", next ? "1" : "0");
+  };
   const accent = data?.profile?.brand_color || "#e11d48";
   const t = useMemo(() => buildTokens(themeId, accent), [themeId, accent]);
 
