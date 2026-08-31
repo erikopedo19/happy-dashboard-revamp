@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Check, Sparkles,
   Globe, ChevronRight, Shield, Zap, Heart, Award,
-  Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck,
+  Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck, Moon, Sun,
 } from "lucide-react";
 
 type Review = {
@@ -93,7 +93,19 @@ const Microsite = () => {
     document.head.appendChild(l);
   }, []);
 
-  const themeId: ThemeId = ((data?.microsite?.theme as ThemeId) || "editorial");
+  const baseThemeId: ThemeId = ((data?.microsite?.theme as ThemeId) || "editorial");
+  const [darkPref, setDarkPref] = useState<boolean | null>(null);
+  useEffect(() => {
+    const saved = localStorage.getItem("ms-dark");
+    if (saved) setDarkPref(saved === "1");
+  }, []);
+  const isDark = darkPref === null ? baseThemeId === "noir" : darkPref;
+  const themeId: ThemeId = isDark ? "noir" : (baseThemeId === "noir" ? "mono" : baseThemeId);
+  const toggleDark = () => {
+    const next = !isDark;
+    setDarkPref(next);
+    localStorage.setItem("ms-dark", next ? "1" : "0");
+  };
   const accent = data?.profile?.brand_color || "#e11d48";
   const t = useMemo(() => buildTokens(themeId, accent), [themeId, accent]);
 
@@ -146,14 +158,7 @@ const Microsite = () => {
   const bookingUrl = `/book/${p.booking_link}`;
   const rating = Number(p.rating) || 0;
   const reviewCount = p.rating_count || 0;
-  const showPublicReviews = !!p.show_public_reviews;
   const reviews: Review[] = Array.isArray(data.reviews) ? data.reviews : [];
-  const features = [
-    { icon: Zap, title: "Instant booking", desc: "Confirmed in seconds, no waiting." },
-    { icon: Shield, title: "Secure & private", desc: "Your details are always protected." },
-    { icon: Heart, title: "Loved by clients", desc: "Personalized to your style." },
-    { icon: Award, title: "Premium service", desc: "Expert care, every visit." },
-  ];
 
 
   return (
@@ -196,13 +201,24 @@ const Microsite = () => {
               {gallery.length > 0 && <a href="#gallery" className="px-3 py-1.5 rounded-full hover:bg-[color:var(--ms-chip)] transition">Gallery</a>}
               <a href="#visit" className="px-3 py-1.5 rounded-full hover:bg-[color:var(--ms-chip)] transition">Visit</a>
             </nav>
-            <Link
-              to={bookingUrl}
-              className="ms-tap inline-flex items-center gap-1.5 rounded-full px-4 h-10 text-[13px] font-semibold"
-              style={{ background: "var(--ms-cta)", color: "var(--ms-cta-text)" }}
-            >
-              Book <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleDark}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                className="ms-tap inline-flex items-center justify-center h-10 w-10 rounded-full ms-hairline"
+                style={{ background: "var(--ms-chip)", color: "var(--ms-subtext)" }}
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <Link
+                to={bookingUrl}
+                className="ms-tap inline-flex items-center gap-1.5 rounded-full px-4 h-10 text-[13px] font-semibold"
+                style={{ background: "var(--ms-cta)", color: "var(--ms-cta-text)" }}
+              >
+                Book <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -300,108 +316,6 @@ const Microsite = () => {
           </motion.div>
         </section>
 
-        {/* STAT CARDS — iOS widget row */}
-        <section className="px-3 md:px-6 mt-3">
-          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: "Rating", value: rating > 0 ? rating.toFixed(1) : "New", sub: rating > 0 ? `${reviewCount} reviews` : "Be the first", icon: Star, accent: true },
-              { label: "Services", value: String(data.services?.length || 0), sub: "Available now", icon: Scissors },
-              { label: "Open", value: m.hours ? "Today" : "By appt.", sub: m.hours ? "Tap to see hours" : "Reserve a slot", icon: Clock },
-              { label: "Location", value: p.city || "Studio", sub: p.address ? "View on map" : "Online booking", icon: MapPin },
-            ].map((s, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="ms-card p-4 md:p-5"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: t.subtext }}>{s.label}</div>
-                  <s.icon className="h-3.5 w-3.5" style={{ color: s.accent ? t.accent : t.muted, fill: s.accent && rating > 0 ? t.accent : "none" }} />
-                </div>
-                <div className="mt-3 text-2xl md:text-3xl ms-display">{s.value}</div>
-                <div className="text-[12px] mt-0.5" style={{ color: t.subtext }}>{s.sub}</div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* TRUST STRIP — small social-proof row */}
-        <section className="px-3 md:px-6 mt-3">
-          <div className="max-w-6xl mx-auto ms-card px-5 md:px-8 py-5 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
-                <BadgeCheck className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <div className="text-[13px] font-semibold">Verified studio</div>
-                <div className="text-[11px]" style={{ color: t.subtext }}>Identity confirmed</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
-                <TrendingUp className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <div className="text-[13px] font-semibold">Booking in seconds</div>
-                <div className="text-[11px]" style={{ color: t.subtext }}>Avg. 28s checkout</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
-                <Users className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <div className="text-[13px] font-semibold">{reviewCount > 0 ? `${reviewCount}+ happy clients` : "Trusted locally"}</div>
-                <div className="text-[11px]" style={{ color: t.subtext }}>Returning every month</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-2xl flex items-center justify-center" style={{ background: `${t.accent}14`, color: t.accent }}>
-                <Shield className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <div className="text-[13px] font-semibold">Secure checkout</div>
-                <div className="text-[11px]" style={{ color: t.subtext }}>Encrypted end-to-end</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-
-
-        {/* WHY US — iOS feature grid */}
-        <section className="px-3 md:px-6 mt-3">
-          <div className="max-w-6xl mx-auto ms-card p-5 md:p-8">
-            <div className="flex items-end justify-between mb-5">
-              <div>
-                <div className="text-[11px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: t.accent }}>Why us</div>
-                <h2 className="ms-display text-2xl md:text-3xl">A better way to book</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {features.map((f, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, delay: i * 0.06 }}
-                  className="rounded-2xl p-4"
-                  style={{ background: t.surfaceAlt, border: `1px solid ${t.border}` }}
-                >
-                  <div className="h-9 w-9 rounded-2xl flex items-center justify-center mb-3" style={{ background: `${t.accent}18`, color: t.accent }}>
-                    <f.icon className="h-4 w-4" />
-                  </div>
-                  <div className="text-[14px] font-semibold">{f.title}</div>
-                  <div className="text-[12px] mt-0.5 leading-relaxed" style={{ color: t.subtext }}>{f.desc}</div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ABOUT */}
         {about && (
@@ -504,7 +418,7 @@ const Microsite = () => {
         )}
 
         {/* REVIEWS: real detailed reviews when enabled, otherwise synthetic testimonial */}
-        {showPublicReviews && reviews.length > 0 ? (
+        {reviews.length > 0 ? (
           <section className="px-3 md:px-6 mt-3">
             <div className="max-w-6xl mx-auto ms-card p-5 md:p-8" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
               <div className="flex items-center gap-3 mb-5">
@@ -630,46 +544,6 @@ const Microsite = () => {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="px-3 md:px-6 mt-3">
-          <div className="max-w-6xl mx-auto ms-card p-5 md:p-8">
-            <div className="text-[11px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: t.accent }}>FAQ</div>
-            <h3 className="ms-display text-2xl md:text-3xl mb-5">Good to know</h3>
-            <div className="divide-y" style={{ borderColor: t.border }}>
-              {[
-                { q: "How do I book?", a: "Tap any service or the Book button — you'll pick a time and confirm in seconds." },
-                { q: "Can I reschedule?", a: "Yes. Use the link in your confirmation email or message us directly." },
-                { q: "Do you accept walk-ins?", a: "Whenever possible. Booking ahead is recommended for peak hours." },
-                { q: "What payment methods are accepted?", a: "Cash and major cards are accepted in-store. Some services may require a deposit." },
-              ].map((f, i) => (
-                <details key={i} className="group py-4" style={{ borderColor: t.border }}>
-                  <summary className="flex items-center justify-between cursor-pointer list-none">
-                    <span className="font-semibold text-[15px]">{f.q}</span>
-                    <span className="h-7 w-7 rounded-full flex items-center justify-center transition-transform group-open:rotate-45" style={{ background: t.chip, color: t.text }}>+</span>
-                  </summary>
-                  <p className="mt-2 text-[14px] leading-relaxed pr-10" style={{ color: t.subtext }}>{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Marquee */}
-        <section className="px-3 md:px-6 mt-3 overflow-hidden">
-          <div className="max-w-6xl mx-auto ms-card py-5 overflow-hidden">
-            <div className="ms-marq whitespace-nowrap flex gap-10" style={{ color: t.muted }}>
-              {Array.from({ length: 2 }).map((_, k) => (
-                <div key={k} className="flex gap-10 shrink-0 px-5">
-                  {[`${businessName}`, "Booking made simple", "Crafted experience", "By appointment", `Est. ${new Date().getFullYear()}`, "Walk-ins welcome"].map((w, i) => (
-                    <span key={i} className="ms-display text-2xl md:text-3xl">
-                      {w} <span style={{ color: t.accent }}>·</span>
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Footer */}
         <footer className="px-3 md:px-6 mt-3 mb-3">
