@@ -202,13 +202,24 @@ const Microsite = () => {
               {gallery.length > 0 && <a href="#gallery" className="px-3 py-1.5 rounded-full hover:bg-[color:var(--ms-chip)] transition">Gallery</a>}
               <a href="#visit" className="px-3 py-1.5 rounded-full hover:bg-[color:var(--ms-chip)] transition">Visit</a>
             </nav>
-            <Link
-              to={bookingUrl}
-              className="ms-tap inline-flex items-center gap-1.5 rounded-full px-4 h-10 text-[13px] font-semibold"
-              style={{ background: "var(--ms-cta)", color: "var(--ms-cta-text)" }}
-            >
-              Book <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleDark}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                className="ms-tap inline-flex items-center justify-center h-10 w-10 rounded-full ms-hairline"
+                style={{ background: "var(--ms-chip)", color: "var(--ms-subtext)" }}
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <Link
+                to={bookingUrl}
+                className="ms-tap inline-flex items-center gap-1.5 rounded-full px-4 h-10 text-[13px] font-semibold"
+                style={{ background: "var(--ms-cta)", color: "var(--ms-cta-text)" }}
+              >
+                Book <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </header>
 
