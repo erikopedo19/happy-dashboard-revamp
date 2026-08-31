@@ -60,7 +60,7 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
         </div>
       </div>
       {siteUrl && (
-        <div className="rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[13px] text-[#8E8E93] truncate font-geist-mono">
+        <div className="rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[13px] text-[#8E8E93] truncate font-mono">
           {siteUrl}
         </div>
       )}
