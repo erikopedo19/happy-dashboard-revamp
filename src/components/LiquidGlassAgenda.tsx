@@ -1,17 +1,67 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronsUpDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal, Thermometer, Lock, Sunset } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal } from "lucide-react";
 
-// Maps a stored day-off reason to a small icon shown on the date chip
-const reasonIcon = (reason: string) => {
-  const r = (reason || "").toLowerCase();
-  if (r.includes("sick")) return Thermometer;
-  if (r.includes("closed")) return Lock;
-  if (r.includes("personal")) return User;
-  if (r.includes("rest of")) return Sunset;
-  if (r.includes("vacation") || r.includes("day off") || !r) return Palmtree;
-  return Ban;
+// Custom SVG icons for a more distinctive day-off icon design
+const CustomDayOffIcon = ({ type, className }: { type: string; className?: string }) => {
+  const r = (type || "").toLowerCase();
+  
+  if (r.includes("sick")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v4" />
+        <path d="M12 18v4" />
+        <path d="M4.93 4.93l2.83 2.83" />
+        <path d="M16.24 16.24l2.83 2.83" />
+        <path d="M2 12h4" />
+        <path d="M18 12h4" />
+        <path d="M4.93 19.07l2.83-2.83" />
+        <path d="M16.24 7.76l2.83-2.83" />
+      </svg>
+    );
+  }
+  
+  if (r.includes("closed")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    );
+  }
+  
+  if (r.includes("personal")) {
+    return <User className={className} />;
+  }
+  
+  if (r.includes("rest of")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v12" />
+        <path d="M6 12h12" />
+      </svg>
+    );
+  }
+  
+  if (r.includes("vacation") || r.includes("day off") || !r) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    );
+  }
+  
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M15 9l-6 6" />
+      <path d="M9 9l6 6" />
+    </svg>
+  );
 };
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +82,6 @@ import { haptic } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 
 interface Service {
@@ -93,43 +142,13 @@ const slotListVariants = {
 };
 
 const slotItemVariants: import("framer-motion").Variants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
   },
 };
-
-/**
- * Tracks which appointment ids have already been rendered so freshly arriving
- * bookings can play a short "arrive" animation instead of appearing instantly.
- */
-function useNewAppointmentTracker(ids: string[]) {
-  const seen = useRef<Set<string> | null>(null);
-  const [fresh, setFresh] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (seen.current === null) {
-      seen.current = new Set(ids);
-      return;
-    }
-    const incoming = ids.filter((id) => !seen.current!.has(id));
-    if (incoming.length === 0) return;
-    incoming.forEach((id) => seen.current!.add(id));
-    setFresh((prev) => new Set([...prev, ...incoming]));
-    const t = setTimeout(() => {
-      setFresh((prev) => {
-        const next = new Set(prev);
-        incoming.forEach((id) => next.delete(id));
-        return next;
-      });
-    }, 2400);
-    return () => clearTimeout(t);
-  }, [ids.join(",")]);
-
-  return (id: string) => fresh.has(id);
-}
 
 // Parse hex or named color to rgba with opacity
 function colorToRgba(color: string, opacity: number): string {
@@ -184,11 +203,9 @@ export const LiquidGlassAgenda = ({
   showViewModeToggle = true,
 }: LiquidGlassAgendaProps) => {
   const [selectedDay, setSelectedDay] = useState(new Date());
-  const isNewAppointment = useNewAppointmentTracker(appointments.map((a) => a.id));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
-  const [detailApt, setDetailApt] = useState<Appointment | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -721,17 +738,10 @@ export const LiquidGlassAgenda = ({
       )}>
         <div className="flex items-center justify-between gap-3 mb-1.5">
           {isMobile ? (
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              <span className="text-[30px] font-bold leading-none tracking-[-0.03em] text-gray-900 dark:text-white tabular-nums">
-                {format(selectedDay, 'd')}
-              </span>
-              <span className="text-[15px] font-medium text-gray-500 dark:text-white/60">
-                {format(selectedDay, 'MMM')}
-              </span>
-              <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400 dark:text-white/40" />
-            </div>
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-white">
+              {format(selectedDay, 'd MMM')}
+            </span>
           ) : shouldShowViewToggle ? (
-
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onViewModeChange('week')}
@@ -820,29 +830,28 @@ export const LiquidGlassAgenda = ({
               </button>
             )}
             {isMobile && (
-              <span className="inline-flex items-center gap-1 h-8 px-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-[12px] font-semibold text-gray-700 dark:text-white tabular-nums">
-                <Calendar className="w-3.5 h-3.5 opacity-70" />
-                {appointments.filter((apt) => isSameDay(parseISO(apt.appointment_date), selectedDay)).length}
-              </span>
-            )}
-            {isMobile && (
               <div className="scale-[0.8]">
                 <NotificationBell />
               </div>
             )}
-
           </div>
         </div>
 
-        {isMobile && selectedDayIsOff && (
+        {isMobile && (
           <div className="flex items-center gap-2 mb-2 -mt-0.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
-              {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
-              {selectedDayOffReason}
+            <span className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white leading-none">
+              {format(selectedDay, 'MMMM yyyy')}
             </span>
+            {selectedDayIsOff && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
+                <span className="w-3 h-3">
+                  <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
+                </span>
+                {selectedDayOffReason}
+              </span>
+            )}
           </div>
         )}
-
 
 
 
@@ -864,7 +873,6 @@ export const LiquidGlassAgenda = ({
               const dayKey = format(day, 'yyyy-MM-dd');
               const isOff = timeOffSet.has(dayKey);
               const offReason = timeOffReason.get(dayKey) || 'Day off';
-              const OffIcon = reasonIcon(offReason);
 
               return (
                 <button
@@ -906,42 +914,40 @@ export const LiquidGlassAgenda = ({
                   )}
                   {isMobile ? (
                     <>
-                      {/* top accent bar — blue for today, subtle for days with bookings */}
                       <span className={cn(
-                        "relative z-10 h-[3px] w-5 rounded-full transition-colors duration-200",
-                        isOff
-                          ? "bg-rose-500/70"
-                          : isToday
-                            ? "bg-blue-500"
-                            : hasAppointments
-                              ? (isSelected ? "bg-gray-900/70 dark:bg-white/70" : "bg-gray-300 dark:bg-white/25")
-                              : "bg-transparent"
-                      )} />
-                      <span className={cn(
-                        "relative z-10 mt-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] leading-none",
+                        "relative z-10 text-[12px] font-medium leading-none",
                         isOff
                           ? "text-rose-400/90"
-                          : isSelected
-                            ? "text-gray-500 dark:text-white/50"
-                            : "text-gray-400 dark:text-gray-500"
+                          : isToday
+                            ? "text-blue-500/70 dark:text-blue-400/70"
+                            : isSelected
+                              ? "text-gray-500 dark:text-white/50"
+                              : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'EEE')}
                       </span>
                       <span className={cn(
-                        "relative z-10 mt-1.5 text-[19px] font-semibold leading-none tabular-nums transition-colors duration-200",
+                        "relative z-10 mt-1.5 text-[18px] font-semibold leading-none transition-colors duration-200",
                         isOff
                           ? "text-rose-500 dark:text-rose-400"
-                          : isSelected
-                            ? "text-gray-900 dark:text-white"
-                            : isToday
-                              ? "text-blue-600 dark:text-blue-400"
+                          : isToday
+                            ? "text-blue-600 dark:text-blue-400"
+                            : isSelected
+                              ? "text-gray-900 dark:text-white"
                               : "text-gray-400 dark:text-gray-500"
                       )}>
                         {format(day, 'd')}
                       </span>
+
+                      {hasAppointments && !isOff && (
+                        <div className={cn(
+                          "relative z-10 mt-1 h-1 w-1 rounded-full",
+                          isSelected ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/25"
+                        )} />
+                      )}
+
                     </>
                   ) : (
-
                     <>
                       <span className={cn(
                         "text-[10px] font-semibold uppercase",
@@ -970,9 +976,9 @@ export const LiquidGlassAgenda = ({
                   {isOff ? (
                     <span
                       title={offReason}
-                      className={cn("mt-0.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
+                      className={cn("mt-0.5 w-3.5 h-3.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
                     >
-                      <OffIcon className="w-3.5 h-3.5" />
+                      <CustomDayOffIcon type={offReason} className="w-full h-full" />
                     </span>
                   ) : hasAppointments && !isSelected && !isMobile ? (
                     <div className="w-1 h-1 rounded-full bg-blue-500 mt-0.5" />
@@ -1102,7 +1108,9 @@ export const LiquidGlassAgenda = ({
                     "backdrop-blur-xl"
                   )}
                 >
-                  {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-10 h-10 text-rose-500 dark:text-rose-400" strokeWidth={2.2} />; })()}
+                  <span className="w-10 h-10 text-rose-500 dark:text-rose-400">
+                    <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
+                  </span>
                 </motion.div>
 
                 <motion.h3
@@ -1302,9 +1310,7 @@ export const LiquidGlassAgenda = ({
               });
 
 
-              const ROW_H = 76; // base grid row height (card 64 + 12 gap)
-              const CARD_MIN_H = 68;
-              const CARD_GAP = 12;
+              const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
               const maxSpan = hourAppointments.reduce((acc, apt) => {
                 const d = apt.totalDurationMinutes || apt.service.duration || 30;
                 return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
@@ -1313,20 +1319,11 @@ export const LiquidGlassAgenda = ({
                 return Math.max(acc, Math.max(Math.ceil(eventDuration(ev) / slotInterval), 1));
               }, maxSpan);
 
-              // When several bookings share the same slot, the row has to grow so
-              // each card keeps a readable height instead of squashing its text.
-              const stackCount = hourAppointments.length + hourEvents.length;
-              const stackHeight =
-                stackCount > 0
-                  ? stackCount * CARD_MIN_H + (stackCount - 1) * CARD_GAP + (stackCount > 1 ? 34 : 12)
-                  : 0;
-              const rowHeight = Math.max(maxSpanAll * ROW_H, stackHeight);
-
               return (
                 <div
                   key={hour}
                   className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}
-                  style={{ height: rowHeight }}
+                  style={{ height: ROW_H }}
                 >
                   {/* Time label */}
                   <div className="absolute left-0 top-0 flex items-start gap-3 w-full pointer-events-none">
@@ -1349,10 +1346,9 @@ export const LiquidGlassAgenda = ({
                   {/* Appointments in this hour — stretched to their real end time */}
                   {(hourAppointments.length > 0 || hourEvents.length > 0) && (
                   <div
-                    className="absolute left-[60px] right-0 z-10 flex flex-col gap-3"
-                    style={{ top: stackCount > 1 ? 22 : 0, height: rowHeight - (stackCount > 1 ? 34 : 12) }}
+                    className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-1"
+                    style={{ height: maxSpanAll * ROW_H - 12 }}
                   >
-
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
                     const endTime = getEndTime(apt.appointment_time, duration);
@@ -1364,20 +1360,12 @@ export const LiquidGlassAgenda = ({
                       <motion.div
                         variants={slotItemVariants}
                         key={apt.id}
-                        className={cn(
-                          "flex-1 min-h-[68px] rounded-2xl",
-                          isNewAppointment(apt.id) && "animate-appt-arrive animate-arrive-ring"
-                        )}
+                        className="flex-1 min-h-0"
                       >
 
                         {/* Liquid Glass Card */}
                         <button
-                          onClick={() => {
-                            haptic("light");
-                            if (onAppointmentClick) onAppointmentClick(apt);
-                            else setDetailApt(apt);
-                          }}
-
+                          onClick={() => onAppointmentClick?.(apt)}
                           onContextMenu={(event) => handleAppointmentContextMenu(event, apt)}
                           onTouchStart={(event) => handleAppointmentTouchStart(event, apt)}
                           onTouchEnd={clearLongPressTimer}
@@ -1498,7 +1486,7 @@ export const LiquidGlassAgenda = ({
                   {hourEvents.map((ev) => {
                     const evColor = ev.color || "#0A84FF";
                     return (
-                      <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-[64px]">
+                      <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-0">
                         <div
                           className={cn(
                             "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden border flex flex-col justify-between",
@@ -1617,7 +1605,9 @@ export const LiquidGlassAgenda = ({
                       >
                         {selectedDayIsOff ? (
                           <>
-                            {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3.5 h-3.5" />; })()}
+                            <span className="w-3.5 h-3.5">
+                              <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
+                            </span>
                             <span className="text-[12px] font-medium">{selectedDayOffReason}</span>
                           </>
                         ) : (
@@ -1805,113 +1795,7 @@ export const LiquidGlassAgenda = ({
         </>
       )}
 
-      {/* Apple-style appointment detail drawer */}
-      <Drawer open={!!detailApt} onOpenChange={(open) => { if (!open) setDetailApt(null); }}>
-        <DrawerContent className="border-t border-black/5 bg-white dark:border-white/10 dark:bg-[#111113] rounded-t-[28px] px-5 pb-8 pt-1">
-          {detailApt && (() => {
-            const apt = detailApt;
-            const duration = apt.totalDurationMinutes || apt.service.duration || 30;
-            const color = apt.status === "cancelled" ? "#8E8E93" : (apt.service.color || "#22c55e");
-            const rows: { icon: typeof Clock; label: string; value: string }[] = [
-              { icon: Calendar, label: "Date", value: format(new Date(apt.appointment_date), "EEEE, MMM d") },
-              { icon: Clock, label: "Time", value: `${apt.appointment_time.slice(0, 5)} – ${getEndTime(apt.appointment_time, duration)}` },
-            ];
-            if (apt.customer.phone) rows.push({ icon: Phone, label: "Phone", value: apt.customer.phone });
-            if (apt.customer.email) rows.push({ icon: Mail, label: "Email", value: apt.customer.email });
-            if (apt.notes) rows.push({ icon: FileText, label: "Notes", value: apt.notes });
-
-            return (
-              <div className="max-w-md mx-auto w-full">
-                <div className="flex items-start gap-3 pt-2 pb-4">
-                  <span className="mt-1.5 h-9 w-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-[22px] font-bold tracking-tight text-gray-900 dark:text-white truncate">
-                      {apt.customer.name}
-                    </h2>
-                    <p className="text-[13px] text-gray-500 dark:text-white/50 truncate">{apt.service.name}</p>
-                  </div>
-                  <span
-                    className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize"
-                    style={{ backgroundColor: colorToRgba(color, 0.15), color }}
-                  >
-                    {apt.status}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="rounded-[18px] bg-gray-100 dark:bg-white/[0.06] p-3.5">
-                    <p className="text-[11px] uppercase tracking-wider text-gray-400 dark:text-white/40">Duration</p>
-                    <p className="mt-1 text-[19px] font-semibold tabular-nums text-gray-900 dark:text-white">{duration}m</p>
-                  </div>
-                  <div className="rounded-[18px] bg-gray-100 dark:bg-white/[0.06] p-3.5">
-                    <p className="text-[11px] uppercase tracking-wider text-gray-400 dark:text-white/40">Price</p>
-                    <p className="mt-1 text-[19px] font-semibold tabular-nums text-gray-900 dark:text-white">${apt.price || 0}</p>
-                  </div>
-                </div>
-
-                <div className="mt-3 rounded-[18px] overflow-hidden bg-gray-100 dark:bg-white/[0.06] divide-y divide-black/5 dark:divide-white/[0.06]">
-                  {rows.map((r) => (
-                    <div key={r.label} className="flex items-start gap-3 px-4 py-3">
-                      <r.icon className="w-4 h-4 mt-0.5 text-gray-400 dark:text-white/40 shrink-0" />
-                      <span className="text-[13px] text-gray-500 dark:text-white/45 w-[70px] shrink-0">{r.label}</span>
-                      <span className="text-[14px] text-gray-900 dark:text-white flex-1 break-words">{r.value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 space-y-2.5">
-                  {apt.customer.phone && (
-                    <a
-                      href={`tel:${apt.customer.phone}`}
-                      onClick={() => haptic("light")}
-                      className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#0A84FF] text-[15px] font-semibold text-white active:scale-[0.98] transition"
-                    >
-                      <Phone className="w-4 h-4" /> Call client
-                    </a>
-                  )}
-
-                  {apt.status !== "cancelled" && !isAppointmentPast(apt) && (
-                    <button
-                      onClick={() => {
-                        if (cancellingId) return;
-                        haptic("warning");
-                        if (window.confirm("Cancel this appointment? The client's slot will be freed up.")) {
-                          cancelAppointment(apt.id);
-                          setDetailApt(null);
-                        }
-                      }}
-                      disabled={cancellingId === apt.id}
-                      className="flex w-full h-12 items-center justify-center gap-2 rounded-2xl bg-red-50 text-[15px] font-semibold text-red-600 dark:bg-red-500/15 dark:text-red-300 active:scale-[0.98] transition disabled:opacity-60"
-                    >
-                      {cancellingId === apt.id ? <><Loader2 className="w-4 h-4 animate-spin" /> Cancelling…</> : <><Ban className="w-4 h-4" /> Cancel appointment</>}
-                    </button>
-                  )}
-
-                  {apt.status === "cancelled" && !isAppointmentPast(apt) && (
-                    <button
-                      onClick={() => { if (cancellingId) return; reopenAppointment(apt.id); setDetailApt(null); }}
-                      disabled={cancellingId === apt.id}
-                      className="flex w-full h-12 items-center justify-center gap-2 rounded-2xl bg-green-50 text-[15px] font-semibold text-green-600 dark:bg-green-500/15 dark:text-green-300 active:scale-[0.98] transition disabled:opacity-60"
-                    >
-                      <CheckCircle2 className="w-4 h-4" /> Reopen slot
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => setDetailApt(null)}
-                    className="flex w-full h-12 items-center justify-center rounded-2xl bg-gray-100 text-[15px] font-semibold text-gray-700 dark:bg-white/[0.08] dark:text-white active:scale-[0.98] transition"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
-        </DrawerContent>
-      </Drawer>
-
       <TimeOffDrawer open={timeOffOpen} onOpenChange={setTimeOffOpen} initialDate={timeOffDate} />
-
 
 
       <Dialog open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
