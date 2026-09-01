@@ -70,6 +70,7 @@ import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
+import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
@@ -239,6 +240,7 @@ function App() {
                 <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                   <GlimmIntercept />
                   <GlobalBanner />
+                  <FreeUpgradeBanner />
                   <UpdatePopup />
                   <GuestSignupDrawer />
                   <ScrollToTop />
