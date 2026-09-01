@@ -454,23 +454,8 @@ const Microsite = () => {
               </div>
             </div>
           </section>
-        ) : (
-          <section className="px-3 md:px-6 mt-3">
-            <div className="max-w-6xl mx-auto ms-card p-6 md:p-12 text-center" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
-              <div className="flex justify-center gap-0.5 mb-5">
-                {[0,1,2,3,4].map(i => (
-                  <Star key={i} className="h-4 w-4" style={{ color: "#fbbf24", fill: "#fbbf24" }} />
-                ))}
-              </div>
-              <p className="ms-display text-2xl md:text-4xl max-w-3xl mx-auto leading-[1.25]">
-                “{rating >= 4.5 ? `One of the best experiences in ${p.city || "town"}. Booking was effortless and the result was perfect.` : `A modern way to book — clean, simple, and the service is exceptional.`}”
-              </p>
-              <div className="mt-6 text-[13px] font-medium" style={{ color: t.subtext }}>
-                {reviewCount > 0 ? `From ${reviewCount} happy clients` : "From our clients"}
-              </div>
-            </div>
-          </section>
-        )}
+        ) : null}
+
 
         {/* CTA BANNER */}
         <section className="px-3 md:px-6 mt-3">
