@@ -56,6 +56,8 @@ interface AgendaBookingFormProps {
     currency?: string | null;
   } | null;
   workingDays?: number[];
+  paymentsEnabled?: boolean;
+
   disabledDates?: string[];
 
   timezone?: string;

@@ -202,6 +202,46 @@ serve(async (req: Request) => {
       );
     }
 
+    // --- Free plan cap: max 20 appointments per calendar month ---
+    {
+      const { data: sub } = await supabase
+        .from("subscribers")
+        .select("subscribed, subscription_end")
+        .eq("user_id", payload.businessId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const isPremium = !!sub?.subscribed &&
+        (!sub?.subscription_end || new Date(sub.subscription_end) > new Date());
+
+      if (!isPremium) {
+        const now = new Date();
+        const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+        const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+        const monthEnd = next.toISOString().slice(0, 10);
+
+        const { count } = await supabase
+          .from("appointments")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", payload.businessId)
+          .gte("appointment_date", monthStart)
+          .lt("appointment_date", monthEnd);
+
+        if ((count ?? 0) >= 20) {
+          return json(
+            {
+              error: "Booking limit reached",
+              details:
+                "This business has reached its monthly booking limit. Please contact them directly.",
+            },
+            402,
+          );
+        }
+      }
+    }
+
+
     // Fetch services and validate ownership
     const { data: services, error: servicesError } = await supabase
       .from("services")

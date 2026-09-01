@@ -168,7 +168,30 @@ const CAMPAIGNS: Record<string, Campaign> = {
         ctaUrl: `${APP_URL}/agenda`,
       }),
   },
+  active_free_upgrade: {
+    key: "active_free_upgrade",
+    subject: () => "You're busy — unlock Cutzioo Premium for $9/month",
+    html: (c) =>
+      shell({
+        kicker: "Premium offer",
+        title: `You're outgrowing the free plan, ${esc(c.firstName)}`,
+        body: `<p style="margin:0 0 14px;">You've been taking bookings on Cutzioo regularly — nice. The free plan stops at <strong>20 appointments a month</strong>, and that ceiling gets close fast.</p>
+<p style="margin:0 0 14px;">Premium is <strong>$9 / month</strong>. Here's what you get:</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f7;border-radius:16px;margin-bottom:14px;">
+  <tr><td style="padding:16px 18px 6px;font-size:14px;">✓ <strong>Unlimited bookings</strong> — no monthly cap</td></tr>
+  <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Unlimited services, clients & stylists</td></tr>
+  <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Your own website page for your shop</td></tr>
+  <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Reports, revenue tracking & payouts</td></tr>
+  <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Automatic review requests & reminders</td></tr>
+  <tr><td style="padding:0 18px 16px;font-size:14px;">✓ Card payments at booking</td></tr>
+</table>
+<p style="margin:0;font-size:14px;color:#8e8e93;">Cancel any time — one tap in Settings.</p>`,
+        ctaLabel: "Get Premium for $9/month",
+        ctaUrl: `${APP_URL}/pricing`,
+      }),
+  },
   monthly_recap: {
+
     key: "monthly_recap",
     subject: () => "Your Cutzioo month in numbers",
     html: (c) =>
@@ -261,6 +284,48 @@ serve(async (req: Request) => {
         });
       }
     }
+
+    // --- Active + free users: $9 Premium offer, at most once per calendar month.
+    const activeIds: string[] = [];
+    for (const u of usersPage?.users ?? []) {
+      if (!u.email || alreadyQueued.has(u.id)) continue;
+      const last = u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : null;
+      if (!last) continue;
+      if ((now - last) / 86_400_000 > 7) continue; // active in the last week
+      activeIds.push(u.id);
+    }
+    if (activeIds.length) {
+      const ids = activeIds.slice(0, 300);
+      const { data: subs } = await admin
+        .from("subscribers")
+        .select("user_id, subscribed, subscription_end")
+        .in("user_id", ids);
+      const premium = new Set(
+        (subs ?? [])
+          .filter(
+            (s: any) =>
+              s.subscribed &&
+              (!s.subscription_end || new Date(s.subscription_end) > new Date()),
+          )
+          .map((s: any) => s.user_id),
+      );
+      const { data: freeProfiles } = await admin
+        .from("profiles")
+        .select("id, full_name, deleted_at")
+        .in("id", ids);
+      for (const p of freeProfiles ?? []) {
+        const id = (p as any).id;
+        if ((p as any).deleted_at || premium.has(id)) continue;
+        allCandidates.push({
+          user_id: id,
+          campaign: "active_free_upgrade",
+          full_name: (p as any).full_name,
+          period,
+        });
+      }
+    }
+
+
 
     let sent = 0;
     const results: any[] = [];

@@ -228,48 +228,38 @@ const Microsite = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative max-w-6xl mx-auto rounded-[36px] overflow-hidden ms-hairline"
-            style={{ background: t.surface, minHeight: "min(78vh, 720px)" }}
+            className="relative max-w-6xl mx-auto rounded-[28px] overflow-hidden ms-hairline"
+            style={{ background: t.surface, minHeight: "min(58vh, 520px)" }}
           >
             {/* Hero image fills card */}
             {hero ? (
               <motion.img
                 src={hero}
                 alt={businessName}
-                style={{ y: heroY, scale: heroScale }}
-                className="absolute inset-0 h-[120%] w-full object-cover will-change-transform"
+                style={{ y: heroY }}
+                className="absolute inset-0 h-[115%] w-full object-cover will-change-transform"
               />
             ) : (
               <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${t.accent}22, ${t.accent}05)` }} />
             )}
             {/* Gradient scrim */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.9) 100%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.88) 100%)" }} />
 
-            {/* Top chips */}
-            <div className="absolute top-5 left-5 right-5 md:top-7 md:left-7 md:right-7 flex items-center justify-between gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full backdrop-blur-xl bg-white/15 border border-white/20 text-[11px] font-semibold text-white">
-                <Sparkles className="h-3 w-3" /> {p.city || "Now booking"}
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 h-8 rounded-full backdrop-blur-xl bg-black/30 border border-white/15 text-[11px] font-semibold text-white">
-                <span className="relative h-2 w-2 rounded-full bg-green-500 ms-pulse-dot" />
-                Booking live now
-              </div>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 p-5 md:p-10">
+            <div className="absolute inset-x-0 bottom-0 p-5 md:p-9">
               <div className="max-w-2xl">
                 <motion.h1
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                  className="ms-display text-white text-[42px] leading-[1.02] sm:text-6xl md:text-7xl"
+                  transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  className="ms-display text-white text-[34px] leading-[1.05] sm:text-5xl"
                 >
                   {headline}
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.25 }}
-                  className="mt-4 text-white/85 text-base md:text-lg max-w-xl leading-relaxed"
+                  transition={{ duration: 0.7, delay: 0.2 }}
+                  className="mt-3 text-white/80 text-[15px] md:text-base max-w-lg leading-relaxed"
                 >
                   {tagline}
                 </motion.p>
@@ -277,42 +267,20 @@ const Microsite = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.35 }}
-                  className="mt-6 flex flex-wrap items-center gap-2.5"
+                  transition={{ duration: 0.7, delay: 0.28 }}
+                  className="mt-5"
                 >
                   <Link
                     to={bookingUrl}
-                    className="ms-tap inline-flex items-center gap-2 rounded-full px-6 h-12 text-[15px] font-semibold shadow-lg"
-                    style={{ background: t.accent, color: "#fff", boxShadow: `0 14px 40px -10px ${t.accent}` }}
+                    className="ms-tap inline-flex items-center gap-2 rounded-full px-6 h-12 text-[15px] font-semibold"
+                    style={{ background: t.accent, color: "#fff" }}
                   >
                     <Calendar className="h-4 w-4" /> Book appointment
                   </Link>
-                  <a
-                    href="#services"
-                    className="ms-tap inline-flex items-center gap-2 rounded-full px-5 h-12 text-[14px] font-semibold backdrop-blur-xl bg-white/15 border border-white/20 text-white"
-                  >
-                    See services <ChevronRight className="h-4 w-4" />
-                  </a>
                 </motion.div>
-
-                {/* Mini stat strip */}
-                <div className="mt-7 flex items-center gap-5 text-white/85 text-[13px]">
-                  {rating > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <Star className="h-3.5 w-3.5 fill-current" style={{ color: "#fbbf24" }} />
-                      <span className="font-semibold">{rating.toFixed(1)}</span>
-                      <span className="text-white/60">· {reviewCount} reviews</span>
-                    </div>
-                  )}
-                  {data.services?.length > 0 && (
-                    <div className="hidden sm:flex items-center gap-1.5">
-                      <Scissors className="h-3.5 w-3.5" />
-                      <span>{data.services.length} services</span>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
+
           </motion.div>
         </section>
 
@@ -454,47 +422,29 @@ const Microsite = () => {
               </div>
             </div>
           </section>
-        ) : (
-          <section className="px-3 md:px-6 mt-3">
-            <div className="max-w-6xl mx-auto ms-card p-6 md:p-12 text-center" style={{ background: t.dark ? t.surface : t.surfaceAlt }}>
-              <div className="flex justify-center gap-0.5 mb-5">
-                {[0,1,2,3,4].map(i => (
-                  <Star key={i} className="h-4 w-4" style={{ color: "#fbbf24", fill: "#fbbf24" }} />
-                ))}
-              </div>
-              <p className="ms-display text-2xl md:text-4xl max-w-3xl mx-auto leading-[1.25]">
-                “{rating >= 4.5 ? `One of the best experiences in ${p.city || "town"}. Booking was effortless and the result was perfect.` : `A modern way to book — clean, simple, and the service is exceptional.`}”
-              </p>
-              <div className="mt-6 text-[13px] font-medium" style={{ color: t.subtext }}>
-                {reviewCount > 0 ? `From ${reviewCount} happy clients` : "From our clients"}
-              </div>
-            </div>
-          </section>
-        )}
+        ) : null}
+
 
         {/* CTA BANNER */}
         <section className="px-3 md:px-6 mt-3">
           <div
-            className="max-w-6xl mx-auto rounded-[36px] p-7 md:p-14 relative overflow-hidden"
-            style={{ background: t.dark ? `linear-gradient(135deg, ${t.accent}, ${t.accent}cc)` : `linear-gradient(135deg, ${t.accent}, ${t.accent}dd)` }}
+            className="max-w-6xl mx-auto rounded-[28px] p-6 md:p-10"
+            style={{ background: t.accent }}
           >
-            <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full blur-3xl opacity-30 bg-white" />
-            <div className="absolute -bottom-24 -left-10 h-60 w-60 rounded-full blur-3xl opacity-20 bg-white" />
-            <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-              <div>
-                <div className="text-[11px] uppercase tracking-wider font-semibold text-white/80 mb-2">Ready when you are</div>
-                <h2 className="ms-display text-white text-3xl md:text-5xl max-w-xl">Book your next visit in seconds.</h2>
-                <p className="text-white/85 mt-3 max-w-md">Real-time availability, instant confirmation, no phone calls.</p>
-              </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <h2 className="ms-display text-white text-2xl md:text-3xl max-w-md">
+                Book your next visit in seconds.
+              </h2>
               <Link
                 to={bookingUrl}
-                className="ms-tap inline-flex items-center gap-2 rounded-full bg-white text-black px-6 h-13 py-3.5 text-[15px] font-semibold self-start shadow-xl"
+                className="ms-tap inline-flex items-center gap-2 rounded-full bg-white text-black px-6 h-12 text-[15px] font-semibold self-start"
               >
                 <Calendar className="h-4 w-4" /> Book now
               </Link>
             </div>
           </div>
         </section>
+
 
         {/* VISIT */}
         <section id="visit" className="px-3 md:px-6 mt-3">
