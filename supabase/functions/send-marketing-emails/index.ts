@@ -285,6 +285,48 @@ serve(async (req: Request) => {
       }
     }
 
+    // --- Active + free users: $9 Premium offer, at most once per calendar month.
+    const activeIds: string[] = [];
+    for (const u of usersPage?.users ?? []) {
+      if (!u.email || alreadyQueued.has(u.id)) continue;
+      const last = u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : null;
+      if (!last) continue;
+      if ((now - last) / 86_400_000 > 7) continue; // active in the last week
+      activeIds.push(u.id);
+    }
+    if (activeIds.length) {
+      const ids = activeIds.slice(0, 300);
+      const { data: subs } = await admin
+        .from("subscribers")
+        .select("user_id, subscribed, subscription_end")
+        .in("user_id", ids);
+      const premium = new Set(
+        (subs ?? [])
+          .filter(
+            (s: any) =>
+              s.subscribed &&
+              (!s.subscription_end || new Date(s.subscription_end) > new Date()),
+          )
+          .map((s: any) => s.user_id),
+      );
+      const { data: freeProfiles } = await admin
+        .from("profiles")
+        .select("id, full_name, deleted_at")
+        .in("id", ids);
+      for (const p of freeProfiles ?? []) {
+        const id = (p as any).id;
+        if ((p as any).deleted_at || premium.has(id)) continue;
+        allCandidates.push({
+          user_id: id,
+          campaign: "active_free_upgrade",
+          full_name: (p as any).full_name,
+          period,
+        });
+      }
+    }
+
+
+
     let sent = 0;
     const results: any[] = [];
 
