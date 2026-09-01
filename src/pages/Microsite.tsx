@@ -475,26 +475,23 @@ const Microsite = () => {
         {/* CTA BANNER */}
         <section className="px-3 md:px-6 mt-3">
           <div
-            className="max-w-6xl mx-auto rounded-[36px] p-7 md:p-14 relative overflow-hidden"
-            style={{ background: t.dark ? `linear-gradient(135deg, ${t.accent}, ${t.accent}cc)` : `linear-gradient(135deg, ${t.accent}, ${t.accent}dd)` }}
+            className="max-w-6xl mx-auto rounded-[28px] p-6 md:p-10"
+            style={{ background: t.accent }}
           >
-            <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full blur-3xl opacity-30 bg-white" />
-            <div className="absolute -bottom-24 -left-10 h-60 w-60 rounded-full blur-3xl opacity-20 bg-white" />
-            <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-              <div>
-                <div className="text-[11px] uppercase tracking-wider font-semibold text-white/80 mb-2">Ready when you are</div>
-                <h2 className="ms-display text-white text-3xl md:text-5xl max-w-xl">Book your next visit in seconds.</h2>
-                <p className="text-white/85 mt-3 max-w-md">Real-time availability, instant confirmation, no phone calls.</p>
-              </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <h2 className="ms-display text-white text-2xl md:text-3xl max-w-md">
+                Book your next visit in seconds.
+              </h2>
               <Link
                 to={bookingUrl}
-                className="ms-tap inline-flex items-center gap-2 rounded-full bg-white text-black px-6 h-13 py-3.5 text-[15px] font-semibold self-start shadow-xl"
+                className="ms-tap inline-flex items-center gap-2 rounded-full bg-white text-black px-6 h-12 text-[15px] font-semibold self-start"
               >
                 <Calendar className="h-4 w-4" /> Book now
               </Link>
             </div>
           </div>
         </section>
+
 
         {/* VISIT */}
         <section id="visit" className="px-3 md:px-6 mt-3">
