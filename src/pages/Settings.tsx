@@ -1096,6 +1096,7 @@ const Settings = () => {
 
                     <TabsContent value="booking" className="mt-0 space-y-6 animate-fade-in">
                       <BookingLinkGenerator />
+                      <SocialLinksCard />
                     </TabsContent>
 
                     <TabsContent value="notifications" className="mt-0 animate-fade-in">
