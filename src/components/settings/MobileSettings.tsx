@@ -46,6 +46,7 @@ import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
+import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { IdentityMissingBanner } from "@/components/IdentityMissingBanner";
@@ -85,6 +86,7 @@ type Panel =
   | "notifications"
   | "messages"
   | "booking"
+  | "social"
   | "business"
   | "location"
   | "subscription"
@@ -307,7 +309,14 @@ export function MobileSettings(props: any) {
             tint="#06b6d4"
             label="Booking link"
             value="Share & embed"
-            onClick={() => setPanel("booking")}
+            onClick={() => navigate("/booking-page")}
+          />
+          <Row
+            icon={Sparkles}
+            tint="#E1306C"
+            label="Social media"
+            value="Instagram · TikTok · WhatsApp"
+            onClick={() => setPanel("social")}
           />
           <Row
             icon={Sparkles}
@@ -792,6 +801,12 @@ export function MobileSettings(props: any) {
               </PanelStack>
             )}
 
+            {panel === "social" && (
+              <PanelStack>
+                <SocialLinksCard variant="mobile" />
+              </PanelStack>
+            )}
+
             {panel === "subscription" && (
               <PanelStack>
                 <SubscriptionPanel />
@@ -1217,6 +1232,8 @@ function titleFor(p: Panel): string {
       return "Messages";
     case "booking":
       return "Booking link";
+    case "social":
+      return "Social media";
     case "business":
       return "Business";
     case "location":
