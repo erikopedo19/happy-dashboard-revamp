@@ -226,9 +226,8 @@ export function MobileSettings(props: any) {
               {user?.email || "Tap to edit profile"}
             </p>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300">
-            {currentRole}
-          </span>
+          <ChevronRight className="h-4 w-4 text-white/30 shrink-0" />
+
         </motion.button>
       </section>
 
