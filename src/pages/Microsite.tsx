@@ -6,6 +6,7 @@ import {
   ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Check, Sparkles,
   Globe, ChevronRight, Shield, Zap, Heart, Award,
   Music2, Coffee, Scissors, TrendingUp, Users, BadgeCheck, Moon, Sun,
+  MessageCircle,
 } from "lucide-react";
 
 type Review = {
