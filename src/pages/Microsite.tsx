@@ -478,8 +478,9 @@ const Microsite = () => {
                 {m.instagram && <Social href={m.instagram} icon={<Music2 className="h-4 w-4" />} label="Instagram" t={t} />}
                 {m.facebook && <Social href={m.facebook} icon={<Globe className="h-4 w-4" />} label="Facebook" t={t} />}
                 {m.tiktok && <Social href={m.tiktok} icon={<Music2 className="h-4 w-4" />} label="TikTok" t={t} />}
+                {m.whatsapp && <Social href={m.whatsapp.startsWith("http") ? m.whatsapp : `https://wa.me/${m.whatsapp.replace(/[^0-9]/g, "")}`} icon={<MessageCircle className="h-4 w-4" />} label="WhatsApp" t={t} />}
                 {m.website_url && <Social href={m.website_url} icon={<Globe className="h-4 w-4" />} label="Website" t={t} />}
-                {!m.instagram && !m.facebook && !m.tiktok && !m.website_url && (
+                {!m.instagram && !m.facebook && !m.tiktok && !m.whatsapp && !m.website_url && (
                   <div className="col-span-2 text-[13px]" style={{ color: t.subtext }}>Add your social profiles in the editor to display them here.</div>
                 )}
               </div>

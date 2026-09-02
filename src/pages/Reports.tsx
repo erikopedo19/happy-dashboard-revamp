@@ -421,8 +421,8 @@ const Reports = () => {
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
           {/* Ambient gradient backdrop — deep blue wash fading into black */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] z-0 overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-[340px] bg-[linear-gradient(180deg,#0C5494_0%,#0A3560_34%,rgba(12,20,36,0.55)_72%,#0A0A0C_100%)]" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] z-0 overflow-hidden rounded-b-[44px]">
+            <div className="absolute inset-x-0 top-0 h-[340px] rounded-b-[44px] bg-[linear-gradient(180deg,#0C5494_0%,#0A3560_34%,rgba(12,20,36,0.55)_72%,#0A0A0C_100%)]" />
             <div className="absolute -top-44 left-1/2 h-[420px] w-[140%] -translate-x-1/2 rounded-[50%] blur-[110px] opacity-80 bg-[radial-gradient(closest-side,rgba(10,132,255,0.85),rgba(94,92,230,0.35),transparent)] animate-aurora-drift" />
             <div className="absolute top-[70px] left-[-18%] h-[300px] w-[300px] rounded-full blur-[110px] opacity-55 bg-[radial-gradient(circle,rgba(124,92,255,0.7),transparent_70%)] animate-aurora-drift" style={{ animationDelay: "-6s" }} />
             <div className="absolute top-[40px] right-[-18%] h-[290px] w-[290px] rounded-full blur-[105px] opacity-45 bg-[radial-gradient(circle,rgba(255,69,120,0.7),transparent_70%)] animate-aurora-drift" style={{ animationDelay: "-12s" }} />
