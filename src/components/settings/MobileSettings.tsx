@@ -226,9 +226,8 @@ export function MobileSettings(props: any) {
               {user?.email || "Tap to edit profile"}
             </p>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300">
-            {currentRole}
-          </span>
+          <ChevronRight className="h-4 w-4 text-white/30 shrink-0" />
+
         </motion.button>
       </section>
 
@@ -1074,11 +1073,23 @@ function Row({
         </span>
       ) : (
         <span
-          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: `${tint}26` }}
+          className="relative h-9 w-9 rounded-[11px] flex items-center justify-center shrink-0 ring-1 ring-white/15 overflow-hidden"
+          style={{
+            background: `linear-gradient(160deg, ${tint} 0%, ${tint}cc 45%, ${tint}80 100%)`,
+            boxShadow: `0 4px 10px -3px ${tint}80, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.28)`,
+          }}
         >
-          <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[11px] bg-gradient-to-b from-white/40 to-transparent"
+          />
+          <Icon
+            className="relative h-[18px] w-[18px] text-white"
+            strokeWidth={2.4}
+            style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))" }}
+          />
         </span>
+
       )}
       <span
         className={cn(
@@ -1205,10 +1216,11 @@ function ToggleRow({
   return (
     <div className={cn("flex items-center gap-3 px-4 py-3.5", isLast && "")}>
       {Icon && (
-        <span className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
-          <Icon className="h-4 w-4 text-white/70" />
+        <span className="relative h-8 w-8 rounded-[10px] flex items-center justify-center ring-1 ring-white/15 overflow-hidden bg-gradient-to-b from-white/20 to-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.3)]">
+          <Icon className="h-4 w-4 text-white" strokeWidth={2.4} />
         </span>
       )}
+
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium text-white">{label}</p>
         {desc && <p className="text-[12px] text-white/40 mt-0.5">{desc}</p>}
