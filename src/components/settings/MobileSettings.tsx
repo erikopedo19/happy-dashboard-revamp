@@ -1074,11 +1074,23 @@ function Row({
         </span>
       ) : (
         <span
-          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: `${tint}26` }}
+          className="relative h-9 w-9 rounded-[11px] flex items-center justify-center shrink-0 ring-1 ring-white/15 overflow-hidden"
+          style={{
+            background: `linear-gradient(160deg, ${tint} 0%, ${tint}cc 45%, ${tint}80 100%)`,
+            boxShadow: `0 4px 10px -3px ${tint}80, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.28)`,
+          }}
         >
-          <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[11px] bg-gradient-to-b from-white/40 to-transparent"
+          />
+          <Icon
+            className="relative h-[18px] w-[18px] text-white"
+            strokeWidth={2.4}
+            style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))" }}
+          />
         </span>
+
       )}
       <span
         className={cn(
