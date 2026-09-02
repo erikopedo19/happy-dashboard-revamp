@@ -307,7 +307,14 @@ export function MobileSettings(props: any) {
             tint="#06b6d4"
             label="Booking link"
             value="Share & embed"
-            onClick={() => setPanel("booking")}
+            onClick={() => navigate("/booking-page")}
+          />
+          <Row
+            icon={Sparkles}
+            tint="#E1306C"
+            label="Social media"
+            value="Instagram · TikTok · WhatsApp"
+            onClick={() => setPanel("social")}
           />
           <Row
             icon={Sparkles}
