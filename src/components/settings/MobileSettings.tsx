@@ -1216,10 +1216,11 @@ function ToggleRow({
   return (
     <div className={cn("flex items-center gap-3 px-4 py-3.5", isLast && "")}>
       {Icon && (
-        <span className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
-          <Icon className="h-4 w-4 text-white/70" />
+        <span className="relative h-8 w-8 rounded-[10px] flex items-center justify-center ring-1 ring-white/15 overflow-hidden bg-gradient-to-b from-white/20 to-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.3)]">
+          <Icon className="h-4 w-4 text-white" strokeWidth={2.4} />
         </span>
       )}
+
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium text-white">{label}</p>
         {desc && <p className="text-[12px] text-white/40 mt-0.5">{desc}</p>}
