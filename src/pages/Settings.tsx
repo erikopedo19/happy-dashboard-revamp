@@ -53,6 +53,7 @@ import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { usePremium } from "@/hooks/use-premium";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
+import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
