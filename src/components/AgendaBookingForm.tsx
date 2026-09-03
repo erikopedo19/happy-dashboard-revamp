@@ -91,6 +91,7 @@ const AgendaBookingForm = ({
   askPhone = true,
   askNotes = true,
   submitLabel,
+  paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
