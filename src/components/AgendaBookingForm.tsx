@@ -91,12 +91,14 @@ const AgendaBookingForm = ({
   askPhone = true,
   askNotes = true,
   submitLabel,
+  paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [payMethod, setPayMethod] = useState<"shop" | "card">("shop");
 
   const bookingTheme = businessProfile?.booking_theme || "default";
   const themeColors: Record<string, string> = {
@@ -382,6 +384,7 @@ const AgendaBookingForm = ({
     setSubmitError(null);
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) values.stylist_id = selectedStylistId;
+    values.pay_method = paymentsEnabled ? payMethod : "shop";
     const result = await onSubmit(values);
     if (!result) return;
     if (typeof result === 'object' && 'success' in result) {
@@ -1071,6 +1074,33 @@ const AgendaBookingForm = ({
                             </FormItem>
                           )}
                         />
+                      )}
+
+                      {paymentsEnabled && !rescheduleAppointment && (
+                        <div className="space-y-2">
+                          <p className="text-gray-500 dark:text-[#8E8E93] text-sm">Payment</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {([
+                              { key: "shop" as const, label: "Pay at shop", icon: MapPin },
+                              { key: "card" as const, label: "Pay now by card", icon: CreditCard },
+                            ]).map(({ key, label, icon: Icon }) => (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setPayMethod(key)}
+                                className={cn(
+                                  "flex items-center gap-2 h-12 px-3 rounded-xl border text-sm transition active:scale-[0.98]",
+                                  payMethod === key
+                                    ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-black"
+                                    : "border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#1C1C1E] text-gray-900 dark:text-white",
+                                )}
+                              >
+                                <Icon className="w-4 h-4" />
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
 
                       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#0A0A0C]/95 backdrop-blur border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
