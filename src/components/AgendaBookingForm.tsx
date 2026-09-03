@@ -98,6 +98,7 @@ const AgendaBookingForm = ({
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [payMethod, setPayMethod] = useState<"shop" | "card">("shop");
 
   const bookingTheme = businessProfile?.booking_theme || "default";
   const themeColors: Record<string, string> = {
