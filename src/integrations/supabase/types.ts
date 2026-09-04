@@ -113,6 +113,9 @@ export type Database = {
           notes: string | null
           org_id: string | null
           original_price: number | null
+          paid_amount: number | null
+          paid_at: string | null
+          payment_status: string
           price: number | null
           review_email_sent_at: string | null
           service_id: string
@@ -132,6 +135,9 @@ export type Database = {
           notes?: string | null
           org_id?: string | null
           original_price?: number | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_status?: string
           price?: number | null
           review_email_sent_at?: string | null
           service_id: string
@@ -151,6 +157,9 @@ export type Database = {
           notes?: string | null
           org_id?: string | null
           original_price?: number | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_status?: string
           price?: number | null
           review_email_sent_at?: string | null
           service_id?: string
