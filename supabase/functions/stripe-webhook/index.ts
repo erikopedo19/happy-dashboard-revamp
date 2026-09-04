@@ -71,10 +71,11 @@ serve(async (req) => {
         const s = event.data.object;
         // Marketplace (Connect) checkout — booking / product sale, not a subscription.
         if (s.metadata?.lovable_kind === "marketplace") {
-          await supabase
+          const paid = s.payment_status === "paid";
+          const { data: paymentRows } = await supabase
             .from("payments")
             .update({
-              status: s.payment_status === "paid" ? "paid" : "pending",
+              status: paid ? "paid" : "pending",
               amount_subtotal: s.amount_subtotal ?? 0,
               amount_tax: s.total_details?.amount_tax ?? 0,
               amount_total: s.amount_total ?? 0,
@@ -83,9 +84,25 @@ serve(async (req) => {
               customer_email: s.customer_details?.email ?? s.customer_email ?? null,
               updated_at: new Date().toISOString(),
             })
-            .eq("stripe_session_id", s.id);
+            .eq("stripe_session_id", s.id)
+            .select("appointment_id, amount_total");
+
+          // Mark the linked appointment as paid so it shows as paid on the agenda.
+          const appointmentId = paymentRows?.[0]?.appointment_id ?? s.metadata?.appointment_id ?? null;
+          if (paid && appointmentId) {
+            await supabase
+              .from("appointments")
+              .update({
+                payment_status: "paid",
+                paid_at: new Date().toISOString(),
+                paid_amount: (s.amount_total ?? 0) / 100,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", appointmentId);
+          }
           break;
         }
+
         const email = s.customer_email || s.customer_details?.email;
         if (email) {
           await upsert(email, {
