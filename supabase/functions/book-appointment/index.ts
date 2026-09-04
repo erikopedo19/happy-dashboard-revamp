@@ -216,17 +216,19 @@ serve(async (req: Request) => {
         (!sub?.subscription_end || new Date(sub.subscription_end) > new Date());
 
       if (!isPremium) {
-        const now = new Date();
-        const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
-        const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-        const monthEnd = next.toISOString().slice(0, 10);
+        // Cap is per calendar month of the REQUESTED appointment date, and
+        // cancelled / no-show appointments do not count against the limit.
+        const [ry, rm] = payload.appointmentDate.split("-").map(Number);
+        const monthStart = `${ry}-${String(rm).padStart(2, "0")}-01`;
+        const monthEnd = new Date(Date.UTC(ry, rm, 1)).toISOString().slice(0, 10);
 
         const { count } = await supabase
           .from("appointments")
           .select("id", { count: "exact", head: true })
           .eq("user_id", payload.businessId)
           .gte("appointment_date", monthStart)
-          .lt("appointment_date", monthEnd);
+          .lt("appointment_date", monthEnd)
+          .not("status", "in", "(cancelled,canceled,no_show,no-show)");
 
         if ((count ?? 0) >= 20) {
           return json(
