@@ -1468,15 +1468,28 @@ export const LiquidGlassAgenda = ({
                               )}>
                                 {apt.appointment_time.slice(0, 5)} → {endTime}
                               </span>
-                              {apt.price && (
-                                <span className={cn(
-                                  "text-[11px] font-semibold",
-                                  isDark ? "text-white/60" : "text-gray-600"
-                                )}>
-                                  ${apt.price}
-                                </span>
-                              )}
+                              <span className="flex items-center gap-1.5">
+                                {apt.payment_status === "paid" && (
+                                  <span className={cn(
+                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                                    isDark
+                                      ? "bg-green-400/15 text-green-300"
+                                      : "bg-green-100 text-green-700"
+                                  )}>
+                                    Paid
+                                  </span>
+                                )}
+                                {apt.price && (
+                                  <span className={cn(
+                                    "text-[11px] font-semibold",
+                                    isDark ? "text-white/60" : "text-gray-600"
+                                  )}>
+                                    ${apt.price}
+                                  </span>
+                                )}
+                              </span>
                             </div>
+
                           </div>
                         </button>
                       </motion.div>
