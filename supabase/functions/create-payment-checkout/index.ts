@@ -151,6 +151,8 @@ Deno.serve(async (req) => {
     params.append("metadata[lovable_kind]", "marketplace");
     params.append("metadata[business_id]", b.business_id);
     params.append("metadata[terms_version]", TERMS_VERSION);
+    if (b.appointment_id) params.append("metadata[appointment_id]", b.appointment_id);
+
 
     const session = await stripe("/checkout/sessions", params);
 
