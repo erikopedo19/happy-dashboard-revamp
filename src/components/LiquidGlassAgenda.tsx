@@ -110,6 +110,8 @@ interface Appointment {
   price?: number;
   notes?: string;
   totalDurationMinutes?: number;
+  payment_status?: string;
+  paid_amount?: number | null;
 }
 
 interface LiquidGlassAgendaProps {
