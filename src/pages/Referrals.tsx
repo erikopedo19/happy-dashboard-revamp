@@ -236,9 +236,9 @@ function Stat({
     <div className="rounded-[24px] border border-black/[0.06] bg-white p-4 dark:border-white/[0.07] dark:bg-[#1C1C1E]">
       <div
         className="flex h-9 w-9 items-center justify-center rounded-[12px]"
-        style={{ background: `${tint}1F` }}
+        style={{ background: `${tint}1F`, color: tint }}
       >
-        <Icon className="h-4.5 w-4.5" />
+        <Icon className="h-4 w-4" />
       </div>
       <p className="mt-3 text-[26px] font-bold leading-none text-[#1C1C1E] dark:text-white">
         {value}
