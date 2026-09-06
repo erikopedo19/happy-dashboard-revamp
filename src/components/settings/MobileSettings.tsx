@@ -333,6 +333,13 @@ export function MobileSettings(props: any) {
             onClick={() => setPanel("payments")}
           />
           <Row
+            icon={Gift}
+            tint="#FF375F"
+            label="Invite & earn"
+            value="Free month per friend"
+            onClick={() => navigate("/referrals")}
+          />
+          <Row
             icon={Rocket}
             tint="#0A84FF"
             label="Boost your barbershop"
