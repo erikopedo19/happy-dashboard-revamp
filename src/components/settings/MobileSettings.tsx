@@ -31,6 +31,7 @@ import {
   Home,
   Banknote,
   Rocket,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
