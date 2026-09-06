@@ -31,6 +31,7 @@ import {
   Home,
   Banknote,
   Rocket,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -330,6 +331,13 @@ export function MobileSettings(props: any) {
             label="Payments & payouts"
             value="Stripe Connect"
             onClick={() => setPanel("payments")}
+          />
+          <Row
+            icon={Gift}
+            tint="#FF375F"
+            label="Invite & earn"
+            value="Free month per friend"
+            onClick={() => navigate("/referrals")}
           />
           <Row
             icon={Rocket}

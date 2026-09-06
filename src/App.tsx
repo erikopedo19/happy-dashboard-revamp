@@ -82,6 +82,8 @@ import Microsite from "./pages/Microsite";
 import MicrositeEditor from "./pages/MicrositeEditor";
 import ChooseMode from "./pages/ChooseMode";
 import OAuthConsent from "./pages/OAuthConsent";
+import Referrals from "./pages/Referrals";
+import { useReferralCapture } from "./hooks/use-referral-capture";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -132,6 +134,7 @@ function isMicrositeSubdomain(): string | null {
 
 function AnimatedRoutes() {
   useFinalizeOnboarding();
+  useReferralCapture();
   const location = useLocation();
   const subdomain = isMicrositeSubdomain();
   if (subdomain) {
@@ -178,6 +181,7 @@ function AnimatedRoutes() {
       <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
       <Route path="/site/:slug" element={<Microsite />} />
       <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+      <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/:bookingLink" element={<Booking />} />

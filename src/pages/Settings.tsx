@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Trash2,
   LogOut,
+  Gift,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -1492,6 +1493,17 @@ const Settings = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/referrals")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Gift className="h-4 w-4 text-rose-500" />
+                          Invite a barber — get a free month
+                        </span>
+                        <ArrowRight className="h-4 w-4 text-rose-400" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => navigate("/terms")}
