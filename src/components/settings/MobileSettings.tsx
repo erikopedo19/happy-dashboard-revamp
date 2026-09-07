@@ -1172,7 +1172,7 @@ function Sheet({
         </header>
         <div
           ref={bodyRef}
-          className="flex-1 overflow-y-auto overscroll-contain px-5 py-5"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5"
           style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
         >
           {children}
