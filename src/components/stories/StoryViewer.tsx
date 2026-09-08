@@ -385,7 +385,7 @@ export function StoryViewer({
             style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}
           >
             {story.music_artwork_url && (
-              <img src={story.music_artwork_url} className="w-7 h-7 rounded" />
+              <img src={story.music_artwork_url} alt={`Cover art for ${story.music_title ?? "the selected song"}`} className="w-7 h-7 rounded" />
             )}
             <div className="text-xs text-white truncate">
               <span className="font-semibold">{story.music_title}</span>
