@@ -292,7 +292,7 @@ export function StoryViewer({
             style={{ top: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
           >
             {group.avatar_url ? (
-              <img src={group.avatar_url} className="w-8 h-8 rounded-full object-cover" />
+              <img src={group.avatar_url} alt={`${group.name} profile photo`} className="w-8 h-8 rounded-full object-cover" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-white/20" />
             )}
