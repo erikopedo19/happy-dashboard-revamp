@@ -392,6 +392,18 @@ export function MobileSettings(props: any) {
             label="Privacy Policy"
             onClick={() => navigate("/privacy")}
           />
+          <Row
+            icon={FileText}
+            tint="#8E8E93"
+            label="Cookies Policy"
+            onClick={() => navigate("/cookies")}
+          />
+          <Row
+            icon={FileText}
+            tint="#8E8E93"
+            label="Refund & Cancellation"
+            onClick={() => navigate("/refunds")}
+          />
           {user && (
             <>
               <Row

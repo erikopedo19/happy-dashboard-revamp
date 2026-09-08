@@ -37,6 +37,9 @@ import PricingSuccess from "./pages/PricingSuccess";
 import PricingFailure from "./pages/PricingFailure";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiesPolicy from "./pages/CookiesPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
+import { CookieConsent } from "./components/CookieConsent";
 import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
@@ -184,6 +187,8 @@ function AnimatedRoutes() {
       <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/cookies" element={<CookiesPolicy />} />
+      <Route path="/refunds" element={<RefundPolicy />} />
       <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -247,6 +252,7 @@ function App() {
                   <FreeUpgradeBanner />
                   <UpdatePopup />
                   <GuestSignupDrawer />
+                  <CookieConsent />
                   <ScrollToTop />
                   <AnimatedRoutes />
                   <HeaderActions />
