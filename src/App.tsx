@@ -187,6 +187,8 @@ function AnimatedRoutes() {
       <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/cookies" element={<CookiesPolicy />} />
+      <Route path="/refunds" element={<RefundPolicy />} />
       <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
