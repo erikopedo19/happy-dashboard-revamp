@@ -252,6 +252,7 @@ function App() {
                   <FreeUpgradeBanner />
                   <UpdatePopup />
                   <GuestSignupDrawer />
+                  <CookieConsent />
                   <ScrollToTop />
                   <AnimatedRoutes />
                   <HeaderActions />
