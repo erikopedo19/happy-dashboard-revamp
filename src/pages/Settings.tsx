@@ -1520,6 +1520,22 @@ const Settings = () => {
                         Privacy Policy
                         <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/cookies")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Cookies Policy
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/refunds")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Refund &amp; Cancellation Policy
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
 
                       <div className="flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4">
                         <span className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">Agree to Terms & Privacy</span>
