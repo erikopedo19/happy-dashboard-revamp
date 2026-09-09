@@ -1110,6 +1110,12 @@ const AgendaBookingForm = ({
                           disabled={isLoading}
                           onClick={() => { form.handleSubmit(handleSubmit)(); }}
                         />
+                        <p className="mt-2 text-center text-[11px] leading-snug text-gray-500 dark:text-white/45">
+                          By booking you agree to our{" "}
+                          <a href="/terms" target="_blank" rel="noreferrer" className="underline underline-offset-2">Terms</a>,{" "}
+                          <a href="/privacy" target="_blank" rel="noreferrer" className="underline underline-offset-2">Privacy Policy</a> and{" "}
+                          <a href="/refunds" target="_blank" rel="noreferrer" className="underline underline-offset-2">Refund Policy</a>. Your details are used only to manage this appointment.
+                        </p>
                       </div>
                     </form>
                   </Form>
