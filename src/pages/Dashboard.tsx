@@ -3,9 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardContent } from "@/components/DashboardContent";
 import { MobileDashboardIOS } from "@/components/MobileDashboardIOS";
-import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { UpgradeDrawer } from "@/components/UpgradeDrawer";
-import { SubscriptionReminderDrawer } from "@/components/SubscriptionReminderDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -115,7 +113,6 @@ const Dashboard = () => {
             )}
           </div>
           <UpgradeDrawer />
-          <SubscriptionReminderDrawer />
         </main>
       </div>
     </SidebarProvider>
@@ -250,7 +247,6 @@ function MobileDashboard() {
 
 
       <div className="flex-1 overflow-y-auto px-5 space-y-4 pb-32">
-        <ReviewAnnouncement />
 
         {/* Today hero */}
         <motion.section

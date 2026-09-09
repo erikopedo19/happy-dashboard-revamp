@@ -16,7 +16,6 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
-import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -169,7 +168,6 @@ export function MobileDashboardIOS() {
       </header>
 
       <main className="flex-1 space-y-4 overflow-y-auto px-4 pb-32 pt-2">
-        <ReviewAnnouncement />
 
         <motion.section
           initial={{ opacity: 0, y: 10 }}
