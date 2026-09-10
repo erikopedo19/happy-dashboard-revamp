@@ -75,12 +75,13 @@ function FreeAccessScreen({ onClose }: { onClose: () => void }) {
               <Gift className="w-9 h-9 text-rose-400" />
             </div>
             <h1 className="mt-5 text-[27px] leading-[1.15] font-bold tracking-tight">
-              {FREE_ACCESS_MONTHS} months free,
-              <br />on us
+              {FREE_ACCESS_MONTHS} months of Pro,
+              <br />free
             </h1>
             <p className="mt-3 max-w-[300px] text-[14px] text-white/50">
-              Everything in Cutzioo is unlocked for your account until {freeAccessUntilLabel()}.
-              There's nothing to pay and nothing to cancel.
+              For a better experience, Cutzioo is gifting you a free {FREE_ACCESS_MONTHS}-month Pro
+              subscription, active until {freeAccessUntilLabel()}. No payment, no renewal, nothing to
+              cancel.
             </p>
           </div>
 

@@ -21,15 +21,16 @@ export function GiftSubscriptionRow() {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[15px] font-semibold text-[#1C1C1E] dark:text-white">
-              {FREE_ACCESS_MONTHS} months free, on us
+              Gift: {FREE_ACCESS_MONTHS} months of Pro
             </p>
             <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-500">
               Active
             </span>
           </div>
           <p className="mt-0.5 text-[13px] leading-5 text-[#8E8E93]">
-            We've unlocked everything for your account until {freeAccessUntilLabel()}. No payment
-            needed and nothing to cancel.
+            For a better experience, Cutzioo is gifting you a free {FREE_ACCESS_MONTHS}-month Pro
+            subscription, active until {freeAccessUntilLabel()}. No payment, no renewal, nothing to
+            cancel.
           </p>
         </div>
       </div>
