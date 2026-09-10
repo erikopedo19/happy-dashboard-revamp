@@ -85,7 +85,7 @@ export default function Referrals() {
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-black pb-28">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-b-[36px] bg-[#0B0B0C] px-5 pb-10 pt-[calc(env(safe-area-inset-top)+16px)]">
+      <div className="relative overflow-hidden rounded-b-[36px] bg-[#0B0B0C] px-5 pb-14 pt-[calc(env(safe-area-inset-top)+16px)]">
         <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-rose-500/40 blur-[90px]" />
         <div className="pointer-events-none absolute -right-20 top-10 h-64 w-64 rounded-full bg-fuchsia-500/25 blur-[90px]" />
         <div className="pointer-events-none absolute bottom-0 left-1/2 h-56 w-72 -translate-x-1/2 rounded-full bg-orange-500/20 blur-[80px]" />
@@ -127,7 +127,7 @@ export default function Referrals() {
         </motion.p>
       </div>
 
-      <div className="mx-auto -mt-6 w-full max-w-lg space-y-4 px-4">
+      <div className="relative z-10 mx-auto -mt-8 w-full max-w-lg space-y-4 px-4 pb-4">
         {/* Code card */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}

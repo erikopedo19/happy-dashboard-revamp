@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { FREE_ACCESS_ENABLED, FREE_ACCESS_UNTIL } from "@/lib/free-access";
 
 export interface PremiumState {
   loading: boolean;
@@ -26,6 +27,15 @@ export function usePremium(): PremiumState {
   const [endDate, setEndDate] = useState<string | null>(null);
 
   const load = async () => {
+    // Gifted period: everyone gets full access, paid records stay untouched.
+    if (FREE_ACCESS_ENABLED) {
+      setIsPremium(true);
+      setTier("Cutzioo Pro");
+      setEndDate(FREE_ACCESS_UNTIL.toISOString());
+      setError(null);
+      setLoading(false);
+      return;
+    }
     if (!user) {
       setLoading(false);
       setIsPremium(false);
