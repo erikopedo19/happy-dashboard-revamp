@@ -13,6 +13,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
+import { FREE_ACCESS_ENABLED } from "@/lib/free-access";
+import { GiftSubscriptionRow } from "@/components/GiftSubscriptionRow";
 
 const fmt = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
