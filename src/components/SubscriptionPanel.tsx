@@ -35,6 +35,9 @@ export function SubscriptionPanel() {
   const shell =
     "rounded-3xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] p-5";
 
+  // While the app gifts free access there is nothing to buy or manage.
+  if (FREE_ACCESS_ENABLED) return <GiftSubscriptionRow />;
+
   if (loading) {
     return (
       <div className={shell}>
