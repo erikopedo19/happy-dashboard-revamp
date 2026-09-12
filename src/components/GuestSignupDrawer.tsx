@@ -56,7 +56,7 @@ export function GuestSignupDrawer() {
   if (loading || muted || (user && !open)) return null;
 
   return (
-    <Drawer open={open && !user} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
+    <Drawer open={open && !user} onOpenChange={(v) => (v ? setOpen(true) : dismiss())} disablePreventScroll>
       <DrawerContent>
         <div className="mx-auto w-full max-w-md px-6 pb-8 pt-2">
           <motion.div
