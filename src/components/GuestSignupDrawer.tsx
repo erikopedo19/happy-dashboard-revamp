@@ -51,10 +51,12 @@ export function GuestSignupDrawer() {
     setOpen(false);
   };
 
-  if (loading || user || muted) return null;
+  // Never unmount the Drawer while it's open — vaul keeps a body scroll lock
+  // that would otherwise stay stuck and freeze page scrolling.
+  if (loading || muted || (user && !open)) return null;
 
   return (
-    <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
+    <Drawer open={open && !user} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
       <DrawerContent>
         <div className="mx-auto w-full max-w-md px-6 pb-8 pt-2">
           <motion.div
