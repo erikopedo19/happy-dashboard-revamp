@@ -252,6 +252,21 @@ const Settings = () => {
   const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+
+  // Safety net: never let a stale scroll lock (drawers, overlays closed
+  // mid-animation) freeze scrolling on any Settings page.
+  useEffect(() => {
+    const unlock = () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.documentElement.style.overflow = "";
+      document.body.removeAttribute("data-scroll-locked");
+      document.documentElement.removeAttribute("data-scroll-locked");
+    };
+    unlock();
+    const t = setTimeout(unlock, 300);
+    return () => clearTimeout(t);
+  }, []);
   const { theme, setTheme } = useTheme();
   const { role, setRole, switching: switchingRole } = useRoleSwitch();
 
