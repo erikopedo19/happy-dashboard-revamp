@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -179,12 +179,13 @@ const getRangeDates = (range: RangeValue) => {
 const dayLabel = (date: string) =>
   new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
-const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
+const spring = { type: "spring" as const, stiffness: 430, damping: 34, mass: 0.78 };
+const springSoft = { type: "spring" as const, stiffness: 380, damping: 32, mass: 0.82 };
 const stagger = (i: number) => ({ delay: i * 0.05, ...spring });
 
 const Reports = () => {
   const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
   const { user } = useAuth();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
@@ -488,6 +489,7 @@ const Reports = () => {
                 dateRange={dateRange}
                 setDateRange={setDateRange}
                 onExport={handleExport}
+                reduceMotion={reduceMotion}
               />
             )}
             <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
@@ -865,28 +867,6 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Floating expandable action bar — PC only */}
-          {!isMobile && (
-            <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-50 flex justify-center">
-              <div className="pointer-events-auto">
-                <ExpandableActionBar
-                  items={actionItems}
-                  activeId={activeSection}
-                  onAction={(item) => {
-                    setActiveSection(item.id);
-                    item.onClick?.();
-                  }}
-                  classNames={{
-                    root: "drop-shadow-2xl",
-                    track: "bg-[#15151A]/80 border-white/[0.08] shadow-2xl backdrop-blur-2xl",
-                    item: "group data-[active=true]:text-white",
-                    activeItem: "text-white",
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
           {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
@@ -953,11 +933,7 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
           >
             {icon}
           </div>
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="opacity-60"
-          >
+          <motion.div whileHover={{ scale: 1.08 }} transition={spring} className="opacity-60">
             <Activity className="w-5 h-5 text-white/50" />
           </motion.div>
         </div>
@@ -1578,6 +1554,7 @@ function MobileReportsView({
   dateRange,
   setDateRange,
   onExport,
+  reduceMotion,
 }: {
   analytics: any;
   isLoading: boolean;
@@ -1586,16 +1563,21 @@ function MobileReportsView({
   dateRange: RangeValue;
   setDateRange: (v: RangeValue) => void;
   onExport: () => void;
+  reduceMotion: boolean | null;
 }) {
   const completedShare = analytics.completionRate || 0;
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 
   return (
-    <div className="px-4 pt-3 pb-32 space-y-4">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.045 } } }}
+      className="px-4 pt-3 pb-32 space-y-4"
+    >
       {/* iOS 26 header */}
       <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={{ hidden: { opacity: 0, y: -8 }, visible: { opacity: 1, y: 0 } }}
         transition={springSoft}
       >
         <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
@@ -1603,6 +1585,7 @@ function MobileReportsView({
       </motion.div>
 
       {/* Date range */}
+      <motion.div variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }} transition={springSoft}>
       <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
         <TabsList className="w-full bg-[#15151A]">
           {RANGES.map((r) => (
@@ -1614,11 +1597,12 @@ function MobileReportsView({
           ))}
         </TabsList>
       </Tabs>
+      </motion.div>
 
       {/* Hero — headline stat + inline sub-stats */}
       <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
+        layout
+        variants={{ hidden: { opacity: 0, y: 14, scale: 0.985 }, visible: { opacity: 1, y: 0, scale: 1 } }}
         transition={springSoft}
         className="rounded-[30px] bg-[#15151A] border border-white/[0.07] p-5 overflow-hidden"
       >
@@ -1677,118 +1661,18 @@ function MobileReportsView({
 
       </motion.div>
 
-      {/* This week strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.12, ...springSoft }}
-        className="rounded-[26px] bg-[#15151A] border border-white/[0.07] p-4"
-      >
-        <div className="flex items-center justify-between mb-3.5">
-          <p className="text-[14px] font-semibold text-white">This week</p>
-          <div className="flex items-center gap-1.5 text-[12px] font-semibold text-white/70">
-            {analytics.dayOfWeekDemand.filter((d: any) => d.count > 0).length}
-            <Flame className="w-3.5 h-3.5 text-[#FF9F0A]" strokeWidth={2.3} />
-          </div>
-        </div>
-        <div className="flex items-end justify-between">
-          {analytics.dayOfWeekDemand.map((d: any, i: number) => {
-            const isToday = new Date().getDay() === i;
-            const active = d.count > 0;
-            return (
-              <motion.div
-                key={d.day}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.04 * i, ...springSoft }}
-                className={cn(
-                  "flex flex-col items-center justify-between w-[38px] py-1.5 rounded-full",
-                  isToday ? "bg-[#0A84FF] h-[74px] shadow-[0_10px_24px_-8px_rgba(10,132,255,0.8)]" : "h-[74px]"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold tabular-nums",
-                    isToday
-                      ? "text-white"
-                      : active
-                        ? "bg-white/[0.10] text-white"
-                        : "bg-white/[0.05] text-white/25"
-                  )}
-                >
-                  {isToday ? <Check className="w-4 h-4" strokeWidth={3} /> : active ? d.count : "–"}
-                </div>
-                <span
-                  className={cn(
-                    "text-[15px] font-bold uppercase",
-                    isToday ? "text-white" : "text-white/30"
-                  )}
-                >
-                  {String(d.day).slice(0, 1)}
-                </span>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
-
-
-
-      {/* Summary grid */}
-      <div>
-        <p className="px-1 pb-2.5 text-[13px] font-semibold text-white/70">Summary</p>
-        <div className="grid grid-cols-2 gap-3">
-          <MobileStatCard
-            delay={0.05}
-            icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
-            label="Completed"
-            value={numberFormat.format(analytics.completedAppointments)}
-            hint={`${analytics.completionRate}% rate`}
-            tint={iOS.green}
-          />
-          <MobileStatCard
-            delay={0.1}
-            filled
-            icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
-            label="Services"
-            value={numberFormat.format(analytics.activeServices)}
-            hint="Active"
-            tint={iOS.indigo}
-          />
-
-          <MobileStatCard
-            delay={0.15}
-            icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
-            label="Stylists"
-            value={numberFormat.format(analytics.activeStylists)}
-            hint="Active"
-            tint={iOS.blue}
-          />
-          <MobileStatCard
-            delay={0.2}
-            icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
-            label="Per client"
-            value={currency.format(analytics.totalCustomers ? analytics.totalRevenue / analytics.totalCustomers : 0)}
-            hint="Average"
-            tint={iOS.rose}
-          />
-        </div>
-      </div>
-
-
-
       <RevenuePipelineCard />
 
 
 
-      {/* Status + busiest days charts */}
+      {/* Booking health */}
       <div className="grid grid-cols-2 gap-3">
-        <MobileCard title="Status" subtitle="Bookings" delay={0.22}>
+        <MobileCard title="Booking health" subtitle="Completion" delay={0.12}>
           <div className="pb-4">
             <MobileDonut data={analytics.statusBreakdown} value={analytics.completionRate} label="done" />
           </div>
         </MobileCard>
-        <MobileCard title="Busiest day" subtitle={analytics.busiestDay?.day ?? "—"} delay={0.26}>
+        <MobileCard title="Busiest day" subtitle={analytics.busiestDay?.day ?? "—"} delay={0.16}>
           <div className="h-[140px] pb-4">
             <MobileBarChart
               data={analytics.dayOfWeekDemand}
@@ -1801,21 +1685,8 @@ function MobileReportsView({
         </MobileCard>
       </div>
 
-      {/* Peak hours */}
-      <MobileCard title="Peak hours" subtitle="Bookings by hour" delay={0.3}>
-        <div className="h-[160px] pb-5">
-          <MobileBarChart
-            data={analytics.hourlyDemand}
-            xKey="hour"
-            yKey="count"
-            highlight={analytics.peakHour?.hour}
-            interval={2}
-          />
-        </div>
-      </MobileCard>
-
       {/* Top services */}
-      <MobileCard title="Top services" subtitle="Most booked this period" delay={0.34}>
+      <MobileCard title="Top services" subtitle="Most booked this period" delay={0.2}>
         <div className="px-5 pb-5 space-y-4">
           {analytics.serviceBreakdown?.slice(0, 4).map((s: any, i: number) => {
             const max = analytics.serviceBreakdown[0]?.bookings || 1;
@@ -1858,7 +1729,7 @@ function MobileReportsView({
 
       {/* Best customers */}
       {topCustomers.length > 0 && (
-        <MobileCard title="Best customers" subtitle="Top spenders this period" delay={0.38}>
+        <MobileCard title="Best customers" subtitle="Top spenders this period" delay={0.24}>
           <div className="px-5 pb-5 divide-y divide-white/[0.06]">
             {topCustomers.slice(0, 4).map((c, i) => {
               const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
@@ -1900,11 +1771,11 @@ function MobileReportsView({
 
       {/* Reviews */}
       {reviews.length > 0 && (
-        <MobileCard title="Reviews" subtitle={`${reviews.length} total`} delay={0.42}>
+        <MobileCard title="Reviews" subtitle={`${reviews.length} total`} delay={0.28}>
           <MobileReviewsSummary reviews={reviews} />
         </MobileCard>
       )}
-    </div>
+    </motion.div>
   );
 }
 
