@@ -44,7 +44,6 @@ import {
   Flame,
   Lightbulb,
   Lock,
-  PieChart as PieChartIcon,
   Scissors,
   Sparkles,
   Star,
@@ -362,35 +361,6 @@ const Reports = () => {
     customers: customersRef,
     reviews: reviewsRef,
   };
-
-  const scrollTo = (id: string) => {
-    const ref = sectionRefs[id as keyof typeof sectionRefs];
-    if (ref?.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  useEffect(() => {
-    if (isMobile) return;
-    const container = document.querySelector("main > div.relative.z-10.flex-1.overflow-auto");
-    if (!container) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-          }
-        });
-      },
-      { root: container, threshold: 0.4 },
-    );
-
-    Object.values(sectionRefs).forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
-    });
-
-    return () => observer.disconnect();
-  }, [isMobile]);
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
