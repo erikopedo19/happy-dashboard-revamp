@@ -14,10 +14,6 @@ import {
 } from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
-import {
-  ExpandableActionBar,
-  type ExpandableActionBarItem,
-} from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +36,6 @@ import {
   ArrowUpRight,
   CalendarDays,
   ChevronRight,
-  Check,
   Clock,
 
   Crown,
@@ -49,7 +44,6 @@ import {
   Flame,
   Lightbulb,
   Lock,
-  PieChart as PieChartIcon,
   Scissors,
   Sparkles,
   Star,
@@ -368,54 +362,6 @@ const Reports = () => {
     reviews: reviewsRef,
   };
 
-  const [activeSection, setActiveSection] = useState("revenue");
-
-  const scrollTo = (id: string) => {
-    const ref = sectionRefs[id as keyof typeof sectionRefs];
-    if (ref?.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const actionItems: ExpandableActionBarItem[] = useMemo(
-    () => [
-      { id: "revenue", label: "Revenue", icon: <TrendingUp className="h-4 w-4" />, onClick: () => scrollTo("revenue") },
-      { id: "insights", label: "Insights", icon: <Lightbulb className="h-4 w-4" />, onClick: () => scrollTo("insights") },
-      { id: "kpis", label: "KPIs", icon: <Activity className="h-4 w-4" />, onClick: () => scrollTo("kpis") },
-      { id: "status", label: "Status", icon: <PieChartIcon className="h-4 w-4" />, onClick: () => scrollTo("status") },
-      { id: "peak", label: "Peak hours", icon: <Clock className="h-4 w-4" />, onClick: () => scrollTo("peak") },
-      { id: "services", label: "Services", icon: <Scissors className="h-4 w-4" />, onClick: () => scrollTo("services") },
-      { id: "stylists", label: "Stylists", icon: <Crown className="h-4 w-4" />, onClick: () => scrollTo("stylists") },
-      { id: "customers", label: "Customers", icon: <Users className="h-4 w-4" />, onClick: () => scrollTo("customers") },
-      { id: "reviews", label: "Reviews", icon: <Star className="h-4 w-4" />, onClick: () => scrollTo("reviews") },
-      { id: "export", label: "Export", icon: <Download className="h-4 w-4" />, onClick: handleExport },
-    ],
-    [handleExport],
-  );
-
-  useEffect(() => {
-    if (isMobile) return;
-    const container = document.querySelector("main > div.relative.z-10.flex-1.overflow-auto");
-    if (!container) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { root: container, threshold: 0.4 },
-    );
-
-    Object.values(sectionRefs).forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
-    });
-
-    return () => observer.disconnect();
-  }, [isMobile]);
-
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
@@ -488,7 +434,6 @@ const Reports = () => {
                 reviews={reviewsData || []}
                 dateRange={dateRange}
                 setDateRange={setDateRange}
-                onExport={handleExport}
                 reduceMotion={reduceMotion}
               />
             )}
@@ -1325,54 +1270,6 @@ function MobileCard({
   );
 }
 
-function MobileStatCard({
-  icon,
-  label,
-  value,
-  hint,
-  tint,
-  delay = 0,
-  filled = false,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  hint?: string;
-  tint: string;
-  delay?: number;
-  filled?: boolean;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, ...springSoft }}
-      whileTap={{ scale: 0.97 }}
-      className={cn(
-        "rounded-[24px] p-4 border",
-        filled
-          ? "bg-[#0A84FF] border-[#0A84FF] shadow-[0_16px_40px_-16px_rgba(10,132,255,0.9)]"
-          : "bg-[#15151A] border-white/[0.08]"
-      )}
-    >
-      <div
-        className="w-10 h-10 rounded-[14px] flex items-center justify-center mb-3"
-        style={
-          filled
-            ? { backgroundColor: "rgba(255,255,255,0.18)", color: "#fff" }
-            : { backgroundColor: `${tint}15`, color: tint }
-        }
-      >
-        {icon}
-      </div>
-      <p className={cn("text-[10px] font-semibold uppercase tracking-[0.14em]", filled ? "text-white/80" : "text-white/50")}>{label}</p>
-      <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">{value}</p>
-      {hint && <p className={cn("text-[11px] mt-1", filled ? "text-white/75" : "text-white/50")}>{hint}</p>}
-    </motion.div>
-  );
-}
-
-
 function MobileSparkline({ data }: { data: { label: string; revenue: number }[] }) {
   if (data.length < 2) {
     return (
@@ -1553,7 +1450,6 @@ function MobileReportsView({
   reviews,
   dateRange,
   setDateRange,
-  onExport,
   reduceMotion,
 }: {
   analytics: any;
@@ -1562,7 +1458,6 @@ function MobileReportsView({
   reviews: ReviewRow[];
   dateRange: RangeValue;
   setDateRange: (v: RangeValue) => void;
-  onExport: () => void;
   reduceMotion: boolean | null;
 }) {
   const completedShare = analytics.completionRate || 0;
