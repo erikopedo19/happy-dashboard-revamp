@@ -1254,9 +1254,10 @@ function MobileCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      variants={{ hidden: { opacity: 0, y: 16, scale: 0.985 }, visible: { opacity: 1, y: 0, scale: 1 } }}
       transition={{ delay, type: "spring", stiffness: 360, damping: 30 }}
+      whileTap={{ scale: 0.99 }}
+      layout
       className={cn("rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden", className)}
     >
       {(title || subtitle) && (
