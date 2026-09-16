@@ -238,8 +238,13 @@ export function DashboardContent() {
             </motion.div>
 
             {/* Chart + Top performers */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 bg-[#16161A] border border-white/[0.06] rounded-[28px]">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: reduceMotion ? 0 : 0.08, ...iosSpring }}
+              className="flex flex-col lg:flex-row gap-4"
+            >
+              <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={iosSpring} className="flex-1 bg-[#16161A] border border-white/[0.06] rounded-[28px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <div className="p-5 sm:p-6">
                   <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
                     <div>
@@ -267,8 +272,8 @@ export function DashboardContent() {
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
-              <div className="lg:w-[360px] bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+              </motion.div>
+              <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={iosSpring} className="lg:w-[360px] bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Top performers</p>
@@ -302,11 +307,16 @@ export function DashboardContent() {
                     })}
                   </ul>
                 )}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Recent bookings */}
-            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: reduceMotion ? 0 : 0.14, ...iosSpring }}
+              className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Recent bookings</p>
@@ -332,22 +342,33 @@ export function DashboardContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {upcoming.map((a) => (
-                        <tr key={a.id} className="border-b border-white/[0.06] last:border-0">
+                      {upcoming.map((a, index) => (
+                        <motion.tr
+                          key={a.id}
+                          initial={reduceMotion ? false : { opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: reduceMotion ? 0 : 0.16 + index * 0.035, ...iosSpring }}
+                          className="border-b border-white/[0.06] last:border-0"
+                        >
                           <td className="py-3 font-medium text-white">{a.customer?.name || 'Walk-in'}</td>
                           <td className="py-3 text-white/70">{a.service?.name || 'Service'}</td>
                           <td className="py-3 text-white/70">{format(parseISO(a.appointment_date), 'MMM d')}</td>
                           <td className="py-3 text-white/70">{a.appointment_time?.slice(0, 5)}</td>
                           <td className="py-3 text-right font-semibold text-white">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
-                        </tr>
+                        </motion.tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-            </div>
+            </motion.div>
             {/* Top clients board */}
-            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: reduceMotion ? 0 : 0.2, ...iosSpring }}
+              className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">PC board</p>
@@ -380,7 +401,7 @@ export function DashboardContent() {
                   </TableBody>
                 </Table>
               )}
-            </div>
+            </motion.div>
           </main>
         </div>
       </div>
