@@ -47,6 +47,7 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
+import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import { Button } from "@heroui/react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
@@ -1167,6 +1168,7 @@ const Settings = () => {
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionPanel />
+                      <BoostBarbershopCard />
                       <PayoutSettingsCard />
                       {/* Public visibility toggle removed — all profiles are public by default */}
 
