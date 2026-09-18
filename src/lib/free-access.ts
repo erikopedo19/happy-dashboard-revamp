@@ -8,7 +8,7 @@
  * Nothing about existing paid subscriptions is deleted — the `subscribers`
  * data stays intact and simply takes over again once this flag is false.
  */
-export const FREE_ACCESS_ENABLED = true;
+export const FREE_ACCESS_ENABLED = false;
 
 /** End of the gifted period (2 months). */
 export const FREE_ACCESS_UNTIL = new Date("2026-11-09T00:00:00Z");
