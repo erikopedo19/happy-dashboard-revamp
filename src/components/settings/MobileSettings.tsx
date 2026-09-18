@@ -184,7 +184,7 @@ export function MobileSettings(props: any) {
       .toUpperCase();
 
   return (
-    <div className="min-h-screen w-full bg-[#0A0A0C] text-white relative overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#0A0A0C] text-white relative overflow-x-hidden overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'none' }}>
 
 
       {/* Header */}
