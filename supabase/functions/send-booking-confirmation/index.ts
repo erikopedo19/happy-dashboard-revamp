@@ -136,6 +136,11 @@ const EMAIL_STRINGS: Record<LocaleKey, Record<string, string>> = {
 };
 const INTL_LOCALE: Record<LocaleKey, string> = { en: "en-US", el: "el-GR", es: "es-ES", nl: "nl-NL", pl: "pl-PL" };
 
+/** Shared label/value row used by both the client and the barber email. */
+const row = (label: string, value: string, accentColor?: string) => `
+    <tr><td style="padding:0 0 6px;font-size:12px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">${escapeHtml(label)}</td></tr>
+    <tr><td style="padding:0 0 16px;font-size:16px;font-weight:600;color:${accentColor || "#121214"};">${value}</td></tr>`;
+
 function buildHtml(opts: {
   businessName: string;
   customerName: string;
