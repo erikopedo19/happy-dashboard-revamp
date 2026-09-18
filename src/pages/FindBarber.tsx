@@ -364,6 +364,28 @@ const FindBarber = () => {
           <StoriesRail />
         </div>
 
+        {activeTab === "today" && (
+          <>
+            <CommunityPulse
+              shops={(barbers ?? []).length}
+              bookingsToday={Array.from((todayCounts ?? new Map()).values()).reduce(
+                (a: number, b: number) => a + b,
+                0
+              )}
+              avgRating={
+                (() => {
+                  const rated = (barbers ?? []).filter((b) => typeof b.rating === "number" && b.rating);
+                  if (!rated.length) return null;
+                  return rated.reduce((s, b) => s + (b.rating ?? 0), 0) / rated.length;
+                })()
+              }
+            />
+            <TrendingRail items={sortedBarbers.slice(0, 8) as any} boostedIds={boostedIds} />
+            <DiscoverPromo />
+          </>
+        )}
+
+
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4">
           {FILTER_OPTIONS.map((f) => (
             <button
