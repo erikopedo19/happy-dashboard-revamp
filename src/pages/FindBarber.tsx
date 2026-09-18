@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
 import { StoriesRail } from "@/components/stories/StoriesRail";
 import { NotificationBell } from "@/components/NotificationBell";
+import { CommunityPulse, TrendingRail, DiscoverPromo } from "@/components/findbarber/DiscoverExtras";
 
 
 interface BarberProfile {
