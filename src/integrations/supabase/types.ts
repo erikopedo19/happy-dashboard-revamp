@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -113,6 +113,9 @@ export type Database = {
           notes: string | null
           org_id: string | null
           original_price: number | null
+          paid_amount: number | null
+          paid_at: string | null
+          payment_status: string
           price: number | null
           review_email_sent_at: string | null
           service_id: string
@@ -132,6 +135,9 @@ export type Database = {
           notes?: string | null
           org_id?: string | null
           original_price?: number | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_status?: string
           price?: number | null
           review_email_sent_at?: string | null
           service_id: string
@@ -151,6 +157,9 @@ export type Database = {
           notes?: string | null
           org_id?: string | null
           original_price?: number | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_status?: string
           price?: number | null
           review_email_sent_at?: string | null
           service_id?: string
@@ -252,6 +261,36 @@ export type Database = {
           title?: string
           updated_at?: string
           variant?: string
+        }
+        Relationships: []
+      }
+      boost_campaigns: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          emails_sent: number
+          id: string
+          status: string
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -452,6 +491,72 @@ export type Database = {
           id?: string
           recipient_email?: string
           status?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          category: string
+          color: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_time: string | null
+          event_date: string
+          featured: boolean
+          id: string
+          location: string | null
+          map_url: string | null
+          organizer: string | null
+          published: boolean
+          registration_url: string | null
+          short_description: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          color?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          featured?: boolean
+          id?: string
+          location?: string | null
+          map_url?: string | null
+          organizer?: string | null
+          published?: boolean
+          registration_url?: string | null
+          short_description?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          featured?: boolean
+          id?: string
+          location?: string | null
+          map_url?: string | null
+          organizer?: string | null
+          published?: boolean
+          registration_url?: string | null
+          short_description?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -668,6 +773,7 @@ export type Database = {
           updated_at: string
           user_id: string
           website_url: string | null
+          whatsapp: string | null
         }
         Insert: {
           about?: string | null
@@ -688,6 +794,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           website_url?: string | null
+          whatsapp?: string | null
         }
         Update: {
           about?: string | null
@@ -708,6 +815,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website_url?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -774,6 +882,130 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount_subtotal: number
+          amount_tax: number
+          amount_total: number
+          application_fee_amount: number
+          appointment_id: string | null
+          business_id: string
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          description: string | null
+          id: string
+          kind: string
+          product_id: string | null
+          quantity: number
+          service_id: string | null
+          status: string
+          stripe_account_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          terms_accepted: boolean
+          terms_accepted_at: string | null
+          terms_version: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_subtotal?: number
+          amount_tax?: number
+          amount_total?: number
+          application_fee_amount?: number
+          appointment_id?: string | null
+          business_id: string
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          description?: string | null
+          id?: string
+          kind: string
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          status?: string
+          stripe_account_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          terms_version?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_subtotal?: number
+          amount_tax?: number
+          amount_total?: number
+          application_fee_amount?: number
+          appointment_id?: string | null
+          business_id?: string
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          description?: string | null
+          id?: string
+          kind?: string
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          status?: string
+          stripe_account_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          terms_version?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "diag_orphaned_appointments"
+            referencedColumns: ["service_exists"]
+          },
+          {
+            foreignKeyName: "payments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string | null
@@ -825,6 +1057,7 @@ export type Database = {
           ask_phone: boolean | null
           auto_review_emails: boolean
           avatar_url: string | null
+          banner_reminder_sent_at: string | null
           banner_url: string | null
           booking_link: string | null
           booking_locale: string
@@ -849,6 +1082,7 @@ export type Database = {
           loyalty_discount_percent: number
           notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
+          payments_enabled: boolean
           phone: string | null
           rating: number | null
           rating_count: number | null
@@ -857,6 +1091,11 @@ export type Database = {
           sender_email: string | null
           sender_name: string | null
           show_public_reviews: boolean | null
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean
+          stripe_details_submitted: boolean
+          stripe_onboarded_at: string | null
+          stripe_payouts_enabled: boolean
           timezone: string | null
           updated_at: string
           website: string | null
@@ -872,6 +1111,7 @@ export type Database = {
           ask_phone?: boolean | null
           auto_review_emails?: boolean
           avatar_url?: string | null
+          banner_reminder_sent_at?: string | null
           banner_url?: string | null
           booking_link?: string | null
           booking_locale?: string
@@ -896,6 +1136,7 @@ export type Database = {
           loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
+          payments_enabled?: boolean
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
@@ -904,6 +1145,11 @@ export type Database = {
           sender_email?: string | null
           sender_name?: string | null
           show_public_reviews?: boolean | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
+          stripe_details_submitted?: boolean
+          stripe_onboarded_at?: string | null
+          stripe_payouts_enabled?: boolean
           timezone?: string | null
           updated_at?: string
           website?: string | null
@@ -919,6 +1165,7 @@ export type Database = {
           ask_phone?: boolean | null
           auto_review_emails?: boolean
           avatar_url?: string | null
+          banner_reminder_sent_at?: string | null
           banner_url?: string | null
           booking_link?: string | null
           booking_locale?: string
@@ -943,6 +1190,7 @@ export type Database = {
           loyalty_discount_percent?: number
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
+          payments_enabled?: boolean
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
@@ -951,6 +1199,11 @@ export type Database = {
           sender_email?: string | null
           sender_name?: string | null
           show_public_reviews?: boolean | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
+          stripe_details_submitted?: boolean
+          stripe_onboarded_at?: string | null
+          stripe_payouts_enabled?: boolean
           timezone?: string | null
           updated_at?: string
           website?: string | null
@@ -987,6 +1240,51 @@ export type Database = {
           p256dh?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          rewarded_at?: string | null
         }
         Relationships: []
       }
@@ -1253,34 +1551,52 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          auto_renew: boolean
+          cancel_at_period_end: boolean
           created_at: string
           email: string
+          expiration_email_sent_at: string | null
           id: string
+          renewal_amount: number | null
+          renewal_currency: string
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
+          subscription_start: string | null
           subscription_tier: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          auto_renew?: boolean
+          cancel_at_period_end?: boolean
           created_at?: string
           email: string
+          expiration_email_sent_at?: string | null
           id?: string
+          renewal_amount?: number | null
+          renewal_currency?: string
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
+          subscription_start?: string | null
           subscription_tier?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          auto_renew?: boolean
+          cancel_at_period_end?: boolean
           created_at?: string
           email?: string
+          expiration_email_sent_at?: string | null
           id?: string
+          renewal_amount?: number | null
+          renewal_currency?: string
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
+          subscription_start?: string | null
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string
@@ -1496,6 +1812,8 @@ export type Database = {
         Returns: Json
       }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
+      cancel_subscription_at_period_end: { Args: never; Returns: Json }
+      claim_referral: { Args: { p_code: string }; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       clean_booking_link: { Args: { raw: string }; Returns: string }
       clean_display_name: { Args: { raw: string }; Returns: string }
@@ -1549,6 +1867,20 @@ export type Database = {
         Args: { p_today?: string }
         Returns: Json
       }
+      get_most_active_barbers: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          activity_score: number
+          bookings: number
+          business_name: string
+          calendar_updates: number
+          clients: number
+          full_name: string
+          last_active: string
+          services: number
+          user_id: string
+        }[]
+      }
       get_my_bookings: {
         Args: never
         Returns: {
@@ -1564,6 +1896,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_my_referral_code: { Args: never; Returns: string }
       get_pending_review_requests: {
         Args: never
         Returns: {
@@ -1607,6 +1940,7 @@ export type Database = {
           description: string
           full_name: string
           id: string
+          payments_enabled: boolean
           phone: string
           rating: number
           rating_count: number
@@ -1662,6 +1996,12 @@ export type Database = {
         Returns: Json
       }
       list_active_stories: { Args: never; Returns: Json }
+      list_boosted_barbers: {
+        Args: never
+        Returns: {
+          user_id: string
+        }[]
+      }
       list_public_profiles: {
         Args: never
         Returns: {
@@ -1710,6 +2050,10 @@ export type Database = {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json
       }
+      set_subscription_auto_renew: {
+        Args: { _enabled: boolean }
+        Returns: Json
+      }
       soft_delete_account: { Args: { _user_id: string }; Returns: Json }
       submit_review: {
         Args: { _cancel_token: string; _comment?: string; _rating: number }
@@ -1734,12 +2078,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1763,11 +2107,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1788,11 +2132,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1813,11 +2157,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1830,11 +2174,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

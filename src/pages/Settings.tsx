@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Trash2,
   LogOut,
+  Gift,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -43,15 +44,17 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageTemplates } from "@/components/MessageTemplates";
-import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { SubscriptionPanel } from "@/components/SubscriptionPanel";
+import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
+import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import { Button } from "@heroui/react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { usePremium } from "@/hooks/use-premium";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
+import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -172,14 +175,28 @@ const Settings = () => {
   const [settingsSearch, setSettingsSearch] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Always land at the top — window scroll AND the internal scroll container,
+  // re-applied after paint so async content can't push the view down.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const reset = () => {
+      window.scrollTo(0, 0);
+      document.scrollingElement?.scrollTo({ top: 0 });
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t = setTimeout(reset, 120);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
   }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
+    window.scrollTo(0, 0);
   }, [activeTab]);
   const [agendaForm, setAgendaForm] = useState<AgendaSettingsRecord>(defaultAgendaSettings);
   const [profileForm, setProfileForm] = useState<ProfileRecord>(defaultProfile);
@@ -236,6 +253,21 @@ const Settings = () => {
   const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+
+  // Safety net: never let a stale scroll lock (drawers, overlays closed
+  // mid-animation) freeze scrolling on any Settings page.
+  useEffect(() => {
+    const unlock = () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.documentElement.style.overflow = "";
+      document.body.removeAttribute("data-scroll-locked");
+      document.documentElement.removeAttribute("data-scroll-locked");
+    };
+    unlock();
+    const t = setTimeout(unlock, 300);
+    return () => clearTimeout(t);
+  }, []);
   const { theme, setTheme } = useTheme();
   const { role, setRole, switching: switchingRole } = useRoleSwitch();
 
@@ -1081,6 +1113,7 @@ const Settings = () => {
 
                     <TabsContent value="booking" className="mt-0 space-y-6 animate-fade-in">
                       <BookingLinkGenerator />
+                      <SocialLinksCard />
                     </TabsContent>
 
                     <TabsContent value="notifications" className="mt-0 animate-fade-in">
@@ -1134,35 +1167,44 @@ const Settings = () => {
                     </TabsContent>
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
-                      <SubscriptionCard />
+                      <SubscriptionPanel />
+                      <BoostBarbershopCard />
+                      <PayoutSettingsCard />
                       {/* Public visibility toggle removed — all profiles are public by default */}
+
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
                         <CardHeader>
                           <div className="flex items-center gap-3">
                             <div className="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                               <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                             </div>
-                            <div>
+                            <div className="flex items-center gap-2">
                               <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Business identity</CardTitle>
-                              <CardDescription className="text-[#8E8E93] dark:text-gray-500">
-                                Persist the business details used across the app and public booking.
-                              </CardDescription>
+                              <div className="w-2 h-2 rounded-full pulse-dot pulse-dot-rose" />
                             </div>
                           </div>
+                          <CardDescription className="text-[#8E8E93] dark:text-gray-500">
+                            Persist the business details used across the app and public booking.
+                          </CardDescription>
                         </CardHeader>
 
                         <CardContent className="space-y-5">
                           {/* Brand media — organised at the top */}
                           <div className="space-y-5">
-                            <BrandImageUpload
-                              label="Banner"
-                              path={brandForm.banner_url}
-                              folder="banner"
-                              onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
-                              className="w-full"
-                              maxSizeMB={bannerMaxMB}
-                              helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
-                            />
+                            <div className="flex items-center gap-2">
+                              <BrandImageUpload
+                                label="Banner"
+                                path={brandForm.banner_url}
+                                folder="banner"
+                                onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
+                                className="w-full"
+                                maxSizeMB={bannerMaxMB}
+                                helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
+                              />
+                              {!brandForm.banner_url && (
+                                <div className="w-2 h-2 rounded-full pulse-dot pulse-dot-rose shrink-0 mt-6" />
+                              )}
+                            </div>
 
                             <BrandImageUpload
                               label="Profile photo"
@@ -1334,70 +1376,6 @@ const Settings = () => {
                           </div>
 
 
-                          <div>
-                            <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-2 block">
-                              Map Location
-                            </Label>
-                            <p className="text-xs text-[#8E8E93] dark:text-gray-500 mb-3">
-                              Search your city/address, then tap the exact place where your barbershop is.
-                            </p>
-                            <BarbershopMap
-                              barbershops={brandForm.latitude && brandForm.longitude ? [{
-                                id: 'current',
-                                name: brandForm.name || 'Your Business',
-                                location: brandForm.location || '',
-                                latitude: brandForm.latitude,
-                                longitude: brandForm.longitude,
-                                contact_phone: brandForm.contact_phone,
-                              }] : []}
-                              height="300px"
-                              pickMode
-                              initialCenter={brandForm.latitude && brandForm.longitude ? {
-                                lat: brandForm.latitude,
-                                lng: brandForm.longitude,
-                              } : undefined}
-                              onLocationPick={({ lat, lng }) =>
-                                setBrandForm((prev) => ({
-                                  ...prev,
-                                  latitude: lat,
-                                  longitude: lng,
-                                  google_maps_url: prev.google_maps_url || buildGoogleMapsUrl(lat, lng),
-                                }))
-                              }
-                            />
-                            <div className="grid grid-cols-2 gap-4 mt-3">
-                              <div>
-                                <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-1 block">
-                                  Latitude
-                                </Label>
-                                <Input
-                                  type="number"
-                                  step="any"
-                                  value={brandForm.latitude || ''}
-                                  onChange={(e) =>
-                                    setBrandForm((prev) => ({ ...prev, latitude: e.target.value ? parseFloat(e.target.value) : undefined }))
-                                  }
-                                  placeholder="40.7128"
-                                  className="h-10 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7]/80 mb-1 block">
-                                  Longitude
-                                </Label>
-                                <Input
-                                  type="number"
-                                  step="any"
-                                  value={brandForm.longitude || ''}
-                                  onChange={(e) =>
-                                    setBrandForm((prev) => ({ ...prev, longitude: e.target.value ? parseFloat(e.target.value) : undefined }))
-                                  }
-                                  placeholder="-74.0060"
-                                  className="h-10 rounded-xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                                />
-                              </div>
-                            </div>
-                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>
@@ -1532,6 +1510,17 @@ const Settings = () => {
                     <CardContent className="space-y-3">
                       <button
                         type="button"
+                        onClick={() => navigate("/referrals")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Gift className="h-4 w-4 text-rose-500" />
+                          Invite a barber — get a free month
+                        </span>
+                        <ArrowRight className="h-4 w-4 text-rose-400" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => navigate("/terms")}
                         className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
                       >
@@ -1544,6 +1533,22 @@ const Settings = () => {
                         className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
                       >
                         Privacy Policy
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/cookies")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Cookies Policy
+                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/refunds")}
+                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
+                      >
+                        Refund &amp; Cancellation Policy
                         <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
                       </button>
 

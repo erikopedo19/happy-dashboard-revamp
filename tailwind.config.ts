@@ -103,18 +103,46 @@ export default {
 					"0%, 100%": { backgroundPosition: "0% 50%" },
 					"50%": { backgroundPosition: "100% 50%" },
 				},
+				"appt-arrive": {
+					"0%": { opacity: "0", transform: "translateY(10px) scale(0.96)" },
+					"60%": { opacity: "1", transform: "translateY(0) scale(1.015)" },
+					"100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+				},
+				"arrive-ring": {
+					"0%": { boxShadow: "0 0 0 0 rgba(59,130,246,0.55)" },
+					"100%": { boxShadow: "0 0 0 14px rgba(59,130,246,0)" },
+				},
+				"aurora-sweep": {
+					"0%": { backgroundPosition: "0% 50%" },
+					"50%": { backgroundPosition: "100% 50%" },
+					"100%": { backgroundPosition: "0% 50%" },
+				},
 				"marquee": {
 					"0%": { transform: "translateX(0)" },
 					"100%": { transform: "translateX(-50%)" },
+				},
+				"light-sweep": {
+					"0%": { transform: "translateX(-120%) skewX(-18deg)" },
+					"55%": { transform: "translateX(240%) skewX(-18deg)" },
+					"100%": { transform: "translateX(240%) skewX(-18deg)" },
+				},
+				"aurora-drift": {
+					"0%, 100%": { transform: "translate3d(0,0,0) scale(1)" },
+					"50%": { transform: "translate3d(4%, 3%, 0) scale(1.06)" },
 				},
 			},
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
 				"accordion-up": "accordion-up 0.2s ease-out",
-				"fade-in-up": "fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
-				"fade-in": "fade-in 0.4s ease-out both",
-				"scale-in": "scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both",
+				"fade-in-up": "fade-in-up 0.26s cubic-bezier(0.22, 1, 0.36, 1) both",
+				"fade-in": "fade-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both",
+				"scale-in": "scale-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both",
 				"gradient-x": "gradient-x 5s ease infinite",
+				"appt-arrive": "appt-arrive 0.42s cubic-bezier(0.22, 1, 0.36, 1) both",
+				"arrive-ring": "arrive-ring 1.1s ease-out 2",
+				"aurora-sweep": "aurora-sweep 8s ease-in-out infinite",
+				"light-sweep": "light-sweep 3.2s cubic-bezier(0.4,0,0.2,1) infinite",
+				"aurora-drift": "aurora-drift 14s ease-in-out infinite",
 
 			},
 		backgroundImage: {

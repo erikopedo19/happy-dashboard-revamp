@@ -1,17 +1,67 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, Palmtree, MoreHorizontal, Thermometer, Lock, Sunset } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree } from "lucide-react";
 
-// Maps a stored day-off reason to a small icon shown on the date chip
-const reasonIcon = (reason: string) => {
-  const r = (reason || "").toLowerCase();
-  if (r.includes("sick")) return Thermometer;
-  if (r.includes("closed")) return Lock;
-  if (r.includes("personal")) return User;
-  if (r.includes("rest of")) return Sunset;
-  if (r.includes("vacation") || r.includes("day off") || !r) return Palmtree;
-  return Ban;
+// Custom SVG icons for a more distinctive day-off icon design
+const CustomDayOffIcon = ({ type, className }: { type: string; className?: string }) => {
+  const r = (type || "").toLowerCase();
+  
+  if (r.includes("sick")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v4" />
+        <path d="M12 18v4" />
+        <path d="M4.93 4.93l2.83 2.83" />
+        <path d="M16.24 16.24l2.83 2.83" />
+        <path d="M2 12h4" />
+        <path d="M18 12h4" />
+        <path d="M4.93 19.07l2.83-2.83" />
+        <path d="M16.24 7.76l2.83-2.83" />
+      </svg>
+    );
+  }
+  
+  if (r.includes("closed")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    );
+  }
+  
+  if (r.includes("personal")) {
+    return <User className={className} />;
+  }
+  
+  if (r.includes("rest of")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v12" />
+        <path d="M6 12h12" />
+      </svg>
+    );
+  }
+  
+  if (r.includes("vacation") || r.includes("day off") || !r) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    );
+  }
+  
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M15 9l-6 6" />
+      <path d="M9 9l6 6" />
+    </svg>
+  );
 };
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +81,7 @@ import { useToast } from "@/hooks/use-toast";
 import { haptic } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
+import { QuickEventDialog } from "@/components/QuickEventDialog";
 
 
 interface Service {
@@ -59,6 +110,8 @@ interface Appointment {
   price?: number;
   notes?: string;
   totalDurationMinutes?: number;
+  payment_status?: string;
+  paid_amount?: number | null;
 }
 
 interface LiquidGlassAgendaProps {
@@ -162,6 +215,7 @@ export const LiquidGlassAgenda = ({
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [pressingSlot, setPressingSlot] = useState<string | null>(null);
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
+  const [pendingUnblockSlot, setPendingUnblockSlot] = useState<{ id: string; start_time: string; end_time: string } | null>(null);
   const blockTimerRef = useRef<number | null>(null);
   const isLongPressBlock = useRef(false);
   const [timeOffOpen, setTimeOffOpen] = useState(false);
@@ -289,6 +343,42 @@ export const LiquidGlassAgenda = ({
     }
   };
 
+  const reopenAppointment = async (id: string) => {
+    const target = appointments.find((a) => a.id === id);
+    if (target && isAppointmentPast(target)) {
+      haptic("error");
+      toast({
+        title: "Can't reopen past appointments",
+        description: "This booking has already passed.",
+        variant: "destructive",
+      });
+      setContextMenu(null);
+      return;
+    }
+    haptic("warning");
+    setCancellingId(id);
+    try {
+      const { error } = await (supabase as any)
+        .from("appointments")
+        .update({ status: "scheduled", updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+      haptic("success");
+      toast({ title: "Slot reopened", description: "The appointment is now available for booking again." });
+      setContextMenu(null);
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      haptic("error");
+      toast({ title: "Couldn't reopen", description: e?.message || "Please try again.", variant: "destructive" });
+
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const [eventDialog, setEventDialog] = useState<{ date: string; time: string } | null>(null);
+
   const { data: agendaSettings } = useQuery<AgendaSettings | null>({
     queryKey: ["agenda_settings", user?.id],
     queryFn: async () => {
@@ -320,6 +410,24 @@ export const LiquidGlassAgenda = ({
         .select("id, start_time, end_time, reason")
         .eq("user_id", user.id)
         .eq("blocked_date", format(selectedDay, "yyyy-MM-dd"))
+        .order("start_time", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: dayEvents } = useQuery<
+    { id: string; title: string; start_time: string | null; end_time: string | null; color: string | null; description: string | null }[]
+  >({
+    queryKey: ["agenda-events", user?.id, format(selectedDay, "yyyy-MM-dd")],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase as any)
+        .from("events")
+        .select("id, title, start_time, end_time, color, description")
+        .eq("created_by", user.id)
+        .eq("event_date", format(selectedDay, "yyyy-MM-dd"))
         .order("start_time", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -402,6 +510,56 @@ export const LiquidGlassAgenda = ({
     return result;
   }, [agendaSettings, timeRange]);
 
+  // Map every appointment of the day onto the slot row it belongs to, so
+  // bookings made off the slot grid (or outside working hours) still render.
+  const appointmentsBySlot = useMemo(() => {
+    const map: Record<string, typeof dayAppointments> = {};
+    if (!hours.length) return map;
+    const slotMins = hours.map((h) => {
+      const [hh, mm] = h.split(":").map(Number);
+      return hh * 60 + mm;
+    });
+    for (const apt of dayAppointments) {
+      const [ah, am] = apt.appointment_time.split(":").map(Number);
+      const aptMin = ah * 60 + am;
+      let idx = 0;
+      for (let i = 0; i < slotMins.length; i++) {
+        if (slotMins[i] <= aptMin) idx = i;
+      }
+      if (aptMin > slotMins[slotMins.length - 1] + 59) idx = slotMins.length - 1;
+      const key = hours[idx];
+      (map[key] ||= []).push(apt);
+    }
+    return map;
+  }, [dayAppointments, hours]);
+
+
+  // Bucket events onto the slot row they start in (same rule as appointments).
+  const eventsBySlot = useMemo(() => {
+    const map: Record<string, NonNullable<typeof dayEvents>> = {};
+    if (!hours.length) return map;
+    const slotMins = hours.map((h) => {
+      const [hh, mm] = h.split(":").map(Number);
+      return hh * 60 + mm;
+    });
+    for (const ev of dayEvents || []) {
+      const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
+      const evMin = eh * 60 + em;
+      let idx = 0;
+      for (let i = 0; i < slotMins.length; i++) {
+        if (slotMins[i] <= evMin) idx = i;
+      }
+      (map[hours[idx]] ||= []).push(ev);
+    }
+    return map;
+  }, [dayEvents, hours]);
+
+  const eventDuration = (ev: { start_time: string | null; end_time: string | null }) => {
+    const [sh, sm] = (ev.start_time || "00:00").split(":").map(Number);
+    const [eh, em] = (ev.end_time || ev.start_time || "00:00").split(":").map(Number);
+    return Math.max(eh * 60 + em - (sh * 60 + sm), 30);
+  };
+
   // Auto-scroll to current hour when viewing today
   useEffect(() => {
     if (!isSameDay(selectedDay, new Date())) return;
@@ -454,7 +612,7 @@ export const LiquidGlassAgenda = ({
       haptic("heavy");
       setPendingBlockSlot({ hour, start, end: slot });
       blockTimerRef.current = null;
-    }, 600);
+    }, 1000);
 
   };
 
@@ -483,16 +641,33 @@ export const LiquidGlassAgenda = ({
       await queryClient.invalidateQueries({ queryKey: ["agenda_blocked_slots"] });
       window.dispatchEvent(new Event("appointmentUpdated"));
     } catch (e: any) {
-      toast({ title: "Couldn’t block slot", description: e?.message || "Please try again.", variant: "destructive" });
+      toast({ title: "Couldn't block slot", description: e?.message || "Please try again.", variant: "destructive" });
     } finally {
       setPendingBlockSlot(null);
       isLongPressBlock.current = false;
     }
   };
 
+  const confirmUnblockSlot = async () => {
+    if (!pendingUnblockSlot || !user) return;
+    try {
+      const { error } = await (supabase as any)
+        .from("agenda_blocked_slots")
+        .delete()
+        .eq("id", pendingUnblockSlot.id);
+      if (error) throw error;
+      toast({ title: "Slot unblocked", description: `${pendingUnblockSlot.start_time} – ${pendingUnblockSlot.end_time} is now available.` });
+      await queryClient.invalidateQueries({ queryKey: ["agenda_blocked_slots"] });
+      window.dispatchEvent(new Event("appointmentUpdated"));
+    } catch (e: any) {
+      toast({ title: "Couldn't unblock slot", description: e?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setPendingUnblockSlot(null);
+    }
+  };
+
   const handleAppointmentContextMenu = (event: React.MouseEvent, appointment: Appointment) => {
     event.preventDefault();
-    event.stopPropagation();
     openAppointmentInfo(appointment, event.clientX, event.clientY);
   };
 
@@ -630,6 +805,16 @@ export const LiquidGlassAgenda = ({
                   </>
                 )}
                 <DropdownMenuItem
+                  onClick={() => {
+                    haptic("light");
+                    setEventDialog({ date: format(selectedDay, "yyyy-MM-dd"), time: "09:00" });
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Add event
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
                   className="text-rose-500 dark:text-rose-300 focus:bg-rose-500/10 cursor-pointer"
                 >
@@ -661,7 +846,9 @@ export const LiquidGlassAgenda = ({
             </span>
             {selectedDayIsOff && (
               <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
-                {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3 h-3" />; })()}
+                <span className="w-3 h-3">
+                  <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
+                </span>
                 {selectedDayOffReason}
               </span>
             )}
@@ -688,7 +875,6 @@ export const LiquidGlassAgenda = ({
               const dayKey = format(day, 'yyyy-MM-dd');
               const isOff = timeOffSet.has(dayKey);
               const offReason = timeOffReason.get(dayKey) || 'Day off';
-              const OffIcon = reasonIcon(offReason);
 
               return (
                 <button
@@ -792,9 +978,9 @@ export const LiquidGlassAgenda = ({
                   {isOff ? (
                     <span
                       title={offReason}
-                      className={cn("mt-0.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
+                      className={cn("mt-0.5 w-3.5 h-3.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
                     >
-                      <OffIcon className="w-3.5 h-3.5" />
+                      <CustomDayOffIcon type={offReason} className="w-full h-full" />
                     </span>
                   ) : hasAppointments && !isSelected && !isMobile ? (
                     <div className="w-1 h-1 rounded-full bg-blue-500 mt-0.5" />
@@ -897,88 +1083,165 @@ export const LiquidGlassAgenda = ({
         ) : dayAppointments.length === 0 ? (
           /* Animated iOS-style Empty State */
           <AnimatePresence mode="wait">
-            <motion.div
-              key={selectedDay.toISOString()}
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
-            >
-              {/* Floating Clock Icon */}
+            {selectedDayIsOff ? (
               <motion.div
-                animate={{
-                  y: [0, -10, 0],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{
-                  duration: 4.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className={cn(
-                  "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
-                  "bg-gradient-to-tr from-blue-500/10 to-indigo-500/5 dark:from-[#007AFF]/15 dark:to-[#5856D6]/5",
-                  "border border-blue-500/10 dark:border-[#007AFF]/10 shadow-[0_12px_30px_rgba(0,122,255,0.08)]",
-                  "backdrop-blur-xl"
-                )}
+                key="day-off"
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -15 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
               >
-                <Clock className="w-10 h-10 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={2.2} />
+                {/* Reason Icon */}
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 4.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className={cn(
+                    "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
+                    "bg-gradient-to-tr from-rose-500/10 to-orange-500/5 dark:from-rose-500/15 dark:to-orange-500/5",
+                    "border border-rose-500/10 dark:border-rose-500/10 shadow-[0_12px_30px_rgba(244,63,94,0.08)]",
+                    "backdrop-blur-xl"
+                  )}
+                >
+                  <span className="w-10 h-10 text-rose-500 dark:text-rose-400">
+                    <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
+                  </span>
+                </motion.div>
+
+                <motion.h3
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+                >
+                  This day is off
+                </motion.h3>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 }}
+                  className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
+                >
+                  {selectedDayOffReason}
+                </motion.p>
+
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
+                  onClick={async () => {
+                    haptic("warning");
+                    try {
+                      const { error } = await (supabase as any)
+                        .from("time_off")
+                        .delete()
+                        .eq("user_id", user.id)
+                        .eq("off_date", selectedDayKey);
+                      if (error) throw error;
+                      toast({ title: "Day off removed", description: "This day is now available for booking." });
+                      await queryClient.invalidateQueries({ queryKey: ["time_off"] });
+                      window.dispatchEvent(new Event("appointmentUpdated"));
+                    } catch (e: any) {
+                      toast({ title: "Couldn't remove", description: e?.message || "Please try again.", variant: "destructive" });
+                    }
+                  }}
+                  className="mt-6 px-6 h-11 rounded-full bg-rose-500 text-white text-sm font-semibold active:scale-[0.98] transition"
+                >
+                  Remove day off
+                </motion.button>
               </motion.div>
-
-              <motion.h3
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+            ) : (
+              <motion.div
+                key={selectedDay.toISOString()}
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -15 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="flex flex-col items-center justify-center h-full py-24 text-center px-6"
               >
-                No bookings today
-              </motion.h3>
+                {/* Floating Clock Icon */}
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 4.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className={cn(
+                    "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
+                    "bg-gradient-to-tr from-blue-500/10 to-indigo-500/5 dark:from-[#007AFF]/15 dark:to-[#5856D6]/5",
+                    "border border-blue-500/10 dark:border-[#007AFF]/10 shadow-[0_12px_30px_rgba(0,122,255,0.08)]",
+                    "backdrop-blur-xl"
+                  )}
+                >
+                  <Clock className="w-10 h-10 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={2.2} />
+                </motion.div>
 
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18 }}
-                className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
-              >
-                {isSameDay(selectedDay, new Date()) ? (
-                  "Your agenda is clear for today. Keep resting or add a slot."
-                ) : (
-                  format(selectedDay, 'EEEE, MMMM d')
-                )}
-              </motion.p>
+                <motion.h3
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className={cn("text-base font-semibold leading-tight", isDark ? "text-white" : "text-gray-900")}
+                >
+                  No bookings today
+                </motion.h3>
 
-              {/* Prevent booking on past days entirely */}
-              {(() => {
-                const now = new Date();
-                const isPastDay = !isSameDay(selectedDay, now) && selectedDay.getTime() < now.getTime();
-                
-                if (isPastDay) {
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 }}
+                  className="text-gray-400 dark:text-gray-500 text-xs mt-1.5 max-w-[220px] leading-relaxed"
+                >
+                  {isSameDay(selectedDay, new Date()) ? (
+                    "Your agenda is clear for today. Keep resting or add a slot."
+                  ) : (
+                    format(selectedDay, 'EEEE, MMMM d')
+                  )}
+                </motion.p>
+
+                {/* Prevent booking on past days entirely */}
+                {(() => {
+                  const now = new Date();
+                  const isPastDay = !isSameDay(selectedDay, now) && selectedDay.getTime() < now.getTime();
+                  
+                  if (isPastDay) {
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-6 text-[11px] font-medium text-gray-400 dark:text-gray-600 bg-gray-100/50 dark:bg-white/5 px-3 py-1.5 rounded-full"
+                      >
+                        📅 Calendar day has passed
+                      </motion.div>
+                    );
+                  }
+
                   return (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="mt-6 text-[11px] font-medium text-gray-400 dark:text-gray-600 bg-gray-100/50 dark:bg-white/5 px-3 py-1.5 rounded-full"
-                    >
-                      📅 Calendar day has passed
-                    </motion.div>
-                  );
-                }
-
-                return (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
-                    onClick={() => {
-                      let time = '09:00';
-                      if (isSameDay(selectedDay, now)) {
-                        const nextHour = Math.min(now.getHours() + 1, 23);
-                        time = `${nextHour.toString().padStart(2, '0')}:00`;
-                      }
-                      onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
-                    }}
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
+                      onClick={() => {
+                        let time = '09:00';
+                        if (isSameDay(selectedDay, now)) {
+                          const nextHour = Math.min(now.getHours() + 1, 23);
+                          time = `${nextHour.toString().padStart(2, '0')}:00`;
+                        }
+                        onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
+                      }}
                     className={cn(
                       "mt-7 flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all",
                       "bg-[#007AFF] text-white hover:bg-[#0062CC]",
@@ -989,8 +1252,9 @@ export const LiquidGlassAgenda = ({
                     New appointment
                   </motion.button>
                 );
-              })()}
+                })()}
             </motion.div>
+            )}
           </AnimatePresence>
         ) : (
           /* Timeline with appointments */
@@ -1007,14 +1271,20 @@ export const LiquidGlassAgenda = ({
               const slotStartMin = slotHour * 60 + slotMinute;
               const slotInterval = agendaSettings?.service_duration || 60;
 
-              // Find appointments that START exactly in this slot
-              const hourAppointments = dayAppointments.filter((apt) => {
-                const [aptHour, aptMinute] = apt.appointment_time.split(':').map(Number);
-                return aptHour === slotHour && aptMinute === slotMinute;
-              });
+              // Bucket appointments into the slot they fall inside (handles
+              // off-grid times like 10:30 with a 60-min grid, plus anything
+              // before/after the configured range).
+              const hourAppointments = appointmentsBySlot[hour] ?? [];
+              const hourEvents = eventsBySlot[hour] ?? [];
+
 
               // Check if any previous appointment spans into this slot
-              const isOccupied = dayAppointments.some((apt) => {
+              const isOccupiedByEvent = (dayEvents || []).some((ev) => {
+                const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
+                const evStart = eh * 60 + em;
+                return evStart < slotStartMin && evStart + eventDuration(ev) > slotStartMin;
+              });
+              const isOccupied = isOccupiedByEvent || dayAppointments.some((apt) => {
                 const [ah, am] = apt.appointment_time.split(':').map(Number);
                 const aptStartMin = ah * 60 + am;
                 const aptEndMin =
@@ -1042,10 +1312,23 @@ export const LiquidGlassAgenda = ({
               });
 
 
+              const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
+              const maxSpan = hourAppointments.reduce((acc, apt) => {
+                const d = apt.totalDurationMinutes || apt.service.duration || 30;
+                return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
+              }, 1);
+              const maxSpanAll = hourEvents.reduce((acc, ev) => {
+                return Math.max(acc, Math.max(Math.ceil(eventDuration(ev) / slotInterval), 1));
+              }, maxSpan);
+
               return (
-                <div key={hour} className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}>
+                <div
+                  key={hour}
+                  className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}
+                  style={{ height: ROW_H }}
+                >
                   {/* Time label */}
-                  <div className="flex items-start gap-3 mb-1">
+                  <div className="absolute left-0 top-0 flex items-start gap-3 w-full pointer-events-none">
                     <div className="w-12 flex-shrink-0 pt-0.5">
                       <span className={cn(
                         "text-[11px] font-medium",
@@ -1062,14 +1345,15 @@ export const LiquidGlassAgenda = ({
                   </div>
 
 
-                  {/* Appointments in this hour */}
+                  {/* Appointments in this hour — stretched to their real end time */}
+                  {(hourAppointments.length > 0 || hourEvents.length > 0) && (
+                  <div
+                    className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-1"
+                    style={{ height: maxSpanAll * ROW_H - 12 }}
+                  >
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
                     const endTime = getEndTime(apt.appointment_time, duration);
-                    const slotsSpanned = Math.max(Math.ceil(duration / slotInterval), 1);
-                    const minHeight = isMobile
-                      ? Math.max(Math.round(duration * 1.15), 64)
-                      : Math.max(slotsSpanned * 64, 56);
                     const isCompleted = apt.status === 'completed';
                     const isCancelled = apt.status === 'cancelled';
                     const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
@@ -1078,8 +1362,9 @@ export const LiquidGlassAgenda = ({
                       <motion.div
                         variants={slotItemVariants}
                         key={apt.id}
-                        className="pl-[60px] pr-0 mb-2"
+                        className="flex-1 min-h-0"
                       >
+
                         {/* Liquid Glass Card */}
                         <button
                           onClick={() => onAppointmentClick?.(apt)}
@@ -1088,7 +1373,7 @@ export const LiquidGlassAgenda = ({
                           onTouchEnd={clearLongPressTimer}
                           onTouchMove={clearLongPressTimer}
                           className={cn(
-                            "w-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
+                            "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1103,7 +1388,7 @@ export const LiquidGlassAgenda = ({
                                     : "border-gray-200/60 shadow-sm")
                           )}
                           style={{
-                            minHeight: `${minHeight}px`,
+
                             background: isCancelled
                               ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
                               : isMobile
@@ -1185,24 +1470,80 @@ export const LiquidGlassAgenda = ({
                               )}>
                                 {apt.appointment_time.slice(0, 5)} → {endTime}
                               </span>
-                              {apt.price && (
-                                <span className={cn(
-                                  "text-[11px] font-semibold",
-                                  isDark ? "text-white/60" : "text-gray-600"
-                                )}>
-                                  ${apt.price}
-                                </span>
-                              )}
+                              <span className="flex items-center gap-1.5">
+                                {apt.payment_status === "paid" && (
+                                  <span className={cn(
+                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                                    isDark
+                                      ? "bg-green-400/15 text-green-300"
+                                      : "bg-green-100 text-green-700"
+                                  )}>
+                                    Paid
+                                  </span>
+                                )}
+                                {apt.price && (
+                                  <span className={cn(
+                                    "text-[11px] font-semibold",
+                                    isDark ? "text-white/60" : "text-gray-600"
+                                  )}>
+                                    ${apt.price}
+                                  </span>
+                                )}
+                              </span>
                             </div>
+
                           </div>
                         </button>
                       </motion.div>
                     );
                   })}
 
+                  {hourEvents.map((ev) => {
+                    const evColor = ev.color || "#0A84FF";
+                    return (
+                      <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-0">
+                        <div
+                          className={cn(
+                            "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden border flex flex-col justify-between",
+                            isDark ? "border-white/[0.07]" : "border-black/[0.05]"
+                          )}
+                          style={{
+                            background: isDark ? "#161618" : "#FFFFFF",
+                            borderLeft: `4px solid ${evColor}`,
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h3 className={cn("text-[15px] font-semibold leading-tight truncate", isDark ? "text-white" : "text-gray-900")}>
+                                {ev.title}
+                              </h3>
+                              {ev.description && (
+                                <p className={cn("text-[12px] truncate mt-1", isDark ? "text-white/55" : "text-gray-600")}>
+                                  {ev.description}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
+                              style={{ backgroundColor: colorToRgba(evColor, 0.15), color: evColor }}
+                            >
+                              Event
+                            </span>
+                          </div>
+                          <span className={cn("text-[11px] font-medium mt-2", isDark ? "text-white/50" : "text-gray-500")}>
+                            {(ev.start_time || "").slice(0, 5)} → {(ev.end_time || "").slice(0, 5)}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                  </div>
+                  )}
+
                   {/* Empty slot - visible quick-add (disabled if past) */}
-                  {hourAppointments.length === 0 && !isOccupied && !isBlocked && (
-                    <div className="pl-[60px] mb-1">
+                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && !isBlocked && (
+                    <div className="absolute left-[60px] right-0 top-0 bottom-3">
+
                       <button
                         onClick={() => {
                           if (isLongPressBlock.current) {
@@ -1216,7 +1557,7 @@ export const LiquidGlassAgenda = ({
                         onPointerLeave={cancelBlockLongPress}
                         disabled={isPastSlot}
                         className={cn(
-                          "relative w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none overflow-hidden",
+                          "relative w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none overflow-hidden",
                           isPastSlot
                             ? "border-gray-200 dark:border-white/5 bg-transparent text-gray-300 dark:text-white/20 cursor-not-allowed"
                             : pressingSlot === hour
@@ -1242,16 +1583,32 @@ export const LiquidGlassAgenda = ({
                   )}
 
                   {/* Blocked slot */}
-                  {hourAppointments.length === 0 && !isOccupied && isBlocked && (
-                    <div className="pl-[60px] mb-1">
-                      <div
+                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
+                    <div className="absolute left-[60px] right-0 top-0 bottom-3">
+                      <button
+                        onClick={() => {
+                          const blockedSlot = (blockedSlots || []).find((b: any) => {
+                            const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
+                            const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
+                            const startMin = sh * 60 + sm;
+                            const endMin = eh * 60 + em;
+                            return slotStartMin >= startMin && slotStartMin < endMin;
+                          });
+                          if (blockedSlot) {
+                            setPendingUnblockSlot({
+                              id: blockedSlot.id,
+                              start_time: blockedSlot.start_time,
+                              end_time: blockedSlot.end_time,
+                            });
+                          }
+                        }}
                         className={cn(
-                          "w-full h-12 rounded-2xl border border-dashed flex items-center justify-center gap-2",
+                          "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
                           selectedDayIsOff
                             ? "border-rose-500/30 text-rose-500/80 dark:text-rose-300/80"
                             : isDark
-                              ? "border-white/10 text-white/40"
-                              : "border-gray-300/60 text-gray-500"
+                              ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
+                              : "border-gray-300/60 text-gray-500 hover:border-gray-400 hover:text-gray-600"
                         )}
                         style={{
                           backgroundImage: selectedDayIsOff
@@ -1263,7 +1620,9 @@ export const LiquidGlassAgenda = ({
                       >
                         {selectedDayIsOff ? (
                           <>
-                            {(() => { const Icon = reasonIcon(selectedDayOffReason); return <Icon className="w-3.5 h-3.5" />; })()}
+                            <span className="w-3.5 h-3.5">
+                              <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
+                            </span>
                             <span className="text-[12px] font-medium">{selectedDayOffReason}</span>
                           </>
                         ) : (
@@ -1272,13 +1631,11 @@ export const LiquidGlassAgenda = ({
                             <span className="text-[12px] font-medium">Blocked</span>
                           </>
                         )}
-                      </div>
+                      </button>
                     </div>
 
                   )}
 
-                  {/* Spacer between hours */}
-                  <div className="h-3" />
                 </div>
               );
             })}
@@ -1287,35 +1644,13 @@ export const LiquidGlassAgenda = ({
       </div>
 
       {/* Floating Action Button - hidden on past days */}
-      {format(selectedDay, 'yyyy-MM-dd') >= format(new Date(), 'yyyy-MM-dd') && (
-        <div className="absolute bottom-6 right-6 z-40">
-          <button
-            onClick={() => {
-              const now = new Date();
-              let time = '09:00';
-              if (isSameDay(selectedDay, now)) {
-                const nextHour = Math.min(now.getHours() + 1, 23);
-                time = `${nextHour.toString().padStart(2, '0')}:00`;
-              }
-              onDateTimeClick(format(selectedDay, 'yyyy-MM-dd'), time);
-            }}
-            className={cn(
-              "w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90",
-              "shadow-lg",
-              isDark
-                ? "bg-white/15 border border-white/20 shadow-black/30"
-                : "bg-gray-900/90 border border-gray-800 shadow-gray-900/20"
-            )}
-            style={{
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-            }}
-          >
-            <Plus className="w-6 h-6 text-white" />
-          </button>
-        </div>
-      )}
 
+      <QuickEventDialog
+        open={!!eventDialog}
+        onOpenChange={(o) => !o && setEventDialog(null)}
+        defaultDate={eventDialog?.date}
+        defaultTime={eventDialog?.time}
+      />
 
       {contextMenu && (
         <>
@@ -1448,6 +1783,28 @@ export const LiquidGlassAgenda = ({
                   )}
                 </button>
               )}
+
+              {contextMenu.appointment.status === "cancelled" && !isAppointmentPast(contextMenu.appointment) && (
+                <button
+                  onClick={() => {
+                    if (cancellingId) return;
+                    reopenAppointment(contextMenu.appointment.id);
+                  }}
+                  disabled={cancellingId === contextMenu.appointment.id}
+                  className={cn(
+                    "mt-3 w-full h-11 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60",
+                    isDark
+                      ? "bg-green-500/15 hover:bg-green-500/25 text-green-300 border border-green-500/20"
+                      : "bg-green-50 hover:bg-green-100 text-green-600 border border-green-100"
+                  )}
+                >
+                  {cancellingId === contextMenu.appointment.id ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Reopening…</>
+                  ) : (
+                    <><CheckCircle2 className="h-4 w-4" /> Reopen slot</>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </>
@@ -1478,6 +1835,33 @@ export const LiquidGlassAgenda = ({
               onClick={confirmBlockSlot}
             >
               Block slot
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pendingUnblockSlot} onOpenChange={(open) => { if (!open) setPendingUnblockSlot(null); }}>
+        <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>
+          <DialogHeader>
+            <DialogTitle>Unblock this slot?</DialogTitle>
+            <DialogDescription className={cn(isDark ? "text-white/60" : "text-gray-600")}>
+              {pendingUnblockSlot && `${pendingUnblockSlot.start_time} – ${pendingUnblockSlot.end_time}`} will be available for booking again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPendingUnblockSlot(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-green-500 hover:bg-green-600 text-white"
+              onClick={confirmUnblockSlot}
+            >
+              Unblock slot
             </Button>
           </DialogFooter>
         </DialogContent>

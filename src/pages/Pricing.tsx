@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { X, Check, Crown, Star, CalendarClock, Users, ShieldCheck } from "lucide-react";
+import { X, Check, Crown, Star, CalendarClock, Users, ShieldCheck, Gift } from "lucide-react";
+import { FREE_ACCESS_ENABLED, FREE_ACCESS_MONTHS, freeAccessUntilLabel } from "@/lib/free-access";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { STRIPE_PAYMENT_LINK, STRIPE_PAYMENT_LINK_YEARLY, STRIPE_TRIAL_ENABLED } from "@/lib/billingsdk-config";
@@ -45,6 +46,74 @@ const OPTIONS = ALL_OPTIONS.filter((o) => (o.key === "yearly" ? !!STRIPE_PAYMENT
 
 export default function Pricing() {
   const navigate = useNavigate();
+  if (FREE_ACCESS_ENABLED) return <FreeAccessScreen onClose={() => navigate(-1)} />;
+  return <PaidPricing />;
+}
+
+function FreeAccessScreen({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-rose-600 to-rose-700">
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 240, damping: 30 }}
+        className="min-h-screen rounded-t-[32px] bg-[#0B0B0E] text-white flex flex-col"
+      >
+        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-10">
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-white/[0.07] flex items-center justify-center active:scale-95 transition"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 text-white/70" />
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center text-center">
+            <div className="w-[76px] h-[76px] rounded-[22px] bg-rose-500/15 ring-1 ring-rose-400/25 flex items-center justify-center">
+              <Gift className="w-9 h-9 text-rose-400" />
+            </div>
+            <h1 className="mt-5 text-[27px] leading-[1.15] font-bold tracking-tight">
+              {FREE_ACCESS_MONTHS} months of Pro,
+              <br />free
+            </h1>
+            <p className="mt-3 max-w-[300px] text-[14px] text-white/50">
+              For a better experience, Cutzioo is gifting you a free {FREE_ACCESS_MONTHS}-month Pro
+              subscription, active until {freeAccessUntilLabel()}. No payment, no renewal, nothing to
+              cancel.
+            </p>
+          </div>
+
+          <div className="mt-7 rounded-[22px] bg-white/[0.04] ring-1 ring-white/[0.07] divide-y divide-white/[0.06]">
+            {PERKS.map((p) => (
+              <div key={p.label} className="flex items-center gap-3 px-4 py-3.5">
+                <p.icon className="w-[18px] h-[18px] text-white/45 shrink-0" />
+                <span className="text-[14.5px] text-white/85">{p.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={onClose}
+            className="mt-6 w-full h-[52px] rounded-full bg-rose-500 text-white text-[16px] font-semibold active:scale-[0.98] transition"
+          >
+            Start using it
+          </button>
+
+          <p className="mt-3 text-center text-[12px] text-white/30">
+            If you already had a paid plan, it stays on your account — you're just not charged
+            during this period.
+          </p>
+          <div style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }} />
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function PaidPricing() {
+  const navigate = useNavigate();
   const [plan, setPlan] = useState<PlanKey>(OPTIONS[0]?.key ?? "monthly");
   const [freeTrial, setFreeTrial] = useState(STRIPE_TRIAL_ENABLED);
   const active = OPTIONS.find((o) => o.key === plan) ?? OPTIONS[0];
@@ -69,7 +138,7 @@ export default function Pricing() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 240, damping: 30 }}
-        className="min-h-screen mt-3 rounded-t-[32px] bg-[#0B0B0E] text-white flex flex-col overflow-hidden"
+        className="min-h-screen rounded-t-[32px] bg-[#0B0B0E] text-white flex flex-col overflow-hidden"
       >
         <div className="flex-1 overflow-y-auto px-6 pt-6 pb-8">
           <div className="flex justify-end">

@@ -23,6 +23,7 @@ import { usePremium } from "@/hooks/use-premium";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
 import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
+import BookingLinkPreview from "@/components/BookingLinkPreview";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const BUTTON_COLORS: { value: string; label: string; tw: string }[] = [
@@ -45,14 +46,15 @@ const cleanSlug = (raw: string) =>
 const LANGS = [
   { value: "en", label: "English", flag: "🇬🇧" },
   { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
-  { value: "es", label: "Español", flag: "��" },
-  { value: "pl", label: "Polski", flag: "🇵🇱" },
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "nl", label: "Nederlands", flag: "🇳🇱" },
 ] as const;
 
 const CURRENCY_BY_LOCALE: Record<string, string> = {
   en: "GBP",
   el: "EUR",
   es: "EUR",
+  nl: "EUR",
   pl: "PLN",
 };
 
@@ -80,7 +82,7 @@ const BookingLinkGenerator = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_theme, booking_locale"
+          "booking_link, full_name, business_name, ask_phone, ask_notes, brand_color, booking_theme, booking_locale, avatar_url, banner_url, address, description, rating, rating_count, website_design_requested"
         )
         .eq("id", user.id)
         .single();
@@ -107,6 +109,20 @@ const BookingLinkGenerator = () => {
         throw error;
       }
       return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: servicesCount = 0 } = useQuery({
+    queryKey: ["services-count", user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { count } = await supabase
+        .from("services")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("deleted_at", null);
+      return count ?? 0;
     },
     enabled: !!user,
   });
@@ -197,6 +213,27 @@ const BookingLinkGenerator = () => {
     }
   };
 
+  const saveLocale = async (value: string) => {
+    setBookingLocale(value);
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          booking_locale: value,
+          currency: CURRENCY_BY_LOCALE[value] || "EUR",
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["profile-booking-link"] });
+      toast({ title: "Language updated", description: "Booking page and emails will use it." });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Couldn't save language", variant: "destructive" });
+    }
+  };
+
   const resetToSuggested = () => setCustomSlug(suggestedSlug);
 
   const copyToClipboard = async () => {
@@ -275,6 +312,20 @@ const BookingLinkGenerator = () => {
           </p>
         </div>
       </div>
+
+      {/* Live booking page preview */}
+      <BookingLinkPreview
+        name={(profile as any)?.business_name || profile?.full_name || "Your business"}
+        subtitle={(profile as any)?.business_name ? profile?.full_name || "Barber" : "Barber"}
+        about={(profile as any)?.description}
+        address={(profile as any)?.address}
+        avatarUrl={(profile as any)?.avatar_url}
+        bannerUrl={(profile as any)?.banner_url}
+        rating={(profile as any)?.rating}
+        ratingCount={(profile as any)?.rating_count}
+        servicesCount={servicesCount}
+        brandColor={brandColor}
+      />
 
       {/* URL preview */}
       <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
@@ -370,6 +421,38 @@ const BookingLinkGenerator = () => {
         )}
       </div>
 
+
+      {/* Language */}
+      <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-3">
+        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Booking language
+        </Label>
+        <p className="text-[11px] text-white/40 -mt-1">
+          Used on your booking link and confirmation emails.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {LANGS.map((l) => {
+            const active = bookingLocale === l.value;
+            return (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => saveLocale(l.value)}
+                className={cn(
+                  "h-12 rounded-[18px] border px-3 flex items-center gap-2 text-[13px] font-medium transition",
+                  active
+                    ? "bg-white/10 border-rose-500/50 text-white"
+                    : "bg-[#2C2C2E] border-white/5 text-white/60 hover:text-white"
+                )}
+              >
+                <span className="text-base">{l.flag}</span>
+                <span className="truncate">{l.label}</span>
+                {active && <Check className="ml-auto h-4 w-4 text-rose-400" />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Theme */}
       <div className="rounded-[28px] bg-[#1C1C1E] border border-rose-500/10 p-4 space-y-4 overflow-hidden">

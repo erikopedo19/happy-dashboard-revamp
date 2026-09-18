@@ -1,0 +1,1 @@
+ALTER TABLE public.microsites ADD COLUMN IF NOT EXISTS whatsapp text;

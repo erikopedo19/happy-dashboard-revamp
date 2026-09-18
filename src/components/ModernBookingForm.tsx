@@ -188,6 +188,13 @@ const ModernBookingForm = ({
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
     setSelectedStylistId("");
+    // Auto-advance to next step after selecting time
+    setAnimationDirection("forward");
+    if (stylists.length > 0) {
+      setStep("stylist");
+    } else {
+      setStep("details");
+    }
   };
 
   const handleStylistSelect = (stylistId: string) => {
@@ -482,11 +489,11 @@ const ModernBookingForm = ({
               <p className={`${getTextMutedClass()} text-sm`}>Select a service to continue</p>
             </div>
 
-            {/* Streak / Loyalty card — iOS style */}
+            {/* Streak card — iOS style */}
             <div className={cn(`mb-6 rounded-2xl border p-4 ${getCardBgClass()} ${getBorderClass()} overflow-hidden`)}>
               <Tabs defaultValue="streak">
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${getTextMutedClass()}`}>Loyalty</p>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${getTextMutedClass()}`}>Progress</p>
                   <TabsList className={cn(`rounded-full p-1 ${getCardBgClassSecondary()} ${getBorderClass()} border`)}>
                     <TabsTrigger value="streak" className="text-xs px-3 py-1 rounded-full">Streak</TabsTrigger>
                     <TabsTrigger value="perks" className="text-xs px-3 py-1 rounded-full">Perks</TabsTrigger>
@@ -898,24 +905,6 @@ const ModernBookingForm = ({
                   )}
                 </div>
 
-                {/* Continue Button */}
-                {selectedDate && availableTimeSlots.length > 0 && (
-                  <div className="mt-6">
-                    <Button
-                      onClick={handleContinue}
-                      disabled={!selectedTime}
-                      className={cn(
-                        "w-full py-3 px-6 rounded-xl font-semibold text-white transition-all",
-                        selectedTime
-                          ? ""
-                          : "bg-gray-600 cursor-not-allowed"
-                      )}
-                      style={selectedTime ? accentStyle : {}}
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                )}
               </>
             )}
 
@@ -976,7 +965,7 @@ const ModernBookingForm = ({
                 <h4 className={`text-sm font-medium ${getTextClass()} mb-4`}>Your Details</h4>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleGoToReview)} className="space-y-4 flex-1">
+                  <form onSubmit={form.handleSubmit(handleConfirmBooking)} className="space-y-4 flex-1">
                     <FormField
                       control={form.control}
                       name="customer_name"
@@ -1048,7 +1037,7 @@ const ModernBookingForm = ({
                           </>
                         ) : (
                           <>
-                            {rescheduleAppointment ? "Review Change" : "Review booking"}
+                            {rescheduleAppointment ? "Confirm Change" : "Book Appointment"}
                           </>
                         )}
                       </Button>

@@ -1,0 +1,302 @@
+// Stripe Connect onboarding for app owners (barbers/shops).
+// Actions: status | onboard | dashboard
+// Requires a signed-in user; the connected account always belongs to that user.
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
+};
+
+const STRIPE_SECRET_KEY = (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
+const STRIPE_API = "https://api.stripe.com/v1";
+const PLATFORM_FEE_CENTS = 25; // 25 cent platform fee
+const STRIPE_CONNECT_SETUP_URL = "https://dashboard.stripe.com/connect";
+
+function form(obj: Record<string, string | number | boolean | undefined>) {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(obj)) if (v !== undefined) p.append(k, String(v));
+  return p;
+}
+
+async function stripe(path: string, body?: URLSearchParams, method = "POST", onBehalfOf?: string) {
+  const res = await fetch(`${STRIPE_API}${path}`, {
+    method: body ? method : "GET",
+    headers: {
+      Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Stripe-Version": "2024-06-20",
+      ...(onBehalfOf ? { "Stripe-Account": onBehalfOf } : {}),
+    },
+    body,
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    console.error(`Stripe ${path} failed [${res.status}]: ${text}`);
+    throw new Error(`[${res.status}]: ${text}`);
+  }
+  return JSON.parse(text);
+}
+
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    console.log("Stripe Connect function called");
+    
+    if (!STRIPE_SECRET_KEY) {
+      console.error("STRIPE_SECRET_KEY is not configured");
+      return json({ error: "STRIPE_SECRET_KEY is not configured" }, 500);
+    }
+
+    if (!/^(sk|rk)_(live|test)_/.test(STRIPE_SECRET_KEY)) {
+      console.error("STRIPE_SECRET_KEY has an invalid format (expected sk_live_/sk_test_)");
+      return json(
+        { error: "STRIPE_SECRET_KEY is invalid. It must be a Stripe secret key starting with sk_live_ or sk_test_." },
+        500,
+      );
+    }
+
+
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace("Bearer ", "").trim();
+    if (!token) {
+      console.error("No authorization token provided");
+      return json({ error: "Not authenticated" }, 401);
+    }
+
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
+    );
+
+    const { data: userData, error: userErr } = await admin.auth.getUser(token);
+    const user = userData?.user;
+    if (userErr || !user) {
+      console.error("User authentication failed:", userErr);
+      return json({ error: "Not authenticated" }, 401);
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const action = String(body.action ?? "status");
+    const returnUrl = typeof body.return_url === "string" ? body.return_url : "";
+
+    console.log(`Processing stripe-connect action: ${action} for user: ${user.id}`);
+
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("stripe_account_id, currency, business_name, full_name, sender_email")
+      .eq("id", user.id)
+      .maybeSingle();
+    
+    if (profileError) {
+      console.error("Profile fetch error:", profileError);
+      return json({ error: "Failed to fetch profile", details: profileError.message }, 500);
+    }
+    
+    if (!profile) {
+      console.error("No profile found for user:", user.id);
+      return json({ error: "No profile found. Please complete your profile first." }, 400);
+    }
+
+    let accountId: string | null = profile?.stripe_account_id ?? null;
+
+    const syncFromAccount = async (acct: any) => {
+      const fields = {
+        stripe_account_id: acct.id,
+        stripe_charges_enabled: !!acct.charges_enabled,
+        stripe_payouts_enabled: !!acct.payouts_enabled,
+        stripe_details_submitted: !!acct.details_submitted,
+        payments_enabled: !!acct.charges_enabled && !!acct.payouts_enabled,
+        stripe_onboarded_at: acct.details_submitted ? new Date().toISOString() : null,
+      };
+      await admin.from("profiles").update(fields).eq("id", user.id);
+      return fields;
+    };
+
+    if (action === "status") {
+      if (!accountId) return json({ connected: false, platform_fee: PLATFORM_FEE_CENTS });
+      
+      try {
+        console.log("Fetching account status for:", accountId);
+        const acct = await stripe(`/accounts/${accountId}`);
+        const fields = await syncFromAccount(acct);
+        
+        return json({
+          connected: true,
+          account_id: acct.id,
+          charges_enabled: fields.stripe_charges_enabled,
+          payouts_enabled: fields.stripe_payouts_enabled,
+          details_submitted: fields.stripe_details_submitted,
+          requirements_due: acct.requirements?.currently_due ?? [],
+          platform_fee: PLATFORM_FEE_CENTS,
+        });
+      } catch (stripeError) {
+        console.error("Stripe status error:", stripeError);
+        return json({ 
+          connected: false, 
+          error: `Failed to fetch account status: ${(stripeError as Error).message}`,
+          platform_fee: PLATFORM_FEE_CENTS,
+        }, 500);
+      }
+    }
+
+    // Read-only earnings snapshot for the owner's own connected account.
+    // Uses the platform key with the Stripe-Account header — no extra credentials needed.
+    if (action === "balance") {
+      if (!accountId) return json({ connected: false, available: 0, pending: 0, currency: "usd", payouts: [], transactions: [] });
+      try {
+        const [balance, payouts, txns] = await Promise.all([
+          stripe(`/balance`, undefined, "GET", accountId),
+          stripe(`/payouts?limit=5`, undefined, "GET", accountId).catch(() => ({ data: [] })),
+          stripe(`/balance_transactions?limit=8`, undefined, "GET", accountId).catch(() => ({ data: [] })),
+        ]);
+        const sum = (arr: any[]) => (arr ?? []).reduce((t, b) => t + (b.amount ?? 0), 0);
+        const currency = balance?.available?.[0]?.currency ?? balance?.pending?.[0]?.currency ?? "usd";
+        const lifetime = (txns?.data ?? [])
+          .filter((t: any) => t.type === "charge" || t.type === "payment")
+          .reduce((t: number, x: any) => t + (x.net ?? 0), 0);
+        return json({
+          connected: true,
+          currency,
+          available: sum(balance?.available) / 100,
+          pending: sum(balance?.pending) / 100,
+          recent_net: lifetime / 100,
+          payouts: (payouts?.data ?? []).map((p: any) => ({
+            id: p.id,
+            amount: (p.amount ?? 0) / 100,
+            currency: p.currency,
+            status: p.status,
+            arrival_date: p.arrival_date,
+          })),
+          transactions: (txns?.data ?? []).map((t: any) => ({
+            id: t.id,
+            amount: (t.amount ?? 0) / 100,
+            net: (t.net ?? 0) / 100,
+            currency: t.currency,
+            type: t.type,
+            description: t.description,
+            created: t.created,
+          })),
+        });
+      } catch (e) {
+        console.error("Stripe balance error:", e);
+        return json({ connected: true, error: `Failed to load balance: ${(e as Error).message}` }, 500);
+      }
+    }
+
+
+    if (action === "onboard") {
+      try {
+        if (!accountId) {
+          console.log("Creating new Stripe account for user:", user.id);
+          const acct = await stripe(
+            "/accounts",
+            form({
+              type: "express",
+              country: "US",
+              email: profile?.sender_email || user.email,
+              "business_profile[url]": `https://cutzioo.com/book/${user.id}`,
+              "business_profile[name]": profile?.business_name || profile?.full_name || "",
+              "capabilities[card_payments][requested]": "true",
+              "capabilities[transfers][requested]": "true",
+              "settings[payouts][debit_negative_balances]": "true",
+              "settings[payouts][schedule][interval]": "daily",
+            }),
+          );
+          accountId = acct.id;
+          console.log("Created Stripe account:", accountId);
+          
+          const { error: updateError } = await admin.from("profiles").update({ stripe_account_id: accountId }).eq("id", user.id);
+          if (updateError) {
+            console.error("Failed to update profile with stripe_account_id:", updateError);
+            return json({ error: "Failed to save account ID" }, 500);
+          }
+        }
+
+        if (!accountId) {
+          return json({ error: "Unable to create a Stripe connected account." }, 500);
+        }
+
+        console.log("Creating account link for:", accountId);
+        const link = await stripe(
+          "/account_links",
+          form({
+            account: accountId,
+            refresh_url: returnUrl || "https://cutzioo.com/settings",
+            return_url: returnUrl || "https://cutzioo.com/settings",
+            type: "account_onboarding",
+          }),
+        );
+        
+        if (!link.url) {
+          console.error("No URL returned from account_links creation");
+          return json({ error: "Failed to generate onboarding link" }, 500);
+        }
+        
+        console.log("Successfully created account link");
+        return json({ url: link.url, platform_fee: PLATFORM_FEE_CENTS });
+      } catch (stripeError) {
+        console.error("Stripe onboarding error:", stripeError);
+        const message = (stripeError as Error).message;
+        if (message.includes("signed up for Connect")) {
+          return json({
+            requires_connect_activation: true,
+            setup_url: STRIPE_CONNECT_SETUP_URL,
+            error: "Stripe Connect must be activated on your Stripe account before payout accounts can be created.",
+          });
+        }
+        if (message.includes("complete your platform profile")) {
+          return json({
+            requires_connect_activation: true,
+            setup_url: "https://dashboard.stripe.com/connect/accounts/overview",
+            error:
+              "Stripe needs your platform profile questionnaire completed before payout accounts can be created. Finish it in your Stripe dashboard, then try again.",
+          });
+        }
+        return json({ error: `Stripe onboarding failed: ${message}` }, 500);
+      }
+    }
+
+    if (action === "dashboard") {
+      if (!accountId) {
+        console.error("No connected account for dashboard action");
+        return json({ error: "No connected account" }, 400);
+      }
+      
+      try {
+        console.log("Creating dashboard link for:", accountId);
+        const link = await stripe(`/accounts/${accountId}/login_links`, form({}));
+        
+        if (!link.url) {
+          console.error("No URL returned from login_links creation");
+          return json({ error: "Failed to generate dashboard link" }, 500);
+        }
+        
+        console.log("Successfully created dashboard link");
+        return json({ url: link.url });
+      } catch (stripeError) {
+        console.error("Stripe dashboard error:", stripeError);
+        return json({ error: `Stripe dashboard failed: ${(stripeError as Error).message}` }, 500);
+      }
+    }
+
+    return json({ error: "Unknown action" }, 400);
+  } catch (e) {
+    console.error("stripe-connect error:", e);
+    return json({ error: String((e as Error).message ?? e) }, 500);
+  }
+});

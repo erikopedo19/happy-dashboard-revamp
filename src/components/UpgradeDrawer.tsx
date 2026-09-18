@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Sparkles, Check, X, BarChart3, TrendingUp, Mail, Image, Headphones } from "lucide-react";
+import { Crown, Sparkles, X, Bell, Star, Unlock } from "lucide-react";
 import { Button } from "@heroui/react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { usePremium } from "@/hooks/use-premium";
@@ -13,13 +13,10 @@ const DISMISSED_KEY = "cutzio_upgrade_dismissed_at";
 
 const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
 
-const PERKS = [
-  { label: "Reports", path: "/reports", icon: "BarChart3" },
-  { label: "Revenue Tracker", path: "/reports", icon: "TrendingUp" },
-  { label: "Animated premium button themes", path: "/settings", icon: "Sparkles" },
-  { label: "Automatic review request emails", path: "/settings?tab=messages", icon: "Mail" },
-  { label: "Bigger banner & photo uploads", path: "/settings?tab=booking", icon: "Image" },
-  { label: "Priority support from the team", path: "/settings?tab=general", icon: "Headphones" },
+const TIMELINE = [
+  { icon: Unlock, title: "Today", body: "Full access to reports, themes, review emails and priority support." },
+  { icon: Bell, title: "Day 5", body: "We'll remind you before the trial ends — check your inbox." },
+  { icon: Star, title: "Day 7", body: "You'll be charged unless you cancel anytime before." },
 ];
 
 /**
@@ -34,6 +31,7 @@ export function UpgradeDrawer() {
   const navigate = useNavigate();
   const { loading, isPremium } = usePremium();
   const [open, setOpen] = useState(false);
+  const [plan, setPlan] = useState<"annual" | "monthly">("annual");
 
   // Hide immediately if the user becomes Pro while the drawer is open
   useEffect(() => {
@@ -74,71 +72,96 @@ export function UpgradeDrawer() {
     setOpen(false);
   };
 
+  const price = plan === "annual" ? { today: "€0.00", after: "€6.99/mo billed yearly" } : { today: "€0.00", after: "€9.99/mo" };
+
   if (loading || isPremium) return null;
 
 
   return (
     <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
-      <DrawerContent>
-        <div className="mx-auto w-full max-w-md px-6 pb-8 pt-2">
+      <DrawerContent className="border-white/[0.06] bg-[#0B0B0D] text-white">
+        <div className="relative mx-auto w-full max-w-md px-6 pb-8 pt-3">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-[radial-gradient(80%_60%_at_50%_120%,rgba(225,29,72,0.35),transparent_70%)]" />
+
+          <div className="relative flex items-start justify-between">
+            <span className="text-[11px] leading-tight text-white/40">Restore<br />purchase</span>
+            <button
+              onClick={dismiss}
+              aria-label="Close"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition active:scale-95"
+            >
+              <X className="h-4 w-4 text-white" />
+            </button>
+          </div>
+
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[26px] bg-gradient-to-br from-amber-300 to-yellow-500 shadow-lg shadow-amber-900/30"
+            className="relative mx-auto mt-1 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-gradient-to-br from-[#FF7A45] to-[#E11D48] shadow-[0_16px_40px_-16px_rgba(225,29,72,0.8)]"
           >
-            <Crown className="h-8 w-8 text-[#1C1C1E]" />
+            <Crown className="h-8 w-8 text-white" />
           </motion.div>
 
-          <h2 className="text-center text-[22px] font-bold tracking-tight text-[#1C1C1E] dark:text-white">Go Pro</h2>
-          <p className="mx-auto mt-1 max-w-[280px] text-center text-[13px] text-[#8E8E93] dark:text-white/50">
-            Unlock the tools that keep your chair full.
-          </p>
+          <h2 className="relative mt-4 text-center text-[22px] font-bold leading-tight tracking-tight">
+            Here&apos;s how your 7 days
+            <br />free trial works
+          </h2>
 
-          <div className="mt-5 grid grid-cols-1 gap-2">
-            {PERKS.map((p) => {
-              const IconComponent = {
-                BarChart3,
-                TrendingUp,
-                Sparkles,
-                Mail,
-                Image,
-                Headphones,
-              }[p.icon] as any;
-              return (
-                <Button
-                  key={p.label}
-                  variant="light"
-                  onPress={() => {
-                    setOpen(false);
-                    navigate(p.path);
-                  }}
-                  className="flex items-center gap-3 rounded-2xl border border-black/[0.05] bg-black/[0.03] dark:border-white/[0.06] dark:bg-white/[0.04] px-4 py-3 text-left justify-start h-auto"
-                >
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-500 dark:text-amber-300">
-                    {IconComponent ? <IconComponent className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
-                  </div>
-                  <span className="text-[14px] text-[#1C1C1E]/80 dark:text-white/80">{p.label}</span>
-                </Button>
-              );
-            })}
+          <div className="relative mx-auto mt-4 flex w-fit items-center rounded-full bg-white/[0.08] p-1">
+            {(["annual", "monthly"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPlan(p)}
+                className={`relative h-9 rounded-full px-5 text-[14px] font-semibold transition-colors ${
+                  plan === p ? "text-black" : "text-white/60"
+                }`}
+              >
+                {plan === p && (
+                  <motion.span layoutId="paywall-plan" transition={{ type: "spring", stiffness: 480, damping: 38 }} className="absolute inset-0 rounded-full bg-white" />
+                )}
+                <span className="relative z-10">{p === "annual" ? "Annual" : "Monthly"}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="relative mt-6 space-y-4">
+            {TIMELINE.map((t) => (
+              <div key={t.title} className="flex gap-3">
+                <div className="flex flex-col items-center pt-1">
+                  <t.icon className="h-4 w-4 text-white" />
+                  <span className="mt-1 w-[3px] flex-1 rounded-full bg-gradient-to-b from-[#FF7A45] to-[#E11D48]" />
+                </div>
+                <div className="pb-1">
+                  <p className="text-[15px] font-semibold">{t.title}</p>
+                  <p className="text-[12.5px] leading-snug text-white/45">{t.body}</p>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-4 w-4 text-[#FF7A45]" />
+              <p className="text-[15px] font-semibold">Unlimited bookings, unlocked</p>
+            </div>
           </div>
 
           <Button
             onPress={() => {
               setOpen(false);
-              navigate("/pricing");
+              navigate(`/pricing?plan=${plan}&trial=1`);
             }}
-            className="mt-6 h-14 w-full rounded-full bg-black text-white text-[16px] font-semibold shadow-[0_10px_28px_-12px_rgba(0,0,0,0.7)]"
+            className="relative mt-6 h-14 w-full rounded-full bg-[#EDEDED] text-[16px] font-semibold text-black"
           >
-            <Sparkles className="h-4 w-4" />
-            See Pro plans
+            Try for {price.today}
           </Button>
+
+          <p className="relative mt-2.5 text-center text-[12px] text-white/45">
+            First 7 days free, then {price.after}
+          </p>
 
           <Button
             variant="light"
             onPress={dismiss}
-            className="mt-3 w-full text-center text-[13px] font-medium text-[#8E8E93] dark:text-white/40 h-auto py-2"
+            className="relative mt-1 w-full text-center text-[13px] font-medium text-white/35 h-auto py-2"
           >
             Maybe later
           </Button>

@@ -16,6 +16,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const upload = async (file: File, folder: string) => {
   const ext = file.name.split(".").pop();
@@ -393,6 +394,10 @@ const ImageField = ({ url, onPick, onClear, aspect, rounded = "rounded-2xl" }: a
 
 const MicrositeEditor = () => {
   return (
+    <PremiumGate
+      featureName="Your website"
+      description="Microsites are part of Cutzioo Pro. Upgrade to publish your own booking website."
+    >
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
         <AppSidebar />
@@ -403,6 +408,7 @@ const MicrositeEditor = () => {
         </main>
       </div>
     </SidebarProvider>
+    </PremiumGate>
   );
 };
 

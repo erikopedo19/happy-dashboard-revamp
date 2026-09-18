@@ -202,6 +202,48 @@ serve(async (req: Request) => {
       );
     }
 
+    // --- Free plan cap: max 20 appointments per calendar month ---
+    {
+      const { data: sub } = await supabase
+        .from("subscribers")
+        .select("subscribed, subscription_end")
+        .eq("user_id", payload.businessId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const isPremium = !!sub?.subscribed &&
+        (!sub?.subscription_end || new Date(sub.subscription_end) > new Date());
+
+      if (!isPremium) {
+        // Cap is per calendar month of the REQUESTED appointment date, and
+        // cancelled / no-show appointments do not count against the limit.
+        const [ry, rm] = payload.appointmentDate.split("-").map(Number);
+        const monthStart = `${ry}-${String(rm).padStart(2, "0")}-01`;
+        const monthEnd = new Date(Date.UTC(ry, rm, 1)).toISOString().slice(0, 10);
+
+        const { count } = await supabase
+          .from("appointments")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", payload.businessId)
+          .gte("appointment_date", monthStart)
+          .lt("appointment_date", monthEnd)
+          .not("status", "in", "(cancelled,canceled,no_show,no-show)");
+
+        if ((count ?? 0) >= 20) {
+          return json(
+            {
+              error: "Booking limit reached",
+              details:
+                "This business has reached its monthly booking limit. Please contact them directly.",
+            },
+            402,
+          );
+        }
+      }
+    }
+
+
     // Fetch services and validate ownership
     const { data: services, error: servicesError } = await supabase
       .from("services")

@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, CreditCard } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
+import { el as elLocale, es as esLocale, nl as nlLocale, pl as plLocale } from 'date-fns/locale';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
@@ -55,11 +56,13 @@ interface AgendaBookingFormProps {
     currency?: string | null;
   } | null;
   workingDays?: number[];
+  paymentsEnabled?: boolean;
+
   disabledDates?: string[];
 
   timezone?: string;
   rescheduleAppointment?: any;
-  locale?: "en" | "el" | "es" | "pl";
+  locale?: "en" | "el" | "es" | "pl" | "nl";
   askPhone?: boolean;
   askNotes?: boolean;
   submitLabel?: string;
@@ -88,12 +91,14 @@ const AgendaBookingForm = ({
   askPhone = true,
   askNotes = true,
   submitLabel,
+  paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [payMethod, setPayMethod] = useState<"shop" | "card">("shop");
 
   const bookingTheme = businessProfile?.booking_theme || "default";
   const themeColors: Record<string, string> = {
@@ -170,50 +175,87 @@ const AgendaBookingForm = ({
   }, [businessProfile?.full_name]);
   const avatarUrl = businessProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
   const bannerUrl = businessProfile?.banner_url;
-  const copy = locale === "el"
-    ? {
-        service: "Επιλέξτε υπηρεσία",
-        dateTime: "Επιλέξτε ημερομηνία και ώρα",
-        details: "Τα στοιχεία σας",
-        continue: "Συνέχεια",
-        back: "Πίσω",
-        selectedService: "Επιλεγμένη υπηρεσία",
-        selectedServices: "Επιλεγμένες υπηρεσίες",
-        total: "Σύνολο",
-        book: "Κλείστε Ραντεβού",
-        bookAnother: "Νέα κράτηση",
-        booked: "Η κράτησή σας ολοκληρώθηκε",
-        confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
-      }
-    : locale === "es"
-    ? {
-        service: "Selecciona un servicio",
-        dateTime: "Elige fecha y hora",
-        details: "Tus datos",
-        continue: "Continuar",
-        back: "Atrás",
-        selectedService: "Servicio seleccionado",
-        selectedServices: "Servicios seleccionados",
-        total: "Total",
-        book: "Reservar cita",
-        bookAnother: "Nueva reserva",
-        booked: "Reserva confirmada",
-        confirmation: "Se ha enviado la confirmación a tu correo.",
-      }
-    : {
-        service: "Select a service",
-        dateTime: "Choose date and time",
-        details: "Your details",
-        continue: "Continue",
-        back: "Back",
-        selectedService: "Selected service",
-        selectedServices: "Selected services",
-        total: "Total",
-        book: "Book Appointment",
-        bookAnother: "Book another",
-        booked: "You’re booked",
-        confirmation: "Confirmation just landed in your inbox.",
-      };
+  const COPY = {
+    en: {
+      service: "Select a service", dateTime: "Choose date and time", details: "Your details",
+      continue: "Continue", back: "Back", selectedService: "Selected service", selectedServices: "Selected services",
+      total: "Total", book: "Book Appointment", bookAnother: "Book another", booked: "You’re booked",
+      confirmation: "Confirmation just landed in your inbox.",
+      tabService: "Service", tabTime: "Time", tabDetails: "Details",
+      dateTimeShort: "Date & time", selectDate: "Select a date", noTimes: "No available times",
+      selectDateForTimes: "Select a date to see times", timesIn: "Times in",
+      selectStylist: "Select stylist", stylist: "Stylist", noStylists: "No stylists available for this time",
+      pickAnotherTime: "Pick another time", name: "Name", namePh: "Your name", email: "Email",
+      phone: "Phone", notes: "Notes", notesPh: "Anything we should know?",
+      processing: "Processing...", confirmChange: "Confirm Change",
+      updated: "Appointment updated", rescheduled: "Your appointment has been rescheduled successfully.",
+      pickServiceHint: "Select a service on the right to get started.", inPerson: "In-person", mins: "min",
+    },
+    el: {
+      service: "Επιλέξτε υπηρεσία", dateTime: "Επιλέξτε ημερομηνία και ώρα", details: "Τα στοιχεία σας",
+      continue: "Συνέχεια", back: "Πίσω", selectedService: "Επιλεγμένη υπηρεσία", selectedServices: "Επιλεγμένες υπηρεσίες",
+      total: "Σύνολο", book: "Κλείστε Ραντεβού", bookAnother: "Νέα κράτηση", booked: "Η κράτησή σας ολοκληρώθηκε",
+      confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
+      tabService: "Υπηρεσία", tabTime: "Ώρα", tabDetails: "Στοιχεία",
+      dateTimeShort: "Ημερομηνία & ώρα", selectDate: "Επιλέξτε ημερομηνία", noTimes: "Δεν υπάρχουν διαθέσιμες ώρες",
+      selectDateForTimes: "Επιλέξτε ημερομηνία για να δείτε ώρες", timesIn: "Ώρες σε",
+      selectStylist: "Επιλέξτε κομμωτή", stylist: "Κομμωτής", noStylists: "Δεν υπάρχουν διαθέσιμοι για αυτή την ώρα",
+      pickAnotherTime: "Επιλέξτε άλλη ώρα", name: "Όνομα", namePh: "Το όνομά σας", email: "Email",
+      phone: "Τηλέφωνο", notes: "Σημειώσεις", notesPh: "Κάτι που πρέπει να ξέρουμε;",
+      processing: "Επεξεργασία...", confirmChange: "Επιβεβαίωση αλλαγής",
+      updated: "Η κράτηση ενημερώθηκε", rescheduled: "Η κράτησή σας προγραμματίστηκε ξανά.",
+      pickServiceHint: "Επιλέξτε μια υπηρεσία για να ξεκινήσετε.", inPerson: "Με φυσική παρουσία", mins: "λεπτά",
+    },
+    es: {
+      service: "Selecciona un servicio", dateTime: "Elige fecha y hora", details: "Tus datos",
+      continue: "Continuar", back: "Atrás", selectedService: "Servicio seleccionado", selectedServices: "Servicios seleccionados",
+      total: "Total", book: "Reservar cita", bookAnother: "Nueva reserva", booked: "Reserva confirmada",
+      confirmation: "Se ha enviado la confirmación a tu correo.",
+      tabService: "Servicio", tabTime: "Hora", tabDetails: "Datos",
+      dateTimeShort: "Fecha y hora", selectDate: "Elige una fecha", noTimes: "No hay horas disponibles",
+      selectDateForTimes: "Elige una fecha para ver las horas", timesIn: "Horas en",
+      selectStylist: "Elige estilista", stylist: "Estilista", noStylists: "No hay estilistas para esta hora",
+      pickAnotherTime: "Elegir otra hora", name: "Nombre", namePh: "Tu nombre", email: "Correo",
+      phone: "Teléfono", notes: "Notas", notesPh: "¿Algo que debamos saber?",
+      processing: "Procesando...", confirmChange: "Confirmar cambio",
+      updated: "Reserva actualizada", rescheduled: "Tu reserva se ha modificado.",
+      pickServiceHint: "Selecciona un servicio para empezar.", inPerson: "Presencial", mins: "min",
+    },
+    nl: {
+      service: "Kies een dienst", dateTime: "Kies datum en tijd", details: "Jouw gegevens",
+      continue: "Doorgaan", back: "Terug", selectedService: "Gekozen dienst", selectedServices: "Gekozen diensten",
+      total: "Totaal", book: "Afspraak boeken", bookAnother: "Nieuwe afspraak", booked: "Je afspraak staat",
+      confirmation: "De bevestiging is naar je e-mail gestuurd.",
+      tabService: "Dienst", tabTime: "Tijd", tabDetails: "Gegevens",
+      dateTimeShort: "Datum & tijd", selectDate: "Kies een datum", noTimes: "Geen beschikbare tijden",
+      selectDateForTimes: "Kies een datum om tijden te zien", timesIn: "Tijden in",
+      selectStylist: "Kies stylist", stylist: "Stylist", noStylists: "Geen stylisten beschikbaar voor deze tijd",
+      pickAnotherTime: "Kies een andere tijd", name: "Naam", namePh: "Je naam", email: "E-mail",
+      phone: "Telefoon", notes: "Opmerkingen", notesPh: "Iets wat we moeten weten?",
+      processing: "Bezig...", confirmChange: "Wijziging bevestigen",
+      updated: "Afspraak bijgewerkt", rescheduled: "Je afspraak is verzet.",
+      pickServiceHint: "Kies een dienst om te beginnen.", inPerson: "Op locatie", mins: "min",
+    },
+    pl: {
+      service: "Wybierz usługę", dateTime: "Wybierz datę i godzinę", details: "Twoje dane",
+      continue: "Dalej", back: "Wstecz", selectedService: "Wybrana usługa", selectedServices: "Wybrane usługi",
+      total: "Razem", book: "Zarezerwuj", bookAnother: "Nowa rezerwacja", booked: "Rezerwacja potwierdzona",
+      confirmation: "Potwierdzenie zostało wysłane na Twój e-mail.",
+      tabService: "Usługa", tabTime: "Godzina", tabDetails: "Dane",
+      dateTimeShort: "Data i godzina", selectDate: "Wybierz datę", noTimes: "Brak dostępnych godzin",
+      selectDateForTimes: "Wybierz datę, aby zobaczyć godziny", timesIn: "Godziny w",
+      selectStylist: "Wybierz stylistę", stylist: "Stylista", noStylists: "Brak dostępnych stylistów o tej porze",
+      pickAnotherTime: "Wybierz inną godzinę", name: "Imię", namePh: "Twoje imię", email: "E-mail",
+      phone: "Telefon", notes: "Uwagi", notesPh: "Coś, co powinniśmy wiedzieć?",
+      processing: "Przetwarzanie...", confirmChange: "Potwierdź zmianę",
+      updated: "Rezerwacja zaktualizowana", rescheduled: "Twoja rezerwacja została przełożona.",
+      pickServiceHint: "Wybierz usługę, aby zacząć.", inPerson: "Na miejscu", mins: "min",
+    },
+  } as const;
+  const copy = COPY[locale] ?? COPY.en;
+  const dateLocale = locale === "el" ? elLocale : locale === "es" ? esLocale : locale === "nl" ? nlLocale : locale === "pl" ? plLocale : undefined;
+  const fmt = (date: Date, pattern: string) => format(date, pattern, { locale: dateLocale });
+
 
   // Drop selected services that have been deleted and reset the flow if none remain.
   useEffect(() => {
@@ -342,6 +384,7 @@ const AgendaBookingForm = ({
     setSubmitError(null);
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) values.stylist_id = selectedStylistId;
+    values.pay_method = paymentsEnabled ? payMethod : "shop";
     const result = await onSubmit(values);
     if (!result) return;
     if (typeof result === 'object' && 'success' in result) {
@@ -366,7 +409,7 @@ const AgendaBookingForm = ({
 
   if (step === "success") {
     return (
-      <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center p-4 md:p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0c] flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-md text-center">
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
@@ -374,30 +417,28 @@ const AgendaBookingForm = ({
           >
             <Check className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-2xl font-semibold text-white mb-2">
-            {rescheduleAppointment ? (locale === "el" ? "Η κράτηση ενημερώθηκε" : locale === "es" ? "Reserva actualizada" : "Appointment updated") : copy.booked}
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            {rescheduleAppointment ? copy.updated : copy.booked}
           </h2>
-          <p className="text-[#8E8E93] mb-6">
-            {rescheduleAppointment
-              ? (locale === "el" ? "Η κράτησή σας προγραμματίστηκε ξανά." : locale === "es" ? "Tu reserva se ha modificado." : "Your appointment has been rescheduled successfully.")
-              : copy.confirmation}
+          <p className="text-gray-500 dark:text-[#8E8E93] mb-6">
+            {rescheduleAppointment ? copy.rescheduled : copy.confirmation}
           </p>
-          <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-6 text-left mb-6">
+          <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/[0.08] p-6 text-left mb-6">
             {selectedServices.map((service, index) => (
-              <div key={service.id} className={cn("flex items-center gap-4", index > 0 && "pt-4 border-t border-white/10 mt-4")}>
+              <div key={service.id} className={cn("flex items-center gap-4", index > 0 && "pt-4 border-t border-gray-200 dark:border-white/10 mt-4")}>
                 <img src={avatarUrl} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{service.name}</p>
-                  <p className="text-[#8E8E93] text-sm">{service.duration} mins · {formatCurrency(service.price)}</p>
+                  <p className="text-gray-900 dark:text-white font-medium truncate">{service.name}</p>
+                  <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{service.duration} {copy.mins} · {formatCurrency(service.price)}</p>
                 </div>
               </div>
             ))}
-            <div className="border-t border-white/10 pt-4 mt-4 space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-[#8E8E93]">
+            <div className="border-t border-gray-200 dark:border-white/10 pt-4 mt-4 space-y-2 text-sm">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-[#8E8E93]">
                 <CalendarIcon className="w-4 h-4" />
-                <span>{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+                <span>{selectedDate && fmt(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
               </div>
-              <div className="flex items-center gap-2 text-[#8E8E93]">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-[#8E8E93]">
                 <Clock className="w-4 h-4" />
                 <span>{selectedTime}</span>
               </div>
@@ -417,15 +458,15 @@ const AgendaBookingForm = ({
 
   const activeTabKey = step === "stylist" ? "datetime" : step;
   const stepTabs = [
-    { key: "service", label: locale === "el" ? "Υπηρεσία" : locale === "es" ? "Servicio" : "Service", enabled: true },
+    { key: "service", label: copy.tabService, enabled: true },
     {
       key: "datetime",
-      label: locale === "el" ? "Ώρα" : locale === "es" ? "Hora" : "Time",
+      label: copy.tabTime,
       enabled: selectedServiceIds.length > 0,
     },
     {
       key: "details",
-      label: locale === "el" ? "Στοιχεία" : locale === "es" ? "Datos" : "Details",
+      label: copy.tabDetails,
       enabled: selectedServiceIds.length > 0 && !!selectedTime,
     },
   ];
@@ -433,53 +474,53 @@ const AgendaBookingForm = ({
 
   const MobileSummary = () => (
     <div className="lg:hidden mb-5 px-4 pt-4">
-      <div className="rounded-[28px] bg-[#141416] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+      <div className="rounded-[28px] bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
         <div className="h-28 w-full relative">
           {bannerUrl ? (
             <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#141416] via-transparent to-transparent" />
         </div>
         <div className="px-4 pb-5 -mt-7 relative">
           <div className="flex items-end gap-3 mb-4">
-            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-[#141416] bg-[#2C2C2E]">
+            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-gray-100 dark:bg-[#2C2C2E]">
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
             <div className="pb-1 min-w-0">
-              <h1 className="text-lg font-semibold tracking-tight text-white truncate">{displayName}</h1>
+              <h1 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white truncate">{displayName}</h1>
               {businessProfile?.rating != null && (
                 <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
                   <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
-                  <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
-                  <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
+                  <span className="text-gray-500 dark:text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                 </div>
               )}
             </div>
           </div>
 
           {selectedService && (
-            <div className="rounded-[20px] bg-[#1C1C1E] border border-white/[0.06] p-4 space-y-3">
+            <div className="rounded-[20px] bg-gray-50 dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/[0.06] p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-[#8E8E93] font-semibold mb-0.5">
+                  <p className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-[#8E8E93] font-semibold mb-0.5">
                     {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
                   </p>
-                  <p className="text-white font-medium truncate">
+                  <p className="text-gray-900 dark:text-white font-medium truncate">
                     {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-white font-bold">{formatCurrency(totalPrice)}</p>
-                  <p className="text-[11px] text-[#8E8E93]">{totalDuration} min</p>
+                  <p className="text-gray-900 dark:text-white font-bold">{formatCurrency(totalPrice)}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-[#8E8E93]">{totalDuration} min</p>
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-sm text-[#8E8E93]">
+              <div className="space-y-1.5 text-sm text-gray-500 dark:text-[#8E8E93]">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{businessProfile?.address || "In-person"}</span>
+                  <span className="truncate">{businessProfile?.address || copy.inPerson}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 shrink-0" />
@@ -487,9 +528,9 @@ const AgendaBookingForm = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-                <span className="text-sm font-medium text-white">{copy.total}</span>
-                <span className="text-lg font-bold text-white">{formatCurrency(totalPrice)}</span>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-white/[0.06]">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{copy.total}</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(totalPrice)}</span>
               </div>
             </div>
           )}
@@ -499,8 +540,8 @@ const AgendaBookingForm = ({
   );
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-[#0a0a0c] text-white p-3 md:p-8 lg:p-12 relative">
-      <div className="w-full max-w-6xl mx-auto bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden p-4 md:p-6 lg:p-8 relative z-10">
+    <div className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-[#0a0a0c] text-gray-900 dark:text-white p-3 md:p-8 lg:p-12 relative">
+      <div className="w-full max-w-6xl mx-auto bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden p-4 md:p-6 lg:p-8 relative z-10">
         <MobileSummary />
         <AnimatePresence mode="wait">
           <motion.div
@@ -513,7 +554,7 @@ const AgendaBookingForm = ({
           >
             {/* Left panel — brand + booking info */}
             <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden rounded-2xl shadow-2xl">
+              <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] overflow-hidden rounded-2xl shadow-2xl">
                 <div className="h-44 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -523,47 +564,47 @@ const AgendaBookingForm = ({
                       style={{ background: `linear-gradient(135deg, ${accentColor}40 0%, #E5E5EA 100%)` }}
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C1C1E] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#1C1C1E] via-transparent to-transparent" />
                 </div>
                 <div className="px-5 pb-5 -mt-10 relative">
                   <div className="flex items-end gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-[#1C1C1E] bg-[#2C2C2E]">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white dark:ring-[#1C1C1E] bg-gray-100 dark:bg-[#2C2C2E]">
                       <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                     </div>
                     <div className="pb-1">
                       {businessProfile?.rating != null && (
                         <div className="flex items-center gap-1 text-sm text-[#FFCC00]">
                           <Star className="w-3.5 h-3.5 fill-[#FFCC00]" />
-                          <span className="font-medium text-white">{Number(businessProfile.rating).toFixed(1)}</span>
-                          <span className="text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{Number(businessProfile.rating).toFixed(1)}</span>
+                          <span className="text-gray-500 dark:text-[#8E8E93]">({businessProfile.rating_count ?? 0})</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <h1 className="text-xl font-semibold tracking-tight text-white mb-1">{displayName}</h1>
+                  <h1 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white mb-1">{displayName}</h1>
 
                   {selectedService ? (
                     <div className="mt-4 space-y-4">
                       <div>
-                        <p className="text-xs uppercase tracking-wider text-[#8E8E93] font-semibold mb-1">
+                        <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-[#8E8E93] font-semibold mb-1">
                           {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
                         </p>
-                        <h2 className="text-lg font-semibold text-white">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {selectedServices.length > 1 ? `${selectedServices.length} services` : selectedService.name}
                         </h2>
                         {selectedService.description && selectedServices.length === 1 && (
-                          <p className="text-sm text-[#8E8E93] mt-1 line-clamp-3">{selectedService.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-[#8E8E93] mt-1 line-clamp-3">{selectedService.description}</p>
                         )}
                       </div>
 
                       <div className="space-y-3 text-sm">
-                        <div className="flex items-center gap-3 text-[#8E8E93]">
+                        <div className="flex items-center gap-3 text-gray-500 dark:text-[#8E8E93]">
                           <Clock className="w-4 h-4 shrink-0" />
                           <span>{totalDuration} mins</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#8E8E93]">
                           <MapPin className="w-4 h-4 shrink-0" />
-                          <span className="truncate">{businessProfile?.address || "In-person"}</span>
+                          <span className="truncate">{businessProfile?.address || copy.inPerson}</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#8E8E93]">
                           <Globe className="w-4 h-4 shrink-0" />
@@ -577,24 +618,24 @@ const AgendaBookingForm = ({
                         )}
                       </div>
 
-                      <div className="pt-4 border-t border-white/[0.08]">
+                      <div className="pt-4 border-t border-gray-200 dark:border-white/[0.08]">
                         <div className="flex items-center justify-between">
-                          <span className="text-[#8E8E93]">{copy.total}</span>
-                          <span className="text-xl font-bold text-white">{formatCurrency(totalPrice)}</span>
+                          <span className="text-gray-500 dark:text-[#8E8E93]">{copy.total}</span>
+                          <span className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(totalPrice)}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-[#8E8E93] text-sm mt-3">{locale === "el" ? "Επιλέξτε μια υπηρεσία δεξιά για να ξεκινήσετε." : "Select a service on the right to get started."}</p>
+                    <p className="text-gray-500 dark:text-[#8E8E93] text-sm mt-3">{copy.pickServiceHint}</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-4 md:p-8 min-h-[520px] rounded-2xl">
+            <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] p-4 md:p-8 min-h-[520px] rounded-2xl">
               {/* Equal-width segmented step tabs (cal.com inspired) */}
-              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-[#1C1C1E] mb-6">
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-gray-100 dark:bg-[#1C1C1E] mb-6">
                 {stepTabs.map((tab) => {
                   const active = tab.key === activeTabKey;
                   return (
@@ -605,14 +646,14 @@ const AgendaBookingForm = ({
                       disabled={!tab.enabled}
                       className={cn(
                         "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
-                        active ? "text-white" : tab.enabled ? "text-[#8E8E93] hover:text-white" : "text-[#48484A] cursor-not-allowed"
+                        active ? "text-gray-900 dark:text-white" : tab.enabled ? "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white" : "text-gray-400 dark:text-[#48484A] cursor-not-allowed"
                       )}
                     >
                       {active && (
                         <motion.span
                           layoutId="booking-tab"
                           transition={{ type: "spring", stiffness: 480, damping: 38 }}
-                          className="absolute inset-0 rounded-[12px] bg-[#2C2C2E]"
+                          className="absolute inset-0 rounded-[12px] bg-white dark:bg-[#2C2C2E]"
                         />
                       )}
                       <span className="relative z-10">{tab.label}</span>
@@ -624,7 +665,7 @@ const AgendaBookingForm = ({
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
                   <div className="mb-5">
-                    <h2 className="text-[26px] font-semibold tracking-tight text-white">{copy.service}</h2>
+                    <h2 className="text-[26px] font-semibold tracking-tight text-gray-900 dark:text-white">{copy.service}</h2>
                   </div>
                   <div className="grid gap-3">
                     {services.map((service, idx) => {
@@ -640,10 +681,10 @@ const AgendaBookingForm = ({
                           whileTap={{ scale: 0.985 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-2xl border text-left transition-all bg-[#2a2a2a]/30",
+                            "w-full p-5 rounded-2xl border text-left transition-all bg-gray-50 dark:bg-[#2a2a2a]/30",
                             active
-                              ? "ring-2 ring-white/30 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
-                              : "border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#2a2a2a]/50"
+                              ? "ring-2 ring-gray-300 dark:ring-white/30 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
+                              : "border-gray-200 dark:border-[#2a2a2a] hover:border-gray-300 dark:hover:border-[#3a3a3a] hover:bg-gray-100 dark:hover:bg-[#2a2a2a]/50"
                           )}
                           style={active ? { borderColor: swatch, backgroundColor: `${swatch}14` } : {}}
                         >
@@ -660,10 +701,10 @@ const AgendaBookingForm = ({
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-3">
-                                <p className="font-semibold text-white text-[16px] truncate">{service.name}</p>
-                                <p className="text-[16px] font-semibold text-white tabular-nums shrink-0">{formatCurrency(service.price)}</p>
+                                <p className="font-semibold text-gray-900 dark:text-white text-[16px] truncate">{service.name}</p>
+                                <p className="text-[16px] font-semibold text-gray-900 dark:text-white tabular-nums shrink-0">{formatCurrency(service.price)}</p>
                               </div>
-                              <div className="flex items-center gap-1.5 text-[#8E8E93] text-[13px] mt-1">
+                              <div className="flex items-center gap-1.5 text-gray-500 dark:text-[#8E8E93] text-[13px] mt-1">
                                 <Clock className="w-3.5 h-3.5" />
                                 <span className="tabular-nums">{service.duration} min</span>
                               </div>
@@ -683,7 +724,7 @@ const AgendaBookingForm = ({
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-[#141416]/95 backdrop-blur-xl border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-white/[0.06]">
+                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-gray-200 dark:border-white/[0.06]">
                       <BookingButton
                         text={copy.continue}
                         onClick={handleServiceContinue}
@@ -698,15 +739,15 @@ const AgendaBookingForm = ({
               {step === "datetime" && selectedService && (
                 <div className="h-full flex flex-col pb-24 sm:pb-0">
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-[26px] font-semibold tracking-tight text-white">
-                      {locale === "el" ? "Ημερομηνία & ώρα" : "Date & time"}
+                    <h2 className="text-[26px] font-semibold tracking-tight text-gray-900 dark:text-white">
+                      {copy.dateTimeShort}
                     </h2>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
+                      className="text-sm text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      {locale === "el" ? "Πίσω" : "Back"}
+                      {copy.back}
                     </button>
                   </div>
 
@@ -715,19 +756,19 @@ const AgendaBookingForm = ({
                     {/* Calendar */}
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-white">
-                          {format(currentMonth, 'MMMM')} <span className="text-[#8E8E93]">{format(currentMonth, 'yyyy')}</span>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {fmt(currentMonth, 'MMMM')} <span className="text-gray-500 dark:text-[#8E8E93]">{format(currentMonth, 'yyyy')}</span>
                         </h3>
                         <div className="flex gap-1">
                           <button
                             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-white transition"
+                            className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1C1C1E] flex items-center justify-center text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition"
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-[#1C1C1E] flex items-center justify-center text-[#8E8E93] hover:text-white transition"
+                            className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1C1C1E] flex items-center justify-center text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -735,7 +776,7 @@ const AgendaBookingForm = ({
                       </div>
                       <div className="grid grid-cols-7 gap-2 mb-3">
                         {weekDays.map(day => (
-                          <div key={day} className="text-center text-xs font-medium text-[#8E8E93] py-2">
+                          <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-[#8E8E93] py-2">
                             {day}
                           </div>
                         ))}
@@ -756,12 +797,12 @@ const AgendaBookingForm = ({
                                 isSelected
                                   ? "text-white"
                                   : isDisabled
-                                  ? "text-[#636366] cursor-not-allowed"
+                                  ? "text-gray-400 dark:text-[#636366] cursor-not-allowed"
                                   : !isCurrentMonth
-                                  ? "text-[#636366]"
+                                  ? "text-gray-400 dark:text-[#636366]"
                                   : isToday
-                                  ? "text-white border border-[#3a3a3a]"
-                                  : "text-white hover:bg-[#2a2a2a] bg-[#2a2a2a]/40"
+                                  ? "text-gray-900 dark:text-white border border-gray-300 dark:border-[#3a3a3a]"
+                                  : "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2a2a2a] bg-gray-50 dark:bg-[#2a2a2a]/40"
                               )}
                               style={isSelected ? { backgroundColor: accentColor } : {}}
                             >
@@ -771,8 +812,8 @@ const AgendaBookingForm = ({
                         })}
                       </div>
                       {selectedDate && (
-                        <p className="text-sm text-[#8E8E93] mt-4">
-                          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                        <p className="text-sm text-gray-500 dark:text-[#8E8E93] mt-4">
+                          {fmt(selectedDate, 'EEEE, MMMM d, yyyy')}
                         </p>
                       )}
                     </div>
@@ -780,15 +821,15 @@ const AgendaBookingForm = ({
                     {/* Time slots */}
                     <div className="flex flex-col h-full">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-white">
-                          {selectedDate ? format(selectedDate, 'EEE dd') : 'Select a date'}
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {selectedDate ? fmt(selectedDate, 'EEE dd') : copy.selectDate}
                         </h4>
-                        <div className="flex gap-1 bg-[#1C1C1E] rounded-lg p-1">
+                        <div className="flex gap-1 bg-gray-100 dark:bg-[#1C1C1E] rounded-lg p-1">
                           <button
                             onClick={() => setTimeFormat("12h")}
                             className={cn(
                               "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "12h" ? "bg-[#2C2C2E] text-white" : "text-[#8E8E93] hover:text-white"
+                              timeFormat === "12h" ? "bg-white dark:bg-[#2C2C2E] text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white"
                             )}
                           >
                             12h
@@ -797,7 +838,7 @@ const AgendaBookingForm = ({
                             onClick={() => setTimeFormat("24h")}
                             className={cn(
                               "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "24h" ? "bg-[#2C2C2E] text-white" : "text-[#8E8E93] hover:text-white"
+                              timeFormat === "24h" ? "bg-white dark:bg-[#2C2C2E] text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white"
                             )}
                           >
                             24h
@@ -806,7 +847,7 @@ const AgendaBookingForm = ({
                       </div>
                       <div className="flex items-center gap-1.5 mb-3 text-xs text-[#8E8E93]">
                         <Globe className="w-3 h-3" />
-                        <span>Times in {formatTzLabel(timezone)}</span>
+                        <span>{copy.timesIn} {formatTzLabel(timezone)}</span>
                       </div>
                       <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-2 max-h-[480px] pr-1 auto-rows-[52px]">
                         {selectedDate ? (
@@ -826,7 +867,7 @@ const AgendaBookingForm = ({
                                     "w-full h-[52px] rounded-xl border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
                                     active
                                       ? "border-transparent text-white"
-                                      : "border-[#2a2a2a] bg-transparent text-white hover:bg-[#2a2a2a]"
+                                      : "border-gray-200 dark:border-[#2a2a2a] bg-transparent text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
                                   )}
                                   style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                                 >
@@ -842,18 +883,18 @@ const AgendaBookingForm = ({
 
                           ) : (
 
-                            <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
-                              No available times
+                            <div className="col-span-2 text-center text-gray-500 dark:text-[#8E8E93] py-8 text-sm">
+                              {copy.noTimes}
                             </div>
                           )
                         ) : (
                           <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
-                            Select a date to see times
+                            {copy.selectDateForTimes}
                           </div>
                         )}
                       </div>
                       {selectedDate && availableTimeSlots.length > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#141416]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#141416]/95 backdrop-blur border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
                           <BookingButton
                             text={copy.continue}
                             onClick={handleContinue}
@@ -870,14 +911,14 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-white">Select stylist</h2>
+                      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{copy.selectStylist}</h2>
                     </div>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
+                      className="text-sm text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {copy.back}
                     </button>
                   </div>
                   <div className="grid gap-3">
@@ -889,12 +930,12 @@ const AgendaBookingForm = ({
                             key={stylist.id}
                             onClick={() => handleStylistSelect(stylist.id)}
                             className={cn(
-                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-[#1C1C1E] flex items-center gap-4",
-                              active ? "ring-2 ring-white/30" : "border-white/[0.06] hover:border-white/[0.12]"
+                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-gray-50 dark:bg-[#1C1C1E] flex items-center gap-4",
+                              active ? "ring-2 ring-gray-300 dark:ring-white/30" : "border-gray-200 dark:border-white/[0.06] hover:border-gray-300 dark:hover:border-white/[0.12]"
                             )}
                             style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12` } : {}}
                           >
-                            <div className="h-12 w-12 rounded-full bg-[#2C2C2E] overflow-hidden flex items-center justify-center text-lg font-semibold text-white shrink-0">
+                            <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-[#2C2C2E] overflow-hidden flex items-center justify-center text-lg font-semibold text-gray-900 dark:text-white shrink-0">
                               {stylist.avatar_url ? (
                                 <img src={stylist.avatar_url} alt={stylist.name} className="h-full w-full object-cover" />
                               ) : (
@@ -902,8 +943,8 @@ const AgendaBookingForm = ({
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-white font-semibold truncate">{stylist.name}</p>
-                              <p className="text-[#8E8E93] text-sm truncate">{stylist.title || "Stylist"}</p>
+                              <p className="text-gray-900 dark:text-white font-semibold truncate">{stylist.name}</p>
+                              <p className="text-gray-500 dark:text-[#8E8E93] text-sm truncate">{stylist.title || copy.stylist}</p>
                             </div>
                             {active && (
                               <div
@@ -918,14 +959,14 @@ const AgendaBookingForm = ({
                       })
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-[#8E8E93] mb-4">No stylists available for this time</p>
+                        <p className="text-gray-500 dark:text-[#8E8E93] mb-4">{copy.noStylists}</p>
                         <Button
                           onClick={handleBack}
                           variant="outline"
-                          className="rounded-full border-white/[0.08] text-white hover:bg-[#2C2C2E]"
+                          className="rounded-full border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2C2C2E]"
                         >
                           <ChevronLeft className="w-4 h-4 mr-1.5" />
-                          Pick another time
+                          {copy.pickAnotherTime}
                         </Button>
                       </div>
                     )}
@@ -937,21 +978,21 @@ const AgendaBookingForm = ({
                 <div className="h-full flex flex-col max-w-md mx-auto lg:max-w-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-semibold text-white">Your details</h2>
+                      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{copy.details}</h2>
                     </div>
                     <button
                       onClick={handleBack}
-                      className="text-sm text-[#8E8E93] hover:text-white transition flex items-center gap-1"
+                      className="text-sm text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {copy.back}
                     </button>
                   </div>
 
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pb-24 sm:pb-0">
                       {submitError && (
-                        <div className="rounded-xl bg-[#FF375F]/10 border border-[#FF375F]/20 p-3 text-sm text-[#FF375F]">
+                        <div className="rounded-xl bg-red-50 dark:bg-[#FF375F]/10 border border-red-200 dark:border-[#FF375F]/20 p-3 text-sm text-red-600 dark:text-[#FF375F]">
                           {submitError}
                         </div>
                       )}
@@ -960,14 +1001,14 @@ const AgendaBookingForm = ({
                         name="customer_name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[#8E8E93] text-sm">Name</FormLabel>
+                            <FormLabel className="text-gray-500 dark:text-[#8E8E93] text-sm">{copy.name}</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-[#8E8E93]" />
                                 <Input
                                   {...field}
-                                  className="w-full pl-10 pr-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
-                                  placeholder="Your name"
+                                  className="w-full pl-10 pr-3 h-12 bg-white dark:bg-[#1C1C1E] border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0"
+                                  placeholder={copy.namePh}
                                 />
                               </div>
                             </FormControl>
@@ -981,11 +1022,11 @@ const AgendaBookingForm = ({
                         name="customer_email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[#8E8E93] text-sm">Email</FormLabel>
+                            <FormLabel className="text-gray-500 dark:text-[#8E8E93] text-sm">{copy.email}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
-                                className="w-full px-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
+                                className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0"
                                 placeholder="email@example.com"
                               />
                             </FormControl>
@@ -1000,11 +1041,11 @@ const AgendaBookingForm = ({
                           name="customer_phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-[#8E8E93] text-sm">Phone</FormLabel>
+                              <FormLabel className="text-gray-500 dark:text-[#8E8E93] text-sm">{copy.phone}</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
-                                  className="w-full px-3 h-12 bg-[#1C1C1E] border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0"
+                                  className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0"
                                   placeholder="+1 555 123 4567"
                                 />
                               </FormControl>
@@ -1020,13 +1061,13 @@ const AgendaBookingForm = ({
                           name="notes"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-[#8E8E93] text-sm">Notes</FormLabel>
+                              <FormLabel className="text-gray-500 dark:text-[#8E8E93] text-sm">{copy.notes}</FormLabel>
                               <FormControl>
                                 <textarea
                                   {...field}
                                   rows={3}
-                                  className="w-full px-3 py-2.5 bg-[#1C1C1E] border border-white/[0.08] rounded-xl text-white placeholder:text-[#636366] focus:border-white/20 focus:ring-0 resize-none"
-                                  placeholder="Anything we should know?"
+                                  className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0 resize-none"
+                                  placeholder={copy.notesPh}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1035,13 +1076,46 @@ const AgendaBookingForm = ({
                         />
                       )}
 
-                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0C]/95 backdrop-blur border-t border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
+                      {paymentsEnabled && !rescheduleAppointment && (
+                        <div className="space-y-2">
+                          <p className="text-gray-500 dark:text-[#8E8E93] text-sm">Payment</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {([
+                              { key: "shop" as const, label: "Pay at shop", icon: MapPin },
+                              { key: "card" as const, label: "Pay now by card", icon: CreditCard },
+                            ]).map(({ key, label, icon: Icon }) => (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setPayMethod(key)}
+                                className={cn(
+                                  "flex items-center gap-2 h-12 px-3 rounded-xl border text-sm transition active:scale-[0.98]",
+                                  payMethod === key
+                                    ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-black"
+                                    : "border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#1C1C1E] text-gray-900 dark:text-white",
+                                )}
+                              >
+                                <Icon className="w-4 h-4" />
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#0A0A0C]/95 backdrop-blur border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
                         <BookingButton
                           type="button"
-                          text={isLoading ? "Processing..." : rescheduleAppointment ? "Confirm Change" : submitLabel || copy.book}
+                          text={isLoading ? copy.processing : rescheduleAppointment ? copy.confirmChange : submitLabel || copy.book}
                           disabled={isLoading}
                           onClick={() => { form.handleSubmit(handleSubmit)(); }}
                         />
+                        <p className="mt-2 text-center text-[11px] leading-snug text-gray-500 dark:text-white/45">
+                          By booking you agree to our{" "}
+                          <a href="/terms" target="_blank" rel="noreferrer" className="underline underline-offset-2">Terms</a>,{" "}
+                          <a href="/privacy" target="_blank" rel="noreferrer" className="underline underline-offset-2">Privacy Policy</a> and{" "}
+                          <a href="/refunds" target="_blank" rel="noreferrer" className="underline underline-offset-2">Refund Policy</a>. Your details are used only to manage this appointment.
+                        </p>
                       </div>
                     </form>
                   </Form>

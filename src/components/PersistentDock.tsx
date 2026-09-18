@@ -14,6 +14,7 @@ const CLIENT_ROUTES = [
   "/find-barbershop",
   "/my-bookings",
   "/favorites",
+  "/events",
   "/me",
 ];
 

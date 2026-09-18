@@ -126,6 +126,21 @@ function googleCalUrl(opts: {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+type LocaleKey = "en" | "el" | "es" | "nl" | "pl";
+const EMAIL_STRINGS: Record<LocaleKey, Record<string, string>> = {
+  en: { confirmed: "Booking confirmed", hi: "Hi", bookedFor: "you're booked for", date: "Date", time: "Time", service: "Service", price: "Price", stylist: "Your stylist", location: "Location", note: "Note", openMaps: "Open in Maps →", reschedule: "Reschedule", addCal: "Add to Calendar", cancel: "Cancel", icsHint: "An .ics invite is attached — tap it to add to your calendar.", min: "min", subject: "Your booking at {{businessName}} is confirmed" },
+  el: { confirmed: "Η κράτηση επιβεβαιώθηκε", hi: "Γεια σου", bookedFor: "έκλεισες ραντεβού για", date: "Ημερομηνία", time: "Ώρα", service: "Υπηρεσία", price: "Τιμή", stylist: "Ο stylist σου", location: "Τοποθεσία", note: "Σημείωση", openMaps: "Άνοιγμα στους Χάρτες →", reschedule: "Αλλαγή ώρας", addCal: "Προσθήκη στο ημερολόγιο", cancel: "Ακύρωση", icsHint: "Επισυνάπτεται αρχείο .ics για το ημερολόγιό σου.", min: "λεπτά", subject: "Η κράτησή σου στο {{businessName}} επιβεβαιώθηκε" },
+  es: { confirmed: "Reserva confirmada", hi: "Hola", bookedFor: "tu cita es para", date: "Fecha", time: "Hora", service: "Servicio", price: "Precio", stylist: "Tu estilista", location: "Ubicación", note: "Nota", openMaps: "Abrir en Maps →", reschedule: "Reprogramar", addCal: "Añadir al calendario", cancel: "Cancelar", icsHint: "Se adjunta un archivo .ics para tu calendario.", min: "min", subject: "Tu reserva en {{businessName}} está confirmada" },
+  nl: { confirmed: "Afspraak bevestigd", hi: "Hoi", bookedFor: "je afspraak is voor", date: "Datum", time: "Tijd", service: "Dienst", price: "Prijs", stylist: "Jouw stylist", location: "Locatie", note: "Notitie", openMaps: "Openen in Maps →", reschedule: "Verzetten", addCal: "Aan agenda toevoegen", cancel: "Annuleren", icsHint: "Er is een .ics-uitnodiging bijgevoegd voor je agenda.", min: "min", subject: "Je afspraak bij {{businessName}} is bevestigd" },
+  pl: { confirmed: "Rezerwacja potwierdzona", hi: "Cześć", bookedFor: "masz rezerwację na", date: "Data", time: "Godzina", service: "Usługa", price: "Cena", stylist: "Twój stylista", location: "Lokalizacja", note: "Notatka", openMaps: "Otwórz w Mapach →", reschedule: "Zmień termin", addCal: "Dodaj do kalendarza", cancel: "Anuluj", icsHint: "Plik .ics jest w załączniku — dodaj go do kalendarza.", min: "min", subject: "Twoja rezerwacja w {{businessName}} jest potwierdzona" },
+};
+const INTL_LOCALE: Record<LocaleKey, string> = { en: "en-US", el: "el-GR", es: "es-ES", nl: "nl-NL", pl: "pl-PL" };
+
+/** Shared label/value row used by both the client and the barber email. */
+const row = (label: string, value: string, accentColor?: string) => `
+    <tr><td style="padding:0 0 6px;font-size:12px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">${escapeHtml(label)}</td></tr>
+    <tr><td style="padding:0 0 16px;font-size:16px;font-weight:600;color:${accentColor || "#121214"};">${value}</td></tr>`;
+
 function buildHtml(opts: {
   businessName: string;
   customerName: string;
@@ -142,12 +157,14 @@ function buildHtml(opts: {
   stylistName?: string | null;
   stylistAvatar?: string | null;
   gcalUrl: string;
+  locale?: LocaleKey;
 }) {
   const {
     businessName, customerName, serviceName, appointmentDate, appointmentTime,
     durationMinutes, price, notes, manageUrl, accent, bookingId,
     address, stylistName, stylistAvatar, gcalUrl,
   } = opts;
+  const T = EMAIL_STRINGS[opts.locale || "en"] || EMAIL_STRINGS.en;
 
   const cancelUrl = manageUrl ? `${manageUrl}` : "";
   const rescheduleUrl = manageUrl ? `${manageUrl}` : "";
@@ -170,7 +187,7 @@ function buildHtml(opts: {
                 : `<div style="width:36px;height:36px;border-radius:50%;background:${accent};opacity:0.85;"></div>`}
             </td>
             <td style="vertical-align:middle;">
-              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Your stylist</div>
+              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">${escapeHtml(T.stylist)}</div>
               <div style="font-size:15px;font-weight:650;color:#121214;">${escapeHtml(stylistName)}</div>
             </td>
           </tr>
@@ -179,7 +196,7 @@ function buildHtml(opts: {
     </tr>` : "";
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${opts.locale || "en"}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f6f6f8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1c;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f8;padding:48px 16px;">
@@ -191,13 +208,13 @@ function buildHtml(opts: {
         </td></tr>
 
         <tr><td style="padding:18px 32px 0;text-align:center;">
-          <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#8c8c92;">Booking confirmed</p>
+          <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#8c8c92;">${escapeHtml(T.confirmed)}</p>
           <h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-0.02em;line-height:1.2;color:#121214;">${escapeHtml(businessName)}</h1>
         </td></tr>
 
         <tr><td style="padding:20px 32px 0;">
           <p style="margin:0;font-size:15px;line-height:1.55;color:#4a4a50;text-align:center;">
-            Hi ${escapeHtml(customerName || "there")}, you're booked for <strong style="color:#121214;">${escapeHtml(serviceName)}</strong>.
+            ${escapeHtml(T.hi)} ${escapeHtml(customerName || "")}, ${escapeHtml(T.bookedFor)} <strong style="color:#121214;">${escapeHtml(serviceName)}</strong>.
           </p>
         </td></tr>
 
@@ -206,22 +223,22 @@ function buildHtml(opts: {
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafb;border-radius:20px;border:1px solid #eeeff2;">
             <tr><td style="padding:22px 22px 6px;">
               <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                ${row("Date", escapeHtml(appointmentDate))}
-                ${row("Time", `${escapeHtml(appointmentTime)}  <span style="color:#8c8c92;font-weight:500;font-size:14px;">· ${durationMinutes} min</span>`)}
-                ${row("Service", escapeHtml(serviceName))}
-                ${price != null ? row("Price", `€${escapeHtml(String(price))}`, accent) : ""}
+                ${row(T.date, escapeHtml(appointmentDate))}
+                ${row(T.time, `${escapeHtml(appointmentTime)}  <span style="color:#8c8c92;font-weight:500;font-size:14px;">· ${durationMinutes} ${escapeHtml(T.min)}</span>`)}
+                ${row(T.service, escapeHtml(serviceName))}
+                ${price != null ? row(T.price, `€${escapeHtml(String(price))}`, accent) : ""}
               </table>
             </td></tr>
             ${stylistBlock}
             ${address ? `
             <tr><td style="padding:14px 22px 20px;">
-              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">Location</div>
+              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">${escapeHtml(T.location)}</div>
               <div style="font-size:14px;color:#3a3a3f;line-height:1.5;">${escapeHtml(address)}</div>
-              <a href="${escapeHtml(mapUrl)}" style="display:inline-block;margin-top:8px;font-size:13px;color:${accent};text-decoration:none;font-weight:600;">Open in Maps →</a>
+              <a href="${escapeHtml(mapUrl)}" style="display:inline-block;margin-top:8px;font-size:13px;color:${accent};text-decoration:none;font-weight:600;">${escapeHtml(T.openMaps)}</a>
             </td></tr>` : ""}
             ${notes ? `
             <tr><td style="padding:0 22px 20px;">
-              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">Note</div>
+              <div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">${escapeHtml(T.note)}</div>
               <div style="font-size:14px;color:#3a3a3f;line-height:1.5;">${escapeHtml(notes)}</div>
             </td></tr>` : ""}
           </table>
@@ -231,16 +248,16 @@ function buildHtml(opts: {
         ${manageUrl ? `<tr><td style="padding:24px 32px 0;">
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td style="padding:0 0 8px;">
-              <a href="${escapeHtml(rescheduleUrl)}" style="display:block;text-align:center;background:#121214;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 0;border-radius:14px;">Reschedule</a>
+              <a href="${escapeHtml(rescheduleUrl)}" style="display:block;text-align:center;background:#121214;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 0;border-radius:14px;">${escapeHtml(T.reschedule)}</a>
             </td></tr>
             <tr><td style="padding:0 0 8px;">
-              <a href="${escapeHtml(gcalUrl)}" style="display:block;text-align:center;background:#ffffff;color:#121214;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">Add to Calendar</a>
+              <a href="${escapeHtml(gcalUrl)}" style="display:block;text-align:center;background:#ffffff;color:#121214;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">${escapeHtml(T.addCal)}</a>
             </td></tr>
             <tr><td>
-              <a href="${escapeHtml(cancelUrl)}" style="display:block;text-align:center;background:#ffffff;color:#ff3b30;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">Cancel</a>
+              <a href="${escapeHtml(cancelUrl)}" style="display:block;text-align:center;background:#ffffff;color:#ff3b30;text-decoration:none;font-weight:600;font-size:15px;padding:14px 0;border-radius:14px;border:1px solid #e8e8ec;">${escapeHtml(T.cancel)}</a>
             </td></tr>
           </table>
-          <p style="margin:14px 0 0;text-align:center;font-size:12px;color:#8c8c92;">An .ics invite is attached — tap it on iPhone or Android to add.</p>
+          <p style="margin:14px 0 0;text-align:center;font-size:12px;color:#8c8c92;">${escapeHtml(T.icsHint)}</p>
         </td></tr>` : ""}
 
         <tr><td style="padding:28px 32px 32px;text-align:center;">
@@ -312,7 +329,7 @@ serve(async (req: Request) => {
     const [{ data: customer }, { data: service }, { data: profile }, stylistRes] = await Promise.all([
       supabase.from("customers").select("name, email, phone").eq("id", apptRow.customer_id).maybeSingle(),
       supabase.from("services").select("name, price, duration").eq("id", apptRow.service_id).maybeSingle(),
-      supabase.from("profiles").select("business_name, full_name, brand_color, sender_email, sender_name, address, timezone").eq("id", apptRow.user_id).maybeSingle(),
+      supabase.from("profiles").select("business_name, full_name, brand_color, sender_email, sender_name, address, timezone, booking_locale").eq("id", apptRow.user_id).maybeSingle(),
       apptRow.stylist_id
         ? supabase.from("stylists").select("name, avatar_url").eq("id", apptRow.stylist_id).maybeSingle()
         : Promise.resolve({ data: null }),
@@ -333,7 +350,10 @@ serve(async (req: Request) => {
     const startIso = String(apptRow.appointment_date);
     const startTime = String(apptRow.appointment_time).slice(0, 5);
     const tz = profile?.timezone || "UTC";
-    const appointmentDate = new Intl.DateTimeFormat("en-US", {
+    const rawLocale = String((profile as any)?.booking_locale || "en");
+    const locale = (["en", "el", "es", "nl", "pl"].includes(rawLocale) ? rawLocale : "en") as LocaleKey;
+    const L = EMAIL_STRINGS[locale];
+    const appointmentDate = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
       weekday: "long", month: "long", day: "numeric", year: "numeric",
       timeZone: tz,
     }).format(localToUtc(startIso, startTime, tz));
@@ -352,7 +372,7 @@ serve(async (req: Request) => {
     const finalManageUrl = `${APP_URL}/manage/${cancelToken}`;
 
     const vars = { customerName, customerEmail, customerPhone, businessName, serviceName, appointmentDate, appointmentTime, price };
-    const subject = render(template?.email_subject || "Your booking at {{businessName}} is confirmed", vars);
+    const subject = render(template?.email_subject || L.subject, vars);
     const smsText = render(
       template?.sms_body || "{{businessName}}: {{serviceName}} on {{appointmentDate}} at {{appointmentTime}} confirmed.",
       vars
@@ -371,7 +391,7 @@ serve(async (req: Request) => {
       appointmentDate, appointmentTime, durationMinutes,
       price, notes, manageUrl: finalManageUrl, accent, bookingId,
       address, stylistName: stylist?.name ?? null, stylistAvatar: stylist?.avatar_url ?? null,
-      gcalUrl,
+      gcalUrl, locale,
     });
 
     const textBody = `${subject}\n\nHi ${customerName || "there"},\n\n${serviceName} on ${appointmentDate} at ${appointmentTime} (${durationMinutes} min)${price != null ? ` · €${price}` : ""}${address ? `\n${address}` : ""}${stylist?.name ? `\nStylist: ${stylist.name}` : ""}\n\n${finalManageUrl ? `Manage your booking: ${finalManageUrl}\n\n` : ""}Powered by Cutzioo — https://cutzioo.com`;
@@ -432,6 +452,91 @@ serve(async (req: Request) => {
       const data = await smsRes.json().catch(() => ({}));
       if (!smsRes.ok) results.sms = { error: data, status: smsRes.status };
       else results.sms = data;
+    }
+
+    // ---- Premium only: notify the barber that a new booking came in ----
+    try {
+      const { data: sub } = await supabase
+        .from("subscribers")
+        .select("subscribed, subscription_end")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const isPremium =
+        !!sub?.subscribed &&
+        (!sub?.subscription_end || new Date(sub.subscription_end as string) > new Date());
+
+      if (isPremium) {
+        let ownerEmail = profile?.sender_email ?? null;
+        if (!ownerEmail) {
+          const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+          ownerEmail = authUser?.user?.email ?? null;
+        }
+
+        if (ownerEmail) {
+          const weekday = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+            weekday: "long",
+            timeZone: tz,
+          }).format(localToUtc(startIso, startTime, tz));
+
+          const ownerSubject = `New booking · ${weekday} ${appointmentTime} — ${customerName}`;
+          const ownerHtml = `<!DOCTYPE html><html><body style="margin:0;background:#f6f6f8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1c;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f8;padding:40px 16px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#ffffff;border-radius:28px;border:1px solid #e8e8ec;overflow:hidden;">
+      <tr><td style="padding:30px 32px 0;">
+        <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#8c8c92;">New booking</p>
+        <h1 style="margin:0;font-size:24px;font-weight:650;letter-spacing:-0.02em;color:#121214;">${escapeHtml(customerName || "New client")}</h1>
+      </td></tr>
+      <tr><td style="padding:22px 32px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafb;border-radius:20px;border:1px solid #eeeff2;">
+          <tr><td style="padding:20px 22px 6px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              ${row("Day", escapeHtml(weekday))}
+              ${row("Date", escapeHtml(appointmentDate))}
+              ${row("Time", `${escapeHtml(appointmentTime)} <span style="color:#8c8c92;font-weight:500;font-size:14px;">· ${durationMinutes} min</span>`)}
+              ${row("Service", escapeHtml(serviceName))}
+              ${price != null ? row("Price", `€${escapeHtml(String(price))}`, accent) : ""}
+              ${stylist?.name ? row("Stylist", escapeHtml(stylist.name)) : ""}
+              ${customerEmail ? row("Client email", escapeHtml(customerEmail)) : ""}
+              ${customerPhone ? row("Client phone", escapeHtml(customerPhone)) : ""}
+            </table>
+          </td></tr>
+          ${notes ? `<tr><td style="padding:0 22px 20px;"><div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">Note</div><div style="font-size:14px;color:#3a3a3f;line-height:1.5;">${escapeHtml(notes)}</div></td></tr>` : ""}
+        </table>
+      </td></tr>
+      <tr><td style="padding:22px 32px 32px;">
+        <a href="${APP_URL}/agenda" style="display:block;text-align:center;background:#121214;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 0;border-radius:14px;">Open your agenda</a>
+        <p style="margin:16px 0 0;text-align:center;font-size:11px;color:#9a9aa2;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;">Cutzioo Pro</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+
+          const ownerText = `New booking — ${customerName}\n${weekday}, ${appointmentDate} at ${appointmentTime} (${durationMinutes} min)\nService: ${serviceName}${price != null ? ` · €${price}` : ""}${customerEmail ? `\nEmail: ${customerEmail}` : ""}${customerPhone ? `\nPhone: ${customerPhone}` : ""}${notes ? `\nNote: ${notes}` : ""}\n\n${APP_URL}/agenda`;
+
+          const ownerRes = await fetch(`${GATEWAY_URL}/smtp/email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "X-Connection-Api-Key": BREVO_API_KEY,
+            },
+            body: JSON.stringify({
+              sender: { name: SENDER_FALLBACK_NAME, email: SENDER_EMAIL },
+              to: [{ email: ownerEmail, name: businessName }],
+              subject: ownerSubject,
+              htmlContent: ownerHtml,
+              textContent: ownerText,
+            }),
+          });
+          const ownerData = await ownerRes.json().catch(() => ({}));
+          results.ownerEmail = ownerRes.ok ? ownerData : { error: ownerData, status: ownerRes.status };
+        }
+      }
+    } catch (e) {
+      console.error("owner notification failed:", e);
     }
 
     return new Response(JSON.stringify({ success: true, ...results }), {

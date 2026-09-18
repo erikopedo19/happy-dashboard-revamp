@@ -69,6 +69,40 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object;
+        // Marketplace (Connect) checkout — booking / product sale, not a subscription.
+        if (s.metadata?.lovable_kind === "marketplace") {
+          const paid = s.payment_status === "paid";
+          const { data: paymentRows } = await supabase
+            .from("payments")
+            .update({
+              status: paid ? "paid" : "pending",
+              amount_subtotal: s.amount_subtotal ?? 0,
+              amount_tax: s.total_details?.amount_tax ?? 0,
+              amount_total: s.amount_total ?? 0,
+              currency: (s.currency ?? "eur").toLowerCase(),
+              stripe_payment_intent_id: s.payment_intent ?? null,
+              customer_email: s.customer_details?.email ?? s.customer_email ?? null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_session_id", s.id)
+            .select("appointment_id, amount_total");
+
+          // Mark the linked appointment as paid so it shows as paid on the agenda.
+          const appointmentId = paymentRows?.[0]?.appointment_id ?? s.metadata?.appointment_id ?? null;
+          if (paid && appointmentId) {
+            await supabase
+              .from("appointments")
+              .update({
+                payment_status: "paid",
+                paid_at: new Date().toISOString(),
+                paid_amount: (s.amount_total ?? 0) / 100,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", appointmentId);
+          }
+          break;
+        }
+
         const email = s.customer_email || s.customer_details?.email;
         if (email) {
           await upsert(email, {
@@ -81,6 +115,86 @@ serve(async (req) => {
         }
         break;
       }
+      case "checkout.session.expired": {
+        const s = event.data.object;
+        if (s.metadata?.lovable_kind === "marketplace") {
+          await supabase
+            .from("payments")
+            .update({ status: "expired", updated_at: new Date().toISOString() })
+            .eq("stripe_session_id", s.id);
+        }
+        break;
+      }
+      case "account.updated": {
+        const acct = event.data.object;
+        const active = !!acct.charges_enabled && !!acct.payouts_enabled;
+        await supabase
+          .from("profiles")
+          .update({
+            stripe_charges_enabled: !!acct.charges_enabled,
+            stripe_payouts_enabled: !!acct.payouts_enabled,
+            stripe_details_submitted: !!acct.details_submitted,
+            payments_enabled: active,
+            ...(active ? { stripe_onboarded_at: new Date().toISOString() } : {}),
+          })
+          .eq("stripe_account_id", acct.id);
+        break;
+      }
+
+      // Connect account created/authorized for the platform.
+      case "account.application.authorized": {
+        const acctId = event.account;
+        if (acctId) {
+          await supabase
+            .from("profiles")
+            .update({ stripe_details_submitted: true })
+            .eq("stripe_account_id", acctId);
+        }
+        break;
+      }
+
+      // Barber disconnected the account from the platform.
+      case "account.application.deauthorized": {
+        const acctId = event.account;
+        if (acctId) {
+          await supabase
+            .from("profiles")
+            .update({
+              stripe_charges_enabled: false,
+              stripe_payouts_enabled: false,
+              stripe_details_submitted: false,
+              payments_enabled: false,
+              stripe_account_id: null,
+            })
+            .eq("stripe_account_id", acctId);
+        }
+        break;
+      }
+
+      // Capability flips (card_payments / transfers) — keep payout status live.
+      case "capability.updated": {
+        const acctId = event.account;
+        const cap = event.data.object;
+        if (acctId && cap?.id === "card_payments") {
+          const enabled = cap.status === "active";
+          await supabase
+            .from("profiles")
+            .update({
+              stripe_charges_enabled: enabled,
+              payments_enabled: enabled,
+              ...(enabled ? { stripe_onboarded_at: new Date().toISOString() } : {}),
+            })
+            .eq("stripe_account_id", acctId);
+        }
+        if (acctId && cap?.id === "transfers") {
+          await supabase
+            .from("profiles")
+            .update({ stripe_payouts_enabled: cap.status === "active" })
+            .eq("stripe_account_id", acctId);
+        }
+        break;
+      }
+
       case "invoice.payment_succeeded": {
         const inv = event.data.object;
         const email = inv.customer_email || (await emailFromCustomer(inv.customer));

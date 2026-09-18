@@ -37,6 +37,9 @@ import PricingSuccess from "./pages/PricingSuccess";
 import PricingFailure from "./pages/PricingFailure";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiesPolicy from "./pages/CookiesPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
+import { CookieConsent } from "./components/CookieConsent";
 import { PremiumGate } from "./components/PremiumGate";
 import NotFound from "./pages/NotFound";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
@@ -60,6 +63,8 @@ import Reports from "./pages/Reports";
 import MyBookings from "./pages/MyBookings";
 import Me from "./pages/Me";
 import Favorites from "./pages/Favorites";
+import Events from "./pages/Events";
+import EventsManage from "./pages/EventsManage";
 import ManageBooking from "./pages/ManageBooking";
 import ReviewPage from "./pages/ReviewPage";
 import WaitlistClaim from "./pages/WaitlistClaim";
@@ -68,9 +73,11 @@ import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
+import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
+import { useBannerReminder } from "./hooks/use-banner-reminder";
 
 import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
@@ -78,6 +85,8 @@ import Microsite from "./pages/Microsite";
 import MicrositeEditor from "./pages/MicrositeEditor";
 import ChooseMode from "./pages/ChooseMode";
 import OAuthConsent from "./pages/OAuthConsent";
+import Referrals from "./pages/Referrals";
+import { useReferralCapture } from "./hooks/use-referral-capture";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -128,6 +137,7 @@ function isMicrositeSubdomain(): string | null {
 
 function AnimatedRoutes() {
   useFinalizeOnboarding();
+  useReferralCapture();
   const location = useLocation();
   const subdomain = isMicrositeSubdomain();
   if (subdomain) {
@@ -150,6 +160,8 @@ function AnimatedRoutes() {
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/me" element={<Me />} />
       <Route path="/favorites" element={<Favorites />} />
+      <Route path="/events" element={<Events />} />
+      <Route path="/events/manage" element={<ProtectedRoute><EventsManage /></ProtectedRoute>} />
       <Route path="/" element={<LandingRoute />} />
       <Route path="/app" element={<LandingRoute />} />
       <Route path="/superadmin" element={<SuperAdminLogin />} />
@@ -172,8 +184,11 @@ function AnimatedRoutes() {
       <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
       <Route path="/site/:slug" element={<Microsite />} />
       <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
+      <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/cookies" element={<CookiesPolicy />} />
+      <Route path="/refunds" element={<RefundPolicy />} />
       <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -191,6 +206,9 @@ const HeaderActions = () => {
     location.pathname === "/admin" ||
     location.pathname === "/find-barbershop" ||
     location.pathname === "/settings" ||
+    location.pathname === "/pricing" ||
+    location.pathname === "/pricing/success" ||
+    location.pathname === "/pricing/failure" ||
     (isMobile && location.pathname.startsWith("/find-barber")) ||
     (isMobile && location.pathname === "/agenda");
   if (hasOwnBell) return null;
@@ -231,8 +249,10 @@ function App() {
                 <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                   <GlimmIntercept />
                   <GlobalBanner />
+                  <FreeUpgradeBanner />
                   <UpdatePopup />
                   <GuestSignupDrawer />
+                  <CookieConsent />
                   <ScrollToTop />
                   <AnimatedRoutes />
                   <HeaderActions />

@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-lg font-semibold">Privacy Policy | YOU HAVE AGREED OUR TERMS-PRIVACYPOLICY</h1>
+          <h1 className="text-lg font-semibold">Privacy Policy</h1>
         </div>
       </header>
 

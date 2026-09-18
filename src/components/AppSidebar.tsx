@@ -66,6 +66,11 @@ const mainItems = [
     icon: Users,
   },
   {
+    title: "Events",
+    url: "/events/manage",
+    icon: Calendar,
+  },
+  {
     title: "Settings",
     url: "/settings",
     icon: Settings,

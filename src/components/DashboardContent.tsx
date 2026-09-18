@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isToday, subDays, isAfter, addDays } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -25,7 +24,7 @@ import {
   Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
   CartesianGrid, Line, ComposedChart,
 } from "recharts";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const db = supabase as any;
@@ -46,9 +45,12 @@ const tooltipStyle = {
   boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
 };
 
+const iosSpring = { type: "spring" as const, stiffness: 420, damping: 32, mass: 0.8 };
+
 export function DashboardContent() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
 
   const { data: appointments = [] } = useQuery<any[]>({
     queryKey: ['dashboard-appointments', user?.id],
@@ -226,25 +228,29 @@ export function DashboardContent() {
 
           {/* Main */}
           <main className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
-            <ReviewAnnouncement />
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard title="Revenue" value={`€${stats.last30Revenue.toFixed(0)}`} change={stats.revenueTrend} icon={DollarSign} tone="rose" />
-              <StatCard title="Bookings" value={stats.todays.toString()} change={stats.trend} icon={Calendar} tone="blue" />
-              <StatCard title="Customers" value={stats.customers.toString()} sub={`+${stats.newCustomers30} this month`} icon={Users} tone="green" />
-              <StatCard title="Pending" value={stats.pending.toString()} sub="awaiting confirmation" icon={Clock} tone="rose" />
-            </div>
+            <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.055 } } }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard title="Revenue" value={`€${stats.last30Revenue.toFixed(0)}`} change={stats.revenueTrend} icon={DollarSign} tone="rose" reduceMotion={reduceMotion} />
+              <StatCard title="Bookings" value={stats.todays.toString()} change={stats.trend} icon={Calendar} tone="blue" reduceMotion={reduceMotion} />
+              <StatCard title="Customers" value={stats.customers.toString()} sub={`+${stats.newCustomers30} this month`} icon={Users} tone="green" reduceMotion={reduceMotion} />
+              <StatCard title="Pending" value={stats.pending.toString()} sub="awaiting confirmation" icon={Clock} tone="rose" reduceMotion={reduceMotion} />
+            </motion.div>
 
             {/* Chart + Top performers */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 bg-[#16161A] border border-white/[0.06] rounded-[28px]">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: reduceMotion ? 0 : 0.08, ...iosSpring }}
+              className="flex flex-col lg:flex-row gap-4"
+            >
+              <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={iosSpring} className="flex-1 bg-[#16161A] border border-white/[0.06] rounded-[28px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <div className="p-5 sm:p-6">
                   <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
                     <div>
                       <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Last 30 days</p>
                       <div className="flex items-baseline gap-3 mt-1.5">
-                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-geist-mono">€{stats.last30Revenue.toFixed(0)}</h2>
+                        <AnimatePresence mode="popLayout" initial={false}><motion.h2 key={stats.last30Revenue} initial={reduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={iosSpring} className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-geist-mono">€{stats.last30Revenue.toFixed(0)}</motion.h2></AnimatePresence>
                         <DeltaPill value={stats.revenueTrend} />
                       </div>
                     </div>
@@ -266,8 +272,8 @@ export function DashboardContent() {
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
-              <div className="lg:w-[360px] bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+              </motion.div>
+              <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={iosSpring} className="lg:w-[360px] bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Top performers</p>
@@ -292,7 +298,7 @@ export function DashboardContent() {
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
-                              transition={{ delay: i * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                              transition={reduceMotion ? { duration: 0 } : { delay: i * 0.06, ...iosSpring }}
                               className="h-full rounded-full bg-[#f43f5e]"
                             />
                           </div>
@@ -301,11 +307,16 @@ export function DashboardContent() {
                     })}
                   </ul>
                 )}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Recent bookings */}
-            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: reduceMotion ? 0 : 0.14, ...iosSpring }}
+              className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Recent bookings</p>
@@ -331,22 +342,33 @@ export function DashboardContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {upcoming.map((a) => (
-                        <tr key={a.id} className="border-b border-white/[0.06] last:border-0">
+                      {upcoming.map((a, index) => (
+                        <motion.tr
+                          key={a.id}
+                          initial={reduceMotion ? false : { opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: reduceMotion ? 0 : 0.16 + index * 0.035, ...iosSpring }}
+                          className="border-b border-white/[0.06] last:border-0"
+                        >
                           <td className="py-3 font-medium text-white">{a.customer?.name || 'Walk-in'}</td>
                           <td className="py-3 text-white/70">{a.service?.name || 'Service'}</td>
                           <td className="py-3 text-white/70">{format(parseISO(a.appointment_date), 'MMM d')}</td>
                           <td className="py-3 text-white/70">{a.appointment_time?.slice(0, 5)}</td>
                           <td className="py-3 text-right font-semibold text-white">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
-                        </tr>
+                        </motion.tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-            </div>
+            </motion.div>
             {/* Top clients board */}
-            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: reduceMotion ? 0 : 0.2, ...iosSpring }}
+              className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">PC board</p>
@@ -379,7 +401,7 @@ export function DashboardContent() {
                   </TableBody>
                 </Table>
               )}
-            </div>
+            </motion.div>
           </main>
         </div>
       </div>
@@ -387,11 +409,11 @@ export function DashboardContent() {
   );
 }
 
-function StatCard({ title, value, change, sub, icon: Icon, tone }: { title: string; value: string; change?: number; sub?: string; icon: any; tone?: 'rose' | 'blue' | 'green' }) {
+function StatCard({ title, value, change, sub, icon: Icon, tone, reduceMotion }: { title: string; value: string; change?: number; sub?: string; icon: any; tone?: 'rose' | 'blue' | 'green'; reduceMotion: boolean | null }) {
   const toneClass = tone === 'rose' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : tone === 'blue' ? 'bg-[#0A84FF]/10 text-[#0A84FF]' : 'bg-[#30D158]/10 text-[#30D158]';
   const hasChange = change !== undefined && change !== 0;
   return (
-    <div className="bg-[#16161A] border border-white/[0.06] rounded-[24px] p-5">
+    <motion.div variants={{ hidden: { opacity: 0, y: 16, scale: 0.98 }, visible: { opacity: 1, y: 0, scale: 1 } }} transition={iosSpring} whileHover={reduceMotion ? undefined : { y: -3 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }} className="bg-[#16161A] border border-white/[0.06] rounded-[24px] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium text-white/60">{title}</span>
         <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", toneClass)}>
@@ -399,7 +421,7 @@ function StatCard({ title, value, change, sub, icon: Icon, tone }: { title: stri
         </div>
       </div>
       <div className="flex items-end justify-between gap-2">
-        <span className="text-[28px] sm:text-[32px] font-semibold text-white tracking-tight leading-none">{value}</span>
+        <AnimatePresence mode="popLayout" initial={false}><motion.span key={value} initial={reduceMotion ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={iosSpring} className="text-[28px] sm:text-[32px] font-semibold text-white tracking-tight leading-none">{value}</motion.span></AnimatePresence>
         {hasChange ? (
           <div className={cn("flex items-center gap-1 text-sm font-medium pb-0.5", change > 0 ? "text-[#30D158]" : "text-[#f43f5e]")}>
             {change > 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
@@ -409,7 +431,7 @@ function StatCard({ title, value, change, sub, icon: Icon, tone }: { title: stri
           <div className="text-xs font-medium text-white/45 pb-1 text-right max-w-[55%]">{sub}</div>
         ) : null}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
