@@ -259,14 +259,6 @@ serve(async (req) => {
             error: "Stripe Connect must be activated on your Stripe account before payout accounts can be created.",
           });
         }
-        if (message.includes("complete your platform profile")) {
-          return json({
-            requires_connect_activation: true,
-            setup_url: "https://dashboard.stripe.com/connect/accounts/overview",
-            error:
-              "Stripe needs your platform profile questionnaire completed before payout accounts can be created. Finish it in your Stripe dashboard, then try again.",
-          });
-        }
         return json({ error: `Stripe onboarding failed: ${message}` }, 500);
       }
     }

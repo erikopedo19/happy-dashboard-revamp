@@ -21,7 +21,6 @@ import {
   ArrowRight,
   Trash2,
   LogOut,
-  Gift,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -253,21 +252,6 @@ const Settings = () => {
   const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-
-  // Safety net: never let a stale scroll lock (drawers, overlays closed
-  // mid-animation) freeze scrolling on any Settings page.
-  useEffect(() => {
-    const unlock = () => {
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
-      document.documentElement.style.overflow = "";
-      document.body.removeAttribute("data-scroll-locked");
-      document.documentElement.removeAttribute("data-scroll-locked");
-    };
-    unlock();
-    const t = setTimeout(unlock, 300);
-    return () => clearTimeout(t);
-  }, []);
   const { theme, setTheme } = useTheme();
   const { role, setRole, switching: switchingRole } = useRoleSwitch();
 
@@ -1168,8 +1152,8 @@ const Settings = () => {
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionPanel />
-                      <BoostBarbershopCard />
                       <PayoutSettingsCard />
+                      <BoostBarbershopCard />
                       {/* Public visibility toggle removed — all profiles are public by default */}
 
                       <Card className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm bg-white dark:bg-[#1C1C1E]">
@@ -1510,17 +1494,6 @@ const Settings = () => {
                     <CardContent className="space-y-3">
                       <button
                         type="button"
-                        onClick={() => navigate("/referrals")}
-                        className="w-full flex items-center justify-between rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Gift className="h-4 w-4 text-rose-500" />
-                          Invite a barber — get a free month
-                        </span>
-                        <ArrowRight className="h-4 w-4 text-rose-400" />
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => navigate("/terms")}
                         className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
                       >
@@ -1533,22 +1506,6 @@ const Settings = () => {
                         className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
                       >
                         Privacy Policy
-                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/cookies")}
-                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
-                      >
-                        Cookies Policy
-                        <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/refunds")}
-                        className="w-full flex items-center justify-between rounded-2xl border border-[#C6C6C8] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-4 text-left text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition hover:opacity-80"
-                      >
-                        Refund &amp; Cancellation Policy
                         <ArrowRight className="h-4 w-4 text-[#8E8E93]" />
                       </button>
 

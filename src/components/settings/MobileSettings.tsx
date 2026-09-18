@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -29,6 +29,8 @@ import {
   Search,
   Tag,
   Home,
+  Banknote,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -40,8 +42,11 @@ import { enableBookingPush } from "@/lib/push";
 import { MessageTemplates } from "@/components/MessageTemplates";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { SubscriptionPanel } from "@/components/SubscriptionPanel";
+import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
+import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
+import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { IdentityMissingBanner } from "@/components/IdentityMissingBanner";
@@ -79,12 +84,14 @@ type Panel =
   | "agenda"
   | "appearance"
   | "notifications"
-  | "loyalty"
   | "messages"
   | "booking"
+  | "social"
   | "business"
   | "location"
-  | "subscription";
+  | "subscription"
+  | "payments"
+  | "boost";
 
 export function MobileSettings(props: any) {
   const {
@@ -184,7 +191,7 @@ export function MobileSettings(props: any) {
       .toUpperCase();
 
   return (
-    <div className="min-h-screen w-full bg-[#0A0A0C] text-white relative overflow-x-hidden overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'none' }}>
+    <div className="min-h-screen w-full bg-[#0A0A0C] text-white relative overflow-x-hidden">
 
 
       {/* Header */}
@@ -219,9 +226,8 @@ export function MobileSettings(props: any) {
               {user?.email || "Tap to edit profile"}
             </p>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300">
-            {currentRole}
-          </span>
+          <ChevronRight className="h-4 w-4 text-white/30 shrink-0" />
+
         </motion.button>
       </section>
 
@@ -302,7 +308,14 @@ export function MobileSettings(props: any) {
             tint="#06b6d4"
             label="Booking link"
             value="Share & embed"
-            onClick={() => setPanel("booking")}
+            onClick={() => navigate("/booking-page")}
+          />
+          <Row
+            icon={Sparkles}
+            tint="#E1306C"
+            label="Social media"
+            value="Instagram · TikTok · WhatsApp"
+            onClick={() => setPanel("social")}
           />
           <Row
             icon={Sparkles}
@@ -310,6 +323,20 @@ export function MobileSettings(props: any) {
             label="Message templates"
             value="WhatsApp & SMS"
             onClick={() => setPanel("messages")}
+          />
+          <Row
+            icon={Banknote}
+            tint="#22c55e"
+            label="Payments & payouts"
+            value="Stripe Connect"
+            onClick={() => setPanel("payments")}
+          />
+          <Row
+            icon={Rocket}
+            tint="#0A84FF"
+            label="Boost your barbershop"
+            value="€3 · remind past clients"
+            onClick={() => setPanel("boost")}
           />
           <Row
             icon={CalendarIcon}
@@ -342,17 +369,6 @@ export function MobileSettings(props: any) {
             value={`${Object.values(notificationPrefs).filter(Boolean).length} on`}
             onClick={() => setPanel("notifications")}
           />
-        </Group>
-
-        <Group label="More features">
-          <Row
-            icon={Tag}
-            tint="#FF375F"
-            label="Loyal regular discount"
-            value={brandForm.loyalty_discount_enabled ? `${brandForm.loyalty_discount_percent}% next booking` : "Off"}
-            onClick={() => setPanel("loyalty")}
-          />
-          
         </Group>
 
         <Group label="Legal">
@@ -772,39 +788,6 @@ export function MobileSettings(props: any) {
               </PanelStack>
             )}
 
-            {panel === "loyalty" && (
-              <PanelStack>
-                <div className="rounded-[28px] bg-[#1C1C1E] p-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[#FF375F]">
-                    <Tag className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="mt-4 text-[21px] font-bold text-white">Reward your regulars</h3>
-                  <p className="mt-1.5 text-[12px] leading-5 text-[#8E8E93]">
-                    When a customer has more than one booking in seven days, Cutzio automatically gives 20% off their next booking.
-                  </p>
-                  <div className="mt-4 flex items-center justify-between rounded-[20px] bg-[#2C2C2E] px-4 py-4">
-                    <div>
-                      <p className="text-[14px] font-semibold text-white">Automatic loyalty price</p>
-                      <p className="mt-0.5 text-[11px] text-[#8E8E93]">Applied securely when the booking is created</p>
-                    </div>
-                    <Switch
-                      checked={brandForm.loyalty_discount_enabled}
-                      onCheckedChange={(checked) => setBrandForm((previous: any) => ({ ...previous, loyalty_discount_enabled: checked, loyalty_discount_percent: 20 }))}
-                    />
-                  </div>
-                </div>
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-[20px] bg-[#FF375F] text-[14px] font-semibold text-white disabled:opacity-60"
-                >
-                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Save loyalty setting
-                </motion.button>
-              </PanelStack>
-            )}
-
             {panel === "messages" && (
               <PanelStack>
                 <MessageTemplates />
@@ -817,9 +800,34 @@ export function MobileSettings(props: any) {
               </PanelStack>
             )}
 
+            {panel === "social" && (
+              <PanelStack>
+                <SocialLinksCard variant="mobile" />
+              </PanelStack>
+            )}
+
             {panel === "subscription" && (
               <PanelStack>
-                <SubscriptionCard />
+                <SubscriptionPanel />
+              </PanelStack>
+            )}
+
+            {panel === "payments" && (
+              <PanelStack>
+                <PayoutSettingsCard />
+                <div className="rounded-[28px] bg-[#1C1C1E] p-5">
+                  <p className="text-[13px] leading-5 text-[#8E8E93]">
+                    Payouts go straight to your connected account. Sales tax is calculated automatically at
+                    checkout and a flat $0.25 platform fee is deducted per transaction — the price your client
+                    pays never changes.
+                  </p>
+                </div>
+              </PanelStack>
+            )}
+
+            {panel === "boost" && (
+              <PanelStack>
+                <BoostBarbershopCard />
               </PanelStack>
             )}
 
@@ -1065,11 +1073,23 @@ function Row({
         </span>
       ) : (
         <span
-          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: `${tint}26` }}
+          className="relative h-9 w-9 rounded-[11px] flex items-center justify-center shrink-0 ring-1 ring-white/15 overflow-hidden"
+          style={{
+            background: `linear-gradient(160deg, ${tint} 0%, ${tint}cc 45%, ${tint}80 100%)`,
+            boxShadow: `0 4px 10px -3px ${tint}80, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.28)`,
+          }}
         >
-          <Icon className="h-[18px] w-[18px]" style={{ color: tint }} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[11px] bg-gradient-to-b from-white/40 to-transparent"
+          />
+          <Icon
+            className="relative h-[18px] w-[18px] text-white"
+            strokeWidth={2.4}
+            style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))" }}
+          />
         </span>
+
       )}
       <span
         className={cn(
@@ -1097,6 +1117,26 @@ function Sheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+
+  // Always open a panel at the very top and stop the page behind from scrolling.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const reset = () => {
+      if (bodyRef.current) bodyRef.current.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t = setTimeout(reset, 150);
+    return () => {
+      document.body.style.overflow = prev;
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
+  }, []);
+
   return (
     <>
       <motion.div
@@ -1123,6 +1163,7 @@ function Sheet({
           <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
         </header>
         <div
+          ref={bodyRef}
           className="flex-1 overflow-y-auto overscroll-contain px-5 py-5"
           style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
         >
@@ -1175,10 +1216,11 @@ function ToggleRow({
   return (
     <div className={cn("flex items-center gap-3 px-4 py-3.5", isLast && "")}>
       {Icon && (
-        <span className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
-          <Icon className="h-4 w-4 text-white/70" />
+        <span className="relative h-8 w-8 rounded-[10px] flex items-center justify-center ring-1 ring-white/15 overflow-hidden bg-gradient-to-b from-white/20 to-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.3)]">
+          <Icon className="h-4 w-4 text-white" strokeWidth={2.4} />
         </span>
       )}
+
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium text-white">{label}</p>
         {desc && <p className="text-[12px] text-white/40 mt-0.5">{desc}</p>}
@@ -1198,18 +1240,22 @@ function titleFor(p: Panel): string {
       return "Appearance";
     case "notifications":
       return "Notifications";
-    case "loyalty":
-      return "Loyal regulars";
     case "messages":
       return "Messages";
     case "booking":
       return "Booking link";
+    case "social":
+      return "Social media";
     case "business":
       return "Business";
     case "location":
       return "Map location";
     case "subscription":
       return "Subscription";
+    case "payments":
+      return "Payments & payouts";
+    case "boost":
+      return "Boost";
     default:
       return "";
   }

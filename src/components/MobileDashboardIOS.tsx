@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   CalendarDays,
@@ -16,6 +16,7 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
+import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,16 +76,9 @@ const money = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,
 });
 
-const iosSpring = { type: "spring" as const, stiffness: 420, damping: 32, mass: 0.8 };
-const sectionVariants = {
-  hidden: { opacity: 0, y: 14, scale: 0.985 },
-  visible: { opacity: 1, y: 0, scale: 1 },
-};
-
 export function MobileDashboardIOS() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const reduceMotion = useReducedMotion();
   const [avatarFailed, setAvatarFailed] = useState(false);
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -145,12 +139,7 @@ export function MobileDashboardIOS() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-black text-white">
-      <motion.header
-        initial={reduceMotion ? false : { opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={iosSpring}
-        className="shrink-0 px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]"
-      >
+      <header className="shrink-0 px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-[#8E8E93]">{format(new Date(), "EEEE, MMMM d")}</p>
@@ -158,13 +147,11 @@ export function MobileDashboardIOS() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <NotificationBell />
-            <motion.button
+            <button
               type="button"
               aria-label="Open profile settings"
               onClick={() => navigate("/settings")}
               className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[#2C2C2E] text-sm font-bold text-white ring-1 ring-[#3A3A3C]"
-              whileTap={reduceMotion ? undefined : { scale: 0.9 }}
-              transition={iosSpring}
             >
               {profile?.avatar_url && !avatarFailed ? (
                 <img
@@ -176,38 +163,23 @@ export function MobileDashboardIOS() {
               ) : (
                 initial
               )}
-            </motion.button>
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      <motion.main
-        initial="hidden"
-        animate="visible"
-        variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.045 } } }}
-        className="flex-1 space-y-4 overflow-y-auto px-4 pb-32 pt-2"
-      >
+      <main className="flex-1 space-y-4 overflow-y-auto px-4 pb-32 pt-2">
+        <ReviewAnnouncement />
 
         <motion.section
-          variants={sectionVariants}
-          transition={iosSpring}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           className="overflow-hidden rounded-[30px] bg-[#1C1C1E] p-5 text-white"
         >
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[13px] font-medium text-[#AEAEB2]">Today</p>
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.p
-                  key={metrics.today_revenue}
-                  initial={reduceMotion ? false : { opacity: 0, y: 8, filter: "blur(5px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={iosSpring}
-                  className="mt-1 text-[42px] font-bold leading-none tracking-[-0.045em]"
-                >
-                  {money.format(metrics.today_revenue)}
-                </motion.p>
-              </AnimatePresence>
+              <p className="mt-1 text-[42px] font-bold leading-none tracking-[-0.045em]">{money.format(metrics.today_revenue)}</p>
               <p className="mt-2 text-[13px] text-[#AEAEB2]">{metrics.today_bookings} bookings scheduled</p>
             </div>
             <Trend value={metrics.revenue_change} />
@@ -218,7 +190,7 @@ export function MobileDashboardIOS() {
                 <motion.div
                   initial={{ height: 4 }}
                   animate={{ height: item.height }}
-                   transition={reduceMotion ? { duration: 0 } : { delay: index * 0.025, ...iosSpring }}
+                  transition={{ delay: index * 0.025, duration: 0.35 }}
                   className={`w-full rounded-full ${index === chart.length - 1 ? "bg-[#FF375F]" : "bg-[#3A3A3C]"}`}
                 />
               </div>
@@ -226,43 +198,43 @@ export function MobileDashboardIOS() {
           </div>
         </motion.section>
 
-        <motion.section variants={sectionVariants} transition={iosSpring} className="grid grid-cols-2 gap-3">
-          <MetricCard icon={CalendarDays} color="bg-[#0A5BBF]" label="30-day bookings" value={metrics.bookings_30d.toString()} detail={`${metrics.upcoming_bookings} upcoming`} reduceMotion={reduceMotion} />
-          <MetricCard icon={CircleDollarSign} color="bg-[#1E7A3A]" label="Average ticket" value={money.format(metrics.avg_ticket_30d)} detail={`${money.format(metrics.revenue_30d)} total`} reduceMotion={reduceMotion} />
-          <MetricCard icon={UsersRound} color="bg-[#7B3FA0]" label="Customers" value={metrics.total_customers.toString()} detail={`+${metrics.new_customers_30d} new`} reduceMotion={reduceMotion} />
-          <MetricCard icon={Check} color="bg-[#B8730A]" label="Completion" value={`${metrics.completion_rate}%`} detail={`${metrics.cancelled_30d} cancelled`} reduceMotion={reduceMotion} />
-        </motion.section>
+        <section className="grid grid-cols-2 gap-3">
+          <MetricCard icon={CalendarDays} color="bg-[#0A5BBF]" label="30-day bookings" value={metrics.bookings_30d.toString()} detail={`${metrics.upcoming_bookings} upcoming`} />
+          <MetricCard icon={CircleDollarSign} color="bg-[#1E7A3A]" label="Average ticket" value={money.format(metrics.avg_ticket_30d)} detail={`${money.format(metrics.revenue_30d)} total`} />
+          <MetricCard icon={UsersRound} color="bg-[#7B3FA0]" label="Customers" value={metrics.total_customers.toString()} detail={`+${metrics.new_customers_30d} new`} />
+          <MetricCard icon={Check} color="bg-[#B8730A]" label="Completion" value={`${metrics.completion_rate}%`} detail={`${metrics.cancelled_30d} cancelled`} />
+        </section>
 
-        <motion.section variants={sectionVariants} transition={iosSpring} className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
+        <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
           <SectionTitle title="This week" action="Agenda" onClick={() => navigate("/agenda")} />
           <div className="mt-4 grid grid-cols-7 gap-1">
             {metrics.week.map((day) => {
               const date = new Date(`${day.date}T12:00:00`);
               const active = day.date === today;
               return (
-                <motion.button key={day.date} type="button" onClick={() => navigate("/agenda")} whileTap={reduceMotion ? undefined : { scale: 0.9 }} transition={iosSpring} className="flex min-w-0 flex-col items-center gap-2">
+                <button key={day.date} type="button" onClick={() => navigate("/agenda")} className="flex min-w-0 flex-col items-center gap-2">
                   <span className="text-[10px] font-semibold text-[#8E8E93]">{format(date, "EEEEE")}</span>
                   <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold ${active ? "bg-[#C62B4A] text-white" : "bg-[#2C2C2E] text-[#F2F2F7]"}`}>
                     {format(date, "d")}
                   </span>
                   <span className={`text-[11px] font-bold ${day.bookings ? "text-white" : "text-[#636366]"}`}>{day.bookings}</span>
-                </motion.button>
+                </button>
               );
             })}
           </div>
-        </motion.section>
+        </section>
 
-        <motion.section variants={sectionVariants} transition={iosSpring} className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
+        <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
           <SectionTitle title="Customer pulse" action="Customers" onClick={() => navigate("/customers")} />
           <div className="mt-4 flex items-center divide-x divide-[#3A3A3C]">
             <MiniStat label="New" value={metrics.new_customers_30d} />
             <MiniStat label="Returning" value={metrics.returning_customers_30d} />
             <MiniStat label="Completed" value={metrics.completed_30d} />
           </div>
-        </motion.section>
+        </section>
 
         {metrics.top_services.length > 0 && (
-          <motion.section variants={sectionVariants} transition={iosSpring} className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
+          <section className="rounded-[28px] bg-[#1C1C1E] px-5 py-4">
             <SectionTitle title="Top services" action="Services" onClick={() => navigate("/services")} />
             <div className="mt-4 space-y-4">
               {metrics.top_services.map((service) => (
@@ -272,15 +244,15 @@ export function MobileDashboardIOS() {
                     <span className="shrink-0 text-[12px] font-semibold text-[#8E8E93]">{service.bookings} · {money.format(service.revenue)}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-[#2C2C2E]">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${(service.bookings / topServiceMax) * 100}%` }} transition={reduceMotion ? { duration: 0 } : iosSpring} className="h-full rounded-full bg-[#FF375F]" />
+                    <div className="h-full rounded-full bg-[#FF375F]" style={{ width: `${(service.bookings / topServiceMax) * 100}%` }} />
                   </div>
                 </div>
               ))}
             </div>
-          </motion.section>
+          </section>
         )}
 
-        <motion.section variants={sectionVariants} transition={iosSpring}>
+        <section>
           <SectionTitle title="Today's schedule" action="See all" onClick={() => navigate("/agenda")} />
           <div className="mt-3 overflow-hidden rounded-[28px] bg-[#1C1C1E]">
             {appointments.length === 0 ? (
@@ -291,13 +263,11 @@ export function MobileDashboardIOS() {
               </div>
             ) : (
               appointments.slice(0, 6).map((appointment, index) => (
-                <motion.button
+                <button
                   key={appointment.id}
                   type="button"
                   onClick={() => navigate("/agenda")}
                   className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-[#2C2C2E] ${index ? "border-t border-[#38383A]" : ""}`}
-                  whileTap={reduceMotion ? undefined : { scale: 0.985, backgroundColor: "#2C2C2E" }}
-                  transition={iosSpring}
                 >
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2C2C2E] text-[12px] font-bold">
                     {appointment.appointment_time.slice(0, 5)}
@@ -307,17 +277,17 @@ export function MobileDashboardIOS() {
                     <p className="truncate text-[12px] text-[#8E8E93]">{appointment.service?.name || "Service"}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 text-[#C7C7CC]" />
-                </motion.button>
+                </button>
               ))
             )}
           </div>
-        </motion.section>
+        </section>
 
-        <motion.section variants={sectionVariants} transition={iosSpring} className="grid grid-cols-2 gap-3 pb-4">
-          <ActionButton icon={Clock3} label="New booking" primary onClick={() => navigate("/agenda")} reduceMotion={reduceMotion} />
-          <ActionButton icon={Scissors} label="Edit services" onClick={() => navigate("/services")} reduceMotion={reduceMotion} />
-        </motion.section>
-      </motion.main>
+        <section className="grid grid-cols-2 gap-3 pb-4">
+          <ActionButton icon={Clock3} label="New booking" primary onClick={() => navigate("/agenda")} />
+          <ActionButton icon={Scissors} label="Edit services" onClick={() => navigate("/services")} />
+        </section>
+      </main>
     </div>
   );
 }
@@ -333,14 +303,14 @@ function Trend({ value }: { value: number }) {
   );
 }
 
-function MetricCard({ icon: Icon, color, label, value, detail, reduceMotion }: { icon: typeof CalendarDays; color: string; label: string; value: string; detail: string; reduceMotion: boolean | null }) {
+function MetricCard({ icon: Icon, color, label, value, detail }: { icon: typeof CalendarDays; color: string; label: string; value: string; detail: string }) {
   return (
-    <motion.div whileTap={reduceMotion ? undefined : { scale: 0.97 }} transition={iosSpring} className="min-h-[142px] rounded-[26px] bg-[#1C1C1E] p-4 ring-1 ring-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+    <div className="min-h-[142px] rounded-[26px] bg-[#1C1C1E] p-4">
       <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${color}`}><Icon className="h-[18px] w-[18px]" /></div>
       <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8E8E93]">{label}</p>
-      <AnimatePresence mode="popLayout" initial={false}><motion.p key={value} initial={reduceMotion ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={iosSpring} className="mt-1 text-[25px] font-bold tracking-[-0.035em]">{value}</motion.p></AnimatePresence>
+      <p className="mt-1 text-[25px] font-bold tracking-[-0.035em]">{value}</p>
       <p className="mt-0.5 text-[11px] font-medium text-[#8E8E93]">{detail}</p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -359,10 +329,10 @@ function MiniStat({ label, value }: { label: string; value: number }) {
   return <div className="flex-1 px-2 text-center"><p className="text-[23px] font-bold">{value}</p><p className="mt-1 text-[11px] font-medium text-[#8E8E93]">{label}</p></div>;
 }
 
-function ActionButton({ icon: Icon, label, primary = false, onClick, reduceMotion }: { icon: typeof UserRound; label: string; primary?: boolean; onClick: () => void; reduceMotion: boolean | null }) {
+function ActionButton({ icon: Icon, label, primary = false, onClick }: { icon: typeof UserRound; label: string; primary?: boolean; onClick: () => void }) {
   return (
-    <motion.button type="button" onClick={onClick} whileTap={reduceMotion ? undefined : { scale: 0.96 }} transition={iosSpring} className={`flex h-14 items-center justify-center gap-2 rounded-[20px] text-[14px] font-bold ring-1 ring-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] ${primary ? "bg-[#FF375F] text-white" : "bg-[#1C1C1E] text-white"}`}>
+    <button type="button" onClick={onClick} className={`flex h-14 items-center justify-center gap-2 rounded-[20px] text-[14px] font-bold active:scale-[0.98] ${primary ? "bg-[#FF375F] text-white" : "bg-[#1C1C1E] text-white"}`}>
       <Icon className="h-4 w-4" />{label}<ArrowRight className="h-4 w-4" />
-    </motion.button>
+    </button>
   );
 }

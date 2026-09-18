@@ -44,7 +44,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
-import { BjorkButton, CrystalMark } from "@/components/BjorkButton";
 
 const features = [
   {
@@ -348,10 +347,9 @@ export default function Landing() {
               Smart agenda, client management, and online bookings in one simple workspace.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <BjorkButton variant="accent" size="lg" onClick={() => navigate("/auth")}>
-                <CrystalMark aria-hidden="true" />
-                Launch demo
-              </BjorkButton>
+              <Button size="lg" className="rounded-full h-12 px-8 bg-rose-500" onPress={() => navigate("/auth")}>
+                Start free
+              </Button>
               <Button size="lg" variant="bordered" className="rounded-full h-12 px-8 border-white/10 bg-white/[0.03]" onPress={() => navigate("/find-barber")}>
                 Find a barber
               </Button>
@@ -662,30 +660,17 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-white/[0.06] px-6 py-10">
-        <div className="mx-auto max-w-6xl space-y-6 text-sm text-muted-foreground">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <img src="/cutzioo-logo.webp" alt="Cutzioo booking app logo" className="h-6 w-6 rounded-md" />
-              <span>© {new Date().getFullYear()} Cutzioo. All rights reserved.</span>
-            </div>
-            <nav aria-label="Legal and support" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-              <Link to="/terms" className="hover:text-foreground transition">Terms</Link>
-              <Link to="/privacy" className="hover:text-foreground transition">Privacy</Link>
-              <Link to="/cookies" className="hover:text-foreground transition">Cookies</Link>
-              <Link to="/refunds" className="hover:text-foreground transition">Refunds</Link>
-              <a href="mailto:support@cutzioo.com" className="hover:text-foreground transition">Contact</a>
-              <Link to="/auth" className="hover:text-foreground transition">Sign in</Link>
-            </nav>
+        <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2.5">
+            <img src="/cutzioo-logo.webp" alt="Cutzioo Booking" className="h-6 w-6 rounded-md" />
+            <span>© {new Date().getFullYear()} Cutzioo. All rights reserved.</span>
           </div>
-          <address className="not-italic text-xs leading-relaxed text-muted-foreground/80">
-            Cutzioo — online booking software for barbers and salons.
-            <br />
-            Support: <a href="mailto:support@cutzioo.com" className="hover:text-foreground transition">support@cutzioo.com</a>
-            {" · "}
-            <a href="https://cutzioo.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">cutzioo.com</a>
-            <br />
-            Card payments are processed by Stripe. Prices shown include applicable taxes where required.
-          </address>
+          <div className="flex items-center gap-6">
+            <a href="https://cutzioo.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">
+              cutzioo.com
+            </a>
+            <Link to="/auth" className="hover:text-foreground transition">Sign in</Link>
+          </div>
         </div>
       </footer>
     </div>

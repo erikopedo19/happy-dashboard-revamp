@@ -24,7 +24,6 @@ import {
   Image as ImageIcon,
   Home,
   MapPin,
-  Flame,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
@@ -42,7 +41,6 @@ import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
 import { StoriesRail } from "@/components/stories/StoriesRail";
 import { NotificationBell } from "@/components/NotificationBell";
-import { TrendingRail, StyleCategories, FeaturedSection, PopularAreas, ActivityFeed, SpecialOffers } from "@/components/findbarber/DiscoverExtras";
 
 
 interface BarberProfile {
@@ -64,10 +62,10 @@ type TabKey = "today" | "map" | "favorites";
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const FILTER_OPTIONS = [
-  { key: "default" as const, label: "Recommended", icon: Sparkles },
-  { key: "reviews" as const, label: "Top rated", icon: Star },
-  { key: "likes" as const, label: "Most popular", icon: Heart },
-  { key: "bookings" as const, label: "Trending", icon: Flame },
+  { key: "default" as const, label: "For you" },
+  { key: "reviews" as const, label: "Most reviewed" },
+  { key: "likes" as const, label: "Most liked" },
+  { key: "bookings" as const, label: "Most bookings this week" },
 ];
 
 const FindBarber = () => {
@@ -309,10 +307,10 @@ const FindBarber = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-[100dvh] flex w-full bg-[#F2F2F7] dark:bg-[#000000]">
+      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#000000] overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 relative overflow-y-auto overscroll-y-contain">
-          <div className="relative min-h-[100dvh] bg-[#F2F2F7] dark:bg-[#000000] pb-36">
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="relative min-h-screen bg-[#F2F2F7] dark:bg-[#000000] pb-28">
       <Seo
         title="Cutzio — Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
@@ -322,27 +320,17 @@ const FindBarber = () => {
       {/* Page header — scrolls away naturally */}
       <PageHeader>
         <div className="backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
-        <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={spring}
-                onDoubleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="text-[32px] font-bold leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] select-none"
-              >
-                Find your style
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="text-[14px] text-[#8E8E93] mt-1"
-              >
-                Discover the perfect barber for you
-              </motion.p>
-            </div>
+        <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
+          <div className="flex items-center justify-between mb-3">
+            <motion.h1
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={spring}
+              onDoubleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="text-[28px] font-bold leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] select-none"
+            >
+              Find a barber
+            </motion.h1>
             <div className="flex items-center gap-2">
               {isMobile && <NotificationBell />}
               <Link to="/me">
@@ -357,10 +345,10 @@ const FindBarber = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
             <Input
               type="text"
-              placeholder="Search barbers, styles, neighborhoods..."
+              placeholder="Search barbers, styles, vibes"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 rounded-[16px] border-0 bg-black/[0.05] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15 text-[15px]"
+              className="pl-10 h-11 rounded-[14px] border-0 bg-black/[0.05] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15"
             />
           </div>
 
@@ -372,21 +360,9 @@ const FindBarber = () => {
 
 
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
-        <div className="mb-6">
+        <div className="mb-4">
           <StoriesRail />
         </div>
-
-        {activeTab === "today" && (
-          <>
-            <StyleCategories />
-            <FeaturedSection items={sortedBarbers.slice(0, 6) as any} boostedIds={boostedIds} />
-            <PopularAreas />
-            <ActivityFeed />
-            <SpecialOffers />
-            <TrendingRail items={sortedBarbers.slice(0, 8) as any} boostedIds={boostedIds} />
-          </>
-        )}
-
 
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4">
           {FILTER_OPTIONS.map((f) => (
@@ -395,13 +371,12 @@ const FindBarber = () => {
               type="button"
               onClick={() => setSortFilter(f.key)}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition border",
+                "rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition border",
                 sortFilter === f.key || (f.key === "default" && sortFilter === undefined)
                   ? "bg-[#1C1C1E] text-white border-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E] dark:border-white"
                   : "bg-transparent text-[#1C1C1E] border-black/10 hover:bg-black/[0.05] dark:text-white dark:border-white/10 dark:hover:bg-white/5"
               )}
             >
-              <f.icon className="w-3.5 h-3.5" />
               {f.label}
             </button>
           ))}
@@ -502,20 +477,20 @@ function BarberCard({
       animate="show"
       transition={spring}
       className={cn(
-        "group relative rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-shadow duration-300",
-        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
+        "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
+        isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       )}
     >
       {/* Header banner */}
       <div
-        className="relative h-28"
+        className="relative h-24"
         style={{
           background: barber.banner_url
             ? `url(${barber.banner_url}) center/cover`
             : `linear-gradient(135deg, ${accent}, ${accent}88)`,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-[#1C1C1E]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-[#1C1C1E]" />
 
         {/* Favorite — large 44x44 tap target */}
         <button
@@ -536,38 +511,38 @@ function BarberCard({
       </div>
 
       {/* Body */}
-      <div className="px-4 -mt-12 relative">
+      <div className="px-4 -mt-10 relative">
         <div className="flex items-end gap-3">
           {barber.avatar_url ? (
             <img
               src={barber.avatar_url}
               alt={barber.brandName}
-              className="w-[72px] h-[72px] rounded-full object-cover border-[4px] border-white dark:border-[#1C1C1E] shrink-0 shadow-lg"
+              className="w-[68px] h-[68px] rounded-full object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
             />
           ) : (
             <div
-              className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white font-semibold text-3xl border-[4px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden shadow-lg"
+              className="w-[68px] h-[68px] rounded-full flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden"
               style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
             >
               {initial}
             </div>
           )}
           <div className="min-w-0 flex-1 pb-1">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-black/[0.05] dark:bg-white/[0.10] px-2.5 py-1 mb-1.5 shadow-sm">
-              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-              <span className="text-[12px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
+            <div className="inline-flex items-center gap-1 rounded-full bg-black/[0.04] dark:bg-white/[0.08] px-2 py-0.5 mb-1">
+              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+              <span className="text-[11px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tabular-nums">
                 {Number(rating).toFixed(1)}
               </span>
-              <span className="text-[11px] text-[#8E8E93]">· {reviews} reviews</span>
+              <span className="text-[10px] text-[#8E8E93]">· {reviews}</span>
             </div>
           </div>
         </div>
 
-        <h3 className="mt-3 text-[20px] font-bold leading-tight tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+        <h3 className="mt-2 text-[19px] font-semibold leading-tight tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
           {barber.brandName}
         </h3>
                 {barber.description && !isExpanded && (
-          <p className="mt-2 text-[13px] text-[#8E8E93] line-clamp-2 leading-relaxed">
+          <p className="mt-1 text-[12.5px] text-[#8E8E93] line-clamp-2 leading-relaxed">
             {barber.description}
           </p>
         )}
@@ -596,10 +571,10 @@ function BarberCard({
       </AnimatePresence>
 
       {/* Action row — generous 48px tap targets */}
-      <div className="p-4 pt-4 flex gap-2">
+      <div className="p-3 pt-3 flex gap-2">
         <button
           onClick={() => onExpand(barber.id)}
-          className="flex-1 h-12 rounded-[16px] bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform border border-black/[0.04] dark:border-white/[0.06]"
+          className="flex-1 h-12 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
         >
           {isExpanded ? "Less" : "Details"}
           <motion.span animate={{ rotate: isExpanded ? 180 : 0 }} transition={spring} className="inline-flex">
@@ -609,14 +584,14 @@ function BarberCard({
         {barber.booking_link ? (
           <Button
             onPress={() => setBookOpen(true)}
-            className="flex-[1.4] w-full h-12 rounded-[16px] text-white font-semibold border-0 active:scale-[0.97] transition-transform shadow-lg"
+            className="flex-[1.4] w-full h-12 rounded-[14px] text-white font-semibold border-0 active:scale-[0.97] transition-transform"
             style={{ backgroundColor: accent }}
           >
             <Calendar className="w-4 h-4 mr-1.5" />
             Book
           </Button>
         ) : (
-          <Button isDisabled className="flex-[1.4] h-12 rounded-[16px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
+          <Button isDisabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
             Unavailable
           </Button>
         )}
@@ -779,14 +754,14 @@ function EmptyState({
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={spring}
-      className="text-center py-24"
+      className="text-center py-20"
     >
-      <div className="w-24 h-24 rounded-[28px] bg-gradient-to-br from-[#FF375F]/10 to-[#5856D6]/10 border border-[#FF375F]/20 flex items-center justify-center mx-auto mb-6">
+      <div className="w-20 h-20 rounded-[22px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] flex items-center justify-center mx-auto mb-4">
         {icon}
       </div>
-      <h3 className="text-[19px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</h3>
-      <p className="text-[14px] text-[#8E8E93] mt-2 leading-relaxed">{subtitle}</p>
-      {action && <div className="mt-6">{action}</div>}
+      <h3 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</h3>
+      <p className="text-sm text-[#8E8E93] mt-1">{subtitle}</p>
+      {action && <div className="mt-5">{action}</div>}
     </motion.div>
   );
 }

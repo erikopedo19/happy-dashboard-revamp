@@ -13,8 +13,6 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
-import { FREE_ACCESS_ENABLED } from "@/lib/free-access";
-import { GiftSubscriptionRow } from "@/components/GiftSubscriptionRow";
 
 const fmt = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -34,9 +32,6 @@ export function SubscriptionPanel() {
 
   const shell =
     "rounded-3xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] p-5";
-
-  // While the app gifts free access there is nothing to buy or manage.
-  if (FREE_ACCESS_ENABLED) return <GiftSubscriptionRow />;
 
   if (loading) {
     return (

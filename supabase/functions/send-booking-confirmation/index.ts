@@ -136,11 +136,6 @@ const EMAIL_STRINGS: Record<LocaleKey, Record<string, string>> = {
 };
 const INTL_LOCALE: Record<LocaleKey, string> = { en: "en-US", el: "el-GR", es: "es-ES", nl: "nl-NL", pl: "pl-PL" };
 
-/** Shared label/value row used by both the client and the barber email. */
-const row = (label: string, value: string, accentColor?: string) => `
-    <tr><td style="padding:0 0 6px;font-size:12px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">${escapeHtml(label)}</td></tr>
-    <tr><td style="padding:0 0 16px;font-size:16px;font-weight:600;color:${accentColor || "#121214"};">${value}</td></tr>`;
-
 function buildHtml(opts: {
   businessName: string;
   customerName: string;
@@ -452,91 +447,6 @@ serve(async (req: Request) => {
       const data = await smsRes.json().catch(() => ({}));
       if (!smsRes.ok) results.sms = { error: data, status: smsRes.status };
       else results.sms = data;
-    }
-
-    // ---- Premium only: notify the barber that a new booking came in ----
-    try {
-      const { data: sub } = await supabase
-        .from("subscribers")
-        .select("subscribed, subscription_end")
-        .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const isPremium =
-        !!sub?.subscribed &&
-        (!sub?.subscription_end || new Date(sub.subscription_end as string) > new Date());
-
-      if (isPremium) {
-        let ownerEmail = profile?.sender_email ?? null;
-        if (!ownerEmail) {
-          const { data: authUser } = await supabase.auth.admin.getUserById(userId);
-          ownerEmail = authUser?.user?.email ?? null;
-        }
-
-        if (ownerEmail) {
-          const weekday = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
-            weekday: "long",
-            timeZone: tz,
-          }).format(localToUtc(startIso, startTime, tz));
-
-          const ownerSubject = `New booking · ${weekday} ${appointmentTime} — ${customerName}`;
-          const ownerHtml = `<!DOCTYPE html><html><body style="margin:0;background:#f6f6f8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1c;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f8;padding:40px 16px;"><tr><td align="center">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#ffffff;border-radius:28px;border:1px solid #e8e8ec;overflow:hidden;">
-      <tr><td style="padding:30px 32px 0;">
-        <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#8c8c92;">New booking</p>
-        <h1 style="margin:0;font-size:24px;font-weight:650;letter-spacing:-0.02em;color:#121214;">${escapeHtml(customerName || "New client")}</h1>
-      </td></tr>
-      <tr><td style="padding:22px 32px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafb;border-radius:20px;border:1px solid #eeeff2;">
-          <tr><td style="padding:20px 22px 6px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-              ${row("Day", escapeHtml(weekday))}
-              ${row("Date", escapeHtml(appointmentDate))}
-              ${row("Time", `${escapeHtml(appointmentTime)} <span style="color:#8c8c92;font-weight:500;font-size:14px;">· ${durationMinutes} min</span>`)}
-              ${row("Service", escapeHtml(serviceName))}
-              ${price != null ? row("Price", `€${escapeHtml(String(price))}`, accent) : ""}
-              ${stylist?.name ? row("Stylist", escapeHtml(stylist.name)) : ""}
-              ${customerEmail ? row("Client email", escapeHtml(customerEmail)) : ""}
-              ${customerPhone ? row("Client phone", escapeHtml(customerPhone)) : ""}
-            </table>
-          </td></tr>
-          ${notes ? `<tr><td style="padding:0 22px 20px;"><div style="font-size:11px;color:#8c8c92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px;">Note</div><div style="font-size:14px;color:#3a3a3f;line-height:1.5;">${escapeHtml(notes)}</div></td></tr>` : ""}
-        </table>
-      </td></tr>
-      <tr><td style="padding:22px 32px 32px;">
-        <a href="${APP_URL}/agenda" style="display:block;text-align:center;background:#121214;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 0;border-radius:14px;">Open your agenda</a>
-        <p style="margin:16px 0 0;text-align:center;font-size:11px;color:#9a9aa2;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;">Cutzioo Pro</p>
-      </td></tr>
-    </table>
-  </td></tr></table>
-</body></html>`;
-
-          const ownerText = `New booking — ${customerName}\n${weekday}, ${appointmentDate} at ${appointmentTime} (${durationMinutes} min)\nService: ${serviceName}${price != null ? ` · €${price}` : ""}${customerEmail ? `\nEmail: ${customerEmail}` : ""}${customerPhone ? `\nPhone: ${customerPhone}` : ""}${notes ? `\nNote: ${notes}` : ""}\n\n${APP_URL}/agenda`;
-
-          const ownerRes = await fetch(`${GATEWAY_URL}/smtp/email`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "X-Connection-Api-Key": BREVO_API_KEY,
-            },
-            body: JSON.stringify({
-              sender: { name: SENDER_FALLBACK_NAME, email: SENDER_EMAIL },
-              to: [{ email: ownerEmail, name: businessName }],
-              subject: ownerSubject,
-              htmlContent: ownerHtml,
-              textContent: ownerText,
-            }),
-          });
-          const ownerData = await ownerRes.json().catch(() => ({}));
-          results.ownerEmail = ownerRes.ok ? ownerData : { error: ownerData, status: ownerRes.status };
-        }
-      }
-    } catch (e) {
-      console.error("owner notification failed:", e);
     }
 
     return new Response(JSON.stringify({ success: true, ...results }), {
