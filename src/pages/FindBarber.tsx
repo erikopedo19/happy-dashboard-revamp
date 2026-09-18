@@ -308,10 +308,10 @@ const FindBarber = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#000000] overflow-hidden">
+      <div className="min-h-[100dvh] flex w-full bg-[#F2F2F7] dark:bg-[#000000]">
         <AppSidebar />
-        <main className="flex-1 overflow-y-auto relative">
-          <div className="relative min-h-screen bg-[#F2F2F7] dark:bg-[#000000] pb-28">
+        <main className="flex-1 relative overflow-y-auto overscroll-y-contain">
+          <div className="relative min-h-[100dvh] bg-[#F2F2F7] dark:bg-[#000000] pb-36">
       <Seo
         title="Cutzio — Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
