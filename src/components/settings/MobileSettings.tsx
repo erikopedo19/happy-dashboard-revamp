@@ -44,6 +44,7 @@ import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
+import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
