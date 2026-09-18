@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { BjorkButton, CrystalMark } from "@/components/BjorkButton";
 
 const features = [
   {
@@ -347,9 +348,10 @@ export default function Landing() {
               Smart agenda, client management, and online bookings in one simple workspace.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" className="rounded-full h-12 px-8 bg-rose-500" onPress={() => navigate("/auth")}>
-                Start free
-              </Button>
+              <BjorkButton variant="accent" size="lg" onClick={() => navigate("/auth")}>
+                <CrystalMark aria-hidden="true" />
+                Launch demo
+              </BjorkButton>
               <Button size="lg" variant="bordered" className="rounded-full h-12 px-8 border-white/10 bg-white/[0.03]" onPress={() => navigate("/find-barber")}>
                 Find a barber
               </Button>
