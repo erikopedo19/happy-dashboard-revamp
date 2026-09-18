@@ -1167,6 +1167,7 @@ const Settings = () => {
 
                     <TabsContent value="business" className="mt-0 space-y-6 animate-fade-in">
                       <SubscriptionPanel />
+                      <BoostBarbershopCard />
                       <PayoutSettingsCard />
                       {/* Public visibility toggle removed — all profiles are public by default */}
 
