@@ -1243,6 +1243,51 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          rewarded_at?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           appointment_id: string
@@ -1768,6 +1813,7 @@ export type Database = {
       }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       cancel_subscription_at_period_end: { Args: never; Returns: Json }
+      claim_referral: { Args: { p_code: string }; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       clean_booking_link: { Args: { raw: string }; Returns: string }
       clean_display_name: { Args: { raw: string }; Returns: string }
@@ -1850,6 +1896,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_my_referral_code: { Args: never; Returns: string }
       get_pending_review_requests: {
         Args: never
         Returns: {
