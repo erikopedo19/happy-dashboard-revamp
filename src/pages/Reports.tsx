@@ -420,19 +420,8 @@ const Reports = () => {
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
-          {/* Ambient gradient backdrop — warm orange/red glow radiating from the centre */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] z-0 overflow-hidden rounded-b-[44px]">
-            <div className="absolute inset-x-0 top-0 h-[340px] rounded-b-[44px] bg-[radial-gradient(120%_100%_at_50%_0%,#FF8A3D_0%,#F04E23_30%,#8E1B12_58%,rgba(20,10,8,0.6)_80%,#0A0A0C_100%)]" />
-            <div className="absolute -top-32 left-1/2 h-[400px] w-[110%] -translate-x-1/2 rounded-[50%] blur-[110px] opacity-85 bg-[radial-gradient(closest-side,rgba(255,159,64,0.95),rgba(240,68,35,0.45),transparent)] animate-aurora-drift" />
-            <div className="absolute top-[60px] left-1/2 -translate-x-1/2 h-[280px] w-[70%] rounded-[50%] blur-[90px] opacity-60 bg-[radial-gradient(closest-side,rgba(255,214,140,0.75),transparent)] animate-aurora-drift" style={{ animationDelay: "-6s" }} />
-            <div className="absolute top-[190px] left-1/2 -translate-x-1/2 h-[240px] w-[95%] rounded-[50%] blur-[100px] opacity-40 bg-[radial-gradient(closest-side,rgba(220,38,38,0.7),transparent)] animate-aurora-drift" style={{ animationDelay: "-12s" }} />
-            <div className="absolute inset-x-0 bottom-0 h-[220px] bg-gradient-to-b from-transparent to-[#0A0A0C]" />
-          </div>
-
-
-
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 bg-gradient-to-b from-[#0A0A0C]/70 to-transparent backdrop-blur-xl">
+          <div className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0A0A0C]/95 backdrop-blur-xl">
             <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <motion.div

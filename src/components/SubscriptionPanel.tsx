@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Loader2, AlertCircle, RefreshCw, Check, CalendarClock, XCircle } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw, Check, CalendarClock, ChevronRight, CreditCard, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -18,10 +17,19 @@ const fmt = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
-  active: { label: "Active", tone: "bg-emerald-500/15 text-emerald-500" },
-  canceling: { label: "Cancels at period end", tone: "bg-amber-500/15 text-amber-500" },
-  expired: { label: "Expired", tone: "bg-red-500/15 text-red-500" },
-  none: { label: "Free plan", tone: "bg-muted text-muted-foreground" },
+  active: { label: "Active", tone: "text-emerald-500" },
+  canceling: { label: "Ending", tone: "text-amber-500" },
+  expired: { label: "Expired", tone: "text-destructive" },
+  none: { label: "Free", tone: "text-muted-foreground" },
+};
+
+const money = (amount?: number | null, currency = "EUR") => {
+  if (amount == null) return "—";
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+  }).format(Number(amount));
 };
 
 export function SubscriptionPanel() {
@@ -30,8 +38,7 @@ export function SubscriptionPanel() {
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const shell =
-    "rounded-3xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] p-5";
+  const shell = "rounded-2xl border border-border bg-card p-5";
 
   if (loading) {
     return (
@@ -51,7 +58,7 @@ export function SubscriptionPanel() {
     return (
       <div className={shell}>
         <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+           <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-[15px] font-semibold">Couldn't load your plan</p>
             <p className="text-sm text-muted-foreground mt-0.5">{error}</p>
@@ -87,126 +94,103 @@ export function SubscriptionPanel() {
     await refresh();
   }
 
+  const openBilling = () => {
+    haptic("light");
+    if (STRIPE_PORTAL_LINK) {
+      window.open(STRIPE_PORTAL_LINK, "_blank", "noopener,noreferrer");
+      return;
+    }
+    navigate("/pricing");
+  };
+
   return (
-    <div className="rounded-3xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-gradient-to-b from-white to-[#FAFAFC] dark:from-[#1C1C1E] dark:to-[#141416] overflow-hidden">
-      <div className="p-5 flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-11 h-11 rounded-2xl bg-rose-500/10 flex items-center justify-center shrink-0">
-            <Crown className="w-5 h-5 text-rose-500" />
+    <section className="space-y-7 text-foreground" aria-labelledby="subscription-title">
+      <div className="px-1">
+        <p className="text-[12px] font-semibold uppercase text-muted-foreground">Manage</p>
+        <h2 id="subscription-title" className="mt-1 text-[30px] font-bold leading-tight">Subscription</h2>
+      </div>
+
+      <div>
+        <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Your plan</p>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
+            <span className="text-[16px]">Current plan</span>
+            <span className="max-w-[55%] truncate text-right text-[16px] text-muted-foreground">
+              {isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"}
+            </span>
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-[15px] font-semibold">{isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"}</p>
-              <Badge className={`rounded-full text-[11px] border-0 ${s.tone}`}>{s.label}</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {status === "canceling"
-                ? `Access ends ${fmt(data?.subscription_end)}`
-                : status === "active"
-                ? `Renews ${fmt(data?.subscription_end)}`
-                : status === "expired"
-                ? `Expired on ${fmt(data?.subscription_end)}`
-                : "Upgrade to unlock everything in Cutzioo"}
-            </p>
+          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
+            <span className="text-[16px]">Status</span>
+            <span className={`text-[16px] font-semibold ${s.tone}`}>{s.label}</span>
+          </div>
+          <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
+            <span className="text-[16px]">{isPro ? "Renewal amount" : "Bookings included"}</span>
+            <span className="text-right text-[16px] tabular-nums text-muted-foreground">
+              {isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
+            </span>
           </div>
         </div>
       </div>
 
-      {isPro && (
+      {isPro ? (
         <>
-          {/* Timeline */}
-          <div className="px-5 pb-1">
-            <div className="rounded-2xl bg-muted/50 p-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                <div className="flex-1 h-[3px] rounded-full bg-gradient-to-r from-rose-500 to-rose-500/30" />
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500/60" />
-                <div className="flex-1 h-[3px] rounded-full bg-muted-foreground/20" />
-                <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/30" />
+          <div>
+            <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Billing</p>
+            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="flex min-h-16 items-center justify-between gap-4 border-b border-border px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-[16px]">Auto-renew</p>
+                  <p className="truncate text-[12px] text-muted-foreground">
+                    {data?.auto_renew && !data?.cancel_at_period_end ? "Renews automatically" : "Will not renew"}
+                  </p>
+                </div>
+                <Switch
+                  disabled={busy}
+                  checked={!!data?.auto_renew && !data?.cancel_at_period_end}
+                  onCheckedChange={setAutoRenew}
+                  className="data-[state=checked]:bg-primary"
+                  aria-label="Auto-renew subscription"
+                />
               </div>
-              <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
-                <span>Started<br /><span className="text-foreground font-medium">{fmt(data?.subscription_start)}</span></span>
-                <span className="text-center">Current period</span>
-                <span className="text-right">
-                  {status === "canceling" ? "Ends" : "Renews"}
-                  <br />
-                  <span className="text-foreground font-medium">{fmt(data?.subscription_end)}</span>
-                </span>
+              <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
+                <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />{status === "canceling" ? "Access ends" : "Renewal date"}</span>
+                <span className="text-right text-[16px] text-muted-foreground">{fmt(data?.subscription_end)}</span>
               </div>
-            </div>
-          </div>
-
-          <div className="p-5 pt-4 space-y-3">
-            <div className="flex items-center justify-between rounded-2xl bg-muted/40 px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Auto-renewal</p>
-                <p className="text-xs text-muted-foreground">
-                  {data?.auto_renew && !data?.cancel_at_period_end ? "Your plan renews automatically" : "Your plan will not renew"}
-                </p>
-              </div>
-              <Switch
-                disabled={busy}
-                checked={!!data?.auto_renew && !data?.cancel_at_period_end}
-                onCheckedChange={setAutoRenew}
-                className="data-[state=checked]:bg-rose-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-between rounded-2xl bg-muted/40 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm font-medium">Renewal amount</p>
-              </div>
-              <p className="text-sm font-semibold tabular-nums">
-                {data?.renewal_amount != null
-                  ? `${data.renewal_currency === "EUR" ? "€" : ""}${Number(data.renewal_amount).toFixed(2)}`
-                  : "—"}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                variant="outline"
-                className="rounded-full h-11 flex-1"
-                onClick={() =>
-                  STRIPE_PORTAL_LINK
-                    ? window.open(STRIPE_PORTAL_LINK, "_blank", "noopener,noreferrer")
-                    : navigate("/pricing")
-                }
-              >
-                Manage subscription
+              <Button variant="ghost" onClick={openBilling} className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
+                <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Manage payment methods</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Button>
-              {status === "active" && (
-                <Button
-                  variant="ghost"
-                  className="rounded-full h-11 flex-1 text-red-500 hover:text-red-600"
-                  onClick={() => setConfirmOpen(true)}
-                >
-                  <XCircle className="w-4 h-4 mr-2" /> Cancel plan
-                </Button>
-              )}
             </div>
+            <p className="mt-2 px-4 text-[12px] leading-5 text-muted-foreground">Billing changes are handled securely through Stripe.</p>
           </div>
-        </>
-      )}
 
-      {!isPro && (
-        <div className="p-5 pt-0">
-          <ul className="space-y-2 mb-4">
-            {["Unlimited bookings", "Team members & stylists", "Reports & analytics"].map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-rose-500" /> {f}
-              </li>
+          {status === "active" && (
+            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <Button variant="ghost" onClick={() => setConfirmOpen(true)} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
+                Cancel subscription
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div>
+          <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Cutzioo Pro</p>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            {["Unlimited bookings", "Team members and stylists", "Reports, analytics and your website"].map((feature) => (
+              <div key={feature} className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><Check className="h-4 w-4" /></span>
+                <span className="text-[15px]">{feature}</span>
+              </div>
             ))}
-          </ul>
-          <Button onClick={() => navigate("/pricing")} className="w-full rounded-full h-11 bg-rose-500 hover:bg-rose-600 text-white">
-            {status === "expired" ? "Renew Cutzioo Pro" : "Upgrade to Pro"}
-          </Button>
+            <Button onClick={() => navigate("/pricing")} className="h-14 w-full rounded-none border-0 bg-primary px-4 text-[16px] text-primary-foreground shadow-none hover:bg-primary/90">
+              <ShieldCheck className="h-4 w-4" />{status === "expired" ? "Renew Cutzioo Pro" : "Upgrade to Pro"}
+            </Button>
+          </div>
         </div>
       )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="rounded-3xl">
+        <AlertDialogContent className="rounded-2xl border-border bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -214,17 +198,17 @@ export function SubscriptionPanel() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">Keep plan</AlertDialogCancel>
+            <AlertDialogCancel>Keep plan</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); cancelSubscription(); }}
               disabled={busy}
-              className="rounded-full bg-red-500 hover:bg-red-600"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel subscription"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </section>
   );
 }
