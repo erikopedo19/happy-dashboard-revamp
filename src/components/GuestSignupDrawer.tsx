@@ -51,8 +51,6 @@ export function GuestSignupDrawer() {
     setOpen(false);
   };
 
-  if (loading || user || muted) return null;
-
   return (
     <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
       <DrawerContent>
