@@ -110,9 +110,9 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   };
 
   return (
-    <section className="space-y-7 text-foreground" aria-labelledby="subscription-title">
+    <section className={`space-y-7 ${titleColor}`} aria-labelledby="subscription-title">
       <div className="px-1">
-        <p className="text-[12px] font-semibold uppercase text-muted-foreground">Manage</p>
+        <p className={`text-[12px] font-semibold uppercase ${labelColor}`}>Manage</p>
         <h2 id="subscription-title" className="mt-1 text-[30px] font-bold leading-tight">Subscription</h2>
       </div>
 
