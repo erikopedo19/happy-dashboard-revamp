@@ -808,7 +808,7 @@ export function MobileSettings(props: any) {
 
             {panel === "subscription" && (
               <PanelStack>
-                <SubscriptionPanel />
+                <SubscriptionPanel variant="mobile" />
               </PanelStack>
             )}
 
