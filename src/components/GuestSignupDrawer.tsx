@@ -43,8 +43,10 @@ export function GuestSignupDrawer() {
   }, [loading, user, muted]);
 
   useEffect(() => {
-    if (user && open) setOpen(false);
-  }, [user, open]);
+    // Close (don't unmount) when we hit a muted route or sign in, so vaul's
+    // body scroll-lock cleanup always runs through the close animation.
+    if ((user || muted) && open) setOpen(false);
+  }, [user, muted, open]);
 
   const dismiss = () => {
     localStorage.setItem(DISMISSED_KEY, String(Date.now()));
