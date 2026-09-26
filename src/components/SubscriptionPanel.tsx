@@ -117,7 +117,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
       </div>
 
       <div>
-        <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Your plan</p>
+        <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Your plan</p>
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
             <span className="text-[16px]">Current plan</span>
@@ -141,7 +141,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
       {isPro ? (
         <>
           <div>
-            <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Billing</p>
+            <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
               <div className="flex min-h-16 items-center justify-between gap-4 border-b border-border px-4 py-3">
                 <div className="min-w-0">
@@ -167,7 +167,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Button>
             </div>
-            <p className="mt-2 px-4 text-[12px] leading-5 text-muted-foreground">Billing changes are handled securely through Stripe.</p>
+            <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Billing changes are handled securely through Stripe.</p>
           </div>
 
           {status === "active" && (
@@ -180,7 +180,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         </>
       ) : (
         <div>
-          <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Cutzioo Pro</p>
+          <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Cutzioo Pro</p>
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             {["Unlimited bookings", "Team members and stylists", "Reports, analytics and your website"].map((feature) => (
               <div key={feature} className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
