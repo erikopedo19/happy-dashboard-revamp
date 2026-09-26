@@ -32,8 +32,14 @@ const money = (amount?: number | null, currency = "EUR") => {
   }).format(Number(amount));
 };
 
-export function SubscriptionPanel() {
+export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
   const navigate = useNavigate();
+  // MobileSettings embeds this inside an always-dark (#0A0A0C) surface that
+  // does not flip with the theme, so theme tokens would turn invisible in
+  // light mode. Use explicit dark-appropriate colors there.
+  const isMobile = variant === "mobile";
+  const titleColor = isMobile ? "text-white" : "text-foreground";
+  const labelColor = isMobile ? "text-white/50" : "text-muted-foreground";
   const { loading, error, data, status, refresh } = useSubscription();
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
