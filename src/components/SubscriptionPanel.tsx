@@ -32,8 +32,14 @@ const money = (amount?: number | null, currency = "EUR") => {
   }).format(Number(amount));
 };
 
-export function SubscriptionPanel() {
+export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
   const navigate = useNavigate();
+  // MobileSettings embeds this inside an always-dark (#0A0A0C) surface that
+  // does not flip with the theme, so theme tokens would turn invisible in
+  // light mode. Use explicit dark-appropriate colors there.
+  const isMobile = variant === "mobile";
+  const titleColor = isMobile ? "text-white" : "text-foreground";
+  const labelColor = isMobile ? "text-white/50" : "text-muted-foreground";
   const { loading, error, data, status, refresh } = useSubscription();
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -104,14 +110,14 @@ export function SubscriptionPanel() {
   };
 
   return (
-    <section className="space-y-7 text-foreground" aria-labelledby="subscription-title">
+    <section className={`space-y-7 ${titleColor}`} aria-labelledby="subscription-title">
       <div className="px-1">
-        <p className="text-[12px] font-semibold uppercase text-muted-foreground">Manage</p>
+        <p className={`text-[12px] font-semibold uppercase ${labelColor}`}>Manage</p>
         <h2 id="subscription-title" className="mt-1 text-[30px] font-bold leading-tight">Subscription</h2>
       </div>
 
       <div>
-        <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Your plan</p>
+        <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Your plan</p>
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
             <span className="text-[16px]">Current plan</span>
@@ -135,7 +141,7 @@ export function SubscriptionPanel() {
       {isPro ? (
         <>
           <div>
-            <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Billing</p>
+            <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
               <div className="flex min-h-16 items-center justify-between gap-4 border-b border-border px-4 py-3">
                 <div className="min-w-0">
@@ -161,7 +167,7 @@ export function SubscriptionPanel() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Button>
             </div>
-            <p className="mt-2 px-4 text-[12px] leading-5 text-muted-foreground">Billing changes are handled securely through Stripe.</p>
+            <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Billing changes are handled securely through Stripe.</p>
           </div>
 
           {status === "active" && (
@@ -174,7 +180,7 @@ export function SubscriptionPanel() {
         </>
       ) : (
         <div>
-          <p className="mb-2 px-4 text-[12px] font-medium uppercase text-muted-foreground">Cutzioo Pro</p>
+          <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Cutzioo Pro</p>
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             {["Unlimited bookings", "Team members and stylists", "Reports, analytics and your website"].map((feature) => (
               <div key={feature} className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
