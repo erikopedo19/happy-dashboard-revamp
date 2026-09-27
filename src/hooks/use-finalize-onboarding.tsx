@@ -114,6 +114,7 @@ export function useFinalizeOnboarding() {
             id: user.id,
             full_name: draft.businessName || undefined,
             business_name: draft.businessName || undefined,
+            freelancer_mode: draft.workType === "solo",
             address: fullAddress || null,
             description: draft.description || null,
             years_experience: years,

@@ -340,6 +340,19 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
             )}
 
             {step === 1 && (
+              <div className="grid gap-3">
+                <Choice active={businessType === "solo"} title="Solo barber" detail="Manage bookings for your own chair" onClick={() => setBusinessType("solo")} />
+                <Choice active={businessType === "salon"} title="Salon / barbershop" detail="Set up your salon and add your team" onClick={() => setBusinessType("salon")} />
+                {businessType === "salon" && (
+                  <div className="rounded-[20px] bg-[#1C1C1E] p-4">
+                    <FieldLabel>Salon name</FieldLabel>
+                    <DarkInput value={salonName} onChange={setSalonName} placeholder="Your salon name" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 2 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-5 rounded-[28px] bg-[#1C1C1E] p-5">
                   <div>
@@ -435,7 +448,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
               </div>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <div className="rounded-[28px] bg-[#1C1C1E] p-4">
                 <FieldLabel>Stylist name</FieldLabel>
                 <DarkInput value={stylistName} onChange={setStylistName} placeholder="e.g. Alex" />
@@ -443,7 +456,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
               </div>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <div className="space-y-3 rounded-[28px] bg-[#1C1C1E] p-4">
                 <div><FieldLabel>Service</FieldLabel><DarkInput value={serviceName} onChange={setServiceName} placeholder="Haircut" /></div>
                 <div className="grid grid-cols-2 gap-3">
@@ -497,7 +510,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="space-y-5 rounded-[28px] bg-[#1C1C1E] p-5">
                 <div className="grid grid-cols-7 gap-2">
                   {DAYS.map((day, index) => (
@@ -528,7 +541,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
               </div>
             )}
 
-            {step === 5 && (
+            {step === 6 && (
               <div className="space-y-3">
                 <div className="grid gap-3">
                   <FeatureCard icon={BellRing} title="Cancellation alerts" detail="Get an instant notification when a client cancels, so you can refill the slot fast." checked={cancellationAlerts} onChange={setCancellationAlerts} />
