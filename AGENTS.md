@@ -1,0 +1,2 @@
+Business onboarding uses the existing profile `freelancer_mode` and `business_name` fields for solo versus salon setup; keep both the public onboarding draft and first-login setup aligned so no new schema or role is needed.
+Mobile Settings subpages use their own full-height scrolling area without locking document scrolling, preventing stale scroll locks after overlays close.

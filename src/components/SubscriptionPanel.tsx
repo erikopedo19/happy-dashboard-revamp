@@ -85,7 +85,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
     <div className="space-y-6">
       <div>
         <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>At a glance</p>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
           {[
             ["Plan", isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"],
             ["Status", s.label],
@@ -152,7 +152,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         <TabsContent value="manage" className="space-y-7">
       <div>
         <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Your plan</p>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
           <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
             <span className="text-[16px]">Current plan</span>
             <span className="max-w-[55%] truncate text-right text-[16px] text-muted-foreground">
@@ -176,7 +176,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         <>
           <div>
             <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
-            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
               <div className="flex min-h-16 items-center justify-between gap-4 border-b border-border px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-[16px]">Auto-renew</p>
@@ -205,7 +205,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
           </div>
 
           {status === "active" && (
-            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
               <Button variant="ghost" onClick={() => setConfirmOpen(true)} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
                 Cancel subscription
               </Button>
@@ -215,7 +215,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
       ) : (
         <div>
           <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Cutzioo Pro</p>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
             {["Unlimited bookings", "Team members and stylists", "Reports, analytics and your website"].map((feature) => (
               <div key={feature} className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><Check className="h-4 w-4" /></span>
