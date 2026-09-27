@@ -19,7 +19,7 @@ export const ONBOARDING_STORAGE_KEY = "cutzio_onboarding_v1";
 export type OnboardingDraft = {
   role: "barber" | "client" | null;
   appLanguage: "en" | "el";
-  workType: "solo" | "team" | null;
+  workType: "solo" | "team" | "salon" | null;
   teamInviteCode: string;
   businessName: string;
   currency: string;
@@ -287,9 +287,16 @@ export default function Onboarding() {
                       title="Team / Barbershop"
                       desc="I run or work with a team."
                     />
+                    <RoleCard
+                      active={data.workType === "salon"}
+                      onClick={() => update("workType", "salon")}
+                      icon={<Building2 className="h-5 w-5" />}
+                      title="Salon"
+                      desc="I run a salon and want to manage appointments."
+                    />
                   </div>
 
-                  {data.workType === "team" && (
+                  {(data.workType === "team" || data.workType === "salon") && (
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
