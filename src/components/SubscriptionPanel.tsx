@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, AlertCircle, RefreshCw, Check, CalendarClock, ChevronRight, CreditCard, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -80,6 +81,32 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   const isPro = status === "active" || status === "canceling";
   const s = STATUS_LABEL[status];
 
+  const summary = (
+    <div className="space-y-6">
+      <div>
+        <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>At a glance</p>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          {[
+            ["Plan", isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"],
+            ["Status", s.label],
+            ["Started", fmt(data?.subscription_start)],
+            [status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
+            ["Amount", isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
+            ["Auto-renew", isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
+          ].map(([label, value]) => (
+            <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3 last:border-b-0">
+              <span className="text-[15px]">{label}</span>
+              <span className="min-w-0 text-right text-[15px] text-muted-foreground tabular-nums break-words">{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className={`px-4 text-[12px] leading-5 ${labelColor}`}>
+        {status === "canceling" ? "Your plan remains available until the access end date." : isPro ? "Your subscription details update when a billing change is confirmed." : "Upgrade to Pro for unlimited bookings and your website."}
+      </p>
+    </div>
+  );
+
   async function setAutoRenew(enabled: boolean) {
     haptic("selection");
     setBusy(true);
@@ -116,6 +143,13 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         <h2 id="subscription-title" className="mt-1 text-[30px] font-bold leading-tight">Subscription</h2>
       </div>
 
+      <Tabs defaultValue="manage" className="w-full">
+        <TabsList className="mb-5 grid w-full grid-cols-2">
+          <TabsTrigger value="manage">Manage</TabsTrigger>
+          <TabsTrigger value="summary">Summary</TabsTrigger>
+        </TabsList>
+        <TabsContent value="summary">{summary}</TabsContent>
+        <TabsContent value="manage" className="space-y-7">
       <div>
         <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Your plan</p>
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
@@ -194,6 +228,9 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
           </div>
         </div>
       )}
+
+        </TabsContent>
+      </Tabs>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className="rounded-2xl border-border bg-card">

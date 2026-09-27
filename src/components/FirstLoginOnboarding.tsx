@@ -9,6 +9,7 @@ import {
   Crown,
   Heart,
   Home,
+  Store,
   Languages,
   Link2,
   Loader2,
@@ -37,6 +38,7 @@ const DAYS = [
 
 const STEPS = [
   { title: "Choose your language", subtitle: "This sets the app and public booking language.", icon: Languages },
+  { title: "How do you work?", subtitle: "Choose the setup that fits your business.", icon: Store },
   { title: "Add your details", subtitle: "Set up your personal account and claim your booking link.", icon: UserRound },
   { title: "Add your stylist", subtitle: "Add the first person clients can book. You can add more later.", icon: UserRound },
   { title: "Create your first service", subtitle: "Set the name, duration, price, icon and color.", icon: Scissors },
@@ -99,6 +101,8 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [language, setLanguage] = useState<"en" | "el" | "es" | "pl">("en");
+  const [businessType, setBusinessType] = useState<"solo" | "salon">("solo");
+  const [salonName, setSalonName] = useState("");
   const currency = useMemo(() => CURRENCY_BY_LOCALE[language] || "EUR", [language]);
   const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
   const [bookingLink, setBookingLink] = useState(() => cleanSlug(user?.email?.split("@")[0] || "my-chair"));
@@ -164,11 +168,12 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   }, [step]);
 
   const canContinue = useMemo(() => {
-    if (step === 1) return fullName.trim().length >= 2 && bookingLink.length >= 2;
-    if (step === 3) return serviceName.trim().length >= 2 && serviceDuration >= 5 && servicePrice >= 0;
-    if (step === 4) return workingDays.length > 0 && startHour < endHour;
+    if (step === 1) return businessType === "solo" || salonName.trim().length >= 2;
+    if (step === 2) return fullName.trim().length >= 2 && bookingLink.length >= 2;
+    if (step === 4) return serviceName.trim().length >= 2 && serviceDuration >= 5 && servicePrice >= 0;
+    if (step === 5) return workingDays.length > 0 && startHour < endHour;
     return true;
-  }, [step, fullName, bookingLink, serviceName, serviceDuration, servicePrice, workingDays, startHour, endHour]);
+  }, [step, businessType, salonName, fullName, bookingLink, serviceName, serviceDuration, servicePrice, workingDays, startHour, endHour]);
 
   const toggleDay = (day: number) => {
     setWorkingDays((current) =>
@@ -198,6 +203,8 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           booking_locale: language,
           currency,
           full_name: fullName.trim(),
+          business_name: businessType === "salon" ? salonName.trim() : null,
+          freelancer_mode: businessType === "solo",
           avatar_url: avatarUrl,
           description: bio.trim() || null,
           booking_link: finalSlug,
@@ -299,7 +306,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
 
   return (
     <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col overflow-hidden bg-[#09090B] text-white">
-      <header className={cn("mx-auto w-full px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]", step === 1 ? "max-w-6xl" : "max-w-lg")}>
+      <header className={cn("mx-auto w-full px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]", step === 2 ? "max-w-6xl" : "max-w-lg")}>
         <div className="flex items-center justify-between">
           <div className="flex h-10 w-10 items-center justify-center rounded-[15px] bg-[#FF375F]">
             <Icon className="h-5 w-5" />
@@ -315,7 +322,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
         </div>
       </header>
 
-      <main className={cn("mx-auto min-h-0 w-full flex-1 overflow-y-auto px-5 pb-5 pt-5", step === 1 ? "max-w-6xl" : "max-w-lg")}>
+      <main className={cn("mx-auto min-h-0 w-full flex-1 overflow-y-auto px-5 pb-5 pt-5", step === 2 ? "max-w-6xl" : "max-w-lg")}>
         <div ref={stageRef}>
           <div data-onboarding-item>
             <h1 className="max-w-sm text-[32px] font-bold leading-[1.04] tracking-[-0.04em]">{STEPS[step].title}</h1>

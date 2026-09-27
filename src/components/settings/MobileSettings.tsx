@@ -144,6 +144,11 @@ export function MobileSettings(props: any) {
     setAvatarFailed(false);
   }, [brandForm.avatar_url]);
 
+  useEffect(() => {
+    if (!panel) return;
+    window.scrollTo(0, 0);
+  }, [panel]);
+
   const updateIdentityImage = async (field: "avatar_url" | "banner_url", url: string) => {
     const previousUrl = brandForm[field];
     setBrandForm((previous: any) => ({ ...previous, [field]: url }));
@@ -191,7 +196,7 @@ export function MobileSettings(props: any) {
       .toUpperCase();
 
   return (
-    <div className="min-h-screen w-full bg-[#0A0A0C] text-white relative overflow-x-hidden">
+    <div className="min-h-[100dvh] w-full bg-[#0A0A0C] text-white relative overflow-x-hidden touch-pan-y pb-[max(7rem,env(safe-area-inset-bottom))]">
 
 
       {/* Header */}
@@ -1119,22 +1124,10 @@ function Sheet({
 }) {
   const bodyRef = React.useRef<HTMLDivElement>(null);
 
-  // Always open a panel at the very top and stop the page behind from scrolling.
+  // The full-screen panel owns its scroll area. Do not lock body scrolling:
+  // iOS can retain that lock after a nested dialog or an animated close.
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const reset = () => {
-      if (bodyRef.current) bodyRef.current.scrollTop = 0;
-      window.scrollTo(0, 0);
-    };
-    reset();
-    const raf = requestAnimationFrame(reset);
-    const t = setTimeout(reset, 150);
-    return () => {
-      document.body.style.overflow = prev;
-      cancelAnimationFrame(raf);
-      clearTimeout(t);
-    };
+    if (bodyRef.current) bodyRef.current.scrollTop = 0;
   }, []);
 
   return (
@@ -1151,9 +1144,9 @@ function Sheet({
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 34 }}
-        className="fixed inset-0 z-50 bg-[#0b0b0d] flex flex-col"
+        className="fixed inset-0 z-50 h-[100dvh] min-h-0 bg-[#0b0b0d] flex flex-col"
       >
-        <header className="flex items-center gap-2 px-4 pt-6 pb-3 border-b border-white/5">
+        <header className="shrink-0 flex items-center gap-2 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3 border-b border-white/5">
           <button
             onClick={onClose}
             className="h-10 w-10 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/70 active:scale-95 transition"
@@ -1164,7 +1157,7 @@ function Sheet({
         </header>
         <div
           ref={bodyRef}
-          className="flex-1 overflow-y-auto overscroll-contain px-5 py-5"
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto touch-pan-y px-5 py-5"
           style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
         >
           {children}
