@@ -44,7 +44,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
-import { ShaderGradient } from "@/components/ui/shader-gradient";
 
 const features = [
   {
@@ -292,9 +291,6 @@ export default function Landing() {
           className="absolute inset-0"
           style={{ background: "var(--gradient-brand)" }}
         />
-        <div className="absolute inset-0 opacity-30">
-          <ShaderGradient className="w-full h-full" />
-        </div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
         <div className="absolute top-1/3 -right-32 w-[400px] h-[400px] rounded-full bg-[hsl(var(--rose)/0.08)] blur-[100px]" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[300px] rounded-full bg-primary/5 blur-[80px]" />
