@@ -1137,28 +1137,30 @@ function Sheet({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65]"
       />
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 34 }}
-        className="fixed inset-0 z-50 h-[100dvh] min-h-0 bg-[#0b0b0d] flex flex-col"
+        className="fixed inset-0 z-[70] h-[100dvh] min-h-0 bg-[#0A0A0C] flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)]"
       >
-        <header className="shrink-0 flex items-center gap-2 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3 border-b border-white/5">
+        <header className="relative shrink-0 flex items-center justify-center px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 bg-[#0A0A0C]/80 backdrop-blur-xl border-b border-white/[0.06]">
           <button
             onClick={onClose}
-            className="h-10 w-10 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/70 active:scale-95 transition"
+            aria-label="Back"
+            className="absolute left-1 bottom-1.5 h-10 pl-1 pr-3 flex items-center gap-0.5 text-[#FF375F] text-[17px] active:opacity-50 transition-opacity"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-7 w-7 -ml-1" strokeWidth={2.4} />
+            <span>Back</span>
           </button>
-          <h2 className="font-cal text-[22px] text-white ml-1">{title}</h2>
+          <h2 className="text-[17px] font-semibold text-white tracking-tight max-w-[60%] truncate">{title}</h2>
         </header>
         <div
           ref={bodyRef}
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto touch-pan-y px-5 py-5"
-          style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y px-4 pt-5"
+          style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(8rem + env(safe-area-inset-bottom))" }}
         >
           {children}
         </div>
