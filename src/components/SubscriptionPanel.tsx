@@ -13,6 +13,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
+import { AddonAdvisor } from "@/components/AddonAdvisor";
 
 const fmt = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -144,11 +145,13 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
       </div>
 
       <Tabs defaultValue="manage" className="w-full">
-        <TabsList className="mb-5 grid w-full grid-cols-2">
+        <TabsList className="mb-5 grid w-full grid-cols-3">
           <TabsTrigger value="manage">Manage</TabsTrigger>
           <TabsTrigger value="summary">Summary</TabsTrigger>
+          <TabsTrigger value="advisor">Add-ons</TabsTrigger>
         </TabsList>
         <TabsContent value="summary">{summary}</TabsContent>
+        <TabsContent value="advisor"><AddonAdvisor /></TabsContent>
         <TabsContent value="manage" className="space-y-7">
       <div>
         <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Your plan</p>
