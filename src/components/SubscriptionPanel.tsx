@@ -236,7 +236,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
       </Tabs>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="rounded-2xl border-border bg-card">
+        <AlertDialogContent className="z-[90] rounded-2xl border-border bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
             <AlertDialogDescription>
