@@ -34,7 +34,8 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       style={{ x: isTop ? x : 0, rotate: isTop ? rotate : 0, zIndex: 10 - depth }}
       initial={{ scale: 0.9, y: 30, opacity: 0 }}
       animate={{ scale: 1 - depth * 0.05, y: depth * -14, opacity: depth > 2 ? 0 : 1 }}
-      exit={(dir: number) => ({ x: dir * 480, rotate: dir * 22, opacity: 0, transition: { duration: 0.35 } })}
+      variants={{ out: (dir: number) => ({ x: dir * 480, rotate: dir * 22, opacity: 0, transition: { duration: 0.35 } }) }}
+      exit="out"
       transition={spring}
       drag={isTop ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
