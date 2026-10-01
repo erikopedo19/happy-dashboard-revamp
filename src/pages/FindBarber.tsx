@@ -24,7 +24,9 @@ import {
   Image as ImageIcon,
   Home,
   MapPin,
+  Layers,
 } from "lucide-react";
+import { SwipeDeck } from "@/components/SwipeDeck";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,6 +85,7 @@ const FindBarber = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [maxDistance, setMaxDistance] = useState<"any" | "1" | "5" | "10">("any");
   const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
+  const [swipeOpen, setSwipeOpen] = useState(false);
 
   useEffect(() => {
     const tab = searchParams.get("tab") as TabKey | null;
@@ -316,6 +319,15 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
+      <AnimatePresence>
+        {swipeOpen && (
+          <SwipeDeck
+            barbers={sortedBarbers as any}
+            onClose={() => setSwipeOpen(false)}
+            onLike={(id) => { if (!favorites.includes(id)) toggleFavorite(id); }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Page header — scrolls away naturally */}
       <PageHeader>
@@ -332,6 +344,16 @@ const FindBarber = () => {
               Find a barber
             </motion.h1>
             <div className="flex items-center gap-2">
+              <motion.button
+                onClick={() => setSwipeOpen(true)}
+                whileTap={{ scale: 0.92 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={spring}
+                className="h-10 px-3.5 rounded-full bg-[#FF375F] text-white text-[13px] font-semibold flex items-center gap-1.5 shadow-lg shadow-[#FF375F]/30"
+              >
+                <Layers className="w-4 h-4" /> Swipe
+              </motion.button>
               {isMobile && <NotificationBell />}
               <Link to="/me">
                 <Button variant="light" isIconOnly size="sm" className="rounded-full w-10 h-10 bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/10 hover:scale-95 transition-transform">
