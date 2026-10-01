@@ -319,6 +319,15 @@ const FindBarber = () => {
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
+      <AnimatePresence>
+        {swipeOpen && (
+          <SwipeDeck
+            barbers={sortedBarbers as any}
+            onClose={() => setSwipeOpen(false)}
+            onLike={(id) => { if (!favorites.includes(id)) toggleFavorite(id); }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Page header — scrolls away naturally */}
       <PageHeader>
