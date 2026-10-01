@@ -338,7 +338,19 @@ serve(async (req: Request) => {
       }
     }
 
-
+    // --- One-time feature announcement to every user (drains under the daily cap).
+    {
+      const queued = new Set(allCandidates.map((c) => c.user_id));
+      for (const u of usersPage?.users ?? []) {
+        if (!u.email || queued.has(u.id)) continue;
+        allCandidates.push({
+          user_id: u.id,
+          campaign: "feature_swipe",
+          full_name: (u.user_metadata as any)?.full_name ?? null,
+          period: "once",
+        });
+      }
+    }
 
     let sent = 0;
     const results: any[] = [];
