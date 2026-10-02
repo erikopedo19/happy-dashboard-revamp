@@ -81,8 +81,10 @@ function MapPoster() {
   }
   return (
     <img
-      src="/images/map-poster.png"
+      src="/images/map-poster.webp"
       alt="Map feature coming soon"
+      width={467}
+      height={839}
       className="w-full rounded-[24px] object-contain max-h-[calc(100vh-220px)] md:max-h-[520px]"
       onError={() => setMissing(true)}
     />
@@ -513,7 +515,7 @@ const cardItem: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: i * 0.04, type: "spring" as const, stiffness: 380, damping: 30 },
+    transition: { delay: Math.min(i, 10) * 0.04, type: "spring" as const, stiffness: 380, damping: 30 },
   }),
 };
 

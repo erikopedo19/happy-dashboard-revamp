@@ -7,6 +7,9 @@ import { Calendar, Clock, Scissors, Loader2, ChevronRight, Star, Settings2 } fro
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { BookAgainCard } from "@/components/client/BookAgainCard";
+import { LiveQueueCard } from "@/components/client/LiveQueueCard";
+import { WaitlistOffersCard } from "@/components/client/WaitlistOffersCard";
 
 interface Booking {
   id: string;
@@ -16,6 +19,7 @@ interface Booking {
   service_name: string | null;
   barber_id: string;
   barber_name: string | null;
+  stylist_id?: string | null;
   cancel_token: string | null;
   has_review: boolean;
   booking_link: string | null;
@@ -39,7 +43,7 @@ const MyBookings = () => {
     queryKey: ["my-bookings", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc("get_my_bookings");
+      const { data, error } = await supabase.rpc("get_my_bookings");
       if (error) throw error;
       return (data || []) as Booking[];
     },
@@ -60,6 +64,12 @@ const MyBookings = () => {
   const past = (bookings || []).filter(
     (b) => !upcoming.includes(b)
   );
+  const nextUpcoming = [...upcoming].sort(
+    (a, b) =>
+      new Date(`${a.appointment_date}T${a.appointment_time}`).getTime() -
+      new Date(`${b.appointment_date}T${b.appointment_time}`).getTime()
+  )[0];
+  const lastCompleted = past.find((b) => b.status !== "cancelled");
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-white pb-28">
@@ -79,12 +89,19 @@ const MyBookings = () => {
               <div key={i} className="h-24 rounded-3xl bg-white/60 dark:bg-[#1C1C1E]/60 animate-pulse" />
             ))}
           </div>
-        ) : (bookings || []).length === 0 ? (
-          <EmptyState />
         ) : (
           <>
-            <Section title="Upcoming" items={upcoming} upcoming />
-            <Section title="Past" items={past} />
+            <WaitlistOffersCard />
+            {(bookings || []).length === 0 ? (
+              <EmptyState />
+            ) : (
+              <>
+                <LiveQueueCard booking={nextUpcoming} />
+                <BookAgainCard booking={lastCompleted} />
+                <Section title="Upcoming" items={upcoming} upcoming />
+                <Section title="Past" items={past} />
+              </>
+            )}
           </>
         )}
       </div>
@@ -114,7 +131,7 @@ function Section({ title, items, upcoming }: { title: string; items: Booking[]; 
               key={b.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04, type: "spring", stiffness: 380, damping: 30 }}
+              transition={{ delay: Math.min(i, 10) * 0.04, type: "spring", stiffness: 380, damping: 30 }}
               className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden"
             >
               <div className="p-4 flex items-center gap-3">

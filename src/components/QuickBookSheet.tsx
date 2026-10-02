@@ -14,6 +14,8 @@ import { getBrowserTimezone, formatTzLabel } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SlotRail } from "@/components/SlotRail";
+import { haptic } from "@/lib/haptics";
 
 interface QuickBookSheetProps {
   open: boolean;
@@ -196,6 +198,15 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     });
   }, [allSlots, booked, selectedService, settings, date, workingDays, timeOffSet]);
 
+  const slotStates = useMemo(() => {
+    const available = new Set(availableSlots);
+    return allSlots.map((slot) => ({ time: slot, available: available.has(slot) }));
+  }, [allSlots, availableSlots]);
+
+  useEffect(() => {
+    if (time && !availableSlots.includes(time)) setTime("");
+  }, [availableSlots, time]);
+
   const canContinue = serviceId && time;
   const canConfirm = name.trim() && /\S+@\S+\.\S+/.test(email);
 
@@ -221,6 +232,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       }
       setConfirmedTime({ date, time });
       setStep("success");
+      haptic("success");
       qc.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
@@ -233,6 +245,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     } catch (e: any) {
       // Release lock so the user can retry after a failure (e.g. slot taken).
       submitLockRef.current = false;
+      haptic("error");
       toast({
         title: "Booking failed",
         description: e?.message || "Please try a different time",
@@ -258,7 +271,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
         <div className="px-5 pb-3 flex items-center justify-between shrink-0">
           {step === "details" ? (
             <button
-              onClick={() => setStep("pick")}
+              onClick={() => {
+                haptic("light");
+                setStep("pick");
+              }}
               className="w-9 h-9 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center active:scale-95 transition hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
               aria-label="Back"
             >
@@ -276,7 +292,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
             </h2>
           </div>
           <button
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              haptic("light");
+              onOpenChange(false);
+            }}
             className="w-9 h-9 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center active:scale-95 transition hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
             aria-label="Close"
           >
@@ -305,12 +324,16 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                     <EmptyHint text="No services available yet" />
                   ) : (
                     <div className="space-y-2">
-                      {services.map((s) => {
+                      {services.map((s, index) => {
                         const active = s.id === serviceId;
                         return (
-                          <button
+                          <motion.button
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: Math.min(index, 8) * 0.035, duration: 0.22 }}
                             key={s.id}
                             onClick={() => {
+                              haptic("selection");
                               setServiceId(s.id);
                               setTime("");
                             }}
@@ -333,7 +356,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                             <div className="font-bold tabular-nums text-[15px]" style={{ color: active ? accentColor : undefined }}>
                               ${Number(s.price).toFixed(0)}
                             </div>
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -360,6 +383,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                           selected={date}
                           onSelect={(d) => {
                             if (d) {
+                              haptic("selection");
                               setDate(d);
                               setTime("");
                               setCalendarOpen(false);
@@ -375,12 +399,16 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                     </Popover>
                   </div>
                   <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {nextDays.map((d) => {
+                    {nextDays.map((d, index) => {
                       const active = isSameDay(d, date);
                       return (
-                        <button
+                        <motion.button
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: Math.min(index, 8) * 0.025, duration: 0.2 }}
                           key={d.toISOString()}
                           onClick={() => {
+                            haptic("selection");
                             setDate(d);
                             setTime("");
                           }}
@@ -398,7 +426,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                           <span className="text-[18px] font-semibold leading-tight mt-0.5">
                             {format(d, "d")}
                           </span>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -413,29 +441,15 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   </div>
                   {!selectedService ? (
                     <EmptyHint text="Pick a service first" />
-                  ) : availableSlots.length === 0 ? (
+                  ) : slotStates.length === 0 ? (
                     <EmptyHint text="No slots available on this day" />
                   ) : (
-                    <div className="grid grid-cols-4 gap-2">
-                      {availableSlots.map((t) => {
-                        const active = t === time;
-                        return (
-                          <button
-                            key={t}
-                            onClick={() => setTime(t)}
-                            className={cn(
-                              "h-11 rounded-[14px] text-[13px] font-semibold transition active:scale-95 border border-black/5 dark:border-white/5",
-                              active
-                                ? "text-white border-transparent"
-                                : "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
-                            )}
-                            style={active ? { backgroundColor: accentColor } : undefined}
-                          >
-                            {t}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <SlotRail
+                      slots={slotStates}
+                      value={time}
+                      onSelect={setTime}
+                      accentColor={accentColor}
+                    />
                   )}
                 </section>
               </motion.div>
@@ -570,7 +584,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
           {step === "pick" && (
             <Button
               disabled={!canContinue}
-              onClick={() => setStep("details")}
+              onClick={() => {
+                haptic("medium");
+                setStep("details");
+              }}
               className="w-full h-12 rounded-[14px] text-white font-semibold border-0 disabled:opacity-40"
               style={{ backgroundColor: accentColor }}
             >

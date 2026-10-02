@@ -1,30 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Calendar, Check, Info, MessageSquare, Star } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { Bell, BellRing, Calendar, Check, Info, MessageSquare, Star } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { haptic } from "@/lib/haptics";
+import { ensureNotificationPermission, notifyNow } from "@/lib/nativeNotifications";
 
-type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string };
+type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string; appointment_id?: string | null };
+type WaitlistOffer = { claim_token: string; offered_appointment_id: string; status: string };
 
-const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin"];
+const HIDE_PREFIX = ["/auth", "/book/", "/manage/", "/superadmin", "/waitlist"];
 
-const typeMeta: Record<string, { icon: typeof Bell; color: string; darkColor: string }> = {
-  appointment: { icon: Calendar, color: "text-blue-600 bg-blue-100", darkColor: "text-blue-300 bg-blue-500/20" },
-  review: { icon: Star, color: "text-amber-600 bg-amber-100", darkColor: "text-amber-300 bg-amber-500/20" },
-  message: { icon: MessageSquare, color: "text-emerald-600 bg-emerald-100", darkColor: "text-emerald-300 bg-emerald-500/20" },
-  default: { icon: Info, color: "text-gray-600 bg-gray-100", darkColor: "text-gray-300 bg-gray-700/40" },
+const typeMeta: Record<string, { icon: typeof Bell; color: string }> = {
+  appointment: { icon: Calendar, color: "text-blue-600 bg-blue-100 dark:text-blue-300 dark:bg-blue-500/20" },
+  waitlist_offer: { icon: BellRing, color: "text-rose-600 bg-rose-100 dark:text-rose-300 dark:bg-rose-500/20" },
+  waitlist_claimed: { icon: Check, color: "text-emerald-600 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-500/20" },
+  review: { icon: Star, color: "text-amber-600 bg-amber-100 dark:text-amber-300 dark:bg-amber-500/20" },
+  message: { icon: MessageSquare, color: "text-emerald-600 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-500/20" },
+  default: { icon: Info, color: "text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/40" },
 };
 
 export function NotificationBell() {
   const { user } = useAuth();
   const location = useLocation();
   const [items, setItems] = useState<N[]>([]);
+  const [waitlistOffers, setWaitlistOffers] = useState<Map<string, WaitlistOffer>>(new Map());
   const [storiesOpen, setStoriesOpen] = useState(0);
 
   useEffect(() => {
@@ -44,33 +50,50 @@ export function NotificationBell() {
     if (!user || hidden) return;
     let active = true;
 
+    const loadOffers = async () => {
+      const { data } = await supabase.rpc("get_my_waitlist_offers");
+      if (!active) return;
+      const map = new Map<string, WaitlistOffer>();
+      (data || []).forEach((offer: WaitlistOffer) => {
+        if (offer.status === "offered" && offer.offered_appointment_id && offer.claim_token) {
+          map.set(offer.offered_appointment_id, offer);
+        }
+      });
+      setWaitlistOffers(map);
+    };
+
     const load = async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from("notifications").select("*").eq("user_id", user.id)
         .order("created_at", { ascending: false }).limit(20);
       if (active) setItems(data || []);
     };
     load();
+    loadOffers();
 
     const uid = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-    const channel = (supabase as any).channel(`notif:${user.id}:${uid}`);
+    const channel = supabase.channel(`notif:${user.id}:${uid}`);
     channel
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload: any) => {
+        (payload: { new: N }) => {
           const n = payload.new as N;
           setItems((prev) => [n, ...prev].slice(0, 20));
           toast({ title: n.title, description: n.body || undefined });
-          if (typeof Notification !== "undefined" && Notification.permission === "granted" && "serviceWorker" in navigator) {
-            navigator.serviceWorker.ready
-              .then((reg) => reg.showNotification(n.title, { body: n.body || "", icon: "/logo.svg", tag: n.id }))
-              .catch(() => {});
+          if (n.type === "waitlist_offer") {
+            haptic("warning");
+            loadOffers();
           }
+          void notifyNow(n.title, n.body || "", n.id);
         }
+      )
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "cancellation_waitlist", filter: `client_user_id=eq.${user.id}` },
+        loadOffers
       )
       .subscribe();
 
-    return () => { active = false; (supabase as any).removeChannel(channel); };
+    return () => { active = false; void supabase.removeChannel(channel); };
   }, [user, hidden]);
 
   if (hidden) return null;
@@ -79,7 +102,7 @@ export function NotificationBell() {
 
   const markAllRead = async () => {
     if (!user) return;
-    await (supabase as any).from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+    await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
     setItems((prev) => prev.map((i) => ({ ...i, read: true })));
   };
 
@@ -89,6 +112,7 @@ export function NotificationBell() {
         <button
           className="relative w-11 h-11 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur border border-black/5 dark:border-white/10 shadow-lg flex items-center justify-center hover:scale-105 transition"
           aria-label="Notifications"
+          onClick={() => void ensureNotificationPermission()}
         >
           <Bell className="w-5 h-5 text-[#1C1C1E] dark:text-white" />
           {unread > 0 && (
@@ -118,17 +142,29 @@ export function NotificationBell() {
             items.map((i) => {
               const meta = typeMeta[i.type] || typeMeta.default;
               const Icon = meta.icon;
+              const offer = i.type === "waitlist_offer" && i.appointment_id
+                ? waitlistOffers.get(i.appointment_id)
+                : undefined;
               return (
                 <div
                   key={i.id}
                   className={`flex items-start gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 ${!i.read ? "bg-blue-500/[0.03]" : ""}`}
                 >
-                  <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${meta.color} dark:${meta.darkColor}`}>
+                  <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${meta.color}`}>
                     <Icon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className={`text-sm truncate ${!i.read ? "font-semibold" : "font-medium"}`}>{i.title}</div>
                     {i.body && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{i.body}</div>}
+                    {offer && (
+                      <Link
+                        to={`/waitlist/claim/${offer.claim_token}`}
+                        onClick={() => haptic("medium")}
+                        className="mt-2 inline-flex h-9 items-center rounded-full bg-rose-500 px-3 text-[12px] font-semibold text-white active:scale-95"
+                      >
+                        Claim it
+                      </Link>
+                    )}
                     <div className="text-[10px] text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}</div>
                   </div>
                   {!i.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#007AFF]" />}

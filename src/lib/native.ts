@@ -28,11 +28,20 @@ export async function initNativeShell() {
 
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
-    await StatusBar.setStyle({ style: Style.Dark });
-    if (nativePlatform() === "android") {
-      await StatusBar.setBackgroundColor({ color: "#0B0B0F" });
-    }
+    const syncTheme = async () => {
+      const dark = document.documentElement.classList.contains("dark");
+      await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light });
+      if (nativePlatform() === "android") {
+        await StatusBar.setBackgroundColor({ color: dark ? "#0B0B0F" : "#F2F2F7" });
+      }
+    };
     await StatusBar.setOverlaysWebView({ overlay: true });
+    await syncTheme();
+    setTimeout(() => void syncTheme(), 100);
+    new MutationObserver(() => void syncTheme()).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
   } catch {
     /* plugin unavailable */
   }

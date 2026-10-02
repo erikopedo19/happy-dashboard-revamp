@@ -9,14 +9,21 @@ const config: CapacitorConfig = {
   appId: 'com.cutzioo.app',
   appName: 'Cutzioo',
   webDir: 'dist',
-  ...(isRelease
-    ? {}
-    : {
-        server: {
+  server: {
+    androidScheme: 'https',
+    allowNavigation: [
+      'cutzioo.com',
+      '*.cutzioo.com',
+      '*.supabase.co',
+      '*.stripe.com',
+    ],
+    ...(isRelease
+      ? {}
+      : {
           url: 'https://d3037d9e-a098-4a0c-984e-428e241859a9.lovableproject.com?forceHideBadge=true',
           cleartext: true,
-        },
-      }),
+        }),
+  },
   ios: {
     contentInset: 'always',
     backgroundColor: '#0B0B0F',
@@ -33,6 +40,10 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'DARK',
       backgroundColor: '#0B0B0F',
+    },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
     },
   },
 };

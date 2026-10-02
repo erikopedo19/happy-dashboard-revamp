@@ -10,8 +10,8 @@ export const getBrowserTimezone = (): string => {
 
 export const listTimezones = (): string[] => {
   try {
-    // @ts-ignore - not in older TS lib defs
-    const list = (Intl as any).supportedValuesOf?.("timeZone") as string[] | undefined;
+    const intl = Intl as typeof Intl & { supportedValuesOf?: (key: "timeZone") => string[] };
+    const list = intl.supportedValuesOf?.("timeZone");
     if (list?.length) return list;
   } catch {
     // fall through
@@ -100,6 +100,39 @@ export const timeStrToMinutes = (t: string): number => {
 };
 
 // Format a friendly timezone label with the current UTC offset.
+// Convert a wall-clock date/time in a named timezone into an absolute Date.
+export const zonedDateTime = (date: string, time: string, timezone?: string | null): Date => {
+  const tz = timezone || getBrowserTimezone();
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = String(time || "00:00").slice(0, 5).split(":").map(Number);
+  const wallUtc = Date.UTC(year, (month || 1) - 1, day || 1, hour || 0, minute || 0, 0);
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(wallUtc));
+    const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+    const actualUtc = Date.UTC(
+      part("year"),
+      part("month") - 1,
+      part("day"),
+      part("hour") % 24,
+      part("minute"),
+      part("second")
+    );
+    return new Date(wallUtc + (wallUtc - actualUtc));
+  } catch {
+    return new Date(`${date}T${String(time).slice(0, 5)}:00`);
+  }
+};
+
 export const formatTzLabel = (tz: string): string => {
   try {
     const parts = new Intl.DateTimeFormat("en-US", {

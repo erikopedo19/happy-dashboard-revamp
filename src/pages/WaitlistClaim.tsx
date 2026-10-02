@@ -4,44 +4,51 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@heroui/react";
 import { Loader2, CheckCircle2, XCircle, Sparkles, Clock } from "lucide-react";
+import { haptic } from "@/lib/haptics";
+
+interface OfferInfo {
+  status: string;
+  offer_expires_at: string | null;
+  appointment_date?: string | null;
+  appointment_time?: string | null;
+  barber_name?: string | null;
+}
 
 export default function WaitlistClaim() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [state, setState] = useState<"loading" | "ready" | "claimed" | "error">("loading");
   const [error, setError] = useState<string>("");
-  const [info, setInfo] = useState<any>(null);
+  const [info, setInfo] = useState<OfferInfo | null>(null);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     (async () => {
       if (!token) return setState("error");
-      const { data, error } = await (supabase as any)
-        .from("cancellation_waitlist")
-        .select("status, offer_expires_at, barber_id, offered_appointment_id")
-        .eq("claim_token", token)
-        .maybeSingle();
-      if (error || !data) {
+      const { data, error } = await supabase.rpc("get_waitlist_offer", { _token: token });
+      const offer = data?.[0] as OfferInfo | undefined;
+      if (error || !offer) {
         setError("Offer not found");
         setState("error");
         return;
       }
-      if (data.status !== "offered") {
+      if (offer.status !== "offered") {
         setError(
-          data.status === "claimed"
+          offer.status === "claimed"
             ? "This offer was already claimed."
             : "This offer is no longer available."
         );
         setState("error");
         return;
       }
-      const expiresAt = new Date(data.offer_expires_at).getTime();
+      const expiresAt = new Date(offer.offer_expires_at || 0).getTime();
       if (expiresAt < Date.now()) {
         setError("This offer has expired.");
         setState("error");
         return;
       }
-      setInfo(data);
+      setInfo(offer);
       setState("ready");
     })();
   }, [token]);
@@ -49,7 +56,8 @@ export default function WaitlistClaim() {
   useEffect(() => {
     if (state !== "ready" || !info) return;
     const tick = () => {
-      const left = Math.max(0, Math.floor((new Date(info.offer_expires_at).getTime() - Date.now()) / 1000));
+      const expiresAt = info.offer_expires_at ? new Date(info.offer_expires_at).getTime() : 0;
+      const left = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
       setSecondsLeft(left);
       if (left === 0) {
         setError("This offer has expired.");
@@ -62,17 +70,24 @@ export default function WaitlistClaim() {
   }, [state, info]);
 
   const claim = async () => {
-    const { data, error } = await (supabase as any).rpc("claim_waitlist_offer", { _token: token });
-    if (error || !data?.success) {
-      setError(data?.error || error?.message || "Could not claim");
+    if (claiming) return;
+    haptic("medium");
+    setClaiming(true);
+    const { data, error } = await supabase.rpc("claim_waitlist_offer", { _token: token });
+    const result = data as { success?: boolean; error?: string } | null;
+    setClaiming(false);
+    if (error || !result?.success) {
+      haptic("error");
+      setError(result?.error || error?.message || "Could not claim");
       setState("error");
       return;
     }
+    haptic("success");
     setState("claimed");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#2b0a14] flex items-center justify-center p-6">
+    <div className="min-h-dvh bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#2b0a14] flex items-center justify-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
       <motion.div
         initial={{ opacity: 0, y: 14, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -93,8 +108,15 @@ export default function WaitlistClaim() {
             <div>
               <h1 className="text-2xl font-bold text-zinc-900">A slot just opened!</h1>
               <p className="text-sm text-zinc-600 mt-2">
-                You're first in line. Claim it now before the offer rolls to the next person.
+                You're first in line. You have 10 minutes before the offer rolls to the next person.
               </p>
+              {info?.barber_name && (
+                <p className="mt-3 rounded-2xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700">
+                  {info.barber_name}
+                  {info.appointment_date ? ` · ${info.appointment_date}` : ""}
+                  {info.appointment_time ? ` · ${String(info.appointment_time).slice(0, 5)}` : ""}
+                </p>
+              )}
             </div>
             {secondsLeft !== null && (
               <div className="flex items-center justify-center gap-2 text-rose-600 font-semibold">
@@ -104,9 +126,10 @@ export default function WaitlistClaim() {
             )}
             <Button
               onPress={claim}
-              className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold border-0 hover:opacity-90"
+              isDisabled={claiming}
+              className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold border-0 hover:opacity-90 active:scale-[0.98]"
             >
-              Claim this slot
+              {claiming ? "Claiming…" : "Claim this slot"}
             </Button>
           </div>
         )}

@@ -37,7 +37,7 @@ async function nativeHaptic(style: HapticStyle) {
   const { Haptics, ImpactStyle, NotificationType } = await import("@capacitor/haptics");
   switch (style) {
     case "selection":
-      return Haptics.selectionStart().then(() => Haptics.selectionEnd());
+      return Haptics.selectionChanged();
     case "light":
       return Haptics.impact({ style: ImpactStyle.Light });
     case "medium":

@@ -18,6 +18,7 @@ mobile/.expo/
 *.new
 *.code-workspace
 vite.config.ts.timestamp-*
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*

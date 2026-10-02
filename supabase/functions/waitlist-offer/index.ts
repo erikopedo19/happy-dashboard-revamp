@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
               <div style="height:6px;border-radius:6px;background:${accent};margin-bottom:20px;"></div>
               <h1 style="font-size:22px;margin:0 0 8px;color:#111;">🎉 A slot just opened!</h1>
               <p style="color:#444;line-height:1.5;">Hi ${entry.client_name || 'there'}, a cancellation just freed a slot with <b>${barberName}</b> on <b>${when}</b>.</p>
-              <p style="color:#444;line-height:1.5;">You're first in line — you have <b>5 minutes</b> to claim it before it rolls to the next person.</p>
+              <p style="color:#444;line-height:1.5;">You're first in line — you have <b>10 minutes</b> to claim it before it rolls to the next person.</p>
               <a href="${claimUrl}" style="display:inline-block;background:${accent};color:#fff;font-weight:600;padding:14px 24px;border-radius:12px;text-decoration:none;margin-top:12px;">Claim this slot</a>
               <p style="color:#999;font-size:12px;margin-top:24px;">Offer expires at ${new Date(entry.offer_expires_at).toLocaleTimeString()}.</p>
             </div>

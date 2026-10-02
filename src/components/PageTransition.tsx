@@ -66,13 +66,23 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     const el = container.current;
     if (!el) return;
 
-    gsap.fromTo(
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      gsap.set(el, { opacity: 1, x: 0, y: 0, scale: 1 });
+      prevType.current = type;
+      return;
+    }
+
+    const tween = gsap.fromTo(
       el,
       { opacity: 0, x: fromX, y: fromY, scale: fromScale },
       { opacity: 1, x: 0, y: 0, scale: 1, duration: 0.32, ease: "power2.out" }
     );
 
     prevType.current = type;
+    return () => {
+      tween.kill();
+    };
   }, [pathname]);
 
   return <div ref={container}>{children}</div>;

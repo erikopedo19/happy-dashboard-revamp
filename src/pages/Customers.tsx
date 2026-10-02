@@ -45,6 +45,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useVirtualRows } from "@/lib/useVirtualRows";
 
 
 interface Customer {
@@ -61,6 +62,8 @@ const customerFormSchema = z.object({
 });
 
 type CustomerFormData = z.infer<typeof customerFormSchema>;
+
+const CUSTOMER_ROW_HEIGHT = 57;
 
 const Customers = () => {
   const { user } = useAuth();
@@ -86,6 +89,12 @@ const Customers = () => {
     },
     enabled: !!user,
   });
+
+  const customerRows = useVirtualRows({
+    count: customers?.length ?? 0,
+    rowHeight: CUSTOMER_ROW_HEIGHT,
+  });
+  const visibleCustomers = customers?.slice(customerRows.start, customerRows.end) ?? [];
 
   const deleteMutation = useMutation({
     mutationFn: async (customerId: string) => {
@@ -190,7 +199,7 @@ const Customers = () => {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto p-3 md:p-6">
+          <div ref={customerRows.containerRef} className="flex-1 overflow-auto p-3 md:p-6">
             <Card className="bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
@@ -238,7 +247,13 @@ const Customers = () => {
                       </TableCell>
                     </TableRow>
                   ) : customers && customers.length > 0 ? (
-                    customers.map((customer) => (
+                    <>
+                      {customerRows.paddingTop > 0 && (
+                        <TableRow aria-hidden="true">
+                          <TableCell colSpan={4} style={{ height: customerRows.paddingTop, padding: 0, border: 0 }} />
+                        </TableRow>
+                      )}
+                      {visibleCustomers.map((customer) => (
                       <TableRow key={customer.id} className="hover:bg-secondary/50 transition-colors">
                         <TableCell className="font-medium text-foreground">
                           <div className="flex items-center gap-3">
@@ -290,7 +305,13 @@ const Customers = () => {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
+                      ))}
+                      {customerRows.paddingBottom > 0 && (
+                        <TableRow aria-hidden="true">
+                          <TableCell colSpan={4} style={{ height: customerRows.paddingBottom, padding: 0, border: 0 }} />
+                        </TableRow>
+                      )}
+                    </>
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-12">

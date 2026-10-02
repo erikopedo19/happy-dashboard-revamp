@@ -1,6 +1,6 @@
 
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { GlimmProvider } from "glimm/react";
 import { accentChain } from "glimm";
 import { GlimmIntercept } from "./components/GlimmIntercept";
@@ -26,46 +26,11 @@ const SWEEP_PALETTE = accentChain(["#2E70FF", "#FF3D7F", "#D33CFF"]);
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SuperAdminRoute } from "./components/SuperAdminRoute";
 import { ThemeProvider } from "next-themes";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Agenda from "./pages/Agenda";
-import Customers from "./pages/Customers";
-import Services from "./pages/Services";
-import Settings from "./pages/Settings";
-import Pricing from "./pages/Pricing";
-import PricingSuccess from "./pages/PricingSuccess";
-import PricingFailure from "./pages/PricingFailure";
-import Terms from "./pages/Terms";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { PremiumGate } from "./components/PremiumGate";
-import NotFound from "./pages/NotFound";
-import SuperAdminLogin from "./pages/SuperAdminLogin";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { PhoneAlerts, PhoneAlertsProvider } from "@/components/PhoneAlerts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Brand from "./pages/Brand";
-import Booking from "./pages/Booking";
-import BookingPage from "./pages/BookingPage";
-import BookingForms from "./pages/BookingForms";
-import FindBarber from "./pages/FindBarber";
-import FindBarbershop from "./pages/FindBarbershop";
-import Stylists from "./pages/Stylists";
-import Teams from "./pages/Teams";
-import ChooseRole from "./pages/ChooseRole";
-import CompleteProfile from "./pages/CompleteProfile";
-import DbPrevStats from "./pages/DbPrevStats";
-import Reports from "./pages/Reports";
-import MyBookings from "./pages/MyBookings";
-import Me from "./pages/Me";
-import Favorites from "./pages/Favorites";
-import Events from "./pages/Events";
-import EventsManage from "./pages/EventsManage";
-import ManageBooking from "./pages/ManageBooking";
-import ReviewPage from "./pages/ReviewPage";
-import WaitlistClaim from "./pages/WaitlistClaim";
-import Landing from "./pages/Landing";
 import { PersistentDock } from "./components/PersistentDock";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { NotificationBell } from "./components/NotificationBell";
@@ -74,14 +39,49 @@ import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
-import { useBannerReminder } from "./hooks/use-banner-reminder";
-
-import Onboarding, { ONBOARDING_STORAGE_KEY } from "./pages/Onboarding";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
-import Microsite from "./pages/Microsite";
-import MicrositeEditor from "./pages/MicrositeEditor";
-import ChooseMode from "./pages/ChooseMode";
-import OAuthConsent from "./pages/OAuthConsent";
+import { isNative } from "./lib/native";
+
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Agenda = lazy(() => import("./pages/Agenda"));
+const Customers = lazy(() => import("./pages/Customers"));
+const Services = lazy(() => import("./pages/Services"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const PricingSuccess = lazy(() => import("./pages/PricingSuccess"));
+const PricingFailure = lazy(() => import("./pages/PricingFailure"));
+const Terms = lazy(() => import("./pages/Terms"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const SuperAdminLogin = lazy(() => import("./pages/SuperAdminLogin"));
+const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
+const Brand = lazy(() => import("./pages/Brand"));
+const Booking = lazy(() => import("./pages/Booking"));
+const BookingPage = lazy(() => import("./pages/BookingPage"));
+const BookingForms = lazy(() => import("./pages/BookingForms"));
+const FindBarber = lazy(() => import("./pages/FindBarber"));
+const FindBarbershop = lazy(() => import("./pages/FindBarbershop"));
+const Stylists = lazy(() => import("./pages/Stylists"));
+const Teams = lazy(() => import("./pages/Teams"));
+const ChooseRole = lazy(() => import("./pages/ChooseRole"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
+const DbPrevStats = lazy(() => import("./pages/DbPrevStats"));
+const Reports = lazy(() => import("./pages/Reports"));
+const MyBookings = lazy(() => import("./pages/MyBookings"));
+const Me = lazy(() => import("./pages/Me"));
+const Favorites = lazy(() => import("./pages/Favorites"));
+const Events = lazy(() => import("./pages/Events"));
+const EventsManage = lazy(() => import("./pages/EventsManage"));
+const ManageBooking = lazy(() => import("./pages/ManageBooking"));
+const ReviewPage = lazy(() => import("./pages/ReviewPage"));
+const WaitlistClaim = lazy(() => import("./pages/WaitlistClaim"));
+const Landing = lazy(() => import("./pages/Landing"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Microsite = lazy(() => import("./pages/Microsite"));
+const MicrositeEditor = lazy(() => import("./pages/MicrositeEditor"));
+const ChooseMode = lazy(() => import("./pages/ChooseMode"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -130,16 +130,29 @@ function isMicrositeSubdomain(): string | null {
   return null;
 }
 
+function RouteFallback() {
+  return (
+    <div className="grid min-h-dvh place-items-center bg-[#F2F2F7] text-[#8E8E93] dark:bg-black">
+      <div className="h-9 w-9 animate-pulse rounded-2xl bg-black/[0.08] dark:bg-white/[0.08]" />
+    </div>
+  );
+}
+
 function AnimatedRoutes() {
   useFinalizeOnboarding();
   const location = useLocation();
   const subdomain = isMicrositeSubdomain();
   if (subdomain) {
-    return <Microsite />;
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Microsite />
+      </Suspense>
+    );
   }
   return (
     <PageTransition>
-      <Routes location={location}>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
       <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
       <Route path="/choose-mode" element={<ChooseMode />} />
@@ -182,7 +195,8 @@ function AnimatedRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/:bookingLink" element={<Booking />} />
       <Route path="*" element={<NotFound />} />
-    </Routes>
+        </Routes>
+      </Suspense>
     </PageTransition>
   );
 }
@@ -210,6 +224,78 @@ const HeaderActions = () => {
   );
 };
 
+function NativeShell() {
+  const navigate = useNavigate();
+  const [offline, setOffline] = useState(false);
+
+  useEffect(() => {
+    let removeBack: (() => void) | undefined;
+    let cancelled = false;
+
+    const setup = async () => {
+      if (!isNative()) return;
+      const { App: CapacitorApp } = await import("@capacitor/app");
+      const listener = await CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+        if (canGoBack) navigate(-1);
+        else void CapacitorApp.exitApp();
+      });
+      if (!cancelled) removeBack = () => void listener.remove();
+      else void listener.remove();
+    };
+    void setup();
+
+    return () => {
+      cancelled = true;
+      removeBack?.();
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    let removeNativeListener: (() => void) | undefined;
+    let cancelled = false;
+    const setOnlineState = (connected: boolean) => setOffline(!connected);
+
+    const setup = async () => {
+      if (isNative()) {
+        const { Network } = await import("@capacitor/network");
+        const status = await Network.getStatus();
+        setOnlineState(status.connected);
+        const listener = await Network.addListener("networkStatusChange", (next) => {
+          setOnlineState(next.connected);
+        });
+        if (!cancelled) removeNativeListener = () => void listener.remove();
+        else void listener.remove();
+        return;
+      }
+
+      const update = () => setOnlineState(navigator.onLine);
+      update();
+      window.addEventListener("online", update);
+      window.addEventListener("offline", update);
+      removeNativeListener = () => {
+        window.removeEventListener("online", update);
+        window.removeEventListener("offline", update);
+      };
+    };
+    void setup();
+
+    return () => {
+      cancelled = true;
+      removeNativeListener?.();
+    };
+  }, []);
+
+  if (!offline) return null;
+  return (
+    <div
+      role="status"
+      className="fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[90] -translate-x-1/2 rounded-full border border-black/5 bg-white/95 px-4 py-2 text-[12px] font-semibold text-[#1C1C1E] shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/95 dark:text-[#F2F2F7]"
+    >
+      Offline — showing saved data
+    </div>
+  );
+}
+
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
@@ -222,7 +308,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
             {showSplash && (
@@ -244,6 +330,7 @@ function App() {
                   <UpdatePopup />
                   <GuestSignupDrawer />
                   <ScrollToTop />
+                  <NativeShell />
                   <AnimatedRoutes />
                   <HeaderActions />
 

@@ -461,7 +461,7 @@ const cardItem: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: i * 0.04, type: "spring" as const, stiffness: 380, damping: 30 },
+    transition: { delay: Math.min(i, 10) * 0.04, type: "spring" as const, stiffness: 380, damping: 30 },
   }),
 };
 
@@ -575,9 +575,9 @@ function BarberCard({
         {isExpanded && (
           <motion.div
             key="details"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -8, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.99 }}
             transition={{ duration: 0.25 }}
             className="px-4 pt-3"
           >
@@ -804,8 +804,10 @@ function MapPoster() {
   }
   return (
     <img
-      src="/Frame 316.png"
+      src="/Frame 316.webp"
       alt="Map feature coming soon"
+      width={935}
+      height={423}
       className="w-full max-w-md object-contain rounded-3xl"
       onError={() => setMissing(true)}
     />
@@ -1219,7 +1221,7 @@ function BarberExpandedDetails({
                 key={s.id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03, ...spring }}
+                transition={{ delay: Math.min(i, 10) * 0.03, ...spring }}
                 className="flex items-center justify-between px-3.5 py-3"
               >
                 <div className="min-w-0 flex items-center gap-2.5">
@@ -1251,7 +1253,7 @@ function BarberExpandedDetails({
                 key={url + i}
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.04, ...spring }}
+                transition={{ delay: Math.min(i, 10) * 0.04, ...spring }}
                 className="relative shrink-0 snap-start w-32 aspect-[3/4] rounded-[16px] overflow-hidden bg-black/[0.04] dark:bg-white/[0.06]"
               >
                 <img src={url} alt="Recent work" className="w-full h-full object-cover" loading="lazy" />

@@ -9,6 +9,11 @@ html, body, #root, button, input, textarea, select {
   letter-spacing: -0.01em;
 }
 
+html,
+body {
+  touch-action: manipulation;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -139,6 +144,39 @@ html, body, #root, button, input, textarea, select {
     font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1.2;
+  }
+
+  button,
+  [role="button"],
+  a {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  a:active {
+    transform: scale(0.97);
+    transition-property: transform, opacity;
+    transition-duration: 120ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -964,8 +1002,8 @@ html, body, #root, button, input, textarea, select {
   .liquid-glass:not(.mobile-dock)::after {
     display: none !important;
   }
-  /* neutralize backdrop-blur utilities on phone, except the dock */
-  [class*="backdrop-blur"]:not(.mobile-dock) {
+  /* neutralize backdrop-blur utilities on phone, except the dock and sheets */
+  [class*="backdrop-blur"]:not(.mobile-dock):not([data-native-surface]) {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
@@ -1055,7 +1093,7 @@ html.is-native #root {
   transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
 }
 .native-press:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
   opacity: 0.9;
 }
 

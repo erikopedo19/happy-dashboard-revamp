@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleDisplayName</key>
-    <string>Cutzio</string>
+    <string>Cutzioo</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -46,5 +46,7 @@
     <string>We need photo library access to select profile images</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>We need permission to save photos to your library</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Cutzio uses your location to estimate travel time and remind you when to leave for your appointment.</string>
 </dict>
 </plist>

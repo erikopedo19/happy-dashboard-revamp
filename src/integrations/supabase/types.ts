@@ -1828,10 +1828,10 @@ export type Database = {
           p_business_id: string
           p_customer_email: string
           p_customer_name: string
-          p_customer_phone: string
-          p_notes?: string
+          p_customer_phone?: string | null
+          p_notes?: string | null
           p_service_id: string
-          p_stylist_id?: string
+          p_stylist_id?: string | null
         }
         Returns: Json
       }
@@ -1861,6 +1861,19 @@ export type Database = {
       get_business_analytics_summary: {
         Args: { _business_id: string; _end_date: string; _start_date: string }
         Returns: Json
+      }
+      get_booking_location: {
+        Args: { _appointment_id: string }
+        Returns: {
+          address: string
+          avatar_url: string
+          brand_color: string
+          google_maps_url: string
+          id: string
+          latitude: number
+          longitude: number
+          timezone: string
+        }[]
       }
       get_microsite_by_slug: { Args: { _slug: string }; Returns: Json }
       get_mobile_dashboard_metrics: {
@@ -1894,9 +1907,39 @@ export type Database = {
           id: string
           service_name: string
           status: string
+          stylist_id: string
         }[]
       }
       get_my_referral_code: { Args: never; Returns: string }
+      get_my_waitlist_offers: {
+        Args: never
+        Returns: {
+          appointment_date: string
+          appointment_time: string
+          avatar_url: string
+          barber_id: string
+          barber_name: string
+          brand_color: string
+          claim_token: string
+          created_at: string
+          id: string
+          offer_expires_at: string
+          offered_appointment_id: string
+          queue_position: number
+          status: string
+        }[]
+      }
+      get_rebook_context: { Args: { _appointment_id: string }; Returns: Json }
+      get_waitlist_offer: {
+        Args: { _token: string }
+        Returns: {
+          appointment_date: string
+          appointment_time: string
+          barber_name: string
+          offer_expires_at: string
+          status: string
+        }[]
+      }
       get_pending_review_requests: {
         Args: never
         Returns: {
