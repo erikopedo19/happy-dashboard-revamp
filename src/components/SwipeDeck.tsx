@@ -147,7 +147,6 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           <button
             disabled={!current.booking_link}
             onClick={() => { haptic("heavy"); if (current.booking_link) navigate(`/book/${current.booking_link}`); }}
-            data-x={() => current.booking_link && navigate(`/book/${current.booking_link}`)}
             className="h-14 px-7 rounded-full bg-white text-black font-semibold flex items-center gap-2 active:scale-95 transition disabled:opacity-40"
           >
             <Calendar className="h-4 w-4" /> Book now
