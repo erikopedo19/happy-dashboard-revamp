@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { X, Heart, Star, Calendar, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,11 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
   const likeOpacity = useTransform(x, [30, 120], [0, 1]);
   const nopeOpacity = useTransform(x, [-120, -30], [1, 0]);
   const img = barber.avatar_url || barber.banner_url;
+  const armed = useRef(0);
+  useEffect(() => x.on("change", (v) => {
+    const z = v > 110 ? 1 : v < -110 ? -1 : 0;
+    if (z !== armed.current) { armed.current = z; haptic(z ? "medium" : "selection"); }
+  }), [x]);
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x > 110 || info.velocity.x > 600) onSwipe(1);
@@ -40,6 +45,7 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       drag={isTop ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
+      onDragStart={() => haptic("selection")}
       onDragEnd={onDragEnd}
     >
       {img ? (
@@ -80,6 +86,13 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
   const visible = barbers.slice(index, index + 3);
   const current = barbers[index];
 
+  useEffect(() => {
+    document.body.classList.add("stories-open");
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.classList.remove("stories-open"); document.body.style.overflow = prev; };
+  }, []);
+
   const swipe = (d: 1 | -1) => {
     if (!current) return;
     haptic(d === 1 ? "success" : "light");
@@ -90,7 +103,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
 
   return (
     <motion.div
-      className="fixed inset-x-0 top-0 bottom-[88px] z-40 flex flex-col bg-[#0A0A0C] text-white px-5 pt-[max(env(safe-area-inset-top),1rem)]"
+      className="fixed inset-0 z-[80] h-[100dvh] flex flex-col bg-[#0A0A0C] text-white px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1rem)]"
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 40 }}
@@ -105,7 +118,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
             Swipe your barber
           </motion.h2>
         </div>
-        <button onClick={onClose} aria-label="Close" className="h-10 w-10 grid place-items-center rounded-full bg-white/10 active:scale-90 transition">
+        <button onClick={() => { haptic("light"); onClose(); }} aria-label="Close" className="h-10 w-10 grid place-items-center rounded-full bg-white/10 active:scale-90 transition">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -120,7 +133,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 grid place-items-center text-center">
             <div>
               <p className="text-xl font-semibold">You've seen everyone</p>
-              <button onClick={() => setIndex(0)} className="mt-4 rounded-full bg-white text-black px-6 py-3 font-semibold active:scale-95 transition">Start again</button>
+              <button onClick={() => { haptic("medium"); setIndex(0); }} className="mt-4 rounded-full bg-white text-black px-6 py-3 font-semibold active:scale-95 transition">Start again</button>
             </div>
           </motion.div>
         )}
@@ -133,7 +146,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           </button>
           <button
             disabled={!current.booking_link}
-            onClick={() => current.booking_link && navigate(`/book/${current.booking_link}`)}
+            onClick={() => { haptic("heavy"); if (current.booking_link) navigate(`/book/${current.booking_link}`); }}
             className="h-14 px-7 rounded-full bg-white text-black font-semibold flex items-center gap-2 active:scale-95 transition disabled:opacity-40"
           >
             <Calendar className="h-4 w-4" /> Book now
