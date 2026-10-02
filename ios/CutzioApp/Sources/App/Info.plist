@@ -38,5 +38,13 @@
     </array>
     <key>UIUserInterfaceStyle</key>
     <string>Automatic</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>NSCameraUsageDescription</key>
+    <string>We need camera access to take profile photos</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need photo library access to select profile images</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>We need permission to save photos to your library</string>
 </dict>
 </plist>

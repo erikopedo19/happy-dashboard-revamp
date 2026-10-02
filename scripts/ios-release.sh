@@ -13,7 +13,7 @@
 set -euo pipefail
 
 APP_NAME="Cutzioo"
-SCHEME="App"
+SCHEME="CutzioApp"
 BUNDLE_ID="${BUNDLE_ID:-com.cutzioo.app}"
 MARKETING_VERSION="${MARKETING_VERSION:-1.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
@@ -23,7 +23,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT/build/ios"
 ARCHIVE_PATH="$BUILD_DIR/$APP_NAME.xcarchive"
 EXPORT_DIR="$BUILD_DIR/export"
-WORKSPACE="$ROOT/ios/App/App.xcworkspace"
+WORKSPACE="$ROOT/ios/CutzioApp/CutzioApp.xcworkspace"
 
 if [[ -z "$TEAM_ID" ]]; then
   echo "❌ APPLE_TEAM_ID is required (Apple Developer Team ID, e.g. ABCDE12345)."
@@ -38,28 +38,28 @@ npm run build
 echo "🔄 2/5 Syncing Capacitor iOS project…"
 npx cap sync ios
 
-if [[ ! -d "$ROOT/ios/App" ]]; then
-  echo "❌ ios/App not found. Run: npx cap add ios"
+if [[ ! -d "$ROOT/ios/CutzioApp" ]]; then
+  echo "❌ ios/CutzioApp not found. Run: npx cap add ios"
   exit 1
 fi
 
 echo "🧾 3/5 Applying release identity (bundle id / version / signing)…"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MARKETING_VERSION" \
-  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+  "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" \
-  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+  "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null || true
 # Skip the export-compliance questionnaire on every TestFlight upload
 /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" \
-  "$ROOT/ios/App/App/Info.plist" 2>/dev/null \
+  "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null \
   || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" \
-    "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+    "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null || true
 # Portrait-only, matching the App Store listing
 /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" \
-  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+  "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" \
-  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+  "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" \
-  "$ROOT/ios/App/App/Info.plist" 2>/dev/null || true
+  "$ROOT/ios/CutzioApp/Sources/App/Info.plist" 2>/dev/null || true
 
 
 mkdir -p "$BUILD_DIR"

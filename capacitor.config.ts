@@ -6,7 +6,7 @@ const isRelease =
   process.env.CAP_RELEASE === '1' || process.env.NODE_ENV === 'production';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.d3037d9ea0984a0c984e428e241859a9',
+  appId: 'com.cutzioo.app',
   appName: 'Cutzioo',
   webDir: 'dist',
   ...(isRelease
