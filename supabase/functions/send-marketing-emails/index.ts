@@ -168,6 +168,19 @@ const CAMPAIGNS: Record<string, Campaign> = {
         ctaUrl: `${APP_URL}/agenda`,
       }),
   },
+  feature_swipe: {
+    key: "feature_swipe",
+    subject: () => "New on Cutzioo: swipe to find your barber",
+    html: (c) =>
+      shell({
+        kicker: "New feature",
+        title: "Find your next barber with a swipe",
+        body: `<p style="margin:0 0 14px;">Hi ${esc(c.firstName)}, finding a barber just got faster.</p>
+<p style="margin:0;">Open Find a barber and tap <strong>Swipe</strong>. Swipe right to save a barber you like, swipe left to skip, and tap Book now when you've found the one.</p>`,
+        ctaLabel: "Try it now",
+        ctaUrl: `${APP_URL}/find-barber`,
+      }),
+  },
   active_free_upgrade: {
     key: "active_free_upgrade",
     subject: () => "You're busy — unlock Cutzioo Premium for $9/month",
@@ -325,7 +338,19 @@ serve(async (req: Request) => {
       }
     }
 
-
+    // --- One-time feature announcement to every user (drains under the daily cap).
+    {
+      const queued = new Set(allCandidates.map((c) => c.user_id));
+      for (const u of usersPage?.users ?? []) {
+        if (!u.email || queued.has(u.id)) continue;
+        allCandidates.push({
+          user_id: u.id,
+          campaign: "feature_swipe",
+          full_name: (u.user_metadata as any)?.full_name ?? null,
+          period: "once",
+        });
+      }
+    }
 
     let sent = 0;
     const results: any[] = [];
