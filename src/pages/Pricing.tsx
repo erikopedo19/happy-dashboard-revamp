@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { X, Check, Crown, Star, CalendarClock, Users, ShieldCheck, ArrowUpRight, ArrowRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -43,11 +43,25 @@ const ALL_OPTIONS: {
 
 const OPTIONS = ALL_OPTIONS.filter((o) => (o.key === "yearly" ? !!STRIPE_PAYMENT_LINK_YEARLY : !!STRIPE_PAYMENT_LINK));
 
+const getRequestedPlan = (value: string | null): PlanKey | undefined => {
+  const key = value === "annual" ? "yearly" : value;
+  return (key === "yearly" || key === "monthly") && OPTIONS.some((option) => option.key === key)
+    ? key
+    : undefined;
+};
+
 export default function Pricing() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const reduceMotion = useReducedMotion();
-  const [plan, setPlan] = useState<PlanKey>(OPTIONS[0]?.key ?? "monthly");
+  const requestedPlan = getRequestedPlan(searchParams.get("plan"));
+  const [plan, setPlan] = useState<PlanKey>(requestedPlan ?? OPTIONS[0]?.key ?? "monthly");
   const [freeTrial, setFreeTrial] = useState(STRIPE_TRIAL_ENABLED);
+
+  useEffect(() => {
+    if (requestedPlan) setPlan(requestedPlan);
+  }, [requestedPlan]);
+
   const active = OPTIONS.find((o) => o.key === plan) ?? OPTIONS[0];
 
   async function handleContinue() {

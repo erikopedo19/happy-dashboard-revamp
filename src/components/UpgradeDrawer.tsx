@@ -4,6 +4,8 @@ import { Crown, Sparkles, X, Bell, Star, Unlock } from "lucide-react";
 import { Button } from "@heroui/react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { usePremium } from "@/hooks/use-premium";
+import { STRIPE_PAYMENT_LINK, STRIPE_PAYMENT_LINK_YEARLY, STRIPE_TRIAL_ENABLED, plans } from "@/lib/billingsdk-config";
+import { haptic } from "@/lib/haptics";
 import { motion } from "framer-motion";
 
 const OPENS_KEY = "cutzio_upgrade_opens";
@@ -12,6 +14,44 @@ const LAST_KEY = "cutzio_upgrade_last_shown";
 const DISMISSED_KEY = "cutzio_upgrade_dismissed_at";
 
 const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
+
+type DrawerPlanKey = "yearly" | "monthly";
+
+const PRO_PLAN = plans.find(({ id }) => id === "pro");
+const MONTHLY_TOTAL = PRO_PLAN ? `€${PRO_PLAN.monthlyPrice}` : "€8.99";
+const YEARLY_TOTAL = PRO_PLAN ? `€${PRO_PLAN.yearlyPrice}` : "€89.90";
+const YEARLY_PER_MONTH = PRO_PLAN
+  ? `€${(Number(PRO_PLAN.yearlyPrice) / 12).toFixed(2)}`
+  : "€7.49";
+
+const MONTHLY_OPTION = {
+  key: "monthly" as const,
+  title: "Monthly",
+  total: MONTHLY_TOTAL,
+  cadence: "per month",
+  billing: `${MONTHLY_TOTAL} billed every month`,
+};
+
+const ALL_PLAN_OPTIONS: {
+  key: DrawerPlanKey;
+  title: string;
+  total: string;
+  cadence: string;
+  billing: string;
+}[] = [
+  {
+    key: "yearly",
+    title: "Annual",
+    total: YEARLY_TOTAL,
+    cadence: "per year",
+    billing: `${YEARLY_PER_MONTH}/mo billed yearly (${YEARLY_TOTAL}/year)`,
+  },
+  MONTHLY_OPTION,
+];
+
+const PLAN_OPTIONS = ALL_PLAN_OPTIONS.filter((option) =>
+  option.key === "yearly" ? !!STRIPE_PAYMENT_LINK_YEARLY : !!STRIPE_PAYMENT_LINK
+);
 
 const TIMELINE = [
   { icon: Unlock, title: "Today", body: "Full access to reports, themes, review emails and priority support." },
@@ -31,7 +71,7 @@ export function UpgradeDrawer() {
   const navigate = useNavigate();
   const { loading, isPremium } = usePremium();
   const [open, setOpen] = useState(false);
-  const [plan, setPlan] = useState<"annual" | "monthly">("annual");
+  const [plan, setPlan] = useState<DrawerPlanKey>(PLAN_OPTIONS[0]?.key ?? "monthly");
 
   // Hide immediately if the user becomes Pro while the drawer is open
   useEffect(() => {
@@ -68,11 +108,19 @@ export function UpgradeDrawer() {
   }, [loading, isPremium]);
 
   const dismiss = () => {
+    haptic("light");
     localStorage.setItem(DISMISSED_KEY, String(Date.now()));
     setOpen(false);
   };
 
-  const price = plan === "annual" ? { today: "€0.00", after: "€6.99/mo billed yearly" } : { today: "€0.00", after: "€9.99/mo" };
+  const selectedPlan = PLAN_OPTIONS.find((option) => option.key === plan) ?? PLAN_OPTIONS[0] ?? MONTHLY_OPTION;
+  const steps = STRIPE_TRIAL_ENABLED
+    ? TIMELINE
+    : [
+        TIMELINE[0],
+        { icon: Bell, title: "Billing", body: selectedPlan.billing },
+        { icon: Star, title: "Anytime", body: "Cancel whenever you need — no long-term commitment." },
+      ];
 
   if (loading || isPremium) return null;
 
@@ -84,11 +132,12 @@ export function UpgradeDrawer() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-[radial-gradient(80%_60%_at_50%_120%,rgba(225,29,72,0.35),transparent_70%)]" />
 
           <div className="relative flex items-start justify-between">
-            <span className="text-[11px] leading-tight text-white/40">Restore<br />purchase</span>
+            <span className="text-[11px] leading-tight text-white/40">Secure<br />checkout</span>
             <button
+              type="button"
               onClick={dismiss}
               aria-label="Close"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition active:scale-95"
             >
               <X className="h-4 w-4 text-white" />
             </button>
@@ -104,29 +153,45 @@ export function UpgradeDrawer() {
           </motion.div>
 
           <h2 className="relative mt-4 text-center text-[22px] font-bold leading-tight tracking-tight">
-            Here&apos;s how your 7 days
-            <br />free trial works
+            {STRIPE_TRIAL_ENABLED ? (
+              <>
+                Here&apos;s how your 7 days
+                <br />free trial works
+              </>
+            ) : (
+              <>
+                Unlock Cutzioo
+                <br />Pro
+              </>
+            )}
           </h2>
 
-          <div className="relative mx-auto mt-4 flex w-fit items-center rounded-full bg-white/[0.08] p-1">
-            {(["annual", "monthly"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPlan(p)}
-                className={`relative h-9 rounded-full px-5 text-[14px] font-semibold transition-colors ${
-                  plan === p ? "text-black" : "text-white/60"
-                }`}
-              >
-                {plan === p && (
-                  <motion.span layoutId="paywall-plan" transition={{ type: "spring", stiffness: 480, damping: 38 }} className="absolute inset-0 rounded-full bg-white" />
-                )}
-                <span className="relative z-10">{p === "annual" ? "Annual" : "Monthly"}</span>
-              </button>
-            ))}
-          </div>
+          {PLAN_OPTIONS.length > 1 && (
+            <div className="relative mx-auto mt-4 flex w-fit items-center rounded-full bg-white/[0.08] p-1">
+              {PLAN_OPTIONS.map((option) => (
+                <button
+                  type="button"
+                  key={option.key}
+                  aria-pressed={plan === option.key}
+                  onClick={() => {
+                    haptic("selection");
+                    setPlan(option.key);
+                  }}
+                  className={`relative h-11 rounded-full px-5 text-[14px] font-semibold transition-colors ${
+                    plan === option.key ? "text-black" : "text-white/60"
+                  }`}
+                >
+                  {plan === option.key && (
+                    <motion.span layoutId="paywall-plan" transition={{ type: "spring", stiffness: 480, damping: 38 }} className="absolute inset-0 rounded-full bg-white" />
+                  )}
+                  <span className="relative z-10">{option.title}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="relative mt-6 space-y-4">
-            {TIMELINE.map((t) => (
+            {steps.map((t) => (
               <div key={t.title} className="flex gap-3">
                 <div className="flex flex-col items-center pt-1">
                   <t.icon className="h-4 w-4 text-white" />
@@ -146,22 +211,25 @@ export function UpgradeDrawer() {
 
           <Button
             onPress={() => {
+              haptic("medium");
               setOpen(false);
-              navigate(`/pricing?plan=${plan}&trial=1`);
+              navigate(`/pricing?plan=${selectedPlan.key}`);
             }}
             className="relative mt-6 h-14 w-full rounded-full bg-[#EDEDED] text-[16px] font-semibold text-black"
           >
-            Try for {price.today}
+            {STRIPE_TRIAL_ENABLED ? "Try for €0.00" : `Continue with ${selectedPlan.title}`}
           </Button>
 
           <p className="relative mt-2.5 text-center text-[12px] text-white/45">
-            First 7 days free, then {price.after}
+            {STRIPE_TRIAL_ENABLED
+              ? `First 7 days free, then ${selectedPlan.billing}`
+              : `${selectedPlan.total} ${selectedPlan.cadence} · cancel anytime`}
           </p>
 
           <Button
             variant="light"
             onPress={dismiss}
-            className="relative mt-1 w-full text-center text-[13px] font-medium text-white/35 h-auto py-2"
+            className="relative mt-1 min-h-11 w-full text-center text-[13px] font-medium text-white/35 h-auto py-2"
           >
             Maybe later
           </Button>
