@@ -308,7 +308,7 @@ serve(async (req: Request) => {
 
     const { data: apptRow, error: apptErr } = await supabase
       .from("appointments")
-      .select("id, user_id, stylist_id, appointment_date, appointment_time, price, notes, customer_id, service_id, created_at")
+      .select("id, user_id, stylist_id, appointment_date, appointment_time, price, notes, customer_id, service_id, created_at, updated_at")
       .eq("cancel_token", cancelToken)
       .maybeSingle();
 
@@ -317,8 +317,12 @@ serve(async (req: Request) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
     }
 
-    const createdMs = new Date(apptRow.created_at as string).getTime();
-    if (Date.now() - createdMs > 15 * 60 * 1000) {
+    // Freshness guard against token replay. Initial confirmations are checked
+    // against created_at; reschedule emails are checked against updated_at
+    // because the appointment is old by definition (it was just moved).
+    const refIso = rescheduled ? (apptRow.updated_at ?? apptRow.created_at) : apptRow.created_at;
+    const refMs = new Date(refIso as string).getTime();
+    if (Date.now() - refMs > 15 * 60 * 1000) {
       return new Response(JSON.stringify({ success: false, error: "Token expired" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
     }

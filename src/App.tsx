@@ -39,6 +39,7 @@ import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
+import { PullToRefresh } from "./components/PullToRefresh";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import { isNative } from "./lib/native";
 
@@ -331,6 +332,7 @@ function App() {
                   <GuestSignupDrawer />
                   <ScrollToTop />
                   <NativeShell />
+                  <PullToRefresh />
                   <AnimatedRoutes />
                   <HeaderActions />
 
