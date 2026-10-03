@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
 
 // Custom SVG icons for a more distinctive day-off icon design
 const CustomDayOffIcon = ({ type, className }: { type: string; className?: string }) => {
@@ -213,6 +213,67 @@ export const LiquidGlassAgenda = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [drag, setDrag] = useState<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
+  const [dropHover, setDropHover] = useState<string | null>(null);
+  const [movingIds, setMovingIds] = useState<string[]>([]);
+
+  const findDropTarget = (x: number, y: number) => {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    const apt = el?.closest("[data-apt-id]") as HTMLElement | null;
+    if (apt) return { aptId: apt.dataset.aptId!, time: null as string | null };
+    const slot = el?.closest("[data-slot-time]") as HTMLElement | null;
+    if (slot) return { aptId: null as string | null, time: slot.dataset.slotTime! };
+    return null;
+  };
+
+  const startDrag = (e: React.PointerEvent, apt: Appointment) => {
+    e.stopPropagation();
+    e.preventDefault();
+    clearLongPressTimer();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    haptic("medium");
+    setDrag({ id: apt.id, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0 });
+  };
+
+  const moveDrag = (e: React.PointerEvent) => {
+    if (!drag) return;
+    setDrag({ ...drag, dx: e.clientX - drag.x0, dy: e.clientY - drag.y0 });
+    const t = findDropTarget(e.clientX, e.clientY);
+    const key = t ? (t.aptId && t.aptId !== drag.id ? `a:${t.aptId}` : t.time ? `t:${t.time}` : null) : null;
+    if (key !== dropHover) { setDropHover(key); if (key) haptic("light"); }
+  };
+
+  const endDrag = async (e: React.PointerEvent) => {
+    if (!drag) return;
+    const current = drag;
+    const t = findDropTarget(e.clientX, e.clientY);
+    setDrag(null);
+    setDropHover(null);
+    if (!t || Math.hypot(current.dx, current.dy) < 12) return;
+    const targetId = t.aptId && t.aptId !== current.id ? t.aptId : null;
+    if (!targetId && !t.time) return;
+    const dateStr = format(selectedDay, "yyyy-MM-dd");
+    setMovingIds([current.id, ...(targetId ? [targetId] : [])]);
+    const { data, error } = await (supabase as any).rpc("swap_or_move_appointment", {
+      _appointment_id: current.id,
+      _target_id: targetId,
+      _new_date: dateStr,
+      _new_time: t.time ? `${t.time.slice(0, 5)}:00` : null,
+    });
+    setMovingIds([]);
+    if (error) {
+      haptic("error" as any);
+      toast({ title: "Couldn't move appointment", description: error.message, variant: "destructive" });
+      return;
+    }
+    haptic("success" as any);
+    toast({ title: targetId ? "Appointments swapped" : "Appointment moved", description: "Clients were emailed the new time." });
+    queryClient.invalidateQueries();
+    const tokens: string[] = (data?.moved || []).filter(Boolean);
+    tokens.forEach((cancelToken) => {
+      supabase.functions.invoke("send-booking-confirmation", { body: { cancelToken, rescheduled: true } }).catch(() => {});
+    });
+  };
   const [pressingSlot, setPressingSlot] = useState<string | null>(null);
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
   const [pendingUnblockSlot, setPendingUnblockSlot] = useState<{ id: string; start_time: string; end_time: string } | null>(null);
@@ -1324,7 +1385,8 @@ export const LiquidGlassAgenda = ({
               return (
                 <div
                   key={hour}
-                  className={cn("relative", (isPastSlot || isBlocked) && "opacity-50")}
+                  data-slot-time={hour}
+                  className={cn("relative rounded-2xl transition-colors duration-200", (isPastSlot || isBlocked) && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF375F]/10 ring-2 ring-[#FF375F]/40")}
                   style={{ height: ROW_H }}
                 >
                   {/* Time label */}
@@ -1362,8 +1424,30 @@ export const LiquidGlassAgenda = ({
                       <motion.div
                         variants={slotItemVariants}
                         key={apt.id}
-                        className="flex-1 min-h-0"
+                        layout
+                        data-apt-id={drag?.id === apt.id ? undefined : apt.id}
+                        animate={drag?.id === apt.id
+                          ? { x: drag.dx, y: drag.dy, scale: 1.04, rotate: 1.5, opacity: 0.95 }
+                          : { x: 0, y: 0, scale: dropHover === `a:${apt.id}` ? 0.96 : 1, rotate: 0, opacity: movingIds.includes(apt.id) ? 0.5 : 1 }}
+                        transition={drag?.id === apt.id ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
+                        style={{ zIndex: drag?.id === apt.id ? 50 : undefined, pointerEvents: drag?.id === apt.id ? "none" : undefined }}
+                        className={cn("flex-1 min-h-0 relative rounded-2xl", dropHover === `a:${apt.id}` && "ring-2 ring-[#FF375F] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
                       >
+                        {!isCancelled && (
+                          <span
+                            role="button"
+                            aria-label="Drag to move"
+                            onPointerDown={(e) => startDrag(e, apt)}
+                            onPointerMove={moveDrag}
+                            onPointerUp={endDrag}
+                            onPointerCancel={() => { setDrag(null); setDropHover(null); }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-1.5 bottom-1.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/10 dark:text-gray-300 cursor-grab active:cursor-grabbing"
+                            style={{ touchAction: "none", pointerEvents: "auto" }}
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </span>
+                        )}
 
                         {/* Liquid Glass Card */}
                         <button
