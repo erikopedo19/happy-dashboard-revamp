@@ -153,13 +153,15 @@ function buildHtml(opts: {
   stylistAvatar?: string | null;
   gcalUrl: string;
   locale?: LocaleKey;
+  rescheduled?: boolean;
 }) {
   const {
     businessName, customerName, serviceName, appointmentDate, appointmentTime,
     durationMinutes, price, notes, manageUrl, accent, bookingId,
     address, stylistName, stylistAvatar, gcalUrl,
   } = opts;
-  const T = EMAIL_STRINGS[opts.locale || "en"] || EMAIL_STRINGS.en;
+  const baseT = EMAIL_STRINGS[opts.locale || "en"] || EMAIL_STRINGS.en;
+  const T = opts.rescheduled ? { ...baseT, confirmed: "New time for your booking", bookedFor: "your appointment has moved —" } : baseT;
 
   const cancelUrl = manageUrl ? `${manageUrl}` : "";
   const rescheduleUrl = manageUrl ? `${manageUrl}` : "";
@@ -291,7 +293,7 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { cancelToken, accentColor } = body as { cancelToken?: string; accentColor?: string };
+    const { cancelToken, accentColor, rescheduled } = body as { cancelToken?: string; accentColor?: string; rescheduled?: boolean };
 
     if (!cancelToken) {
       return new Response(JSON.stringify({ success: false, error: "cancelToken required" }),
@@ -367,7 +369,9 @@ serve(async (req: Request) => {
     const finalManageUrl = `${APP_URL}/manage/${cancelToken}`;
 
     const vars = { customerName, customerEmail, customerPhone, businessName, serviceName, appointmentDate, appointmentTime, price };
-    const subject = render(template?.email_subject || L.subject, vars);
+    const subject = rescheduled
+      ? `${businessName}: your appointment moved to ${appointmentDate} at ${appointmentTime}`
+      : render(template?.email_subject || L.subject, vars);
     const smsText = render(
       template?.sms_body || "{{businessName}}: {{serviceName}} on {{appointmentDate}} at {{appointmentTime}} confirmed.",
       vars
@@ -386,7 +390,7 @@ serve(async (req: Request) => {
       appointmentDate, appointmentTime, durationMinutes,
       price, notes, manageUrl: finalManageUrl, accent, bookingId,
       address, stylistName: stylist?.name ?? null, stylistAvatar: stylist?.avatar_url ?? null,
-      gcalUrl, locale,
+      gcalUrl, locale, rescheduled: !!rescheduled,
     });
 
     const textBody = `${subject}\n\nHi ${customerName || "there"},\n\n${serviceName} on ${appointmentDate} at ${appointmentTime} (${durationMinutes} min)${price != null ? ` · €${price}` : ""}${address ? `\n${address}` : ""}${stylist?.name ? `\nStylist: ${stylist.name}` : ""}\n\n${finalManageUrl ? `Manage your booking: ${finalManageUrl}\n\n` : ""}Powered by Cutzioo — https://cutzioo.com`;
