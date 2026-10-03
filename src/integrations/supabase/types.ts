@@ -2102,6 +2102,15 @@ export type Database = {
         Args: { _cancel_token: string; _comment?: string; _rating: number }
         Returns: Json
       }
+      swap_or_move_appointment: {
+        Args: {
+          _appointment_id: string
+          _new_date: string
+          _new_time: string
+          _target_id: string
+        }
+        Returns: Json
+      }
       user_organizations: { Args: never; Returns: string[] }
     }
     Enums: {

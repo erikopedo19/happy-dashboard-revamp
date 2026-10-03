@@ -383,7 +383,7 @@ const FindBarber = () => {
 
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
         <div className="mb-4">
-          <StoriesRail />
+          {/* Stories hidden for now */}
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4">
