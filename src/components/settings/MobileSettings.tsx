@@ -196,49 +196,55 @@ export function MobileSettings(props: any) {
       .toUpperCase();
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#0A0A0C] text-white relative overflow-x-hidden touch-pan-y pb-[max(7rem,env(safe-area-inset-bottom))]">
-
-
-      {/* Header */}
-      <header className="relative z-10 px-6 pt-7 pb-4">
-        <p className="text-white/40 text-[12px] font-medium uppercase tracking-[0.18em]">
-          Account
-        </p>
-        <h1 className="font-cal text-[40px] leading-[1.05] text-white mt-1">
-          Settings.
-        </h1>
+    <div className="min-h-[100dvh] w-full bg-[#F2F2F7] dark:bg-[#0A0A0C] text-[#1C1C1E] dark:text-white relative overflow-x-hidden touch-pan-y pb-[max(7rem,env(safe-area-inset-bottom))]">
+      <header className="relative z-10 px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
+        <div className="flex h-11 items-center justify-center">
+          <h1 className="text-[17px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white">Settings</h1>
+        </div>
       </header>
 
-      {/* Profile hero card */}
-      <section className="relative z-10 px-6">
+      <section className="relative z-10 px-6 pb-5 pt-2 text-center">
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => setPanel("profile")}
-          className="w-full text-left rounded-3xl bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex items-center gap-4 active:bg-[#2C2C2E] transition"
+          className="mx-auto flex max-w-full flex-col items-center text-center"
         >
-          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-[#2C2C2E] ring-1 ring-[#3A3A3C] flex items-center justify-center font-cal text-xl text-white">
+          <div className="mb-3 flex h-[76px] w-[76px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#B79AF7] ring-4 ring-white dark:ring-[#2C2C2E] shadow-[0_6px_20px_rgba(87,61,148,0.18)] text-[23px] font-semibold text-white">
             {brandForm.avatar_url && !avatarFailed ? (
               <img src={brandForm.avatar_url} alt={profileForm.full_name || brandForm.name || "Profile"} onError={() => setAvatarFailed(true)} className="h-full w-full object-cover" />
             ) : (
               initials
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-cal text-[18px] text-white truncate">
-              {profileForm.full_name || brandForm.name || "Set your name"}
-            </p>
-            <p className="text-[12px] text-white/45 truncate">
-              {user?.email || "Tap to edit profile"}
-            </p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-white/30 shrink-0" />
-
+          <p className="max-w-full truncate text-[21px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white">
+            {profileForm.full_name || brandForm.name || "Set your name"}
+          </p>
+          <p className="mt-0.5 max-w-full truncate text-[13px] text-[#8E8E93] dark:text-white/45">
+            {user?.email || "Tap to edit profile"}
+          </p>
+          <span className="mt-2 text-[13px] font-medium text-[#6D52C5] dark:text-[#B7A0F5]">Manage profile</span>
         </motion.button>
       </section>
 
-      {/* Role switch chips */}
-      <section className="relative z-10 px-6 mt-4">
-        <div className="grid grid-cols-2 gap-3">
+      <section className="relative z-10 px-5">
+        <motion.button
+          whileTap={{ scale: 0.985 }}
+          onClick={() => navigate("/booking-page")}
+          className="relative flex min-h-[76px] w-full items-center gap-3 overflow-hidden rounded-[22px] border border-[#E7DDFB] dark:border-white/10 bg-gradient-to-r from-[#F3EDFF] via-[#E9DDFD] to-[#D4BDF8] dark:from-[#251D35] dark:via-[#2E2343] dark:to-[#44315F] px-4 py-3 text-left shadow-sm"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/75 dark:bg-white/10 text-[#7452C6] dark:text-[#D7C5FF] shadow-sm">
+            <Link2 className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-semibold text-[#302247] dark:text-white">Share your booking page</span>
+            <span className="mt-0.5 block truncate text-[12px] text-[#65577A] dark:text-white/60">Let clients book their next visit</span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#65577A] dark:text-white/50" />
+        </motion.button>
+      </section>
+
+      <section className="relative z-10 px-5 mt-4">
+        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white dark:bg-[#1C1C1E] p-1.5 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
           {[
             { key: "client", label: "Client", Icon: UserCircle2 },
             { key: "barber", label: "Barber", Icon: Scissors },
@@ -255,8 +261,8 @@ export function MobileSettings(props: any) {
                 className={cn(
                   "h-14 rounded-2xl border flex items-center justify-center gap-2 text-[13px] font-semibold transition",
                   selected
-                    ? "bg-rose-500/15 border-rose-500/40 text-rose-200"
-                    : "bg-white/[0.04] border-white/10 text-white/70"
+                    ? "bg-[#EEE8FC] border-[#D8CAF8] text-[#5E45AD] dark:bg-[#30264A] dark:border-[#57437E] dark:text-[#D7C5FF]"
+                    : "bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-white/[0.08] text-[#636366] dark:text-white/65"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -269,7 +275,7 @@ export function MobileSettings(props: any) {
       </section>
 
       {/* Grouped lists */}
-      <section className="relative z-10 px-6 mt-6 pb-32 space-y-6">
+      <section className="relative z-10 px-5 mt-5 pb-32 space-y-5">
         <IdentityMissingBanner
           missingAvatar={!brandForm.avatar_url}
           missingBanner={!brandForm.banner_url}
@@ -280,7 +286,7 @@ export function MobileSettings(props: any) {
           <Row
             icon={User}
             tint="#e11d48"
-            label="Identity"
+            label="Manage profile"
             value={
               [
                 profileForm.full_name ||
@@ -413,7 +419,7 @@ export function MobileSettings(props: any) {
         </Group>
 
         {user && (
-          <Group label="Danger zone" className="border-2 border-rose-500/40">
+          <Group label="Danger zone" className="border-[#F3D4D4]">
             <Row
               icon={Trash2}
               tint="#ef4444"
@@ -425,7 +431,7 @@ export function MobileSettings(props: any) {
           </Group>
         )}
 
-        <p className="text-center text-[11px] text-white/30 pt-2">
+        <p className="text-center text-[11px] text-[#8E8E93] dark:text-white/35 pt-2">
           Cutzio · v1.0
         </p>
       </section>
@@ -691,24 +697,6 @@ export function MobileSettings(props: any) {
                   </select>
                   <p className="text-[11px] text-white/40 mt-1.5 px-1">
                     Booking slots for clients use this zone. Device: {formatTzLabel(getBrowserTimezone())}
-                  </p>
-                </Field>
-
-                {/* Booking language */}
-                <Field label="Booking language">
-                  <select
-                    value={brandForm.booking_locale || "en"}
-                    onChange={(e) =>
-                      setBrandForm((p: any) => ({ ...p, booking_locale: e.target.value }))
-                    }
-                    className="w-full h-12 rounded-2xl bg-white/[0.06] border border-white/10 text-white px-3 text-[14px]"
-                  >
-                    <option value="en" className="bg-[#111]">English</option>
-                    <option value="el" className="bg-[#111]">Greek (Ελληνικά)</option>
-                    <option value="pl" className="bg-[#111]">Polish (Polski)</option>
-                  </select>
-                  <p className="text-[11px] text-white/40 mt-1.5 px-1">
-                    Language used on the public booking page and client messages. Default: English.
                   </p>
                 </Field>
 
@@ -1021,10 +1009,10 @@ export function MobileSettings(props: any) {
 function Group({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div>
-      <p className="text-white/35 text-[11px] uppercase tracking-[0.18em] font-bold px-2 mb-2">
+      <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-[0.13em] text-[#8E8E93] dark:text-white/40">
         {label}
       </p>
-      <div className={cn("rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 overflow-hidden divide-y divide-white/5", className)}>
+      <div className={cn("overflow-hidden rounded-[20px] border border-black/[0.04] dark:border-white/[0.07] bg-white dark:bg-[#1C1C1E] shadow-[0_2px_8px_rgba(0,0,0,0.035)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.2)] divide-y divide-[#E5E5EA] dark:divide-white/[0.06]", className)}>
         {children}
       </div>
     </div>
@@ -1057,10 +1045,10 @@ function Row({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-white/5 transition text-left"
+      className="w-full flex min-h-[58px] items-center gap-3 px-4 py-3 active:bg-[#F2F2F7] dark:active:bg-white/[0.05] transition text-left"
     >
       {showVisual ? (
-        <span className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-white/5 border border-white/10">
+        <span className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-black/[0.04] dark:border-white/[0.08]">
           {banner && !bannerError && (
             <img src={banner} alt="" onError={() => setBannerError(true)} className="absolute inset-0 h-full w-full object-cover" />
           )}
@@ -1071,43 +1059,36 @@ function Row({
               onError={() => setAvatarError(true)}
               className={cn(
                 "h-full w-full object-cover",
-                banner && !bannerError && "absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-[#15151A]"
+                banner && !bannerError && "absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white dark:ring-[#1C1C1E]"
               )}
             />
           )}
         </span>
       ) : (
         <span
-          className="relative h-9 w-9 rounded-[11px] flex items-center justify-center shrink-0 ring-1 ring-white/15 overflow-hidden"
+          className="relative h-9 w-9 rounded-[11px] flex items-center justify-center shrink-0 overflow-hidden border border-white/20"
           style={{
-            background: `linear-gradient(160deg, ${tint} 0%, ${tint}cc 45%, ${tint}80 100%)`,
-            boxShadow: `0 4px 10px -3px ${tint}80, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.28)`,
+            background: `linear-gradient(145deg, ${tint} 0%, ${tint}dd 100%)`,
+            boxShadow: `0 3px 8px ${tint}55, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.2)`,
           }}
         >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[11px] bg-gradient-to-b from-white/40 to-transparent"
-          />
-          <Icon
-            className="relative h-[18px] w-[18px] text-white"
-            strokeWidth={2.4}
-            style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))" }}
-          />
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[11px] bg-gradient-to-b from-white/40 to-transparent" />
+          <Icon className="relative h-[18px] w-[18px] text-white drop-shadow-sm" strokeWidth={2.3} />
         </span>
 
       )}
       <span
         className={cn(
           "flex-1 text-[15px] font-medium truncate",
-          danger ? "text-rose-300" : "text-white"
+          danger ? "text-[#D14343] dark:text-[#FF6961]" : "text-[#1C1C1E] dark:text-white"
         )}
       >
         {label}
       </span>
       {value && (
-        <span className="text-[13px] text-white/40 truncate max-w-[40%]">{value}</span>
+        <span className="text-[12px] text-[#8E8E93] dark:text-white/45 truncate max-w-[40%]">{value}</span>
       )}
-      <ChevronRight className="h-4 w-4 text-white/30 shrink-0" />
+      <ChevronRight className="h-4 w-4 text-[#C7C7CC] dark:text-white/30 shrink-0" />
     </button>
   );
 }

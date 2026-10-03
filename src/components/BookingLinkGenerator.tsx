@@ -25,6 +25,7 @@ import TypewriterLoop from "@/components/TypewriterLoop";
 import { supabase } from "@/integrations/supabase/client";
 import BookingLinkPreview from "@/components/BookingLinkPreview";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { BOOKING_LANGUAGES, isBookingLocale, type BookingLocale } from "@/lib/bookingLocales";
 
 const BUTTON_COLORS: { value: string; label: string; tw: string }[] = [
   { value: "default", label: "Default UI", tw: "bg-white/10 border border-white/20" },
@@ -43,27 +44,12 @@ const cleanSlug = (raw: string) =>
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-const LANGS = [
-  { value: "en", label: "English", flag: "🇬🇧" },
-  { value: "el", label: "Ελληνικά", flag: "🇬🇷" },
-  { value: "es", label: "Español", flag: "🇪🇸" },
-  { value: "nl", label: "Nederlands", flag: "🇳🇱" },
-] as const;
-
-const CURRENCY_BY_LOCALE: Record<string, string> = {
-  en: "GBP",
-  el: "EUR",
-  es: "EUR",
-  nl: "EUR",
-  pl: "PLN",
-};
-
 const BookingLinkGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
-  const [bookingLocale, setBookingLocale] = useState<string>("en");
+  const [bookingLocale, setBookingLocale] = useState<BookingLocale>("en");
   const [copied, setCopied] = useState(false);
   const [bookingTheme, setBookingTheme] = useState<string>("default");
   const [brandColor, setBrandColor] = useState<string>("#e11d48");
@@ -142,7 +128,8 @@ const BookingLinkGenerator = () => {
     setCustomSlug(profile.booking_link || suggestedSlug);
     setAskPhone(profile.ask_phone ?? true);
     setAskNotes(profile.ask_notes ?? true);
-    setBookingLocale((profile as any)?.booking_locale ?? "en");
+    const savedLocale = (profile as any)?.booking_locale;
+    setBookingLocale(isBookingLocale(savedLocale) ? savedLocale : "en");
     setBookingTheme((profile as any)?.booking_theme || "default");
     setBrandColor((profile as any)?.brand_color || "#e11d48");
     setWebsiteRequested((profile as any)?.website_design_requested ?? false);
@@ -191,7 +178,6 @@ const BookingLinkGenerator = () => {
           ask_phone: askPhone,
           ask_notes: askNotes,
           booking_locale: bookingLocale,
-          currency: CURRENCY_BY_LOCALE[bookingLocale] || "EUR",
           booking_theme: isPremium ? bookingTheme : "default",
           brand_color: isPremium ? brandColor : null,
           updated_at: new Date().toISOString(),
@@ -213,7 +199,7 @@ const BookingLinkGenerator = () => {
     }
   };
 
-  const saveLocale = async (value: string) => {
+  const saveLocale = async (value: BookingLocale) => {
     setBookingLocale(value);
     if (!user) return;
     try {
@@ -221,7 +207,6 @@ const BookingLinkGenerator = () => {
         .from("profiles")
         .update({
           booking_locale: value,
-          currency: CURRENCY_BY_LOCALE[value] || "EUR",
           updated_at: new Date().toISOString(),
         } as any)
         .eq("id", user.id);
@@ -431,7 +416,7 @@ const BookingLinkGenerator = () => {
           Used on your booking link and confirmation emails.
         </p>
         <div className="grid grid-cols-2 gap-2">
-          {LANGS.map((l) => {
+          {BOOKING_LANGUAGES.map((l) => {
             const active = bookingLocale === l.value;
             return (
               <button
@@ -445,7 +430,6 @@ const BookingLinkGenerator = () => {
                     : "bg-[#2C2C2E] border-white/5 text-white/60 hover:text-white"
                 )}
               >
-                <span className="text-base">{l.flag}</span>
                 <span className="truncate">{l.label}</span>
                 {active && <Check className="ml-auto h-4 w-4 text-rose-400" />}
               </button>

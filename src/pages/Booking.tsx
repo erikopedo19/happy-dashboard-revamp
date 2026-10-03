@@ -17,6 +17,7 @@ import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 import { CheckoutDialog, type CheckoutItem } from "@/components/CheckoutDialog";
+import { isBookingLocale, type BookingLocale } from "@/lib/bookingLocales";
 
 
 const bookingSchema = z.object({
@@ -106,7 +107,7 @@ const Booking = () => {
   const [bookingError, setBookingError] = useState<BookingError | null>(null);
   const [emailTheme, setEmailTheme] = useState<"default" | "minimal" | "festive">("default");
   const [accentColor, setAccentColor] = useState<string>("#1a1a1a");
-  const [locale, setLocale] = useState<"en" | "el" | "es" | "pl" | "nl">("en");
+  const [locale, setLocale] = useState<BookingLocale>("en");
   const [checkoutItem, setCheckoutItem] = useState<CheckoutItem | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -413,9 +414,12 @@ const Booking = () => {
   // Language configured by the barber on the booking link (URL ?lang= wins)
   useEffect(() => {
     const urlLang = new URLSearchParams(window.location.search).get('lang');
-    if (urlLang) return;
-    const l = businessProfile?.booking_locale;
-    if (l === 'el' || l === 'es' || l === 'en' || l === 'pl' || l === 'nl') setLocale(l);
+    if (isBookingLocale(urlLang)) {
+      setLocale(urlLang);
+      return;
+    }
+    const savedLocale = businessProfile?.booking_locale;
+    setLocale(isBookingLocale(savedLocale) ? savedLocale : "en");
   }, [businessProfile?.booking_locale]);
 
 
@@ -427,7 +431,7 @@ const Booking = () => {
     const lang = params.get('lang');
     if (theme) setEmailTheme(theme);
     if (accent) setAccentColor(accent);
-    if (lang === 'el' || lang === 'es' || lang === 'en' || lang === 'pl' || lang === 'nl') setLocale(lang);
+    if (isBookingLocale(lang)) setLocale(lang);
   }, []);
 
   // Check if a time slot is available

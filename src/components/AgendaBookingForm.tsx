@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, CreditCard } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
-import { el as elLocale, es as esLocale, nl as nlLocale, pl as plLocale } from 'date-fns/locale';
+import { getBookingDateLocale, type BookingLocale } from '@/lib/bookingLocales';
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTimezone } from "@/lib/tz";
@@ -62,7 +62,7 @@ interface AgendaBookingFormProps {
 
   timezone?: string;
   rescheduleAppointment?: any;
-  locale?: "en" | "el" | "es" | "pl" | "nl";
+  locale?: BookingLocale;
   askPhone?: boolean;
   askNotes?: boolean;
   submitLabel?: string;
@@ -251,9 +251,99 @@ const AgendaBookingForm = ({
       updated: "Rezerwacja zaktualizowana", rescheduled: "Twoja rezerwacja została przełożona.",
       pickServiceHint: "Wybierz usługę, aby zacząć.", inPerson: "Na miejscu", mins: "min",
     },
+    de: {
+      service: "Dienst auswählen", dateTime: "Datum und Uhrzeit wählen", details: "Deine Angaben",
+      continue: "Weiter", back: "Zurück", selectedService: "Ausgewählte Dienstleistung", selectedServices: "Ausgewählte Dienstleistungen",
+      total: "Gesamt", book: "Termin buchen", bookAnother: "Weiteren Termin buchen", booked: "Termin bestätigt",
+      confirmation: "Die Bestätigung wurde an deine E-Mail-Adresse gesendet.",
+      tabService: "Dienstleistung", tabTime: "Uhrzeit", tabDetails: "Angaben",
+      dateTimeShort: "Datum und Uhrzeit", selectDate: "Datum auswählen", noTimes: "Keine freien Zeiten",
+      selectDateForTimes: "Wähle ein Datum, um freie Zeiten zu sehen", timesIn: "Freie Zeiten in",
+      selectStylist: "Stylist auswählen", stylist: "Stylist", noStylists: "Zu dieser Zeit sind keine Stylisten verfügbar",
+      pickAnotherTime: "Andere Uhrzeit wählen", name: "Name", namePh: "Dein Name", email: "E-Mail",
+      phone: "Telefon", notes: "Notizen", notesPh: "Gibt es etwas, das wir wissen sollten?",
+      processing: "Wird verarbeitet…", confirmChange: "Änderung bestätigen",
+      updated: "Termin aktualisiert", rescheduled: "Dein Termin wurde erfolgreich verschoben.",
+      pickServiceHint: "Wähle eine Dienstleistung aus, um zu beginnen.", inPerson: "Vor Ort", mins: "Min.",
+    },
+    fr: {
+      service: "Choisissez une prestation", dateTime: "Choisissez une date et une heure", details: "Vos informations",
+      continue: "Continuer", back: "Retour", selectedService: "Prestation choisie", selectedServices: "Prestations choisies",
+      total: "Total", book: "Réserver", bookAnother: "Faire une autre réservation", booked: "Réservation confirmée",
+      confirmation: "La confirmation a été envoyée à votre adresse e-mail.",
+      tabService: "Prestation", tabTime: "Heure", tabDetails: "Informations",
+      dateTimeShort: "Date et heure", selectDate: "Choisissez une date", noTimes: "Aucun créneau disponible",
+      selectDateForTimes: "Choisissez une date pour voir les horaires", timesIn: "Créneaux à",
+      selectStylist: "Choisissez un coiffeur", stylist: "Coiffeur", noStylists: "Aucun coiffeur disponible à cette heure",
+      pickAnotherTime: "Choisir une autre heure", name: "Nom", namePh: "Votre nom", email: "E-mail",
+      phone: "Téléphone", notes: "Notes", notesPh: "Une information à nous communiquer ?",
+      processing: "Traitement…", confirmChange: "Confirmer la modification",
+      updated: "Réservation mise à jour", rescheduled: "Votre rendez-vous a été déplacé.",
+      pickServiceHint: "Choisissez une prestation pour commencer.", inPerson: "Sur place", mins: "min",
+    },
+    it: {
+      service: "Seleziona un servizio", dateTime: "Scegli data e ora", details: "I tuoi dati",
+      continue: "Continua", back: "Indietro", selectedService: "Servizio selezionato", selectedServices: "Servizi selezionati",
+      total: "Totale", book: "Prenota appuntamento", bookAnother: "Prenota un altro appuntamento", booked: "Prenotazione confermata",
+      confirmation: "La conferma è stata inviata alla tua e-mail.",
+      tabService: "Servizio", tabTime: "Orario", tabDetails: "Dati",
+      dateTimeShort: "Data e ora", selectDate: "Seleziona una data", noTimes: "Nessun orario disponibile",
+      selectDateForTimes: "Seleziona una data per vedere gli orari", timesIn: "Orari a",
+      selectStylist: "Seleziona un professionista", stylist: "Professionista", noStylists: "Nessun professionista disponibile a quest’ora",
+      pickAnotherTime: "Scegli un altro orario", name: "Nome", namePh: "Il tuo nome", email: "E-mail",
+      phone: "Telefono", notes: "Note", notesPh: "C’è qualcosa che dovremmo sapere?",
+      processing: "Elaborazione…", confirmChange: "Conferma modifica",
+      updated: "Prenotazione aggiornata", rescheduled: "L’appuntamento è stato riprogrammato.",
+      pickServiceHint: "Seleziona un servizio per iniziare.", inPerson: "In sede", mins: "min",
+    },
+    bg: {
+      service: "Изберете услуга", dateTime: "Изберете дата и час", details: "Вашите данни",
+      continue: "Продължи", back: "Назад", selectedService: "Избрана услуга", selectedServices: "Избрани услуги",
+      total: "Общо", book: "Запази час", bookAnother: "Запази още един час", booked: "Резервацията е потвърдена",
+      confirmation: "Потвърждението е изпратено на вашия имейл.",
+      tabService: "Услуга", tabTime: "Час", tabDetails: "Данни",
+      dateTimeShort: "Дата и час", selectDate: "Изберете дата", noTimes: "Няма свободни часове",
+      selectDateForTimes: "Изберете дата, за да видите свободните часове", timesIn: "Свободни часове в",
+      selectStylist: "Изберете стилист", stylist: "Стилист", noStylists: "Няма свободни стилисти за този час",
+      pickAnotherTime: "Изберете друг час", name: "Име", namePh: "Вашето име", email: "Имейл",
+      phone: "Телефон", notes: "Бележки", notesPh: "Има ли нещо, което трябва да знаем?",
+      processing: "Обработване…", confirmChange: "Потвърдете промяната",
+      updated: "Резервацията е актуализирана", rescheduled: "Часът ви беше успешно променен.",
+      pickServiceHint: "Изберете услуга, за да започнете.", inPerson: "На място", mins: "мин",
+    },
+    ro: {
+      service: "Alege un serviciu", dateTime: "Alege data și ora", details: "Datele tale",
+      continue: "Continuă", back: "Înapoi", selectedService: "Serviciu selectat", selectedServices: "Servicii selectate",
+      total: "Total", book: "Programează-te", bookAnother: "Programează o altă vizită", booked: "Programare confirmată",
+      confirmation: "Confirmarea a fost trimisă la adresa ta de e-mail.",
+      tabService: "Serviciu", tabTime: "Ora", tabDetails: "Date",
+      dateTimeShort: "Data și ora", selectDate: "Alege o dată", noTimes: "Nu există ore disponibile",
+      selectDateForTimes: "Alege o dată pentru a vedea orele disponibile", timesIn: "Ore disponibile în",
+      selectStylist: "Alege un stilist", stylist: "Stilist", noStylists: "Nu există stiliști disponibili la această oră",
+      pickAnotherTime: "Alege altă oră", name: "Nume", namePh: "Numele tău", email: "E-mail",
+      phone: "Telefon", notes: "Note", notesPh: "Este ceva ce ar trebui să știm?",
+      processing: "Se procesează…", confirmChange: "Confirmă modificarea",
+      updated: "Programare actualizată", rescheduled: "Programarea ta a fost reprogramată.",
+      pickServiceHint: "Alege un serviciu pentru a începe.", inPerson: "La locație", mins: "min",
+    },
+    sq: {
+      service: "Zgjidhni një shërbim", dateTime: "Zgjidhni datën dhe orën", details: "Të dhënat tuaja",
+      continue: "Vazhdoni", back: "Mbrapa", selectedService: "Shërbimi i zgjedhur", selectedServices: "Shërbimet e zgjedhura",
+      total: "Totali", book: "Rezervo takimin", bookAnother: "Rezervo një takim tjetër", booked: "Rezervimi u konfirmua",
+      confirmation: "Konfirmimi u dërgua në adresën tuaj të email-it.",
+      tabService: "Shërbimi", tabTime: "Ora", tabDetails: "Të dhënat",
+      dateTimeShort: "Data dhe ora", selectDate: "Zgjidhni një datë", noTimes: "Nuk ka orare të lira",
+      selectDateForTimes: "Zgjidhni një datë për të parë oraret e lira", timesIn: "Orari në",
+      selectStylist: "Zgjidhni stilistin", stylist: "Stilisti", noStylists: "Nuk ka stilistë të lirë në këtë orar",
+      pickAnotherTime: "Zgjidhni një orar tjetër", name: "Emri", namePh: "Emri juaj", email: "Email",
+      phone: "Telefoni", notes: "Shënime", notesPh: "A ka diçka që duhet të dimë?",
+      processing: "Duke u përpunuar…", confirmChange: "Konfirmo ndryshimin",
+      updated: "Rezervimi u përditësua", rescheduled: "Takimi juaj u ricaktua me sukses.",
+      pickServiceHint: "Zgjidhni një shërbim për të filluar.", inPerson: "Në sallon", mins: "min",
+    },
   } as const;
   const copy = COPY[locale] ?? COPY.en;
-  const dateLocale = locale === "el" ? elLocale : locale === "es" ? esLocale : locale === "nl" ? nlLocale : locale === "pl" ? plLocale : undefined;
+  const dateLocale = getBookingDateLocale(locale);
   const fmt = (date: Date, pattern: string) => format(date, pattern, { locale: dateLocale });
 
 

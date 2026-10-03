@@ -216,6 +216,8 @@ export const LiquidGlassAgenda = ({
   const [drag, setDrag] = useState<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const [dropHover, setDropHover] = useState<string | null>(null);
   const [movingIds, setMovingIds] = useState<string[]>([]);
+  const dragRef = useRef<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
+  const dropHoverRef = useRef<string | null>(null);
 
   const findDropTarget = (x: number, y: number) => {
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
@@ -226,29 +228,10 @@ export const LiquidGlassAgenda = ({
     return null;
   };
 
-  const startDrag = (e: React.PointerEvent, apt: Appointment) => {
-    e.stopPropagation();
-    e.preventDefault();
-    clearLongPressTimer();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    haptic("medium");
-    setDrag({ id: apt.id, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0 });
-  };
-
-  const moveDrag = (e: React.PointerEvent) => {
-    if (!drag) return;
-    setDrag({ ...drag, dx: e.clientX - drag.x0, dy: e.clientY - drag.y0 });
-    const t = findDropTarget(e.clientX, e.clientY);
-    const key = t ? (t.aptId && t.aptId !== drag.id ? `a:${t.aptId}` : t.time ? `t:${t.time}` : null) : null;
-    if (key !== dropHover) { setDropHover(key); if (key) haptic("light"); }
-  };
-
-  const endDrag = async (e: React.PointerEvent) => {
-    if (!drag) return;
-    const current = drag;
-    const t = findDropTarget(e.clientX, e.clientY);
-    setDrag(null);
-    setDropHover(null);
+  const performDrop = async (
+    current: { id: string; dx: number; dy: number },
+    t: { aptId: string | null; time: string | null } | null
+  ) => {
     if (!t || Math.hypot(current.dx, current.dy) < 12) return;
     const targetId = t.aptId && t.aptId !== current.id ? t.aptId : null;
     if (!targetId && !t.time) return;
@@ -277,6 +260,70 @@ export const LiquidGlassAgenda = ({
     tokens.forEach((cancelToken) => {
       supabase.functions.invoke("send-booking-confirmation", { body: { cancelToken, rescheduled: true } }).catch(() => {});
     });
+  };
+
+  // Drag tracking lives on window listeners (attached on pointerdown) rather
+  // than pointer capture on the grip — capture can silently stop delivering
+  // move/up events on some WebViews once the handle goes pointer-events:none,
+  // which made drops on open slots do nothing.
+  const startDrag = (e: React.PointerEvent, apt: Appointment) => {
+    e.stopPropagation();
+    e.preventDefault();
+    clearLongPressTimer();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    } catch {
+      /* capture is best-effort; window listeners carry the drag */
+    }
+    haptic("medium");
+    const initial = { id: apt.id, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0 };
+    dragRef.current = initial;
+    dropHoverRef.current = null;
+    setDrag(initial);
+
+    const cleanup = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      document.removeEventListener("touchmove", blockScroll);
+      dragRef.current = null;
+      dropHoverRef.current = null;
+      setDrag(null);
+      setDropHover(null);
+    };
+
+    const onMove = (ev: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      const next = { ...d, dx: ev.clientX - d.x0, dy: ev.clientY - d.y0 };
+      dragRef.current = next;
+      setDrag(next);
+      const t = findDropTarget(ev.clientX, ev.clientY);
+      const key = t ? (t.aptId && t.aptId !== next.id ? `a:${t.aptId}` : t.time ? `t:${t.time}` : null) : null;
+      if (key !== dropHoverRef.current) {
+        dropHoverRef.current = key;
+        setDropHover(key);
+        if (key) haptic("light");
+      }
+    };
+
+    const onUp = (ev: PointerEvent) => {
+      const current = dragRef.current;
+      cleanup();
+      if (!current) return;
+      void performDrop(current, findDropTarget(ev.clientX, ev.clientY));
+    };
+
+    const onCancel = () => cleanup();
+
+    const blockScroll = (ev: TouchEvent) => {
+      if (ev.cancelable) ev.preventDefault();
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    document.addEventListener("touchmove", blockScroll, { passive: false });
   };
   const [pressingSlot, setPressingSlot] = useState<string | null>(null);
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
@@ -1378,6 +1425,7 @@ export const LiquidGlassAgenda = ({
 
 
               const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
+              const rowHeight = isMobile ? 68 : ROW_H;
               const maxSpan = hourAppointments.reduce((acc, apt) => {
                 const d = apt.totalDurationMinutes || apt.service.duration || 30;
                 return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
@@ -1391,7 +1439,7 @@ export const LiquidGlassAgenda = ({
                   key={hour}
                   data-slot-time={hour}
                   className={cn("relative rounded-2xl transition-colors duration-200", (isPastSlot || isBlocked) && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF375F]/10 ring-2 ring-[#FF375F]/40")}
-                  style={{ height: ROW_H }}
+                  style={{ height: rowHeight }}
                 >
                   {/* Time label */}
                   <div className="absolute left-0 top-0 flex items-start gap-3 w-full pointer-events-none">
@@ -1415,7 +1463,7 @@ export const LiquidGlassAgenda = ({
                   {(hourAppointments.length > 0 || hourEvents.length > 0) && (
                   <div
                     className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-1"
-                    style={{ height: maxSpanAll * ROW_H - 12 }}
+                    style={{ height: maxSpanAll * rowHeight - 12 }}
                   >
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
@@ -1442,9 +1490,6 @@ export const LiquidGlassAgenda = ({
                             role="button"
                             aria-label="Drag to move"
                             onPointerDown={(e) => startDrag(e, apt)}
-                            onPointerMove={moveDrag}
-                            onPointerUp={endDrag}
-                            onPointerCancel={() => { setDrag(null); setDropHover(null); }}
                             onClick={(e) => e.stopPropagation()}
                             className="absolute right-1.5 bottom-1.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/10 dark:text-gray-300 cursor-grab active:cursor-grabbing"
                             style={{ touchAction: "none", pointerEvents: drag?.id === apt.id ? "none" : "auto" }}
@@ -1461,7 +1506,8 @@ export const LiquidGlassAgenda = ({
                           onTouchEnd={clearLongPressTimer}
                           onTouchMove={clearLongPressTimer}
                           className={cn(
-                            "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-[0.98]",
+                            "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
+                            isMobile ? "p-2.5" : "p-3.5",
                             "border",
                             isCancelled
                               ? (isDark

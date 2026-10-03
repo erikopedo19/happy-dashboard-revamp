@@ -98,7 +98,6 @@ type BrandProfileRecord = {
   loyalty_discount_enabled: boolean;
   loyalty_discount_percent: number;
   timezone: string;
-  booking_locale: "en" | "el";
   avatar_url?: string;
   banner_url?: string;
 };
@@ -149,7 +148,6 @@ const defaultBrandProfile: BrandProfileRecord = {
   loyalty_discount_enabled: true,
   loyalty_discount_percent: 20,
   timezone: getBrowserTimezone(),
-  booking_locale: "en",
   avatar_url: "",
   banner_url: "",
 };
@@ -269,7 +267,7 @@ const Settings = () => {
           .maybeSingle(),
         (supabase as any)
           .from("profiles")
-          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, notify_cancellation_alerts, loyalty_discount_enabled, loyalty_discount_percent, onboarding_completed, timezone, booking_locale")
+          .select("full_name, phone, dark_mode, business_name, address, latitude, longitude, google_maps_url, avatar_url, banner_url, description, years_experience, accepts_waitlist, notify_cancellation_alerts, loyalty_discount_enabled, loyalty_discount_percent, onboarding_completed, timezone")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -385,7 +383,6 @@ const Settings = () => {
       loyalty_discount_enabled: data.profile?.loyalty_discount_enabled ?? false,
       loyalty_discount_percent: data.profile?.loyalty_discount_percent ?? 20,
       timezone: data.profile?.timezone ?? getBrowserTimezone(),
-      booking_locale: data.profile?.booking_locale ?? "en",
       avatar_url: data.profile?.avatar_url ?? "",
       banner_url: data.profile?.banner_url ?? "",
     });
@@ -482,7 +479,6 @@ const Settings = () => {
         loyalty_discount_enabled: brandForm.loyalty_discount_enabled,
         loyalty_discount_percent: brandForm.loyalty_discount_percent,
         timezone: (brandForm.timezone || getBrowserTimezone()).trim(),
-        booking_locale: brandForm.booking_locale || "en",
         avatar_url: brandForm.avatar_url?.trim() || null,
         banner_url: brandForm.banner_url?.trim() || null,
         updated_at: new Date().toISOString(),
@@ -978,31 +974,6 @@ const Settings = () => {
                             </Select>
                             <p className="text-[11px] text-[#8E8E93] mt-1.5">
                               Slots on your booking link and Find Barber use this time zone. Detected: {formatTzLabel(getBrowserTimezone())}
-                            </p>
-                          </div>
-
-                          <div>
-                            <Label className="text-xs font-semibold uppercase tracking-wider text-[#8E8E93] dark:text-gray-500 mb-3 block">
-                              Booking language
-                            </Label>
-                            <Select
-                              value={brandForm.booking_locale || "en"}
-                              onValueChange={(value) =>
-                                setBrandForm((prev) => ({ ...prev, booking_locale: value as "en" | "el" }))
-                              }
-                            >
-                              <SelectTrigger className="h-12 rounded-[12px] border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7]">
-                                <SelectValue placeholder="Select language" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="en">English</SelectItem>
-                                <SelectItem value="el">Greek (Ελληνικά)</SelectItem>
-                                <SelectItem value="es">Spanish (Español)</SelectItem>
-                                <SelectItem value="pl">Polish (Polski)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <p className="text-[11px] text-[#8E8E93] mt-1.5">
-                              Language used on your public booking page and client messages. Default: English.
                             </p>
                           </div>
 

@@ -1,35 +1,34 @@
 {
   "expo": {
-    "name": "Cutzio Barbershop",
-    "slug": "cutzio-barbershop",
+    "name": "Cutzioo",
+    "slug": "cutzioo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "../public/icons/icon-512x512.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#0B0B0F"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cutzio.barbershop",
+      "bundleIdentifier": "com.cutzioo.app",
       "buildNumber": "1.0.0",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "This app uses the camera to scan barcodes for quick booking.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to photos for profile pictures."
+        "NSCameraUsageDescription": "Cutzioo uses the camera when you choose to capture a profile image.",
+        "NSPhotoLibraryUsageDescription": "Cutzioo uses selected photos for profile images."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "../public/icons/icon-512x512.png",
+        "backgroundColor": "#0B0B0F"
       },
-      "package": "com.cutzio.barbershop"
+      "package": "com.cutzioo.app"
     },
     "web": {
       "favicon": "../public/favicon.ico"

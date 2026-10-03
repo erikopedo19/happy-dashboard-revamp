@@ -61,6 +61,13 @@ export function haptic(style: HapticStyle = "light") {
       void nativeHaptic(style).catch(() => {});
       return;
     }
+    const webViewBridge = (window as Window & {
+      ReactNativeWebView?: { postMessage: (message: string) => void };
+    }).ReactNativeWebView;
+    if (webViewBridge?.postMessage) {
+      webViewBridge.postMessage(JSON.stringify({ type: "cutzio-haptic", style }));
+      return;
+    }
     const nav = window.navigator as Navigator & { vibrate?: (p: number | number[]) => boolean };
     if (typeof nav.vibrate === "function") {
       nav.vibrate(PATTERNS[style] ?? PATTERNS.light);

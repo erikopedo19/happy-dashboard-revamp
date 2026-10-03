@@ -73,12 +73,12 @@ export function IdentityMissingBanner({ missingAvatar, missingBanner, onOpenIden
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="relative overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br from-[#1c1c1e] via-[#1a1a1c] to-[#151517] p-4 pr-10"
+        className="relative overflow-hidden rounded-[22px] border border-[#E7DDFB] dark:border-white/10 bg-gradient-to-br from-white via-[#FBF9FF] to-[#F3EDFF] dark:from-[#201C28] dark:via-[#1C1C20] dark:to-[#17171A] p-4 pr-10 shadow-sm"
       >
         <button
           onClick={dismiss}
           aria-label="Dismiss for 2 weeks"
-          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white"
+          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] dark:text-white/40 transition hover:bg-black/5 dark:hover:bg-white/10 hover:text-[#1C1C1E] dark:hover:text-white"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -88,23 +88,23 @@ export function IdentityMissingBanner({ missingAvatar, missingBanner, onOpenIden
             <Icon className="h-5 w-5" strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[14px] font-semibold text-white leading-tight">{copy.title}</p>
-            <p className="mt-0.5 text-[12px] leading-snug text-white/55">{copy.body}</p>
+            <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-white leading-tight">{copy.title}</p>
+            <p className="mt-0.5 text-[12px] leading-snug text-[#636366] dark:text-white/55">{copy.body}</p>
 
             <div className="mt-3 flex items-center gap-2">
               <button
                 onClick={onOpenIdentity}
-                className="inline-flex h-9 items-center gap-1 rounded-full bg-white px-3.5 text-[12px] font-semibold text-[#1c1c1e] active:scale-[0.98] transition"
+                className="inline-flex h-9 items-center gap-1 rounded-full bg-[#1C1C1E] dark:bg-white px-3.5 text-[12px] font-semibold text-white dark:text-[#1c1c1e] active:scale-[0.98] transition"
               >
                 Add now <ArrowRight className="h-3 w-3" />
               </button>
               <button
                 onClick={dismiss}
-                className="h-9 rounded-full px-3 text-[12px] font-medium text-white/50 hover:text-white/80 transition"
+                className="h-9 rounded-full px-3 text-[12px] font-medium text-[#8E8E93] dark:text-white/50 hover:text-[#1C1C1E] dark:hover:text-white/80 transition"
               >
                 Not now
               </button>
-              <span className="ml-auto text-[10px] text-white/30">Hidden 2 weeks after dismiss</span>
+              <span className="ml-auto text-[10px] text-[#8E8E93] dark:text-white/30">Hidden 2 weeks after dismiss</span>
             </div>
           </div>
         </div>

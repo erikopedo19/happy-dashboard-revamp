@@ -47,23 +47,23 @@ export function BookingStreakCard() {
   }, [dates]);
 
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-[#15151A] p-4">
+    <div className="rounded-2xl border border-black/[0.04] dark:border-white/[0.06] bg-white dark:bg-[#15151A] p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-white/[0.06] flex items-center justify-center">
-            <Flame className="h-5 w-5 text-white/80" strokeWidth={2} />
+          <div className="h-10 w-10 rounded-xl bg-[#FFF1E8] dark:bg-orange-400/10 flex items-center justify-center">
+            <Flame className="h-5 w-5 text-[#F97316] dark:text-orange-300" strokeWidth={2} />
           </div>
           <div className="min-w-0">
-            <p className="text-white/60 text-[11px] font-medium uppercase tracking-wider">Streak</p>
+            <p className="text-[#8E8E93] dark:text-white/60 text-[11px] font-medium uppercase tracking-wider">Streak</p>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-white text-xl font-semibold leading-none tabular-nums">{streak}</span>
-              <span className="text-white/50 text-xs">{streak === 1 ? "day" : "days"}</span>
+              <span className="text-[#1C1C1E] dark:text-white text-xl font-semibold leading-none tabular-nums">{streak}</span>
+              <span className="text-[#8E8E93] dark:text-white/50 text-xs">{streak === 1 ? "day" : "days"}</span>
             </div>
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-white/40 text-[10px] uppercase tracking-wider">Best</p>
-          <p className="text-white/80 text-sm font-medium tabular-nums">{best}</p>
+          <p className="text-[#8E8E93] dark:text-white/40 text-[10px] uppercase tracking-wider">Best</p>
+          <p className="text-[#1C1C1E] dark:text-white/80 text-sm font-medium tabular-nums">{best}</p>
         </div>
       </div>
 
@@ -71,9 +71,9 @@ export function BookingStreakCard() {
         {last7.map((d) => (
           <div key={d.key} className="flex-1 flex flex-col items-center gap-1.5">
             <div
-              className={`h-1.5 w-full rounded-full ${d.active ? "bg-white/80" : "bg-white/[0.06]"}`}
+              className={`h-1.5 w-full rounded-full ${d.active ? "bg-[#8B6FE8]" : "bg-[#E5E5EA] dark:bg-white/[0.06]"}`}
             />
-            <span className="text-[9px] text-white/40 font-medium tabular-nums">{d.label}</span>
+            <span className="text-[9px] text-[#8E8E93] font-medium tabular-nums">{d.label}</span>
           </div>
         ))}
       </div>

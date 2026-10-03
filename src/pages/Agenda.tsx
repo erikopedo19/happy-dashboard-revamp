@@ -406,7 +406,7 @@ const Agenda = () => {
         <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C]">
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
-            <AgendaUpgradeDrawer />
+            <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen} />
             {agendaSettingsLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6">
                 <div className="w-10 h-10 rounded-2xl border-2 border-white/10 border-t-[#0A84FF] animate-spin" />

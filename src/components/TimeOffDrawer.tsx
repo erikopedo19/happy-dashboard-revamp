@@ -184,7 +184,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
 
           <div className="grid grid-cols-7 gap-1 mb-1">
             {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-              <div key={i} className="text-center text-[11px] font-medium text-[#8E8E93] dark:text-white/35 py-1">{d}</div>
+              <div key={`${d}-${i}`} className="text-center text-[11px] font-medium text-[#8E8E93] dark:text-white/35 py-1">{d}</div>
             ))}
           </div>
 
@@ -308,7 +308,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
               <p className="text-[12px] uppercase tracking-wider text-[#8E8E93] dark:text-white/35 mb-2">Upcoming days off</p>
               <div className="space-y-2">
                 {daysOff.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3">
+                  <div key={`day-off-${d.off_date}-${d.id}`} className="flex items-center justify-between rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-4 py-3">
                     <div>
                       <div className="text-[14px] font-medium text-[#1C1C1E] dark:text-white">{format(new Date(d.off_date), "EEE, MMM d")}</div>
                       <div className="text-[12px] text-[#8E8E93] dark:text-white/40 capitalize">{d.reason || "closed"}</div>

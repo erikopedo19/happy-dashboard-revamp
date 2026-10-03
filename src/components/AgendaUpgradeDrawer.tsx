@@ -12,13 +12,17 @@ const FREE_BOOKINGS = 15;
 /**
  * Shown at most once per day on the Agenda for free-tier users.
  */
-export function AgendaUpgradeDrawer() {
+export function AgendaUpgradeDrawer({ suppress = false }: { suppress?: boolean }) {
   const navigate = useNavigate();
   const { loading, isPremium } = usePremium();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (loading || isPremium) return;
+    if (suppress) setOpen(false);
+  }, [suppress]);
+
+  useEffect(() => {
+    if (loading || isPremium || suppress) return;
     try {
       const last = localStorage.getItem(KEY);
       const today = new Date().toDateString();
@@ -27,7 +31,7 @@ export function AgendaUpgradeDrawer() {
     } catch { /* ignore */ }
     const t = setTimeout(() => setOpen(true), 900);
     return () => clearTimeout(t);
-  }, [loading, isPremium]);
+  }, [loading, isPremium, suppress]);
 
   if (loading || isPremium) return null;
 

@@ -8,9 +8,13 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@heroui/react";
-import { Drawer as BottomDrawer, DrawerContent as BottomDrawerContent } from "@/components/ui/drawer";
+import {
+  Drawer as BottomDrawer,
+  DrawerContent as BottomDrawerContent,
+  DrawerTitle as BottomDrawerTitle,
+  DrawerDescription as BottomDrawerDescription,
+} from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
@@ -49,13 +53,16 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const contentRef = useRef<HTMLDivElement>(null);
-  
+  const [mounted, setMounted] = useState(false);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const requireAuth = useRequireAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  useEffect(() => setMounted(true), []);
 
   const shouldFetchServices = !providedServices;
   const selectedDateIso = format(selectedDateObj, 'yyyy-MM-dd');
@@ -520,29 +527,28 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     onClose();
   };
 
-  if (!isOpen) return null;
+  // Wait one tick so useIsMobile has resolved — otherwise the desktop
+  // drawer mounts for one frame on phones and can leave a stuck scroll lock.
+  if (!isOpen || !mounted) return null;
 
   // Mobile: bottom sheet Drawer, PC: side Drawer
   if (isMobile) {
     return (
       <BottomDrawer open={isOpen} onOpenChange={(v) => (!v ? handleClose() : null)}>
-        <BottomDrawerContent className="h-[94dvh] bg-[#0e0e10] border-0 rounded-t-[28px] p-0 overflow-hidden shadow-2xl">
-          <DialogTitle className="sr-only">Book Appointment</DialogTitle>
-          <DialogDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</DialogDescription>
+        <BottomDrawerContent className="h-[94dvh] bg-[#0e0e10]/95 backdrop-blur-2xl border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
+          <BottomDrawerTitle className="sr-only">Book Appointment</BottomDrawerTitle>
+          <BottomDrawerDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</BottomDrawerDescription>
 
           <div
           ref={contentRef}
           className={cn(
             "bg-[#0e0e10]",
-            isMobile ? "h-full overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
+            isMobile ? "h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Mobile sticky top bar with drag-handle + close */}
           {isMobile && (
             <div className="sticky top-0 z-30 bg-[#0e0e10]/85 backdrop-blur-xl border-b border-white/[0.06]">
-              <div className="pt-2 pb-1 flex justify-center">
-                <div className="h-1 w-10 rounded-full bg-white/15" />
-              </div>
               <div className="px-4 py-2 flex items-center justify-between">
                 <button
                   onClick={handleClose}
