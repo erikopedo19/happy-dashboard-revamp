@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, BellRing, Calendar, Check, Info, MessageSquare, Star } from "lucide-react";
+import { Bell, BellRing, Calendar, Check, Info, MessageSquare, Navigation, Star } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const typeMeta: Record<string, { icon: typeof Bell; color: string }> = {
   appointment: { icon: Calendar, color: "text-blue-600 bg-blue-100 dark:text-blue-300 dark:bg-blue-500/20" },
   waitlist_offer: { icon: BellRing, color: "text-rose-600 bg-rose-100 dark:text-rose-300 dark:bg-rose-500/20" },
   waitlist_claimed: { icon: Check, color: "text-emerald-600 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-500/20" },
+  client_eta: { icon: Navigation, color: "text-orange-600 bg-orange-100 dark:text-orange-300 dark:bg-orange-500/20" },
   review: { icon: Star, color: "text-amber-600 bg-amber-100 dark:text-amber-300 dark:bg-amber-500/20" },
   message: { icon: MessageSquare, color: "text-emerald-600 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-500/20" },
   default: { icon: Info, color: "text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/40" },

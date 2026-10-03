@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Zap, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
 
 // Custom SVG icons for a more distinctive day-off icon design
 const CustomDayOffIcon = ({ type, className }: { type: string; className?: string }) => {
@@ -252,6 +252,10 @@ export const LiquidGlassAgenda = ({
     if (!t || Math.hypot(current.dx, current.dy) < 12) return;
     const targetId = t.aptId && t.aptId !== current.id ? t.aptId : null;
     if (!targetId && !t.time) return;
+    // Dropping back on the appointment's own slot is a no-op — skip the RPC so
+    // clients don't get a pointless "rescheduled" email.
+    const draggedApt = dayAppointments.find((a) => a.id === current.id);
+    if (!targetId && draggedApt && t.time === draggedApt.appointment_time.slice(0, 5)) return;
     const dateStr = format(selectedDay, "yyyy-MM-dd");
     setMovingIds([current.id, ...(targetId ? [targetId] : [])]);
     const { data, error } = await (supabase as any).rpc("swap_or_move_appointment", {
@@ -1443,7 +1447,7 @@ export const LiquidGlassAgenda = ({
                             onPointerCancel={() => { setDrag(null); setDropHover(null); }}
                             onClick={(e) => e.stopPropagation()}
                             className="absolute right-1.5 bottom-1.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/10 dark:text-gray-300 cursor-grab active:cursor-grabbing"
-                            style={{ touchAction: "none", pointerEvents: "auto" }}
+                            style={{ touchAction: "none", pointerEvents: drag?.id === apt.id ? "none" : "auto" }}
                           >
                             <GripVertical className="h-4 w-4" />
                           </span>
@@ -1537,17 +1541,15 @@ export const LiquidGlassAgenda = ({
                               </div>
 
                               {/* Status icon */}
-                              <div className="ml-2 flex-shrink-0">
-                                {isCompleted ? (
+                              {isCompleted && (
+                                <div className="ml-2 flex-shrink-0">
                                   <CheckCircle2 className={cn("w-5 h-5", isDark ? "text-green-400" : "text-green-600")} />
-                                ) : (
-                                  <Zap className={cn("w-4 h-4", isDark ? "text-white/40" : "text-gray-400")} />
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* Bottom: Time range */}
-                            <div className="flex items-center justify-between mt-2">
+                            <div className={cn("flex items-center justify-between mt-2", !isCancelled && "pr-9")}>
                               <span className={cn(
                                 "text-[11px] font-medium",
                                 isDark ? "text-white/50" : "text-gray-500"

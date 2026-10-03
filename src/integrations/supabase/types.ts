@@ -2089,6 +2089,10 @@ export type Database = {
         }[]
       }
       marketing_emails_sent_today: { Args: never; Returns: number }
+      notify_barber_eta: {
+        Args: { _appointment_id: string; _kind: string }
+        Returns: Json
+      }
       reschedule_appointment_by_token: {
         Args: { _new_date: string; _new_time: string; _token: string }
         Returns: Json
