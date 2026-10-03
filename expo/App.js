@@ -1,13 +1,55 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Constants from 'expo-constants';
+import * as Device from 'expo-device';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { WebView } from 'react-native-webview';
 
 // This is a wrapper app that loads your web app in a WebView
 // Perfect for previewing on iOS simulator or physical device
 
-const WEB_APP_URL = process.env.EXPO_PUBLIC_WEB_APP_URL || 'https://cutzioo.com';
+const WEB_APP_URL = (process.env.EXPO_PUBLIC_WEB_APP_URL || 'https://cutzioo.com').replace(/\/$/, '');
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+// Returns an Expo push token, or null on simulators, denied permission, or
+// before `eas init` has written a projectId into app.json.
+async function getExpoPushToken() {
+  if (!Device.isDevice) return null;
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Bookings',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+  }
+  let { status } = await Notifications.getPermissionsAsync();
+  if (status !== 'granted') ({ status } = await Notifications.requestPermissionsAsync());
+  if (status !== 'granted') return null;
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+  if (!projectId) return null;
+  const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
+  return data;
+}
+
+const injectPushToken = (token) => `
+  window.__CUTZIO_PUSH__ = { token: ${JSON.stringify(token)}, platform: 'expo' };
+  window.dispatchEvent(new Event('cutzio-push-token'));
+  true;
+`;
+
+const urlFromNotification = (response) => {
+  const url = response?.notification?.request?.content?.data?.url;
+  return typeof url === 'string' && url.startsWith('/') ? `${WEB_APP_URL}${url}` : null;
+};
 const IMPACT_STYLES = {
   light: Haptics.ImpactFeedbackStyle.Light,
   medium: Haptics.ImpactFeedbackStyle.Medium,
@@ -48,14 +90,44 @@ function hapticStyleForVibration(pattern) {
 
 export default function App() {
   const webView = useRef(null);
+  const pushToken = useRef(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [sourceUri, setSourceUri] = useState(WEB_APP_URL);
+
+  const sendPushToken = useCallback(() => {
+    if (pushToken.current) webView.current?.injectJavaScript(injectPushToken(pushToken.current));
+  }, []);
+
+  useEffect(() => {
+    getExpoPushToken()
+      .then((token) => {
+        pushToken.current = token;
+        sendPushToken();
+      })
+      .catch(() => {});
+
+    // Cold start from a notification tap, then taps while running.
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      const url = urlFromNotification(response);
+      if (url) setSourceUri(url);
+    });
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const url = urlFromNotification(response);
+      if (url) webView.current?.injectJavaScript(`window.location.assign(${JSON.stringify(url)}); true;`);
+    });
+    return () => sub.remove();
+  }, [sendPushToken]);
 
   const handleMessage = useCallback(async (event) => {
     let message;
     try {
       message = JSON.parse(event.nativeEvent.data);
     } catch {
+      return;
+    }
+    if (message?.type === 'cutzio-push-request') {
+      sendPushToken();
       return;
     }
     const style = message?.type === 'cutzio-haptic'
@@ -74,13 +146,19 @@ export default function App() {
         await Haptics.notificationAsync(NOTIFICATION_STYLES[style]);
       }
     } catch {}
-  }, []);
+  }, [sendPushToken]);
 
   return (
     <View style={styles.container}>
       <WebView
         ref={webView}
-        source={{ uri: WEB_APP_URL }}
+        source={{ uri: sourceUri }}
+        applicationNameForUserAgent="CutziooApp"
+        contentInsetAdjustmentBehavior="never"
+        bounces={false}
+        overScrollMode="never"
+        allowsInlineMediaPlayback
+        sharedCookiesEnabled
         style={styles.webview}
         injectedJavaScriptBeforeContentLoaded={HAPTIC_VIBRATION_BRIDGE}
         allowsBackForwardNavigationGestures
@@ -91,7 +169,10 @@ export default function App() {
           setLoading(true);
           setLoadError(false);
         }}
-        onLoadEnd={() => setLoading(false)}
+        onLoadEnd={() => {
+          setLoading(false);
+          sendPushToken();
+        }}
         onError={() => {
           setLoading(false);
           setLoadError(true);
@@ -100,7 +181,7 @@ export default function App() {
       />
       {loading && (
         <View style={styles.overlay}>
-          <ActivityIndicator color="#FF375F" size="large" />
+          <ActivityIndicator color="#FB7185" size="large" />
           <Text style={styles.statusText}>Opening Cutzioo…</Text>
         </View>
       )}

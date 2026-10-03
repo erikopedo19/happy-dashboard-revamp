@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
 import { CalendarPlus, Check, Loader2, MapPin, MessageSquare, Navigation, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import {
 import { destinationUrl, type Coordinates } from "@/lib/travelTime";
 import { dateStrInTz, getBrowserTimezone, minutesInTz, timeStrToMinutes, zonedDateTime } from "@/lib/tz";
 import { useToast } from "@/hooks/use-toast";
+import { RollingText } from "@/components/RollingText";
 import { cn } from "@/lib/utils";
 
 interface BookingLike {
@@ -36,6 +37,34 @@ interface BarberLocation {
 }
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
+const revealParent = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+const revealItem = {
+  hidden: { opacity: 0, y: 14, scale: 0.985 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 320, damping: 28 } },
+};
+const timeUnits = [
+  { minutes: 30 * 24 * 60, singular: "month", plural: "months" },
+  { minutes: 24 * 60, singular: "day", plural: "days" },
+  { minutes: 60, singular: "hour", plural: "hours" },
+  { minutes: 1, singular: "minute", plural: "minutes" },
+];
+
+function formatTimeUntil(totalMinutes: number) {
+  let remaining = Math.max(0, Math.floor(totalMinutes));
+  if (remaining === 0) return "Now";
+  const parts: string[] = [];
+  for (const unit of timeUnits) {
+    const amount = Math.floor(remaining / unit.minutes);
+    if (!amount) continue;
+    parts.push(`${amount} ${amount === 1 ? unit.singular : unit.plural}`);
+    remaining %= unit.minutes;
+    if (parts.length === 2) break;
+  }
+  return `${parts.join(" ")} away`;
+}
 
 function useNow(intervalMs = 30_000) {
   const [now, setNow] = useState(() => Date.now());
@@ -52,11 +81,19 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
   const now = useNow(15_000);
   const [etaSending, setEtaSending] = useState<string | null>(null);
   const [etaSent, setEtaSent] = useState<"on_my_way" | "running_late" | null>(null);
+  const [introGone, setIntroGone] = useState(false);
   const notifiedTurnRef = useRef(false);
 
   useEffect(() => {
     setEtaSent(null);
+    setIntroGone(false);
   }, [booking?.id]);
+
+  useEffect(() => {
+    if (introGone) return;
+    const out = window.setTimeout(() => setIntroGone(true), 2200);
+    return () => window.clearTimeout(out);
+  }, [introGone]);
 
   const { data: profile } = useQuery<BarberLocation | null>({
     queryKey: ["queue-booking-location", booking?.id],
@@ -173,7 +210,7 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
       ? { latitude: Number(profile.latitude), longitude: Number(profile.longitude) }
       : null;
   const directions = destinationUrl(destination, profile?.address) || profile?.google_maps_url || null;
-  const minutesUntilAppointment = Math.max(0, Math.round((appointmentAt.getTime() - now) / 60_000));
+  const minutesUntilAppointment = Math.max(0, Math.ceil((appointmentAt.getTime() - now) / 60_000));
 
   // Google Calendar "add event" link — no permissions needed, works on every
   // device. Dates are wall-clock times in the shop timezone (passed via ctz).
@@ -231,8 +268,13 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
         className="pointer-events-none absolute -left-16 -top-20 h-44 w-44 rounded-full opacity-20"
         style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
       />
-      <div className="relative">
-        <div className="flex items-start justify-between gap-3">
+      <motion.div
+        className="relative"
+        variants={revealParent}
+        initial="hidden"
+        animate={introGone ? "show" : "hidden"}
+      >
+        <motion.div variants={revealItem} className="flex items-start justify-between gap-3">
           <div>
             <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-300">
               <span className="relative flex h-2 w-2">
@@ -259,9 +301,9 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
           <div className="flex h-12 w-12 items-center justify-center rounded-[16px]" style={{ backgroundColor: `${accent}18` }}>
             <Radio className="h-5 w-5" style={{ color: accent }} />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-4">
+        <motion.div variants={revealItem} className="mt-4">
           <div className="h-2 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.08]">
             <motion.div
               className="h-full origin-left rounded-full"
@@ -272,11 +314,11 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
           </div>
           <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-[#8E8E93]">
             <span>{isToday ? "Today" : "Upcoming"}</span>
-            <span className="tabular-nums">{minutesUntilAppointment} min away</span>
+            <span className="tabular-nums">{formatTimeUntil(minutesUntilAppointment)}</span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-4 rounded-[22px] bg-[#F2F2F7] p-3 dark:bg-[#2C2C2E]">
+        <motion.div variants={revealItem} className="mt-4 rounded-[22px] bg-[#F2F2F7] p-3 dark:bg-[#2C2C2E]">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white dark:bg-[#1C1C1E]">
               {isToday ? (
@@ -302,9 +344,9 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-4 flex gap-2">
+        <motion.div variants={revealItem} className="mt-4 flex gap-2">
           {isToday ? (
             <>
               <button
@@ -376,8 +418,60 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
               <MapPin className="h-4 w-4" />
             </div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Countdown intro — covers the card, then lifts away to reveal the content */}
+      <AnimatePresence>
+        {!introGone && (
+          <motion.button
+            type="button"
+            onClick={() => setIntroGone(true)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -18, filter: "blur(6px)" }}
+            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute inset-0 z-10 flex flex-col items-start justify-center gap-1 overflow-hidden rounded-[28px] bg-white px-5 text-left dark:bg-[#1C1C1E]"
+          >
+            <motion.span
+              initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 26 }}
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]"
+            >
+              Next appointment is in
+            </motion.span>
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 24 }}
+            >
+              <RollingText
+                text={formatTimeUntil(minutesUntilAppointment).replace(/ away$/, "")}
+                stagger={0.05}
+                variant="flip"
+                className="mt-1.5 text-[38px] font-bold leading-none tracking-[-0.01em] tabular-nums text-[#1C1C1E] dark:text-[#F2F2F7]"
+              />
+            </motion.div>
+            <motion.span
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55, type: "spring", stiffness: 300, damping: 26 }}
+              className="mt-3.5 w-full truncate text-[13px] text-[#8E8E93]"
+            >
+              {booking.service_name || "Appointment"} · {booking.barber_name || "Barber"} · {String(booking.appointment_time).slice(0, 5)}
+            </motion.span>
+            <motion.div
+              aria-hidden
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              className="mt-3 h-[3px] w-16 origin-left rounded-full"
+              style={{ backgroundColor: accent }}
+            />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </motion.section>
   );
 }

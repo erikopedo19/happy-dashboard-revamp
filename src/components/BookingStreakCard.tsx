@@ -50,8 +50,8 @@ export function BookingStreakCard() {
     <div className="rounded-2xl border border-black/[0.04] dark:border-white/[0.06] bg-white dark:bg-[#15151A] p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-[#FFF1E8] dark:bg-orange-400/10 flex items-center justify-center">
-            <Flame className="h-5 w-5 text-[#F97316] dark:text-orange-300" strokeWidth={2} />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF375F]">
+            <Flame className="h-5 w-5 text-white" strokeWidth={2} />
           </div>
           <div className="min-w-0">
             <p className="text-[#8E8E93] dark:text-white/60 text-[11px] font-medium uppercase tracking-wider">Streak</p>

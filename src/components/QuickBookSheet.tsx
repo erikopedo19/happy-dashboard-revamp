@@ -207,7 +207,8 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     if (time && !availableSlots.includes(time)) setTime("");
   }, [availableSlots, time]);
 
-  const canContinue = serviceId && time;
+  const [railOnOpenSlot, setRailOnOpenSlot] = useState(true);
+  const canContinue = serviceId && time && availableSlots.includes(time) && railOnOpenSlot;
   const canConfirm = name.trim() && /\S+@\S+\.\S+/.test(email);
 
   const handleConfirm = async () => {
@@ -260,6 +261,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
+        hideClose
         className="rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5] dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
       >
         {/* Grabber */}
@@ -441,7 +443,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   </div>
                   {!selectedService ? (
                     <EmptyHint text="Pick a service first" />
-                  ) : slotStates.length === 0 ? (
+                  ) : !slotStates.some((slot) => slot.available) ? (
                     <EmptyHint text="No slots available on this day" />
                   ) : (
                     <SlotRail
@@ -449,6 +451,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                       value={time}
                       onSelect={setTime}
                       accentColor={accentColor}
+                      onAvailabilityChange={setRailOnOpenSlot}
                     />
                   )}
                 </section>
@@ -581,19 +584,22 @@ const businessTz = settings?.timezone || getBrowserTimezone();
 
         {/* Footer CTA */}
         <div className="shrink-0 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] border-t border-black/5 dark:border-white/5 bg-white dark:bg-[#1C1C1E]">
-          {step === "pick" && (
+          {step === "pick" && (canContinue ? (
             <Button
-              disabled={!canContinue}
               onClick={() => {
                 haptic("medium");
                 setStep("details");
               }}
-              className="w-full h-12 rounded-[14px] text-white font-semibold border-0 disabled:opacity-40"
+              className="w-full h-12 rounded-[14px] text-white font-semibold border-0"
               style={{ backgroundColor: accentColor }}
             >
               Continue
             </Button>
-          )}
+          ) : (
+            <div className="flex h-12 items-center justify-center rounded-[14px] bg-black/[0.04] text-[13px] font-medium text-[#8E8E93] dark:bg-white/[0.05]">
+              {!serviceId ? "Pick a service" : !railOnOpenSlot ? "That time is taken — slide to an open slot" : "Pick a time"}
+            </div>
+          ))}
           {step === "details" && (
             <Button
               disabled={!canConfirm || submitting}

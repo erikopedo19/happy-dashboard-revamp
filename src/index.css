@@ -21,27 +21,27 @@ body {
 /* Modern Dashboard Design System - CSS Variables */
 @layer base {
   :root {
-    /* Cutzio — Deep Blue + Rose */
+    /* Cutzio — Deep Charcoal + Rose */
     --background: 220 18% 10%;
     --foreground: 210 25% 96%;
     --card: 220 14% 13%;
     --card-foreground: 210 25% 96%;
     --popover: 220 14% 13%;
     --popover-foreground: 210 25% 96%;
-    --primary: 217 91% 60%;
+    --primary: 350 100% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 199 89% 62%;
+    --primary-glow: 350 100% 74%;
     --secondary: 220 12% 14%;
     --secondary-foreground: 210 25% 96%;
     --muted: 220 10% 14%;
     --muted-foreground: 220 12% 62%;
-    --accent: 217 91% 60%;
+    --accent: 350 100% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 10% 18%;
     --input: 220 10% 14%;
-    --ring: 217 91% 60%;
+    --ring: 350 100% 60%;
     --radius: 1.5rem;
     --success: 142 65% 50%;
     --warning: 38 92% 55%;
@@ -54,12 +54,12 @@ body {
     --chart-5: 346 60% 70%;
 
     --gradient-brand: linear-gradient(135deg, #050506 0%, #111317 48%, #1d2027 100%);
-    --shadow-rose: 0 10px 40px -10px hsl(346 84% 60% / 0.35);
-    --shadow-purple: 0 10px 40px -10px hsl(280 84% 60% / 0.35);
+    --shadow-rose: 0 10px 40px -10px hsl(350 100% 62% / 0.25);
+    --shadow-purple: 0 10px 40px -10px hsl(340 82% 60% / 0.35);
     --shadow-sky: 0 10px 40px -10px hsl(222 50% 30% / 0.4);
 
-    --rose: 346 84% 60%;
-    --purple: 280 84% 62%;
+    --rose: 350 100% 62%;
+    --purple: 350 100% 62%;
 
     --glass-background: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.08);
@@ -72,12 +72,12 @@ body {
 
     --sidebar-background: 220 18% 6%;
     --sidebar-foreground: 220 12% 70%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 350 100% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 12% 12%;
     --sidebar-accent-foreground: 210 20% 96%;
     --sidebar-border: 220 10% 16%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 350 100% 60%;
   }
 
   .light {
@@ -87,7 +87,7 @@ body {
     --card-foreground: 220 13% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 9%;
-    --primary: 217 91% 48%;
+    --primary: 350 100% 60%;
     --primary-foreground: 0 0% 98%;
     --secondary: 220 13% 96%;
     --secondary-foreground: 220 13% 9%;
@@ -99,7 +99,7 @@ body {
     --destructive-foreground: 0 0% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 217 91% 48%;
+    --ring: 350 100% 60%;
 
     /* Light mode glass variables */
     --glass-background: rgba(255, 255, 255, 0.7);

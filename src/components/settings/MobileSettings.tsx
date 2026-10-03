@@ -232,7 +232,7 @@ export function MobileSettings(props: any) {
           onClick={() => navigate("/booking-page")}
           className="relative flex min-h-[76px] w-full items-center gap-3 overflow-hidden rounded-[22px] border border-[#E7DDFB] dark:border-white/10 bg-gradient-to-r from-[#F3EDFF] via-[#E9DDFD] to-[#D4BDF8] dark:from-[#251D35] dark:via-[#2E2343] dark:to-[#44315F] px-4 py-3 text-left shadow-sm"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/75 dark:bg-white/10 text-[#7452C6] dark:text-[#D7C5FF] shadow-sm">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/75 dark:bg-white/10 text-[#7452C6] dark:text-[#D7C5FF]">
             <Link2 className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
@@ -593,7 +593,7 @@ export function MobileSettings(props: any) {
                         onChange={(e) =>
                           setAgendaForm((p: any) => ({ ...p, start_hour: e.target.value }))
                         }
-                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-rose-500"
+                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-[#FF375F]"
                       />
                       <p className="text-[11px] text-white/40 text-center mt-1.5">Opens</p>
                     </div>
@@ -605,7 +605,7 @@ export function MobileSettings(props: any) {
                         onChange={(e) =>
                           setAgendaForm((p: any) => ({ ...p, end_hour: e.target.value }))
                         }
-                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-rose-500"
+                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-[#FF375F]"
                       />
                       <p className="text-[11px] text-white/40 text-center mt-1.5">Closes</p>
                     </div>
@@ -670,7 +670,7 @@ export function MobileSettings(props: any) {
                         className={cn(
                           "h-11 rounded-2xl text-[13px] font-semibold border transition",
                           agendaForm.service_duration === d
-                            ? "bg-rose-500 text-white border-rose-500"
+                            ? "bg-[#FF375F] text-white border-[#FF375F]"
                             : "bg-white/[0.04] text-white/70 border-white/10"
                         )}
                       >
@@ -705,7 +705,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending || !hasValidHours || agendaForm.working_days.length === 0}
-                  className="w-full h-14 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(225,29,72,0.65)] flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full h-14 rounded-full bg-gradient-to-r from-[#FF375F] to-[#E11D48] text-white text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(139,92,246,0.25)] flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -899,7 +899,7 @@ export function MobileSettings(props: any) {
                     rows={4}
                     maxLength={400}
                     placeholder="Tell clients about your style..."
-                    className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                    className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-[#FF375F]/40"
                   />
                 </Field>
                 <ListCard>
@@ -917,7 +917,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#FF375F] to-[#E11D48] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -1021,7 +1021,6 @@ function Group({ label, children, className }: { label: string; children: React.
 
 function Row({
   icon: Icon,
-  tint,
   label,
   value,
   onClick,
@@ -1066,14 +1065,9 @@ function Row({
         </span>
       ) : (
         <span
-          className="relative h-9 w-9 rounded-[11px] flex items-center justify-center shrink-0 overflow-hidden border border-white/20"
-          style={{
-            background: `linear-gradient(145deg, ${tint} 0%, ${tint}dd 100%)`,
-            boxShadow: `0 3px 8px ${tint}55, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.2)`,
-          }}
+          className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-white/10", danger ? "bg-[#E5484D]" : "bg-[#FF375F]")}
         >
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[11px] bg-gradient-to-b from-white/40 to-transparent" />
-          <Icon className="relative h-[18px] w-[18px] text-white drop-shadow-sm" strokeWidth={2.3} />
+          <Icon className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
         </span>
 
       )}
@@ -1192,8 +1186,8 @@ function ToggleRow({
   return (
     <div className={cn("flex items-center gap-3 px-4 py-3.5", isLast && "")}>
       {Icon && (
-        <span className="relative h-8 w-8 rounded-[10px] flex items-center justify-center ring-1 ring-white/15 overflow-hidden bg-gradient-to-b from-white/20 to-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.3)]">
-          <Icon className="h-4 w-4 text-white" strokeWidth={2.4} />
+        <span className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-white/10 bg-[#FF375F]">
+          <Icon className="h-4 w-4 text-white" strokeWidth={2.2} />
         </span>
       )}
 
@@ -1242,7 +1236,7 @@ function ModeRow() {
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3.5">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 h-9 w-9 rounded-2xl bg-white/5 flex items-center justify-center text-white/80">
+        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#FF375F] text-white">
           <Scissors className="h-4 w-4" />
         </div>
         <div>
@@ -1378,7 +1372,7 @@ function CustomDayHoursEditor({
                   onChange={(e) =>
                     setHours((p) => ({ ...p, [d]: { open: e.target.value, close } }))
                   }
-                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-rose-500"
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-[#FF375F]"
                 />
                 <span className="text-white/40 text-[12px]">–</span>
                 <input
@@ -1387,7 +1381,7 @@ function CustomDayHoursEditor({
                   onChange={(e) =>
                     setHours((p) => ({ ...p, [d]: { open, close: e.target.value } }))
                   }
-                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-rose-500"
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-[#FF375F]"
                 />
               </div>
             );

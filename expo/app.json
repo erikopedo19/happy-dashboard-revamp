@@ -2,34 +2,52 @@
   "expo": {
     "name": "Cutzioo",
     "slug": "cutzioo",
+    "scheme": "cutzioo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "../public/icons/icon-512x512.png",
-    "userInterfaceStyle": "automatic",
+    "icon": "../public/icons/icon-1024.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#000000",
     "splash": {
+      "image": "../public/icons/icon-512x512.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0B0B0F"
+      "backgroundColor": "#000000"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.cutzioo.app",
-      "buildNumber": "1.0.0",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"],
         "NSCameraUsageDescription": "Cutzioo uses the camera when you choose to capture a profile image.",
-        "NSPhotoLibraryUsageDescription": "Cutzioo uses selected photos for profile images."
+        "NSPhotoLibraryUsageDescription": "Cutzioo uses selected photos for profile images.",
+        "NSLocationWhenInUseUsageDescription": "Cutzioo uses your location to show barbers near you."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "../public/icons/icon-512x512.png",
-        "backgroundColor": "#0B0B0F"
+        "backgroundColor": "#000000"
       },
-      "package": "com.cutzioo.app"
+      "package": "com.cutzioo.app",
+      "permissions": ["POST_NOTIFICATIONS", "VIBRATE"]
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "../public/icons/icon-192x192.png",
+          "color": "#FF375F"
+        }
+      ]
+    ],
     "web": {
       "favicon": "../public/favicon.ico"
     }

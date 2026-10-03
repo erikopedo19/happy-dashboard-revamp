@@ -58,7 +58,20 @@ async function getApnsJwt(): Promise<string | null> {
   return token;
 }
 
-async function sendApns(token: string, title: string, body: string) {
+// ---------- Expo push (Expo Go / EAS builds of the WebView wrapper) ----------
+async function sendExpo(token: string, title: string, body: string, url: string) {
+  const res = await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: { "accept": "application/json", "content-type": "application/json" },
+    body: JSON.stringify({ to: token, title, body, sound: "default", data: { url } }),
+  });
+  const json = await res.json().catch(() => null);
+  const ticket = Array.isArray(json?.data) ? json.data[0] : json?.data;
+  const dead = ticket?.status === "error" && ticket?.details?.error === "DeviceNotRegistered";
+  return { ok: res.ok && ticket?.status !== "error", status: dead ? 410 : res.status };
+}
+
+async function sendApns(token: string, title: string, body: string, url = "/") {
   const bundleId = Deno.env.get("APNS_BUNDLE_ID");
   const sandbox = (Deno.env.get("APNS_USE_SANDBOX") ?? "true") === "true";
   const jwt = await getApnsJwt();
@@ -73,7 +86,7 @@ async function sendApns(token: string, title: string, body: string) {
       "apns-priority": "10",
       "content-type": "application/json",
     },
-    body: JSON.stringify({ aps: { alert: { title, body }, sound: "default", badge: 1 } }),
+    body: JSON.stringify({ aps: { alert: { title, body }, sound: "default", badge: 1 }, url }),
   });
   return { ok: res.ok, status: res.status };
 }
@@ -168,11 +181,13 @@ Deno.serve(async (req) => {
       }));
     }
 
-    // APNs
+    // Native: APNs device tokens (Capacitor) and Expo push tokens (Expo wrapper)
     let apnsResults: any[] = [];
     const { data: tokens } = await sb.from("device_tokens").select("*").eq("user_id", user_id);
     apnsResults = await Promise.all((tokens ?? []).map(async (t: any) => {
-      const r = await sendApns(t.token, title, body);
+      const r = t.platform === "expo" || String(t.token).startsWith("ExponentPushToken")
+        ? await sendExpo(t.token, title, body, url)
+        : await sendApns(t.token, title, body, url);
       if (r && (r as any).status === 410) {
         await sb.from("device_tokens").delete().eq("token", t.token);
       }

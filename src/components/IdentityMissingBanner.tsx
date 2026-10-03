@@ -84,7 +84,7 @@ export function IdentityMissingBanner({ missingAvatar, missingBanner, onOpenIden
         </button>
 
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF375F] to-[#FF9F0A] text-white shadow-lg shadow-black/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF375F] text-white">
             <Icon className="h-5 w-5" strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">

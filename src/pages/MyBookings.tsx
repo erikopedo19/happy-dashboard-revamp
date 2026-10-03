@@ -11,6 +11,15 @@ import { BookAgainCard } from "@/components/client/BookAgainCard";
 import { LiveQueueCard } from "@/components/client/LiveQueueCard";
 import { WaitlistOffersCard } from "@/components/client/WaitlistOffersCard";
 
+const revealParent = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+};
+const revealItem = {
+  hidden: { opacity: 0, y: 16, scale: 0.985 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 300, damping: 28 } },
+};
+
 interface Booking {
   id: string;
   appointment_date: string;
@@ -71,6 +80,39 @@ const MyBookings = () => {
   )[0];
   const lastCompleted = past.find((b) => b.status !== "cancelled");
 
+  const content = (
+    <motion.div
+      className="space-y-6"
+      variants={revealParent}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={revealItem}>
+        <WaitlistOffersCard />
+      </motion.div>
+      {(bookings || []).length === 0 ? (
+        <motion.div variants={revealItem}>
+          <EmptyState />
+        </motion.div>
+      ) : (
+        <>
+          <motion.div variants={revealItem}>
+            <LiveQueueCard booking={nextUpcoming} />
+          </motion.div>
+          <motion.div variants={revealItem}>
+            <BookAgainCard booking={lastCompleted} />
+          </motion.div>
+          <motion.div variants={revealItem}>
+            <Section title="Upcoming" items={upcoming} upcoming />
+          </motion.div>
+          <motion.div variants={revealItem}>
+            <Section title="Past" items={past} />
+          </motion.div>
+        </>
+      )}
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-white pb-28">
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5">
@@ -90,19 +132,7 @@ const MyBookings = () => {
             ))}
           </div>
         ) : (
-          <>
-            <WaitlistOffersCard />
-            {(bookings || []).length === 0 ? (
-              <EmptyState />
-            ) : (
-              <>
-                <LiveQueueCard booking={nextUpcoming} />
-                <BookAgainCard booking={lastCompleted} />
-                <Section title="Upcoming" items={upcoming} upcoming />
-                <Section title="Past" items={past} />
-              </>
-            )}
-          </>
+          content
         )}
       </div>
 

@@ -535,7 +535,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   if (isMobile) {
     return (
       <BottomDrawer open={isOpen} onOpenChange={(v) => (!v ? handleClose() : null)}>
-        <BottomDrawerContent className="h-[94dvh] bg-[#0e0e10]/95 backdrop-blur-2xl border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
+        <BottomDrawerContent className="h-[94dvh] bg-[#0e0e10] dark:bg-[#0e0e10] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
           <BottomDrawerTitle className="sr-only">Book Appointment</BottomDrawerTitle>
           <BottomDrawerDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</BottomDrawerDescription>
 
@@ -548,7 +548,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         >
           {/* Mobile sticky top bar with drag-handle + close */}
           {isMobile && (
-            <div className="sticky top-0 z-30 bg-[#0e0e10]/85 backdrop-blur-xl border-b border-white/[0.06]">
+            <div className="sticky top-0 z-30 bg-[#0e0e10] border-b border-white/[0.06]">
               <div className="px-4 py-2 flex items-center justify-between">
                 <button
                   onClick={handleClose}

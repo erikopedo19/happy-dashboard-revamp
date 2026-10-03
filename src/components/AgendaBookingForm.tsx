@@ -11,6 +11,7 @@ import { formatTzLabel, dateStrInTz, minutesInTz, timeStrToMinutes, getBrowserTi
 import { motion, AnimatePresence } from "framer-motion";
 import { getIconByName } from "@/components/IconPicker";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
+import { SlotRail } from "@/components/SlotRail";
 
 
 interface Service {
@@ -97,6 +98,7 @@ const AgendaBookingForm = ({
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
+  const [railOnOpenSlot, setRailOnOpenSlot] = useState(true);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [payMethod, setPayMethod] = useState<"shop" | "card">("shop");
 
@@ -404,6 +406,12 @@ const AgendaBookingForm = ({
     return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
+  // All generated slots annotated with availability for the swipe rail.
+  const railSlots = useMemo(() => {
+    const open = new Set(availableTimeSlots);
+    return timeSlots.map((time) => ({ time, available: open.has(time) }));
+  }, [timeSlots, availableTimeSlots]);
+
   const getEndTime = (startTime: string, durationMins: number) => {
     const [hours, minutes] = startTime.split(':').map(Number);
     const totalMinutes = hours * 60 + minutes + durationMins;
@@ -429,16 +437,6 @@ const AgendaBookingForm = ({
     setSelectedDate(date);
     setSelectedTime("");
     setSelectedStylistId("");
-  };
-
-  const handleTimeSelect = (time: string) => {
-    setSelectedTime(time);
-    setSelectedStylistId("");
-    if (stylists.length > 0) {
-      setStep("stylist");
-    } else {
-      setStep("details");
-    }
   };
 
   const handleStylistSelect = (stylistId: string) => {
@@ -939,51 +937,33 @@ const AgendaBookingForm = ({
                         <Globe className="w-3 h-3" />
                         <span>{copy.timesIn} {formatTzLabel(timezone)}</span>
                       </div>
-                      <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-2 max-h-[480px] pr-1 auto-rows-[52px]">
+                      <div className="flex-1">
                         {selectedDate ? (
-                          availableTimeSlots.length > 0 ? (
-                            availableTimeSlots.map((time, idx) => {
-                              const active = selectedTime === time;
-                              const showRange = totalDuration > 30;
-                              return (
-                                <motion.button
-                                  key={time}
-                                  initial={{ opacity: 0, y: 6 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ ...spring, delay: Math.min(idx * 0.015, 0.3) }}
-                                  whileTap={{ scale: 0.97 }}
-                                  onClick={() => handleTimeSelect(time)}
-                                  className={cn(
-                                    "w-full h-[52px] rounded-xl border font-medium text-[15px] flex flex-col items-center justify-center tabular-nums transition-colors",
-                                    active
-                                      ? "border-transparent text-white"
-                                      : "border-gray-200 dark:border-[#2a2a2a] bg-transparent text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
-                                  )}
-                                  style={active ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
-                                >
-                                  <span className="leading-none">{formatTime(time)}</span>
-                                  {showRange && (
-                                    <span className="text-[11px] mt-1 leading-none opacity-70">
-                                      → {formatTime(getEndTime(time, totalDuration))}
-                                    </span>
-                                  )}
-                                </motion.button>
-                              );
-                            })
-
+                          railSlots.some((slot) => slot.available) ? (
+                            <SlotRail
+                              slots={railSlots}
+                              value={selectedTime}
+                              onSelect={setSelectedTime}
+                              accentColor={accentColor}
+                              onAvailabilityChange={setRailOnOpenSlot}
+                            />
                           ) : (
-
-                            <div className="col-span-2 text-center text-gray-500 dark:text-[#8E8E93] py-8 text-sm">
+                            <div className="text-center text-gray-500 dark:text-[#8E8E93] py-8 text-sm">
                               {copy.noTimes}
                             </div>
                           )
                         ) : (
-                          <div className="col-span-2 text-center text-[#8E8E93] py-8 text-sm">
+                          <div className="text-center text-[#8E8E93] py-8 text-sm">
                             {copy.selectDateForTimes}
                           </div>
                         )}
+                        {selectedDate && selectedTime && totalDuration > 30 && (
+                          <p className="mt-2 text-[12px] text-[#8E8E93] tabular-nums">
+                            {formatTime(selectedTime)} → {formatTime(getEndTime(selectedTime, totalDuration))}
+                          </p>
+                        )}
                       </div>
-                      {selectedDate && availableTimeSlots.length > 0 && (
+                      {selectedDate && railSlots.some((slot) => slot.available) && selectedTime && railOnOpenSlot && (
                         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#141416]/95 backdrop-blur border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
                           <BookingButton
                             text={copy.continue}

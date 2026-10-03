@@ -61,9 +61,7 @@ export function haptic(style: HapticStyle = "light") {
       void nativeHaptic(style).catch(() => {});
       return;
     }
-    const webViewBridge = (window as Window & {
-      ReactNativeWebView?: { postMessage: (message: string) => void };
-    }).ReactNativeWebView;
+    const webViewBridge = window.ReactNativeWebView;
     if (webViewBridge?.postMessage) {
       webViewBridge.postMessage(JSON.stringify({ type: "cutzio-haptic", style }));
       return;

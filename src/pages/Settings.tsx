@@ -652,7 +652,7 @@ const Settings = () => {
                     size="sm"
                     onPress={() => saveMutation.mutate()}
                     isDisabled={saveMutation.isPending || isLoading}
-                    className="rounded-full h-9 px-5 bg-[#0A84FF] text-white font-semibold border-0 hover:bg-[#0066d6]"
+                    className="rounded-full h-9 px-5 bg-[#FF375F] text-white font-semibold border-0 hover:bg-[#E11D48]"
                   >
                   {saveMutation.isPending ? (
                     <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
@@ -692,7 +692,7 @@ const Settings = () => {
                           value={v}
                           className={cn(
                             "relative flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 rounded-[10px] px-1 md:px-3 py-2 text-[10px] md:text-sm font-medium transition-all duration-300",
-                            "data-[state=active]:bg-[#0A84FF] data-[state=active]:text-white",
+                            "data-[state=active]:bg-[#FF375F] data-[state=active]:text-white",
                             "data-[state=inactive]:text-[#8E8E93] data-[state=inactive]:hover:bg-white/[0.05]"
                           )}
                         >
@@ -737,12 +737,12 @@ const Settings = () => {
                               className="rounded-3xl border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-sm cursor-pointer hover:shadow-md transition-shadow group"
                             >
                               <CardHeader className="pb-2">
-                                <div className="w-10 h-10 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center mb-3 group-hover:bg-[#0A84FF]/10 transition-colors">
-                                  <c.icon className="w-5 h-5 text-[#0A84FF]" />
+                                <div className="w-10 h-10 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center mb-3 group-hover:bg-[#E11D48]/10 transition-colors">
+                                  <c.icon className="w-5 h-5 text-[#FF375F]" />
                                 </div>
                                 <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7] text-base font-semibold flex items-center justify-between">
                                   {c.label}
-                                  <ArrowRight className="w-4 h-4 text-[#8E8E93] group-hover:text-[#0A84FF] transition-colors" />
+                                  <ArrowRight className="w-4 h-4 text-[#8E8E93] group-hover:text-[#FF375F] transition-colors" />
                                 </CardTitle>
                                 <CardDescription className="text-[#8E8E93] text-sm">{c.desc}</CardDescription>
                               </CardHeader>
@@ -816,7 +816,7 @@ const Settings = () => {
                           <CardHeader>
                             <div className="flex items-center gap-3">
                               <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                                <Search className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                                <Search className="w-5 h-5 text-[#FF375F] dark:text-[#FB7185]" />
                               </div>
                               <div>
                                 <CardTitle className="text-[#1C1C1E] dark:text-[#F2F2F7]">Find a barber</CardTitle>
@@ -881,7 +881,7 @@ const Settings = () => {
                                     className={cn(
                                       "min-w-[4.25rem] flex-1 rounded-[12px] border px-3 py-3 text-center transition-all",
                                       active
-                                        ? "border-[#0A84FF] bg-[#0A84FF] text-white shadow-sm"
+                                        ? "border-[#FF375F] bg-[#FF375F] text-white shadow-sm"
                                         : "border-[#C6C6C8] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:border-gray-400 dark:hover:border-[#3A3A3C]"
                                     )}
                                   >
@@ -941,7 +941,7 @@ const Settings = () => {
                                   className={cn(
                                     "h-12 rounded-[12px] border text-sm font-medium transition-all",
                                     agendaForm.service_duration === duration
-                                      ? "bg-[#0A84FF] text-white border-[#0A84FF] shadow-sm"
+                                      ? "bg-[#FF375F] text-white border-[#FF375F] shadow-sm"
                                       : "bg-white dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-gray-400 border-[#C6C6C8] dark:border-[#2C2C2E] hover:border-gray-400 dark:hover:border-[#3A3A3C] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
                                   )}
                                 >

@@ -24,7 +24,7 @@ import {
   Image as ImageIcon,
   Home,
   MapPin,
-  Layers,
+  GalleryHorizontalEnd,
 } from "lucide-react";
 import { SwipeDeck } from "@/components/SwipeDeck";
 import { useToast } from "@/hooks/use-toast";
@@ -64,11 +64,44 @@ type TabKey = "today" | "map" | "favorites";
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const FILTER_OPTIONS = [
-  { key: "default" as const, label: "For you" },
-  { key: "reviews" as const, label: "Most reviewed" },
-  { key: "likes" as const, label: "Most liked" },
-  { key: "bookings" as const, label: "Most bookings this week" },
+  { key: "default" as const, label: "For you", icon: Sparkles },
+  { key: "reviews" as const, label: "Most reviewed", icon: Star },
+  { key: "likes" as const, label: "Most liked", icon: Heart },
+  { key: "bookings" as const, label: "Trending", icon: Award },
 ];
+
+// Hand-drawn double ellipse around the highlighted headline word.
+function CircledWord({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="relative inline-block px-1">
+      <span className="relative z-10 text-[#FB7185]">{children}</span>
+      <svg
+        aria-hidden
+        viewBox="0 0 220 80"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute -inset-x-3 -inset-y-2 h-[calc(100%+16px)] w-[calc(100%+24px)] text-[#FB7185]"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      >
+        <motion.path
+          d="M18 44C14 22 70 8 118 9c52 1 92 13 90 33-2 21-56 32-110 31C46 72 14 62 18 44Z"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
+        />
+        <motion.path
+          d="M10 40C12 18 66 4 120 6c56 2 96 18 92 38-4 22-62 30-116 28C40 70 8 58 10 40Z"
+          opacity="0.55"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.35 }}
+        />
+      </svg>
+    </span>
+  );
+}
 
 const FindBarber = () => {
   const { user, loading: authLoading } = useAuth();
@@ -86,6 +119,12 @@ const FindBarber = () => {
   const [maxDistance, setMaxDistance] = useState<"any" | "1" | "5" | "10">("any");
   const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
   const [swipeOpen, setSwipeOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
 
   useEffect(() => {
     const tab = searchParams.get("tab") as TabKey | null;
@@ -281,8 +320,8 @@ const FindBarber = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-6 h-6 animate-spin text-[#FB7185]" />
       </div>
     );
   }
@@ -310,10 +349,10 @@ const FindBarber = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#F2F2F7] dark:bg-[#000000] overflow-hidden">
+      <div className="dark h-screen flex w-full bg-[#000000] text-[#F2F2F7] overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 overflow-y-auto relative">
-          <div className="relative min-h-screen bg-[#F2F2F7] dark:bg-[#000000] pb-28">
+        <main className="relative flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="relative min-h-screen bg-[#000000] pb-28">
       <Seo
         title="Cutzio — Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
@@ -331,77 +370,142 @@ const FindBarber = () => {
 
       {/* Page header — scrolls away naturally */}
       <PageHeader>
-        <div className="backdrop-blur-xl bg-[#F2F2F7]/80 dark:bg-black/70 border-b border-black/[0.06] dark:border-white/[0.06]">
-        <div className="max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
-          <div className="flex items-center justify-between mb-3">
+        <div className="relative overflow-hidden">
+          {/* Ambient wash — clipped to the header so it doesn't tint the page */}
+          <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-64 w-[34rem] -translate-x-1/2 rounded-full bg-[#FF375F]/[0.12] blur-[100px]" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-b from-transparent to-black/80" />
+          <div className="relative max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-2">
+            {/* Greeting row */}
+            <div className="flex items-center justify-between gap-3">
+              <Link to="/me" className="flex min-w-0 items-center gap-3 active:opacity-70 transition-opacity">
+                <div className="relative shrink-0">
+                  <div className="h-12 w-12 overflow-hidden rounded-full bg-[#1C1C1E] ring-1 ring-white/10">
+                    {user.user_metadata?.avatar_url ? (
+                      <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[16px] font-semibold text-white">
+                        {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-black bg-[#1C1C1E] px-1.5 text-[9px] font-semibold leading-[14px] text-white">
+                    Client
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[16px] font-semibold text-white">
+                    {user.user_metadata?.full_name || user.email?.split("@")[0] || "Welcome"}
+                  </p>
+                  <p className="truncate text-[12px] text-white/45">Let’s find your next cut</p>
+                </div>
+              </Link>
+              <div className="flex shrink-0 items-center gap-2">
+                <motion.button
+                  type="button"
+                  aria-label="Search"
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setSearchOpen((v) => !v)}
+                  className={cn(
+                    "flex h-12 w-12 items-center justify-center rounded-full border transition-colors",
+                    searchOpen ? "border-[#FB7185]/50 bg-[#FF375F] text-white" : "border-white/10 bg-[#1C1C1E] text-white/85"
+                  )}
+                >
+                  {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                </motion.button>
+                <motion.button
+                  type="button"
+                  aria-label="Swipe barbers"
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setSwipeOpen(true)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#1C1C1E] text-white/85"
+                >
+                  <GalleryHorizontalEnd className="h-5 w-5" />
+                </motion.button>
+                {isMobile && <NotificationBell />}
+              </div>
+            </div>
+
+            {/* Headline */}
             <motion.h1
-              initial={{ opacity: 0, y: -4 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={spring}
               onDoubleClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="text-[28px] font-bold leading-none tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] select-none"
+              className="mt-7 select-none text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-white md:text-[56px]"
             >
-              Find a barber
+              Find The
+              <br />
+              <CircledWord>Perfect</CircledWord> Barber
             </motion.h1>
-            <div className="flex items-center gap-2">
-              <motion.button
-                onClick={() => setSwipeOpen(true)}
-                whileTap={{ scale: 0.92 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={spring}
-                className="h-10 px-3.5 rounded-full bg-[#FF375F] text-white text-[13px] font-semibold flex items-center gap-1.5 shadow-lg shadow-[#FF375F]/30"
-              >
-                <Layers className="w-4 h-4" /> Swipe
-              </motion.button>
-              {isMobile && <NotificationBell />}
-              <Link to="/me">
-                <Button variant="light" isIconOnly size="sm" className="rounded-full w-10 h-10 bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/10 hover:scale-95 transition-transform">
-                  <User className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
-                </Button>
-              </Link>
-            </div>
+
+            <AnimatePresence initial={false}>
+              {searchOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  className="overflow-hidden"
+                >
+                  <div className="relative mt-5">
+                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    <Input
+                      ref={searchRef}
+                      type="text"
+                      placeholder="Search barbers, styles, vibes"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="h-12 rounded-full border border-white/10 bg-[#1C1C1E] pl-11 text-[15px] text-white placeholder:text-white/35 focus-visible:ring-2 focus-visible:ring-[#FB7185]/60"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
-            <Input
-              type="text"
-              placeholder="Search barbers, styles, vibes"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-11 rounded-[14px] border-0 bg-black/[0.05] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15"
-            />
-          </div>
-
-
-        </div>
         </div>
       </PageHeader>
 
-
-
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
-        <div className="mb-4">
-          {/* Stories hidden for now */}
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-4">
-          {FILTER_OPTIONS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setSortFilter(f.key)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition border",
-                sortFilter === f.key || (f.key === "default" && sortFilter === undefined)
-                  ? "bg-[#1C1C1E] text-white border-[#1C1C1E] dark:bg-white dark:text-[#1C1C1E] dark:border-white"
-                  : "bg-transparent text-[#1C1C1E] border-black/10 hover:bg-black/[0.05] dark:text-white dark:border-white/10 dark:hover:bg-white/5"
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="-mx-5 mb-5 flex items-center gap-2.5 overflow-x-auto px-5 pb-1 scrollbar-hide">
+          {FILTER_OPTIONS.map((f) => {
+            const active = sortFilter === f.key || (f.key === "default" && sortFilter === undefined);
+            const Icon = f.icon;
+            return (
+              <motion.button
+                key={f.key}
+                type="button"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSortFilter(f.key)}
+                className={cn(
+                  "flex h-14 shrink-0 items-center gap-2.5 rounded-[22px] border pl-1.5 text-[15px] font-medium whitespace-nowrap transition-colors",
+                  active
+                    ? "border-[#FF8FA3]/40 bg-gradient-to-b from-[#FF5C7C] to-[#E11D48] text-white shadow-[inset_0_1.5px_0_rgba(255,255,255,0.4),inset_0_-2px_6px_rgba(0,0,0,0.15)] pr-2"
+                    : "border-white/[0.08] bg-[#1C1C1E] text-white/80 pr-5"
+                )}
+              >
+                <span className={cn("flex h-11 w-11 items-center justify-center rounded-[16px]", active ? "bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]" : "bg-white/[0.06]")}>
+                  <Icon className="h-[18px] w-[18px]" />
+                </span>
+                {f.label}
+                {active && (
+                  <span className="ml-1 flex h-9 w-9 items-center justify-center rounded-[14px] bg-white/15">
+                    <ChevronDown className="h-4 w-4" />
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSwipeOpen(true)}
+            className="flex h-14 shrink-0 items-center gap-2.5 rounded-[22px] border border-white/[0.08] bg-[#1C1C1E] pl-1.5 pr-5 text-[15px] font-medium text-white/80"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.06]">
+              <GalleryHorizontalEnd className="h-[18px] w-[18px]" />
+            </span>
+            Swipe
+          </motion.button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -483,7 +587,7 @@ function BarberCard({
   rateToken?: string | null;
 }) {
 
-  const accent = barber.brand_color || "#e11d48";
+  const accent = "#FF375F";
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
   const initial = (barber.brandName || "B").trim().charAt(0).toUpperCase();
@@ -512,6 +616,31 @@ function BarberCard({
             : `linear-gradient(135deg, ${accent}, ${accent}88)`,
         }}
       >
+        {!barber.banner_url && (
+          <>
+            {/* subtle diagonal sheen so the gradient doesn't look flat */}
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.16]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(115deg, rgba(255,255,255,0.5) 0 1.5px, transparent 1.5px 16px)",
+              }}
+            />
+            {/* big translucent initial */}
+            <span
+              aria-hidden
+              className="absolute left-4 top-1 select-none text-[54px] font-bold leading-none text-white/20"
+            >
+              {initial}
+            </span>
+            {/* scissors watermark */}
+            <Scissors
+              aria-hidden
+              className="absolute -right-2 top-1/2 h-20 w-20 -translate-y-1/2 rotate-[18deg] text-white/15"
+            />
+          </>
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-[#1C1C1E]" />
 
         {/* Favorite — large 44x44 tap target */}
@@ -526,7 +655,7 @@ function BarberCard({
           <Heart
             className={cn(
               "w-5 h-5 transition-colors",
-              isFavorite ? "fill-rose-500 text-rose-500" : "text-[#8E8E93]"
+              isFavorite ? "fill-[#FB7185] text-[#FB7185]" : "text-[#8E8E93]"
             )}
           />
         </button>
@@ -606,8 +735,8 @@ function BarberCard({
         {barber.booking_link ? (
           <Button
             onPress={() => setBookOpen(true)}
-            className="flex-[1.4] w-full h-12 rounded-[14px] text-white font-semibold border-0 active:scale-[0.97] transition-transform"
-            style={{ backgroundColor: accent }}
+            className="flex-[1.4] w-full h-12 rounded-[16px] text-white font-semibold border-0 active:scale-[0.97] transition-transform shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35)]"
+            style={{ background: `linear-gradient(180deg, #FF5C7C 0%, ${accent} 55%, #E11D48 100%)` }}
           >
             <Calendar className="w-4 h-4 mr-1.5" />
             Book
@@ -792,7 +921,7 @@ function MapPoster() {
   const [missing, setMissing] = useState(false);
   if (missing) {
     return (
-      <div className="flex min-h-[62vh] max-h-[620px] flex-col items-center justify-center rounded-[24px] bg-gradient-to-br from-pink-500 via-rose-500 to-amber-400 p-6 text-center text-white">
+      <div className="flex min-h-[62vh] max-h-[620px] flex-col items-center justify-center rounded-[24px] bg-gradient-to-br from-[#FB7185] via-[#FF375F] to-[#881337] p-6 text-center text-white">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20">
           <MapPin className="h-8 w-8" />
         </div>
@@ -843,7 +972,7 @@ function FullScreenMap({
     Number(maxDistance !== "any") + Number(minRating !== "any");
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#F2F2F7] dark:bg-[#0c0c0c]">
+    <div className="dark fixed inset-0 z-40 bg-black">
       {/* Full-bleed map */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
@@ -852,7 +981,7 @@ function FullScreenMap({
               barbershops={[]}
               userLocation={userLocation || undefined}
               height="100%"
-              accentColor="#e11d48"
+              accentColor="#FF375F"
               hideSearch
               showControls={false}
             />
@@ -866,7 +995,7 @@ function FullScreenMap({
         <button
           type="button"
           onClick={onBack}
-          className="mt-6 h-12 w-full max-w-md rounded-full bg-rose-500 text-[15px] font-semibold text-white active:scale-95 transition-transform"
+          className="mt-6 h-12 w-full max-w-md rounded-full bg-[#FF375F] text-[15px] font-semibold text-white active:scale-95 transition-transform"
         >
           Browse barbers
         </button>
@@ -891,7 +1020,7 @@ function FullScreenMap({
               value={mapSearch}
               onChange={(e) => setMapSearch(e.target.value)}
               placeholder="Search city, area or barber"
-              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-rose-500 dark:border-white/10 dark:bg-[#1C1C1E]/90"
+              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FB7185] dark:border-white/10 dark:bg-[#1C1C1E]/90"
             />
           </div>
 
@@ -904,7 +1033,7 @@ function FullScreenMap({
               >
                 <SlidersHorizontal className="h-5 w-5" />
                 {activeFilters > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white shadow">
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF375F] px-1 text-[10px] font-semibold text-white shadow">
                     {activeFilters}
                   </span>
                 )}
@@ -930,7 +1059,7 @@ function FullScreenMap({
                         className={cn(
                           "h-10 rounded-full text-[13px] font-medium transition-colors",
                           maxDistance === d
-                            ? "bg-rose-500 text-white shadow-sm"
+                            ? "bg-[#FF375F] text-white shadow-sm"
                             : "bg-[#F2F2F7] text-[#1C1C1E] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
                         )}
                       >
@@ -951,7 +1080,7 @@ function FullScreenMap({
                         className={cn(
                           "h-10 rounded-full text-[13px] font-medium transition-colors",
                           minRating === r
-                            ? "bg-rose-500 text-white shadow-sm"
+                            ? "bg-[#FF375F] text-white shadow-sm"
                             : "bg-[#F2F2F7] text-[#1C1C1E] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
                         )}
                       >
@@ -973,7 +1102,7 @@ function FullScreenMap({
                     Reset
                   </Button>
                   <Button
-                    className="h-12 flex-1 rounded-full bg-rose-500 text-white hover:bg-rose-600"
+                    className="h-12 flex-1 rounded-full bg-[#FF375F] text-white hover:bg-[#E11D48]"
                     onPress={() => setFiltersOpen(false)}
                   >
                     Show results
@@ -985,10 +1114,10 @@ function FullScreenMap({
         </div>
 
         <div className="mx-3 mt-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-rose-600 shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-rose-300">
+          <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-[#FF375F] shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#FDA4AF]">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-500" />
+              <span className="absolute inset-0 rounded-full bg-[#FF375F] animate-ping opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FF375F]" />
             </span>
             {barbers.length} live nearby
           </div>
@@ -999,8 +1128,8 @@ function FullScreenMap({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
         <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/95">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-500/10">
-              <MapIcon className="h-5 w-5 text-rose-500" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF375F]/15">
+              <MapIcon className="h-5 w-5 text-[#FB7185]" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">More pins coming soon</p>
@@ -1011,7 +1140,7 @@ function FullScreenMap({
             <button
               type="button"
               onClick={onBack}
-              className="shrink-0 rounded-full bg-rose-500 px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+              className="shrink-0 rounded-full bg-[#FF375F] px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
             >
               Browse
             </button>

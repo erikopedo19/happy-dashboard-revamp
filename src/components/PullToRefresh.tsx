@@ -40,9 +40,9 @@ function SnipScissors({ open, snipping }: { open: number; snipping: boolean }) {
   );
 }
 
-// Global pull-to-refresh with a scissors-snip easter egg. Listens on the
-// window so it works on pages that scroll the document; skips pulls that
-// start inside inputs, dialogs, drawers, or partially-scrolled containers.
+// Global pull-to-refresh with a scissors-snip easter egg. Capture-phase
+// listeners cover document and nested-scroll pages; ignore controls, overlays,
+// and pulls that begin inside a partially-scrolled container.
 export function PullToRefresh() {
   const qc = useQueryClient();
   const [pull, setPull] = useState(0);
@@ -51,11 +51,12 @@ export function PullToRefresh() {
 
   useEffect(() => {
     const st = s.current;
+    const pageScrollTop = () => Math.max(window.scrollY, document.scrollingElement?.scrollTop || 0);
 
     const onStart = (e: TouchEvent) => {
-      if (st.refreshing || window.scrollY > 0 || e.touches.length !== 1) return;
+      if (st.refreshing || pageScrollTop() > 0 || e.touches.length !== 1) return;
       const el = e.target as HTMLElement | null;
-      if (el?.closest('input, textarea, select, [role="dialog"], [data-vaul-drawer], [data-no-ptr]')) return;
+      if (el?.closest('input, textarea, select, [contenteditable="true"], [role="dialog"], [data-vaul-drawer], [data-no-ptr]')) return;
       // Don't hijack a pull inside an inner container that can still scroll up.
       let node: HTMLElement | null = el;
       while (node && node !== document.body) {
@@ -70,7 +71,7 @@ export function PullToRefresh() {
     const onMove = (e: TouchEvent) => {
       if (!st.tracking || st.refreshing) return;
       const dy = e.touches[0].clientY - st.startY;
-      if (dy <= 0 || window.scrollY > 0) {
+      if (dy <= 0 || pageScrollTop() > 0) {
         st.tracking = false;
         st.pull = 0;
         setPull(0);
@@ -110,15 +111,15 @@ export function PullToRefresh() {
       }
     };
 
-    window.addEventListener("touchstart", onStart, { passive: true });
-    window.addEventListener("touchmove", onMove, { passive: false });
-    window.addEventListener("touchend", onEnd, { passive: true });
-    window.addEventListener("touchcancel", onEnd, { passive: true });
+    window.addEventListener("touchstart", onStart, { passive: true, capture: true });
+    window.addEventListener("touchmove", onMove, { passive: false, capture: true });
+    window.addEventListener("touchend", onEnd, { passive: true, capture: true });
+    window.addEventListener("touchcancel", onEnd, { passive: true, capture: true });
     return () => {
-      window.removeEventListener("touchstart", onStart);
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("touchend", onEnd);
-      window.removeEventListener("touchcancel", onEnd);
+      window.removeEventListener("touchstart", onStart, true);
+      window.removeEventListener("touchmove", onMove, true);
+      window.removeEventListener("touchend", onEnd, true);
+      window.removeEventListener("touchcancel", onEnd, true);
     };
   }, [qc]);
 

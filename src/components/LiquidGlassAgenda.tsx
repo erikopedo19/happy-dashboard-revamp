@@ -292,18 +292,25 @@ export const LiquidGlassAgenda = ({
       setDropHover(null);
     };
 
+    let lastTickStep = 0;
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current;
       if (!d) return;
       const next = { ...d, dx: ev.clientX - d.x0, dy: ev.clientY - d.y0 };
       dragRef.current = next;
       setDrag(next);
+      // Picker-style detents: a light tick every ~24px of vertical travel.
+      const tickStep = Math.trunc(next.dy / 24);
+      if (tickStep !== lastTickStep) {
+        lastTickStep = tickStep;
+        haptic("selection");
+      }
       const t = findDropTarget(ev.clientX, ev.clientY);
       const key = t ? (t.aptId && t.aptId !== next.id ? `a:${t.aptId}` : t.time ? `t:${t.time}` : null) : null;
       if (key !== dropHoverRef.current) {
         dropHoverRef.current = key;
         setDropHover(key);
-        if (key) haptic("light");
+        if (key) haptic(key.startsWith("a:") ? "medium" : "light");
       }
     };
 
@@ -511,6 +518,23 @@ export const LiquidGlassAgenda = ({
     enabled: !!user,
   });
 
+  const { data: shopCurrency = "EUR" } = useQuery<string>({
+    queryKey: ["agenda-currency", user?.id],
+    enabled: !!user,
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("profiles").select("currency").eq("id", user!.id).maybeSingle();
+      return (data?.currency as string) || "EUR";
+    },
+  });
+  const formatPrice = (amount: number) => {
+    try {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: shopCurrency, maximumFractionDigits: amount % 1 ? 2 : 0 }).format(amount);
+    } catch {
+      return `€${amount}`;
+    }
+  };
+
   const { data: blockedSlots } = useQuery<
     { id: string; start_time: string; end_time: string; reason: string | null }[]
   >({
@@ -607,16 +631,20 @@ export const LiquidGlassAgenda = ({
 
   // Generate slot labels from saved interval
   const hours = useMemo(() => {
-    const interval = agendaSettings?.service_duration || 60;
+    const interval = Math.max(agendaSettings?.service_duration || 60, 1);
+    const toMinutes = (value: string | null | undefined, fallbackHour: number) => {
+      if (!value) return fallbackHour * 60;
+      const [hour, minute] = value.split(":").map(Number);
+      return hour * 60 + (minute || 0);
+    };
+    const start = toMinutes(agendaSettings?.start_hour, timeRange.startHour);
+    const end = toMinutes(agendaSettings?.end_hour, timeRange.endHour);
     const result: string[] = [];
 
-    for (let hour = timeRange.startHour; hour < timeRange.endHour; hour++) {
-      for (let minutes = 0; minutes < 60; minutes += interval) {
-        if (hour === timeRange.endHour - 1 && minutes > 0 && hour * 60 + minutes >= timeRange.endHour * 60) break;
-        result.push(
-          `${hour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
-        );
-      }
+    for (let minutes = start; minutes < end; minutes += interval) {
+      const hour = Math.floor(minutes / 60);
+      const minute = minutes % 60;
+      result.push(`${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`);
     }
 
     return result;
@@ -1381,7 +1409,7 @@ export const LiquidGlassAgenda = ({
             {hours.map((hour) => {
               const [slotHour, slotMinute] = hour.split(':').map(Number);
               const slotStartMin = slotHour * 60 + slotMinute;
-              const slotInterval = agendaSettings?.service_duration || 60;
+              const slotInterval = Math.max(agendaSettings?.service_duration || 60, 1);
 
               // Bucket appointments into the slot they fall inside (handles
               // off-grid times like 10:30 with a 60-min grid, plus anything
@@ -1426,13 +1454,14 @@ export const LiquidGlassAgenda = ({
 
               const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
               const rowHeight = isMobile ? 68 : ROW_H;
-              const maxSpan = hourAppointments.reduce((acc, apt) => {
-                const d = apt.totalDurationMinutes || apt.service.duration || 30;
-                return Math.max(acc, Math.max(Math.ceil(d / slotInterval), 1));
-              }, 1);
-              const maxSpanAll = hourEvents.reduce((acc, ev) => {
-                return Math.max(acc, Math.max(Math.ceil(eventDuration(ev) / slotInterval), 1));
-              }, maxSpan);
+              const maxSpanMinutes = Math.max(
+                ...hourAppointments.map((apt) => apt.totalDurationMinutes || apt.service.duration || 30),
+                ...hourEvents.map((ev) => eventDuration(ev)),
+                0
+              );
+              const cardGap = isMobile ? 4 : 12;
+              const minCardHeight = isMobile ? 52 : 64;
+              const cardStackHeight = Math.max((maxSpanMinutes / slotInterval) * rowHeight - cardGap, minCardHeight);
 
               return (
                 <div
@@ -1463,7 +1492,7 @@ export const LiquidGlassAgenda = ({
                   {(hourAppointments.length > 0 || hourEvents.length > 0) && (
                   <div
                     className="absolute left-[60px] right-0 top-0 z-10 flex flex-col gap-1"
-                    style={{ height: maxSpanAll * rowHeight - 12 }}
+                    style={{ height: cardStackHeight }}
                   >
                   {hourAppointments.map((apt) => {
                     const duration = apt.totalDurationMinutes || apt.service.duration || 30;
@@ -1491,7 +1520,7 @@ export const LiquidGlassAgenda = ({
                             aria-label="Drag to move"
                             onPointerDown={(e) => startDrag(e, apt)}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute right-1.5 bottom-1.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/10 dark:text-gray-300 cursor-grab active:cursor-grabbing"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/[0.08] dark:text-gray-300 cursor-grab active:cursor-grabbing"
                             style={{ touchAction: "none", pointerEvents: drag?.id === apt.id ? "none" : "auto" }}
                           >
                             <GripVertical className="h-4 w-4" />
@@ -1507,7 +1536,7 @@ export const LiquidGlassAgenda = ({
                           onTouchMove={clearLongPressTimer}
                           className={cn(
                             "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "p-2.5" : "p-3.5",
+                            isMobile ? "p-2" : "p-3.5",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1559,11 +1588,12 @@ export const LiquidGlassAgenda = ({
                           )}
 
                           {/* Content */}
-                          <div className="relative z-10 flex flex-col justify-between h-full">
+                          <div className={cn("relative z-10 flex flex-col justify-between h-full", !isCancelled && "pr-10")}>
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
                                 <h3 className={cn(
-                                  "text-[15px] font-semibold leading-tight truncate",
+                                  "font-semibold leading-tight truncate",
+                                  isMobile ? "text-[13px]" : "text-[15px]",
                                   isCancelled && "line-through",
                                   isDark ? "text-white" : "text-gray-900"
                                 )}>
@@ -1575,10 +1605,11 @@ export const LiquidGlassAgenda = ({
                                     )}>Cancelled</span>
                                   )}
                                 </h3>
-                                <div className="flex items-center gap-1.5 mt-1">
+                                <div className={cn("flex items-center gap-1.5", isMobile ? "mt-0.5" : "mt-1")}>
                                   <User className={cn("w-3 h-3", isDark ? "text-white/50" : "text-gray-500")} />
                                   <span className={cn(
-                                    "text-[12px] truncate",
+                                    "truncate",
+                                    isMobile ? "text-[10px]" : "text-[12px]",
                                     isDark ? "text-white/60" : "text-gray-600"
                                   )}>
                                     {apt.customer.name}
@@ -1595,9 +1626,10 @@ export const LiquidGlassAgenda = ({
                             </div>
 
                             {/* Bottom: Time range */}
-                            <div className={cn("flex items-center justify-between mt-2", !isCancelled && "pr-9")}>
+                            <div className={cn("flex items-center justify-between gap-2", isMobile ? "mt-1" : "mt-2")}>
                               <span className={cn(
-                                "text-[11px] font-medium",
+                                "font-medium",
+                                isMobile ? "text-[10px]" : "text-[11px]",
                                 isDark ? "text-white/50" : "text-gray-500"
                               )}>
                                 {apt.appointment_time.slice(0, 5)} → {endTime}
@@ -1613,12 +1645,12 @@ export const LiquidGlassAgenda = ({
                                     Paid
                                   </span>
                                 )}
-                                {apt.price && (
+                                {apt.price != null && Number(apt.price) > 0 && (
                                   <span className={cn(
-                                    "text-[11px] font-semibold",
-                                    isDark ? "text-white/60" : "text-gray-600"
+                                    "rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums",
+                                    isDark ? "bg-white/[0.08] text-white/85" : "bg-black/[0.05] text-gray-700"
                                   )}>
-                                    ${apt.price}
+                                    {formatPrice(Number(apt.price))}
                                   </span>
                                 )}
                               </span>
