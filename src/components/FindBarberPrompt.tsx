@@ -83,7 +83,7 @@ export function FindBarberPrompt() {
               </button>
 
               <div className="flex items-center gap-3 mb-4">
-                <div className="relative h-12 w-12 rounded-2xl bg-gradient-to-br from-[#FF2D6F] to-[#0A84FF] flex items-center justify-center shadow-lg shadow-[#FF2D6F]/30">
+                <div className="relative h-12 w-12 rounded-2xl bg-gradient-to-br from-[#FF2D46] to-[#0A84FF] flex items-center justify-center shadow-lg shadow-[#FF2D46]/30">
                   <Scissors className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -101,7 +101,7 @@ export function FindBarberPrompt() {
                 <button
                   onClick={switchToClient}
                   disabled={switching}
-                  className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[#FF2D6F] to-[#0A84FF] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#FF2D6F]/30 transition hover:opacity-95 disabled:opacity-60"
+                  className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[#FF2D46] to-[#0A84FF] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#FF2D46]/30 transition hover:opacity-95 disabled:opacity-60"
                 >
                   <span className="inline-flex items-center gap-2">
                     <Search className="h-4 w-4" />

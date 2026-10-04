@@ -62,6 +62,7 @@ const Booking = lazy(() => import("./pages/Booking"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const BookingForms = lazy(() => import("./pages/BookingForms"));
 const FindBarber = lazy(() => import("./pages/FindBarber"));
+const BarberDetail = lazy(() => import("./pages/BarberDetail"));
 const FindBarbershop = lazy(() => import("./pages/FindBarbershop"));
 const Stylists = lazy(() => import("./pages/Stylists"));
 const Teams = lazy(() => import("./pages/Teams"));
@@ -159,6 +160,7 @@ function AnimatedRoutes() {
       <Route path="/choose-mode" element={<ChooseMode />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/book/:bookingLink" element={<Booking />} />
+      <Route path="/b/:slug" element={<BarberDetail />} />
       <Route path="/manage/:token" element={<ManageBooking />} />
       <Route path="/review/:token" element={<ReviewPage />} />
       <Route path="/waitlist/claim/:token" element={<WaitlistClaim />} />

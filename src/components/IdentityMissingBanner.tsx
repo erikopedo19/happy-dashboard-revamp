@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ImagePlus, User as UserIcon, ArrowRight } from "lucide-react";
+import { Alert } from "@heroui/react";
+import { ImagePlus, User as UserIcon, ArrowRight } from "lucide-react";
 
 const DISMISS_KEY = "cutzio:identity-missing-banner-dismissed-until";
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
@@ -73,41 +74,42 @@ export function IdentityMissingBanner({ missingAvatar, missingBanner, onOpenIden
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="relative overflow-hidden rounded-[22px] border border-[#E7DDFB] dark:border-white/10 bg-gradient-to-br from-white via-[#FBF9FF] to-[#F3EDFF] dark:from-[#201C28] dark:via-[#1C1C20] dark:to-[#17171A] p-4 pr-10 shadow-sm"
       >
-        <button
-          onClick={dismiss}
-          aria-label="Dismiss for 2 weeks"
-          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] dark:text-white/40 transition hover:bg-black/5 dark:hover:bg-white/10 hover:text-[#1C1C1E] dark:hover:text-white"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF375F] text-white">
-            <Icon className="h-5 w-5" strokeWidth={2.2} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-white leading-tight">{copy.title}</p>
-            <p className="mt-0.5 text-[12px] leading-snug text-[#636366] dark:text-white/55">{copy.body}</p>
-
-            <div className="mt-3 flex items-center gap-2">
-              <button
-                onClick={onOpenIdentity}
-                className="inline-flex h-9 items-center gap-1 rounded-full bg-[#1C1C1E] dark:bg-white px-3.5 text-[12px] font-semibold text-white dark:text-[#1c1c1e] active:scale-[0.98] transition"
-              >
-                Add now <ArrowRight className="h-3 w-3" />
-              </button>
-              <button
-                onClick={dismiss}
-                className="h-9 rounded-full px-3 text-[12px] font-medium text-[#8E8E93] dark:text-white/50 hover:text-[#1C1C1E] dark:hover:text-white/80 transition"
-              >
-                Not now
-              </button>
-              <span className="ml-auto text-[10px] text-[#8E8E93] dark:text-white/30">Hidden 2 weeks after dismiss</span>
-            </div>
-          </div>
-        </div>
+        <Alert
+          color="danger"
+          variant="flat"
+          isClosable
+          onClose={dismiss}
+          title={copy.title}
+          description={
+            <>
+              {copy.body}
+              <span className="mt-3 flex items-center gap-2">
+                <button
+                  onClick={onOpenIdentity}
+                  className="inline-flex h-9 items-center gap-1 rounded-full bg-[#1C1C1E] dark:bg-white px-3.5 text-[12px] font-semibold text-white dark:text-[#1c1c1e] active:scale-[0.98] transition"
+                >
+                  Add now <ArrowRight className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={dismiss}
+                  className="h-9 rounded-full px-3 text-[12px] font-medium text-[#8E8E93] dark:text-white/50 hover:text-[#1C1C1E] dark:hover:text-white/80 transition"
+                >
+                  Not now
+                </button>
+                <span className="ml-auto text-[10px] text-[#8E8E93] dark:text-white/30">Hidden 2 weeks after dismiss</span>
+              </span>
+            </>
+          }
+          icon={<Icon className="h-5 w-5" strokeWidth={2.2} />}
+          classNames={{
+            base: "rounded-[22px] border border-black/[0.05] dark:border-white/[0.08] bg-white dark:bg-[#1C1C1E] items-start py-3.5",
+            iconWrapper: "bg-[#FF2D46]/10",
+            title: "text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]",
+            description: "text-[12px] text-[#636366] dark:text-[#A1A1A6]",
+            closeButton: "text-[#8E8E93]",
+          }}
+        />
       </motion.div>
     </AnimatePresence>
   );

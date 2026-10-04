@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { X, ChevronLeft, Clock, User, ArrowRight, Check, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useNavigate } from "react-router-dom";
@@ -182,8 +182,31 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     enabled: !!user && isOpen,
     refetchInterval: isOpen ? 10000 : false,
     refetchOnWindowFocus: true,
-    staleTime: 0,
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
+
+  // Prefetch nearby days so switching dates doesn't wait on the network
+  useEffect(() => {
+    if (!user || !isOpen) return;
+    for (const offset of [-2, -1, 1, 2]) {
+      const d = new Date(selectedDateObj);
+      d.setDate(d.getDate() + offset);
+      const iso = format(d, 'yyyy-MM-dd');
+      queryClient.prefetchQuery({
+        queryKey: ['booked-slots', user.id, iso],
+        staleTime: 30_000,
+        queryFn: async () => {
+          const { data, error } = await (supabase as any).rpc('get_booked_slots', {
+            _business_id: user.id,
+            _date: iso,
+          });
+          if (error) throw error;
+          return data || [];
+        },
+      });
+    }
+  }, [user, isOpen, selectedDateObj, queryClient]);
 
   // Days the barber marked off — never bookable from anywhere
   const { data: timeOffDates = [] } = useQuery<string[]>({

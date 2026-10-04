@@ -5,42 +5,41 @@ import { haptic } from "@/lib/haptics";
 const THRESHOLD = 72;
 const MAX_PULL = 110;
 
-const SNIP_STYLE = `
-.ptr-blade-top { transform-origin: 16px 16px; animation: ptr-snip-top .34s ease-in-out infinite alternate; }
-.ptr-blade-bottom { transform-origin: 16px 16px; animation: ptr-snip-bottom .34s ease-in-out infinite alternate; }
-@keyframes ptr-snip-top { from { transform: rotate(-24deg); } to { transform: rotate(7deg); } }
-@keyframes ptr-snip-bottom { from { transform: rotate(24deg); } to { transform: rotate(-7deg); } }
-`;
+// Minimal circular pull indicator — a tiny ring that fills with pull progress
+// and spins while refreshing. No text, no pill.
+const RING_R = 7;
+const RING_C = 2 * Math.PI * RING_R;
 
-// Scissors built as two blades pivoting around the screw at (16,16), so they
-// can open proportionally to the pull and "snip" while refreshing.
-function SnipScissors({ open, snipping }: { open: number; snipping: boolean }) {
-  const still = (deg: number) =>
-    snipping ? undefined : { transform: `rotate(${deg}deg)`, transformOrigin: "16px 16px" };
+function PullDot({ progress, spinning }: { progress: number; spinning: boolean }) {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-    >
-      <g className={snipping ? "ptr-blade-top" : undefined} style={still(-open)}>
-        <line x1="16" y1="16" x2="27" y2="9" />
-        <circle cx="7" cy="21" r="3" />
-      </g>
-      <g className={snipping ? "ptr-blade-bottom" : undefined} style={still(open)}>
-        <line x1="16" y1="16" x2="27" y2="23" />
-        <circle cx="7" cy="11" r="3" />
-      </g>
-      <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none" />
-    </svg>
+    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-black/5 bg-white/90 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 18 18"
+        className={spinning ? "animate-spin" : undefined}
+        style={spinning ? undefined : { transform: `rotate(${-90 + progress * 360}deg)` }}
+      >
+        <circle cx="9" cy="9" r={RING_R} fill="none" strokeWidth="2" className="stroke-black/10 dark:stroke-white/15" />
+        <circle
+          cx="9"
+          cy="9"
+          r={RING_R}
+          fill="none"
+          strokeWidth="2"
+          strokeLinecap="round"
+          stroke={progress >= 1 || spinning ? "#FF2D46" : "currentColor"}
+          className="text-[#8E8E93]"
+          strokeDasharray={RING_C}
+          strokeDashoffset={spinning ? RING_C * 0.7 : RING_C * (1 - progress)}
+          style={spinning ? undefined : { transition: "stroke-dashoffset .08s linear, stroke .15s ease" }}
+        />
+      </svg>
+    </div>
   );
 }
 
-// Global pull-to-refresh with a scissors-snip easter egg. Capture-phase
+// Global pull-to-refresh with a minimal ring indicator. Capture-phase
 // listeners cover document and nested-scroll pages; ignore controls, overlays,
 // and pulls that begin inside a partially-scrolled container.
 export function PullToRefresh() {
@@ -48,6 +47,13 @@ export function PullToRefresh() {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const s = useRef({ tracking: false, startY: 0, pull: 0, refreshing: false });
+
+  // Rubber-band the whole page content down while pulling (native feel).
+  const setContentPull = (v: number, animated: boolean) => {
+    const body = document.body;
+    body.style.transition = animated ? "transform .32s cubic-bezier(.22,.9,.32,1)" : "none";
+    body.style.transform = v > 0.5 ? `translateY(${v}px)` : "";
+  };
 
   useEffect(() => {
     const st = s.current;
@@ -75,6 +81,7 @@ export function PullToRefresh() {
         st.tracking = false;
         st.pull = 0;
         setPull(0);
+        setContentPull(0, true);
         return;
       }
       if (e.cancelable && dy > 6) e.preventDefault();
@@ -82,6 +89,7 @@ export function PullToRefresh() {
       const next = Math.min(MAX_PULL, dy * 0.45);
       st.pull = next;
       setPull(next);
+      setContentPull(next * 0.55, false);
       if (prev < THRESHOLD && next >= THRESHOLD) haptic("medium");
     };
 
@@ -93,21 +101,23 @@ export function PullToRefresh() {
         st.pull = THRESHOLD * 0.72;
         setRefreshing(true);
         setPull(st.pull);
+        setContentPull(30, true);
         haptic("success");
         Promise.resolve(qc.invalidateQueries())
           .catch(() => {})
           .then(() => {
-            // Let the snip animation play a beat before hiding.
             window.setTimeout(() => {
               st.refreshing = false;
               st.pull = 0;
               setRefreshing(false);
               setPull(0);
+              setContentPull(0, true);
             }, 650);
           });
       } else {
         st.pull = 0;
         setPull(0);
+        setContentPull(0, true);
       }
     };
 
@@ -120,30 +130,27 @@ export function PullToRefresh() {
       window.removeEventListener("touchmove", onMove, true);
       window.removeEventListener("touchend", onEnd, true);
       window.removeEventListener("touchcancel", onEnd, true);
+      document.body.style.transition = "";
+      document.body.style.transform = "";
     };
   }, [qc]);
 
-  const shown = refreshing || pull > 0;
+  const shown = refreshing || pull > 4;
   const progress = Math.min(1, pull / THRESHOLD);
-  const top = refreshing ? 14 : Math.min(14, -56 + pull * 0.95);
+  const offset = refreshing ? 0 : Math.min(0, -40 + pull * 0.55);
 
   return (
-    <>
-      <style>{SNIP_STYLE}</style>
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-x-0 z-[85] flex justify-center"
-        style={{
-          top: "env(safe-area-inset-top, 0px)",
-          transform: `translateY(${shown ? top : -64}px)`,
-          transition: refreshing || pull === 0 ? "transform .25s ease-out" : "none",
-        }}
-      >
-        <div className="flex items-center gap-2 rounded-full border border-black/5 bg-white/95 px-4 py-2 text-[12px] font-semibold text-[#1C1C1E] shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/95 dark:text-[#F2F2F7]">
-          <SnipScissors open={18 * progress} snipping={refreshing} />
-          <span>{refreshing ? "Snip snip…" : progress >= 1 ? "Release to refresh" : "Pull to refresh"}</span>
-        </div>
-      </div>
-    </>
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-x-0 z-[85] flex justify-center"
+      style={{
+        top: "calc(env(safe-area-inset-top, 0px) + 6px)",
+        opacity: shown ? Math.min(1, pull / 20 + (refreshing ? 1 : 0)) : 0,
+        transform: `translateY(${shown ? offset : -44}px)`,
+        transition: refreshing || pull === 0 ? "transform .25s ease-out, opacity .2s ease" : "none",
+      }}
+    >
+      <PullDot progress={progress} spinning={refreshing} />
+    </div>
   );
 }

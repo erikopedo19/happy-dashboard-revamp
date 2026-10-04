@@ -24,6 +24,19 @@ export default {
 				'geist-mono': ['"Geist Mono Variable"', 'Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
 			},
 			colors: {
+				rose: {
+					50: '#FFF1F2',
+					100: '#FFE1E4',
+					200: '#FFC4CB',
+					300: '#FF97A3',
+					400: '#FF5A6E',
+					500: '#FF2D46',
+					600: '#E0152F',
+					700: '#B80F26',
+					800: '#8F1224',
+					900: '#751424',
+					950: '#430811',
+				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -130,6 +143,10 @@ export default {
 					"0%, 100%": { transform: "translate3d(0,0,0) scale(1)" },
 					"50%": { transform: "translate3d(4%, 3%, 0) scale(1.06)" },
 				},
+				"orbit": {
+					"0%": { transform: "rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg))" },
+					"100%": { transform: "rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg))" },
+				},
 			},
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
@@ -143,6 +160,7 @@ export default {
 				"aurora-sweep": "aurora-sweep 8s ease-in-out infinite",
 				"light-sweep": "light-sweep 3.2s cubic-bezier(0.4,0,0.2,1) infinite",
 				"aurora-drift": "aurora-drift 14s ease-in-out infinite",
+				"orbit": "orbit calc(var(--duration) * 1s) linear infinite",
 
 			},
 		backgroundImage: {

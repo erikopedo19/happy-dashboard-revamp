@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { usePremium } from "@/hooks/use-premium";
 
-const COLORS = ["#22c55e", "#f43f5e", "#f59e0b", "#3b82f6", "#22c55e", "#a855f7", "#ec4899"];
+const COLORS = ["#22c55e", "#FF2D46", "#f59e0b", "#3b82f6", "#22c55e", "#a855f7", "#ec4899"];
 
 export default function PricingSuccess() {
   const navigate = useNavigate();

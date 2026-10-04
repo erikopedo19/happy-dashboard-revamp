@@ -16,7 +16,7 @@ interface MoreItem {
 }
 
 const mainItems: DockItem[] = [
-  { label: 'Admin', icon: LayoutDashboard, to: '/admin', color: '#FF375F' },
+  { label: 'Admin', icon: LayoutDashboard, to: '/admin', color: '#FF2D46' },
   { label: 'Agenda', icon: Calendar, to: '/agenda', color: '#0A84FF' },
   { label: 'Reports', icon: BarChart3, to: '/reports', color: '#AF52DE' },
   { label: 'Settings', icon: Settings, to: '/settings', color: '#32ADE6' },
@@ -65,7 +65,7 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-[#f43f5e]/20 blur-[110px]"
+            className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-[#FF2D46]/20 blur-[110px]"
           />
           <motion.div
             initial={{ opacity: 0 }}
@@ -109,7 +109,7 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
                       item.isNew
                         ? 'nav-shimmer-new'
                         : isActive
-                        ? 'text-[#FF375F]'
+                        ? 'text-[#FF2D46]'
                         : 'text-white'
                     )}
                   >
@@ -169,7 +169,7 @@ export const MobileDockInner = () => {
 
   const glassItems: DockItem[] = [
     ...mainItems,
-    { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true), color: '#FF375F' },
+    { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true), color: '#FF2D46' },
   ];
 
   const moreActive = visibleMoreItems.some(

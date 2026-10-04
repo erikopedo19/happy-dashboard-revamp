@@ -48,7 +48,7 @@ const SuperAdminLogin: React.FC = () => {
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-6 relative overflow-hidden">
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#e11d48]/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#E0152F]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
       </div>
 
@@ -60,7 +60,7 @@ const SuperAdminLogin: React.FC = () => {
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10 mb-4">
-            <Shield className="w-8 h-8 text-[#e11d48]" />
+            <Shield className="w-8 h-8 text-[#E0152F]" />
           </div>
           <h1 className="text-2xl font-bold font-sora mb-1">Super Admin</h1>
           <p className="text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ const SuperAdminLogin: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Admin email"
               required
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#e11d48]/50 focus:border-[#e11d48]/50 transition-all"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#E0152F]/50 focus:border-[#E0152F]/50 transition-all"
             />
           </div>
 
@@ -89,7 +89,7 @@ const SuperAdminLogin: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#e11d48]/50 focus:border-[#e11d48]/50 transition-all"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#E0152F]/50 focus:border-[#E0152F]/50 transition-all"
             />
           </div>
 

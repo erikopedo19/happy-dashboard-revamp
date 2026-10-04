@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { X, Heart, Star, Calendar, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { haptic } from "@/lib/haptics";
+import { QuickBookSheet } from "@/components/QuickBookSheet";
 
 export interface SwipeBarber {
   id: string;
@@ -51,7 +51,7 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       {img ? (
         <img src={img} alt={barber.brandName} className="h-full w-full object-cover pointer-events-none" draggable={false} />
       ) : (
-        <div className="h-full w-full grid place-items-center bg-gradient-to-br from-[#FF375F] to-[#FF9F0A] text-white text-7xl font-bold">
+        <div className="h-full w-full grid place-items-center bg-gradient-to-br from-[#FF2D46] to-[#FF9F0A] text-white text-7xl font-bold">
           {barber.brandName.charAt(0)}
         </div>
       )}
@@ -59,7 +59,7 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       {isTop && (
         <>
           <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 -rotate-12 rounded-xl border-4 border-emerald-400 px-3 py-1 text-2xl font-black text-emerald-400">LIKE</motion.div>
-          <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 rotate-12 rounded-xl border-4 border-[#FF375F] px-3 py-1 text-2xl font-black text-[#FF375F]">NOPE</motion.div>
+          <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 rotate-12 rounded-xl border-4 border-[#FF2D46] px-3 py-1 text-2xl font-black text-[#FF2D46]">NOPE</motion.div>
         </>
       )}
       <div className="absolute bottom-0 inset-x-0 p-6 text-white">
@@ -80,11 +80,14 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
 }
 
 export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]; onClose: () => void; onLike: (id: string) => void }) {
-  const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
+  // The card still flying off screen — Book must target whoever is visible.
+  const [leaving, setLeaving] = useState<SwipeBarber | null>(null);
+  const [bookBarber, setBookBarber] = useState<SwipeBarber | null>(null);
   const visible = barbers.slice(index, index + 3);
   const current = barbers[index];
+  const onScreen = leaving ?? current;
 
   useEffect(() => {
     document.body.classList.add("stories-open");
@@ -98,7 +101,13 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
     haptic(d === 1 ? "success" : "light");
     setDir(d);
     if (d === 1) onLike(current.id);
+    const swiped = current;
+    setLeaving(swiped);
     setIndex((i) => i + 1);
+    // Clear once the exit flight (~350ms) is over.
+    window.setTimeout(() => {
+      setLeaving((s) => (s === swiped ? null : s));
+    }, 420);
   };
 
   return (
@@ -133,28 +142,52 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 grid place-items-center text-center">
             <div>
               <p className="text-xl font-semibold">You've seen everyone</p>
-              <button onClick={() => { haptic("medium"); setIndex(0); }} className="mt-4 rounded-full bg-white text-black px-6 py-3 font-semibold active:scale-95 transition">Start again</button>
+              <button onClick={() => { haptic("medium"); setLeaving(null); setIndex(0); }} className="mt-4 rounded-full bg-white text-black px-6 py-3 font-semibold active:scale-95 transition">Start again</button>
             </div>
           </motion.div>
         )}
       </div>
 
-      {current && (
-        <div className="flex items-center justify-center gap-5 pb-4">
-          <button onClick={() => swipe(-1)} aria-label="Skip" className="h-14 w-14 grid place-items-center rounded-full bg-white/10 active:scale-90 transition">
-            <X className="h-6 w-6 text-[#FF375F]" />
+      {(current || leaving) && (
+        <div className="relative z-20 flex touch-manipulation items-center justify-center gap-5 pb-4 select-none">
+          <button
+            type="button"
+            disabled={!current}
+            onClick={() => swipe(-1)}
+            aria-label="Skip"
+            className="h-14 w-14 grid place-items-center rounded-full bg-white/10 active:scale-90 transition disabled:opacity-40"
+          >
+            <X className="h-6 w-6 text-[#FF2D46]" />
           </button>
           <button
-            disabled={!current.booking_link}
-            onClick={() => { haptic("heavy"); if (current.booking_link) navigate(`/book/${current.booking_link}`); }}
+            type="button"
+            disabled={!onScreen?.booking_link}
+            onClick={() => { haptic("heavy"); if (onScreen?.booking_link) setBookBarber(onScreen); }}
             className="h-14 px-7 rounded-full bg-white text-black font-semibold flex items-center gap-2 active:scale-95 transition disabled:opacity-40"
           >
             <Calendar className="h-4 w-4" /> Book now
           </button>
-          <button onClick={() => swipe(1)} aria-label="Like" className="h-14 w-14 grid place-items-center rounded-full bg-[#FF375F] active:scale-90 transition">
+          <button
+            type="button"
+            disabled={!current}
+            onClick={() => swipe(1)}
+            aria-label="Like"
+            className="h-14 w-14 grid place-items-center rounded-full bg-[#FF2D46] active:scale-90 transition disabled:opacity-40"
+          >
             <Heart className="h-6 w-6 fill-current" />
           </button>
         </div>
+      )}
+
+      {bookBarber && (
+        <QuickBookSheet
+          open
+          onOpenChange={(o) => !o && setBookBarber(null)}
+          barberId={bookBarber.id}
+          barberName={bookBarber.brandName}
+          bookingLink={bookBarber.booking_link}
+          accentColor="#FF2D46"
+        />
       )}
     </motion.div>
   );

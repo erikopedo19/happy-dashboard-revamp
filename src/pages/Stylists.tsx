@@ -294,14 +294,14 @@ const Stylists = () => {
                   <h1 className="text-4xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
                   <p className="text-[#8E8E93] mt-1.5">Manage your team, schedules, and specialties.</p>
                 </div>
-                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#FF2D46] hover:bg-[#e0205e] text-white">
                   <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                 </Button>
               </div>
 
               <div className="flex lg:hidden items-center justify-between gap-4 mb-4">
                 <h1 className="text-2xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-4 h-9 bg-[#FF2D6F] hover:bg-[#e0205e] text-white text-sm">
+                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-4 h-9 bg-[#FF2D46] hover:bg-[#e0205e] text-white text-sm">
                   <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                 </Button>
               </div>
@@ -344,7 +344,7 @@ const Stylists = () => {
                   </div>
                   <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">No stylists yet</h3>
                   <p className="text-sm text-[#8E8E93] mt-1 mb-4">Add your first teammate to start assigning bookings.</p>
-                  <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+                  <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full bg-[#FF2D46] hover:bg-[#e0205e] text-white">
                     <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                   </Button>
                 </motion.div>
@@ -693,7 +693,7 @@ const Stylists = () => {
             <Button variant="bordered" onPress={() => setIsCreateDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
-            <Button onPress={handleCreateStylist} isDisabled={!formData.name || createStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+            <Button onPress={handleCreateStylist} isDisabled={!formData.name || createStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D46] hover:bg-[#e0205e] text-white">
               {createStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding…</> : "Add Stylist"}
             </Button>
           </SheetFooter>
@@ -756,7 +756,7 @@ const Stylists = () => {
             <Button variant="bordered" onPress={() => setIsEditDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
-            <Button onPress={handleUpdateStylist} isDisabled={!formData.name || updateStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D6F] hover:bg-[#e0205e] text-white">
+            <Button onPress={handleUpdateStylist} isDisabled={!formData.name || updateStylistMutation.isPending} className="rounded-[14px] h-12 flex-1 bg-[#FF2D46] hover:bg-[#e0205e] text-white">
               {updateStylistMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : "Update Stylist"}
             </Button>
           </SheetFooter>
@@ -811,7 +811,7 @@ function AvatarUploader({
       <div className="flex-1">
         <Label className="text-[#1C1C1E] dark:text-[#F2F2F7]">Profile photo</Label>
         <p className="text-[11px] text-[#8E8E93] mb-2">PNG or JPG, up to 5MB</p>
-        <label className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-[#FF2D6F] hover:bg-[#e0205e] text-[13px] font-medium text-white cursor-pointer transition-colors">
+        <label className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-[#FF2D46] hover:bg-[#e0205e] text-[13px] font-medium text-white cursor-pointer transition-colors">
           <input
             type="file"
             accept="image/*"

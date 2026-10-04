@@ -96,7 +96,7 @@ const Dashboard = () => {
               style={{
                 backgroundSize: "200% 200%",
                 backgroundImage:
-                  "linear-gradient(100deg, #f43f5e 0%, #a855f7 22%, #3b82f6 44%, #22c55e 66%, #f59e0b 84%, #f43f5e 100%)",
+                  "linear-gradient(100deg, #FF2D46 0%, #a855f7 22%, #3b82f6 44%, #22c55e 66%, #f59e0b 84%, #FF2D46 100%)",
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b0b0d]/60 to-[#0b0b0d]" />
@@ -286,7 +286,7 @@ function MobileDashboard() {
                   formatter={(v: number) => [`€${v}`, "Revenue"]}
                   labelFormatter={(l) => `Day ${l}`}
                 />
-                <Area type="monotone" dataKey="rev" stroke="#f43f5e" strokeWidth={2.5} fill="rgba(244,63,94,0.10)" />
+                <Area type="monotone" dataKey="rev" stroke="#FF2D46" strokeWidth={2.5} fill="rgba(244,63,94,0.10)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

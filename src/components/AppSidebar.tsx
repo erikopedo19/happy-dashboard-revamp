@@ -260,7 +260,7 @@ export function AppSidebar() {
               {user && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-[#e11d48] focus:text-[#e11d48]">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-[#E0152F] focus:text-[#E0152F]">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </DropdownMenuItem>
@@ -279,7 +279,7 @@ export function AppSidebar() {
             {user && (
               <button
                 onClick={handleSignOut}
-                className="w-full flex justify-center p-2 rounded-md text-[#e11d48] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
+                className="w-full flex justify-center p-2 rounded-md text-[#E0152F] hover:text-[#be123c] hover:bg-rose-50 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
               </button>

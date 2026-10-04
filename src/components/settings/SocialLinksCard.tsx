@@ -104,7 +104,7 @@ export function SocialLinksCard({ variant = "desktop" }: { variant?: "desktop" |
                   value={links[key]}
                   onChange={(e) => setLinks((p) => ({ ...p, [key]: e.target.value }))}
                   placeholder={placeholder}
-                  className="h-11 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                  className="h-11 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                 />
               </div>
             </div>
@@ -113,7 +113,7 @@ export function SocialLinksCard({ variant = "desktop" }: { variant?: "desktop" |
           <Button
             onClick={save}
             disabled={saving}
-            className="h-11 w-full rounded-2xl bg-[#FF375F] text-white hover:bg-[#FF375F]/90"
+            className="h-11 w-full rounded-2xl bg-[#FF2D46] text-white hover:bg-[#FF2D46]/90"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />

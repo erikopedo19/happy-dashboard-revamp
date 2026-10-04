@@ -22,7 +22,7 @@ export function SlotRail({
   slots,
   value,
   onSelect,
-  accentColor = "#FF375F",
+  accentColor = "#FF2D46",
   disabled,
   onAvailabilityChange,
 }: SlotRailProps) {
@@ -39,7 +39,7 @@ export function SlotRail({
   const selectedIndex = valueIndex >= 0 ? valueIndex : Math.max(0, firstOpenIndex);
   const previewIndex = dragIndex ?? selectedIndex;
   const activeSlot = slots[previewIndex];
-  const thumbSize = 48;
+  const thumbSize = 32;
 
   // Like an iOS picker, always rest on a real open time.
   useEffect(() => {
@@ -213,7 +213,12 @@ export function SlotRail({
                 )}
               />
               {(index === 0 || index === slots.length - 1 || index % 4 === 0) && (
-                <span className="absolute left-1/2 top-4 -translate-x-1/2 text-[9px] font-medium text-[#8E8E93] tabular-nums">
+                <span
+                  className={cn(
+                    "absolute left-1/2 top-[24px] -translate-x-1/2 text-[9px] font-medium tabular-nums transition-opacity",
+                    active ? "text-[#1C1C1E] opacity-0 dark:text-white" : "text-[#8E8E93]"
+                  )}
+                >
                   {slot.time}
                 </span>
               )}
@@ -224,10 +229,10 @@ export function SlotRail({
         <motion.div
           animate={{ x: previewIndex * step, scale: activeSlot?.available ? 1 : 0.9 }}
           transition={reduceMotion ? { duration: 0 } : spring}
-          className="absolute left-0 top-1/2 z-10 -mt-6 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white"
+          className="absolute left-0 top-1/2 z-10 -mt-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white"
           style={{ backgroundColor: activeSlot?.available ? accentColor : "#636366" }}
         >
-          <div className="h-4 w-4 rounded-full bg-white/90" />
+          <div className="h-2 w-2 rounded-full bg-white/90" />
         </motion.div>
       </div>
 
@@ -249,7 +254,7 @@ export function SlotRail({
                   ? "text-white"
                   : slot.available
                     ? "bg-black/[0.05] text-[#1C1C1E] dark:bg-white/[0.09] dark:text-[#E5E5EA]"
-                    : "bg-black/[0.02] text-[#C7C7CC] line-through dark:bg-white/[0.03] dark:text-[#48484A]"
+                    : "bg-black/[0.02] text-[#C7C7CC] dark:bg-white/[0.03] dark:text-[#48484A]"
               )}
               style={active ? { backgroundColor: accentColor } : undefined}
             >

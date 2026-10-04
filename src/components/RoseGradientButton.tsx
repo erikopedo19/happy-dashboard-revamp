@@ -39,7 +39,7 @@ export const RoseGradientButton = React.forwardRef<HTMLButtonElement, RoseGradie
             "flex h-full w-full items-center justify-center text-white",
             innerRadius,
             innerPad,
-            "bg-gradient-to-t from-[#be123c] to-[#fb7185]"
+            "bg-gradient-to-t from-[#be123c] to-[#FF5A6E]"
           )}
         >
           {children}

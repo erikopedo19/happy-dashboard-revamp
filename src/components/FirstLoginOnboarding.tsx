@@ -306,9 +306,9 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
 
   return (
     <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col overflow-hidden bg-[#09090B] text-white">
-      <header className={cn("mx-auto w-full px-5 pb-3 pt-[max(env(safe-area-inset-top),1.25rem)]", step === 2 ? "max-w-6xl" : "max-w-lg")}>
+      <header className={cn("mx-auto w-full px-5 pb-3 pt-5", step === 2 ? "max-w-6xl" : "max-w-lg")}>
         <div className="flex items-center justify-between">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[15px] bg-[#FF375F]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[15px] bg-[#FF2D46]">
             <Icon className="h-5 w-5" />
           </div>
           <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">
@@ -317,7 +317,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
         </div>
         <div className="mt-4 flex gap-1.5">
           {STEPS.map((item, index) => (
-            <div key={item.title} className={cn("h-1 flex-1 rounded-full", index <= step ? "bg-[#FF375F]" : "bg-white/10")} />
+            <div key={item.title} className={cn("h-1 flex-1 rounded-full", index <= step ? "bg-[#FF2D46]" : "bg-white/10")} />
           ))}
         </div>
       </header>
@@ -398,7 +398,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                       value={bio}
                       onChange={(event) => setBio(event.target.value)}
                       placeholder="Add your bio here"
-                      className="min-h-[120px] w-full rounded-[18px] border-0 bg-[#2C2C2E] px-4 py-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/25 focus:ring-2 focus:ring-[#FF375F] [color-scheme:dark] resize-none"
+                      className="min-h-[120px] w-full rounded-[18px] border-0 bg-[#2C2C2E] px-4 py-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/25 focus:ring-2 focus:ring-[#FF2D46] [color-scheme:dark] resize-none"
                     />
                   </div>
                 </div>
@@ -520,7 +520,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                       onClick={() => toggleDay(day.value)}
                       className={cn(
                         "flex aspect-square items-center justify-center rounded-full text-[12px] font-bold transition-all active:scale-90",
-                        workingDays.includes(day.value) ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-white/35"
+                        workingDays.includes(day.value) ? "bg-[#FF2D46] text-white" : "bg-[#2C2C2E] text-white/35"
                       )}
                     >
                       {day.label}
@@ -569,7 +569,7 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
 
       <footer className="mx-auto flex w-full max-w-lg gap-3 border-t border-white/[0.06] bg-[#09090B] px-5 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4">
         {step > 0 && <button type="button" onClick={() => setStep((current) => current - 1)} className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#1C1C1E] text-white"><ArrowLeft className="h-5 w-5" /></button>}
-        <button type="button" onClick={next} disabled={!canContinue || saving} className="flex h-14 flex-1 items-center justify-center gap-2 rounded-[20px] bg-[#FF375F] text-[15px] font-bold text-white transition active:scale-[0.98] disabled:opacity-40">
+        <button type="button" onClick={next} disabled={!canContinue || saving} className="flex h-14 flex-1 items-center justify-center gap-2 rounded-[20px] bg-[#FF2D46] text-[15px] font-bold text-white transition active:scale-[0.98] disabled:opacity-40">
           {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : step === STEPS.length - 1 ? <><Check className="h-5 w-5" /> Finish setup</> : <>Continue <ArrowRight className="h-5 w-5" /></>}
         </button>
       </footer>
@@ -578,11 +578,11 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
 }
 
 function Choice({ active, title, detail, onClick }: { active: boolean; title: string; detail: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className={cn("flex min-h-20 items-center gap-4 rounded-[24px] p-4 text-left", active ? "bg-[#FF375F]" : "bg-[#1C1C1E]")}><div className={cn("flex h-7 w-7 items-center justify-center rounded-full", active ? "bg-white text-[#FF375F]" : "bg-[#2C2C2E] text-transparent")}><Check className="h-4 w-4" /></div><div><p className="text-[16px] font-bold">{title}</p><p className={cn("mt-0.5 text-[11px]", active ? "text-white/75" : "text-white/40")}>{detail}</p></div></button>;
+  return <button type="button" onClick={onClick} className={cn("flex min-h-20 items-center gap-4 rounded-[24px] p-4 text-left", active ? "bg-[#FF2D46]" : "bg-[#1C1C1E]")}><div className={cn("flex h-7 w-7 items-center justify-center rounded-full", active ? "bg-white text-[#FF2D46]" : "bg-[#2C2C2E] text-transparent")}><Check className="h-4 w-4" /></div><div><p className="text-[16px] font-bold">{title}</p><p className={cn("mt-0.5 text-[11px]", active ? "text-white/75" : "text-white/40")}>{detail}</p></div></button>;
 }
 
 function FeatureCard({ icon: Icon, title, detail, checked, onChange }: { icon: typeof BellRing; title: string; detail: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return <button type="button" onClick={() => onChange(!checked)} className={cn("rounded-[26px] p-4 text-left", checked ? "bg-[#24141A] ring-1 ring-[#FF375F]/40" : "bg-[#1C1C1E]")}><div className="flex items-start gap-3"><div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px]", checked ? "bg-[#FF375F]" : "bg-[#2C2C2E]")}><Icon className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><p className="text-[15px] font-bold">{title}</p><div className={cn("h-7 w-12 rounded-full p-1", checked ? "bg-[#FF375F]" : "bg-[#3A3A3C]")}><div className={cn("h-5 w-5 rounded-full bg-white transition-transform", checked && "translate-x-5")} /></div></div><p className="mt-1 text-[11px] leading-4 text-white/40">{detail}</p></div></div></button>;
+  return <button type="button" onClick={() => onChange(!checked)} className={cn("rounded-[26px] p-4 text-left", checked ? "bg-[#24141A] ring-1 ring-[#FF2D46]/40" : "bg-[#1C1C1E]")}><div className="flex items-start gap-3"><div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px]", checked ? "bg-[#FF2D46]" : "bg-[#2C2C2E]")}><Icon className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><p className="text-[15px] font-bold">{title}</p><div className={cn("h-7 w-12 rounded-full p-1", checked ? "bg-[#FF2D46]" : "bg-[#3A3A3C]")}><div className={cn("h-5 w-5 rounded-full bg-white transition-transform", checked && "translate-x-5")} /></div></div><p className="mt-1 text-[11px] leading-4 text-white/40">{detail}</p></div></div></button>;
 }
 
 function FieldLabel({ children }: { children: ReactNode }) {
@@ -590,5 +590,5 @@ function FieldLabel({ children }: { children: ReactNode }) {
 }
 
 function DarkInput({ value, onChange, placeholder, type = "text" }: { value: string; onChange: (value: string) => void; placeholder?: string; type?: string }) {
-  return <input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="h-14 w-full rounded-[18px] border-0 bg-[#2C2C2E] px-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/25 focus:ring-2 focus:ring-[#FF375F] [color-scheme:dark]" />;
+  return <input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="h-14 w-full rounded-[18px] border-0 bg-[#2C2C2E] px-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/25 focus:ring-2 focus:ring-[#FF2D46] [color-scheme:dark]" />;
 }

@@ -107,7 +107,7 @@ const Microsite = () => {
     setDarkPref(next);
     localStorage.setItem("ms-dark", next ? "1" : "0");
   };
-  const accent = data?.profile?.brand_color || "#e11d48";
+  const accent = data?.profile?.brand_color || "#E0152F";
   const t = useMemo(() => buildTokens(themeId, accent), [themeId, accent]);
 
   const cssVars = useMemo(() => ({

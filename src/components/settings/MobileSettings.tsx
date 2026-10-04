@@ -197,7 +197,7 @@ export function MobileSettings(props: any) {
 
   return (
     <div className="min-h-[100dvh] w-full bg-[#F2F2F7] dark:bg-[#0A0A0C] text-[#1C1C1E] dark:text-white relative overflow-x-hidden touch-pan-y pb-[max(7rem,env(safe-area-inset-bottom))]">
-      <header className="relative z-10 px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
+      <header className="relative z-10 px-5 pt-4 pb-3">
         <div className="flex h-11 items-center justify-center">
           <h1 className="text-[17px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white">Settings</h1>
         </div>
@@ -276,16 +276,18 @@ export function MobileSettings(props: any) {
 
       {/* Grouped lists */}
       <section className="relative z-10 px-5 mt-5 pb-32 space-y-5">
-        <IdentityMissingBanner
-          missingAvatar={!brandForm.avatar_url}
-          missingBanner={!brandForm.banner_url}
-          onOpenIdentity={() => setPanel("profile")}
-        />
+        {!isLoading && (
+          <IdentityMissingBanner
+            missingAvatar={!brandForm.avatar_url}
+            missingBanner={!brandForm.banner_url}
+            onOpenIdentity={() => setPanel("profile")}
+          />
+        )}
         <BookingStreakCard />
         <Group label="Business">
           <Row
             icon={User}
-            tint="#e11d48"
+            tint="#E0152F"
             label="Manage profile"
             value={
               [
@@ -467,7 +469,7 @@ export function MobileSettings(props: any) {
                           value={profileForm.full_name}
                           onChange={(e) => setProfileForm((p: any) => ({ ...p, full_name: e.target.value }))}
                           placeholder="Your full name"
-                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                         />
                       </Field>
                       <Field label="Personal phone">
@@ -475,7 +477,7 @@ export function MobileSettings(props: any) {
                           value={profileForm.phone}
                           onChange={(e) => setProfileForm((p: any) => ({ ...p, phone: e.target.value }))}
                           placeholder="+1 555 123 4567"
-                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                         />
                       </Field>
                     </div>
@@ -506,7 +508,7 @@ export function MobileSettings(props: any) {
                           value={brandForm.name}
                           onChange={(e) => setBrandForm((p: any) => ({ ...p, name: e.target.value }))}
                           placeholder="Cutzio Studio"
-                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                         />
                       </Field>
                       <Field label="Public phone">
@@ -514,7 +516,7 @@ export function MobileSettings(props: any) {
                           value={brandForm.contact_phone}
                           onChange={(e) => setBrandForm((p: any) => ({ ...p, contact_phone: e.target.value }))}
                           placeholder="+1 555 987 6543"
-                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                         />
                       </Field>
                       <div className="grid grid-cols-2 gap-3">
@@ -523,7 +525,7 @@ export function MobileSettings(props: any) {
                             value={brandForm.city}
                             onChange={(e) => setBrandForm((p: any) => ({ ...p, city: e.target.value }))}
                             placeholder="New York"
-                            className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                            className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                           />
                         </Field>
                         <Field label="Years exp">
@@ -532,7 +534,7 @@ export function MobileSettings(props: any) {
                             value={brandForm.years_experience ?? ""}
                             onChange={(e) => setBrandForm((p: any) => ({ ...p, years_experience: e.target.value ? parseInt(e.target.value, 10) : undefined }))}
                             placeholder="7"
-                            className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                            className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                           />
                         </Field>
                       </div>
@@ -541,7 +543,7 @@ export function MobileSettings(props: any) {
                           value={brandForm.location}
                           onChange={(e) => setBrandForm((p: any) => ({ ...p, location: e.target.value }))}
                           placeholder="123 Main Street"
-                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF375F]"
+                          className="h-12 rounded-2xl border-0 bg-[#2C2C2E] text-white placeholder:text-[#8E8E93] focus-visible:ring-[#FF2D46]"
                         />
                       </Field>
                       <Field label="About">
@@ -551,7 +553,7 @@ export function MobileSettings(props: any) {
                           rows={4}
                           maxLength={400}
                           placeholder="Tell clients about your style..."
-                          className="w-full resize-none rounded-2xl border-0 bg-[#2C2C2E] p-3 text-[14px] text-white outline-none placeholder:text-[#8E8E93] focus:ring-2 focus:ring-[#FF375F]"
+                          className="w-full resize-none rounded-2xl border-0 bg-[#2C2C2E] p-3 text-[14px] text-white outline-none placeholder:text-[#8E8E93] focus:ring-2 focus:ring-[#FF2D46]"
                         />
                       </Field>
                     </div>
@@ -562,7 +564,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF375F] text-[14px] font-semibold text-white disabled:opacity-60"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#FF2D46] text-[14px] font-semibold text-white disabled:opacity-60"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -593,7 +595,7 @@ export function MobileSettings(props: any) {
                         onChange={(e) =>
                           setAgendaForm((p: any) => ({ ...p, start_hour: e.target.value }))
                         }
-                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-[#FF375F]"
+                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-[#FF2D46]"
                       />
                       <p className="text-[11px] text-white/40 text-center mt-1.5">Opens</p>
                     </div>
@@ -605,7 +607,7 @@ export function MobileSettings(props: any) {
                         onChange={(e) =>
                           setAgendaForm((p: any) => ({ ...p, end_hour: e.target.value }))
                         }
-                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-[#FF375F]"
+                        className="w-full h-14 rounded-2xl bg-white/[0.06] border border-white/10 text-white text-center text-lg font-semibold outline-none focus:border-[#FF2D46]"
                       />
                       <p className="text-[11px] text-white/40 text-center mt-1.5">Closes</p>
                     </div>
@@ -670,7 +672,7 @@ export function MobileSettings(props: any) {
                         className={cn(
                           "h-11 rounded-2xl text-[13px] font-semibold border transition",
                           agendaForm.service_duration === d
-                            ? "bg-[#FF375F] text-white border-[#FF375F]"
+                            ? "bg-[#FF2D46] text-white border-[#FF2D46]"
                             : "bg-white/[0.04] text-white/70 border-white/10"
                         )}
                       >
@@ -705,7 +707,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending || !hasValidHours || agendaForm.working_days.length === 0}
-                  className="w-full h-14 rounded-full bg-gradient-to-r from-[#FF375F] to-[#E11D48] text-white text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(139,92,246,0.25)] flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full h-14 rounded-full bg-gradient-to-r from-[#FF2D46] to-[#E0152F] text-white text-[15px] font-semibold shadow-[0_12px_28px_-8px_rgba(139,92,246,0.25)] flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -770,7 +772,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-[20px] bg-[#FF375F] text-[14px] font-semibold text-white disabled:opacity-60"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-[20px] bg-[#FF2D46] text-[14px] font-semibold text-white disabled:opacity-60"
                 >
                   {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save alert settings
@@ -899,7 +901,7 @@ export function MobileSettings(props: any) {
                     rows={4}
                     maxLength={400}
                     placeholder="Tell clients about your style..."
-                    className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-[#FF375F]/40"
+                    className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-[#FF2D46]/40"
                   />
                 </Field>
                 <ListCard>
@@ -917,7 +919,7 @@ export function MobileSettings(props: any) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#FF375F] to-[#E11D48] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#FF2D46] to-[#E0152F] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {saveMutation.isPending ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -1065,7 +1067,7 @@ function Row({
         </span>
       ) : (
         <span
-          className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-white/10", danger ? "bg-[#E5484D]" : "bg-[#FF375F]")}
+          className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-white/10", danger ? "bg-[#E5484D]" : "bg-[#FF2D46]")}
         >
           <Icon className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
         </span>
@@ -1125,7 +1127,7 @@ function Sheet({
           <button
             onClick={onClose}
             aria-label="Back"
-            className="absolute left-1 bottom-1.5 h-10 pl-1 pr-3 flex items-center gap-0.5 text-[#FF375F] text-[17px] active:opacity-50 transition-opacity"
+            className="absolute left-1 bottom-1.5 h-10 pl-1 pr-3 flex items-center gap-0.5 text-[#FF2D46] text-[17px] active:opacity-50 transition-opacity"
           >
             <ChevronLeft className="h-7 w-7 -ml-1" strokeWidth={2.4} />
             <span>Back</span>
@@ -1186,7 +1188,7 @@ function ToggleRow({
   return (
     <div className={cn("flex items-center gap-3 px-4 py-3.5", isLast && "")}>
       {Icon && (
-        <span className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-white/10 bg-[#FF375F]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-white/10 bg-[#FF2D46]">
           <Icon className="h-4 w-4 text-white" strokeWidth={2.2} />
         </span>
       )}
@@ -1236,7 +1238,7 @@ function ModeRow() {
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3.5">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#FF375F] text-white">
+        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#FF2D46] text-white">
           <Scissors className="h-4 w-4" />
         </div>
         <div>
@@ -1372,7 +1374,7 @@ function CustomDayHoursEditor({
                   onChange={(e) =>
                     setHours((p) => ({ ...p, [d]: { open: e.target.value, close } }))
                   }
-                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-[#FF375F]"
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-[#FF2D46]"
                 />
                 <span className="text-white/40 text-[12px]">–</span>
                 <input
@@ -1381,7 +1383,7 @@ function CustomDayHoursEditor({
                   onChange={(e) =>
                     setHours((p) => ({ ...p, [d]: { open, close: e.target.value } }))
                   }
-                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-[#FF375F]"
+                  className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/10 text-white text-center text-[14px] font-semibold outline-none focus:border-[#FF2D46]"
                 />
               </div>
             );

@@ -319,7 +319,7 @@ const Teams = () => {
     { value: "bg-purple-500", label: "Purple", dot: "#AF52DE" },
     { value: "bg-green-500", label: "Green", dot: "#34C759" },
     { value: "bg-orange-500", label: "Orange", dot: "#FF9500" },
-    { value: "bg-pink-500", label: "Pink", dot: "#e11d48" },
+    { value: "bg-pink-500", label: "Pink", dot: "#E0152F" },
     { value: "bg-indigo-500", label: "Indigo", dot: "#5856D6" },
   ];
 
@@ -389,7 +389,7 @@ const Teams = () => {
                 </p>
                 <Button
                   onPress={() => setIsCreateDialogOpen(true)}
-                  className="mt-6 h-10 rounded-full bg-[#e11d48] hover:bg-[#e11d48]/90 text-white px-5"
+                  className="mt-6 h-10 rounded-full bg-[#E0152F] hover:bg-[#E0152F]/90 text-white px-5"
                 >
                   <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
                   Create your first team

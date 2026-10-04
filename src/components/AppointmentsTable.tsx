@@ -104,7 +104,7 @@ export function AppointmentsTable() {
                             status === "completed"
                                 ? "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
                                 : status === "cancelled"
-                                  ? "bg-[#e11d48]/10 text-[#e11d48] hover:bg-[#e11d48]/20"
+                                  ? "bg-[#E0152F]/10 text-[#E0152F] hover:bg-[#E0152F]/20"
                                   : status === "pending"
                                     ? "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
                                     : status === "confirmed"
@@ -160,7 +160,7 @@ export function AppointmentsTable() {
                                             <DropdownMenuItem className="focus:bg-muted focus:text-foreground">View details</DropdownMenuItem>
                                             <DropdownMenuItem className="focus:bg-muted focus:text-foreground">Edit appointment</DropdownMenuItem>
                                             <DropdownMenuSeparator className="bg-border" />
-                                            <DropdownMenuItem className="text-[#e11d48] focus:bg-[#e11d48]/10 focus:text-[#e11d48]">Cancel appointment</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-[#E0152F] focus:bg-[#E0152F]/10 focus:text-[#E0152F]">Cancel appointment</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>

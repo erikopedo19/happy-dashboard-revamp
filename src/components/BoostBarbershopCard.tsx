@@ -135,7 +135,7 @@ export function BoostBarbershopCard() {
           <Button
             onClick={startBoost}
             disabled={loading || claiming}
-            className="mt-4 h-12 w-full rounded-2xl bg-[#FF375F] text-white text-[15px] font-semibold hover:bg-[#FF4E71] active:scale-[0.98] transition-transform border-0 shadow-none disabled:opacity-50"
+            className="mt-4 h-12 w-full rounded-2xl bg-[#FF2D46] text-white text-[15px] font-semibold hover:bg-[#FF4E71] active:scale-[0.98] transition-transform border-0 shadow-none disabled:opacity-50"
           >
             {loading || claiming ? (
               <Loader2 className="h-4 w-4 animate-spin" />

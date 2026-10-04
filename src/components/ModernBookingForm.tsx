@@ -138,7 +138,7 @@ const ModernBookingForm = ({
     { name: "Purple", value: "#a855f7" },
     { name: "Fuchsia", value: "#d946ef" },
     { name: "Pink", value: "#ec4899" },
-    { name: "Rose", value: "#f43f5e" },
+    { name: "Rose", value: "#FF2D46" },
   ];
 
   // Theme-aware color classes
@@ -268,7 +268,7 @@ const ModernBookingForm = ({
     return (
       <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="w-20 h-20 rounded-full bg-[#e11d48] flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 rounded-full bg-[#E0152F] flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
@@ -310,7 +310,7 @@ const ModernBookingForm = ({
           </div>
           <Button
             onClick={() => window.location.reload()}
-            className="bg-[#e11d48] hover:bg-[#be123c] text-white px-8 py-3 rounded-xl font-semibold"
+            className="bg-[#E0152F] hover:bg-[#be123c] text-white px-8 py-3 rounded-xl font-semibold"
           >
             Νέα Κράτηση
           </Button>

@@ -378,7 +378,7 @@ export const ModernAppointmentsCalendar = ({
       'bg-indigo-50': '#6366f1', 'bg-indigo-500': '#6366f1',
       'bg-green-50': '#22c55e', 'bg-green-500': '#22c55e',
       'bg-cyan-50': '#06b6d4', 'bg-cyan-500': '#06b6d4',
-      'bg-rose-50': '#f43f5e', 'bg-rose-500': '#f43f5e',
+      'bg-rose-50': '#FF2D46', 'bg-rose-500': '#FF2D46',
     };
     return colorMap[service.color] || '#6b7280';
   };
@@ -924,7 +924,7 @@ export const ModernAppointmentsCalendar = ({
                     key={day.toISOString()}
                     className={cn(
                       "h-[56px] flex flex-col justify-center items-center border-b border-r border-white/[0.08] last:border-r-0 bg-[#15151A]",
-                      today && "bg-[#FF375F]/10"
+                      today && "bg-[#FF2D46]/10"
                     )}
                   >
                     <div className="text-[15px] font-semibold text-white leading-none">
@@ -933,7 +933,7 @@ export const ModernAppointmentsCalendar = ({
                     <div className="text-[10px] font-medium uppercase text-white/50 mt-1">
                       {format(day, 'EEE')}
                     </div>
-                    {today && <div className="w-1 h-1 rounded-full bg-[#FF375F] mt-1" />}
+                    {today && <div className="w-1 h-1 rounded-full bg-[#FF2D46] mt-1" />}
                   </div>
                 );
               })}
@@ -975,7 +975,7 @@ export const ModernAppointmentsCalendar = ({
                       key={`${day.toISOString()}-${time}`}
                       className={cn(
                         "h-[80px] border-r border-b border-white/[0.06] last:border-r-0 p-1.5 group relative",
-                        isCurrentHour && "bg-[#FF375F]/5",
+                        isCurrentHour && "bg-[#FF2D46]/5",
                         isPastSlot && "bg-white/[0.02]",
                         !isCurrentHour && !isPastSlot && "hover:bg-white/[0.03]"
                       )}
@@ -991,7 +991,7 @@ export const ModernAppointmentsCalendar = ({
                         }
                       }}
                     >
-                      {isCurrentHour && <div className="absolute top-0 left-0 right-0 h-[1px] bg-[#FF375F]/40 z-10" />}
+                      {isCurrentHour && <div className="absolute top-0 left-0 right-0 h-[1px] bg-[#FF2D46]/40 z-10" />}
 
                       {isBreak ? (
                         // Break slot
@@ -1106,7 +1106,7 @@ export const ModernAppointmentsCalendar = ({
                   <Edit3 className="h-4 w-4 mr-2" />
                   Reschedule
                 </Button>
-                <Button variant="destructive" className="flex-1 bg-[#e11d48]/90 hover:bg-[#e11d48]/80 border border-[#fda4af]" onClick={handleDelete}>
+                <Button variant="destructive" className="flex-1 bg-[#E0152F]/90 hover:bg-[#E0152F]/80 border border-[#fda4af]" onClick={handleDelete}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
@@ -1189,8 +1189,8 @@ export const ModernAppointmentsCalendar = ({
 
             <div className="p-3 bg-white/60 rounded-lg border border-[#fda4af] backdrop-blur-sm relative overflow-hidden">
               {/* Subtle colored background */}
-              <div className="absolute inset-0 opacity-5 bg-[#e11d48]" />
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#e11d48]" />
+              <div className="absolute inset-0 opacity-5 bg-[#E0152F]" />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#E0152F]" />
               <p className="font-medium text-sm text-gray-800 relative z-10">{selectedAppointment.service.name}</p>
               <p className="text-xs text-gray-500 relative z-10">{selectedAppointment.customer.name}</p>
               <p className="text-xs text-gray-500 relative z-10">
@@ -1203,7 +1203,7 @@ export const ModernAppointmentsCalendar = ({
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="border-gray-200 hover:bg-white/60 hover:border-gray-300 text-gray-700">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete} className="bg-[#e11d48]/90 hover:bg-[#e11d48]/80 border border-[#fda4af]">
+            <Button variant="destructive" onClick={handleConfirmDelete} className="bg-[#E0152F]/90 hover:bg-[#E0152F]/80 border border-[#fda4af]">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Appointment
             </Button>
@@ -1412,7 +1412,7 @@ export const ModernAppointmentsCalendar = ({
                     setSelectedAppointment(apt);
                     setShowDeleteDialog(true);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-rose-50 text-[#e11d48] hover:bg-rose-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-rose-50 text-[#E0152F] hover:bg-rose-100 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Cancel

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays, isSameDay, startOfDay } from "date-fns";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SlotRail } from "@/components/SlotRail";
 import { haptic } from "@/lib/haptics";
+import { fireBookingConfetti } from "@/lib/confetti";
 
 interface QuickBookSheetProps {
   open: boolean;
@@ -24,6 +25,10 @@ interface QuickBookSheetProps {
   barberName: string;
   bookingLink?: string | null;
   accentColor?: string;
+  /** Pre-seed the picker (e.g. from a barber detail page). */
+  initialDate?: Date;
+  initialTime?: string;
+  initialServiceId?: string;
 }
 
 type Step = "pick" | "details" | "success";
@@ -50,7 +55,10 @@ export function QuickBookSheet({
   onOpenChange,
   barberId,
   barberName,
-  accentColor = "#e11d48",
+  accentColor = "#E0152F",
+  initialDate,
+  initialTime,
+  initialServiceId,
 }: QuickBookSheetProps) {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -71,11 +79,13 @@ export function QuickBookSheet({
   useEffect(() => {
     if (open) {
       setStep("pick");
-      setTime("");
-      setDate(new Date());
+      setTime(initialTime || "");
+      setDate(initialDate || new Date());
+      if (initialServiceId) setServiceId(initialServiceId);
       setConfirmedTime(null);
       submitLockRef.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const { data: services = [], isLoading: servicesLoading } = useQuery<Service[]>({
@@ -118,19 +128,22 @@ export function QuickBookSheet({
     },
   });
 
+  const fetchBooked = useCallback(async (d: Date) => {
+    const { data } = await (supabase as any).rpc("get_booked_slots", {
+      _business_id: barberId,
+      _date: format(d, "yyyy-MM-dd"),
+    });
+    return data || [];
+  }, [barberId]);
+
   const { data: booked = [] } = useQuery<BookedSlotLike[]>({
     queryKey: ["quickbook-booked", barberId, format(date, "yyyy-MM-dd")],
     enabled: open && !!barberId,
     refetchInterval: open ? 10000 : false,
     refetchOnWindowFocus: true,
-    staleTime: 0,
-    queryFn: async () => {
-      const { data } = await (supabase as any).rpc("get_booked_slots", {
-        _business_id: barberId,
-        _date: format(date, "yyyy-MM-dd"),
-      });
-      return data || [];
-    },
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+    queryFn: () => fetchBooked(date),
   });
 
   // Realtime sync with barber's agenda + bookings
@@ -181,6 +194,18 @@ const businessTz = settings?.timezone || getBrowserTimezone();
     }
     return out;
   }, [workingDays, timeOffSet]);
+
+  // Prefetch booked slots for every visible day so switching is instant
+  useEffect(() => {
+    if (!open || !barberId) return;
+    nextDays.forEach((d) => {
+      qc.prefetchQuery({
+        queryKey: ["quickbook-booked", barberId, format(d, "yyyy-MM-dd")],
+        staleTime: 30_000,
+        queryFn: () => fetchBooked(d),
+      });
+    });
+  }, [open, barberId, nextDays, fetchBooked, qc]);
 
   const availableSlots = useMemo(() => {
     if (!selectedService || !settings) return [];
@@ -234,6 +259,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       setConfirmedTime({ date, time });
       setStep("success");
       haptic("success");
+      fireBookingConfetti();
       qc.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
@@ -262,7 +288,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       <SheetContent
         side="bottom"
         hideClose
-        className="rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5] dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
+        className="z-[90] rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5] dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
       >
         {/* Grabber */}
         <div className="pt-3 pb-1 flex justify-center shrink-0">
@@ -379,7 +405,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                           <CalendarIcon className="w-4 h-4 text-[#1C1C1E] dark:text-[#F2F2F7]" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-2xl" align="end">
+                      <PopoverContent className="z-[95] w-auto p-0 rounded-2xl" align="end">
                         <CalendarPicker
                           mode="single"
                           selected={date}

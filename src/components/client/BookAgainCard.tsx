@@ -135,7 +135,7 @@ export function BookAgainCard({ booking }: { booking?: BookingLike | null }) {
     },
   });
 
-  const accent = context?.brand_color || "#e11d48";
+  const accent = context?.brand_color || "#E0152F";
   const canBook = useMemo(
     () => !!context?.success && !!nextOpening && !!context.customer_name && !!context.customer_email,
     [context, nextOpening]

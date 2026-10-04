@@ -66,7 +66,7 @@ export async function generateBookingFlyer(
 
   // Red-orange gradient wave in the top-left corner
   const grad = ctx.createLinearGradient(0, 0, 440, 440);
-  grad.addColorStop(0, "#FF2D6F");
+  grad.addColorStop(0, "#FF2D46");
   grad.addColorStop(0.45, "#FF6B00");
   grad.addColorStop(1, "rgba(255, 45, 111, 0)");
   ctx.fillStyle = grad;

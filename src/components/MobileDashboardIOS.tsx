@@ -80,7 +80,7 @@ const EMPTY_METRICS: DashboardMetrics = {
   top_services: [],
 };
 
-const ACCENT = "#FF375F";
+const ACCENT = "#FF2D46";
 const GOAL_KEY = "cutzio:daily-goal";
 
 // Section reveal — staggered like a native iOS push-in
@@ -276,7 +276,7 @@ export function MobileDashboardIOS() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-black text-white">
-      <header className="shrink-0 px-5 pb-2 pt-[max(env(safe-area-inset-top),1.25rem)]">
+      <header className="shrink-0 px-5 pb-2 pt-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#8E8E93]">{format(new Date(), "EEEE, MMM d")}</p>
           <div className="flex shrink-0 items-center gap-2">
@@ -314,7 +314,7 @@ export function MobileDashboardIOS() {
               className="relative w-full overflow-hidden rounded-[30px] p-6 text-left"
               style={{ background: "linear-gradient(160deg, #4A1228 0%, #25101A 55%, #121214 100%)" }}
             >
-              <div aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-[#FF375F]/25 blur-3xl" />
+              <div aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-[#FF2D46]/25 blur-3xl" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">Next appointment in</p>
               <RollingText
                 text={formatIn(upNextStart - nowMinutes).replace(/^in /, "")}
@@ -363,8 +363,8 @@ export function MobileDashboardIOS() {
                   type="button"
                   onClick={() => markDone(upNext.id)}
                   disabled={completing === upNext.id}
-                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-[16px] text-[14px] font-semibold text-white active:scale-[0.98] transition disabled:opacity-60 shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35),0_12px_26px_rgba(255,55,95,0.35)]"
-                  style={{ background: "linear-gradient(180deg,#FF5C7C 0%,#FF375F 55%,#E11D48 100%)" }}
+                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-[16px] text-[14px] font-semibold text-white active:scale-[0.98] transition disabled:opacity-60 shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35),0_12px_26px_rgba(255, 45, 70,0.35)]"
+                  style={{ background: "linear-gradient(180deg,#FF5A6E 0%,#FF2D46 55%,#E0152F 100%)" }}
                 >
                   {completing === upNext.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   Mark done
@@ -409,7 +409,7 @@ export function MobileDashboardIOS() {
             onClick={turnOnAlerts}
             className="flex w-full items-center gap-3 rounded-[24px] bg-[#1C1C1E] p-4 text-left active:bg-[#2C2C2E] transition"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#FF375F]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#FF2D46]">
               <BellRing className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
@@ -471,7 +471,7 @@ export function MobileDashboardIOS() {
               }}
             >
               <div className="flex items-center gap-2 rounded-[22px] bg-[#1C1C1E] p-2 pl-4">
-                <Target className="h-4 w-4 shrink-0 text-[#FB7185]" />
+                <Target className="h-4 w-4 shrink-0 text-[#FF5A6E]" />
                 <input
                   name="goal"
                   type="number"
@@ -481,7 +481,7 @@ export function MobileDashboardIOS() {
                   autoFocus
                   className="min-w-0 flex-1 bg-transparent text-[16px] font-semibold text-white outline-none"
                 />
-                <button type="submit" className="h-10 rounded-[14px] bg-[#FF375F] px-4 text-[13px] font-semibold">Save</button>
+                <button type="submit" className="h-10 rounded-[14px] bg-[#FF2D46] px-4 text-[13px] font-semibold">Save</button>
               </div>
             </motion.form>
           )}
@@ -511,7 +511,7 @@ export function MobileDashboardIOS() {
                     <div
                       className={cn(
                         "flex h-11 w-14 shrink-0 items-center justify-center rounded-[14px] text-[13px] font-bold tabular-nums",
-                        isNext ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-white/85"
+                        isNext ? "bg-[#FF2D46] text-white" : "bg-[#2C2C2E] text-white/85"
                       )}
                     >
                       {appointment.appointment_time.slice(0, 5)}
@@ -547,7 +547,7 @@ export function MobileDashboardIOS() {
               return (
                 <button key={day.date} type="button" onClick={() => navigate("/agenda")} className="flex min-w-0 flex-col items-center gap-2">
                   <span className="text-[10px] font-semibold text-[#8E8E93]">{format(date, "EEEEE")}</span>
-                  <span className={cn("flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold", active ? "bg-[#FF375F] text-white" : "bg-[#2C2C2E] text-[#F2F2F7]")}>
+                  <span className={cn("flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold", active ? "bg-[#FF2D46] text-white" : "bg-[#2C2C2E] text-[#F2F2F7]")}>
                     {format(date, "d")}
                   </span>
                   <span className={cn("text-[11px] font-bold", day.bookings ? "text-white" : "text-[#636366]")}>{day.bookings}</span>
@@ -606,7 +606,7 @@ function WeekBars({ week, today, onOpen }: { week: Array<{ date: string; booking
               initial={{ height: 4 }}
               animate={{ height: h }}
               transition={{ delay: 0.1 + i * 0.04, type: "spring", stiffness: 260, damping: 26 }}
-              className={cn("w-full rounded-full", active ? "bg-[#FF375F]" : day.bookings ? "bg-[#48484A]" : "bg-[#2C2C2E]")}
+              className={cn("w-full rounded-full", active ? "bg-[#FF2D46]" : day.bookings ? "bg-[#48484A]" : "bg-[#2C2C2E]")}
             />
           </button>
         );
@@ -623,12 +623,12 @@ function OutcomeBar({ completed, cancelled, upcoming }: { completed: number; can
     <div className="mt-4 px-4 pb-4">
       <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full">
         <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5 }} className="h-full origin-left rounded-full bg-[#30D158]" style={{ width: seg(completed) }} />
-        <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.08 }} className="h-full origin-left rounded-full bg-[#FF375F]" style={{ width: seg(upcoming) }} />
+        <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.08 }} className="h-full origin-left rounded-full bg-[#FF2D46]" style={{ width: seg(upcoming) }} />
         <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.16 }} className="h-full origin-left rounded-full bg-[#48484A]" style={{ width: seg(cancelled) }} />
       </div>
       <div className="mt-2.5 flex items-center gap-4 text-[11px] font-medium text-[#8E8E93]">
         <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#30D158]" />{completed} done</span>
-        <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#FF375F]" />{upcoming} ahead</span>
+        <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#FF2D46]" />{upcoming} ahead</span>
         <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#48484A]" />{cancelled} cancelled</span>
       </div>
     </div>
@@ -684,7 +684,7 @@ function QuickTile({ icon: Icon, label, primary = false, onClick }: { icon: type
     >
       <span
         className={cn("flex h-[62px] w-full items-center justify-center rounded-[20px]", !primary && "bg-[#1C1C1E]")}
-        style={primary ? { background: "linear-gradient(180deg,#FF5C7C 0%,#FF375F 55%,#E11D48 100%)", boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.35), 0 10px 24px rgba(255,55,95,0.35)" } : undefined}
+        style={primary ? { background: "linear-gradient(180deg,#FF5A6E 0%,#FF2D46 55%,#E0152F 100%)", boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.35), 0 10px 24px rgba(255, 45, 70,0.35)" } : undefined}
       >
         <Icon className="h-6 w-6 text-white" />
       </span>
@@ -696,7 +696,7 @@ function QuickTile({ icon: Icon, label, primary = false, onClick }: { icon: type
 function StatRow({ icon: Icon, label, value, detail }: { icon: typeof CalendarDays; label: string; value: string; detail: string }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3.5">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-[#FF375F]">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-[#FF2D46]">
         <Icon className="h-[18px] w-[18px] text-white" />
       </span>
       <div className="min-w-0 flex-1">
@@ -712,7 +712,7 @@ function SectionTitle({ title, action, onClick }: { title: string; action: strin
   return (
     <div className="flex items-center justify-between gap-3 px-1">
       <h2 className="text-[20px] font-bold tracking-[-0.02em]">{title}</h2>
-      <button type="button" onClick={onClick} className="flex items-center gap-0.5 text-[14px] font-semibold text-[#FB7185]">
+      <button type="button" onClick={onClick} className="flex items-center gap-0.5 text-[14px] font-semibold text-[#FF5A6E]">
         {action}<ChevronRight className="h-4 w-4" />
       </button>
     </div>

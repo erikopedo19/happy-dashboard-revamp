@@ -39,7 +39,7 @@ export default function Particle() {
           });
         }}
       >
-        <IOS26Icon color="#e11d48">
+        <IOS26Icon color="#E0152F">
           <CalendarDays className="w-[18px] h-[18px]" strokeWidth={2} />
         </IOS26Icon>
         Default Toast

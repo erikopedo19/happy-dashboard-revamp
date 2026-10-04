@@ -204,7 +204,7 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
 
   if (!booking || !appointmentAt) return null;
 
-  const accent = profile?.brand_color || "#e11d48";
+  const accent = profile?.brand_color || "#E0152F";
   const destination: Coordinates | null =
     profile?.latitude != null && profile.longitude != null
       ? { latitude: Number(profile.latitude), longitude: Number(profile.longitude) }

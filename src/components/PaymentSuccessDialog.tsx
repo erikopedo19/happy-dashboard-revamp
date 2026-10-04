@@ -100,7 +100,7 @@ export const PaymentSuccessDialog = forwardRef<
 
   const confetti: ConfettiPiece[] = useMemo(() => {
     const pieces: ConfettiPiece[] = [];
-    const colors = ["#e11d48", "#f59e0b", "#3b82f6"];
+    const colors = ["#E0152F", "#f59e0b", "#3b82f6"];
     for (let i = 0; i < 42; i++) {
       const startX = Math.random() * 100;
       const drift = (Math.random() - 0.5) * 24;

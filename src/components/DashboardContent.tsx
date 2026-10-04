@@ -33,7 +33,7 @@ const db = supabase as any;
 // Noir Rose palette
 const SURFACE = "#16161A";
 const BORDER = "rgba(255,255,255,0.06)";
-const ROSE = "#f43f5e";
+const ROSE = "#FF2D46";
 const BLUE = "#0A84FF";
 const TEXT_DIM = "rgba(255,255,255,0.45)";
 
@@ -210,13 +210,13 @@ export function DashboardContent() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
                 <Input
                   placeholder="Search..."
-                  className="pl-10 h-9 bg-[#22222A] border-white/[0.06] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#f43f5e]/30"
+                  className="pl-10 h-9 bg-[#22222A] border-white/[0.06] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30"
                 />
               </div>
               <NotificationBell />
               <Button
                 onClick={() => navigate('/agenda')}
-                className="h-9 rounded-xl bg-[#f43f5e] hover:bg-[#f43f5e]/90 text-white text-sm font-semibold px-4 shadow-none"
+                className="h-9 rounded-xl bg-[#FF2D46] hover:bg-[#FF2D46]/90 text-white text-sm font-semibold px-4 shadow-none"
               >
                 <Plus className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">New booking</span>
@@ -261,7 +261,7 @@ export function DashboardContent() {
                         labelFormatter={(_, p: any) => p?.[0]?.payload?.date || ''}
                         formatter={(v: any, name: any) => name === 'revenue' ? [`€${Number(v).toFixed(0)}`, 'Revenue'] : [v, 'Bookings']}
                       />
-                      <Area type="monotone" dataKey="revenue" stroke={ROSE} strokeWidth={2.5} fill="#f43f5e" fillOpacity={0.08} />
+                      <Area type="monotone" dataKey="revenue" stroke={ROSE} strokeWidth={2.5} fill="#FF2D46" fillOpacity={0.08} />
                       <Line type="monotone" dataKey="bookings" stroke={BLUE} strokeWidth={2} dot={false} />
                     </ComposedChart>
                   </ResponsiveContainer>
@@ -293,7 +293,7 @@ export function DashboardContent() {
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: i * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                              className="h-full rounded-full bg-[#f43f5e]"
+                              className="h-full rounded-full bg-[#FF2D46]"
                             />
                           </div>
                         </li>
@@ -311,7 +311,7 @@ export function DashboardContent() {
                   <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Recent bookings</p>
                   <h2 className="text-base font-semibold text-white mt-1">{upcoming.length} upcoming</h2>
                 </div>
-                <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#f43f5e] hover:underline uppercase tracking-wider">See all</button>
+                <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#FF2D46] hover:underline uppercase tracking-wider">See all</button>
               </div>
               {upcoming.length === 0 ? (
                 <div className="py-10 text-center">
@@ -388,7 +388,7 @@ export function DashboardContent() {
 }
 
 function StatCard({ title, value, change, sub, icon: Icon, tone }: { title: string; value: string; change?: number; sub?: string; icon: any; tone?: 'rose' | 'blue' | 'green' }) {
-  const toneClass = tone === 'rose' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : tone === 'blue' ? 'bg-[#0A84FF]/10 text-[#0A84FF]' : 'bg-[#30D158]/10 text-[#30D158]';
+  const toneClass = tone === 'rose' ? 'bg-[#FF2D46]/10 text-[#FF2D46]' : tone === 'blue' ? 'bg-[#0A84FF]/10 text-[#0A84FF]' : 'bg-[#30D158]/10 text-[#30D158]';
   const hasChange = change !== undefined && change !== 0;
   return (
     <div className="bg-[#16161A] border border-white/[0.06] rounded-[24px] p-5">
@@ -401,7 +401,7 @@ function StatCard({ title, value, change, sub, icon: Icon, tone }: { title: stri
       <div className="flex items-end justify-between gap-2">
         <span className="text-[28px] sm:text-[32px] font-semibold text-white tracking-tight leading-none">{value}</span>
         {hasChange ? (
-          <div className={cn("flex items-center gap-1 text-sm font-medium pb-0.5", change > 0 ? "text-[#30D158]" : "text-[#f43f5e]")}>
+          <div className={cn("flex items-center gap-1 text-sm font-medium pb-0.5", change > 0 ? "text-[#30D158]" : "text-[#FF2D46]")}>
             {change > 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
             {Math.abs(change)}%
           </div>
@@ -419,7 +419,7 @@ function DeltaPill({ value }: { value: number }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-        positive ? 'text-emerald-300 bg-emerald-500/10' : 'text-[#f43f5e] bg-white/5'
+        positive ? 'text-emerald-300 bg-emerald-500/10' : 'text-[#FF2D46] bg-white/5'
       }`}
     >
       {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -431,7 +431,7 @@ function DeltaPill({ value }: { value: number }) {
 function Legend() {
   return (
     <div className="flex items-center gap-4 text-[11px]">
-      <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#f43f5e]" /> Revenue</span>
+      <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#FF2D46]" /> Revenue</span>
       <span className="flex items-center gap-1.5 text-white/60"><span className="h-2 w-2 rounded-full bg-[#0A84FF]" /> Bookings</span>
     </div>
   );

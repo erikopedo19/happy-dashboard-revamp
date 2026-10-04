@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BlurReveal from "@/components/BlurReveal";
 import { ShimmerText } from "@/components/ShimmerText";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import AgendaBookingForm from "@/components/AgendaBookingForm";
 import { getBrowserTimezone } from "@/lib/tz";
@@ -323,7 +323,30 @@ const Booking = () => {
     refetchIntervalInBackground: false, // Pause polling when the tab is hidden
     refetchOnWindowFocus: true,
     staleTime: 15000,
+    placeholderData: keepPreviousData,
   });
+
+  // Prefetch adjacent days so the slot rail updates instantly when switching dates
+  useEffect(() => {
+    if (!businessProfile?.id || !selectedDate) return;
+    for (const offset of [-2, -1, 1, 2]) {
+      const d = new Date(selectedDate);
+      d.setDate(d.getDate() + offset);
+      const dateStr = format(d, 'yyyy-MM-dd');
+      queryClient.prefetchQuery({
+        queryKey: ['public-appointments', businessProfile.id, dateStr],
+        staleTime: 15000,
+        queryFn: async () => {
+          const { data, error } = await (supabase as any).rpc('get_booked_slots', {
+            _business_id: businessProfile.id,
+            _date: dateStr,
+          });
+          if (error) return [];
+          return (data || []) as Appointment[];
+        },
+      });
+    }
+  }, [businessProfile?.id, selectedDate, queryClient]);
 
   // Fetch stylist-service relationships
   const { data: stylistServices = [] } = useQuery<{ stylist_id: string; service_id: string }[]>({
@@ -740,7 +763,7 @@ const Booking = () => {
     return (
       <div className="min-h-screen bg-[#0c0c0c] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e11d48] mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E0152F] mx-auto"></div>
           <p className="mt-4 text-[#8E8E93]">Loading booking page...</p>
         </div>
       </div>
@@ -788,7 +811,7 @@ const Booking = () => {
   if (services.length === 0 && !servicesLoading && !servicesError) {
     return (
       <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center p-6 relative overflow-hidden">
-        <div className="pointer-events-none absolute -top-20 -left-20 h-80 w-80 rounded-full bg-[#FF2D6F]/20 blur-[120px]" />
+        <div className="pointer-events-none absolute -top-20 -left-20 h-80 w-80 rounded-full bg-[#FF2D46]/20 blur-[120px]" />
         <div className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#FF6B00]/15 blur-[120px]" />
 
         <div className="relative z-10 max-w-5xl w-full grid md:grid-cols-2 gap-12 items-center">
@@ -811,7 +834,7 @@ const Booking = () => {
               {isOwner && (
                 <Button
                   onClick={() => navigate('/services')}
-                  className="h-12 rounded-full bg-[#FF2D6F] hover:bg-[#FF2D6F]/90 text-white px-6"
+                  className="h-12 rounded-full bg-[#FF2D46] hover:bg-[#FF2D46]/90 text-white px-6"
                 >
                   Set up services
                 </Button>
@@ -835,7 +858,7 @@ const Booking = () => {
               style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
             />
             <div className="relative z-10 rounded-3xl border border-white/[0.08] bg-[#15151A] p-8 text-center shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#FF2D6F] to-[#FF6B00] flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#FF2D46] to-[#FF6B00] flex items-center justify-center">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>

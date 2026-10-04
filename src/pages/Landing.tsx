@@ -30,6 +30,7 @@ import {
   CalendarCheck,
   Link2,
   TrendingUp,
+  MapPin,
 } from "lucide-react";
 import {
   Accordion,
@@ -44,6 +45,200 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { BentoCard, BentoGrid } from "@/components/magicui/bento-grid";
+import { OrbitingCircles } from "@/components/magicui/orbiting-circles";
+import { ContainerTextFlip } from "@/components/aceternity/container-text-flip";
+import { PinContainer } from "@/components/ui/3d-pin";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+interface OrbitBarber {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  brand_color: string | null;
+}
+
+const ORBIT_FALLBACK: OrbitBarber[] = ["S", "M", "A", "D", "K", "R", "T", "V"].map((n, i) => ({
+  id: `fb-${i}`,
+  name: n,
+  avatar_url: null,
+  brand_color: ["#FF2D46", "#0A84FF", "#AF52DE", "#32ADE6"][i % 4],
+}));
+
+const Orb = ({ b }: { b: OrbitBarber }) => (
+  <div
+    title={b.name}
+    className="h-full w-full overflow-hidden rounded-full border-2 border-white/15 bg-[#1C1C1E] shadow-[0_6px_18px_rgba(0,0,0,0.5)]"
+  >
+    {b.avatar_url ? (
+      <img src={b.avatar_url} alt={b.name} loading="lazy" className="h-full w-full object-cover" />
+    ) : (
+      <div
+        className="flex h-full w-full items-center justify-center text-[13px] font-bold text-white"
+        style={{ background: b.brand_color || "#FF2D46" }}
+      >
+        {b.name.charAt(0)}
+      </div>
+    )}
+  </div>
+);
+
+// Real barber avatars orbiting a "you" pin — the closest shops circle you.
+function BarberOrbitVisual() {
+  const isMobile = useIsMobile();
+  const { data } = useQuery<OrbitBarber[]>({
+    queryKey: ["landing-orbit-barbers"],
+    staleTime: 300_000,
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_public_profiles");
+      if (error) return [];
+      return (data || [])
+        .filter((p: any) => p.avatar_url)
+        .slice(0, 9)
+        .map((p: any) => ({
+          id: p.id,
+          name: p.business_name || p.full_name || "Barber",
+          avatar_url: p.avatar_url as string,
+          brand_color: (p.brand_color as string) || null,
+        }));
+    },
+  });
+  const orbs = data && data.length > 0 ? data : ORBIT_FALLBACK;
+  const inner = orbs.slice(0, 4);
+  const outer = orbs.slice(4, 9);
+  const outerR = isMobile ? 108 : 150;
+  const innerR = isMobile ? 62 : 92;
+
+  return (
+    <div className="absolute inset-y-0 right-0 w-full lg:w-[58%]">
+      <div className="relative flex h-full w-full items-center justify-center">
+        <div className="relative z-10 flex flex-col items-center gap-1.5">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-rose-600 shadow-[0_0_44px_rgba(244,63,94,0.45)]">
+            <MapPin className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/60">You</span>
+        </div>
+        <OrbitingCircles radius={innerR} duration={24} iconSize={isMobile ? 34 : 40}>
+          {inner.map((b) => <Orb key={b.id} b={b} />)}
+        </OrbitingCircles>
+        {outer.length > 0 && (
+          <OrbitingCircles radius={outerR} duration={40} reverse iconSize={isMobile ? 30 : 36}>
+            {outer.map((b) => <Orb key={b.id} b={b} />)}
+          </OrbitingCircles>
+        )}
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0A0A0C] via-transparent to-transparent lg:from-card" />
+    </div>
+  );
+}
+
+// Real barbershops pinned on the map — each pin links to that shop's booking page.
+interface PinBarber {
+  id: string;
+  name: string;
+  booking_link: string | null;
+  banner_url: string | null;
+  brand_color: string | null;
+  rating: number | null;
+  rating_count: number | null;
+  description: string | null;
+}
+
+const PIN_FALLBACK: PinBarber[] = [
+  { id: "pin-1", name: "Northside Cuts", booking_link: null, banner_url: null, brand_color: "#FF2D46", rating: 4.9, rating_count: 214, description: "Fade specialist · 4 chairs" },
+  { id: "pin-2", name: "Studio Fade", booking_link: null, banner_url: null, brand_color: "#0A84FF", rating: 4.8, rating_count: 167, description: "Walk-ins welcome" },
+  { id: "pin-3", name: "The Corner Barber", booking_link: null, banner_url: null, brand_color: "#AF52DE", rating: 5.0, rating_count: 98, description: "Beard & hot towel" },
+];
+
+function BarberPins() {
+  const { data } = useQuery<PinBarber[]>({
+    queryKey: ["landing-pin-barbers"],
+    staleTime: 300_000,
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_public_profiles");
+      if (error) return [];
+      return (data || [])
+        .filter((p: any) => p.booking_link)
+        .slice(0, 3)
+        .map((p: any) => ({
+          id: p.id,
+          name: p.business_name || p.full_name || "Barber",
+          booking_link: p.booking_link as string,
+          banner_url: (p.banner_url as string) || null,
+          brand_color: (p.brand_color as string) || null,
+          rating: p.rating ?? null,
+          rating_count: p.rating_count ?? null,
+          description: (p.description as string) || null,
+        }));
+    },
+  });
+  const pins = data && data.length > 0 ? data : PIN_FALLBACK;
+
+  return (
+    <div className="flex flex-col lg:flex-row items-center justify-center">
+      {pins.map((b) => (
+        <div key={b.id} className="h-[22rem] w-full lg:w-[24rem] flex items-center justify-center">
+          <PinContainer
+            title={b.booking_link ? `/${b.booking_link}` : "/find-barber"}
+            href={b.booking_link ? `/book/${b.booking_link}` : "/find-barber"}
+          >
+            <div className="flex basis-full flex-col p-4 tracking-tight text-slate-100/50 w-[19rem] h-[18rem]">
+              <h3 className="max-w-xs !pb-1 !m-0 font-bold text-base text-slate-100 truncate">
+                {b.name}
+              </h3>
+              <div className="text-base !m-0 !p-0 font-normal">
+                <span className="text-slate-500 flex items-center gap-1.5 text-sm">
+                  {b.rating != null && (
+                    <span className="inline-flex items-center gap-1 text-[#FFCC00] text-xs font-semibold shrink-0">
+                      <Star className="h-3 w-3 fill-[#FFCC00]" />
+                      {Number(b.rating).toFixed(1)}
+                    </span>
+                  )}
+                  <span className="truncate">{b.description || "Open for bookings"}</span>
+                </span>
+              </div>
+              <div className="relative flex-1 w-full rounded-lg mt-4 overflow-hidden">
+                {b.banner_url ? (
+                  <img src={b.banner_url} alt={b.name} className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(135deg, ${b.brand_color || "#FF2D46"}, ${b.brand_color || "#FF2D46"}55 55%, transparent)` }}
+                  />
+                )}
+              </div>
+            </div>
+          </PinContainer>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Faded slot-rail visual for the availability card.
+const AvailabilityVisual = () => (
+  <div className="absolute inset-0 p-6 [mask-image:linear-gradient(to_bottom,black_45%,transparent_92%)]">
+    <div className="flex flex-wrap gap-2">
+      {["09:00", "09:30", "10:00", "10:30", "11:00", "12:30", "13:00", "14:30", "15:00", "16:00", "16:30", "17:00"].map((t, i) => (
+        <span
+          key={t}
+          className={cn(
+            "rounded-full border px-3 py-1 text-[11px] font-semibold",
+            i % 3 === 0
+              ? "border-white/10 text-white/25 line-through"
+              : "border-rose-500/40 bg-rose-500/10 text-rose-300"
+          )}
+        >
+          {t}
+        </span>
+      ))}
+    </div>
+  </div>
+);
 
 const features = [
   {
@@ -341,7 +536,13 @@ export default function Landing() {
           >
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
               Run your barbershop like a{" "}
-              <span className="text-rose-500">premium app</span>
+              <span className="block mt-3 sm:mt-4">
+                <ContainerTextFlip
+                  words={["premium app", "modern brand", "top studio", "pro tool"]}
+                  interval={2600}
+                  className="text-3xl sm:text-5xl lg:text-6xl rounded-2xl px-2"
+                />
+              </span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
               Smart agenda, client management, and online bookings in one simple workspace.
@@ -354,6 +555,62 @@ export default function Landing() {
                 Find a barber
               </Button>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Barbers near you — orbiting avatars bento */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <motion.div {...fadeUp} className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">
+              Barbers near you, <span className="text-rose-500">ready when you are</span>
+            </h2>
+            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+              Real shops with live chairs — find the closest cut without a single phone call.
+            </p>
+          </motion.div>
+
+          <BentoGrid className="auto-rows-[21rem] lg:auto-rows-[24rem]">
+            <BentoCard
+              name="The closest barbershops orbit you"
+              className="lg:col-span-2"
+              background={<BarberOrbitVisual />}
+              Icon={MapPin}
+              description="Live shops circle around your location — tap one, pick a slot, done."
+              href="/find-barber"
+              cta="Open the map"
+            />
+            <BentoCard
+              name="Live availability"
+              className="lg:col-span-1"
+              background={<AvailabilityVisual />}
+              Icon={Clock}
+              description="Open slots update in real time — what you see is what you get."
+              href="/find-barber"
+              cta="See open slots"
+            />
+            <BentoCard
+              name="Book in two taps"
+              className="lg:col-span-3"
+              background={
+                <div className="absolute inset-0">
+                  <div className="absolute right-10 top-1/2 -translate-y-1/2 h-40 w-40 rounded-full bg-rose-500/15 blur-3xl" />
+                  <Zap className="absolute right-16 top-1/2 -translate-y-1/2 h-24 w-24 text-rose-500/20 -rotate-12" />
+                </div>
+              }
+              Icon={Zap}
+              description="Pick a time, get a confirmation — no accounts, no phone tag, no waiting."
+              href="/find-barber"
+              cta="Book now"
+            />
+          </BentoGrid>
+
+          <motion.div {...fadeUp} className="mt-14">
+            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Pinned near you
+            </p>
+            <BarberPins />
           </motion.div>
         </div>
       </section>

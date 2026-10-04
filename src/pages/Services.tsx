@@ -35,9 +35,9 @@ interface Service {
   deleted_at?: string | null;
 }
 
-const ROSE = "#e11d48";
+const ROSE = "#E0152F";
 const PALETTE = [
-  { value: "rose",    hex: "#e11d48", label: "Rose" },
+  { value: "rose",    hex: "#E0152F", label: "Rose" },
   { value: "pink",    hex: "#ec4899", label: "Pink" },
   { value: "amber",   hex: "#f59e0b", label: "Amber" },
   { value: "emerald", hex: "#10b981", label: "Emerald" },
@@ -253,7 +253,7 @@ const Services = () => {
                         <Input id="name" value={formData.name}
                           onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
                           placeholder="e.g. Haircut" required
-                          className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                          className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D46]" />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
@@ -262,14 +262,14 @@ const Services = () => {
                             value={formData.duration}
                             onChange={(e) => setFormData((p) => ({ ...p, duration: Number(e.target.value) }))}
                             required
-                            className="no-spinner h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                            className="no-spinner h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D46]" />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="price" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Price ({currencySymbol})</Label>
                           <Input id="price" type="number" min={0} step={0.5}
                             value={formData.price}
                             onChange={(e) => setFormData((p) => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
-                            className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D6F]" />
+                            className="h-12 rounded-[16px] bg-[#2C2C2E] border-0 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-[#FF2D46]" />
                         </div>
                       </div>
                       <div className="space-y-2">

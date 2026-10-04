@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Loader2, CalendarDays } from "lucide-react";
 
-export const EVENT_COLORS = ["#FF375F", "#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#64D2FF"];
+export const EVENT_COLORS = ["#FF2D46", "#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#64D2FF"];
 
 interface QuickEventDialogProps {
   open: boolean;

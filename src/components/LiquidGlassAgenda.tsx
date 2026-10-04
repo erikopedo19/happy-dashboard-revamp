@@ -78,7 +78,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { haptic } from "@/lib/haptics";
+import { haptic, type HapticStyle } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
@@ -739,6 +739,12 @@ export const LiquidGlassAgenda = ({
     setContextMenu({ x, y, appointment });
   };
 
+  const blockHapticTimers = useRef<number[]>([]);
+  const clearBlockHaptics = () => {
+    blockHapticTimers.current.forEach((t) => window.clearTimeout(t));
+    blockHapticTimers.current = [];
+  };
+
   const startBlockLongPress = (hour: string) => {
     isLongPressBlock.current = false;
     setPressingSlot(hour);
@@ -746,10 +752,24 @@ export const LiquidGlassAgenda = ({
     const [h, m] = hour.split(":").map(Number);
     slot.setHours(h, m, 0, 0);
     const start = addMinutes(slot, -45);
+
+    // Progressive haptics while holding — ticks ramp up until the block fires.
+    haptic("selection");
+    const steps: Array<[number, HapticStyle]> = [
+      [200, "light"],
+      [380, "light"],
+      [560, "medium"],
+      [740, "medium"],
+      [900, "heavy"],
+    ];
+    blockHapticTimers.current = steps.map(([ms, style]) =>
+      window.setTimeout(() => haptic(style), ms)
+    );
+
     blockTimerRef.current = window.setTimeout(() => {
       isLongPressBlock.current = true;
       setPressingSlot(null);
-      haptic("heavy");
+      haptic("success");
       setPendingBlockSlot({ hour, start, end: slot });
       blockTimerRef.current = null;
     }, 1000);
@@ -761,6 +781,7 @@ export const LiquidGlassAgenda = ({
       window.clearTimeout(blockTimerRef.current);
       blockTimerRef.current = null;
     }
+    clearBlockHaptics();
     setPressingSlot(null);
   };
 
@@ -919,7 +940,7 @@ export const LiquidGlassAgenda = ({
                   className="h-8 px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors active:scale-95"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
-                  <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#F43F5E,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-transparent">
+                  <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#FF2D46,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-transparent">
                     More
                   </span>
                 </button>
@@ -1467,7 +1488,7 @@ export const LiquidGlassAgenda = ({
                 <div
                   key={hour}
                   data-slot-time={hour}
-                  className={cn("relative rounded-2xl transition-colors duration-200", (isPastSlot || isBlocked) && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF375F]/10 ring-2 ring-[#FF375F]/40")}
+                  className={cn("relative rounded-2xl transition-colors duration-200", (isPastSlot || isBlocked) && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
                   style={{ height: rowHeight }}
                 >
                   {/* Time label */}
@@ -1512,7 +1533,7 @@ export const LiquidGlassAgenda = ({
                           : { x: 0, y: 0, scale: dropHover === `a:${apt.id}` ? 0.96 : 1, rotate: 0, opacity: movingIds.includes(apt.id) ? 0.5 : 1 }}
                         transition={drag?.id === apt.id ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                         style={{ zIndex: drag?.id === apt.id ? 50 : undefined, pointerEvents: drag?.id === apt.id ? "none" : undefined }}
-                        className={cn("flex-1 min-h-0 relative rounded-2xl", dropHover === `a:${apt.id}` && "ring-2 ring-[#FF375F] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
+                        className={cn("flex-1 min-h-0 relative rounded-2xl", dropHover === `a:${apt.id}` && "ring-2 ring-[#FF2D46] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
                       >
                         {!isCancelled && (
                           <span
@@ -1734,7 +1755,7 @@ export const LiquidGlassAgenda = ({
                         <motion.div
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: pressingSlot === hour ? 1 : 0 }}
-                          transition={pressingSlot === hour ? { duration: 0.6, ease: "linear" } : { duration: 0 }}
+                          transition={pressingSlot === hour ? { duration: 1, ease: "linear" } : { duration: 0 }}
                           style={{ originX: 0 }}
                           className="absolute inset-0 z-0 bg-rose-500/20"
                         />

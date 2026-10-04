@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Button } from "@heroui/react";
+import { Badge, Button } from "@heroui/react";
 import {
   Search,
   Scissors,
@@ -14,6 +14,7 @@ import {
   Map as MapIcon,
   Loader2,
   ChevronDown,
+  ChevronRight,
   Clock,
   Award,
   Sparkles,
@@ -28,13 +29,13 @@ import {
 } from "lucide-react";
 import { SwipeDeck } from "@/components/SwipeDeck";
 import { useToast } from "@/hooks/use-toast";
-import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { haptic } from "@/lib/haptics";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { QuickBookSheet } from "@/components/QuickBookSheet";
 
 const BarbershopMap = lazy(() => import("@/components/BarbershopMap").then((m) => ({ default: m.BarbershopMap })));
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -74,12 +75,12 @@ const FILTER_OPTIONS = [
 function CircledWord({ children }: { children: React.ReactNode }) {
   return (
     <span className="relative inline-block px-1">
-      <span className="relative z-10 text-[#FB7185]">{children}</span>
+      <span className="relative z-10 text-[#FF5A6E]">{children}</span>
       <svg
         aria-hidden
         viewBox="0 0 220 80"
         preserveAspectRatio="none"
-        className="pointer-events-none absolute -inset-x-3 -inset-y-2 h-[calc(100%+16px)] w-[calc(100%+24px)] text-[#FB7185]"
+        className="pointer-events-none absolute -inset-x-3 -inset-y-2 h-[calc(100%+16px)] w-[calc(100%+24px)] text-[#FF5A6E]"
         fill="none"
         stroke="currentColor"
         strokeWidth="2.2"
@@ -134,6 +135,7 @@ const FindBarber = () => {
   }, [searchParams]);
 
   const changeTab = (key: TabKey) => {
+    if (key !== activeTab) haptic("selection");
     setActiveTab(key);
     if (key === "today") {
       searchParams.delete("tab");
@@ -163,6 +165,7 @@ const FindBarber = () => {
   }, [user]);
 
   const toggleFavorite = (id: string) => {
+    haptic(favorites.includes(id) ? "light" : "success");
     setFavorites((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
       localStorage.setItem("favoriteBarbers", JSON.stringify(next));
@@ -321,7 +324,7 @@ const FindBarber = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-6 h-6 animate-spin text-[#FB7185]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#FF5A6E]" />
       </div>
     );
   }
@@ -372,9 +375,9 @@ const FindBarber = () => {
       <PageHeader>
         <div className="relative overflow-hidden">
           {/* Ambient wash — clipped to the header so it doesn't tint the page */}
-          <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-64 w-[34rem] -translate-x-1/2 rounded-full bg-[#FF375F]/[0.12] blur-[100px]" />
+          <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-64 w-[34rem] -translate-x-1/2 rounded-full bg-[#FF2D46]/[0.12] blur-[100px]" />
           <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-b from-transparent to-black/80" />
-          <div className="relative max-w-5xl mx-auto px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-2">
+          <div className="relative max-w-5xl mx-auto px-5 pt-4 pb-2">
             {/* Greeting row */}
             <div className="flex items-center justify-between gap-3">
               <Link to="/me" className="flex min-w-0 items-center gap-3 active:opacity-70 transition-opacity">
@@ -407,7 +410,7 @@ const FindBarber = () => {
                   onClick={() => setSearchOpen((v) => !v)}
                   className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-full border transition-colors",
-                    searchOpen ? "border-[#FB7185]/50 bg-[#FF375F] text-white" : "border-white/10 bg-[#1C1C1E] text-white/85"
+                    searchOpen ? "border-[#FF5A6E]/50 bg-[#FF2D46] text-white" : "border-white/10 bg-[#1C1C1E] text-white/85"
                   )}
                 >
                   {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
@@ -455,7 +458,7 @@ const FindBarber = () => {
                       placeholder="Search barbers, styles, vibes"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-12 rounded-full border border-white/10 bg-[#1C1C1E] pl-11 text-[15px] text-white placeholder:text-white/35 focus-visible:ring-2 focus-visible:ring-[#FB7185]/60"
+                      className="h-12 rounded-full border border-white/10 bg-[#1C1C1E] pl-11 text-[15px] text-white placeholder:text-white/35 focus-visible:ring-2 focus-visible:ring-[#FF5A6E]/60"
                     />
                   </div>
                 </motion.div>
@@ -479,7 +482,7 @@ const FindBarber = () => {
                 className={cn(
                   "flex h-14 shrink-0 items-center gap-2.5 rounded-[22px] border pl-1.5 text-[15px] font-medium whitespace-nowrap transition-colors",
                   active
-                    ? "border-[#FF8FA3]/40 bg-gradient-to-b from-[#FF5C7C] to-[#E11D48] text-white shadow-[inset_0_1.5px_0_rgba(255,255,255,0.4),inset_0_-2px_6px_rgba(0,0,0,0.15)] pr-2"
+                    ? "border-[#FF8FA3]/40 bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white shadow-[inset_0_1.5px_0_rgba(255,255,255,0.4),inset_0_-2px_6px_rgba(0,0,0,0.15)] pr-2"
                     : "border-white/[0.08] bg-[#1C1C1E] text-white/80 pr-5"
                 )}
               >
@@ -587,11 +590,23 @@ function BarberCard({
   rateToken?: string | null;
 }) {
 
-  const accent = "#FF375F";
+  const accent = "#FF2D46";
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
   const initial = (barber.brandName || "B").trim().charAt(0).toUpperCase();
-  const [bookOpen, setBookOpen] = useState(false);
+  const navigate = useNavigate();
+  const detailState = {
+    name: barber.brandName,
+    avatar_url: barber.avatar_url,
+    banner_url: barber.banner_url,
+    rating: barber.rating,
+    rating_count: barber.rating_count,
+  };
+  const openDetail = () => {
+    if (!barber.booking_link) return onExpand(barber.id);
+    haptic("light");
+    navigate(`/b/${barber.booking_link}`, { state: detailState });
+  };
 
 
   return (
@@ -609,7 +624,8 @@ function BarberCard({
     >
       {/* Header banner */}
       <div
-        className="relative h-24"
+        className="relative h-24 cursor-pointer"
+        onClick={openDetail}
         style={{
           background: barber.banner_url
             ? `url(${barber.banner_url}) center/cover`
@@ -655,29 +671,38 @@ function BarberCard({
           <Heart
             className={cn(
               "w-5 h-5 transition-colors",
-              isFavorite ? "fill-[#FB7185] text-[#FB7185]" : "text-[#8E8E93]"
+              isFavorite ? "fill-[#FF5A6E] text-[#FF5A6E]" : "text-[#8E8E93]"
             )}
           />
         </button>
       </div>
 
       {/* Body */}
-      <div className="px-4 -mt-10 relative">
+      <div className="px-4 -mt-10 relative cursor-pointer" onClick={openDetail}>
         <div className="flex items-end gap-3">
-          {barber.avatar_url ? (
-            <img
-              src={barber.avatar_url}
-              alt={barber.brandName}
-              className="w-[68px] h-[68px] rounded-full object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
-            />
-          ) : (
-            <div
-              className="w-[68px] h-[68px] rounded-full flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
-            >
-              {initial}
-            </div>
-          )}
+          <Badge
+            content="New"
+            size="sm"
+            placement="bottom-right"
+            showOutline={false}
+            isInvisible={!!barber.avatar_url}
+            classNames={{ badge: "bg-[#FF2D46] text-white text-[9px] font-bold px-1.5" }}
+          >
+            {barber.avatar_url ? (
+              <img
+                src={barber.avatar_url}
+                alt={barber.brandName}
+                className="w-[68px] h-[68px] rounded-full object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
+              />
+            ) : (
+              <div
+                className="w-[68px] h-[68px] rounded-full flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden"
+                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
+              >
+                {initial}
+              </div>
+            )}
+          </Badge>
           <div className="min-w-0 flex-1 pb-1">
             <div className="inline-flex items-center gap-1 rounded-full bg-black/[0.04] dark:bg-white/[0.08] px-2 py-0.5 mb-1">
               <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
@@ -724,19 +749,19 @@ function BarberCard({
       {/* Action row — generous 48px tap targets */}
       <div className="p-3 pt-3 flex gap-2">
         <button
-          onClick={() => onExpand(barber.id)}
+          onClick={openDetail}
           className="flex-1 h-12 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform"
         >
-          {isExpanded ? "Less" : "Details"}
-          <motion.span animate={{ rotate: isExpanded ? 180 : 0 }} transition={spring} className="inline-flex">
-            <ChevronDown className="w-4 h-4" />
+          {barber.booking_link ? "Details" : isExpanded ? "Less" : "Details"}
+          <motion.span animate={{ rotate: !barber.booking_link && isExpanded ? 180 : 0 }} transition={spring} className="inline-flex">
+            {barber.booking_link ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </motion.span>
         </button>
         {barber.booking_link ? (
           <Button
-            onPress={() => setBookOpen(true)}
+            onPress={() => { haptic("medium"); navigate(`/b/${barber.booking_link}`, { state: detailState }); }}
             className="flex-[1.4] w-full h-12 rounded-[16px] text-white font-semibold border-0 active:scale-[0.97] transition-transform shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35)]"
-            style={{ background: `linear-gradient(180deg, #FF5C7C 0%, ${accent} 55%, #E11D48 100%)` }}
+            style={{ background: `linear-gradient(180deg, #FF5A6E 0%, ${accent} 55%, #E0152F 100%)` }}
           >
             <Calendar className="w-4 h-4 mr-1.5" />
             Book
@@ -759,16 +784,6 @@ function BarberCard({
         </div>
       )}
 
-      {bookOpen && (
-        <QuickBookSheet
-          open={bookOpen}
-          onOpenChange={setBookOpen}
-          barberId={barber.id}
-          barberName={barber.brandName}
-          bookingLink={barber.booking_link}
-          accentColor={accent}
-        />
-      )}
     </motion.div>
   );
 }
@@ -921,7 +936,7 @@ function MapPoster() {
   const [missing, setMissing] = useState(false);
   if (missing) {
     return (
-      <div className="flex min-h-[62vh] max-h-[620px] flex-col items-center justify-center rounded-[24px] bg-gradient-to-br from-[#FB7185] via-[#FF375F] to-[#881337] p-6 text-center text-white">
+      <div className="flex min-h-[62vh] max-h-[620px] flex-col items-center justify-center rounded-[24px] bg-gradient-to-br from-[#FF5A6E] via-[#FF2D46] to-[#881337] p-6 text-center text-white">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20">
           <MapPin className="h-8 w-8" />
         </div>
@@ -981,7 +996,7 @@ function FullScreenMap({
               barbershops={[]}
               userLocation={userLocation || undefined}
               height="100%"
-              accentColor="#FF375F"
+              accentColor="#FF2D46"
               hideSearch
               showControls={false}
             />
@@ -995,14 +1010,14 @@ function FullScreenMap({
         <button
           type="button"
           onClick={onBack}
-          className="mt-6 h-12 w-full max-w-md rounded-full bg-[#FF375F] text-[15px] font-semibold text-white active:scale-95 transition-transform"
+          className="mt-6 h-12 w-full max-w-md rounded-full bg-[#FF2D46] text-[15px] font-semibold text-white active:scale-95 transition-transform"
         >
           Browse barbers
         </button>
       </div>
 
       {/* Top floating search + filters */}
-      <div className="absolute left-0 right-0 top-0 z-20 pt-[max(env(safe-area-inset-top),0.75rem)]">
+      <div className="absolute left-0 right-0 top-0 z-20 pt-3">
         <div className="mx-3 flex items-center gap-2">
           <button
             type="button"
@@ -1020,7 +1035,7 @@ function FullScreenMap({
               value={mapSearch}
               onChange={(e) => setMapSearch(e.target.value)}
               placeholder="Search city, area or barber"
-              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FB7185] dark:border-white/10 dark:bg-[#1C1C1E]/90"
+              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FF5A6E] dark:border-white/10 dark:bg-[#1C1C1E]/90"
             />
           </div>
 
@@ -1033,7 +1048,7 @@ function FullScreenMap({
               >
                 <SlidersHorizontal className="h-5 w-5" />
                 {activeFilters > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF375F] px-1 text-[10px] font-semibold text-white shadow">
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF2D46] px-1 text-[10px] font-semibold text-white shadow">
                     {activeFilters}
                   </span>
                 )}
@@ -1059,7 +1074,7 @@ function FullScreenMap({
                         className={cn(
                           "h-10 rounded-full text-[13px] font-medium transition-colors",
                           maxDistance === d
-                            ? "bg-[#FF375F] text-white shadow-sm"
+                            ? "bg-[#FF2D46] text-white shadow-sm"
                             : "bg-[#F2F2F7] text-[#1C1C1E] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
                         )}
                       >
@@ -1080,7 +1095,7 @@ function FullScreenMap({
                         className={cn(
                           "h-10 rounded-full text-[13px] font-medium transition-colors",
                           minRating === r
-                            ? "bg-[#FF375F] text-white shadow-sm"
+                            ? "bg-[#FF2D46] text-white shadow-sm"
                             : "bg-[#F2F2F7] text-[#1C1C1E] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
                         )}
                       >
@@ -1102,7 +1117,7 @@ function FullScreenMap({
                     Reset
                   </Button>
                   <Button
-                    className="h-12 flex-1 rounded-full bg-[#FF375F] text-white hover:bg-[#E11D48]"
+                    className="h-12 flex-1 rounded-full bg-[#FF2D46] text-white hover:bg-[#E0152F]"
                     onPress={() => setFiltersOpen(false)}
                   >
                     Show results
@@ -1114,10 +1129,10 @@ function FullScreenMap({
         </div>
 
         <div className="mx-3 mt-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-[#FF375F] shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#FDA4AF]">
+          <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-[#FF2D46] shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#FDA4AF]">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inset-0 rounded-full bg-[#FF375F] animate-ping opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FF375F]" />
+              <span className="absolute inset-0 rounded-full bg-[#FF2D46] animate-ping opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FF2D46]" />
             </span>
             {barbers.length} live nearby
           </div>
@@ -1128,8 +1143,8 @@ function FullScreenMap({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
         <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/95">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF375F]/15">
-              <MapIcon className="h-5 w-5 text-[#FB7185]" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF2D46]/15">
+              <MapIcon className="h-5 w-5 text-[#FF5A6E]" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">More pins coming soon</p>
@@ -1140,7 +1155,7 @@ function FullScreenMap({
             <button
               type="button"
               onClick={onBack}
-              className="shrink-0 rounded-full bg-[#FF375F] px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+              className="shrink-0 rounded-full bg-[#FF2D46] px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
             >
               Browse
             </button>

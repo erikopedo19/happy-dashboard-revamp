@@ -51,7 +51,7 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3.5">
-        <div className="h-11 w-11 rounded-[14px] bg-[#FF2D6F]/15 border border-[#FF2D6F]/20 flex items-center justify-center shrink-0">
+        <div className="h-11 w-11 rounded-[14px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
           <Globe className="h-5 w-5 text-[#FF6B95]" strokeWidth={2.2} />
         </div>
         <div className="min-w-0">
@@ -67,7 +67,7 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
       <div className="flex flex-col sm:flex-row gap-2.5">
         <button
           onClick={() => navigate("/microsite")}
-          className="flex-1 h-11 rounded-[12px] bg-[#FF2D6F] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-[#ff4784] active:scale-[0.98] transition"
+          className="flex-1 h-11 rounded-[12px] bg-[#FF2D46] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-[#ff4784] active:scale-[0.98] transition"
         >
           <Pencil className="h-4 w-4" strokeWidth={2.3} />
           Customise website
@@ -132,7 +132,7 @@ const BookingPage = () => {
           transition={springSoft}
           className="max-w-md w-full text-center rounded-[24px] bg-[#15151A] border border-white/[0.08] p-8"
         >
-          <div className="w-12 h-12 rounded-[16px] mx-auto mb-4 flex items-center justify-center bg-[#FF2D6F] shadow-[0_8px_24px_rgba(255,45,111,0.4)]">
+          <div className="w-12 h-12 rounded-[16px] mx-auto mb-4 flex items-center justify-center bg-[#FF2D46] shadow-[0_8px_24px_rgba(255,45,111,0.4)]">
             <Globe className="h-5 w-5 text-white" />
           </div>
           <h2 className="text-xl font-bold text-white mb-1 tracking-tight">Sign in required</h2>
@@ -260,7 +260,7 @@ const BookingPage = () => {
                     transition={{ delay: i * 0.08, ...springSoft }}
                     className="flex items-start gap-3.5 p-5"
                   >
-                    <div className="h-10 w-10 rounded-[12px] bg-[#FF2D6F]/15 border border-[#FF2D6F]/20 flex items-center justify-center shrink-0">
+                    <div className="h-10 w-10 rounded-[12px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
                       <s.icon className="h-4.5 w-4.5 text-[#FF6B95]" strokeWidth={2.3} />
                     </div>
                     <div className="min-w-0">

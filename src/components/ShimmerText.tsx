@@ -71,7 +71,7 @@ export function ShimmerText({
     ? {
         color: "transparent",
         background:
-          "linear-gradient(90deg, #FF2D6F 0%, #FF6B00 50%, #FF2D6F 100%)",
+          "linear-gradient(90deg, #FF2D46 0%, #FF6B00 50%, #FF2D46 100%)",
         backgroundSize: "200% 100%",
         backgroundRepeat: "no-repeat",
         WebkitBackgroundClip: "text",

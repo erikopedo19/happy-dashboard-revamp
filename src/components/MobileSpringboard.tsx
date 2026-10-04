@@ -21,7 +21,7 @@ interface Tile {
 
 // 4 columns × 2 rows = 8 tiles, iOS Springboard-style.
 const tiles: Tile[] = [
-  { label: "Agenda", icon: Calendar, path: "/agenda", gradient: "from-[#FF2D55] to-[#FF375F]" },
+  { label: "Agenda", icon: Calendar, path: "/agenda", gradient: "from-[#FF2D55] to-[#FF2D46]" },
   { label: "Reports", icon: BarChart3, path: "/reports", gradient: "from-[#34C759] to-[#30D158]" },
   { label: "Services", icon: Scissors, path: "/services", gradient: "from-[#FF9500] to-[#FFCC00]" },
   { label: "Settings", icon: SettingsIcon, path: "/settings", gradient: "from-[#8E8E93] to-[#48484A]" },

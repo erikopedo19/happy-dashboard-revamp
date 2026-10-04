@@ -1,11 +1,13 @@
 import checkLogo from "@/assets/cutzioo-check.png.asset.json";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail, Check, ChevronRight, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { triggerGlimm } from "@/components/GlimmIntercept";
+import { TermsAcceptCard } from "@/components/TermsAcceptCard";
+import { haptic } from "@/lib/haptics";
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ export function LoginForm() {
   const [showEmail, setShowEmail] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,6 +74,7 @@ export function LoginForm() {
 
   const switchMode = (m: "signin" | "signup") => {
     if (m === mode) return;
+    haptic("selection");
     triggerGlimm({ sweepMs: 650, outroMs: 360 });
     setMode(m);
   };
@@ -83,15 +87,19 @@ export function LoginForm() {
       if (mode === "signin") {
         const { error } = await signIn(email.trim(), password);
         if (error) {
+          haptic("error");
           toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
           return;
         }
+        haptic("success");
       } else {
         const { error } = await signUp(email.trim(), password, fullName.trim(), role);
         if (error) {
+          haptic("error");
           toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
           return;
         }
+        haptic("success");
         toast({ title: "Account created", description: "Check your email to verify." });
         switchMode("signin");
       }
@@ -120,6 +128,7 @@ export function LoginForm() {
   };
 
   const googleSignIn = async () => {
+    haptic("light");
     setGoogleBusy(true);
     const { error } = await signInWithGoogle();
     if (error) {
@@ -134,7 +143,7 @@ export function LoginForm() {
     <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
       {/* Ambient blue gradient hero */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[68vh]">
-        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,#2f8bff_0%,#0b3f8f_38%,#04122b_70%,#000000_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,#FF2D46_0%,#8f0b1f_38%,#2b040a_70%,#000000_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(255,255,255,0.18),transparent_70%)]" />
       </div>
 
@@ -165,7 +174,7 @@ export function LoginForm() {
                   <br />
                   Your
                   <br />
-                  <span className="text-[#5AB0FF]">Cut</span>
+                  <span className="text-[#FF5A6E]">Cut</span>
                 </h1>
               </div>
 
@@ -193,7 +202,7 @@ export function LoginForm() {
 
                 <button
                   type="button"
-                  onClick={() => setShowEmail(true)}
+                  onClick={() => { haptic("light"); setShowEmail(true); }}
                   className="inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-full bg-[#1A1A1D] text-[16px] font-semibold text-white ring-1 ring-white/10 transition active:scale-[0.98]"
                 >
                   <Mail className="h-5 w-5" />
@@ -262,11 +271,11 @@ export function LoginForm() {
                         onClick={() => setRole("barber")}
                         className={`relative h-12 rounded-[12px] border-2 transition-all ${
                           role === "barber"
-                            ? "border-[#0A84FF] bg-[#0A84FF]/10"
+                            ? "border-[#FF2D46] bg-[#FF2D46]/10"
                             : "border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] hover:border-black/20 dark:hover:border-white/20"
                         }`}
                       >
-                        <span className={`text-[14px] font-medium ${role === "barber" ? "text-[#0A84FF]" : "text-foreground/70"}`}>
+                        <span className={`text-[14px] font-medium ${role === "barber" ? "text-[#FF2D46]" : "text-foreground/70"}`}>
                           Barber
                         </span>
                       </button>
@@ -275,11 +284,11 @@ export function LoginForm() {
                         onClick={() => setRole("client")}
                         className={`relative h-12 rounded-[12px] border-2 transition-all ${
                           role === "client"
-                            ? "border-[#0A84FF] bg-[#0A84FF]/10"
+                            ? "border-[#FF2D46] bg-[#FF2D46]/10"
                             : "border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] hover:border-black/20 dark:hover:border-white/20"
                         }`}
                       >
-                        <span className={`text-[14px] font-medium ${role === "client" ? "text-[#0A84FF]" : "text-foreground/70"}`}>
+                        <span className={`text-[14px] font-medium ${role === "client" ? "text-[#FF2D46]" : "text-foreground/70"}`}>
                           Client
                         </span>
                       </button>
@@ -319,26 +328,39 @@ export function LoginForm() {
                       type="button"
                       onClick={onForgot}
                       disabled={resetting}
-                      className="text-[12px] font-medium text-[#0A84FF] transition hover:opacity-80"
+                      className="text-[12px] font-medium text-[#FF2D46] transition hover:opacity-80"
                     >
                       {resetting ? "Sending..." : "Forgot password?"}
                     </button>
                   </div>
                 )}
                 {isSignup && (
-                  <label className="flex items-start gap-2.5 pt-1 select-none cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={agreedToPolicy}
-                      onChange={(e) => setAgreedToPolicy(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-black/20 dark:border-white/20 accent-[#0A84FF]"
-                    />
-                    <span className="text-[12px] leading-relaxed text-foreground/60">
-                      I agree to the{" "}
-                      <a href="/terms" target="_blank" className="underline underline-offset-2 text-foreground/80">Terms</a> and{" "}
-                      <a href="/privacy" target="_blank" className="underline underline-offset-2 text-foreground/80">Privacy Policy</a>.
+                  <button
+                    type="button"
+                    onClick={() => setTermsOpen(true)}
+                    className={`flex w-full items-center gap-3 rounded-[12px] border px-3.5 py-3 text-left transition active:scale-[0.99] ${
+                      agreedToPolicy
+                        ? "border-emerald-500/30 bg-emerald-500/[0.08]"
+                        : "border-black/10 bg-black/[0.02] hover:border-black/20 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] ${
+                        agreedToPolicy ? "bg-emerald-500/15 text-emerald-500" : "bg-black/[0.04] text-foreground/50 dark:bg-white/[0.06]"
+                      }`}
+                    >
+                      {agreedToPolicy ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                     </span>
-                  </label>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-semibold text-foreground">
+                        {agreedToPolicy ? "Terms accepted" : "Terms and Conditions"}
+                      </span>
+                      <span className="block text-[11px] text-foreground/50">
+                        {agreedToPolicy ? "You can review them again anytime" : "Please review before creating your account"}
+                      </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-foreground/30" />
+                  </button>
                 )}
 
                 <button
@@ -360,7 +382,7 @@ export function LoginForm() {
               <div className="mt-6 text-center">
                 <button
                   onClick={() => switchMode(isSignup ? "signin" : "signup")}
-                  className="text-[14px] text-[#5AB0FF] font-medium transition hover:opacity-80"
+                  className="text-[14px] text-[#FF5A6E] font-medium transition hover:opacity-80"
                 >
                   {isSignup ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
                 </button>
@@ -377,6 +399,37 @@ export function LoginForm() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Terms & Conditions acceptance */}
+      <AnimatePresence>
+        {termsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setTermsOpen(false)}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 32, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 340, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[400px]"
+            >
+              <TermsAcceptCard
+                onAccept={() => {
+                  setAgreedToPolicy(true);
+                  setTermsOpen(false);
+                }}
+                onCancel={() => setTermsOpen(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -406,7 +459,7 @@ function AppleField({
             filled
               ? "top-1.5 text-[11px] font-medium"
               : "top-1/2 -translate-y-1/2 text-[14px]"
-          } group-focus-within:top-1.5 group-focus-within:-translate-y-0 group-focus-within:text-[11px] group-focus-within:font-medium group-focus-within:text-[#0A84FF]`}
+          } group-focus-within:top-1.5 group-focus-within:-translate-y-0 group-focus-within:text-[11px] group-focus-within:font-medium group-focus-within:text-[#FF2D46]`}
         >
           {label}
         </span>

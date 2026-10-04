@@ -115,7 +115,7 @@ function OfferRow({ offer, index }: { offer: WaitlistOffer; index: number }) {
   const expiresAt = offer.offer_expires_at ? new Date(offer.offer_expires_at).getTime() : 0;
   const secondsLeft = Math.max(0, Math.floor((expiresAt - now) / 1000));
   const progress = Math.min(1, secondsLeft / 600);
-  const accent = offer.brand_color || "#e11d48";
+  const accent = offer.brand_color || "#E0152F";
 
   useEffect(() => {
     if (!active || secondsLeft > 0) return;

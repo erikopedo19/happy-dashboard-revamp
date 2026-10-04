@@ -224,7 +224,7 @@ export default function ReviewPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-[#fb7185] bg-[#e11d48]/10 border border-[#e11d48]/20 rounded-xl px-3 py-2">
+            <p className="text-sm text-[#FF5A6E] bg-[#E0152F]/10 border border-[#E0152F]/20 rounded-xl px-3 py-2">
               {error}
             </p>
           )}

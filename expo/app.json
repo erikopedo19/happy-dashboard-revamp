@@ -7,11 +7,11 @@
     "orientation": "portrait",
     "icon": "../public/icons/icon-1024.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#000000",
+    "backgroundColor": "#0A0A0C",
     "splash": {
       "image": "../public/icons/icon-512x512.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#0A0A0C"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -25,7 +25,9 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "NSCameraUsageDescription": "Cutzioo uses the camera when you choose to capture a profile image.",
         "NSPhotoLibraryUsageDescription": "Cutzioo uses selected photos for profile images.",
         "NSLocationWhenInUseUsageDescription": "Cutzioo uses your location to show barbers near you."
@@ -37,16 +39,20 @@
         "backgroundColor": "#000000"
       },
       "package": "com.cutzioo.app",
-      "permissions": ["POST_NOTIFICATIONS", "VIBRATE"]
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "VIBRATE"
+      ]
     },
     "plugins": [
       [
         "expo-notifications",
         {
           "icon": "../public/icons/icon-192x192.png",
-          "color": "#FF375F"
+          "color": "#FF2D46"
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "web": {
       "favicon": "../public/favicon.ico"

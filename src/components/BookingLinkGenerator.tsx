@@ -52,7 +52,7 @@ const BookingLinkGenerator = () => {
   const [bookingLocale, setBookingLocale] = useState<BookingLocale>("en");
   const [copied, setCopied] = useState(false);
   const [bookingTheme, setBookingTheme] = useState<string>("default");
-  const [brandColor, setBrandColor] = useState<string>("#e11d48");
+  const [brandColor, setBrandColor] = useState<string>("#E0152F");
   const [showWebsiteInfo, setShowWebsiteInfo] = useState(false);
   const [websiteRequested, setWebsiteRequested] = useState(false);
   const { toast } = useToast();
@@ -82,7 +82,7 @@ const BookingLinkGenerator = () => {
                 user.user_metadata?.full_name || user.email?.split("@")[0],
               ask_phone: true,
               ask_notes: true,
-              brand_color: "#e11d48",
+              brand_color: "#E0152F",
               booking_locale: "en",
             })
             .select(
@@ -131,7 +131,7 @@ const BookingLinkGenerator = () => {
     const savedLocale = (profile as any)?.booking_locale;
     setBookingLocale(isBookingLocale(savedLocale) ? savedLocale : "en");
     setBookingTheme((profile as any)?.booking_theme || "default");
-    setBrandColor((profile as any)?.brand_color || "#e11d48");
+    setBrandColor((profile as any)?.brand_color || "#E0152F");
     setWebsiteRequested((profile as any)?.website_design_requested ?? false);
   }, [profile, suggestedSlug]);
 

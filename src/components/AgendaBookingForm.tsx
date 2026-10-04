@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getIconByName } from "@/components/IconPicker";
 import PulseButton, { type ButtonColor } from "@/components/PulseButton";
 import { SlotRail } from "@/components/SlotRail";
+import { fireBookingConfetti } from "@/lib/confetti";
 
 
 interface Service {
@@ -112,7 +113,7 @@ const AgendaBookingForm = ({
     purple: "#8e44ad",
   };
   const accentColor =
-    (bookingTheme !== "default" && themeColors[bookingTheme]) || businessProfile?.brand_color || "#e11d48";
+    (bookingTheme !== "default" && themeColors[bookingTheme]) || businessProfile?.brand_color || "#FF2D46";
   const currency = businessProfile?.currency || "EUR";
   const currencySymbol = currency === "GBP" ? "£" : currency === "USD" ? "$" : currency === "PLN" ? "zł" : currency === "RON" ? "lei" : "€";
   const formatCurrency = (amount: number) =>
@@ -390,6 +391,8 @@ const AgendaBookingForm = ({
     ? getAvailableStylistsForTime(selectedTime)
     : stylists;
 
+  const selectedStylist = stylists.find((s) => s.id === selectedStylistId);
+
   const calendarDays = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
@@ -478,11 +481,13 @@ const AgendaBookingForm = ({
     if (typeof result === 'object' && 'success' in result) {
       if (result.success) {
         setStep("success");
+        fireBookingConfetti();
       } else if (result.error) {
         setSubmitError(result.error);
       }
     } else {
       setStep("success");
+      fireBookingConfetti();
     }
   };
 
@@ -497,41 +502,78 @@ const AgendaBookingForm = ({
 
   if (step === "success") {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0c] flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-md text-center">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ backgroundColor: accentColor }}
-          >
-            <Check className="w-10 h-10 text-white" />
+      <div className="relative min-h-screen overflow-hidden bg-[#F5F5F7] dark:bg-[#0A0A0C] flex items-center justify-center p-4 md:p-8">
+        <div
+          className="pointer-events-none absolute left-1/2 top-[18%] h-72 w-72 -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+          style={{ background: accentColor }}
+        />
+        <div className="relative w-full max-w-md text-center">
+          <div className="relative mx-auto mb-7 h-24 w-24">
+            <motion.span
+              className="absolute inset-0 rounded-full"
+              style={{ backgroundColor: accentColor }}
+              initial={{ scale: 0.6, opacity: 0.45 }}
+              animate={{ scale: 1.7, opacity: 0 }}
+              transition={{ duration: 1.1, ease: "easeOut" }}
+            />
+            <motion.div
+              className="relative flex h-24 w-24 items-center justify-center rounded-full"
+              style={{ backgroundColor: accentColor, boxShadow: `0 18px 44px -12px ${accentColor}` }}
+              initial={{ scale: 0, rotate: -20 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 18 }}
+            >
+              <motion.span
+                initial={{ opacity: 0, scale: 0.4 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.18, type: "spring", stiffness: 420, damping: 22 }}
+              >
+                <Check className="w-12 h-12 text-white" strokeWidth={3} />
+              </motion.span>
+            </motion.div>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-[28px] font-semibold tracking-tight text-gray-900 dark:text-white mb-2"
+          >
             {rescheduleAppointment ? copy.updated : copy.booked}
-          </h2>
-          <p className="text-gray-500 dark:text-[#8E8E93] mb-6">
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+            className="text-gray-500 dark:text-[#8E8E93] mb-7"
+          >
             {rescheduleAppointment ? copy.rescheduled : copy.confirmation}
-          </p>
-          <div className="rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/[0.08] p-6 text-left mb-6">
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 300, damping: 28 }}
+            className="rounded-[28px] bg-white dark:bg-[#121215] border border-black/[0.05] dark:border-white/[0.06] p-5 text-left mb-6"
+          >
             {selectedServices.map((service, index) => (
-              <div key={service.id} className={cn("flex items-center gap-4", index > 0 && "pt-4 border-t border-gray-200 dark:border-white/10 mt-4")}>
-                <img src={avatarUrl} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
+              <div key={service.id} className={cn("flex items-center gap-3.5", index > 0 && "pt-4 border-t border-black/[0.05] dark:border-white/[0.06] mt-4")}>
+                <img src={avatarUrl} alt={displayName} className="w-11 h-11 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 dark:text-white font-medium truncate">{service.name}</p>
-                  <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{service.duration} {copy.mins} · {formatCurrency(service.price)}</p>
+                  <p className="text-gray-900 dark:text-white font-semibold truncate">{service.name}</p>
+                  <p className="text-gray-500 dark:text-[#8E8E93] text-[13px]">{service.duration} {copy.mins} · {formatCurrency(service.price)}</p>
                 </div>
               </div>
             ))}
-            <div className="border-t border-gray-200 dark:border-white/10 pt-4 mt-4 space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-[#8E8E93]">
-                <CalendarIcon className="w-4 h-4" />
-                <span>{selectedDate && fmt(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+            <div className="mt-4 grid grid-cols-2 gap-2.5 text-[13px]">
+              <div className="flex items-center gap-2 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-3 py-2.5 text-gray-700 dark:text-white/80">
+                <CalendarIcon className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                <span className="truncate">{selectedDate && fmt(selectedDate, 'EEE, MMM d')}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-500 dark:text-[#8E8E93]">
-                <Clock className="w-4 h-4" />
-                <span>{selectedTime}</span>
+              <div className="flex items-center gap-2 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-3 py-2.5 text-gray-700 dark:text-white/80">
+                <Clock className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                <span className="tabular-nums">{selectedTime}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
           <BookingButton
             text={copy.bookAnother}
             onClick={handleBookAnother}
@@ -561,19 +603,19 @@ const AgendaBookingForm = ({
 
 
   const MobileSummary = () => (
-    <div className="lg:hidden mb-5 px-4 pt-4">
-      <div className="rounded-[28px] bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/[0.06] overflow-hidden shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-        <div className="h-28 w-full relative">
+    <div className="lg:hidden mb-4">
+      <div className="rounded-[26px] bg-white dark:bg-[#121215] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden">
+        <div className="h-24 w-full relative">
           {bannerUrl ? (
             <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}08 100%)` }} />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#141416] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#121215] via-transparent to-transparent" />
         </div>
-        <div className="px-4 pb-5 -mt-7 relative">
-          <div className="flex items-end gap-3 mb-4">
-            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#141416] bg-gray-100 dark:bg-[#2C2C2E]">
+        <div className="px-4 pb-4 -mt-7 relative">
+          <div className="flex items-end gap-3 mb-3.5">
+            <div className="w-14 h-14 rounded-[18px] overflow-hidden ring-4 ring-white dark:ring-[#121215] bg-gray-100 dark:bg-[#2C2C2E]">
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             </div>
             <div className="pb-1 min-w-0">
@@ -589,7 +631,11 @@ const AgendaBookingForm = ({
           </div>
 
           {selectedService && (
-            <div className="rounded-[20px] bg-gray-50 dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/[0.06] p-4 space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-[20px] bg-black/[0.03] dark:bg-white/[0.04] p-4 space-y-3"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-[#8E8E93] font-semibold mb-0.5">
@@ -616,11 +662,7 @@ const AgendaBookingForm = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-white/[0.06]">
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{copy.total}</span>
-                <span className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(totalPrice)}</span>
-              </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
@@ -628,22 +670,26 @@ const AgendaBookingForm = ({
   );
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-[#0a0a0c] text-gray-900 dark:text-white p-3 md:p-8 lg:p-12 relative">
-      <div className="w-full max-w-6xl mx-auto bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden p-4 md:p-6 lg:p-8 relative z-10">
+    <div className="min-h-screen overflow-y-auto bg-[#F5F5F7] dark:bg-[#0A0A0C] text-gray-900 dark:text-white px-3 pt-3 pb-8 md:p-8 lg:p-12 relative">
+      <div
+        className="pointer-events-none absolute left-1/2 top-0 h-64 w-[34rem] max-w-full -translate-x-1/2 rounded-full opacity-[0.14] blur-3xl"
+        style={{ background: accentColor }}
+      />
+      <div className="w-full max-w-5xl mx-auto relative z-10">
         <MobileSummary />
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
             transition={spring}
-            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 md:gap-6 lg:gap-8 items-start"
+            className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4 md:gap-5 lg:gap-6 items-start"
           >
             {/* Left panel — brand + booking info */}
             <div className="hidden lg:block lg:sticky lg:top-8 space-y-4">
-              <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] overflow-hidden rounded-2xl shadow-2xl">
-                <div className="h-44 w-full relative">
+              <div className="bg-white dark:bg-[#121215] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden rounded-[28px]">
+                <div className="h-40 w-full relative">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
@@ -652,11 +698,11 @@ const AgendaBookingForm = ({
                       style={{ background: `linear-gradient(135deg, ${accentColor}40 0%, #E5E5EA 100%)` }}
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#1C1C1E] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#121215] via-transparent to-transparent" />
                 </div>
                 <div className="px-5 pb-5 -mt-10 relative">
                   <div className="flex items-end gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white dark:ring-[#1C1C1E] bg-gray-100 dark:bg-[#2C2C2E]">
+                    <div className="w-20 h-20 rounded-[22px] overflow-hidden ring-4 ring-white dark:ring-[#121215] bg-gray-100 dark:bg-[#2C2C2E]">
                       <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                     </div>
                     <div className="pb-1">
@@ -721,41 +767,52 @@ const AgendaBookingForm = ({
             </div>
 
             {/* Right panel — booking flow */}
-            <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] p-4 md:p-8 min-h-[520px] rounded-2xl">
-              {/* Equal-width segmented step tabs (cal.com inspired) */}
-              <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-gray-100 dark:bg-[#1C1C1E] mb-6">
-                {stepTabs.map((tab) => {
-                  const active = tab.key === activeTabKey;
-                  return (
-                    <button
-                      key={tab.key}
-                      type="button"
-                      onClick={() => tab.enabled && setStep(tab.key as any)}
-                      disabled={!tab.enabled}
-                      className={cn(
-                        "relative h-9 rounded-[12px] text-[13px] font-medium transition-colors",
-                        active ? "text-gray-900 dark:text-white" : tab.enabled ? "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white" : "text-gray-400 dark:text-[#48484A] cursor-not-allowed"
-                      )}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="booking-tab"
-                          transition={{ type: "spring", stiffness: 480, damping: 38 }}
-                          className="absolute inset-0 rounded-[12px] bg-white dark:bg-[#2C2C2E]"
-                        />
-                      )}
-                      <span className="relative z-10">{tab.label}</span>
-                    </button>
-                  );
-                })}
+            <div className="bg-white dark:bg-[#121215] border border-black/[0.05] dark:border-white/[0.06] p-4 md:p-7 min-h-[480px] rounded-[28px]">
+              {/* Step tabs with an animated progress line */}
+              <div className="mb-6">
+                <div className="grid grid-cols-3 gap-1 p-1 rounded-full bg-black/[0.04] dark:bg-white/[0.05]">
+                  {stepTabs.map((tab) => {
+                    const active = tab.key === activeTabKey;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => tab.enabled && setStep(tab.key as any)}
+                        disabled={!tab.enabled}
+                        className={cn(
+                          "relative h-9 rounded-full text-[13px] font-medium transition-colors",
+                          active ? "text-gray-900 dark:text-white" : tab.enabled ? "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white" : "text-gray-400 dark:text-[#48484A] cursor-not-allowed"
+                        )}
+                      >
+                        {active && (
+                          <motion.span
+                            layoutId="booking-tab"
+                            transition={{ type: "spring", stiffness: 480, damping: 38 }}
+                            className="absolute inset-0 rounded-full bg-white dark:bg-white/[0.1] shadow-sm"
+                          />
+                        )}
+                        <span className="relative z-10">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 h-[3px] rounded-full bg-black/[0.05] dark:bg-white/[0.06] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: accentColor }}
+                    initial={false}
+                    animate={{ width: `${((stepTabs.findIndex((t) => t.key === activeTabKey) + 1) / stepTabs.length) * 100}%` }}
+                    transition={{ type: "spring", stiffness: 220, damping: 30 }}
+                  />
+                </div>
               </div>
 
               {step === "service" && (
                 <div className="h-full flex flex-col pb-28 sm:pb-0">
-                  <div className="mb-5">
-                    <h2 className="text-[26px] font-semibold tracking-tight text-gray-900 dark:text-white">{copy.service}</h2>
+                  <div className="mb-4">
+                    <h2 className="text-[24px] font-semibold tracking-tight text-gray-900 dark:text-white">{copy.service}</h2>
                   </div>
-                  <div className="grid gap-3">
+                  <div className="grid gap-2.5">
                     {services.map((service, idx) => {
                       const active = selectedServiceIds.includes(service.id);
                       const swatch = service.color || accentColor;
@@ -769,16 +826,14 @@ const AgendaBookingForm = ({
                           whileTap={{ scale: 0.985 }}
                           onClick={() => handleServiceToggle(service.id)}
                           className={cn(
-                            "w-full p-5 rounded-2xl border text-left transition-all bg-gray-50 dark:bg-[#2a2a2a]/30",
-                            active
-                              ? "ring-2 ring-gray-300 dark:ring-white/30 scale-[1.01] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.8)]"
-                              : "border-gray-200 dark:border-[#2a2a2a] hover:border-gray-300 dark:hover:border-[#3a3a3a] hover:bg-gray-100 dark:hover:bg-[#2a2a2a]/50"
+                            "w-full p-4 rounded-[22px] border text-left transition-colors bg-black/[0.02] dark:bg-white/[0.03]",
+                            !active && "border-black/[0.05] dark:border-white/[0.06] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
                           )}
-                          style={active ? { borderColor: swatch, backgroundColor: `${swatch}14` } : {}}
+                          style={active ? { borderColor: swatch, backgroundColor: `${swatch}12` } : {}}
                         >
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3.5">
                             <div
-                              className="h-12 w-12 rounded-2xl shrink-0 shadow-inner flex items-center justify-center text-white"
+                              className="h-11 w-11 rounded-[14px] shrink-0 flex items-center justify-center text-white"
                               style={{ backgroundColor: swatch }}
                             >
                               {ServiceIcon ? (
@@ -797,27 +852,38 @@ const AgendaBookingForm = ({
                                 <span className="tabular-nums">{service.duration} min</span>
                               </div>
                             </div>
-                            <div
-                              className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-opacity",
-                                active ? "opacity-100" : "opacity-0"
-                              )}
+                            <motion.div
+                              initial={false}
+                              animate={{ scale: active ? 1 : 0.4, opacity: active ? 1 : 0 }}
+                              transition={{ type: "spring", stiffness: 520, damping: 26 }}
+                              className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                               style={{ backgroundColor: accentColor }}
                             >
-                              <Check className="w-3.5 h-3.5 text-white" />
-                            </div>
+                              <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                            </motion.div>
                           </div>
                         </motion.button>
                       );
                     })}
                   </div>
                   {selectedServiceIds.length > 0 && (
-                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:mt-6 sm:pt-4 sm:border-t sm:border-gray-200 dark:border-white/[0.06]">
-                      <BookingButton
-                        text={copy.continue}
-                        onClick={handleServiceContinue}
-                      />
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/85 to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-10 dark:from-[#0A0A0C] dark:via-[#0A0A0C]/85 sm:pointer-events-auto sm:static sm:bg-none sm:px-0 sm:pb-0 sm:pt-4"
+                    >
+                      <div
+                        className="pointer-events-auto mx-auto max-w-md"
+                        style={{ filter: `drop-shadow(0 10px 24px ${accentColor}40)` }}
+                      >
+                        <BookingButton
+                          text={copy.continue}
+                          onClick={handleServiceContinue}
+                          className="!h-12 !rounded-full"
+                        />
+                      </div>
+                    </motion.div>
                   )}
 
                 </div>
@@ -850,52 +916,56 @@ const AgendaBookingForm = ({
                         <div className="flex gap-1">
                           <button
                             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1C1C1E] flex items-center justify-center text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition"
+                            aria-label="Previous month"
+                            className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center text-gray-600 dark:text-[#C7C7CC] active:scale-90 transition"
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                            className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1C1C1E] flex items-center justify-center text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white transition"
+                            aria-label="Next month"
+                            className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center text-gray-600 dark:text-[#C7C7CC] active:scale-90 transition"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-7 gap-2 mb-3">
+                      <div className="grid grid-cols-7 gap-1.5 mb-1.5">
                         {weekDays.map(day => (
-                          <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-[#8E8E93] py-2">
+                          <div key={day} className="text-center text-[10px] font-semibold tracking-wider text-gray-400 dark:text-[#636366] py-1.5">
                             {day}
                           </div>
                         ))}
                       </div>
-                      <div className="grid grid-cols-7 gap-2">
+                      <div className="grid grid-cols-7 gap-1.5">
                         {calendarDays.map((day) => {
                           const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                           const isCurrentMonth = isSameMonth(day, currentMonth);
                           const isToday = isSameDay(day, new Date());
                           const isDisabled = day < new Date(new Date().setHours(0, 0, 0, 0)) || !workingDays.includes(getDay(day)) || disabledDates.includes(format(day, 'yyyy-MM-dd'));
                           return (
-                            <button
+                            <motion.button
                               key={day.toISOString()}
                               onClick={() => !isDisabled && handleDateSelect(day)}
                               disabled={isDisabled}
+                              whileTap={isDisabled ? undefined : { scale: 0.88 }}
+                              animate={{ scale: isSelected ? 1.04 : 1 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 28 }}
                               className={cn(
-                                "aspect-square flex items-center justify-center text-sm font-medium rounded-xl transition-all min-h-[44px]",
+                                "relative aspect-square flex items-center justify-center text-[14px] font-medium rounded-full min-h-[42px]",
                                 isSelected
-                                  ? "text-white"
-                                  : isDisabled
-                                  ? "text-gray-400 dark:text-[#636366] cursor-not-allowed"
-                                  : !isCurrentMonth
-                                  ? "text-gray-400 dark:text-[#636366]"
-                                  : isToday
-                                  ? "text-gray-900 dark:text-white border border-gray-300 dark:border-[#3a3a3a]"
-                                  : "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2a2a2a] bg-gray-50 dark:bg-[#2a2a2a]/40"
+                                  ? "text-white font-semibold"
+                                  : isDisabled || !isCurrentMonth
+                                  ? "text-gray-300 dark:text-[#48484A] cursor-not-allowed"
+                                  : "text-gray-900 dark:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07]"
                               )}
-                              style={isSelected ? { backgroundColor: accentColor } : {}}
+                              style={isSelected ? { backgroundColor: accentColor, boxShadow: `0 8px 20px -8px ${accentColor}` } : {}}
                             >
                               {format(day, 'd')}
-                            </button>
+                              {isToday && !isSelected && (
+                                <span className="absolute bottom-1.5 h-1 w-1 rounded-full" style={{ backgroundColor: accentColor }} />
+                              )}
+                            </motion.button>
                           );
                         })}
                       </div>
@@ -912,12 +982,12 @@ const AgendaBookingForm = ({
                         <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                           {selectedDate ? fmt(selectedDate, 'EEE dd') : copy.selectDate}
                         </h4>
-                        <div className="flex gap-1 bg-gray-100 dark:bg-[#1C1C1E] rounded-lg p-1">
+                        <div className="flex gap-0.5 bg-black/[0.04] dark:bg-white/[0.06] rounded-full p-0.5">
                           <button
                             onClick={() => setTimeFormat("12h")}
                             className={cn(
-                              "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "12h" ? "bg-white dark:bg-[#2C2C2E] text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white"
+                              "px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
+                              timeFormat === "12h" ? "bg-white dark:bg-white/[0.12] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white"
                             )}
                           >
                             12h
@@ -925,8 +995,8 @@ const AgendaBookingForm = ({
                           <button
                             onClick={() => setTimeFormat("24h")}
                             className={cn(
-                              "px-2 py-1 rounded text-xs font-medium transition-colors",
-                              timeFormat === "24h" ? "bg-white dark:bg-[#2C2C2E] text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white"
+                              "px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
+                              timeFormat === "24h" ? "bg-white dark:bg-white/[0.12] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-[#8E8E93] hover:text-gray-900 dark:hover:text-white"
                             )}
                           >
                             24h
@@ -964,13 +1034,24 @@ const AgendaBookingForm = ({
                         )}
                       </div>
                       {selectedDate && railSlots.some((slot) => slot.available) && selectedTime && railOnOpenSlot && (
-                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#141416]/95 backdrop-blur border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto sm:pt-4">
-                          <BookingButton
-                            text={copy.continue}
-                            onClick={handleContinue}
-                            disabled={!selectedTime}
-                          />
-                        </div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                          className="pointer-events-none fixed inset-x-0 bottom-0 z-50 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/85 to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-10 dark:from-[#0A0A0C] dark:via-[#0A0A0C]/85 sm:pointer-events-auto sm:static sm:bg-none sm:px-0 sm:pb-0 sm:pt-4"
+                        >
+                          <div
+                            className="pointer-events-auto mx-auto max-w-md"
+                            style={{ filter: `drop-shadow(0 10px 24px ${accentColor}40)` }}
+                          >
+                            <BookingButton
+                              text={copy.continue}
+                              onClick={handleContinue}
+                              disabled={!selectedTime}
+                              className="!h-12 !rounded-full"
+                            />
+                          </div>
+                        </motion.div>
                       )}
                     </div>
                   </div>
@@ -996,12 +1077,13 @@ const AgendaBookingForm = ({
                       availableStylistsForTime.map((stylist) => {
                         const active = selectedStylistId === stylist.id;
                         return (
-                          <button
+                          <motion.button
                             key={stylist.id}
                             onClick={() => handleStylistSelect(stylist.id)}
+                            whileTap={{ scale: 0.985 }}
                             className={cn(
-                              "w-full p-4 rounded-2xl border-2 text-left transition-all bg-gray-50 dark:bg-[#1C1C1E] flex items-center gap-4",
-                              active ? "ring-2 ring-gray-300 dark:ring-white/30" : "border-gray-200 dark:border-white/[0.06] hover:border-gray-300 dark:hover:border-white/[0.12]"
+                              "w-full p-4 rounded-[22px] border text-left transition-colors bg-black/[0.02] dark:bg-white/[0.03] flex items-center gap-3.5",
+                              !active && "border-black/[0.05] dark:border-white/[0.06] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
                             )}
                             style={active ? { borderColor: accentColor, backgroundColor: `${accentColor}12` } : {}}
                           >
@@ -1024,7 +1106,7 @@ const AgendaBookingForm = ({
                                 <Check className="w-3 h-3" />
                               </div>
                             )}
-                          </button>
+                          </motion.button>
                         );
                       })
                     ) : (
@@ -1061,10 +1143,72 @@ const AgendaBookingForm = ({
 
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pb-24 sm:pb-0">
-                      {submitError && (
-                        <div className="rounded-xl bg-red-50 dark:bg-[#FF375F]/10 border border-red-200 dark:border-[#FF375F]/20 p-3 text-sm text-red-600 dark:text-[#FF375F]">
-                          {submitError}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-[20px] bg-white dark:bg-[#121215] border border-black/[0.05] dark:border-white/[0.06] p-4"
+                      >
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-gray-500 dark:text-[#8E8E93] font-semibold mb-3">
+                          {selectedServices.length > 1 ? copy.selectedServices : copy.selectedService}
+                        </p>
+
+                        <div className="space-y-1.5">
+                          {selectedServices.map((service) => (
+                            <div key={service.id} className="flex items-center justify-between gap-3 text-sm">
+                              <span className="text-gray-900 dark:text-white font-medium truncate">{service.name}</span>
+                              <span className="text-gray-500 dark:text-[#8E8E93] tabular-nums shrink-0">
+                                {service.duration} {copy.mins} · {formatCurrency(service.price)}
+                              </span>
+                            </div>
+                          ))}
                         </div>
+
+                        <div className="mt-3 space-y-1.5 border-t border-black/[0.05] dark:border-white/[0.06] pt-3 text-[13px] text-gray-500 dark:text-[#8E8E93]">
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                            <span>{selectedDate ? fmt(selectedDate, "EEEE, MMMM d, yyyy") : "—"}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                            <span className="tabular-nums">
+                              {selectedTime
+                                ? `${formatTime(selectedTime)} → ${formatTime(getEndTime(selectedTime, totalDuration))} · ${totalDuration} ${copy.mins}`
+                                : "—"}
+                            </span>
+                          </div>
+                          {selectedStylist && (
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                              <span className="truncate">
+                                {selectedStylist.name}
+                                {selectedStylist.title ? ` · ${selectedStylist.title}` : ""}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                            <span className="truncate">{businessProfile?.address || copy.inPerson}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                            <span>{formatTzLabel(timezone)}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between border-t border-black/[0.05] dark:border-white/[0.06] pt-3">
+                          <span className="text-sm text-gray-500 dark:text-[#8E8E93]">{copy.total}</span>
+                          <span className="text-gray-900 dark:text-white font-bold tabular-nums">{formatCurrency(totalPrice)}</span>
+                        </div>
+                      </motion.div>
+
+                      {submitError && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="rounded-2xl bg-red-50 dark:bg-[#FF2D46]/10 border border-red-200 dark:border-[#FF2D46]/20 p-3.5 text-sm text-red-600 dark:text-[#FF5A6E]"
+                        >
+                          {submitError}
+                        </motion.div>
                       )}
                       <FormField
                         control={form.control}
@@ -1077,7 +1221,7 @@ const AgendaBookingForm = ({
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-[#8E8E93]" />
                                 <Input
                                   {...field}
-                                  className="w-full pl-10 pr-3 h-12 bg-white dark:bg-[#1C1C1E] border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0"
+                                  className="w-full pl-10 pr-3 h-12 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-black/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-white/[0.06] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
                                   placeholder={copy.namePh}
                                 />
                               </div>
@@ -1096,7 +1240,7 @@ const AgendaBookingForm = ({
                             <FormControl>
                               <Input
                                 {...field}
-                                className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0"
+                                className="w-full px-4 h-12 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-black/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-white/[0.06] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
                                 placeholder="email@example.com"
                               />
                             </FormControl>
@@ -1115,7 +1259,7 @@ const AgendaBookingForm = ({
                               <FormControl>
                                 <Input
                                   {...field}
-                                  className="w-full px-3 h-12 bg-white dark:bg-[#1C1C1E] border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0"
+                                  className="w-full px-4 h-12 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-black/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-white/[0.06] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
                                   placeholder="+1 555 123 4567"
                                 />
                               </FormControl>
@@ -1136,7 +1280,7 @@ const AgendaBookingForm = ({
                                 <textarea
                                   {...field}
                                   rows={3}
-                                  className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-white/[0.08] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:border-gray-300 dark:focus:border-white/20 focus:ring-0 resize-none"
+                                  className="w-full px-4 py-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#636366] focus:outline-none focus:border-black/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-white/[0.06] resize-none transition-colors"
                                   placeholder={copy.notesPh}
                                 />
                               </FormControl>
@@ -1159,11 +1303,12 @@ const AgendaBookingForm = ({
                                 type="button"
                                 onClick={() => setPayMethod(key)}
                                 className={cn(
-                                  "flex items-center gap-2 h-12 px-3 rounded-xl border text-sm transition active:scale-[0.98]",
+                                  "flex items-center gap-2 h-12 px-3.5 rounded-2xl border text-sm font-medium transition active:scale-[0.97]",
                                   payMethod === key
-                                    ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-black"
-                                    : "border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#1C1C1E] text-gray-900 dark:text-white",
+                                    ? "text-white border-transparent"
+                                    : "border-transparent bg-black/[0.03] dark:bg-white/[0.04] text-gray-900 dark:text-white",
                                 )}
+                                style={payMethod === key ? { backgroundColor: accentColor } : undefined}
                               >
                                 <Icon className="w-4 h-4" />
                                 {label}
@@ -1173,14 +1318,25 @@ const AgendaBookingForm = ({
                         </div>
                       )}
 
-                      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#0A0A0C]/95 backdrop-blur border-t border-gray-200 dark:border-white/[0.08] z-50 sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
-                        <BookingButton
-                          type="button"
-                          text={isLoading ? copy.processing : rescheduleAppointment ? copy.confirmChange : submitLabel || copy.book}
-                          disabled={isLoading}
-                          onClick={() => { form.handleSubmit(handleSubmit)(); }}
-                        />
-                      </div>
+                      <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/85 to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-10 dark:from-[#0A0A0C] dark:via-[#0A0A0C]/85 sm:pointer-events-auto sm:static sm:bg-none sm:px-0 sm:pb-0 sm:pt-4"
+                      >
+                        <div
+                          className="pointer-events-auto mx-auto max-w-md"
+                          style={{ filter: `drop-shadow(0 10px 24px ${accentColor}40)` }}
+                        >
+                          <BookingButton
+                            type="button"
+                            text={isLoading ? copy.processing : rescheduleAppointment ? copy.confirmChange : submitLabel || copy.book}
+                            disabled={isLoading}
+                            onClick={() => { form.handleSubmit(handleSubmit)(); }}
+                            className="!h-12 !rounded-full"
+                          />
+                        </div>
+                      </motion.div>
                     </form>
                   </Form>
                 </div>

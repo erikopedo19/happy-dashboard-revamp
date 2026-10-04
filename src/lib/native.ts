@@ -21,10 +21,16 @@ export const nativePlatform = () => {
  * Safe no-op in the browser / Lovable preview.
  */
 export async function initNativeShell() {
-  if (!isNative()) return;
+  // Expo WebView bridge — not Capacitor, but still a native shell.
+  const inExpoWebView = typeof window !== "undefined" && !!(window as any).ReactNativeWebView;
+  if (!isNative() && !inExpoWebView) return;
 
   document.documentElement.classList.add("is-native");
-  document.documentElement.classList.add(`platform-${nativePlatform()}`);
+  if (isNative()) {
+    document.documentElement.classList.add(`platform-${nativePlatform()}`);
+  } else if (inExpoWebView) {
+    document.documentElement.classList.add("platform-expo");
+  }
 
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");

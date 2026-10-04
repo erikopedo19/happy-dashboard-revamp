@@ -87,7 +87,7 @@ export default function WaitlistClaim() {
   };
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#2b0a14] flex items-center justify-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
+    <div className="min-h-dvh bg-gradient-to-br from-[#0b0b0d] via-[#141417] to-[#2b0a14] flex items-center justify-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6">
       <motion.div
         initial={{ opacity: 0, y: 14, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

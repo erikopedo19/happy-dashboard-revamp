@@ -3,7 +3,7 @@
 // Adapted from shadcn registry: glass-tab-bar
 // Original used @phosphor-icons/react; swapped to lucide-react and made reusable.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,28 +26,64 @@ interface GlassDockProps {
   trailingActive?: boolean;
 }
 
-const defaultColor = "#FF375F";
+const defaultColor = "#FF2D46";
 
 export const GlassDock = ({ items, activeIndex, className, trailing, trailingActive }: GlassDockProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
+  const [compact, setCompact] = useState(false);
   const navigate = useNavigate();
 
   const TrailingIcon = trailing?.icon;
+
+  // Shrink while scrolling down; resize back on scroll-up, or 1.7s after
+  // scrolling stops. Capture phase catches nested scroll containers too.
+  const lastY = useRef(new WeakMap<object, number>());
+  const idleTimer = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    const onScroll = (e: Event) => {
+      const t = e.target;
+      const y =
+        t === document || t === document.documentElement || t === document.body
+          ? window.scrollY
+          : (t as HTMLElement)?.scrollTop ?? 0;
+      const prev = lastY.current.get(t as object) ?? y;
+      lastY.current.set(t as object, y);
+      window.clearTimeout(idleTimer.current);
+      const delta = y - prev;
+      if (delta > 6 && y > 48) setCompact(true);
+      else if (delta < -6) setCompact(false);
+      idleTimer.current = window.setTimeout(() => setCompact(false), 1700);
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(idleTimer.current);
+    };
+  }, []);
 
   return (
     <div
       data-glass-dock
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(env(safe-area-inset-bottom),0.7rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
+        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(calc(env(safe-area-inset-bottom,0px)+1.15rem),1.75rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
     >
       <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-stretch justify-center gap-2.5">
       <motion.div
-        initial={{ y: 28, opacity: 0, scale: 0.96 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.8 }}
-        className="pointer-events-auto relative isolate flex flex-1 items-center justify-around overflow-hidden rounded-full px-3 py-2"
+        initial={{ y: 28, opacity: 0 }}
+        animate={{
+          y: 0,
+          opacity: 1,
+          // Shrink via layout, not transform — scaling a backdrop-filter layer
+          // makes the blur re-rasterize every frame and smear on iOS.
+          paddingTop: compact ? 4 : 6,
+          paddingBottom: compact ? 4 : 6,
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.7 }}
+        className="pointer-events-auto relative isolate flex flex-1 items-center justify-around overflow-hidden rounded-full px-2.5"
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -83,7 +119,10 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
             : "rgba(255,255,255,0.32)";
 
           const content = (
-            <div
+            <motion.div
+              animate={{ scale: compact ? 0.86 : 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              style={{ transformOrigin: "center bottom" }}
               className="relative z-10 flex flex-col items-center gap-px"
             >
               <motion.div
@@ -91,12 +130,12 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
               >
                 <Icon
-                  size={20}
+                  size={19}
                   style={{ color: itemTextColor, transition: "color 0.2s ease" }}
                 />
               </motion.div>
               {item.label === "More" ? (
-                <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#F43F5E,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
+                <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#FF2D46,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
                   {item.label}
                 </span>
               ) : (
@@ -108,7 +147,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
                 </span>
               )}
 
-            </div>
+            </motion.div>
           );
 
           const handleClick = () => {
@@ -125,7 +164,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               onHoverEnd={() => setHovered(null)}
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
-              className="relative flex flex-1 cursor-pointer flex-col items-center gap-[3px] rounded-full px-2 py-2"
+              className="relative flex flex-1 cursor-pointer flex-col items-center gap-[3px] rounded-full px-2 py-1.5"
             >
               {isActive && (
                 <motion.div
@@ -168,6 +207,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
             }}
             className="flex h-full w-auto aspect-square items-center justify-center rounded-full"
             style={{
+              transformOrigin: "bottom center",
               background: "rgba(28, 28, 30, 0.72)",
               border: "1px solid rgba(255, 255, 255, 0.10)",
               backdropFilter: "blur(32px) saturate(2.2)",

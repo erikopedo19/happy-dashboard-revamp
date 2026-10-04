@@ -147,7 +147,7 @@ export function UpgradeDrawer() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="relative mx-auto mt-1 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-gradient-to-br from-[#FF7A45] to-[#E11D48] shadow-[0_16px_40px_-16px_rgba(225,29,72,0.8)]"
+            className="relative mx-auto mt-1 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-gradient-to-br from-[#FF7A45] to-[#E0152F] shadow-[0_16px_40px_-16px_rgba(225,29,72,0.8)]"
           >
             <Crown className="h-8 w-8 text-white" />
           </motion.div>
@@ -195,7 +195,7 @@ export function UpgradeDrawer() {
               <div key={t.title} className="flex gap-3">
                 <div className="flex flex-col items-center pt-1">
                   <t.icon className="h-4 w-4 text-white" />
-                  <span className="mt-1 w-[3px] flex-1 rounded-full bg-gradient-to-b from-[#FF7A45] to-[#E11D48]" />
+                  <span className="mt-1 w-[3px] flex-1 rounded-full bg-gradient-to-b from-[#FF7A45] to-[#E0152F]" />
                 </div>
                 <div className="pb-1">
                   <p className="text-[15px] font-semibold">{t.title}</p>

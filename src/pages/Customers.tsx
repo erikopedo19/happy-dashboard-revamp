@@ -399,7 +399,7 @@ const Customers = () => {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setCustomerToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#e11d48] hover:bg-[#be123c]"
+              className="bg-[#E0152F] hover:bg-[#be123c]"
               onClick={() => customerToDelete && deleteMutation.mutate(customerToDelete.id)}
               disabled={deleteMutation.isPending}
             >

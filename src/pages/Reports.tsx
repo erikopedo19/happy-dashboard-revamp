@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, animate, useMotionValue, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -60,6 +60,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
+import { MobileReports } from "@/components/reports/MobileReports";
 
 type RangeValue =
   | "today"
@@ -115,14 +116,17 @@ const currency = new Intl.NumberFormat("en-US", {
 });
 const numberFormat = new Intl.NumberFormat("en-US");
 
+const ACCENT = "#FF2D46";
+const SURFACE = "#121215";
+
 const iOS = {
   blue: "#0A84FF",
   green: "#30D158",
   indigo: "#5E5CE6",
   orange: "#FF9F0A",
-  pink: "#FF375F",
-  rose: "#FF2D6F",
-  rosesoft: "#FF6B95",
+  pink: ACCENT,
+  rose: ACCENT,
+  rosesoft: "#FF5A6E",
   yellow: "#FFD60A",
   grey: "#8E8E93",
   card: "#1C1C1E",
@@ -182,6 +186,16 @@ const dayLabel = (date: string) =>
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
 const stagger = (i: number) => ({ delay: i * 0.05, ...spring });
+
+function CountUp({ value, format, className }: { value: number; format: (n: number) => string; className?: string }) {
+  const mv = useMotionValue(0);
+  const text = useTransform(mv, (v) => format(v));
+  useEffect(() => {
+    const controls = animate(mv, value, { duration: 1.1, ease: [0.22, 1, 0.36, 1] });
+    return () => controls.stop();
+  }, [value, mv]);
+  return <motion.span className={className}>{text}</motion.span>;
+}
 
 const Reports = () => {
   const isMobile = useIsMobile();
@@ -302,6 +316,45 @@ const Reports = () => {
 
     const busiestDay = dayOfWeekDemand.reduce((best, d) => (d.count > best.count ? d : best), dayOfWeekDemand[0]);
 
+    // --- Extended stats (mobile) ---
+    const noShows = appointments.filter(a => a.status === "no_show" || a.status === "no-show" || a.status === "noshow").length;
+    const cancelRate = appointments.length ? Math.round((cancelled / appointments.length) * 100) : 0;
+    const minutesBooked = appointments.reduce((s, a) => s + (a.service?.duration || 0), 0);
+    const avgDuration = appointments.length ? Math.round(minutesBooked / appointments.length) : 0;
+    const perCustomer = new Map<string, number>();
+    appointments.forEach(a => perCustomer.set(a.customer_id, (perCustomer.get(a.customer_id) || 0) + 1));
+    const returningCustomers = Array.from(perCustomer.values()).filter(n => n > 1).length;
+    const returningRate = totalCustomers ? Math.round((returningCustomers / totalCustomers) * 100) : 0;
+    const rangeDays = Math.max(1, Math.round((getRangeDates(dateRange).end.getTime() - getRangeDates(dateRange).start.getTime()) / 86_400_000) + 1);
+    const revenuePerDay = totalRevenue / rangeDays;
+    const bookingsPerDay = appointments.length / rangeDays;
+    const activeDays = dailyMap.size;
+    const bestDay = Array.from(dailyMap.values()).reduce<{ date: string; revenue: number; appointments: number } | null>(
+      (best, d) => (!best || d.revenue > best.revenue ? d : best), null);
+    const topService = serviceBreakdown[0] || null;
+    const topServiceShare = topService && appointments.length ? Math.round((topService.bookings / appointments.length) * 100) : 0;
+    const hourOf = (a: AppointmentRow) => parseInt((a.appointment_time || "0").split(":")[0], 10);
+    const dayparts = [
+      { key: "Morning", range: "before 12", count: appointments.filter(a => hourOf(a) < 12).length },
+      { key: "Afternoon", range: "12 – 17", count: appointments.filter(a => hourOf(a) >= 12 && hourOf(a) < 17).length },
+      { key: "Evening", range: "after 17", count: appointments.filter(a => hourOf(a) >= 17).length },
+    ];
+    const weekendCount = appointments.filter(a => { const d = new Date(`${a.appointment_date}T00:00:00`).getDay(); return d === 0 || d === 6; }).length;
+    const weekendShare = appointments.length ? Math.round((weekendCount / appointments.length) * 100) : 0;
+    const upcomingRevenue = appointments.filter(a => a.status === "scheduled" || a.status === "confirmed").reduce((s, a) => s + (a.price || 0), 0);
+    const sortedDates = Array.from(dailyMap.keys()).sort();
+    let streak = 0;
+    for (let i = sortedDates.length - 1; i >= 0; i--) {
+      if (i === sortedDates.length - 1) { streak = 1; continue; }
+      const gap = (new Date(`${sortedDates[i + 1]}T00:00:00`).getTime() - new Date(`${sortedDates[i]}T00:00:00`).getTime()) / 86_400_000;
+      if (gap === 1) streak += 1; else break;
+    }
+    const heatmap = [0, 1, 2, 3, 4, 5, 6].map(dow =>
+      Array.from({ length: 13 }, (_, i) => i + 8).map(hour =>
+        appointments.filter(a => new Date(`${a.appointment_date}T00:00:00`).getDay() === dow && hourOf(a) === hour).length));
+    const heatMax = Math.max(1, ...heatmap.flat());
+    const quietHour = hourlyDemand.reduce((worst, h) => (h.count < worst.count ? h : worst), hourlyDemand[0]);
+
     return {
       totalRevenue, totalAppointments: appointments.length, totalCustomers,
       averageTicket, completionRate, completedAppointments: completed,
@@ -309,8 +362,11 @@ const Reports = () => {
       revenueTrend, serviceBreakdown, stylistPerformance, statusBreakdown, dayOfWeekDemand,
       hourlyDemand, peakHour, busiestDay,
       activeServices: services.length, activeStylists: stylists.length, revenueDelta,
+      noShows, cancelRate, minutesBooked, avgDuration, returningCustomers, returningRate,
+      rangeDays, revenuePerDay, bookingsPerDay, activeDays, bestDay, topService, topServiceShare,
+      dayparts, weekendShare, upcomingRevenue, streak, heatmap, heatMax, quietHour,
     };
-  }, [data]);
+  }, [data, dateRange]);
 
   const topCustomers = useMemo<TopCustomerRow[]>(() => {
     if (!data?.appointments || !customersData.length) return [];
@@ -446,7 +502,7 @@ const Reports = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springSoft}
                 whileTap={{ scale: 0.94 }}
-                className="hidden md:inline-flex shrink-0 items-center gap-2 rounded-[12px] h-10 px-4 bg-[#15151A] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
+                className="hidden md:inline-flex shrink-0 items-center gap-2 rounded-[12px] h-10 px-4 bg-[#121215] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
               >
                 <Download className="h-4 w-4" strokeWidth={2.3} />
                 Export
@@ -477,7 +533,7 @@ const Reports = () => {
 
           <div className="relative z-10 flex-1 overflow-auto">
             {isMobile && (
-              <MobileReportsView
+              <MobileReports
                 analytics={analytics}
                 isLoading={isLoading}
                 topCustomers={topCustomers}
@@ -497,11 +553,11 @@ const Reports = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={springSoft}
               >
-                <Card className="relative rounded-[24px] border border-white/[0.08] bg-[#15151A] overflow-hidden">
+                <Card className="relative rounded-[24px] border border-white/[0.08] bg-[#121215] overflow-hidden">
                   <CardContent className="relative p-6 md:p-8">
                     <div className="flex items-start justify-between gap-5">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF375F]">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF2D46]">
                           Total revenue
                         </p>
                         <AnimatePresence mode="wait">
@@ -523,7 +579,7 @@ const Reports = () => {
                               "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold border",
                               analytics.revenueDelta >= 0
                                 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : "bg-[#FF375F]/10 text-[#FF375F] border-[#FF375F]/20"
+                                : "bg-[#FF2D46]/10 text-[#FF2D46] border-[#FF2D46]/20"
                             )}
                           >
                             {analytics.revenueDelta >= 0 ? (
@@ -600,7 +656,7 @@ const Reports = () => {
                   <InsightCard
                     index={1}
                     icon={<Clock className="w-4 h-4" strokeWidth={2.3} />}
-                    tint={iOS.blue}
+                    tint="#FFFFFF"
                     title="Peak hour"
                     text={`Most clients book around ${analytics.peakHour?.hour ?? "—"}. Keep your best stylists on that slot.`}
                   />
@@ -632,7 +688,7 @@ const Reports = () => {
                   label="Clients"
                   value={numberFormat.format(analytics.totalCustomers)}
                   hint={`${analytics.activeStylists} stylists`}
-                  tint={iOS.blue}
+                  tint="#FFFFFF"
                 />
                 <KpiTile index={2} loading={isLoading}
                   icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
@@ -646,7 +702,7 @@ const Reports = () => {
                   label="Services"
                   value={numberFormat.format(analytics.activeServices)}
                   hint={`${analytics.completedAppointments} done`}
-                  tint={iOS.indigo}
+                  tint="#FFFFFF"
                 />
               </div>
 
@@ -724,8 +780,7 @@ const Reports = () => {
                         <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
                           {analytics.dayOfWeekDemand.map((entry, i) => {
                             const max = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
-                            const opacity = 0.35 + (entry.count / max) * 0.65;
-                            return <Cell key={i} fill={`rgba(94,92,230,${opacity})`} />;
+                            return <Cell key={i} fill={entry.count === max && entry.count > 0 ? ACCENT : `rgba(255,255,255,${0.08 + (entry.count / max) * 0.3})`} />;
                           })}
                         </Bar>
                       </BarChart>
@@ -752,8 +807,7 @@ const Reports = () => {
                         {analytics.hourlyDemand.map((entry, i) => {
                           const max = Math.max(...analytics.hourlyDemand.map((h) => h.count), 1);
                           const isPeak = entry.hour === analytics.peakHour?.hour && entry.count > 0;
-                          const opacity = 0.3 + (entry.count / max) * 0.7;
-                          return <Cell key={i} fill={isPeak ? iOS.rose : `rgba(10,132,255,${opacity})`} />;
+                          return <Cell key={i} fill={isPeak ? ACCENT : `rgba(255,255,255,${0.08 + (entry.count / max) * 0.3})`} />;
                         })}
                       </Bar>
                     </BarChart>
@@ -792,7 +846,7 @@ const Reports = () => {
                           </div>
                           <div className="h-2 rounded-[10px] bg-white/10 overflow-hidden">
                             <motion.div
-                              className="h-full rounded-[10px] bg-[#FF375F]"
+                              className="h-full rounded-[10px] bg-[#FF2D46]"
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -875,7 +929,7 @@ const Reports = () => {
                   }}
                   classNames={{
                     root: "drop-shadow-2xl",
-                    track: "bg-[#15151A]/80 border-white/[0.08] shadow-2xl backdrop-blur-2xl",
+                    track: "bg-[#121215]/80 border-white/[0.08] shadow-2xl backdrop-blur-2xl",
                     item: "group data-[active=true]:text-white",
                     activeItem: "text-white",
                   }}
@@ -913,7 +967,7 @@ function SectionCard({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", stiffness: 400, damping: 28 }}
-      className="relative rounded-[28px] border border-white/[0.08] bg-[#15151A]"
+      className="relative rounded-[28px] border border-white/[0.08] bg-[#121215]"
     >
       <div className="p-6 md:p-8">
         <div className="mb-6">
@@ -937,7 +991,7 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
       transition={{ delay: index * 0.08, type: "spring", stiffness: 420, damping: 30 }}
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="relative rounded-[24px] border border-white/[0.08] bg-[#15151A] h-full"
+      className="relative rounded-[24px] border border-white/[0.08] bg-[#121215] h-full"
     >
       <div className="p-6 h-full">
         <div className="flex items-start justify-between mb-4">
@@ -950,13 +1004,6 @@ function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
           >
             {icon}
           </div>
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="opacity-60"
-          >
-            <Activity className="w-5 h-5 text-white/50" />
-          </motion.div>
         </div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50 mb-2">{label}</p>
         {loading ? (
@@ -1154,7 +1201,7 @@ function InsightCard({ icon, tint, title, text, index = 0 }: {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.08 * index, ...springSoft }}
       whileHover={{ y: -2 }}
-      className="relative rounded-[18px] bg-[#15151A] border border-white/[0.08] p-5"
+      className="relative rounded-[18px] bg-[#121215] border border-white/[0.08] p-5"
     >
       <div className="flex items-center gap-2.5 mb-2.5">
         <div
@@ -1235,7 +1282,7 @@ function CompletionGauge({ value }: { value: number }) {
         <span className="text-[26px] font-bold text-white tabular-nums leading-none tracking-tight">
           {value}%
         </span>
-        <span className="text-[10px] uppercase tracking-[0.16em] text-[#FF375F] mt-1 font-semibold">done</span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-[#FF2D46] mt-1 font-semibold">done</span>
       </div>
     </div>
   );
@@ -1265,10 +1312,10 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
           transition={{ type: "spring", stiffness: 360, damping: 30 }}
           className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
         >
-          <div className="relative rounded-[26px] border border-white/[0.08] bg-[#15151A] p-4">
+          <div className="relative rounded-[26px] border border-white/[0.08] bg-[#121215] p-4">
             <div className="relative flex items-center gap-3.5">
               <motion.div
-                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF375F]"
+                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF2D46]"
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -1294,7 +1341,7 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
             <div className="relative mt-3.5 flex items-center gap-2.5">
               <Link
                 to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-[12px] bg-[#FF375F] text-white text-[14px] font-semibold flex items-center justify-center active:scale-[0.98] transition-transform"
+                className="flex-1 h-11 rounded-[12px] bg-[#FF2D46] text-white text-[14px] font-semibold flex items-center justify-center active:scale-[0.98] transition-transform"
               >
                 Sign in
               </Link>
@@ -1312,597 +1359,5 @@ function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
   );
 }
 
-// ── iOS 26-style mobile report components ─────────────────────────────────────
-// Solid dark surfaces, no glass, round hierarchy, smooth spring animations.
-
-function MobileCard({
-  title,
-  subtitle,
-  children,
-  delay = 0,
-  className,
-}: {
-  title?: string;
-  subtitle?: string;
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, type: "spring", stiffness: 360, damping: 30 }}
-      className={cn("rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden", className)}
-    >
-      {(title || subtitle) && (
-        <div className="px-5 pt-5 pb-2">
-          {title && <h3 className="text-[17px] font-bold text-white tracking-tight">{title}</h3>}
-          {subtitle && <p className="text-[12px] text-white/50 mt-1">{subtitle}</p>}
-        </div>
-      )}
-      {children}
-    </motion.div>
-  );
-}
-
-function MobileStatCard({
-  icon,
-  label,
-  value,
-  hint,
-  tint,
-  delay = 0,
-  filled = false,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  hint?: string;
-  tint: string;
-  delay?: number;
-  filled?: boolean;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, ...springSoft }}
-      whileTap={{ scale: 0.97 }}
-      className={cn(
-        "rounded-[24px] p-4 border",
-        filled
-          ? "bg-[#0A84FF] border-[#0A84FF] shadow-[0_16px_40px_-16px_rgba(10,132,255,0.9)]"
-          : "bg-[#15151A] border-white/[0.08]"
-      )}
-    >
-      <div
-        className="w-10 h-10 rounded-[14px] flex items-center justify-center mb-3"
-        style={
-          filled
-            ? { backgroundColor: "rgba(255,255,255,0.18)", color: "#fff" }
-            : { backgroundColor: `${tint}15`, color: tint }
-        }
-      >
-        {icon}
-      </div>
-      <p className={cn("text-[10px] font-semibold uppercase tracking-[0.14em]", filled ? "text-white/80" : "text-white/50")}>{label}</p>
-      <p className="text-[22px] font-bold text-white mt-1 tabular-nums tracking-tight">{value}</p>
-      {hint && <p className={cn("text-[11px] mt-1", filled ? "text-white/75" : "text-white/50")}>{hint}</p>}
-    </motion.div>
-  );
-}
-
-
-function MobileSparkline({ data }: { data: { label: string; revenue: number }[] }) {
-  if (data.length < 2) {
-    return (
-      <div className="h-full w-full flex items-center justify-center rounded-[20px] bg-[#1C1C1E]">
-        <span className="text-[11px] text-white/40">No trend data</span>
-      </div>
-    );
-  }
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-        <defs>
-          <linearGradient id="mobileSpark" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={iOS.rose} stopOpacity={0.35} />
-            <stop offset="100%" stopColor={iOS.rose} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <Area
-          type="monotone"
-          dataKey="revenue"
-          stroke={iOS.rose}
-          strokeWidth={2.5}
-          fill="url(#mobileSpark)"
-          dot={false}
-          activeDot={{ r: 4, fill: iOS.rose, stroke: "#fff", strokeWidth: 2 }}
-          animationDuration={900}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-}
-
-function MobileDonut({
-  data,
-  value,
-  label,
-}: {
-  data: { name: string; value: number; fill: string }[];
-  value: number;
-  label: string;
-}) {
-  if (data.length === 0) {
-    return (
-      <div className="h-[140px] flex items-center justify-center">
-        <span className="text-[11px] text-white/40">No data</span>
-      </div>
-    );
-  }
-  return (
-    <div className="relative h-[140px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            innerRadius={42}
-            outerRadius={58}
-            paddingAngle={4}
-            cornerRadius={8}
-            strokeWidth={0}
-            animationDuration={900}
-          >
-            {data.map((item) => (
-              <Cell key={item.name} fill={item.fill} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[22px] font-bold text-white tabular-nums leading-none">{value}%</span>
-        <span className="text-[9px] uppercase tracking-[0.14em] text-[#8E8E93] mt-1 font-semibold">{label}</span>
-      </div>
-    </div>
-  );
-}
-
-function MobileBarChart({
-  data,
-  xKey,
-  yKey,
-  highlight,
-  interval = 1,
-}: {
-  data: any[];
-  xKey: string;
-  yKey: string;
-  highlight?: string;
-  interval?: number | "preserveStartEnd";
-}) {
-  if (data.length === 0) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <span className="text-[11px] text-white/40">No data</span>
-      </div>
-    );
-  }
-  const max = Math.max(...data.map((d) => d[yKey]), 1);
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
-        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="rgba(255,255,255,0.06)" />
-        <XAxis
-          dataKey={xKey}
-          tickLine={false}
-          axisLine={false}
-          tick={{ fontSize: 9, fill: "#8E8E93", fontWeight: 500 }}
-          interval={interval}
-          dy={4}
-        />
-        <YAxis hide />
-        <Bar dataKey={yKey} radius={[6, 6, 0, 0]} animationDuration={900}>
-          {data.map((entry, i) => {
-            const isHighlight = highlight && entry[xKey] === highlight;
-            const opacity = 0.3 + (entry[yKey] / max) * 0.7;
-            return <Cell key={i} fill={isHighlight ? iOS.rose : `rgba(10,132,255,${opacity})`} />;
-          })}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
-function MobileReviewsSummary({ reviews }: { reviews: ReviewRow[] }) {
-  const avgRating = useMemo(
-    () => (reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0),
-    [reviews]
-  );
-  const distribution = useMemo(
-    () => [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length })),
-    [reviews]
-  );
-  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
-
-  return (
-    <div className="px-5 pb-5 space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="text-center shrink-0">
-          <p className="text-[32px] font-bold text-white tabular-nums leading-none">{avgRating.toFixed(1)}</p>
-          <div className="flex justify-center gap-0.5 mt-1.5">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star
-                key={s}
-                className={cn(
-                  "w-3.5 h-3.5",
-                  s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30"
-                )}
-              />
-            ))}
-          </div>
-          <p className="text-[10px] text-white/50 mt-1">{reviews.length} reviews</p>
-        </div>
-        <div className="flex-1 space-y-1.5">
-          {distribution.map(({ star, count }, i) => (
-            <div key={star} className="flex items-center gap-2">
-              <span className="text-[10px] text-white/50 w-2.5 tabular-nums">{star}</span>
-              <div className="flex-1 h-1.5 rounded-full bg-[#1C1C1E] overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full bg-[#FFD60A]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(count / maxCount) * 100}%` }}
-                  transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                />
-              </div>
-              <span className="text-[10px] text-white/50 w-3 text-right tabular-nums">{count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileReportsView({
-  analytics,
-  isLoading,
-  topCustomers,
-  reviews,
-  dateRange,
-  setDateRange,
-  onExport,
-}: {
-  analytics: any;
-  isLoading: boolean;
-  topCustomers: TopCustomerRow[];
-  reviews: ReviewRow[];
-  dateRange: RangeValue;
-  setDateRange: (v: RangeValue) => void;
-  onExport: () => void;
-}) {
-  const completedShare = analytics.completionRate || 0;
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-
-  return (
-    <div className="px-4 pt-3 pb-32 space-y-4">
-      {/* iOS 26 header */}
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={springSoft}
-      >
-        <h1 className="text-[34px] font-bold text-white tracking-tight">Reports</h1>
-        <p className="text-[13px] text-white/50 mt-0.5">{today}</p>
-      </motion.div>
-
-      {/* Date range */}
-      <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
-        <TabsList className="w-full bg-[#15151A]">
-          {RANGES.map((r) => (
-            <Fragment key={r.value}>
-              <TabsTrigger value={r.value} className="flex-1" indicatorClassName="bg-[#FF375F]">
-                <span className="relative">{r.short}</span>
-              </TabsTrigger>
-            </Fragment>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      {/* Hero — headline stat + inline sub-stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={springSoft}
-        className="rounded-[30px] bg-[#15151A] border border-white/[0.07] p-5 overflow-hidden"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <AnimatePresence mode="wait">
-              <motion.h2
-                key={analytics.totalRevenue}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.4 }}
-                className="text-[38px] font-bold text-white tabular-nums tracking-[-0.04em] leading-[1.05]"
-              >
-                {isLoading ? "—" : currency.format(analytics.totalRevenue)}
-              </motion.h2>
-            </AnimatePresence>
-            <p className="text-[15px] text-white/45 mt-1">earned {RANGES.find(r => r.value === dateRange)?.short ?? ""}</p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold"
-              style={{
-                backgroundColor: analytics.revenueDelta >= 0 ? "rgba(48,209,88,0.15)" : "rgba(255,55,95,0.15)",
-                color: analytics.revenueDelta >= 0 ? iOS.green : iOS.rose,
-              }}
-            >
-              {analytics.revenueDelta >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.4} /> : <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.4} />}
-              {Math.abs(analytics.revenueDelta)}% vs prior
-            </div>
-          </div>
-          <CompletionGauge value={completedShare} />
-        </div>
-
-        {/* main graphic */}
-        <div className="mt-4 h-[104px] -mx-1">
-          <MobileSparkline data={analytics.revenueTrend} />
-        </div>
-
-        {/* inline sub-stat tiles */}
-        <div className="mt-4 grid grid-cols-3 gap-2.5">
-          {[
-            { label: "Bookings", value: numberFormat.format(analytics.totalAppointments) },
-            { label: "Clients", value: numberFormat.format(analytics.totalCustomers) },
-            { label: "Avg ticket", value: currency.format(analytics.averageTicket || 0) },
-          ].map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.06 * i, ...springSoft }}
-              className="rounded-[20px] bg-[#0E0E11] border border-white/[0.06] px-3 py-3.5"
-            >
-              <p className="text-[20px] font-bold text-white tabular-nums leading-none tracking-[-0.03em]">{s.value}</p>
-              <p className="text-[11px] text-white/40 mt-2">{s.label}</p>
-            </motion.div>
-          ))}
-        </div>
-
-      </motion.div>
-
-      {/* This week strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.12, ...springSoft }}
-        className="rounded-[26px] bg-[#15151A] border border-white/[0.07] p-4"
-      >
-        <div className="flex items-center justify-between mb-3.5">
-          <p className="text-[14px] font-semibold text-white">This week</p>
-          <div className="flex items-center gap-1.5 text-[12px] font-semibold text-white/70">
-            {analytics.dayOfWeekDemand.filter((d: any) => d.count > 0).length}
-            <Flame className="w-3.5 h-3.5 text-[#FF9F0A]" strokeWidth={2.3} />
-          </div>
-        </div>
-        <div className="flex items-end justify-between">
-          {analytics.dayOfWeekDemand.map((d: any, i: number) => {
-            const isToday = new Date().getDay() === i;
-            const active = d.count > 0;
-            return (
-              <motion.div
-                key={d.day}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.04 * i, ...springSoft }}
-                className={cn(
-                  "flex flex-col items-center justify-between w-[38px] py-1.5 rounded-full",
-                  isToday ? "bg-[#0A84FF] h-[74px] shadow-[0_10px_24px_-8px_rgba(10,132,255,0.8)]" : "h-[74px]"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold tabular-nums",
-                    isToday
-                      ? "text-white"
-                      : active
-                        ? "bg-white/[0.10] text-white"
-                        : "bg-white/[0.05] text-white/25"
-                  )}
-                >
-                  {isToday ? <Check className="w-4 h-4" strokeWidth={3} /> : active ? d.count : "–"}
-                </div>
-                <span
-                  className={cn(
-                    "text-[15px] font-bold uppercase",
-                    isToday ? "text-white" : "text-white/30"
-                  )}
-                >
-                  {String(d.day).slice(0, 1)}
-                </span>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
-
-
-
-      {/* Summary grid */}
-      <div>
-        <p className="px-1 pb-2.5 text-[13px] font-semibold text-white/70">Summary</p>
-        <div className="grid grid-cols-2 gap-3">
-          <MobileStatCard
-            delay={0.05}
-            icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
-            label="Completed"
-            value={numberFormat.format(analytics.completedAppointments)}
-            hint={`${analytics.completionRate}% rate`}
-            tint={iOS.green}
-          />
-          <MobileStatCard
-            delay={0.1}
-            filled
-            icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
-            label="Services"
-            value={numberFormat.format(analytics.activeServices)}
-            hint="Active"
-            tint={iOS.indigo}
-          />
-
-          <MobileStatCard
-            delay={0.15}
-            icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
-            label="Stylists"
-            value={numberFormat.format(analytics.activeStylists)}
-            hint="Active"
-            tint={iOS.blue}
-          />
-          <MobileStatCard
-            delay={0.2}
-            icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
-            label="Per client"
-            value={currency.format(analytics.totalCustomers ? analytics.totalRevenue / analytics.totalCustomers : 0)}
-            hint="Average"
-            tint={iOS.rose}
-          />
-        </div>
-      </div>
-
-
-
-      <RevenuePipelineCard />
-
-
-
-      {/* Status + busiest days charts */}
-      <div className="grid grid-cols-2 gap-3">
-        <MobileCard title="Status" subtitle="Bookings" delay={0.22}>
-          <div className="pb-4">
-            <MobileDonut data={analytics.statusBreakdown} value={analytics.completionRate} label="done" />
-          </div>
-        </MobileCard>
-        <MobileCard title="Busiest day" subtitle={analytics.busiestDay?.day ?? "—"} delay={0.26}>
-          <div className="h-[140px] pb-4">
-            <MobileBarChart
-              data={analytics.dayOfWeekDemand}
-              xKey="day"
-              yKey="count"
-              highlight={analytics.busiestDay?.day}
-              interval="preserveStartEnd"
-            />
-          </div>
-        </MobileCard>
-      </div>
-
-      {/* Peak hours */}
-      <MobileCard title="Peak hours" subtitle="Bookings by hour" delay={0.3}>
-        <div className="h-[160px] pb-5">
-          <MobileBarChart
-            data={analytics.hourlyDemand}
-            xKey="hour"
-            yKey="count"
-            highlight={analytics.peakHour?.hour}
-            interval={2}
-          />
-        </div>
-      </MobileCard>
-
-      {/* Top services */}
-      <MobileCard title="Top services" subtitle="Most booked this period" delay={0.34}>
-        <div className="px-5 pb-5 space-y-4">
-          {analytics.serviceBreakdown?.slice(0, 4).map((s: any, i: number) => {
-            const max = analytics.serviceBreakdown[0]?.bookings || 1;
-            const pct = (s.bookings / max) * 100;
-            return (
-              <motion.div
-                key={s.name}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.36 + i * 0.05, ...springSoft }}
-                className="space-y-2"
-              >
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-7 h-7 rounded-[10px] bg-[#1C1C1E] text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
-                      {i + 1}
-                    </span>
-                    <span className="font-medium text-white truncate">{s.name}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
-                </div>
-                <div className="h-2 rounded-full bg-[#1C1C1E] overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full bg-[#FF375F]"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ delay: 0.36 + i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  />
-                </div>
-              </motion.div>
-            );
-          })}
-          {(!analytics.serviceBreakdown || analytics.serviceBreakdown.length === 0) && (
-            <div className="py-4 text-center">
-              <p className="text-[12px] text-white/50">No services booked yet</p>
-            </div>
-          )}
-        </div>
-      </MobileCard>
-
-      {/* Best customers */}
-      {topCustomers.length > 0 && (
-        <MobileCard title="Best customers" subtitle="Top spenders this period" delay={0.38}>
-          <div className="px-5 pb-5 divide-y divide-white/[0.06]">
-            {topCustomers.slice(0, 4).map((c, i) => {
-              const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
-              return (
-                <motion.div
-                  key={c.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.05, ...springSoft }}
-                  whileTap={{ backgroundColor: "rgba(255,255,255,0.06)" }}
-                  className="flex items-center gap-3.5 py-3.5 first:pt-0"
-                >
-                  <Avatar
-                    name={c.initials || "?"}
-                    className="h-10 w-10 rounded-full"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
-                      {i === 0 && (
-                        <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-full">
-                          VIP
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-white/50 mt-0.5">
-                      {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </MobileCard>
-      )}
-
-      {/* Reviews */}
-      {reviews.length > 0 && (
-        <MobileCard title="Reviews" subtitle={`${reviews.length} total`} delay={0.42}>
-          <MobileReviewsSummary reviews={reviews} />
-        </MobileCard>
-      )}
-    </div>
-  );
-}
 
 export default Reports;

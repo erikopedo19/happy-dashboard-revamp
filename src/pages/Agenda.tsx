@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/empty";
 
 function StatPill({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string | number; tone?: 'rose' | 'green' | 'blue' }) {
-  const toneClass = tone === 'rose' ? 'bg-[#FF375F]/10 text-[#FF375F]' : tone === 'green' ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#0A84FF]/10 text-[#0A84FF]';
+  const toneClass = tone === 'rose' ? 'bg-[#FF2D46]/10 text-[#FF2D46]' : tone === 'green' ? 'bg-[#30D158]/10 text-[#30D158]' : 'bg-[#0A84FF]/10 text-[#0A84FF]';
   return (
     <div className="flex items-center gap-3 bg-[#22222A] border border-white/[0.08] rounded-2xl p-3">
       <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", toneClass)}>
@@ -544,7 +544,7 @@ const Agenda = () => {
                           className={cn(
                             "flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all",
                             viewMode === 'week'
-                              ? 'bg-[#FF375F] text-white shadow-sm'
+                              ? 'bg-[#FF2D46] text-white shadow-sm'
                               : 'text-white/50 hover:text-white'
                           )}
                           title="Weeks"
@@ -556,7 +556,7 @@ const Agenda = () => {
                           className={cn(
                             "flex items-center justify-center px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all",
                             viewMode === 'day'
-                              ? 'bg-[#FF375F] text-white shadow-sm'
+                              ? 'bg-[#FF2D46] text-white shadow-sm'
                               : 'text-white/50 hover:text-white'
                           )}
                           title="Grid"
@@ -581,7 +581,7 @@ const Agenda = () => {
                         placeholder="Search in calendar..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF375F]/30 w-full"
+                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30 w-full"
                       />
                     </div>
                     <Button
@@ -601,7 +601,7 @@ const Agenda = () => {
                     </Button>
                     <Button
                       onPress={handleNewAppointment}
-                      className="h-9 rounded-xl bg-[#FF375F] hover:bg-[#FF375F]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
+                      className="h-9 rounded-xl bg-[#FF2D46] hover:bg-[#FF2D46]/90 text-white text-sm font-semibold px-3 md:px-4 shadow-none"
                     >
                       <Plus className="h-4 w-4 md:mr-1.5" />
                       <span className="hidden md:inline">New</span>
@@ -613,7 +613,7 @@ const Agenda = () => {
                       className={cn(
                         "h-9 rounded-xl px-3",
                         showFilters
-                          ? "bg-[#FF375F]/15 text-[#FF375F] hover:bg-[#FF375F]/25"
+                          ? "bg-[#FF2D46]/15 text-[#FF2D46] hover:bg-[#FF2D46]/25"
                           : "text-white/70 hover:text-white hover:bg-[#22222A]"
                       )}
                     >
@@ -633,7 +633,7 @@ const Agenda = () => {
                       {(selectedServiceId || selectedStatus) && (
                         <button
                           onClick={handleClearFilters}
-                          className="text-xs text-[#FF375F] hover:text-[#FF375F]/80 font-medium"
+                          className="text-xs text-[#FF2D46] hover:text-[#FF2D46]/80 font-medium"
                         >
                           Clear all
                         </button>
@@ -644,7 +644,7 @@ const Agenda = () => {
                         onClick={() => setSelectedServiceId(null)}
                         className={cn(
                           "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                          !selectedServiceId ? "bg-[#FF375F] text-white" : "bg-white/[0.06] text-white/70 hover:bg-white/[0.10]"
+                          !selectedServiceId ? "bg-[#FF2D46] text-white" : "bg-white/[0.06] text-white/70 hover:bg-white/[0.10]"
                         )}
                       >
                         All services
@@ -656,7 +656,7 @@ const Agenda = () => {
                           className={cn(
                             "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
                             selectedServiceId === service.id
-                              ? "bg-[#FF375F] text-white border-[#FF375F]"
+                              ? "bg-[#FF2D46] text-white border-[#FF2D46]"
                               : "bg-transparent text-white/70 border-white/[0.08] hover:border-white/[0.14]"
                           )}
                         >
@@ -731,10 +731,10 @@ const Agenda = () => {
                           }}
                           className={cn(
                             "group cursor-pointer overflow-hidden rounded-3xl border border-white/[0.08] bg-[#15151A] transition-all duration-300 hover:border-white/[0.14]",
-                            isCurrent && "ring-1 ring-[#FF375F]/30"
+                            isCurrent && "ring-1 ring-[#FF2D46]/30"
                           )}
                         >
-                          <div className="h-2 bg-[#FF375F]" />
+                          <div className="h-2 bg-[#FF2D46]" />
                           <div className="p-5">
                             <div className="flex items-start justify-between mb-4">
                               <div>
@@ -751,7 +751,7 @@ const Agenda = () => {
                                 </p>
                               </div>
                               {isCurrent && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#FF375F]/10 text-[#FF375F] text-[10px] font-semibold uppercase tracking-wider">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#FF2D46]/10 text-[#FF2D46] text-[10px] font-semibold uppercase tracking-wider">
                                   Current
                                 </span>
                               )}
@@ -780,7 +780,7 @@ const Agenda = () => {
                                     <div key={apt.id} className="flex items-center gap-2 text-sm">
                                       <div
                                         className="w-2 h-2 rounded-full flex-shrink-0"
-                                        style={{ backgroundColor: apt.service.color || '#FF375F' }}
+                                        style={{ backgroundColor: apt.service.color || '#FF2D46' }}
                                       />
                                       <span className="truncate flex-1 text-white/70">{apt.service.name}</span>
                                       <span className="text-xs text-white/40">{apt.appointment_time.slice(0, 5)}</span>

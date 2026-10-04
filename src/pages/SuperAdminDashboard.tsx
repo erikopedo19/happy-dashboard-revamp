@@ -46,7 +46,7 @@ type Row = {
 type EmailTheme = "default" | "christmas" | "summer" | "custom";
 
 const EMAIL_TEMPLATES: Record<EmailTheme, { label: string; emoji: string; desc: string; preSubject: string; preBody: string; grad: string; accent: string }> = {
-  default:   { label: "Default",   emoji: "✉️",  desc: "Clean & professional",  preSubject: "An update from us",                  preBody: "Hi,\n\nWe have some news to share with you.\n\n{message}\n\nBest regards,\nThe Team",            grad: "from-zinc-700 to-zinc-900",          accent: "#e11d48" },
+  default:   { label: "Default",   emoji: "✉️",  desc: "Clean & professional",  preSubject: "An update from us",                  preBody: "Hi,\n\nWe have some news to share with you.\n\n{message}\n\nBest regards,\nThe Team",            grad: "from-zinc-700 to-zinc-900",          accent: "#E0152F" },
   christmas: { label: "Christmas", emoji: "🎄",  desc: "Festive holiday spirit", preSubject: "🎄 Merry Christmas from us!",            preBody: "Ho ho ho! 🎅\n\nWishing you a joyful holiday season!\n\n{message}\n\nWarm wishes ❄️",              grad: "from-red-900 via-green-950 to-red-950", accent: "#c41e3a" },
   summer:    { label: "Summer",    emoji: "☀️",  desc: "Bright summer vibes",   preSubject: "☀️ Summer greetings!",                 preBody: "Hey! 🌊\n\nHope you're enjoying the sunshine!\n\n{message}\n\nCheers & sunny regards 🏖️",      grad: "from-amber-800 to-orange-950",         accent: "#f59e0b" },
   custom:    { label: "Custom",    emoji: "✏️",  desc: "Write your own",        preSubject: "",                                       preBody: "",                                                                                            grad: "from-violet-900 to-purple-950",         accent: "#7c3aed" },
@@ -708,7 +708,7 @@ function EmailCampaignPanel({
               whileTap={{ scale: 0.97 }}
               onClick={onSend}
               disabled={sending}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#E0152F] hover:bg-[#be123c] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
               {sending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</> : <><Send className="w-4 h-4" /> Send campaign</>}
             </motion.button>
@@ -803,7 +803,7 @@ function StripeConfigTab({ config, onChange, onSave, saving }: {
               <button
                 onClick={onSave}
                 disabled={saving}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#E0152F] hover:bg-[#be123c] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Shield className="w-4 h-4" /> Save Configuration</>}
               </button>

@@ -3,7 +3,7 @@ import { Search, Calendar, Heart, User, Sparkles } from 'lucide-react';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
 
 const navItems: DockItem[] = [
-  { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF375F' },
+  { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF2D46' },
   { label: 'Events', icon: Sparkles, to: '/events', color: '#FF9F0A' },
   { label: 'Bookings', icon: Calendar, to: '/my-bookings', color: '#0A84FF' },
   { label: 'Favorites', icon: Heart, to: '/favorites', color: '#AF52DE' },
