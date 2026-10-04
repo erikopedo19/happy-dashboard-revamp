@@ -1,6 +1,6 @@
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { GlimmProvider } from "glimm/react";
 import { accentChain } from "glimm";
 import { GlimmIntercept } from "./components/GlimmIntercept";
@@ -43,46 +43,58 @@ import { PullToRefresh } from "./components/PullToRefresh";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import { isNative } from "./lib/native";
 
-const Auth = lazy(() => import("./pages/Auth"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Agenda = lazy(() => import("./pages/Agenda"));
-const Customers = lazy(() => import("./pages/Customers"));
-const Services = lazy(() => import("./pages/Services"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const PricingSuccess = lazy(() => import("./pages/PricingSuccess"));
-const PricingFailure = lazy(() => import("./pages/PricingFailure"));
-const Terms = lazy(() => import("./pages/Terms"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const SuperAdminLogin = lazy(() => import("./pages/SuperAdminLogin"));
-const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
-const Brand = lazy(() => import("./pages/Brand"));
-const Booking = lazy(() => import("./pages/Booking"));
-const BookingPage = lazy(() => import("./pages/BookingPage"));
-const BookingForms = lazy(() => import("./pages/BookingForms"));
-const FindBarber = lazy(() => import("./pages/FindBarber"));
-const FindBarbershop = lazy(() => import("./pages/FindBarbershop"));
-const Stylists = lazy(() => import("./pages/Stylists"));
-const Teams = lazy(() => import("./pages/Teams"));
-const ChooseRole = lazy(() => import("./pages/ChooseRole"));
-const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
-const DbPrevStats = lazy(() => import("./pages/DbPrevStats"));
-const Reports = lazy(() => import("./pages/Reports"));
-const MyBookings = lazy(() => import("./pages/MyBookings"));
-const Me = lazy(() => import("./pages/Me"));
-const Favorites = lazy(() => import("./pages/Favorites"));
-const Events = lazy(() => import("./pages/Events"));
-const EventsManage = lazy(() => import("./pages/EventsManage"));
-const ManageBooking = lazy(() => import("./pages/ManageBooking"));
-const ReviewPage = lazy(() => import("./pages/ReviewPage"));
-const WaitlistClaim = lazy(() => import("./pages/WaitlistClaim"));
-const Landing = lazy(() => import("./pages/Landing"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const Microsite = lazy(() => import("./pages/Microsite"));
-const MicrositeEditor = lazy(() => import("./pages/MicrositeEditor"));
-const ChooseMode = lazy(() => import("./pages/ChooseMode"));
-const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const Auth = lazyRetry(() => import("./pages/Auth"));
+const Dashboard = lazyRetry(() => import("./pages/Dashboard"));
+const Agenda = lazyRetry(() => import("./pages/Agenda"));
+const Customers = lazyRetry(() => import("./pages/Customers"));
+const Services = lazyRetry(() => import("./pages/Services"));
+const Settings = lazyRetry(() => import("./pages/Settings"));
+const Pricing = lazyRetry(() => import("./pages/Pricing"));
+const PricingSuccess = lazyRetry(() => import("./pages/PricingSuccess"));
+const PricingFailure = lazyRetry(() => import("./pages/PricingFailure"));
+const Terms = lazyRetry(() => import("./pages/Terms"));
+const PrivacyPolicy = lazyRetry(() => import("./pages/PrivacyPolicy"));
+const NotFound = lazyRetry(() => import("./pages/NotFound"));
+const SuperAdminLogin = lazyRetry(() => import("./pages/SuperAdminLogin"));
+const SuperAdminDashboard = lazyRetry(() => import("./pages/SuperAdminDashboard"));
+const Brand = lazyRetry(() => import("./pages/Brand"));
+const Booking = lazyRetry(() => import("./pages/Booking"));
+const BookingPage = lazyRetry(() => import("./pages/BookingPage"));
+const BookingForms = lazyRetry(() => import("./pages/BookingForms"));
+const FindBarber = lazyRetry(() => import("./pages/FindBarber"));
+const FindBarbershop = lazyRetry(() => import("./pages/FindBarbershop"));
+const Stylists = lazyRetry(() => import("./pages/Stylists"));
+const Teams = lazyRetry(() => import("./pages/Teams"));
+const ChooseRole = lazyRetry(() => import("./pages/ChooseRole"));
+const CompleteProfile = lazyRetry(() => import("./pages/CompleteProfile"));
+const DbPrevStats = lazyRetry(() => import("./pages/DbPrevStats"));
+const Reports = lazyRetry(() => import("./pages/Reports"));
+const MyBookings = lazyRetry(() => import("./pages/MyBookings"));
+const Me = lazyRetry(() => import("./pages/Me"));
+const Favorites = lazyRetry(() => import("./pages/Favorites"));
+const Events = lazyRetry(() => import("./pages/Events"));
+const EventsManage = lazyRetry(() => import("./pages/EventsManage"));
+const ManageBooking = lazyRetry(() => import("./pages/ManageBooking"));
+const ReviewPage = lazyRetry(() => import("./pages/ReviewPage"));
+const WaitlistClaim = lazyRetry(() => import("./pages/WaitlistClaim"));
+const Landing = lazyRetry(() => import("./pages/Landing"));
+const Onboarding = lazyRetry(() => import("./pages/Onboarding"));
+const Microsite = lazyRetry(() => import("./pages/Microsite"));
+const MicrositeEditor = lazyRetry(() => import("./pages/MicrositeEditor"));
+const ChooseMode = lazyRetry(() => import("./pages/ChooseMode"));
+const OAuthConsent = lazyRetry(() => import("./pages/OAuthConsent"));
+
+function lazyRetry<T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  return lazy(() => load().catch((err) => {
+    const last = Number(sessionStorage.getItem("chunk-reload-at") || 0);
+    if (Date.now() - last > 10_000) {
+      sessionStorage.setItem("chunk-reload-at", String(Date.now()));
+      window.location.reload();
+      return new Promise<{ default: T }>(() => {});
+    }
+    throw err;
+  }));
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
