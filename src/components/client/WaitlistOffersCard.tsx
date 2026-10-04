@@ -46,9 +46,10 @@ export function WaitlistOffersCard() {
     queryKey: ["my-waitlist-offers", user?.id],
     enabled: !!user,
     refetchInterval: 15_000,
+    retry: false,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_my_waitlist_offers");
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
   });
