@@ -52,7 +52,7 @@ export function NotificationBell() {
     let active = true;
 
     const loadOffers = async () => {
-      const { data } = await supabase.rpc("get_my_waitlist_offers");
+      const { data } = await (supabase.rpc as any)("get_my_waitlist_offers");
       if (!active) return;
       const map = new Map<string, WaitlistOffer>();
       (data || []).forEach((offer: WaitlistOffer) => {
