@@ -24,7 +24,7 @@ export function markIntroSeen() {
 
 const SLIDES = [
   {
-    image: "https://images.unsplash.com/photo-1503951914875-befbb647e84c?q=80&w=1600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1600&auto=format&fit=crop",
     title: ["Look sharp,", "feel ready,", "every day"],
     text: "Find the closest barbers and salons, see real open times, and book in two taps — no calls, no waiting.",
   },

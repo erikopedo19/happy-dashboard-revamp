@@ -9,6 +9,9 @@ import { triggerGlimm } from "@/components/GlimmIntercept";
 import { TermsAcceptCard } from "@/components/TermsAcceptCard";
 import { haptic } from "@/lib/haptics";
 
+const AUTH_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1400&auto=format&fit=crop";
+
 export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -141,10 +144,20 @@ export function LoginForm() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
-      {/* Ambient blue gradient hero */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[68vh]">
-        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,#FF2D46_0%,#8f0b1f_38%,#2b040a_70%,#000000_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(255,255,255,0.18),transparent_70%)]" />
+      {/* Photo hero fading into the dark app background */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[72vh]">
+        <motion.img
+          src={AUTH_HERO_IMAGE}
+          alt=""
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 h-full w-full object-cover object-[50%_30%]"
+          draggable={false}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_-10%,rgba(255,45,70,0.55)_0%,rgba(143,11,31,0.35)_45%,transparent_80%)] mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/90 to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[460px] flex-col px-6 pb-8 pt-10">
@@ -168,7 +181,15 @@ export function LoginForm() {
               className="flex flex-1 flex-col"
             >
               <div className="flex flex-1 flex-col items-center justify-center text-center">
-                <img src={checkLogo.url} alt="Cutzioo" className="mb-8 h-20 w-20 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" />
+                <img
+                  src={checkLogo.url}
+                  alt="Cutzioo"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (!img.src.endsWith("/icons/icon-180x180.png")) img.src = "/icons/icon-180x180.png";
+                  }}
+                  className="mb-8 h-20 w-20 rounded-[22px] object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                />
                 <h1 className="text-[54px] font-extrabold leading-[0.95] tracking-tight">
                   Book
                   <br />
@@ -225,7 +246,7 @@ export function LoginForm() {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-1 flex-col justify-center"
             >
-          <div className="rounded-[24px] bg-[#111114]/90 backdrop-blur-xl ring-1 ring-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="rounded-[24px] bg-[#0E0E11]/[0.94] backdrop-blur-2xl ring-1 ring-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
             <div className="px-6 pb-8 pt-8 sm:px-8">
 
               <div className="text-center">

@@ -1092,6 +1092,13 @@ html.is-native.platform-ios body {
   padding-top: env(safe-area-inset-top);
 }
 
+/* Set by NativeScrollGuard when the page fits the screen: no dead document scroll / rubber-band. */
+html.no-doc-scroll,
+html.no-doc-scroll body {
+  overflow-y: hidden;
+  overscroll-behavior: none;
+}
+
 /* Smooth native-feeling app entrance */
 @keyframes app-boot-in {
   0% { opacity: 0; transform: scale(0.985); }
