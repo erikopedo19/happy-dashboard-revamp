@@ -57,7 +57,7 @@ export function BookAgainCard({ booking }: { booking?: BookingLike | null }) {
     enabled: !!booking?.id,
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_rebook_context", {
+      const { data, error } = await (supabase.rpc as any)("get_rebook_context", {
         _appointment_id: booking!.id,
       });
       if (error) throw error;

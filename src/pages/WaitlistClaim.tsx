@@ -26,7 +26,7 @@ export default function WaitlistClaim() {
   useEffect(() => {
     (async () => {
       if (!token) return setState("error");
-      const { data, error } = await supabase.rpc("get_waitlist_offer", { _token: token });
+      const { data, error } = await (supabase.rpc as any)("get_waitlist_offer", { _token: token });
       const offer = data?.[0] as OfferInfo | undefined;
       if (error || !offer) {
         setError("Offer not found");
