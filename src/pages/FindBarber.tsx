@@ -461,18 +461,15 @@ const FindBarber = () => {
                   className="overflow-hidden"
                 >
                   <div className="relative mt-5">
-                    <div className="pointer-events-none absolute -inset-1 rounded-[22px] bg-[#FF2D46]/10 blur-lg" />
-                    <div className="relative flex items-center gap-2.5 rounded-[20px] border border-white/[0.08] bg-white/[0.06] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl transition focus-within:border-[#FF5A6E]/50 focus-within:bg-white/[0.08]">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#FF2D46]/15">
-                        <Search className="h-4 w-4 text-[#FF5A6E]" />
-                      </span>
+                    <div className="relative flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.05] pl-4 pr-3 transition-colors focus-within:border-white/20 focus-within:bg-white/[0.07]">
+                      <Search className="h-[17px] w-[17px] shrink-0 text-white/40" />
                       <Input
                         ref={searchRef}
                         type="text"
                         placeholder="Search barbers, styles, vibes"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="h-[52px] flex-1 border-0 bg-transparent px-0 text-[15px] text-white shadow-none placeholder:text-white/35 focus-visible:ring-0"
+                        className="h-12 flex-1 border-0 bg-transparent px-0 text-[15px] text-white shadow-none placeholder:text-white/35 focus-visible:ring-0"
                       />
                       {searchTerm && (
                         <button
