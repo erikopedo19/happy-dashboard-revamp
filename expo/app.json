@@ -56,6 +56,12 @@
     ],
     "web": {
       "favicon": "../public/favicon.ico"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "29cc070a-62ce-4a8d-8151-9ee99d4480c2"
+      }
+    },
+    "owner": "erikballiu19"
   }
 }
