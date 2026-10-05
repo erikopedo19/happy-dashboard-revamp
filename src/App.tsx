@@ -43,14 +43,19 @@ import { PullToRefresh } from "./components/PullToRefresh";
 import { NativeScrollGuard } from "./components/NativeScrollGuard";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import { isNative } from "./lib/native";
+import { setupQueryPersistence } from "./lib/queryPersist";
 
 
-const Auth = lazyRetry(() => import("./pages/Auth"));
-const Dashboard = lazyRetry(() => import("./pages/Dashboard"));
-const Agenda = lazyRetry(() => import("./pages/Agenda"));
-const Customers = lazyRetry(() => import("./pages/Customers"));
-const Services = lazyRetry(() => import("./pages/Services"));
-const Settings = lazyRetry(() => import("./pages/Settings"));
+// Route chunks warmed up in the background after first paint, so switching
+// pages never waits on a network download.
+const PRELOAD: Array<() => Promise<unknown>> = [];
+
+const Auth = lazyRetry(() => import("./pages/Auth"), true);
+const Dashboard = lazyRetry(() => import("./pages/Dashboard"), true);
+const Agenda = lazyRetry(() => import("./pages/Agenda"), true);
+const Customers = lazyRetry(() => import("./pages/Customers"), true);
+const Services = lazyRetry(() => import("./pages/Services"), true);
+const Settings = lazyRetry(() => import("./pages/Settings"), true);
 const Pricing = lazyRetry(() => import("./pages/Pricing"));
 const PricingSuccess = lazyRetry(() => import("./pages/PricingSuccess"));
 const PricingFailure = lazyRetry(() => import("./pages/PricingFailure"));
@@ -63,19 +68,19 @@ const Brand = lazyRetry(() => import("./pages/Brand"));
 const Booking = lazyRetry(() => import("./pages/Booking"));
 const BookingPage = lazyRetry(() => import("./pages/BookingPage"));
 const BookingForms = lazyRetry(() => import("./pages/BookingForms"));
-const FindBarber = lazyRetry(() => import("./pages/FindBarber"));
-const BarberDetail = lazyRetry(() => import("./pages/BarberDetail"));
+const FindBarber = lazyRetry(() => import("./pages/FindBarber"), true);
+const BarberDetail = lazyRetry(() => import("./pages/BarberDetail"), true);
 const FindBarbershop = lazyRetry(() => import("./pages/FindBarbershop"));
 const Stylists = lazyRetry(() => import("./pages/Stylists"));
 const Teams = lazyRetry(() => import("./pages/Teams"));
 const ChooseRole = lazyRetry(() => import("./pages/ChooseRole"));
 const CompleteProfile = lazyRetry(() => import("./pages/CompleteProfile"));
 const DbPrevStats = lazyRetry(() => import("./pages/DbPrevStats"));
-const Reports = lazyRetry(() => import("./pages/Reports"));
-const MyBookings = lazyRetry(() => import("./pages/MyBookings"));
-const Me = lazyRetry(() => import("./pages/Me"));
-const Favorites = lazyRetry(() => import("./pages/Favorites"));
-const Events = lazyRetry(() => import("./pages/Events"));
+const Reports = lazyRetry(() => import("./pages/Reports"), true);
+const MyBookings = lazyRetry(() => import("./pages/MyBookings"), true);
+const Me = lazyRetry(() => import("./pages/Me"), true);
+const Favorites = lazyRetry(() => import("./pages/Favorites"), true);
+const Events = lazyRetry(() => import("./pages/Events"), true);
 const EventsManage = lazyRetry(() => import("./pages/EventsManage"));
 const ManageBooking = lazyRetry(() => import("./pages/ManageBooking"));
 const ReviewPage = lazyRetry(() => import("./pages/ReviewPage"));
@@ -87,7 +92,8 @@ const MicrositeEditor = lazyRetry(() => import("./pages/MicrositeEditor"));
 const ChooseMode = lazyRetry(() => import("./pages/ChooseMode"));
 const OAuthConsent = lazyRetry(() => import("./pages/OAuthConsent"));
 
-function lazyRetry<T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>) {
+function lazyRetry<T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>, preload = false) {
+  if (preload) PRELOAD.push(load);
   return lazy(() => load().then((mod) => {
     if (!mod || !mod.default) throw new Error("Failed to fetch dynamically imported module");
     return mod;
@@ -107,12 +113,13 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // Keep data fresh for 5 minutes
-      gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+      gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24h (matches persisted cache age)
       refetchOnWindowFocus: false, // Prevent background refetch on focus
       refetchOnReconnect: false,
     },
   },
 });
+setupQueryPersistence(queryClient);
 
 const LandingRoute = () => {
   const { user, loading } = useAuth();
@@ -323,7 +330,9 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 3000);
+    const t = setTimeout(() => setShowSplash(false), 1200);
+    const idle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500));
+    idle(() => PRELOAD.reduce((p, load) => p.then(() => load().catch(() => {})), Promise.resolve() as Promise<unknown>));
     return () => clearTimeout(t);
   }, []);
 
@@ -344,7 +353,7 @@ function App() {
               </div>
             )}
           <PhoneAlertsProvider>
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true }}>
               <OnboardingProvider>
                 <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                   <GlimmIntercept />
