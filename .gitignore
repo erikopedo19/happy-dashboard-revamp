@@ -49,3 +49,8 @@ supabase/_headers
 supabase/robots.txt
 supabase/sitemap.xml
 package-lock.json
+
+# Local junk artifacts
+NUL
+tmp-bundle.txt
+expo-qr.png
