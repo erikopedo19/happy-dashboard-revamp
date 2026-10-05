@@ -273,11 +273,11 @@ const Stylists = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full bg-[#0A0A0C] text-white overflow-hidden">
+      <div className="app-screen flex w-full bg-[#0A0A0C] text-white overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {/* Mobile top bar */}
-          <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-black/5 dark:border-white/5 p-4 lg:hidden">
+          <div className="relative z-10 shrink-0 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-black/5 dark:border-white/5 p-4 lg:hidden">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="text-[#1C1C1E] dark:text-[#F2F2F7]" />
               <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
@@ -285,7 +285,7 @@ const Stylists = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">
+          <div data-no-ptr className="min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
             {/* Hero header */}
             <div className="px-4 sm:px-8 pt-6 sm:pt-10 pb-4">
               <div className="hidden lg:flex items-end justify-between gap-6 mb-6">
@@ -325,7 +325,7 @@ const Stylists = () => {
               </div>
             </div>
 
-            <div className="px-4 sm:px-8 pb-32 sm:pb-10">
+            <div className="px-4 sm:px-8 pb-[calc(8rem+env(safe-area-inset-bottom))] sm:pb-10">
               {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Array.from({ length: 6 }).map((_, i) => (
@@ -637,7 +637,7 @@ const Stylists = () => {
 
       {/* Create Stylist Sheet */}
       <Sheet open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90vh] overflow-y-auto">
+        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90dvh] overflow-y-auto overscroll-contain">
           <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-white/20" />
           <SheetHeader className="px-6 pt-4 pb-2">
             <SheetTitle className="text-white text-lg">Add New Stylist</SheetTitle>
@@ -689,7 +689,7 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <SheetFooter className="px-6 pb-8 pt-2 gap-2">
+          <SheetFooter className="px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2 gap-2">
             <Button variant="bordered" onPress={() => setIsCreateDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>
@@ -702,7 +702,7 @@ const Stylists = () => {
 
       {/* Edit Stylist Sheet */}
       <Sheet open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90vh] overflow-y-auto">
+        <SheetContent side="bottom" className="mx-auto w-full max-w-md rounded-t-[32px] bg-[#1C1C1E] border border-white/[0.08] border-b-0 border-t-0 p-0 max-h-[90dvh] overflow-y-auto overscroll-contain">
           <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-white/20" />
           <SheetHeader className="px-6 pt-4 pb-2">
             <SheetTitle className="text-white text-lg">Edit Stylist</SheetTitle>
@@ -752,7 +752,7 @@ const Stylists = () => {
               </Select>
             </div>
           </div>
-          <SheetFooter className="px-6 pb-8 pt-2 gap-2">
+          <SheetFooter className="px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2 gap-2">
             <Button variant="bordered" onPress={() => setIsEditDialogOpen(false)} className="rounded-[14px] h-12 flex-1 border-white/[0.12] bg-transparent text-white hover:bg-white/5">
               Cancel
             </Button>

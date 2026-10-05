@@ -236,7 +236,7 @@ export function SlotRail({
         </motion.div>
       </div>
 
-      <div className="grid max-h-40 grid-cols-4 gap-2 overflow-y-auto pr-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="grid grid-cols-4 gap-2">
         {slots.map((slot) => {
           const active = slot.time === value;
           return (
