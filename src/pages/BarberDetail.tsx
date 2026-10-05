@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays, isSameDay } from "date-fns";
+import { format } from "date-fns";
 import {
   ArrowLeft, Share2, Heart, Star, MapPin, Phone, Instagram, Globe, Clock,
   Calendar as CalendarIcon, MessageCircle, Scissors, ChevronRight, Images,
@@ -10,15 +10,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
-import { getBrowserTimezone } from "@/lib/tz";
-import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 import { QuickBookSheet } from "@/components/QuickBookSheet";
 import { Seo } from "@/components/Seo";
 
 const ACCENT = "#FF2D46";
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
-type Tab = "booking" | "about" | "reviews";
+type Tab = "about" | "reviews";
 
 interface Service { id: string; name: string; price: number; duration: number }
 interface Review { id: string; rating: number; comment: string | null; reviewer_name: string | null; created_at: string }
@@ -66,11 +64,11 @@ export default function BarberDetail() {
   const location = useLocation();
   const seed = (location.state || {}) as { name?: string; avatar_url?: string | null; banner_url?: string | null; rating?: number | null; rating_count?: number | null };
 
-  const [tab, setTab] = useState<Tab>("booking");
+  const [tab, setTab] = useState<Tab>("about");
   const [favs, setFavs] = useState<string[]>(readFavs);
   const [serviceId, setServiceId] = useState("");
-  const [date, setDate] = useState<Date>(new Date());
-  const [time, setTime] = useState("");
+  const [date] = useState<Date>(new Date());
+  const [time] = useState("");
   const [bookOpen, setBookOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
@@ -118,51 +116,9 @@ export default function BarberDetail() {
     },
   });
 
-  const { data: timeOffDates = [] } = useQuery<string[]>({
-    queryKey: ["quickbook-timeoff", barberId],
-    enabled: !!barberId,
-    queryFn: async () => {
-      const { data } = await (supabase as any).rpc("get_time_off_dates", { _user_id: barberId });
-      return (data || []).map((r: any) => r.off_date as string);
-    },
-  });
-  const timeOffSet = useMemo(() => new Set(timeOffDates), [timeOffDates]);
-
-  const { data: booked = [] } = useQuery<BookedSlotLike[]>({
-    queryKey: ["quickbook-booked", barberId, format(date, "yyyy-MM-dd")],
-    enabled: !!barberId,
-    staleTime: 30_000,
-    refetchInterval: 15_000,
-    placeholderData: keepPreviousData,
-    queryFn: async () => {
-      const { data } = await (supabase as any).rpc("get_booked_slots", { _business_id: barberId, _date: format(date, "yyyy-MM-dd") });
-      return data || [];
-    },
-  });
-
   const workingDays = settings?.working_days ?? [0, 1, 2, 3, 4, 5, 6];
-  const days = useMemo(() => {
-    const out: Date[] = [];
-    for (let i = 0; i < 21 && out.length < 7; i++) {
-      const d = addDays(new Date(), i);
-      if (workingDays.includes(d.getDay()) && !timeOffSet.has(format(d, "yyyy-MM-dd"))) out.push(d);
-    }
-    return out;
-  }, [workingDays, timeOffSet]);
-
-  useEffect(() => { if (days.length && !days.some((d) => isSameDay(d, date))) setDate(days[0]); }, [days, date]);
 
   const selectedService = services.find((s) => s.id === serviceId);
-  const allSlots = useMemo(() => (settings ? generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration) : []), [settings]);
-  const available = useMemo(() => {
-    if (!settings || !selectedService) return [] as string[];
-    return getAvailableBookingSlots({
-      date, allSlots, startHour: settings.start_hour, endHour: settings.end_hour, interval: settings.service_duration,
-      serviceDuration: selectedService.duration, bookedSlots: booked, workingDays, timezone: settings.timezone || getBrowserTimezone(), timeOffDates: timeOffSet,
-    });
-  }, [settings, selectedService, date, allSlots, booked, workingDays, timeOffSet]);
-
-  useEffect(() => { if (time && !available.includes(time)) setTime(""); }, [available, time]);
 
   const toggleFav = () => {
     if (!barberId) return;
@@ -245,7 +201,7 @@ export default function BarberDetail() {
 
         {/* Tabs */}
         <div className="mt-5 flex rounded-full bg-white/[0.05] p-1">
-          {(["booking", "about", "reviews"] as Tab[]).map((t) => (
+          {(["about", "reviews"] as Tab[]).map((t) => (
             <button key={t} onClick={() => { if (t !== tab) { haptic("selection"); setTab(t); } }} className={cn("relative flex-1 rounded-full py-2.5 text-[13px] font-semibold capitalize transition-colors", tab === t ? "text-white" : "text-white/45")}>
               {tab === t && <motion.span layoutId="detail-tab" transition={spring} className="absolute inset-0 rounded-full" style={{ backgroundColor: ACCENT }} />}
               <span className="relative">{t}</span>
@@ -255,63 +211,6 @@ export default function BarberDetail() {
 
         <AnimatePresence mode="wait">
           <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-5">
-            {tab === "booking" && (
-              <div className="space-y-5">
-                {services.length > 0 && (
-                  <div>
-                    <p className="mb-2 text-[13px] font-semibold text-white/60">Service</p>
-                    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {services.map((s) => {
-                        const active = s.id === serviceId;
-                        return (
-                          <button key={s.id} onClick={() => { haptic("selection"); setServiceId(s.id); }} className={cn("shrink-0 rounded-2xl px-3.5 py-2.5 text-left transition active:scale-95", active ? "text-white" : "bg-white/[0.05] text-white/80")} style={active ? { backgroundColor: ACCENT } : undefined}>
-                            <p className="text-[13px] font-semibold leading-tight">{s.name}</p>
-                            <p className={cn("text-[11px]", active ? "text-white/80" : "text-white/40")}>{s.duration} min · €{s.price}</p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <p className="mb-2 text-[17px] font-semibold">{format(date, "MMMM yyyy")}</p>
-                  <div className="grid grid-cols-7 gap-1.5">
-                    {days.map((d) => {
-                      const active = isSameDay(d, date);
-                      return (
-                        <button key={d.toISOString()} onClick={() => { haptic("selection"); setDate(d); setTime(""); }} className={cn("flex flex-col items-center rounded-2xl py-2.5 transition active:scale-95", active ? "ring-2" : "bg-white/[0.05]")} style={active ? { boxShadow: `inset 0 0 0 2px ${ACCENT}`, backgroundColor: `${ACCENT}1a` } : undefined}>
-                          <span className={cn("text-[11px] font-medium", active ? "text-white" : "text-white/45")}>{format(d, "EEE")}</span>
-                          <span className="mt-1 text-[15px] font-semibold tabular-nums">{format(d, "d")}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="mb-2 text-[17px] font-semibold">Time</p>
-                  {allSlots.length === 0 ? (
-                    <div className="h-11 rounded-full bg-white/[0.05] animate-pulse" />
-                  ) : available.length === 0 ? (
-                    <p className="rounded-2xl bg-white/[0.04] px-4 py-3 text-[13px] text-white/50">No open times on this day — try another date.</p>
-                  ) : (
-                    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {allSlots.map((t) => {
-                        const open = available.includes(t);
-                        const active = t === time;
-                        return (
-                          <button key={t} disabled={!open} onClick={() => { haptic("selection"); setTime(t); }} className={cn("shrink-0 rounded-full px-4 py-2.5 text-[13px] font-semibold tabular-nums transition active:scale-95", active ? "text-white" : open ? "bg-white/[0.06] text-white/85" : "bg-white/[0.02] text-white/20")} style={active ? { backgroundColor: ACCENT } : undefined}>
-                            {fmtTime(t)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {tab === "about" && (
               <div className="space-y-7">
                 {(site?.about || profile?.description) && (

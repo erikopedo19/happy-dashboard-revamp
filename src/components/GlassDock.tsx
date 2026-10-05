@@ -50,9 +50,9 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
       lastY.current.set(t as object, y);
       window.clearTimeout(idleTimer.current);
       const delta = y - prev;
-      if (delta > 6 && y > 48) setCompact(true);
-      else if (delta < -6) setCompact(false);
-      idleTimer.current = window.setTimeout(() => setCompact(false), 1700);
+      if (delta > 8 && y > 64) setCompact(true);
+      else if (delta < -4 || y <= 24) setCompact(false);
+      idleTimer.current = window.setTimeout(() => setCompact(false), 2200);
     };
     document.addEventListener("scroll", onScroll, { capture: true, passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -67,7 +67,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
     <div
       data-glass-dock
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(calc(env(safe-area-inset-bottom,0px)+1.15rem),1.75rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
+        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(calc(env(safe-area-inset-bottom,0px)+0.5rem),0.875rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
     >
@@ -79,10 +79,12 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           opacity: 1,
           // Shrink via layout, not transform — scaling a backdrop-filter layer
           // makes the blur re-rasterize every frame and smear on iOS.
-          paddingTop: compact ? 4 : 6,
-          paddingBottom: compact ? 4 : 6,
+          paddingTop: compact ? 5 : 6,
+          paddingBottom: compact ? 5 : 6,
+          paddingLeft: compact ? 14 : 10,
+          paddingRight: compact ? 14 : 10,
         }}
-        transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.7 }}
+        transition={{ type: "spring", stiffness: 420, damping: 32, mass: 0.8 }}
         className="pointer-events-auto relative isolate flex flex-1 items-center justify-around overflow-hidden rounded-full px-2.5"
         style={{
           background: "rgba(28, 28, 30, 0.65)",
@@ -120,32 +122,43 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
 
           const content = (
             <motion.div
-              animate={{ scale: compact ? 0.86 : 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              transition={{ type: "spring", stiffness: 420, damping: 30 }}
               style={{ transformOrigin: "center bottom" }}
               className="relative z-10 flex flex-col items-center gap-px"
             >
               <motion.div
-                animate={{ scale: isActive ? 1.15 : 1, y: isActive ? -1 : 0 }}
+                animate={{ scale: isActive ? (compact ? 1.08 : 1.15) : 1, y: isActive ? -1 : 0 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
               >
                 <Icon
-                  size={19}
+                  size={compact ? 21 : 19}
                   style={{ color: itemTextColor, transition: "color 0.2s ease" }}
                 />
               </motion.div>
-              {item.label === "More" ? (
-                <span className="animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#FF2D46,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
-                  {item.label}
-                </span>
-              ) : (
-                <span
-                  className="text-[10px] font-medium"
-                  style={{ color: itemTextColor, transition: "color 0.2s ease" }}
-                >
-                  {item.label}
-                </span>
-              )}
+              {/* iOS-style minimize: labels collapse away while scrolling */}
+              <motion.div
+                initial={false}
+                animate={{
+                  height: compact ? 0 : "auto",
+                  opacity: compact ? 0 : 1,
+                  y: compact ? 3 : 0,
+                }}
+                transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                className="overflow-hidden"
+              >
+                {item.label === "More" ? (
+                  <span className="block animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#FF2D46,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
+                    {item.label}
+                  </span>
+                ) : (
+                  <span
+                    className="block text-[10px] font-medium"
+                    style={{ color: itemTextColor, transition: "color 0.2s ease" }}
+                  >
+                    {item.label}
+                  </span>
+                )}
+              </motion.div>
 
             </motion.div>
           );
@@ -197,8 +210,8 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           <motion.button
             type="button"
             initial={{ y: 28, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 24, mass: 0.7, delay: 0.05 }}
+            animate={{ y: 0, opacity: 1, scale: compact ? 0.85 : 1 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30, mass: 0.8, delay: compact ? 0 : 0.05 }}
             whileTap={{ scale: 0.9 }}
             aria-label={trailing.label}
             onClick={() => {
