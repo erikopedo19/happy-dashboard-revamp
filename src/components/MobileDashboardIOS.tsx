@@ -276,7 +276,7 @@ export function MobileDashboardIOS() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-black text-white">
-      <header className="shrink-0 px-5 pb-2 pt-[max(env(safe-area-inset-top),1.25rem)]">
+      <header className="relative z-20 shrink-0 bg-black px-5 pb-1.5 pt-[max(env(safe-area-inset-top),0.75rem)]">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#8E8E93]">{format(new Date(), "EEEE, MMM d")}</p>
           <div className="flex shrink-0 items-center gap-2">
@@ -285,7 +285,7 @@ export function MobileDashboardIOS() {
               type="button"
               aria-label="Open profile settings"
               onClick={() => navigate("/settings")}
-              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#2C2C2E] text-sm font-bold text-white ring-1 ring-white/10"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#2C2C2E] text-sm font-bold text-white ring-1 ring-white/10"
             >
               {profile?.avatar_url && !avatarFailed ? (
                 <img src={profile.avatar_url} alt={displayName} onError={() => setAvatarFailed(true)} className="h-full w-full object-cover" />
@@ -295,10 +295,12 @@ export function MobileDashboardIOS() {
             </button>
           </div>
         </div>
-        <h1 className="mt-1 truncate text-[34px] font-bold leading-tight tracking-[-0.035em]">Hi, {displayName}</h1>
       </header>
 
-      <main className="flex-1 space-y-4 overflow-y-auto px-4 pb-32 pt-2">
+      <div className="relative min-h-0 flex-1">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-7 bg-gradient-to-b from-black via-black/70 to-transparent" />
+      <main className="h-full space-y-4 overflow-y-auto overscroll-contain px-4 pb-32 pt-1">
+        <h1 className="truncate px-1 text-[30px] font-bold leading-tight tracking-[-0.035em]">Hi, {displayName}</h1>
         <ReviewAnnouncement />
 
         {/* Intro — rolling countdown, fades into the page */}
@@ -589,6 +591,7 @@ export function MobileDashboardIOS() {
         )}
         </motion.div>
       </main>
+      </div>
     </div>
   );
 }

@@ -750,14 +750,15 @@ function BarberCard({
         {barber.booking_link ? (
           <Button
             onPress={() => setBookOpen(true)}
-            className="flex-[1.4] w-full h-12 rounded-[16px] font-semibold border-0 active:scale-[0.97] transition-transform"
-            style={{
+            className={cn(
+              "flex-[1.4] w-full h-12 rounded-[16px] font-semibold border-0 active:scale-[0.97] transition-transform",
+              !theme.isCustom && "btn-soft-dark",
+            )}
+            style={theme.isCustom ? {
               background: theme.button,
               color: theme.onBase,
-              boxShadow: theme.isCustom
-                ? "inset 0 1.5px 0 rgba(255,255,255,0.35)"
-                : `inset 0 1.5px 0 rgba(255,255,255,0.25), inset 0 0 0 1px ${accent}73`,
-            }}
+              boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.35), 0 10px 22px -12px rgba(0,0,0,0.45)",
+            } : undefined}
           >
             <Calendar className="w-4 h-4 mr-1.5" style={theme.isCustom ? undefined : { color: accent }} />
             Book
@@ -1420,12 +1421,11 @@ function MapBarberCard({
           type="button"
           disabled={!barber.booking_link}
           onClick={(e) => { e.stopPropagation(); onBook(); }}
-          className="flex h-10 flex-[1.3] items-center justify-center gap-1.5 rounded-[12px] text-[13px] font-semibold active:scale-[0.97] transition-transform disabled:opacity-50"
-          style={{
-            background: theme.button,
-            color: theme.onBase,
-            boxShadow: theme.isCustom ? undefined : `inset 0 0 0 1px ${theme.accent}73`,
-          }}
+          className={cn(
+            "flex h-10 flex-[1.3] items-center justify-center gap-1.5 rounded-[12px] text-[13px] font-semibold active:scale-[0.97] transition-transform disabled:opacity-50",
+            !theme.isCustom && "btn-soft-dark",
+          )}
+          style={theme.isCustom ? { background: theme.button, color: theme.onBase } : undefined}
         >
           <Calendar className="h-4 w-4" style={theme.isCustom ? undefined : { color: theme.accent }} />
           {barber.booking_link ? "Book" : "Unavailable"}
