@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Bell, BellRing, Calendar, Check, Info, MessageSquare, Navigation, Star } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,9 +27,29 @@ const typeMeta: Record<string, { icon: typeof Bell; color: string }> = {
   default: { icon: Info, color: "text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/40" },
 };
 
-export function NotificationBell() {
+let inlineBells = 0;
+const bellListeners = new Set<() => void>();
+const emitBells = () => bellListeners.forEach((l) => l());
+const subscribeBells = (l: () => void) => {
+  bellListeners.add(l);
+  return () => bellListeners.delete(l);
+};
+
+export function NotificationBell({ floating = false }: { floating?: boolean }) {
   const { user } = useAuth();
   const location = useLocation();
+  const inlineMounted = useSyncExternalStore(subscribeBells, () => inlineBells > 0, () => false);
+
+  useEffect(() => {
+    if (floating) return;
+    inlineBells++;
+    emitBells();
+    return () => {
+      inlineBells--;
+      emitBells();
+    };
+  }, [floating]);
+
   const [items, setItems] = useState<N[]>([]);
   const [waitlistOffers, setWaitlistOffers] = useState<Map<string, WaitlistOffer>>(new Map());
   const [storiesOpen, setStoriesOpen] = useState(0);
@@ -97,7 +117,7 @@ export function NotificationBell() {
     return () => { active = false; void supabase.removeChannel(channel); };
   }, [user, hidden]);
 
-  if (hidden) return null;
+  if (hidden || (floating && inlineMounted)) return null;
 
   const unread = items.filter((i) => !i.read).length;
 
