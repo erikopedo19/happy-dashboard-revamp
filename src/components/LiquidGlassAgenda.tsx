@@ -1347,7 +1347,7 @@ export const LiquidGlassAgenda = ({
                     "backdrop-blur-xl"
                   )}
                 >
-                  <Clock className="w-10 h-10 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={2.2} />
+                  <span className="text-[44px] leading-none" role="img" aria-label="barber pole">💈</span>
                 </motion.div>
 
                 <motion.h3

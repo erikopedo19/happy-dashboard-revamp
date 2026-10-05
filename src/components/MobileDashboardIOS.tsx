@@ -494,7 +494,15 @@ export function MobileDashboardIOS() {
           <div className="mt-3 overflow-hidden rounded-[26px] bg-[#1C1C1E]">
             {appointments.length === 0 ? (
               <div className="flex flex-col items-center px-6 py-9 text-center">
-                <CalendarDays className="h-7 w-7 text-[#8E8E93]" />
+                <motion.span
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="text-[38px] leading-none"
+                  role="img"
+                  aria-label="barber pole"
+                >
+                  💈
+                </motion.span>
                 <p className="mt-3 text-[15px] font-semibold">No bookings yet</p>
                 <p className="mt-1 text-[13px] text-[#8E8E93]">New bookings will appear here.</p>
               </div>
