@@ -100,7 +100,7 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
     enabled: !!booking?.id,
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_booking_location", {
+      const { data, error } = await (supabase.rpc as any)("get_booking_location", {
         _appointment_id: booking!.id,
       });
       if (error) throw error;

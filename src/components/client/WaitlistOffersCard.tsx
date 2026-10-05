@@ -48,7 +48,7 @@ export function WaitlistOffersCard() {
     refetchInterval: 15_000,
     retry: false,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_my_waitlist_offers");
+      const { data, error } = await (supabase.rpc as any)("get_my_waitlist_offers");
       if (error) return [];
       return data || [];
     },

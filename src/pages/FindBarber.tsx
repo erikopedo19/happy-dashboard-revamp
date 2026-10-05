@@ -28,6 +28,7 @@ import {
   GalleryHorizontalEnd,
 } from "lucide-react";
 import { SwipeDeck } from "@/components/SwipeDeck";
+import { QuickBookSheet } from "@/components/QuickBookSheet";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { haptic } from "@/lib/haptics";
@@ -44,10 +45,15 @@ import { cn } from "@/lib/utils";
 import { Seo } from "@/components/Seo";
 import { StoriesRail } from "@/components/stories/StoriesRail";
 import { NotificationBell } from "@/components/NotificationBell";
+import { getBarberTheme } from "@/lib/barberTheme";
 
 
 interface BarberProfile {
   id: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  home_service?: boolean;
+  address?: string | null;
   full_name: string | null;
   business_name: string | null;
   booking_link: string | null;
@@ -209,6 +215,10 @@ const FindBarber = () => {
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
         brandName: p.business_name || p.full_name || "Barber",
+        latitude: p.latitude != null ? Number(p.latitude) : null,
+        longitude: p.longitude != null ? Number(p.longitude) : null,
+        home_service: !!p.home_service,
+        address: p.address ?? null,
       }));
 
       const fakeEnabled = settingRes?.data?.value?.enabled === true;
@@ -605,7 +615,8 @@ function BarberCard({
   rateToken?: string | null;
 }) {
 
-  const accent = "#FF2D46";
+  const theme = getBarberTheme(barber.brand_color);
+  const accent = theme.accent;
   const rating = barber.rating ?? 5;
   const reviews = barber.rating_count ?? 0;
   const initial = (barber.brandName || "B").trim().charAt(0).toUpperCase();
@@ -636,6 +647,10 @@ function BarberCard({
         "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
         isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       )}
+      style={{
+        borderColor: `${accent}2e`,
+        backgroundImage: `radial-gradient(140% 60% at 50% 100%, ${accent}14 0%, transparent 70%)`,
+      }}
     >
       {/* Header banner */}
       <div
@@ -644,7 +659,7 @@ function BarberCard({
         style={{
           background: barber.banner_url
             ? `url(${barber.banner_url}) center/cover`
-            : `linear-gradient(135deg, ${accent}, ${accent}88)`,
+            : theme.banner,
         }}
       >
         {!barber.banner_url && (
@@ -695,29 +710,21 @@ function BarberCard({
       {/* Body */}
       <div className="px-4 -mt-10 relative cursor-pointer" onClick={openDetail}>
         <div className="flex items-end gap-3">
-          <Badge
-            content="New"
-            size="sm"
-            placement="bottom-right"
-            showOutline={false}
-            isInvisible={!!barber.avatar_url}
-            classNames={{ badge: "bg-[#FF2D46] text-white text-[9px] font-bold px-1.5" }}
-          >
-            {barber.avatar_url ? (
-              <img
-                src={barber.avatar_url}
-                alt={barber.brandName}
-                className="w-[68px] h-[68px] rounded-full object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
-              />
-            ) : (
-              <div
-                className="w-[68px] h-[68px] rounded-full flex items-center justify-center text-white font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden"
-                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}
-              >
-                {initial}
-              </div>
-            )}
-          </Badge>
+          {barber.avatar_url ? (
+            <img
+              src={barber.avatar_url}
+              alt={barber.brandName}
+              className="w-[68px] h-[68px] rounded-full object-cover border-[3px] border-white dark:border-[#1C1C1E] shrink-0"
+              style={{ boxShadow: `0 0 0 2px ${accent}` }}
+            />
+          ) : (
+            <div
+              className="w-[68px] h-[68px] rounded-full flex items-center justify-center font-semibold text-3xl border-[3px] border-white dark:border-[#1C1C1E] shrink-0 overflow-hidden"
+              style={{ background: theme.avatar, color: theme.onBase, boxShadow: `0 0 0 2px ${accent}` }}
+            >
+              {initial}
+            </div>
+          )}
           <div className="min-w-0 flex-1 pb-1">
             <div className="inline-flex items-center gap-1 rounded-full bg-black/[0.04] dark:bg-white/[0.08] px-2 py-0.5 mb-1">
               <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
@@ -775,10 +782,17 @@ function BarberCard({
         {barber.booking_link ? (
           <Button
             onPress={() => { haptic("medium"); navigate(`/b/${barber.booking_link}`, { state: detailState }); }}
-            className="flex-[1.4] w-full h-12 rounded-[16px] text-white font-semibold border-0 active:scale-[0.97] transition-transform shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35)]"
-            style={{ background: `linear-gradient(180deg, #FF5A6E 0%, ${accent} 55%, #E0152F 100%)` }}
+            className={cn(
+              "flex-[1.4] w-full h-12 rounded-[16px] font-semibold border-0 active:scale-[0.97] transition-transform",
+              !theme.isCustom && "btn-soft-dark",
+            )}
+            style={theme.isCustom ? {
+              background: theme.button,
+              color: theme.onBase,
+              boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.35), 0 10px 22px -12px rgba(0,0,0,0.45)",
+            } : undefined}
           >
-            <Calendar className="w-4 h-4 mr-1.5" />
+            <Calendar className="w-4 h-4 mr-1.5" style={theme.isCustom ? undefined : { color: accent }} />
             Book
           </Button>
         ) : (
@@ -1000,36 +1014,104 @@ function FullScreenMap({
 }) {
   const activeFilters =
     Number(maxDistance !== "any") + Number(minRating !== "any");
+  const [vipOnly, setVipOnly] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [recenterSignal, setRecenterSignal] = useState(0);
+  const [bookBarber, setBookBarber] = useState<BarberProfile | null>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+
+  const distanceKm = useMemo(() => {
+    if (!userLocation) return (_b: BarberProfile) => null as number | null;
+    return (b: BarberProfile) => {
+      if (b.latitude == null || b.longitude == null) return null;
+      const R = 6371, dLat = ((b.latitude - userLocation.lat) * Math.PI) / 180, dLng = ((b.longitude - userLocation.lng) * Math.PI) / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos((userLocation.lat * Math.PI) / 180) * Math.cos((b.latitude * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    };
+  }, [userLocation]);
+
+  const located = useMemo(
+    () => barbers.filter((b) => b.latitude != null && b.longitude != null),
+    [barbers],
+  );
+
+  const visible = useMemo(() => {
+    const term = mapSearch.trim().toLowerCase();
+    const maxKm = maxDistance === "any" ? null : Number(maxDistance) * 1.609;
+    const minStars = minRating === "any" ? null : Number(minRating);
+    return located
+      .filter((b) => !vipOnly || b.home_service)
+      .filter((b) => !term || b.brandName.toLowerCase().includes(term) || (b.address ?? "").toLowerCase().includes(term))
+      .filter((b) => minStars == null || (b.rating ?? 0) >= minStars)
+      .filter((b) => {
+        if (maxKm == null) return true;
+        const d = distanceKm(b);
+        return d == null || d <= maxKm;
+      })
+      .sort((a, b) => (distanceKm(a) ?? Infinity) - (distanceKm(b) ?? Infinity));
+  }, [located, vipOnly, mapSearch, maxDistance, minRating, distanceKm]);
+
+  const mapShops = useMemo(
+    () =>
+      visible.map((b) => ({
+        id: b.id,
+        name: b.brandName,
+        location: b.home_service ? "VIP · Comes to your house" : b.address || "",
+        latitude: b.latitude as number,
+        longitude: b.longitude as number,
+        color: getBarberTheme(b.brand_color).base,
+        avatarUrl: b.avatar_url,
+        initial: (b.brandName || "B").trim().charAt(0).toUpperCase(),
+        vip: !!b.home_service,
+      })),
+    [visible],
+  );
+
+  useEffect(() => {
+    if (selectedId && !visible.some((b) => b.id === selectedId)) setSelectedId(null);
+  }, [visible, selectedId]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const el = cardsRef.current?.querySelector<HTMLElement>(`[data-barber-id="${CSS.escape(selectedId)}"]`);
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [selectedId]);
+
+  const vipCount = located.filter((b) => b.home_service).length;
+  const nearStats = useMemo(() => {
+    if (!userLocation) return null;
+    const dists = located.map((b) => ({ b, d: distanceKm(b) ?? Infinity }));
+    const near = dists.filter((x) => x.d <= 5);
+    const nearest = dists.length ? Math.min(...dists.map((x) => x.d)) : null;
+    return { near: near.length, vip: near.filter((x) => x.b.home_service).length, nearest: nearest === Infinity ? null : nearest };
+  }, [located, userLocation, distanceKm]);
+
+  const hasCards = visible.length > 0;
+  const formatKm = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`);
 
   return (
-    <div className="dark fixed inset-0 z-40 bg-black">
+    <div data-no-ptr className="dark fixed inset-0 z-40 overscroll-none bg-black">
       {/* Full-bleed map */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
           <Suspense fallback={<div className="w-full h-full bg-[#e5e5ea] dark:bg-[#1c1c1e]" />}>
             <BarbershopMap
-              barbershops={[]}
+              barbershops={mapShops}
+              onBarbershopClick={(b) => setSelectedId(b.id)}
               userLocation={userLocation || undefined}
               height="100%"
               accentColor="#FF2D46"
               hideSearch
               showControls={false}
+              selectedId={selectedId}
+              fitToMarkers
+              recenterSignal={recenterSignal}
+              showZoomControls={false}
             />
           </Suspense>
         </div>
       </div>
 
-      {/* Coming Soon overlay */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black px-5">
-        <MapPoster />
-        <button
-          type="button"
-          onClick={onBack}
-          className="mt-6 h-12 w-full max-w-md rounded-full bg-[#FF2D46] text-[15px] font-semibold text-white active:scale-95 transition-transform"
-        >
-          Browse barbers
-        </button>
-      </div>
 
       {/* Top floating search + filters */}
       <div className="absolute left-0 right-0 top-0 z-20 pt-3">
@@ -1149,34 +1231,127 @@ function FullScreenMap({
               <span className="absolute inset-0 rounded-full bg-[#FF2D46] animate-ping opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FF2D46]" />
             </span>
-            {barbers.length} live nearby
+            {visible.length} {visible.length === 1 ? "barber" : "barbers"} on map
           </div>
         </div>
       </div>
 
-      {/* Bottom info card above dock */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
-        <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/95">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF2D46]/15">
-              <MapIcon className="h-5 w-5 text-[#FF5A6E]" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">More pins coming soon</p>
-              <p className="mt-0.5 text-[12px] leading-snug text-[#8E8E93]">
-                Barbers appear as they add their shop address in Settings.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onBack}
-              className="shrink-0 rounded-full bg-[#FF2D46] px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+
+      {/* Bottom stack: controls row, then barber cards above the dock */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-2.5 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
+        {vipOnly && vipCount === 0 && (
+          <div className="mx-6 rounded-2xl bg-[#1C1C1E]/95 p-3 text-center text-[13px] text-white/80">
+            No home-visit barbers nearby yet.
+          </div>
+        )}
+        <div className="flex items-end justify-between gap-2 px-3">
+          {nearStats ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30, delay: 0.3 }}
+              className="pointer-events-auto flex gap-3.5 rounded-2xl border border-white/10 bg-[#1C1C1E]/95 px-3.5 py-2 text-white shadow-[0_10px_28px_rgba(0,0,0,0.35)]"
+
             >
-              Browse
-            </button>
+              <div><p className="text-[15px] font-semibold leading-tight">{nearStats.near}</p><p className="text-[10px] text-white/50">within 5 km</p></div>
+              <div><p className="text-[15px] font-semibold leading-tight text-[#FB7185]">{nearStats.vip}</p><p className="text-[10px] text-white/50">VIP nearby</p></div>
+              {nearStats.nearest != null && (
+                <div><p className="text-[15px] font-semibold leading-tight">{formatKm(nearStats.nearest)}</p><p className="text-[10px] text-white/50">closest</p></div>
+              )}
+            </motion.div>
+          ) : <span />}
+          <div className="pointer-events-auto flex items-center gap-2">
+            <motion.button
+              type="button"
+              onClick={() => setRecenterSignal((n) => n + 1)}
+              aria-label="Center on my location"
+              whileTap={{ scale: 0.9 }}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-[#1C1C1E]/95 text-white shadow-[0_10px_28px_rgba(0,0,0,0.35)]"
+            >
+              <LocateFixed className="h-5 w-5" />
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={() => setVipOnly((v) => !v)}
+              aria-label="Show barbers who come to your house"
+              aria-pressed={vipOnly}
+              whileTap={{ scale: 0.9 }}
+              className={cn(
+                "flex h-12 items-center gap-1.5 rounded-full border px-3.5 text-[12px] font-semibold shadow-[0_10px_28px_rgba(0,0,0,0.35)] transition-colors",
+                vipOnly ? "border-[#FB7185] bg-[#FF375F] text-white" : "border-white/15 bg-[#1C1C1E]/95 text-[#FB7185]",
+              )}
+            >
+              <span className="text-[16px] leading-none">👑</span>
+              VIP{vipCount ? ` ${vipCount}` : ""}
+            </motion.button>
           </div>
         </div>
+        {hasCards ? (
+          <div
+            ref={cardsRef}
+            className="pointer-events-auto flex gap-3 overflow-x-auto px-3 pb-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {visible.map((b) => (
+              <MapBarberCard
+                key={b.id}
+                barber={b}
+                selected={selectedId === b.id}
+                distance={distanceKm(b)}
+                formatKm={formatKm}
+                onSelect={() => setSelectedId(b.id)}
+                onBook={() => setBookBarber(b)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="px-3">
+            <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF375F]/15">
+                  <MapIcon className="h-5 w-5 text-[#FB7185]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    {located.length > 0 ? "No barbers match" : "More pins coming soon"}
+                  </p>
+                  <p className="mt-0.5 text-[12px] leading-snug text-[#8E8E93]">
+                    {located.length > 0
+                      ? "Try a different search or loosen your filters."
+                      : "Barbers appear as they add their shop address in Settings."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (located.length > 0) {
+                      setMapSearch("");
+                      setMaxDistance("any");
+                      setMinRating("any");
+                      setVipOnly(false);
+                    } else {
+                      onBack();
+                    }
+                  }}
+                  className="shrink-0 rounded-full bg-[#FF375F] px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+                >
+                  {located.length > 0 ? "Reset" : "Browse"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {bookBarber?.booking_link && (
+        <QuickBookSheet
+          open
+          onOpenChange={(o) => { if (!o) setBookBarber(null); }}
+          barberId={bookBarber.id}
+          barberName={bookBarber.brandName}
+          bookingLink={bookBarber.booking_link}
+          accentColor={getBarberTheme(bookBarber.brand_color).accent}
+        />
+      )}
 
       <ClientMobileDock />
     </div>
@@ -1184,6 +1359,106 @@ function FullScreenMap({
 }
 
 export default FindBarber;
+
+function MapBarberCard({
+  barber,
+  selected,
+  distance,
+  formatKm,
+  onSelect,
+  onBook,
+}: {
+  barber: BarberProfile;
+  selected: boolean;
+  distance: number | null;
+  formatKm: (d: number) => string;
+  onSelect: () => void;
+  onBook: () => void;
+}) {
+  const theme = getBarberTheme(barber.brand_color);
+  const initial = (barber.brandName || "B").trim().charAt(0).toUpperCase();
+  return (
+    <motion.div
+      data-barber-id={barber.id}
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(); }}
+      animate={{ scale: selected ? 1 : 0.97, opacity: selected ? 1 : 0.92 }}
+      transition={spring}
+      className="relative w-[17.5rem] shrink-0 snap-center overflow-hidden rounded-[22px] border p-3 text-left shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+      style={{
+        borderColor: selected ? `${theme.accent}8c` : "rgba(255,255,255,0.08)",
+        background: `radial-gradient(120% 90% at 0% 0%, ${theme.accent}${selected ? "33" : "1f"} 0%, transparent 60%), #1C1C1E`,
+      }}
+    >
+      <div className="flex items-center gap-3">
+        {barber.avatar_url ? (
+          <img
+            src={barber.avatar_url}
+            alt={barber.brandName}
+            className="h-12 w-12 shrink-0 rounded-full object-cover"
+            style={{ boxShadow: `0 0 0 2px ${theme.accent}` }}
+          />
+        ) : (
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[18px] font-semibold"
+            style={{ background: theme.avatar, color: theme.onBase, boxShadow: `0 0 0 2px ${theme.accent}` }}
+          >
+            {initial}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold text-white">
+            {barber.home_service && <span className="mr-1">👑</span>}
+            {barber.brandName}
+          </p>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-white/55">
+            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+            <span className="font-semibold text-white/85 tabular-nums">{Number(barber.rating ?? 5).toFixed(1)}</span>
+            <span>({barber.rating_count ?? 0})</span>
+            {distance != null && (
+              <>
+                <span>·</span>
+                <span className="tabular-nums">{formatKm(distance)}</span>
+              </>
+            )}
+          </div>
+          <p className="mt-0.5 truncate text-[11.5px] text-white/40">
+            {barber.home_service ? "Comes to your house" : barber.address || "Address on request"}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 flex gap-2">
+        {barber.latitude != null && barber.longitude != null && (
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${barber.latitude},${barber.longitude}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[12px] bg-white/[0.08] text-[13px] font-semibold text-white/90 active:scale-[0.97] transition-transform"
+          >
+            <MapPin className="h-4 w-4" style={{ color: theme.accent }} />
+            Directions
+          </a>
+        )}
+        <button
+          type="button"
+          disabled={!barber.booking_link}
+          onClick={(e) => { e.stopPropagation(); onBook(); }}
+          className={cn(
+            "flex h-10 flex-[1.3] items-center justify-center gap-1.5 rounded-[12px] text-[13px] font-semibold active:scale-[0.97] transition-transform disabled:opacity-50",
+            !theme.isCustom && "btn-soft-dark",
+          )}
+          style={theme.isCustom ? { background: theme.button, color: theme.onBase } : undefined}
+        >
+          <Calendar className="h-4 w-4" style={theme.isCustom ? undefined : { color: theme.accent }} />
+          {barber.booking_link ? "Book" : "Unavailable"}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
 
 /* ---------- Expanded details (fetched on demand) ---------- */
 

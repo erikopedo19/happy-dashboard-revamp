@@ -323,14 +323,21 @@ serve(async (req: Request) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
     }
 
-    // Freshness guard against token replay. Initial confirmations are checked
-    // against created_at; reschedule emails are checked against updated_at
-    // because the appointment is old by definition (it was just moved).
-    const refIso = rescheduled ? (apptRow.updated_at ?? apptRow.created_at) : apptRow.created_at;
-    const refMs = new Date(refIso as string).getTime();
-    if (Date.now() - refMs > 15 * 60 * 1000) {
-      return new Response(JSON.stringify({ success: false, error: "Token expired" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+    if (rescheduled) {
+      // Reschedule emails: caller must be the signed-in owner of the appointment.
+      const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+      const { data: authData } = jwt ? await supabase.auth.getUser(jwt) : { data: { user: null } };
+      if (!authData?.user || authData.user.id !== apptRow.user_id) {
+        return new Response(JSON.stringify({ success: false, error: "Not allowed" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 });
+      }
+    } else {
+      // Freshness guard against token replay for initial confirmations.
+      const refMs = new Date(apptRow.created_at as string).getTime();
+      if (Date.now() - refMs > 15 * 60 * 1000) {
+        return new Response(JSON.stringify({ success: false, error: "Token expired" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+      }
     }
 
     const [{ data: customer }, { data: service }, { data: profile }, stylistRes] = await Promise.all([

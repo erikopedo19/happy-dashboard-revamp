@@ -8,6 +8,31 @@ import './index.css';
 import { initNativeShell } from './lib/native';
 import { initNativePush } from './lib/nativePush';
 
+// Recover from stale chunks after a new deploy: reload once instead of a blank screen.
+const CHUNK_RELOAD_KEY = "chunk-reload-at";
+function reloadForStaleChunk(): boolean {
+  const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+  if (Date.now() - last < 10_000) return false; // avoid reload loops
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  window.location.reload();
+  return true;
+}
+const isChunkError = (msg: unknown) =>
+  /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(
+    String((msg as { message?: string })?.message ?? msg ?? "")
+  );
+// Only swallow the error when we actually reload; otherwise preventDefault makes
+// the dynamic import resolve to `undefined`, crashing React.lazy.
+window.addEventListener("vite:preloadError", (e) => {
+  if (reloadForStaleChunk()) e.preventDefault();
+});
+window.addEventListener("unhandledrejection", (e) => {
+  if (isChunkError(e.reason)) reloadForStaleChunk();
+});
+window.addEventListener("error", (e) => {
+  if (isChunkError(e.message || e.error)) reloadForStaleChunk();
+});
+
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider><App /></HelmetProvider>
 );

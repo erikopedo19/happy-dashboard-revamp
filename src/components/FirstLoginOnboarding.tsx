@@ -103,6 +103,18 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
   const [language, setLanguage] = useState<"en" | "el" | "es" | "pl">("en");
   const [businessType, setBusinessType] = useState<"solo" | "salon">("solo");
   const [salonName, setSalonName] = useState("");
+  const [homeService, setHomeService] = useState(false);
+  const [shopLocation, setShopLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const pinLocation = () => {
+    if (!("geolocation" in navigator)) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setShopLocation({ lat: p.coords.latitude, lng: p.coords.longitude }); setLocating(false); },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
   const currency = useMemo(() => CURRENCY_BY_LOCALE[language] || "EUR", [language]);
   const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
   const [bookingLink, setBookingLink] = useState(() => cleanSlug(user?.email?.split("@")[0] || "my-chair"));
@@ -205,6 +217,8 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
           full_name: fullName.trim(),
           business_name: businessType === "salon" ? salonName.trim() : null,
           freelancer_mode: businessType === "solo",
+          home_service: homeService,
+          ...(shopLocation ? { latitude: shopLocation.lat, longitude: shopLocation.lng, google_maps_url: `https://www.google.com/maps/search/?api=1&query=${shopLocation.lat},${shopLocation.lng}` } : {}),
           avatar_url: avatarUrl,
           description: bio.trim() || null,
           booking_link: finalSlug,
@@ -349,6 +363,14 @@ export function FirstLoginOnboarding({ onComplete }: { onComplete: () => void })
                     <DarkInput value={salonName} onChange={setSalonName} placeholder="Your salon name" />
                   </div>
                 )}
+                <div className="rounded-[20px] bg-[#1C1C1E] p-4 space-y-3">
+                  <FieldLabel>Show me on the map</FieldLabel>
+                  <button type="button" onClick={pinLocation} className="flex w-full items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-left text-[15px] text-white active:scale-[0.98] transition-transform">
+                    <span>{shopLocation ? "📍 Location pinned" : locating ? "Finding you…" : "📍 Pin my shop location"}</span>
+                    <span className="text-[13px] text-[#FF375F]">{shopLocation ? `${shopLocation.lat.toFixed(3)}, ${shopLocation.lng.toFixed(3)}` : "Use GPS"}</span>
+                  </button>
+                  <Choice active={homeService} title="👑 I come to clients' homes" detail="Appear as a VIP home-visit barber on the map" onClick={() => setHomeService(!homeService)} />
+                </div>
               </div>
             )}
 
