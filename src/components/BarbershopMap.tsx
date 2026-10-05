@@ -259,7 +259,7 @@ export function BarbershopMap({
   }
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ minHeight: height }}>
+    <div className="w-full h-full flex flex-col" style={hideSearch ? { height: "100%" } : { minHeight: height }}>
       {showControls && !hideSearch && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -307,7 +307,7 @@ export function BarbershopMap({
 
       <div
         className={`relative w-full overflow-hidden ${hideSearch ? "rounded-none border-0 shadow-none ring-0 flex-1" : "rounded-[34px] border border-white/50 shadow-[0_24px_60px_rgba(15,23,42,0.18)] ring-1 ring-black/5 dark:border-white/10 dark:ring-white/10"} [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden`}
-        style={hideSearch ? { minHeight: "100%" } : { height }}
+        style={hideSearch ? { height: "100%" } : { height }}
       >
         <Map
           ref={mapRef}
@@ -317,7 +317,7 @@ export function BarbershopMap({
             latitude: center[0],
             zoom,
           }}
-          onLoad={() => setMapReady(true)}
+          onLoad={(m: any) => { mapRef.current = m; setMapReady(true); }}
           style={{ height: "100%", width: "100%" }}
         />
 
