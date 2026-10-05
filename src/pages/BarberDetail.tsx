@@ -313,12 +313,17 @@ export default function BarberDetail() {
             )}
 
             {tab === "about" && (
-              <div className="space-y-5">
-                {(site?.about || profile?.description) && <p className="text-[14px] leading-relaxed text-white/70">{site?.about || profile?.description}</p>}
+              <div className="space-y-7">
+                {(site?.about || profile?.description) && (
+                  <section>
+                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Scissors className="h-3.5 w-3.5" />About</p>
+                    <p className="text-[14px] leading-relaxed text-white/70">{site?.about || profile?.description}</p>
+                  </section>
+                )}
 
                 {gallery.length > 0 && (
                   <div>
-                    <p className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-white/60"><Images className="h-3.5 w-3.5" />Photos</p>
+                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Images className="h-3.5 w-3.5" />Photos</p>
                     <div className="grid grid-cols-3 gap-1.5">
                       {gallery.slice(0, 9).map((g, i) => (
                         <motion.button key={g} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} onClick={() => { haptic("light"); setLightbox(g); }} className={cn("overflow-hidden rounded-xl bg-white/[0.05]", i === 0 && "col-span-2 row-span-2")}>
@@ -330,7 +335,9 @@ export default function BarberDetail() {
                 )}
 
                 {links.length > 0 && (
-                  <div className="overflow-hidden rounded-[20px] bg-white/[0.04]">
+                  <section>
+                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Globe className="h-3.5 w-3.5" />Details</p>
+                    <div className="overflow-hidden rounded-[20px] bg-white/[0.04]">
                     {links.map(({ icon: Icon, label, value, href, internal }, i) => (
                       <a key={label} href={href} onClick={(e) => { haptic("light"); if (internal) { e.preventDefault(); navigate(href); } }} target={internal ? undefined : "_blank"} rel="noreferrer" className={cn("flex items-center gap-3 px-4 py-3.5 active:bg-white/[0.04]", i > 0 && "border-t border-white/[0.05]")}>
                         <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: `${ACCENT}1f`, color: ACCENT }}><Icon className="h-4 w-4" /></span>
@@ -341,20 +348,39 @@ export default function BarberDetail() {
                         <ChevronRight className="h-4 w-4 text-white/25" />
                       </a>
                     ))}
-                  </div>
+                    </div>
+                  </section>
                 )}
 
                 {(site?.hours || settings) && (
-                  <div className="rounded-[20px] bg-white/[0.04] px-4 py-3.5">
-                    <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-white/40"><Clock className="h-3.5 w-3.5" />Hours</p>
-                    <p className="text-[14px] font-medium whitespace-pre-line">{site?.hours || `${settings!.start_hour} – ${settings!.end_hour}`}</p>
-                    {!site?.hours && settings && (
-                      <p className="mt-1 text-[12px] text-white/45">{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].filter((_, i) => workingDays.includes(i)).join(" · ")}</p>
-                    )}
-                  </div>
+                  <section>
+                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Clock className="h-3.5 w-3.5" />Hours</p>
+                    <div className="rounded-[20px] bg-white/[0.04] px-4 py-3.5">
+                      {site?.hours ? (
+                        <p className="text-[14px] font-medium whitespace-pre-line">{site.hours}</p>
+                      ) : settings && (
+                        <ul className="divide-y divide-white/[0.05]">
+                          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day, i) => {
+                            const open = workingDays.includes(i);
+                            const isToday = new Date().getDay() === i;
+                            return (
+                              <li key={day} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
+                                <span className={cn("text-[13px]", isToday ? "font-semibold text-white" : "text-white/70")}>
+                                  {day}{isToday && <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide" style={{ color: ACCENT }}>Today</span>}
+                                </span>
+                                <span className={cn("text-[13px] tabular-nums", open ? (isToday ? "font-semibold" : "text-white/70") : "text-white/30")}>
+                                  {open ? `${fmtTime(settings.start_hour)} – ${fmtTime(settings.end_hour)}` : "Closed"}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </section>
                 )}
 
-                {!site?.about && !profile?.description && gallery.length === 0 && links.length === 0 && (
+                {!site?.about && !profile?.description && gallery.length === 0 && links.length === 0 && !site?.hours && !settings && (
                   <p className="py-6 text-center text-[13px] text-white/40">No details added yet.</p>
                 )}
               </div>

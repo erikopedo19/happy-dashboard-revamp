@@ -74,6 +74,16 @@ export function QuickBookSheet({
   const [calendarOpen, setCalendarOpen] = useState(false);
   // Hard re-entry lock — guards against double-tap firing two RPCs before React re-renders the disabled state.
   const submitLockRef = useRef(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // Steps sit inside a scrollable body — reset scroll on each step change so the
+  // details form never appears mid-scroll, and skip the entry animation on the
+  // first mount so it doesn't double up with the sheet's own slide-up.
+  const firstStepRef = useRef(true);
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 });
+    firstStepRef.current = false;
+  }, [step]);
 
   // Reset on open
   useEffect(() => {
@@ -332,15 +342,15 @@ const businessTz = settings?.timezone || getBrowserTimezone();
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 pb-[max(env(safe-area-inset-bottom),1rem)]">
+        <div ref={bodyRef} className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[max(env(safe-area-inset-bottom),1rem)]">
           <AnimatePresence mode="wait">
             {step === "pick" && (
               <motion.div
                 key="pick"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
+                initial={firstStepRef.current ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
                 className="space-y-5 pb-4"
               >
                 {/* Service */}
@@ -352,13 +362,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                     <EmptyHint text="No services available yet" />
                   ) : (
                     <div className="space-y-2">
-                      {services.map((s, index) => {
+                      {services.map((s) => {
                         const active = s.id === serviceId;
                         return (
-                          <motion.button
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: Math.min(index, 8) * 0.035, duration: 0.22 }}
+                          <button
                             key={s.id}
                             onClick={() => {
                               haptic("selection");
@@ -384,7 +391,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                             <div className="font-bold tabular-nums text-[15px]" style={{ color: active ? accentColor : undefined }}>
                               ${Number(s.price).toFixed(0)}
                             </div>
-                          </motion.button>
+                          </button>
                         );
                       })}
                     </div>
@@ -427,13 +434,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                     </Popover>
                   </div>
                   <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {nextDays.map((d, index) => {
+                    {nextDays.map((d) => {
                       const active = isSameDay(d, date);
                       return (
-                        <motion.button
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: Math.min(index, 8) * 0.025, duration: 0.2 }}
+                        <button
                           key={d.toISOString()}
                           onClick={() => {
                             haptic("selection");
@@ -454,7 +458,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                           <span className="text-[18px] font-semibold leading-tight mt-0.5">
                             {format(d, "d")}
                           </span>
-                        </motion.button>
+                        </button>
                       );
                     })}
                   </div>
@@ -487,10 +491,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
             {step === "details" && (
               <motion.div
                 key="details"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
                 className="space-y-4 pb-4"
               >
                 <div className="rounded-[22px] p-3.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center gap-3">
