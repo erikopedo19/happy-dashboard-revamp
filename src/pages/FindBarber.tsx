@@ -47,6 +47,10 @@ import { NotificationBell } from "@/components/NotificationBell";
 
 interface BarberProfile {
   id: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  home_service?: boolean;
+  address?: string | null;
   full_name: string | null;
   business_name: string | null;
   booking_link: string | null;
@@ -206,6 +210,10 @@ const FindBarber = () => {
         rating_count: p.rating_count ?? null,
         description: p.description ?? null,
         brandName: p.business_name || p.full_name || "Barber",
+        latitude: p.latitude != null ? Number(p.latitude) : null,
+        longitude: p.longitude != null ? Number(p.longitude) : null,
+        home_service: !!p.home_service,
+        address: p.address ?? null,
       }));
 
       const fakeEnabled = settingRes?.data?.value?.enabled === true;
@@ -970,6 +978,22 @@ function FullScreenMap({
 }) {
   const activeFilters =
     Number(maxDistance !== "any") + Number(minRating !== "any");
+  const [vipOnly, setVipOnly] = useState(false);
+  const mapShops = useMemo(
+    () =>
+      barbers
+        .filter((b) => b.latitude != null && b.longitude != null && (!vipOnly || b.home_service))
+        .map((b) => ({
+          id: b.id,
+          name: (b.home_service ? "👑 " : "") + b.brandName,
+          location: b.home_service ? "VIP · Comes to your house" : b.address || "",
+          latitude: b.latitude as number,
+          longitude: b.longitude as number,
+          vip: !!b.home_service,
+        })),
+    [barbers, vipOnly],
+  );
+  const vipCount = barbers.filter((b) => b.home_service && b.latitude != null).length;
 
   return (
     <div className="dark fixed inset-0 z-40 bg-black">
@@ -978,7 +1002,11 @@ function FullScreenMap({
         <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
           <Suspense fallback={<div className="w-full h-full bg-[#e5e5ea] dark:bg-[#1c1c1e]" />}>
             <BarbershopMap
-              barbershops={[]}
+              barbershops={mapShops}
+              onBarbershopClick={(b) => {
+                const bp = barbers.find((x) => x.id === b.id);
+                if (bp?.booking_link) window.location.href = `/book/${bp.booking_link}`;
+              }}
               userLocation={userLocation || undefined}
               height="100%"
               accentColor="#FF375F"
@@ -989,17 +1017,30 @@ function FullScreenMap({
         </div>
       </div>
 
-      {/* Coming Soon overlay */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black px-5">
-        <MapPoster />
-        <button
-          type="button"
-          onClick={onBack}
-          className="mt-6 h-12 w-full max-w-md rounded-full bg-[#FF375F] text-[15px] font-semibold text-white active:scale-95 transition-transform"
-        >
-          Browse barbers
-        </button>
-      </div>
+      {/* VIP home-visit toggle */}
+      <motion.button
+        type="button"
+        onClick={() => setVipOnly((v) => !v)}
+        aria-label="Show barbers who come to your house"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 420, damping: 26, delay: 0.2 }}
+        className={cn(
+          "absolute right-4 z-20 flex h-16 w-16 flex-col items-center justify-center rounded-full border text-[10px] font-semibold shadow-[0_14px_36px_rgba(255,55,95,0.35)] backdrop-blur-xl",
+          vipOnly ? "border-[#FF375F] bg-[#FF375F] text-white" : "border-white/15 bg-[#1C1C1E]/90 text-[#FF375F]",
+        )}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 6.5rem)" }}
+      >
+        {vipOnly && <span className="absolute inset-0 animate-ping rounded-full bg-[#FF375F]/30" />}
+        <span className="text-xl leading-none">👑</span>
+        <span>VIP{vipCount ? ` ${vipCount}` : ""}</span>
+      </motion.button>
+      {vipOnly && vipCount === 0 && (
+        <div className="absolute inset-x-6 z-20 rounded-2xl bg-[#1C1C1E]/90 p-3 text-center text-[13px] text-white/80 backdrop-blur-xl" style={{ bottom: "calc(env(safe-area-inset-bottom) + 11rem)" }}>
+          No home-visit barbers nearby yet.
+        </div>
+      )}
 
       {/* Top floating search + filters */}
       <div className="absolute left-0 right-0 top-0 z-20 pt-[max(env(safe-area-inset-top),0.75rem)]">

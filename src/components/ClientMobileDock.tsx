@@ -4,7 +4,7 @@ import { GlassDock, type DockItem } from '@/components/GlassDock';
 
 const navItems: DockItem[] = [
   { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF375F' },
-  { label: 'Events', icon: Sparkles, to: '/events', color: '#FF9F0A' },
+  // Events hidden for now
   { label: 'Bookings', icon: Calendar, to: '/my-bookings', color: '#0A84FF' },
   { label: 'Favorites', icon: Heart, to: '/favorites', color: '#AF52DE' },
   { label: 'Profile', icon: User, to: '/me', color: '#32ADE6' },
