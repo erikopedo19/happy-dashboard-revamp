@@ -1074,6 +1074,7 @@ export type Database = {
           full_name: string | null
           google_maps_url: string | null
           heard_from: string | null
+          home_service: boolean
           id: string
           is_public: boolean | null
           latitude: number | null
@@ -1128,6 +1129,7 @@ export type Database = {
           full_name?: string | null
           google_maps_url?: string | null
           heard_from?: string | null
+          home_service?: boolean
           id: string
           is_public?: boolean | null
           latitude?: number | null
@@ -1182,6 +1184,7 @@ export type Database = {
           full_name?: string | null
           google_maps_url?: string | null
           heard_from?: string | null
+          home_service?: boolean
           id?: string
           is_public?: boolean | null
           latitude?: number | null
@@ -2005,6 +2008,7 @@ export type Database = {
       list_public_profiles: {
         Args: never
         Returns: {
+          address: string
           avatar_url: string
           banner_url: string
           booking_link: string
@@ -2012,6 +2016,7 @@ export type Database = {
           business_name: string
           description: string
           full_name: string
+          home_service: boolean
           id: string
           latitude: number
           longitude: number
