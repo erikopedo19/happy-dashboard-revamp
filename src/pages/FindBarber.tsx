@@ -616,8 +616,11 @@ function BarberCard({
         "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
         isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       )}
+      style={{
+        borderColor: `${accent}2e`,
+        backgroundImage: `radial-gradient(140% 60% at 50% 100%, ${accent}14 0%, transparent 70%)`,
+      }}
     >
-      <div aria-hidden className="absolute inset-x-0 top-0 z-10 h-[3px]" style={{ background: accent }} />
       {/* Header banner */}
       <div
         className="relative h-24"
@@ -1061,11 +1064,10 @@ function FullScreenMap({
   }, [located, userLocation, distanceKm]);
 
   const hasCards = visible.length > 0;
-  const overlayBottom = "calc(env(safe-area-inset-bottom) + 13rem)";
   const formatKm = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`);
 
   return (
-    <div className="dark fixed inset-0 z-40 bg-black">
+    <div data-no-ptr className="dark fixed inset-0 z-40 overscroll-none bg-black">
       {/* Full-bleed map */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:hidden [&_.maplibregl-ctrl-logo]:hidden">
@@ -1081,61 +1083,11 @@ function FullScreenMap({
               selectedId={selectedId}
               fitToMarkers
               recenterSignal={recenterSignal}
+              showZoomControls={false}
             />
           </Suspense>
         </div>
       </div>
-
-      {nearStats && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 380, damping: 30, delay: 0.3 }}
-          className="absolute left-4 z-20 flex gap-3 rounded-2xl border border-white/10 bg-[#1C1C1E]/90 px-4 py-2.5 text-white backdrop-blur-xl"
-          style={{ bottom: overlayBottom }}
-        >
-          <div><p className="text-[17px] font-semibold leading-tight">{nearStats.near}</p><p className="text-[10px] text-white/50">within 5 km</p></div>
-          <div><p className="text-[17px] font-semibold leading-tight text-[#FF375F]">{nearStats.vip}</p><p className="text-[10px] text-white/50">VIP nearby</p></div>
-          {nearStats.nearest != null && (
-            <div><p className="text-[17px] font-semibold leading-tight">{formatKm(nearStats.nearest)}</p><p className="text-[10px] text-white/50">closest</p></div>
-          )}
-        </motion.div>
-      )}
-
-      {/* VIP home-visit toggle */}
-      <motion.button
-        type="button"
-        onClick={() => setVipOnly((v) => !v)}
-        aria-label="Show barbers who come to your house"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        whileTap={{ scale: 0.9 }}
-        transition={{ type: "spring", stiffness: 420, damping: 26, delay: 0.2 }}
-        className={cn(
-          "absolute right-4 z-20 flex h-16 w-16 flex-col items-center justify-center rounded-full border text-[10px] font-semibold shadow-[0_14px_36px_rgba(255,55,95,0.35)] backdrop-blur-xl",
-          vipOnly ? "border-[#FF375F] bg-[#FF375F] text-white" : "border-white/15 bg-[#1C1C1E]/90 text-[#FF375F]",
-        )}
-        style={{ bottom: overlayBottom }}
-      >
-        {vipOnly && <span className="absolute inset-0 animate-ping rounded-full bg-[#FF375F]/30" />}
-        <span className="text-xl leading-none">👑</span>
-        <span>VIP{vipCount ? ` ${vipCount}` : ""}</span>
-      </motion.button>
-      <motion.button
-        type="button"
-        onClick={() => setRecenterSignal((n) => n + 1)}
-        aria-label="Center on my location"
-        whileTap={{ scale: 0.9 }}
-        className="absolute right-[1.375rem] z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#1C1C1E]/90 text-white shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-xl"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 18rem)" }}
-      >
-        <LocateFixed className="h-5 w-5" />
-      </motion.button>
-      {vipOnly && vipCount === 0 && (
-        <div className="absolute inset-x-6 z-20 rounded-2xl bg-[#1C1C1E]/90 p-3 text-center text-[13px] text-white/80 backdrop-blur-xl" style={{ bottom: "calc(env(safe-area-inset-bottom) + 18rem)" }}>
-          No home-visit barbers nearby yet.
-        </div>
-      )}
 
       {/* Top floating search + filters */}
       <div className="absolute left-0 right-0 top-0 z-20 pt-[max(env(safe-area-inset-top),0.75rem)]">
@@ -1260,8 +1212,54 @@ function FullScreenMap({
         </div>
       </div>
 
-      {/* Bottom barber cards above dock */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
+      {/* Bottom stack: controls row, then barber cards above the dock */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-2.5 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
+        {vipOnly && vipCount === 0 && (
+          <div className="mx-6 rounded-2xl bg-[#1C1C1E]/95 p-3 text-center text-[13px] text-white/80">
+            No home-visit barbers nearby yet.
+          </div>
+        )}
+        <div className="flex items-end justify-between gap-2 px-3">
+          {nearStats ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30, delay: 0.3 }}
+              className="pointer-events-auto flex gap-3.5 rounded-2xl border border-white/10 bg-[#1C1C1E]/95 px-3.5 py-2 text-white shadow-[0_10px_28px_rgba(0,0,0,0.35)]"
+            >
+              <div><p className="text-[15px] font-semibold leading-tight">{nearStats.near}</p><p className="text-[10px] text-white/50">within 5 km</p></div>
+              <div><p className="text-[15px] font-semibold leading-tight text-[#FB7185]">{nearStats.vip}</p><p className="text-[10px] text-white/50">VIP nearby</p></div>
+              {nearStats.nearest != null && (
+                <div><p className="text-[15px] font-semibold leading-tight">{formatKm(nearStats.nearest)}</p><p className="text-[10px] text-white/50">closest</p></div>
+              )}
+            </motion.div>
+          ) : <span />}
+          <div className="pointer-events-auto flex items-center gap-2">
+            <motion.button
+              type="button"
+              onClick={() => setRecenterSignal((n) => n + 1)}
+              aria-label="Center on my location"
+              whileTap={{ scale: 0.9 }}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-[#1C1C1E]/95 text-white shadow-[0_10px_28px_rgba(0,0,0,0.35)]"
+            >
+              <LocateFixed className="h-5 w-5" />
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={() => setVipOnly((v) => !v)}
+              aria-label="Show barbers who come to your house"
+              aria-pressed={vipOnly}
+              whileTap={{ scale: 0.9 }}
+              className={cn(
+                "flex h-12 items-center gap-1.5 rounded-full border px-3.5 text-[12px] font-semibold shadow-[0_10px_28px_rgba(0,0,0,0.35)] transition-colors",
+                vipOnly ? "border-[#FB7185] bg-[#FF375F] text-white" : "border-white/15 bg-[#1C1C1E]/95 text-[#FB7185]",
+              )}
+            >
+              <span className="text-[16px] leading-none">👑</span>
+              VIP{vipCount ? ` ${vipCount}` : ""}
+            </motion.button>
+          </div>
+        </div>
         {hasCards ? (
           <div
             ref={cardsRef}
@@ -1281,7 +1279,7 @@ function FullScreenMap({
           </div>
         ) : (
           <div className="px-3">
-            <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/95">
+            <div className="pointer-events-auto mx-auto max-w-[28rem] rounded-3xl border border-black/5 bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FF375F]/15">
                   <MapIcon className="h-5 w-5 text-[#FB7185]" />
@@ -1362,10 +1360,12 @@ function MapBarberCard({
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(); }}
       animate={{ scale: selected ? 1 : 0.97, opacity: selected ? 1 : 0.92 }}
       transition={spring}
-      className="relative w-[17.5rem] shrink-0 snap-center overflow-hidden rounded-[22px] border bg-[#1C1C1E]/95 p-3 text-left shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
-      style={{ borderColor: selected ? `${theme.accent}99` : "rgba(255,255,255,0.1)" }}
+      className="relative w-[17.5rem] shrink-0 snap-center overflow-hidden rounded-[22px] border p-3 text-left shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+      style={{
+        borderColor: selected ? `${theme.accent}8c` : "rgba(255,255,255,0.08)",
+        background: `radial-gradient(120% 90% at 0% 0%, ${theme.accent}${selected ? "33" : "1f"} 0%, transparent 60%), #1C1C1E`,
+      }}
     >
-      <div aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: theme.accent }} />
       <div className="flex items-center gap-3">
         {barber.avatar_url ? (
           <img

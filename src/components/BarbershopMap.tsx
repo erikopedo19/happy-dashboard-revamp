@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,28 +34,42 @@ interface BarbershopMapProps {
   hideSearch?: boolean;
   /** Highlights this pin and eases the camera to it. */
   selectedId?: string | null;
-  /** Zoom out to fit every pin (plus the user) whenever the set of pins changes. */
+  /** Zoom out to fit every pin whenever the set of pins changes. */
   fitToMarkers?: boolean;
   /** Increment to fly the camera back to the user's location. */
   recenterSignal?: number;
+  /** Show the +/- zoom buttons. */
+  showZoomControls?: boolean;
 }
 
-const PIN_STYLE_ID = "barbershop-map-pin-styles";
+type PinEntry = { marker: maplibregl.Marker; inner: HTMLDivElement; shop: Barbershop; sig: string };
 
+const PIN_STYLE_ID = "barbershop-map-pin-styles-v2";
+const CLUSTER_RADIUS_PX = 48;
+const SPREAD_ZOOM = 16;
+
+// The marker root is positioned by maplibre via `transform`, so all visual
+// animation lives on the inner element to keep pins glued to the map.
 function ensurePinStyles() {
   if (typeof document === "undefined" || document.getElementById(PIN_STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = PIN_STYLE_ID;
   style.textContent = `
+@keyframes bsm-pop { from { transform: scale(.4); opacity: 0 } to { transform: scale(1); opacity: 1 } }
 @keyframes bsm-pulse { 0% { transform: scale(1); opacity: .55 } 100% { transform: scale(3.2); opacity: 0 } }
-.bsm-pin { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; transform-origin: 50% 100%; transition: transform .2s cubic-bezier(.2,.9,.3,1.3); }
-.bsm-pin:hover { transform: scale(1.08); }
-.bsm-pin[data-selected="true"] { transform: scale(1.22); z-index: 2; }
-.bsm-pin-head { width: 40px; height: 40px; border-radius: 9999px; border: 3px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font: 600 16px/1 system-ui, -apple-system, sans-serif; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
-.bsm-pin[data-selected="true"] .bsm-pin-head { box-shadow: 0 0 0 4px var(--bsm-ring), 0 14px 30px rgba(0,0,0,.35); }
-.bsm-pin-head img { width: 100%; height: 100%; object-fit: cover; }
-.bsm-pin-tail { width: 0; height: 0; margin-top: -2px; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 9px solid #fff; }
-.bsm-pin-badge { position: absolute; top: -6px; right: -8px; font-size: 13px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+@keyframes bsm-ring { 0% { transform: scale(1); opacity: .7 } 100% { transform: scale(1.9); opacity: 0 } }
+.bsm-pin { position: relative; width: 40px; height: 48px; cursor: pointer; transform-origin: 50% 100%; animation: bsm-pop .32s cubic-bezier(.2,.9,.3,1.25) both; transition: transform .25s cubic-bezier(.2,.9,.3,1.2), filter .25s ease; -webkit-tap-highlight-color: transparent; }
+.bsm-pin[data-selected="true"] { transform: scale(1.18); filter: drop-shadow(0 10px 18px var(--bsm-glow)); }
+.bsm-pin-drop { position: absolute; left: 2px; top: 0; width: 36px; height: 36px; border-radius: 50% 50% 50% 6px; transform: rotate(-45deg); background: var(--bsm-color); border: 2.5px solid #fff; box-shadow: 0 6px 16px var(--bsm-glow), 0 2px 4px rgba(0,0,0,.25); }
+.bsm-pin-face { position: absolute; left: 6px; top: 4px; width: 28px; height: 28px; border-radius: 9999px; overflow: hidden; display: flex; align-items: center; justify-content: center; font: 600 13px/1 system-ui, -apple-system, sans-serif; }
+.bsm-pin-face img { width: 100%; height: 100%; object-fit: cover; }
+.bsm-pin-ring { position: absolute; left: 6px; top: 4px; width: 28px; height: 28px; border-radius: 9999px; border: 2px solid var(--bsm-color); opacity: 0; pointer-events: none; }
+.bsm-pin[data-selected="true"] .bsm-pin-ring { animation: bsm-ring 1.6s ease-out infinite; }
+.bsm-pin-dot { position: absolute; left: 50%; bottom: 0; width: 8px; height: 4px; margin-left: -4px; border-radius: 50%; background: rgba(0,0,0,.35); filter: blur(1px); }
+.bsm-pin-badge { position: absolute; top: -7px; right: -6px; font-size: 13px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.bsm-cluster { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 9999px; padding: 3px; cursor: pointer; background: var(--bsm-ring-bg); box-shadow: 0 8px 22px rgba(0,0,0,.4); animation: bsm-pop .3s cubic-bezier(.2,.9,.3,1.25) both; transition: transform .2s ease; -webkit-tap-highlight-color: transparent; }
+.bsm-cluster:active { transform: scale(.92); }
+.bsm-cluster span { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border-radius: 9999px; background: #1C1C1E; color: #fff; font: 700 14px/1 system-ui, -apple-system, sans-serif; }
 .bsm-user { position: relative; width: 16px; height: 16px; }
 .bsm-user::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: #0A84FF; animation: bsm-pulse 2s ease-out infinite; }
 .bsm-user::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: #0A84FF; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
@@ -63,44 +77,49 @@ function ensurePinStyles() {
   document.head.appendChild(style);
 }
 
-function buildPinElement(shop: Barbershop, selected: boolean) {
-  const color = shop.color || "#48484A";
-  const root = document.createElement("div");
-  root.className = "bsm-pin";
-  root.dataset.selected = String(selected);
-  root.style.setProperty("--bsm-ring", `${color}66`);
+const pinSignature = (s: Barbershop) => [s.color, s.avatarUrl, s.initial, s.vip, s.name].join("|");
 
-  const head = document.createElement("div");
-  head.className = "bsm-pin-head";
-  head.style.background = color;
-  const hex = normalizeHex(color);
-  head.style.color = hex ? readableTextOn(hex) : "#fff";
+function buildPin(shop: Barbershop) {
+  const color = normalizeHex(shop.color) || "#48484a";
+  const fallback = shop.initial || shop.name.trim().charAt(0).toUpperCase() || "B";
+  const root = document.createElement("div");
+  const inner = document.createElement("div");
+  inner.className = "bsm-pin";
+  inner.style.setProperty("--bsm-color", color);
+  inner.style.setProperty("--bsm-glow", `${color}66`);
+
+  const dot = document.createElement("div");
+  dot.className = "bsm-pin-dot";
+  const drop = document.createElement("div");
+  drop.className = "bsm-pin-drop";
+  const face = document.createElement("div");
+  face.className = "bsm-pin-face";
+  face.style.color = readableTextOn(color);
   if (shop.avatarUrl) {
     const img = document.createElement("img");
     img.src = shop.avatarUrl;
     img.alt = "";
-    img.loading = "lazy";
+    img.decoding = "async";
     img.onerror = () => {
       img.remove();
-      head.textContent = shop.initial || shop.name.trim().charAt(0).toUpperCase() || "B";
+      face.textContent = fallback;
     };
-    head.appendChild(img);
+    face.appendChild(img);
   } else {
-    head.textContent = shop.initial || shop.name.trim().charAt(0).toUpperCase() || "B";
+    face.textContent = fallback;
   }
-  root.appendChild(head);
-
-  const tail = document.createElement("div");
-  tail.className = "bsm-pin-tail";
-  root.appendChild(tail);
+  const ring = document.createElement("div");
+  ring.className = "bsm-pin-ring";
+  inner.append(dot, drop, face, ring);
 
   if (shop.vip) {
     const badge = document.createElement("span");
     badge.className = "bsm-pin-badge";
     badge.textContent = "👑";
-    root.appendChild(badge);
+    inner.appendChild(badge);
   }
-  return root;
+  root.appendChild(inner);
+  return { root, inner };
 }
 
 function buildPopupContent(shop: Barbershop) {
@@ -120,6 +139,57 @@ function buildPopupContent(shop: Barbershop) {
   return el;
 }
 
+function buildCluster(members: Barbershop[]) {
+  const colors = Array.from(new Set(members.map((m) => normalizeHex(m.color) || "#48484a"))).slice(0, 4);
+  const step = 360 / colors.length;
+  const stops = colors.map((c, i) => `${c} ${i * step}deg ${(i + 1) * step}deg`).join(", ");
+  const root = document.createElement("div");
+  const bubble = document.createElement("div");
+  bubble.className = "bsm-cluster";
+  bubble.style.setProperty("--bsm-ring-bg", colors.length > 1 ? `conic-gradient(${stops})` : colors[0]);
+  const label = document.createElement("span");
+  label.textContent = String(members.length);
+  bubble.appendChild(label);
+  root.appendChild(bubble);
+  return root;
+}
+
+// Gives the flat openfreemap dark style some depth: navy water, green parks,
+// rose-tinted major roads and brighter labels.
+const DARK_PALETTE: Array<[string, string, string]> = [
+  ["background", "background-color", "#111216"],
+  ["water", "fill-color", "#0c2236"],
+  ["waterway", "line-color", "#0c2236"],
+  ["landuse_residential", "fill-color", "#16161b"],
+  ["landcover_wood", "fill-color", "#11241a"],
+  ["landuse_park", "fill-color", "#132a1d"],
+  ["building", "fill-color", "#1b1b22"],
+  ["building", "fill-outline-color", "#262630"],
+  ["highway_minor", "line-color", "#212128"],
+  ["highway_major_subtle", "line-color", "#2d2a33"],
+  ["highway_motorway_subtle", "line-color", "#3a2730"],
+  ["highway_major_casing", "line-color", "rgba(251,113,133,0.22)"],
+  ["highway_motorway_casing", "line-color", "rgba(251,113,133,0.32)"],
+  ["boundary_country_z0-4", "line-color", "#3f3f46"],
+  ["boundary_country_z5-", "line-color", "#3f3f46"],
+  ["water_name", "text-color", "#4a7ba7"],
+  ["water_name", "text-halo-color", "rgba(0,0,0,0.6)"],
+  ...["place_other", "place_suburb", "place_village", "place_town", "place_city", "place_city_large", "place_state", "place_country_other", "place_country_minor", "place_country_major"].map(
+    (id) => [id, "text-color", "#a1a1aa"] as [string, string, string],
+  ),
+];
+
+function applyDarkPalette(map: maplibregl.Map) {
+  for (const [layer, prop, value] of DARK_PALETTE) {
+    if (!map.getLayer(layer)) continue;
+    try {
+      map.setPaintProperty(layer, prop, value);
+    } catch {
+      // Layer schema changed upstream; skip.
+    }
+  }
+}
+
 const STORAGE_KEY = "barbershop-map-location";
 
 const STYLES = {
@@ -131,6 +201,12 @@ const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
 const buildGoogleMapsUrl = (lat: number, lng: number) =>
   `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+  const R = 6371, dLat = ((b.lat - a.lat) * Math.PI) / 180, dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
 
 export function BarbershopMap({
   barbershops,
@@ -146,13 +222,21 @@ export function BarbershopMap({
   selectedId = null,
   fitToMarkers = false,
   recenterSignal = 0,
+  showZoomControls = true,
 }: BarbershopMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
   const mapRef = useRef<MapRef | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
-  const selectedMarkerRef = useRef<maplibregl.Marker | null>(null);
-  const clickHandlerRef = useRef<((event: maplibregl.MapMouseEvent) => void) | null>(null);
+  const pinsRef = useRef<globalThis.Map<string, PinEntry>>(new globalThis.Map());
+  const clustersRef = useRef<maplibregl.Marker[]>([]);
+  const userMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const pickMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const clickRef = useRef(onBarbershopClick);
+  clickRef.current = onBarbershopClick;
+  const selectedRef = useRef(selectedId);
+  selectedRef.current = selectedId;
 
   const [mapReady, setMapReady] = useState(false);
   const [center, setCenter] = useState<[number, number] | null>(() => {
@@ -216,110 +300,221 @@ export function BarbershopMap({
       setCenter([40.7128, -74.006]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCenter, userLocation]);
-
-  useEffect(() => {
-    if (mapRef.current && center) {
-      mapRef.current.flyTo({ center: [center[1], center[0]], zoom, essential: true });
-    }
-  }, [center, zoom]);
+  }, [initialCenter?.lat, initialCenter?.lng, userLocation?.lat, userLocation?.lng]);
 
   const validBarbershops = useMemo(
     () => barbershops.filter((barbershop) => typeof barbershop.latitude === "number" && typeof barbershop.longitude === "number"),
     [barbershops],
   );
+  const autoFit = fitToMarkers && !pickMode && validBarbershops.length > 0;
+
+  useEffect(() => {
+    // When auto-fitting to pins, the fit effect owns the camera.
+    if (autoFit) return;
+    if (mapRef.current && center) {
+      mapRef.current.flyTo({ center: [center[1], center[0]], zoom, essential: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center, zoom]);
+
+  // Screen-space clustering: pins closer than CLUSTER_RADIUS_PX merge into a
+  // colored count bubble; at street level identical spots fan out instead.
+  const recluster = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    clustersRef.current.forEach((m) => m.remove());
+    clustersRef.current = [];
+    const entries = Array.from(pinsRef.current.values());
+    entries.forEach((e) => {
+      e.marker.getElement().style.display = "";
+      e.marker.setOffset([0, 0]);
+    });
+    if (pickMode || entries.length < 2) return;
+
+    const z = map.getZoom();
+    const pts = entries.map((e) => ({ e, p: map.project(e.marker.getLngLat()) }));
+    const used = new Set<number>();
+    pts.forEach((a, i) => {
+      if (used.has(i) || a.e.shop.id === selectedRef.current) return;
+      const group = [i];
+      used.add(i);
+      pts.forEach((b, j) => {
+        if (used.has(j) || b.e.shop.id === selectedRef.current) return;
+        if (Math.hypot(a.p.x - b.p.x, a.p.y - b.p.y) < CLUSTER_RADIUS_PX) {
+          group.push(j);
+          used.add(j);
+        }
+      });
+      if (group.length < 2) return;
+      const members = group.map((k) => pts[k].e);
+
+      if (z >= SPREAD_ZOOM) {
+        members.forEach((m, k) => {
+          const angle = (2 * Math.PI * k) / members.length - Math.PI / 2;
+          m.marker.setOffset([Math.cos(angle) * 30, Math.sin(angle) * 30]);
+        });
+        return;
+      }
+
+      members.forEach((m) => (m.marker.getElement().style.display = "none"));
+      const lng = members.reduce((s, m) => s + m.marker.getLngLat().lng, 0) / members.length;
+      const lat = members.reduce((s, m) => s + m.marker.getLngLat().lat, 0) / members.length;
+      const el = buildCluster(members.map((m) => m.shop));
+      el.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const bounds = new maplibregl.LngLatBounds();
+        members.forEach((m) => bounds.extend(m.marker.getLngLat()));
+        const tiny = bounds.getNorthEast().distanceTo(bounds.getSouthWest()) < 30;
+        if (tiny) map.easeTo({ center: [lng, lat], zoom: SPREAD_ZOOM + 0.5, duration: 600 });
+        else map.fitBounds(bounds, { padding: 90, maxZoom: SPREAD_ZOOM + 0.5, duration: 700 });
+      });
+      clustersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map));
+    });
+  }, [pickMode]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || !center) return;
+    if (!map || !mapReady) return;
+    map.on("zoomend", recluster);
+    return () => {
+      map.off("zoomend", recluster);
+    };
+  }, [mapReady, recluster]);
 
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
+  // User location dot.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || pickMode) return;
+    const pos = userLocation ?? (center ? { lat: center[0], lng: center[1] } : null);
+    if (!pos) return;
     ensurePinStyles();
-
-    if (!pickMode) {
-      const userEl = document.createElement("div");
-      userEl.className = "bsm-user";
-      const userMarker = new maplibregl.Marker({ element: userEl })
-        .setLngLat([center[1], center[0]])
+    if (!userMarkerRef.current) {
+      const el = document.createElement("div");
+      el.className = "bsm-user";
+      userMarkerRef.current = new maplibregl.Marker({ element: el })
         .setPopup(new maplibregl.Popup({ offset: 12 }).setText("You are here"))
+        .setLngLat([pos.lng, pos.lat])
         .addTo(map);
-      markersRef.current.push(userMarker);
+    } else {
+      userMarkerRef.current.setLngLat([pos.lng, pos.lat]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapReady, pickMode, userLocation?.lat, userLocation?.lng, userLocation ? null : center]);
 
-    validBarbershops.forEach((barbershop) => {
-      const el = buildPinElement(barbershop, barbershop.id === selectedId);
-      const marker = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([
-        barbershop.longitude!,
-        barbershop.latitude!,
-      ]);
-      if (onBarbershopClick) {
-        el.addEventListener("click", (event) => {
-          event.stopPropagation();
-          onBarbershopClick(barbershop);
-        });
-      } else {
-        marker.setPopup(new maplibregl.Popup({ offset: 36 }).setDOMContent(buildPopupContent(barbershop)));
+  // Barber pins — diffed by id so taps and re-renders don't rebuild the DOM.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    ensurePinStyles();
+    const pins = pinsRef.current;
+    const nextIds = new Set(validBarbershops.map((b) => b.id));
+    pins.forEach((entry, id) => {
+      if (!nextIds.has(id)) {
+        entry.marker.remove();
+        pins.delete(id);
+      }
+    });
+    validBarbershops.forEach((shop) => {
+      const sig = pinSignature(shop);
+      const existing = pins.get(shop.id);
+      if (existing && existing.sig === sig) {
+        existing.marker.setLngLat([shop.longitude!, shop.latitude!]);
+        existing.shop = shop;
+        return;
+      }
+      existing?.marker.remove();
+      const { root, inner } = buildPin(shop);
+      inner.dataset.selected = String(shop.id === selectedRef.current);
+      const marker = new maplibregl.Marker({ element: root, anchor: "bottom" }).setLngLat([shop.longitude!, shop.latitude!]);
+      const entry: PinEntry = { marker, inner, shop, sig };
+      root.addEventListener("click", (event) => {
+        if (!clickRef.current) return;
+        event.stopPropagation();
+        clickRef.current(entry.shop);
+      });
+      if (!onBarbershopClick) {
+        marker.setPopup(new maplibregl.Popup({ offset: 44 }).setDOMContent(buildPopupContent(shop)));
       }
       marker.addTo(map);
-      markersRef.current.push(marker);
+      pins.set(shop.id, entry);
     });
+    recluster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validBarbershops, mapReady, recluster]);
 
-    if (pickMode && pickedLocation) {
+  useEffect(() => {
+    const pins = pinsRef.current;
+    return () => {
+      pins.forEach((e) => e.marker.remove());
+      pins.clear();
+      clustersRef.current.forEach((m) => m.remove());
+      userMarkerRef.current?.remove();
+      pickMarkerRef.current?.remove();
+    };
+  }, []);
+
+  // Pick mode: draggable-feel pin + tap handler.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !pickMode) return;
+    pickMarkerRef.current?.remove();
+    pickMarkerRef.current = null;
+    if (pickedLocation) {
       const markerEl = document.createElement("div");
       markerEl.style.cssText =
         "width:26px;height:26px;border-radius:9999px;background:#fff;box-shadow:0 0 0 8px rgba(255,45,85,0.16),0 14px 30px rgba(255,45,85,0.28);border:3px solid #ff2d55;";
-      selectedMarkerRef.current = new maplibregl.Marker({ element: markerEl })
+      pickMarkerRef.current = new maplibregl.Marker({ element: markerEl })
         .setLngLat([pickedLocation.lng, pickedLocation.lat])
         .addTo(map);
-      markersRef.current.push(selectedMarkerRef.current);
     }
-
-    if (pickMode) {
-      clickHandlerRef.current = (event) => {
-        const next = { lat: event.lngLat.lat, lng: event.lngLat.lng };
-        setPickedLocation(next);
-        onLocationPick?.(next);
-        setCenter([next.lat, next.lng]);
-        setZoom(16);
-        persist([next.lat, next.lng]);
-      };
-      map.on("click", clickHandlerRef.current);
-    }
-
-    return () => {
-      if (clickHandlerRef.current) {
-        map.off("click", clickHandlerRef.current);
-      }
+    const onClick = (event: maplibregl.MapMouseEvent) => {
+      const next = { lat: event.lngLat.lat, lng: event.lngLat.lng };
+      setPickedLocation(next);
+      onLocationPick?.(next);
+      setCenter([next.lat, next.lng]);
+      setZoom(16);
+      persist([next.lat, next.lng]);
     };
-  }, [validBarbershops, center, onBarbershopClick, pickMode, pickedLocation, mapReady, onLocationPick, selectedId]);
+    map.on("click", onClick);
+    return () => {
+      map.off("click", onClick);
+    };
+  }, [mapReady, pickMode, pickedLocation, onLocationPick]);
 
   const pinsKey = useMemo(() => validBarbershops.map((b) => b.id).join("|"), [validBarbershops]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!fitToMarkers || pickMode || !map || !mapReady || validBarbershops.length === 0) return;
+    if (!autoFit || !map || !mapReady) return;
     const bounds = new maplibregl.LngLatBounds();
     validBarbershops.forEach((b) => bounds.extend([b.longitude!, b.latitude!]));
-    if (userLocation) bounds.extend([userLocation.lng, userLocation.lat]);
-    map.fitBounds(bounds, { padding: { top: 130, bottom: 300, left: 50, right: 50 }, maxZoom: 15, duration: 900 });
+    // Only include the user when they're actually near a barber, otherwise the
+    // camera zooms out to show half the planet.
+    if (userLocation) {
+      const nearest = Math.min(...validBarbershops.map((b) => distanceKm(userLocation, { lat: b.latitude!, lng: b.longitude! })));
+      if (nearest <= 50) bounds.extend([userLocation.lng, userLocation.lat]);
+    }
+    map.fitBounds(bounds, { padding: { top: 130, bottom: 320, left: 50, right: 50 }, maxZoom: 15, duration: 800 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pinsKey, fitToMarkers, mapReady, pickMode]);
+  }, [pinsKey, autoFit, mapReady, userLocation?.lat, userLocation?.lng]);
 
+  // Selection: toggle a data attribute instead of rebuilding pins.
   useEffect(() => {
+    pinsRef.current.forEach((e) => {
+      e.inner.dataset.selected = String(e.shop.id === selectedId);
+    });
     const map = mapRef.current;
-    if (!map || !mapReady || !selectedId) return;
-    const shop = validBarbershops.find((b) => b.id === selectedId);
-    if (!shop) return;
+    if (!map || !mapReady) return;
+    recluster();
+    const entry = selectedId ? pinsRef.current.get(selectedId) : undefined;
+    if (!entry) return;
     map.easeTo({
-      center: [shop.longitude!, shop.latitude!],
+      center: entry.marker.getLngLat(),
       zoom: Math.max(map.getZoom(), 14),
       offset: [0, -90],
       duration: 650,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, mapReady]);
+  }, [selectedId, mapReady, recluster]);
 
   useEffect(() => {
     if (!recenterSignal) return;
@@ -329,6 +524,10 @@ export function BarbershopMap({
     map.flyTo({ center: [target.lng, target.lat], zoom: 14, essential: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recenterSignal]);
+
+  const handleStyleLoad = useCallback((map: maplibregl.Map) => {
+    if (isDarkRef.current) applyDarkPalette(map);
+  }, []);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -446,7 +645,9 @@ export function BarbershopMap({
             latitude: center[0],
             zoom,
           }}
-          onLoad={(m: any) => { mapRef.current = m; setMapReady(true); }}
+          onLoad={(m) => { mapRef.current = m; setMapReady(true); }}
+          onStyleLoad={handleStyleLoad}
+          navigationControl={showZoomControls}
           style={{ height: "100%", width: "100%" }}
         />
 

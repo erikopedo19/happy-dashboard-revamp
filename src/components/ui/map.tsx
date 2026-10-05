@@ -18,17 +18,23 @@ export interface MapProps {
   className?: string;
   style?: React.CSSProperties;
   onLoad?: (map: MLMap) => void;
+  /** Fires after every style (re)load — use it to tweak layer paint. */
+  onStyleLoad?: (map: MLMap) => void;
+  navigationControl?: boolean;
   children?: React.ReactNode;
 }
 
 const DEFAULT_STYLE = "https://tiles.openfreemap.org/styles/positron";
 
 export const Map = forwardRef<MapRef, MapProps>(function Map(
-  { initialViewState, mapStyle, className, style, onLoad, children },
+  { initialViewState, mapStyle, className, style, onLoad, onStyleLoad, navigationControl = true, children },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
+  const appliedStyleRef = useRef<string | undefined>(mapStyle);
+  const onStyleLoadRef = useRef(onStyleLoad);
+  onStyleLoadRef.current = onStyleLoad;
 
   useImperativeHandle(ref, () => mapRef.current as MLMap, []);
 
@@ -45,10 +51,23 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
       pitch: initialViewState?.pitch ?? 0,
       bearing: initialViewState?.bearing ?? 0,
       attributionControl: false,
+      // Snappier rendering on phones: no pitch/rotate, single world copy,
+      // capped pixel ratio and quicker label fades.
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      maxPitch: 0,
+      renderWorldCopies: false,
+      fadeDuration: 120,
+      pixelRatio: Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2),
     };
     const map = new maplibregl.Map(opts);
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    map.touchZoomRotate.disableRotation();
+    if (navigationControl) {
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    }
     mapRef.current = map;
+    map.on("style.load", () => onStyleLoadRef.current?.(map));
     map.on("load", () => onLoad?.(map));
     return () => {
       map.remove();
@@ -57,11 +76,11 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Style switch
+  // Style switch (skip the style the map was constructed with).
   useEffect(() => {
-    if (mapRef.current && mapStyle) {
-      mapRef.current.setStyle(mapStyle);
-    }
+    if (!mapRef.current || !mapStyle || appliedStyleRef.current === mapStyle) return;
+    appliedStyleRef.current = mapStyle;
+    mapRef.current.setStyle(mapStyle);
   }, [mapStyle]);
 
   return (
