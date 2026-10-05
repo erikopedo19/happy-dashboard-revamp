@@ -994,6 +994,18 @@ function FullScreenMap({
     [barbers, vipOnly],
   );
   const vipCount = barbers.filter((b) => b.home_service && b.latitude != null).length;
+  const nearStats = useMemo(() => {
+    if (!userLocation) return null;
+    const km = (b: BarberProfile) => {
+      const R = 6371, dLat = ((b.latitude! - userLocation.lat) * Math.PI) / 180, dLng = ((b.longitude! - userLocation.lng) * Math.PI) / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos((userLocation.lat * Math.PI) / 180) * Math.cos((b.latitude! * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    };
+    const located = barbers.filter((b) => b.latitude != null && b.longitude != null);
+    const near = located.filter((b) => km(b) <= 5);
+    const nearest = located.length ? Math.min(...located.map(km)) : null;
+    return { near: near.length, vip: near.filter((b) => b.home_service).length, nearest };
+  }, [barbers, userLocation]);
 
   return (
     <div className="dark fixed inset-0 z-40 bg-black">
@@ -1016,6 +1028,22 @@ function FullScreenMap({
           </Suspense>
         </div>
       </div>
+
+      {nearStats && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 380, damping: 30, delay: 0.3 }}
+          className="absolute left-4 z-20 flex gap-3 rounded-2xl border border-white/10 bg-[#1C1C1E]/90 px-4 py-2.5 text-white backdrop-blur-xl"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 7rem)" }}
+        >
+          <div><p className="text-[17px] font-semibold leading-tight">{nearStats.near}</p><p className="text-[10px] text-white/50">within 5 km</p></div>
+          <div><p className="text-[17px] font-semibold leading-tight text-[#FF375F]">{nearStats.vip}</p><p className="text-[10px] text-white/50">VIP nearby</p></div>
+          {nearStats.nearest != null && (
+            <div><p className="text-[17px] font-semibold leading-tight">{nearStats.nearest < 1 ? `${Math.round(nearStats.nearest * 1000)} m` : `${nearStats.nearest.toFixed(1)} km`}</p><p className="text-[10px] text-white/50">closest</p></div>
+          )}
+        </motion.div>
+      )}
 
       {/* VIP home-visit toggle */}
       <motion.button
