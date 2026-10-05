@@ -85,7 +85,10 @@ const ChooseMode = lazyRetry(() => import("./pages/ChooseMode"));
 const OAuthConsent = lazyRetry(() => import("./pages/OAuthConsent"));
 
 function lazyRetry<T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>) {
-  return lazy(() => load().catch((err) => {
+  return lazy(() => load().then((mod) => {
+    if (!mod || !mod.default) throw new Error("Failed to fetch dynamically imported module");
+    return mod;
+  }).catch((err) => {
     const last = Number(sessionStorage.getItem("chunk-reload-at") || 0);
     if (Date.now() - last > 10_000) {
       sessionStorage.setItem("chunk-reload-at", String(Date.now()));
