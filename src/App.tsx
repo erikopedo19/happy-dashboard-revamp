@@ -218,6 +218,8 @@ const HeaderActions = () => {
     location.pathname === "/pricing" ||
     location.pathname === "/pricing/success" ||
     location.pathname === "/pricing/failure" ||
+    location.pathname.startsWith("/b/") ||
+    location.pathname.startsWith("/book/") ||
     (isMobile && location.pathname.startsWith("/find-barber")) ||
     (isMobile && location.pathname === "/agenda");
   if (hasOwnBell) return null;

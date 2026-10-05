@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { triggerGlimm } from "@/components/GlimmIntercept";
 import { TermsAcceptCard } from "@/components/TermsAcceptCard";
 import { haptic } from "@/lib/haptics";
+import { FlipWords } from "@/components/aceternity/flip-words";
 
 const AUTH_HERO_IMAGE =
   "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1400&auto=format&fit=crop";
@@ -195,7 +196,9 @@ export function LoginForm() {
                   <br />
                   Your
                   <br />
-                  <span className="text-[#FF5A6E]">Cut</span>
+                  <span className="block text-[#FF5A6E]">
+                    <FlipWords words={["Cut", "Fade", "Style", "Look"]} duration={2400} className="pl-4 pr-0" />
+                  </span>
                 </h1>
               </div>
 

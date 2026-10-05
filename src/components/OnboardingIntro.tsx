@@ -3,6 +3,7 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { ChevronRight, Scissors } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
+import { FlipWords } from "@/components/aceternity/flip-words";
 
 const INTRO_KEY = "cutzio:intro-seen";
 
@@ -25,12 +26,14 @@ export function markIntroSeen() {
 const SLIDES = [
   {
     image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1600&auto=format&fit=crop",
-    title: ["Look sharp,", "feel ready,", "every day"],
+    title: ["Look sharp,", "feel ready,"],
+    flip: ["every day", "every cut", "every week"],
     text: "Find the closest barbers and salons, see real open times, and book in two taps — no calls, no waiting.",
   },
   {
     image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1600&auto=format&fit=crop",
-    title: ["Your chair,", "your rules"],
+    title: ["Your chair,"],
+    flip: ["your rules", "your clients", "your brand"],
     text: "Run your agenda, clients and bookings from one place. Cutzioo keeps your day full and your clients coming back.",
   },
 ];
@@ -122,6 +125,14 @@ export function OnboardingIntro({ onDone }: { onDone: () => void }) {
                   {line}
                 </motion.span>
               ))}
+              <motion.span
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.08 + slide.title.length * 0.07, ...spring }}
+                className="block text-[#FF5A6E]"
+              >
+                <FlipWords words={slide.flip} className="-ml-2" />
+              </motion.span>
             </h1>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
