@@ -26,7 +26,8 @@ export function NativeScrollGuard() {
     const root = document.documentElement;
 
     const metrics = () => {
-      const bodyPadTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+      const cs = getComputedStyle(document.body);
+      const bodyPadTop = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
       const scrollHeight = Math.max(root.scrollHeight, document.body.scrollHeight);
       const max = Math.max(0, scrollHeight - window.innerHeight);
       const tolerance = bodyPadTop + 6;

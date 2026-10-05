@@ -219,7 +219,6 @@ export function MobileDashboardIOS() {
     const id = window.setTimeout(() => setIntroGone(true), 2100);
     return () => window.clearTimeout(id);
   }, [hasUpNext, introGone]);
-  const ready = introGone || !hasUpNext;
 
   const markDone = async (id: string) => {
     setCompleting(id);
@@ -309,18 +308,18 @@ export function MobileDashboardIOS() {
               onClick={() => setIntroGone(true)}
               initial={{ opacity: 0, y: 14, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -22, scale: 0.97, filter: "blur(6px)" }}
+              exit={{ opacity: 0, scale: 0.97, height: 0, paddingTop: 0, paddingBottom: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 30 }}
-              className="relative w-full overflow-hidden rounded-[30px] p-6 text-left"
-              style={{ background: "linear-gradient(160deg, #4A1228 0%, #25101A 55%, #121214 100%)" }}
+              className="relative w-full overflow-hidden rounded-[30px] p-6 text-left ring-1 ring-[#FF5A6E]/25"
+              style={{ background: "linear-gradient(160deg, #5A1630 0%, #2A1120 55%, #121214 100%)" }}
             >
-              <div aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-[#FF2D46]/25 blur-3xl" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">Next appointment in</p>
+              <div aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-[#FF2D46]/30 blur-3xl" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">Next appointment in</p>
               <RollingText
                 text={formatIn(upNextStart - nowMinutes).replace(/^in /, "")}
-                className="mt-2 text-[44px] font-bold leading-none tracking-[-0.04em] tabular-nums"
+                className="mt-3.5 text-[44px] font-bold leading-none tracking-[-0.04em] tabular-nums"
               />
-              <p className="mt-3 truncate text-[14px] text-white/60">
+              <p className="mt-4 truncate text-[14px] text-white/70">
                 {upNext.customer?.name || "Walk-in"} · {upNext.service?.name || "Service"} · {upNext.appointment_time.slice(0, 5)}
               </p>
             </motion.button>
@@ -331,13 +330,13 @@ export function MobileDashboardIOS() {
           className="space-y-4"
           variants={revealParent}
           initial="hidden"
-          animate={ready ? "show" : "hidden"}
+          animate="show"
         >
         {/* Up next — live */}
         <motion.section
           variants={revealItem}
-          className="relative overflow-hidden rounded-[30px] p-5"
-          style={{ background: upNext ? "linear-gradient(160deg, #4A1228 0%, #221019 55%, #121214 100%)" : "#1C1C1E" }}
+          className={cn("relative overflow-hidden rounded-[30px] p-5 ring-1", upNext ? "ring-[#FF5A6E]/25" : "ring-white/[0.08]")}
+          style={{ background: upNext ? "linear-gradient(160deg, #5A1630 0%, #2A1120 55%, #121214 100%)" : "#1C1C1E" }}
         >
           {upNext ? (
             <>

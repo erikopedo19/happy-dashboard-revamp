@@ -451,15 +451,30 @@ const FindBarber = () => {
                   className="overflow-hidden"
                 >
                   <div className="relative mt-5">
-                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                    <Input
-                      ref={searchRef}
-                      type="text"
-                      placeholder="Search barbers, styles, vibes"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-12 rounded-full border border-white/10 bg-[#1C1C1E] pl-11 text-[15px] text-white placeholder:text-white/35 focus-visible:ring-2 focus-visible:ring-[#FF5A6E]/60"
-                    />
+                    <div className="pointer-events-none absolute -inset-1 rounded-[22px] bg-[#FF2D46]/10 blur-lg" />
+                    <div className="relative flex items-center gap-2.5 rounded-[20px] border border-white/[0.08] bg-white/[0.06] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl transition focus-within:border-[#FF5A6E]/50 focus-within:bg-white/[0.08]">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#FF2D46]/15">
+                        <Search className="h-4 w-4 text-[#FF5A6E]" />
+                      </span>
+                      <Input
+                        ref={searchRef}
+                        type="text"
+                        placeholder="Search barbers, styles, vibes"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="h-[52px] flex-1 border-0 bg-transparent px-0 text-[15px] text-white shadow-none placeholder:text-white/35 focus-visible:ring-0"
+                      />
+                      {searchTerm && (
+                        <button
+                          type="button"
+                          aria-label="Clear search"
+                          onClick={() => { haptic("light"); setSearchTerm(""); searchRef.current?.focus(); }}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/60 transition active:scale-90"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               )}
