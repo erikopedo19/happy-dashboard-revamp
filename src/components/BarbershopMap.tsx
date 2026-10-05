@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LocateFixed, Search, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
 import { Map, type MapRef, maplibregl } from "@/components/ui/map";
+import { normalizeHex, readableTextOn } from "@/lib/barberTheme";
 
 interface Barbershop {
   id: string;
@@ -13,6 +14,11 @@ interface Barbershop {
   latitude?: number;
   longitude?: number;
   contact_phone?: string;
+  /** Pin fill color (barber theme color). */
+  color?: string;
+  avatarUrl?: string | null;
+  initial?: string;
+  vip?: boolean;
 }
 
 interface BarbershopMapProps {
@@ -26,6 +32,92 @@ interface BarbershopMapProps {
   onLocationPick?: (coords: { lat: number; lng: number }) => void;
   accentColor?: string;
   hideSearch?: boolean;
+  /** Highlights this pin and eases the camera to it. */
+  selectedId?: string | null;
+  /** Zoom out to fit every pin (plus the user) whenever the set of pins changes. */
+  fitToMarkers?: boolean;
+  /** Increment to fly the camera back to the user's location. */
+  recenterSignal?: number;
+}
+
+const PIN_STYLE_ID = "barbershop-map-pin-styles";
+
+function ensurePinStyles() {
+  if (typeof document === "undefined" || document.getElementById(PIN_STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = PIN_STYLE_ID;
+  style.textContent = `
+@keyframes bsm-pulse { 0% { transform: scale(1); opacity: .55 } 100% { transform: scale(3.2); opacity: 0 } }
+.bsm-pin { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; transform-origin: 50% 100%; transition: transform .2s cubic-bezier(.2,.9,.3,1.3); }
+.bsm-pin:hover { transform: scale(1.08); }
+.bsm-pin[data-selected="true"] { transform: scale(1.22); z-index: 2; }
+.bsm-pin-head { width: 40px; height: 40px; border-radius: 9999px; border: 3px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font: 600 16px/1 system-ui, -apple-system, sans-serif; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
+.bsm-pin[data-selected="true"] .bsm-pin-head { box-shadow: 0 0 0 4px var(--bsm-ring), 0 14px 30px rgba(0,0,0,.35); }
+.bsm-pin-head img { width: 100%; height: 100%; object-fit: cover; }
+.bsm-pin-tail { width: 0; height: 0; margin-top: -2px; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 9px solid #fff; }
+.bsm-pin-badge { position: absolute; top: -6px; right: -8px; font-size: 13px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.bsm-user { position: relative; width: 16px; height: 16px; }
+.bsm-user::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: #0A84FF; animation: bsm-pulse 2s ease-out infinite; }
+.bsm-user::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: #0A84FF; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+`;
+  document.head.appendChild(style);
+}
+
+function buildPinElement(shop: Barbershop, selected: boolean) {
+  const color = shop.color || "#48484A";
+  const root = document.createElement("div");
+  root.className = "bsm-pin";
+  root.dataset.selected = String(selected);
+  root.style.setProperty("--bsm-ring", `${color}66`);
+
+  const head = document.createElement("div");
+  head.className = "bsm-pin-head";
+  head.style.background = color;
+  const hex = normalizeHex(color);
+  head.style.color = hex ? readableTextOn(hex) : "#fff";
+  if (shop.avatarUrl) {
+    const img = document.createElement("img");
+    img.src = shop.avatarUrl;
+    img.alt = "";
+    img.loading = "lazy";
+    img.onerror = () => {
+      img.remove();
+      head.textContent = shop.initial || shop.name.trim().charAt(0).toUpperCase() || "B";
+    };
+    head.appendChild(img);
+  } else {
+    head.textContent = shop.initial || shop.name.trim().charAt(0).toUpperCase() || "B";
+  }
+  root.appendChild(head);
+
+  const tail = document.createElement("div");
+  tail.className = "bsm-pin-tail";
+  root.appendChild(tail);
+
+  if (shop.vip) {
+    const badge = document.createElement("span");
+    badge.className = "bsm-pin-badge";
+    badge.textContent = "👑";
+    root.appendChild(badge);
+  }
+  return root;
+}
+
+function buildPopupContent(shop: Barbershop) {
+  const el = document.createElement("div");
+  el.style.padding = "4px";
+  const title = document.createElement("strong");
+  title.textContent = shop.name;
+  el.appendChild(title);
+  for (const line of [shop.location, shop.contact_phone]) {
+    if (!line) continue;
+    el.appendChild(document.createElement("br"));
+    const span = document.createElement("span");
+    span.style.cssText = "opacity:0.7;font-size:12px;";
+    span.textContent = line;
+    el.appendChild(span);
+  }
+  return el;
 }
 
 const STORAGE_KEY = "barbershop-map-location";
@@ -51,6 +143,9 @@ export function BarbershopMap({
   onLocationPick,
   accentColor,
   hideSearch = false,
+  selectedId = null,
+  fitToMarkers = false,
+  recenterSignal = 0,
 }: BarbershopMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -141,10 +236,11 @@ export function BarbershopMap({
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
+    ensurePinStyles();
+
     if (!pickMode) {
       const userEl = document.createElement("div");
-      userEl.style.cssText =
-        "width:14px;height:14px;border-radius:9999px;background:hsl(var(--primary));border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);";
+      userEl.className = "bsm-user";
       const userMarker = new maplibregl.Marker({ element: userEl })
         .setLngLat([center[1], center[0]])
         .setPopup(new maplibregl.Popup({ offset: 12 }).setText("You are here"))
@@ -153,22 +249,20 @@ export function BarbershopMap({
     }
 
     validBarbershops.forEach((barbershop) => {
-      const el = document.createElement("div");
-      el.style.cssText =
-        "width:34px;height:34px;border-radius:9999px;background:linear-gradient(135deg,hsl(var(--primary)),rgba(255,255,255,0.7));border:3px solid white;box-shadow:0 10px 24px rgba(0,0,0,0.24);cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;";
-      el.textContent = "•";
-      el.addEventListener("click", () => onBarbershopClick?.(barbershop));
-      const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
-        `<div style="padding:4px;"><strong>${barbershop.name}</strong><br/><span style="opacity:0.7;font-size:12px;">${barbershop.location}</span>${
-          barbershop.contact_phone
-            ? `<br/><span style="opacity:0.7;font-size:12px;">${barbershop.contact_phone}</span>`
-            : ""
-        }</div>`,
-      );
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([barbershop.longitude!, barbershop.latitude!])
-        .setPopup(popup)
-        .addTo(map);
+      const el = buildPinElement(barbershop, barbershop.id === selectedId);
+      const marker = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([
+        barbershop.longitude!,
+        barbershop.latitude!,
+      ]);
+      if (onBarbershopClick) {
+        el.addEventListener("click", (event) => {
+          event.stopPropagation();
+          onBarbershopClick(barbershop);
+        });
+      } else {
+        marker.setPopup(new maplibregl.Popup({ offset: 36 }).setDOMContent(buildPopupContent(barbershop)));
+      }
+      marker.addTo(map);
       markersRef.current.push(marker);
     });
 
@@ -199,7 +293,42 @@ export function BarbershopMap({
         map.off("click", clickHandlerRef.current);
       }
     };
-  }, [validBarbershops, center, onBarbershopClick, pickMode, pickedLocation, mapReady, onLocationPick]);
+  }, [validBarbershops, center, onBarbershopClick, pickMode, pickedLocation, mapReady, onLocationPick, selectedId]);
+
+  const pinsKey = useMemo(() => validBarbershops.map((b) => b.id).join("|"), [validBarbershops]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!fitToMarkers || pickMode || !map || !mapReady || validBarbershops.length === 0) return;
+    const bounds = new maplibregl.LngLatBounds();
+    validBarbershops.forEach((b) => bounds.extend([b.longitude!, b.latitude!]));
+    if (userLocation) bounds.extend([userLocation.lng, userLocation.lat]);
+    map.fitBounds(bounds, { padding: { top: 130, bottom: 300, left: 50, right: 50 }, maxZoom: 15, duration: 900 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinsKey, fitToMarkers, mapReady, pickMode]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !selectedId) return;
+    const shop = validBarbershops.find((b) => b.id === selectedId);
+    if (!shop) return;
+    map.easeTo({
+      center: [shop.longitude!, shop.latitude!],
+      zoom: Math.max(map.getZoom(), 14),
+      offset: [0, -90],
+      duration: 650,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, mapReady]);
+
+  useEffect(() => {
+    if (!recenterSignal) return;
+    const map = mapRef.current;
+    const target = userLocation ?? (center ? { lat: center[0], lng: center[1] } : null);
+    if (!map || !target) return;
+    map.flyTo({ center: [target.lng, target.lat], zoom: 14, essential: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenterSignal]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
