@@ -1557,7 +1557,7 @@ export const LiquidGlassAgenda = ({
                           onTouchMove={clearLongPressTimer}
                           className={cn(
                             "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "p-2" : "p-3.5",
+                            isMobile ? "px-3 py-2.5" : "p-3.5",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1613,12 +1613,12 @@ export const LiquidGlassAgenda = ({
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
                                 <h3 className={cn(
-                                  "font-semibold leading-tight truncate",
-                                  isMobile ? "text-[13px]" : "text-[15px]",
+                                  "font-bold leading-tight truncate tracking-[-0.01em]",
+                                  isMobile ? "text-[15px]" : "text-[15px]",
                                   isCancelled && "line-through",
                                   isDark ? "text-white" : "text-gray-900"
                                 )}>
-                                  {apt.service.name}
+                                  {apt.customer.name}
                                   {isCancelled && (
                                     <span className={cn(
                                       "ml-2 no-underline inline-block align-middle text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md",
@@ -1626,14 +1626,17 @@ export const LiquidGlassAgenda = ({
                                     )}>Cancelled</span>
                                   )}
                                 </h3>
-                                <div className={cn("flex items-center gap-1.5", isMobile ? "mt-0.5" : "mt-1")}>
-                                  <User className={cn("w-3 h-3", isDark ? "text-white/50" : "text-gray-500")} />
+                                <div className={cn("flex items-center gap-1.5", isMobile ? "mt-1" : "mt-1.5")}>
+                                  <span
+                                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                                    style={{ backgroundColor: colorToRgba(serviceColor, 0.9) }}
+                                  />
                                   <span className={cn(
-                                    "truncate",
-                                    isMobile ? "text-[10px]" : "text-[12px]",
+                                    "truncate font-medium",
+                                    isMobile ? "text-[11.5px]" : "text-[12px]",
                                     isDark ? "text-white/60" : "text-gray-600"
                                   )}>
-                                    {apt.customer.name}
+                                    {apt.service.name}
                                   </span>
                                 </div>
                               </div>
@@ -1647,11 +1650,11 @@ export const LiquidGlassAgenda = ({
                             </div>
 
                             {/* Bottom: Time range */}
-                            <div className={cn("flex items-center justify-between gap-2", isMobile ? "mt-1" : "mt-2")}>
+                            <div className={cn("flex items-center justify-between gap-2", isMobile ? "mt-1.5" : "mt-2")}>
                               <span className={cn(
-                                "font-medium",
-                                isMobile ? "text-[10px]" : "text-[11px]",
-                                isDark ? "text-white/50" : "text-gray-500"
+                                "font-semibold tabular-nums",
+                                isMobile ? "text-[11px]" : "text-[11px]",
+                                isDark ? "text-white/60" : "text-gray-500"
                               )}>
                                 {apt.appointment_time.slice(0, 5)} → {endTime}
                               </span>
