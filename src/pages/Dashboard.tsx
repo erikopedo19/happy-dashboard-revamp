@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { LocationPrompt } from "@/components/LocationPrompt";
 
 const FirstLoginOnboarding = lazy(() =>
   import("@/components/FirstLoginOnboarding").then((module) => ({ default: module.FirstLoginOnboarding }))
@@ -109,9 +110,9 @@ const Dashboard = () => {
                 <FirstLoginOnboarding onComplete={() => {}} />
               </Suspense>
             ) : isMobile ? (
-              <MobileDashboardIOS />
+              <><LocationPrompt /><MobileDashboardIOS /></>
             ) : (
-              <DashboardContent />
+              <><LocationPrompt /><DashboardContent /></>
             )}
           </div>
           <UpgradeDrawer />
