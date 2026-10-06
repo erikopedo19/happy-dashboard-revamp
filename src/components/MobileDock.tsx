@@ -6,15 +6,14 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useRoleSwitch } from '@/hooks/use-role-switch';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
+import { RollingText } from '@/components/RollingText';
 
 interface MoreItem {
   label: string;
   icon: any;
   path: string;
   isNew?: boolean;
-  switchToClient?: boolean;
 }
 
 const mainItems: DockItem[] = [
@@ -25,7 +24,6 @@ const mainItems: DockItem[] = [
 ];
 
 const moreItems: MoreItem[] = [
-  { label: 'Client mode', icon: 'smartphone', path: '/find-barber', switchToClient: true },
   { label: 'Services', icon: 'scissors', path: '/services' },
   { label: 'Customers', icon: 'users', path: '/customers' },
   { label: 'Booking', icon: 'globe', path: '/booking-page' },
@@ -36,7 +34,6 @@ const moreItems: MoreItem[] = [
 const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role, setRole } = useRoleSwitch();
 
   // Lock body scroll while the overlay is open
   useEffect(() => {
@@ -103,15 +100,14 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
                   }}
                   onClick={() => {
                     onClose();
-                    if (item.switchToClient && role !== 'client') {
-                      void setRole('client');
-                      return;
-                    }
                     navigate(item.path);
                   }}
                   className="group flex items-center gap-3 py-1 text-right active:scale-[0.97] transition-transform"
                 >
-                  <span
+                  <RollingText
+                    text={item.label}
+                    variant="flip"
+                    stagger={0.02}
                     className={cn(
                       'text-[34px] font-bold tracking-tight leading-[1.25]',
                       item.isNew
@@ -120,9 +116,7 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
                         ? 'text-[#FF2D46]'
                         : 'text-white'
                     )}
-                  >
-                    {item.label}
-                  </span>
+                  />
                 </motion.button>
               );
             })}

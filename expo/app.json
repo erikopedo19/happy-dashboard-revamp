@@ -41,7 +41,9 @@
       "package": "com.cutzioo.app",
       "permissions": [
         "POST_NOTIFICATIONS",
-        "VIBRATE"
+        "VIBRATE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [

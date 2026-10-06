@@ -31,7 +31,22 @@ export function NativeScrollGuard() {
       const scrollHeight = Math.max(root.scrollHeight, document.body.scrollHeight);
       const max = Math.max(0, scrollHeight - window.innerHeight);
       const tolerance = bodyPadTop + 6;
-      return { bodyPadTop, scrollHeight, innerHeight: window.innerHeight, max, tolerance, fits: max <= tolerance };
+      let fits = max <= tolerance;
+      let innerScroller = false;
+      if (!fits && max <= 160) {
+        // A dominant inner list already absorbs panning — the leftover document
+        // overshoot is what makes the whole app rubber-band and show gaps.
+        innerScroller = [...document.body.querySelectorAll<HTMLElement>("*")].some((el) => {
+          const oy = getComputedStyle(el).overflowY;
+          return (
+            (oy === "auto" || oy === "scroll") &&
+            el.scrollHeight > el.clientHeight + 8 &&
+            el.clientHeight >= window.innerHeight * 0.5
+          );
+        });
+        if (innerScroller) fits = true;
+      }
+      return { bodyPadTop, scrollHeight, innerHeight: window.innerHeight, max, tolerance, fits, innerScroller };
     };
 
     const apply = () => {

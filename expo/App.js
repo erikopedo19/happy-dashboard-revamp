@@ -226,6 +226,7 @@ function Shell() {
         setBuiltInZoomControls={false}
         displayZoomControls={false}
         allowsInlineMediaPlayback
+        geolocationEnabled
         sharedCookiesEnabled
         style={styles.webview}
         injectedJavaScriptBeforeContentLoaded={HAPTIC_VIBRATION_BRIDGE + NATIVE_FEEL_BOOT}

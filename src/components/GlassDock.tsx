@@ -71,21 +71,27 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         className
       )}
     >
-      <div className="mx-auto flex w-[min(400px,calc(100vw-1.5rem))] items-stretch justify-center gap-2.5">
       <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
+        className="mx-auto flex items-stretch justify-center gap-2.5"
+        style={{ width: compact ? "auto" : "min(400px,calc(100vw - 1.5rem))" }}
+      >
+      <motion.div
+        layout
         initial={{ y: 28, opacity: 0 }}
         animate={{
           y: 0,
           opacity: 1,
           // Shrink via layout, not transform — scaling a backdrop-filter layer
           // makes the blur re-rasterize every frame and smear on iOS.
-          paddingTop: compact ? 5 : 6,
-          paddingBottom: compact ? 5 : 6,
-          paddingLeft: compact ? 14 : 10,
-          paddingRight: compact ? 14 : 10,
+          paddingTop: compact ? 6 : 6,
+          paddingBottom: compact ? 6 : 6,
+          paddingLeft: compact ? 8 : 10,
+          paddingRight: compact ? 8 : 10,
         }}
-        transition={{ type: "spring", stiffness: 420, damping: 32, mass: 0.8 }}
-        className="pointer-events-auto relative isolate flex flex-1 items-center justify-around overflow-hidden rounded-full px-2.5"
+        transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
+        className={cn("pointer-events-auto relative isolate flex items-center overflow-hidden rounded-full px-2.5", compact ? "justify-center gap-0.5" : "flex-1 justify-around")}
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -127,11 +133,11 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               className="relative z-10 flex flex-col items-center gap-px"
             >
               <motion.div
-                animate={{ scale: isActive ? (compact ? 1.08 : 1.15) : 1, y: isActive ? -1 : 0 }}
+                animate={{ scale: isActive ? 1.15 : 1, y: isActive ? -1 : 0 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
               >
                 <Icon
-                  size={compact ? 21 : 19}
+                  size={19}
                   style={{ color: itemTextColor, transition: "color 0.2s ease" }}
                 />
               </motion.div>
@@ -177,7 +183,8 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               onHoverEnd={() => setHovered(null)}
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
-              className="relative flex flex-1 cursor-pointer flex-col items-center gap-[3px] rounded-full px-2 py-1.5"
+              layout
+              className={cn("relative flex cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", compact ? "w-11 px-0" : "flex-1 px-2")}
             >
               {isActive && (
                 <motion.div
@@ -210,8 +217,8 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           <motion.button
             type="button"
             initial={{ y: 28, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: compact ? 0.85 : 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 30, mass: 0.8, delay: compact ? 0 : 0.05 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30, mass: 0.8, delay: 0.05 }}
             whileTap={{ scale: 0.9 }}
             aria-label={trailing.label}
             onClick={() => {
@@ -238,7 +245,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           </motion.button>
         </div>
       )}
-      </div>
+      </motion.div>
     </div>
   );
 };

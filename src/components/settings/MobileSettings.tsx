@@ -1023,6 +1023,7 @@ function Group({ label, children, className }: { label: string; children: React.
 
 function Row({
   icon: Icon,
+  tint,
   label,
   value,
   onClick,
@@ -1067,7 +1068,8 @@ function Row({
         </span>
       ) : (
         <span
-          className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-white/10", danger ? "bg-[#E5484D]" : "bg-[#FF2D46]")}
+          className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border border-white/10", !tint && (danger ? "bg-[#E5484D]" : "bg-[#FF2D46]"))}
+          style={tint ? { background: `linear-gradient(160deg, ${tint} 0%, ${tint}CC 100%)` } : undefined}
         >
           <Icon className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
         </span>

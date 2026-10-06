@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
-import { Calendar, Clock, Scissors, Loader2, ChevronRight, Star, Settings2 } from "lucide-react";
+import { Calendar, Clock, Scissors, Loader2, ChevronRight, Star, Settings2, Heart } from "lucide-react";
+import { haptic } from "@/lib/haptics";
+import { FavoritesList } from "@/pages/Favorites";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -47,6 +50,7 @@ const statusColor = (s: string) => {
 
 const MyBookings = () => {
   const { user, loading } = useAuth();
+  const [view, setView] = useState<"bookings" | "favorites">("bookings");
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["my-bookings", user?.id],
@@ -118,14 +122,29 @@ const MyBookings = () => {
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5">
         <div className="max-w-3xl mx-auto px-4 pt-6 pb-4">
           <h1 className="text-[28px] leading-tight font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-            Bookings
+            {view === "favorites" ? "Favorites" : "Bookings"}
           </h1>
-          <p className="text-[13px] text-[#8E8E93] mt-0.5">Your appointments at a glance</p>
+          <p className="text-[13px] text-[#8E8E93] mt-0.5">{view === "favorites" ? "Your saved barbers" : "Your appointments at a glance"}</p>
+          <div className="mt-4 flex rounded-full bg-black/[0.05] p-1 dark:bg-white/[0.06]">
+            {(["bookings", "favorites"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => { if (v !== view) { haptic("selection"); setView(v); } }}
+                className={cn("relative flex-1 rounded-full py-2 text-[13px] font-semibold capitalize transition-colors", view === v ? "text-white" : "text-[#8E8E93]")}
+              >
+                {view === v && <motion.span layoutId="bookings-view" transition={{ type: "spring", stiffness: 420, damping: 34 }} className="absolute inset-0 rounded-full bg-[#FF2D46]" />}
+                <span className="relative inline-flex items-center gap-1.5">{v === "favorites" && <Heart className="h-3.5 w-3.5" />}{v}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-5 space-y-6">
-        {isLoading ? (
+        {view === "favorites" ? (
+          <FavoritesList />
+        ) : isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className="h-24 rounded-3xl bg-white/60 dark:bg-[#1C1C1E]/60 animate-pulse" />

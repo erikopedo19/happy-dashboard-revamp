@@ -69,7 +69,19 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
     mapRef.current = map;
     map.on("style.load", () => onStyleLoadRef.current?.(map));
     map.on("load", () => onLoad?.(map));
+    // Styles reference sprite images we don't ship; give MapLibre a 1px blank
+    // so it stops logging and keeps rendering.
+    map.on("styleimagemissing", (e) => {
+      if (!map.hasImage(e.id)) map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+    });
+    // WebViews (Expo/Capacitor) can mount the container before it has its
+    // final size, leaving a 0px canvas — track the box and resize the map.
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => map.resize()) : null;
+    ro?.observe(containerRef.current);
+    const kick = window.setTimeout(() => map.resize(), 300);
     return () => {
+      ro?.disconnect();
+      window.clearTimeout(kick);
       map.remove();
       mapRef.current = null;
     };

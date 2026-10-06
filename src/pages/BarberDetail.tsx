@@ -313,8 +313,8 @@ export default function BarberDetail() {
       </motion.div>
 
       {/* Sticky summary + Book Now */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/90 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
-        <div className="pointer-events-auto mx-auto max-w-md rounded-[26px] bg-[#1C1C1E] p-3 ring-1 ring-white/[0.08] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="pointer-events-auto mx-auto max-w-md rounded-[26px] bg-[#1C1C1E] p-3 ring-1 ring-white/[0.08]">
           <div className="flex items-center justify-between px-2 pb-2.5 text-[13px]">
             <span className="inline-flex items-center gap-2 text-white/80"><CalendarIcon className="h-4 w-4" style={{ color: ACCENT }} />{format(date, "EEEE, MMMM d")}</span>
             <span className="tabular-nums text-white/50">{time && selectedService ? `${fmtTime(time)} – ${endOf(time, selectedService.duration)}` : "Pick a time"}</span>
@@ -324,7 +324,7 @@ export default function BarberDetail() {
             disabled={!barberId || !profile?.booking_link}
             onClick={() => { haptic("medium"); setBookOpen(true); }}
             className="h-[52px] w-full rounded-[18px] text-[16px] font-semibold text-white disabled:opacity-40"
-            style={{ background: `linear-gradient(180deg, #FF5A6E 0%, ${ACCENT} 55%, #E0152F 100%)` }}
+            style={{ backgroundColor: ACCENT }}
           >
             Book Now
           </motion.button>

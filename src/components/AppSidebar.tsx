@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -28,6 +29,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AceternitySidebar,
+  SidebarBody,
+  SidebarLink,
+  useAceternitySidebar,
+} from "@/components/aceternity/sidebar";
 
 const mainItems = [
   {
@@ -81,6 +88,92 @@ const settingsItems = []; // Emptying this as Settings is moved to mainItems, or
 // Actually, the user said "add teh pages dashboard agenda services booking page stylists teams settings and nder stylists products"
 // It implies a single list or specific grouping. I will put them all in mainItems for now to match the list order requested.
 
+
+function AceternityLogo({ name, mark }: { name: string; mark: string }) {
+  const { open, animate } = useAceternitySidebar();
+  return (
+    <div className="flex items-center gap-2 px-2 py-1">
+      <img src={mark} alt="Logo" className="h-8 w-8 rounded-lg object-contain shrink-0" />
+      <motion.span
+        animate={{
+          display: animate ? (open ? "inline-block" : "none") : "inline-block",
+          opacity: animate ? (open ? 1 : 0) : 1,
+        }}
+        transition={{ duration: 0.15 }}
+        className="whitespace-pre text-sm font-semibold text-foreground truncate"
+      >
+        {name || "Workspace"}
+      </motion.span>
+    </div>
+  );
+}
+
+function AceternityFooter({
+  avatar,
+  initials,
+  name,
+  email,
+  isPro,
+  showExpiringSoon,
+  subDaysLeft,
+  onProfile,
+  onSignOut,
+}: {
+  avatar?: string;
+  initials: string;
+  name: string;
+  email: string;
+  isPro: boolean;
+  showExpiringSoon: boolean;
+  subDaysLeft: number | null;
+  onProfile: () => void;
+  onSignOut: () => void;
+}) {
+  const { open, animate } = useAceternitySidebar();
+  return (
+    <div className="flex flex-col gap-1">
+      {open && showExpiringSoon && (
+        <Link
+          to="/pricing"
+          className="mb-1 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 hover:bg-amber-500/15 transition-colors"
+        >
+          <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-[12px] font-semibold text-amber-700 dark:text-amber-300 leading-tight">
+            {isPro ? "Pro" : "Trial"} expires in {subDaysLeft === 0 ? "today" : `${subDaysLeft}d`}
+          </p>
+        </Link>
+      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 hover:bg-sidebar-accent transition-colors text-left">
+            <Avatar src={avatar} name={initials} className="h-7 w-7 shrink-0" isBordered />
+            <motion.span
+              animate={{
+                display: animate ? (open ? "inline-block" : "none") : "inline-block",
+                opacity: animate ? (open ? 1 : 0) : 1,
+              }}
+              transition={{ duration: 0.15 }}
+              className="min-w-0 flex-1"
+            >
+              <span className="block truncate text-sm font-medium text-foreground">{name || email}</span>
+            </motion.span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" side="top">
+          <DropdownMenuItem onClick={onProfile}>
+            <User className="w-4 h-4 mr-2" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onSignOut} className="text-[#E0152F] focus:text-[#E0152F]">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
 
 export function AppSidebar() {
   const location = useLocation();
@@ -160,6 +253,44 @@ export function AppSidebar() {
       </SidebarGroupContent>
     </SidebarGroup>
   );
+
+  // Desktop: Aceternity hover-expand rail. Mobile keeps the shadcn sidebar
+  // because pages and triggers are wired to its provider.
+  if (!isMobile) {
+    return (
+      <AceternitySidebar>
+        <SidebarBody className="justify-between gap-6">
+          <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+            <AceternityLogo name={orgDisplayName} mark={logoMark} />
+            <div className="mt-6 flex flex-col gap-1">
+              {mainItems.map((item) => (
+                <SidebarLink
+                  key={item.title}
+                  active={location.pathname === item.url || location.pathname.startsWith(item.url)}
+                  link={{
+                    label: item.title,
+                    href: item.url,
+                    icon: <item.icon className="h-5 w-5 shrink-0" />,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          <AceternityFooter
+            avatar={user?.user_metadata?.avatar_url}
+            initials={userInitials}
+            name={userName}
+            email={user?.email ?? ""}
+            isPro={isPro}
+            showExpiringSoon={showExpiringSoon}
+            subDaysLeft={subDaysLeft}
+            onProfile={() => navigate("/profile")}
+            onSignOut={handleSignOut}
+          />
+        </SidebarBody>
+      </AceternitySidebar>
+    );
+  }
 
   return (
     <Sidebar
