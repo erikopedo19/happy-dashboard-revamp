@@ -384,12 +384,12 @@ serve(async (req: Request) => {
       customerId = newCustomer.id;
     } else {
       const updates: Record<string, string | null> = {};
-      if (payload.customerName && payload.customerName !== existingCustomer.name) {
+      if (payload.customerName && payload.customerName !== existingCustomer!.name) {
         updates.name = payload.customerName;
       }
       if (
         payload.customerPhone !== undefined &&
-        payload.customerPhone !== existingCustomer.phone
+        payload.customerPhone !== existingCustomer!.phone
       ) {
         updates.phone = payload.customerPhone ?? null;
       }

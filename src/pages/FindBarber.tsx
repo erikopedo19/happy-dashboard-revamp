@@ -39,6 +39,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
 const BarbershopMap = lazy(() => import("@/components/BarbershopMap").then((m) => ({ default: m.BarbershopMap })));
+if (typeof window !== "undefined") { const warm = () => { import("@/components/BarbershopMap").catch(() => {}); fetch("https://tiles.openfreemap.org/styles/positron").catch(() => {}); }; ((window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 800)))(warm); }
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
