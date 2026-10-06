@@ -43,6 +43,7 @@ import { PullToRefresh } from "./components/PullToRefresh";
 import { NativeScrollGuard } from "./components/NativeScrollGuard";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import { useOrganization } from "./hooks/use-organization";
+import { hasSeenIntro } from "./components/OnboardingIntro";
 import { canAccessPage, firstAllowedPage, isRestrictedMember, MEMBER_PAGES } from "./lib/pageAccess";
 import { isNative } from "./lib/native";
 import { setupQueryPersistence } from "./lib/queryPersist";
@@ -125,6 +126,10 @@ setupQueryPersistence(queryClient);
 
 const LandingRoute = () => {
   const { user, loading } = useAuth();
+  // The Expo/Capacitor shell is an app, not a website — skip the marketing
+  // landing entirely and go straight to auth (sign-up mode on fresh installs).
+  const inNativeShell =
+    isNative() || (typeof window !== "undefined" && !!(window as any).ReactNativeWebView);
 
   if (loading) {
     return (
@@ -140,6 +145,10 @@ const LandingRoute = () => {
       return <FindBarber />;
     }
     return <Navigate to="/admin" replace />;
+  }
+
+  if (inNativeShell) {
+    return <Navigate to={hasSeenIntro() ? "/auth" : "/auth?mode=signup"} replace />;
   }
 
   // Logged out → marketing landing page

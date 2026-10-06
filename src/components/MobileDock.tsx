@@ -108,8 +108,8 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
                 >
                   <RollingText
                     text={item.label}
-                    variant="flip"
-                    stagger={0.02}
+                    variant="roll"
+                    stagger={0.025}
                     className={cn(
                       'text-[34px] font-bold tracking-tight leading-[1.25]',
                       item.isNew
