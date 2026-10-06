@@ -41,6 +41,7 @@ import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { NativeScrollGuard } from "./components/NativeScrollGuard";
+import { CutziooLoader } from "./components/CutziooLoader";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
 import { useOrganization } from "./hooks/use-organization";
 import { hasSeenIntro } from "./components/OnboardingIntro";
@@ -170,8 +171,8 @@ function isMicrositeSubdomain(): string | null {
 
 function RouteFallback() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-[#F2F2F7] text-[#8E8E93] dark:bg-black">
-      <div className="h-9 w-9 animate-pulse rounded-2xl bg-black/[0.08] dark:bg-white/[0.08]" />
+    <div className="grid min-h-dvh place-items-center bg-black">
+      <CutziooLoader variant="loop" size="72px" wordmark={false} />
     </div>
   );
 }
@@ -360,13 +361,11 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 1200);
+    const t = setTimeout(() => setShowSplash(false), 2100);
     const idle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500));
     idle(() => PRELOAD.reduce((p, load) => p.then(() => load().catch(() => {})), Promise.resolve() as Promise<unknown>));
     return () => clearTimeout(t);
   }, []);
-
-  const logoSrc = "/logo.svg";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -375,11 +374,7 @@ function App() {
           <div className="min-h-screen bg-background font-sans antialiased">
             {showSplash && (
               <div className="splash-screen">
-                <div className="splash-stage">
-                  <div className="splash-ring" />
-                  <img src={logoSrc} alt="Cutzioo Barber Booking Logo" className="splash-logo" />
-                  <span className="splash-label">Loading</span>
-                </div>
+                <CutziooLoader variant="intro" />
               </div>
             )}
           <PhoneAlertsProvider>
