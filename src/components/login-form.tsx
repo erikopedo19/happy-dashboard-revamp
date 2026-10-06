@@ -1,4 +1,4 @@
-import checkLogo from "@/assets/cutzioo-check.png.asset.json";
+const checkLogo = "/icons/icon-180x180.png";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Mail, Check, ChevronRight, FileText } from "lucide-react";
@@ -183,7 +183,7 @@ export function LoginForm() {
             >
               <div className="flex flex-1 flex-col items-center justify-center text-center">
                 <img
-                  src={checkLogo.url}
+                  src={checkLogo}
                   alt="Cutzioo"
                   onError={(e) => {
                     const img = e.currentTarget;

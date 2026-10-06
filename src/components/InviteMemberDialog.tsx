@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/use-organization";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Mail } from "lucide-react";
+import { MEMBER_PAGES, DEFAULT_MEMBER_PAGES } from "@/lib/pageAccess";
 
 interface InviteMemberDialogProps {
   open: boolean;
@@ -18,25 +21,41 @@ interface InviteMemberDialogProps {
 export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogProps) {
   const { toast } = useToast();
   const { organization } = useOrganization();
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
+  const [pages, setPages] = useState<string[]>([...DEFAULT_MEMBER_PAGES]);
   const [loading, setLoading] = useState(false);
 
+  const togglePage = (path: string) =>
+    setPages((prev) => (prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]));
+
   const handleInvite = async () => {
-    if (!email || !organization) return;
+    if (!email || !organization || !user) return;
 
     setLoading(true);
     try {
-      // Generate a unique invitation token
       const invitationToken = crypto.randomUUID();
-      
-      // For now, we'll just call the Edge Function directly with the invitation data
-      // Once the invitations table is created, we can store the invitation in the database first
+      const allowedPages = role === "member" ? pages : null;
+
+      // Persist the invitation so accept_invitation can create the membership
+      // with the chosen page access. invitations.org_id is the owner's profile
+      // id (the RLS policy requires org_id = auth.uid()).
+      const { error: inviteError } = await (supabase as any).from("invitations").insert({
+        org_id: user.id,
+        email: email.trim().toLowerCase(),
+        role,
+        token: invitationToken,
+        allowed_pages: allowedPages,
+        status: "pending",
+      });
+      if (inviteError) throw inviteError;
+
       const { error: fnError } = await supabase.functions.invoke("send-invitation", {
         body: {
           org_id: organization.id,
           org_name: organization.name,
-          email: email,
+          email: email.trim().toLowerCase(),
           token: invitationToken,
           role: role
         }
@@ -45,8 +64,8 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
       if (fnError) {
         console.error("Failed to send email:", fnError);
         toast({
-          title: "Failed to send invitation",
-          description: "Unable to send invitation email. Please try again.",
+          title: "Invitation saved, email failed",
+          description: "The invite was created but the email couldn't be sent. Share the link manually.",
           variant: "destructive",
         });
       } else {
@@ -54,11 +73,12 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
           title: "Invitation sent",
           description: `An invitation has been sent to ${email}`,
         });
-        
-        onOpenChange(false);
-        setEmail("");
-        setRole("member");
       }
+
+      onOpenChange(false);
+      setEmail("");
+      setRole("member");
+      setPages([...DEFAULT_MEMBER_PAGES]);
     } catch (error: any) {
       console.error("Error inviting member:", error);
       toast({
@@ -103,15 +123,34 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Members can only view their schedule and assigned customers. Admins can manage everything.
+              Admins can manage everything. Members only see the pages you pick below.
             </p>
           </div>
+          {role === "member" && (
+            <div className="space-y-2">
+              <Label>Pages they can see</Label>
+              <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-border p-3">
+                {MEMBER_PAGES.map((p) => (
+                  <label key={p.path} className="flex items-center gap-2 py-1 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={pages.includes(p.path)}
+                      onCheckedChange={() => togglePage(p.path)}
+                    />
+                    {p.label}
+                  </label>
+                ))}
+              </div>
+              {pages.length === 0 && (
+                <p className="text-xs text-[#E0152F]">Pick at least one page, or they'll only see Settings.</p>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleInvite} disabled={!email || loading}>
+          <Button onClick={handleInvite} disabled={!email || loading || (role === "member" && pages.length === 0)}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
             Send Invitation
           </Button>

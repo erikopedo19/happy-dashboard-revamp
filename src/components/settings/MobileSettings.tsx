@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   ChevronRight,
@@ -31,6 +31,7 @@ import {
   Home,
   Banknote,
   Rocket,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -54,6 +55,8 @@ import { MobileDock } from "@/components/MobileDock";
 import { BookingStreakCard } from "@/components/BookingStreakCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
+import { useOrganization } from "@/hooks/use-organization";
+import { MEMBER_PAGES } from "@/lib/pageAccess";
 
 const weekDays = [
   { value: 1, label: "Mon", full: "Monday" },
@@ -91,7 +94,8 @@ type Panel =
   | "location"
   | "subscription"
   | "payments"
-  | "boost";
+  | "boost"
+  | "team";
 
 export function MobileSettings(props: any) {
   const {
@@ -357,6 +361,13 @@ export function MobileSettings(props: any) {
             label="Subscription"
             value="Plan & billing"
             onClick={() => setPanel("subscription")}
+          />
+          <Row
+            icon={Users}
+            tint="#FF9F0A"
+            label="Team access"
+            value="Pages members can see"
+            onClick={() => setPanel("team")}
           />
         </Group>
 
@@ -820,6 +831,7 @@ export function MobileSettings(props: any) {
               </PanelStack>
             )}
 
+            {panel === "team" && <TeamAccessPanel />}
             {panel === "boost" && (
               <PanelStack>
                 <BoostBarbershopCard />
@@ -1230,6 +1242,8 @@ function titleFor(p: Panel): string {
       return "Payments & payouts";
     case "boost":
       return "Boost";
+    case "team":
+      return "Team access";
     default:
       return "";
   }
@@ -1409,3 +1423,144 @@ function CustomDayHoursEditor({
   );
 }
 
+
+function TeamAccessPanel() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { organization } = useOrganization();
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const { data: members = [], isLoading } = useQuery({
+    queryKey: ["team-access", organization?.id],
+    enabled: !!organization?.id,
+    queryFn: async () => {
+      const { data: mems } = await (supabase as any)
+        .from("memberships")
+        .select("id, user_id, role, allowed_pages")
+        .eq("org_id", organization!.id)
+        .eq("role", "member");
+      if (!mems?.length) return [];
+      const ids = mems.map((m: any) => m.user_id);
+      const { data: profiles } = await (supabase as any)
+        .from("profiles")
+        .select("id, full_name, email, avatar_url")
+        .in("id", ids);
+      const byId = new Map((profiles || []).map((p: any) => [p.id, p]));
+      return mems.map((m: any) => ({ ...m, profile: byId.get(m.user_id) }));
+    },
+  });
+
+  const { data: pendingInvites = [] } = useQuery({
+    queryKey: ["pending-invites", organization?.id],
+    enabled: !!organization?.id,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("invitations")
+        .select("id, email, role, allowed_pages, status")
+        .eq("status", "pending");
+      return data || [];
+    },
+  });
+
+  const toggle = async (member: any, path: string) => {
+    const current: string[] = member.allowed_pages ?? MEMBER_PAGES.map((p) => p.path);
+    const next = current.includes(path) ? current.filter((p) => p !== path) : [...current, path];
+    setSavingId(member.id);
+    const { error } = await (supabase as any)
+      .from("memberships")
+      .update({ allowed_pages: next })
+      .eq("id", member.id);
+    setSavingId(null);
+    if (error) {
+      toast({ title: "Couldn't update access", description: error.message, variant: "destructive" });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["team-access", organization?.id] });
+  };
+
+  const toggleInvite = async (invite: any, path: string) => {
+    const current: string[] = invite.allowed_pages ?? MEMBER_PAGES.map((p) => p.path);
+    const next = current.includes(path) ? current.filter((p) => p !== path) : [...current, path];
+    setSavingId(invite.id);
+    const { error } = await (supabase as any)
+      .from("invitations")
+      .update({ allowed_pages: next })
+      .eq("id", invite.id);
+    setSavingId(null);
+    if (error) {
+      toast({ title: "Couldn't update invite", description: error.message, variant: "destructive" });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["pending-invites", organization?.id] });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="h-5 w-5 animate-spin text-white/40" />
+      </div>
+    );
+  }
+
+  if (members.length === 0 && pendingInvites.length === 0) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center">
+        <Users className="mx-auto h-6 w-6 text-white/40" />
+        <p className="mt-2 text-[14px] font-medium text-white">No team members yet</p>
+        <p className="mt-1 text-[12px] text-white/45">
+          Invite barbers from Teams — then choose which pages each one can see here.
+        </p>
+      </div>
+    );
+  }
+
+  const renderRows = (items: any[], fn: (item: any, path: string) => void, label: (i: any) => string) =>
+    items.map((item) => (
+      <div key={item.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="truncate text-[14px] font-semibold text-white">{label(item)}</p>
+          {savingId === item.id && <Loader2 className="h-3.5 w-3.5 animate-spin text-white/40" />}
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+          {MEMBER_PAGES.map((p) => {
+            const on = (item.allowed_pages ?? MEMBER_PAGES.map((x) => x.path)).includes(p.path);
+            return (
+              <button
+                key={p.path}
+                type="button"
+                onClick={() => fn(item, p.path)}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-left text-[12px] font-medium transition",
+                  on
+                    ? "border-[#FF2D46]/40 bg-[#FF2D46]/15 text-white"
+                    : "border-white/10 bg-white/[0.03] text-white/40"
+                )}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ));
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[12px] text-white/45">
+        Members only see the pages switched on here. Owners and admins always see everything.
+      </p>
+      {members.length > 0 &&
+        renderRows(
+          members,
+          toggle,
+          (m) => m.profile?.full_name || m.profile?.email || "Member"
+        )}
+      {pendingInvites.length > 0 && (
+        <p className="pt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/35">
+          Pending invites
+        </p>
+      )}
+      {renderRows(pendingInvites, toggleInvite, (i) => i.email)}
+    </div>
+  );
+}

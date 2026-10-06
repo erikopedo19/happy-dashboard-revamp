@@ -35,6 +35,7 @@ import {
   SidebarLink,
   useAceternitySidebar,
 } from "@/components/aceternity/sidebar";
+import { canAccessPage, isRestrictedMember } from "@/lib/pageAccess";
 
 const mainItems = [
   {
@@ -181,7 +182,11 @@ export function AppSidebar() {
   const sidebar = useSidebar();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { organization } = useOrganization();
+  const { organization, membership } = useOrganization();
+  const allowedPages = isRestrictedMember(membership?.role, membership?.allowed_pages)
+    ? membership?.allowed_pages
+    : null;
+  const visibleItems = allowedPages ? mainItems.filter((i) => canAccessPage(allowedPages, i.url)) : mainItems;
 
   const { data: subscription } = useQuery({
     queryKey: ["sidebar-subscription", user?.id],
@@ -263,7 +268,7 @@ export function AppSidebar() {
           <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
             <AceternityLogo name={orgDisplayName} mark={logoMark} />
             <div className="mt-6 flex flex-col gap-1">
-              {mainItems.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarLink
                   key={item.title}
                   active={location.pathname === item.url || location.pathname.startsWith(item.url)}
@@ -317,7 +322,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="p-3 space-y-2">
-        {renderMenu(mainItems)}
+        {renderMenu(visibleItems)}
       </SidebarContent>
 
       <SidebarFooter className="px-3 py-3 border-t border-sidebar-border">

@@ -15,6 +15,7 @@ export interface Membership {
   org_id: string;
   user_id: string;
   role: 'owner' | 'admin' | 'member';
+  allowed_pages?: string[] | null;
 }
 
 export function useOrganization() {
@@ -104,7 +105,8 @@ export function useOrganization() {
               id: memberships.id,
               org_id: memberships.org_id,
               user_id: memberships.user_id,
-              role: memberships.role
+              role: memberships.role,
+              allowed_pages: memberships.allowed_pages ?? null,
             });
           } else {
             const newOrg = await createDefaultOrg();
@@ -134,6 +136,7 @@ export function useOrganization() {
     membership,
     loading,
     isOwner: membership?.role === 'owner',
-    isAdmin: membership?.role === 'owner' || membership?.role === 'admin'
+    isAdmin: membership?.role === 'owner' || membership?.role === 'admin',
+    allowedPages: membership?.role === 'member' ? membership?.allowed_pages ?? null : null,
   };
 }

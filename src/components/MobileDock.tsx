@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
 import { RollingText } from '@/components/RollingText';
+import { useOrganization } from '@/hooks/use-organization';
+import { canAccessPage, isRestrictedMember } from '@/lib/pageAccess';
 
 interface MoreItem {
   label: string;
@@ -151,6 +153,8 @@ export const MobileDockInner = () => {
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
   const { user } = useAuth();
+  const { membership } = useOrganization();
+  const allowedPages = isRestrictedMember(membership?.role, membership?.allowed_pages) ? membership?.allowed_pages : null;
 
   const { data: services = [] } = useQuery({
     queryKey: ['dock-services', user?.id],
@@ -167,10 +171,11 @@ export const MobileDockInner = () => {
     enabled: !!user,
   });
 
-  const visibleMoreItems = moreItems;
+  const visibleMoreItems = allowedPages ? moreItems.filter((i) => canAccessPage(allowedPages, i.path)) : moreItems;
+  const visibleMainItems = allowedPages ? mainItems.filter((i) => !i.to || canAccessPage(allowedPages, i.to)) : mainItems;
 
   const glassItems: DockItem[] = [
-    ...mainItems,
+    ...visibleMainItems,
     { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true), color: '#FF2D46' },
   ];
 
@@ -178,7 +183,7 @@ export const MobileDockInner = () => {
     (item) => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'))
   );
 
-  const mainIndex = mainItems.findIndex((item) => {
+  const mainIndex = visibleMainItems.findIndex((item) => {
     if (!item.to) return false;
     return location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'));
   });

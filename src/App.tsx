@@ -42,6 +42,8 @@ import { PageTransition } from "./components/PageTransition";
 import { PullToRefresh } from "./components/PullToRefresh";
 import { NativeScrollGuard } from "./components/NativeScrollGuard";
 import { useFinalizeOnboarding } from "./hooks/use-finalize-onboarding";
+import { useOrganization } from "./hooks/use-organization";
+import { canAccessPage, firstAllowedPage, isRestrictedMember, MEMBER_PAGES } from "./lib/pageAccess";
 import { isNative } from "./lib/native";
 import { setupQueryPersistence } from "./lib/queryPersist";
 
@@ -163,6 +165,25 @@ function RouteFallback() {
       <div className="h-9 w-9 animate-pulse rounded-2xl bg-black/[0.08] dark:bg-white/[0.08]" />
     </div>
   );
+}
+
+// Redirects invited members away from pages their owner didn't grant.
+function PageAccessGuard() {
+  const location = useLocation();
+  const { membership, loading } = useOrganization();
+  const allowed = membership?.role === "member" ? membership.allowed_pages ?? null : null;
+  const restricted = isRestrictedMember(membership?.role, allowed);
+
+  useEffect(() => {
+    if (!restricted || !allowed) return;
+    const path = location.pathname;
+    if (MEMBER_PAGES.some((p) => path === p.path || path.startsWith(p.path + "/")) && !canAccessPage(allowed, path)) {
+      window.history.replaceState({}, "", firstAllowedPage(allowed));
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  }, [restricted, allowed, location.pathname]);
+
+  return null;
 }
 
 function AnimatedRoutes() {
@@ -353,7 +374,7 @@ function App() {
               </div>
             )}
           <PhoneAlertsProvider>
-            <BrowserRouter future={{ v7_startTransition: true }}>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <OnboardingProvider>
                 <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                   <GlimmIntercept />
@@ -364,6 +385,7 @@ function App() {
                   <ScrollToTop />
                   <NativeShell />
                   <NativeScrollGuard />
+                  <PageAccessGuard />
                   <PullToRefresh />
                   <AnimatedRoutes />
                   <HeaderActions />
