@@ -6,7 +6,9 @@ import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const { user } = useAuth()
-  const [showIntro, setShowIntro] = useState(() => !hasSeenIntro())
+  const [showIntro, setShowIntro] = useState(
+    () => !hasSeenIntro() && !/error/.test(window.location.search + window.location.hash)
+  )
 
   return (
     <>
