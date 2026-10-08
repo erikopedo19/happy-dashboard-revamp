@@ -1061,7 +1061,14 @@ function FullScreenMap({
         avatarUrl: b.avatar_url,
         initial: (b.brandName || "B").trim().charAt(0).toUpperCase(),
         vip: !!b.home_service,
-      })),
+      })).concat(
+        visible.length ? [] : [
+          { n: "Fade Factory (demo)", la: 37.9795, lo: 23.7162, c: "#FF375F", v: false },
+          { n: "Kings Cut (demo)", la: 37.9838, lo: 23.7275, c: "#0A84FF", v: false },
+          { n: "Royal Home Barber (demo)", la: 37.9752, lo: 23.7348, c: "#FF9F0A", v: true },
+          { n: "Sharp Studio (demo)", la: 37.9701, lo: 23.7225, c: "#30D158", v: false },
+        ].map((d, i) => ({ id: `demo-${i}`, name: d.n, location: d.v ? "VIP · Comes to your house" : "Demo shop", latitude: d.la, longitude: d.lo, color: d.c, avatarUrl: null, initial: d.n.charAt(0), vip: d.v })),
+      ),
     [visible],
   );
 
