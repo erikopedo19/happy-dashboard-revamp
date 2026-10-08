@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Cutzioo tick loader — dark tile + check that draws itself via a masked
- * stroke, then the wordmark fades in. "intro" plays the full sequence once
- * (app splash); "loop" redraws the tick on repeat (inline loading states).
+ * Cutzioo tick loader — a check that draws itself via a masked stroke.
+ * "intro" plays the sequence once (app splash) with a rose glow blooming in
+ * just before the splash hands off to the content; "loop" redraws the tick
+ * on repeat (inline loading states).
  */
 export function CutziooLoader({
   variant = "intro",
@@ -24,13 +25,13 @@ export function CutziooLoader({
       role="status"
       aria-label="Loading Cutzioo"
     >
+      <div className="cz-glow" aria-hidden="true" />
       <svg viewBox="0 0 512 512" aria-hidden="true">
         <defs>
           <mask id="cz-tick-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
             <path className="cz-draw" pathLength="1" d="M52 202 L240 390 L458 112" />
           </mask>
         </defs>
-        <rect className="cz-tile" width="512" height="512" rx="112" />
         <path
           className="cz-tick"
           mask="url(#cz-tick-mask)"

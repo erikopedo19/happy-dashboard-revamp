@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import maplibregl, { Map as MLMap, MapOptions } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -36,8 +36,6 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
   const onStyleLoadRef = useRef(onStyleLoad);
   onStyleLoadRef.current = onStyleLoad;
 
-  useImperativeHandle(ref, () => mapRef.current as MLMap, []);
-
   useEffect(() => {
     if (!containerRef.current) return;
     const opts: MapOptions = {
@@ -67,6 +65,12 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     }
     mapRef.current = map;
+    // The map only exists from here on, so the forwarded ref must be assigned
+    // inside this effect — a useImperativeHandle snapshot would hand back null.
+    if (ref) {
+      if (typeof ref === "function") ref(map);
+      else (ref as React.MutableRefObject<MLMap | null>).current = map;
+    }
     map.on("style.load", () => onStyleLoadRef.current?.(map));
     map.on("load", () => onLoad?.(map));
     // Styles reference sprite images we don't ship; give MapLibre a 1px blank
@@ -84,6 +88,10 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
       window.clearTimeout(kick);
       map.remove();
       mapRef.current = null;
+      if (ref) {
+        if (typeof ref === "function") ref(null);
+        else (ref as React.MutableRefObject<MLMap | null>).current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

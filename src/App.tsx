@@ -359,12 +359,17 @@ function NativeShell() {
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [splashLeaving, setSplashLeaving] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 2100);
-    const idle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500));
-    idle(() => PRELOAD.reduce((p, load) => p.then(() => load().catch(() => {})), Promise.resolve() as Promise<unknown>));
-    return () => clearTimeout(t);
+    // Glow blooms in the last stretch of the splash, then the overlay fades
+    // away to reveal the content already mounted underneath.
+    const t1 = setTimeout(() => setSplashLeaving(true), 1900);
+    const t2 = setTimeout(() => setShowSplash(false), 2400);
+    // Splash is the perfect idle window — warm every route chunk now instead
+    // of waiting for requestIdleCallback after first paint.
+    PRELOAD.forEach((load) => { load().catch(() => {}); });
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   return (
@@ -373,8 +378,8 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
             {showSplash && (
-              <div className="splash-screen">
-                <CutziooLoader variant="intro" />
+              <div className={splashLeaving ? "splash-screen is-leaving" : "splash-screen"}>
+                <CutziooLoader variant="intro" wordmark={false} />
               </div>
             )}
           <PhoneAlertsProvider>

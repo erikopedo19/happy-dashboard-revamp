@@ -58,10 +58,13 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     const fromType = prevType.current ?? "other";
     const adminToClient = fromType === "admin" && type === "client";
     const clientToAdmin = fromType === "client" && type === "admin";
+    const sameKind = fromType === type;
 
     const fromX = adminToClient ? 80 : clientToAdmin ? -80 : 0;
     const fromY = fromX === 0 ? 12 : 0;
     const fromScale = adminToClient || clientToAdmin ? 0.96 : 1;
+    // Same-section hops (dock nav) should feel instant, not like a page load.
+    const duration = sameKind ? 0.22 : 0.32;
 
     const el = container.current;
     if (!el) return;
@@ -76,7 +79,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     const tween = gsap.fromTo(
       el,
       { opacity: 0, x: fromX, y: fromY, scale: fromScale },
-      { opacity: 1, x: 0, y: 0, scale: 1, duration: 0.32, ease: "power2.out" }
+      { opacity: 1, x: 0, y: 0, scale: 1, duration, ease: "power2.out" }
     );
 
     prevType.current = type;

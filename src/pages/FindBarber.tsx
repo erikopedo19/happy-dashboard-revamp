@@ -47,6 +47,7 @@ import { Seo } from "@/components/Seo";
 import { StoriesRail } from "@/components/stories/StoriesRail";
 import { NotificationBell } from "@/components/NotificationBell";
 import { getBarberTheme } from "@/lib/barberTheme";
+import { prefetchRoute } from "@/lib/routePrefetch";
 
 
 interface BarberProfile {
@@ -161,13 +162,13 @@ const FindBarber = () => {
 
   useEffect(() => {
     if (!user) return;
-    if (!("geolocation" in navigator)) {
-      setUserLocation({ lat: 40.7128, lng: -74.006 });
-      return;
-    }
+    if (!("geolocation" in navigator)) return;
+    // No fake fallback: a wrong position would draw a bogus "You are here"
+    // dot — the map already fits to the barber pins without it.
     navigator.geolocation.getCurrentPosition(
       (p) => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => setUserLocation({ lat: 40.7128, lng: -74.006 })
+      () => {},
+      { timeout: 8000, maximumAge: 300000 }
     );
   }, [user]);
 
@@ -631,6 +632,7 @@ function BarberCard({
     haptic("light");
     navigate(`/b/${barber.booking_link}`, { state: detailState });
   };
+  const warmDetail = () => { if (barber.booking_link) prefetchRoute("/b"); };
 
 
   return (
@@ -641,6 +643,7 @@ function BarberCard({
       initial="hidden"
       animate="show"
       transition={spring}
+      onPointerDown={warmDetail}
       className={cn(
         "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
         isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"

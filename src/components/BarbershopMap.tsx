@@ -269,6 +269,12 @@ export function BarbershopMap({
     }
   }
 
+  const validBarbershops = useMemo(
+    () => barbershops.filter((barbershop) => typeof barbershop.latitude === "number" && typeof barbershop.longitude === "number"),
+    [barbershops],
+  );
+  const autoFit = fitToMarkers && !pickMode && validBarbershops.length > 0;
+
   useEffect(() => {
     if (initialCenter) {
       const next: [number, number] = [initialCenter.lat, initialCenter.lng];
@@ -287,6 +293,17 @@ export function BarbershopMap({
 
     if (center) return;
 
+    // When the camera is going to fit the pins anyway, mount on the pins
+    // straight away — waiting on a geolocation round-trip (which can hang
+    // silently inside WebViews) left the map stuck on "Loading map…".
+    if (autoFit) {
+      const lat = validBarbershops.reduce((s, b) => s + b.latitude!, 0) / validBarbershops.length;
+      const lng = validBarbershops.reduce((s, b) => s + b.longitude!, 0) / validBarbershops.length;
+      setCenter([lat, lng]);
+      return;
+    }
+
+    const fallback = () => setCenter([40.7128, -74.006]);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -294,19 +311,14 @@ export function BarbershopMap({
           setCenter(next);
           persist(next);
         },
-        () => setCenter([40.7128, -74.006]),
+        fallback,
+        { timeout: 8000, maximumAge: 300000 },
       );
     } else {
-      setCenter([40.7128, -74.006]);
+      fallback();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCenter?.lat, initialCenter?.lng, userLocation?.lat, userLocation?.lng]);
-
-  const validBarbershops = useMemo(
-    () => barbershops.filter((barbershop) => typeof barbershop.latitude === "number" && typeof barbershop.longitude === "number"),
-    [barbershops],
-  );
-  const autoFit = fitToMarkers && !pickMode && validBarbershops.length > 0;
+  }, [initialCenter?.lat, initialCenter?.lng, userLocation?.lat, userLocation?.lng, autoFit]);
 
   useEffect(() => {
     // When auto-fitting to pins, the fit effect owns the camera.
@@ -375,18 +387,20 @@ export function BarbershopMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
-    map.on("zoomend", recluster);
+    // moveend covers pans as well as zooms — a zoomend-only listener left
+    // stale clusters and hidden pins behind after dragging the map.
+    map.on("moveend", recluster);
     return () => {
-      map.off("zoomend", recluster);
+      map.off("moveend", recluster);
     };
   }, [mapReady, recluster]);
 
-  // User location dot.
+  // User location dot — only when a real position was supplied; a stored map
+  // center is not the user, so never label it "You are here".
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || pickMode) return;
-    const pos = userLocation ?? (center ? { lat: center[0], lng: center[1] } : null);
-    if (!pos) return;
+    if (!map || !mapReady || pickMode || !userLocation) return;
+    const pos = userLocation;
     ensurePinStyles();
     if (!userMarkerRef.current) {
       const el = document.createElement("div");
@@ -399,7 +413,7 @@ export function BarbershopMap({
       userMarkerRef.current.setLngLat([pos.lng, pos.lat]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapReady, pickMode, userLocation?.lat, userLocation?.lng, userLocation ? null : center]);
+  }, [mapReady, pickMode, userLocation?.lat, userLocation?.lng]);
 
   // Barber pins — diffed by id so taps and re-renders don't rebuild the DOM.
   useEffect(() => {

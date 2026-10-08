@@ -16,11 +16,13 @@ export interface SwipeBarber {
 
 const spring = { type: "spring" as const, stiffness: 320, damping: 30 };
 
-function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe: (dir: 1 | -1) => void; isTop: boolean; depth: number }) {
+type ExitInfo = { dir: 1 | -1; vx: number };
+
+function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe: (dir: 1 | -1, vx: number) => void; isTop: boolean; depth: number }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-220, 220], [-14, 14]);
-  const likeOpacity = useTransform(x, [30, 120], [0, 1]);
-  const nopeOpacity = useTransform(x, [-120, -30], [1, 0]);
+  const likeOpacity = useTransform(x, [15, 95], [0, 1]);
+  const nopeOpacity = useTransform(x, [-95, -15], [1, 0]);
   const img = barber.avatar_url || barber.banner_url;
   const armed = useRef(0);
   useEffect(() => x.on("change", (v) => {
@@ -29,8 +31,12 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
   }), [x]);
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x > 110 || info.velocity.x > 600) onSwipe(1);
-    else if (info.offset.x < -110 || info.velocity.x < -600) onSwipe(-1);
+    const dir = info.offset.x > 110 || info.velocity.x > 600 ? 1 : info.offset.x < -110 || info.velocity.x < -600 ? -1 : 0;
+    if (!dir) return;
+    // Kill the constraint's return spring so the card flies out from where
+    // it was released — the exit spring then inherits the fling velocity.
+    x.stop();
+    onSwipe(dir as 1 | -1, info.velocity.x);
   };
 
   return (
@@ -39,12 +45,13 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       style={{ x: isTop ? x : 0, rotate: isTop ? rotate : 0, zIndex: 10 - depth }}
       initial={{ scale: 0.9, y: 30, opacity: 0 }}
       animate={{ scale: 1 - depth * 0.05, y: depth * -14, opacity: depth > 2 ? 0 : 1 }}
-      variants={{ out: (dir: number) => ({ x: dir * 480, rotate: dir * 22, opacity: 0, transition: { duration: 0.35 } }) }}
+      variants={{ out: ({ dir, vx }: ExitInfo) => ({ x: dir * 560, rotate: dir * 20, opacity: 0, transition: { type: "spring", velocity: vx, stiffness: 170, damping: 26 } }) }}
       exit="out"
       transition={spring}
       drag={isTop ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.9}
+      dragElastic={0.6}
+      dragTransition={{ bounceStiffness: 340, bounceDamping: 26 }}
       onDragStart={() => haptic("selection")}
       onDragEnd={onDragEnd}
     >
@@ -81,7 +88,7 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
 
 export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]; onClose: () => void; onLike: (id: string) => void }) {
   const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState<1 | -1>(1);
+  const [exitInfo, setExitInfo] = useState<ExitInfo>({ dir: 1, vx: 500 });
   // The card still flying off screen — Book must target whoever is visible.
   const [leaving, setLeaving] = useState<SwipeBarber | null>(null);
   const [bookBarber, setBookBarber] = useState<SwipeBarber | null>(null);
@@ -96,18 +103,18 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
     return () => { document.body.classList.remove("stories-open"); document.body.style.overflow = prev; };
   }, []);
 
-  const swipe = (d: 1 | -1) => {
+  const swipe = (d: 1 | -1, vx = d * 600) => {
     if (!current) return;
     haptic(d === 1 ? "success" : "light");
-    setDir(d);
+    setExitInfo({ dir: d, vx });
     if (d === 1) onLike(current.id);
     const swiped = current;
     setLeaving(swiped);
     setIndex((i) => i + 1);
-    // Clear once the exit flight (~350ms) is over.
+    // Clear once the exit flight is over.
     window.setTimeout(() => {
       setLeaving((s) => (s === swiped ? null : s));
-    }, 420);
+    }, 520);
   };
 
   return (
@@ -133,7 +140,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
       </div>
 
       <div className="relative flex-1 my-3">
-        <AnimatePresence custom={dir}>
+        <AnimatePresence custom={exitInfo}>
           {visible.map((b, i) => (
             <Card key={b.id} barber={b} isTop={i === 0} depth={i} onSwipe={swipe} />
           )).reverse()}
@@ -153,7 +160,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           <button
             type="button"
             disabled={!current}
-            onClick={() => swipe(-1)}
+            onClick={() => swipe(-1, -620)}
             aria-label="Skip"
             className="h-14 w-14 grid place-items-center rounded-full bg-white/10 active:scale-90 transition disabled:opacity-40"
           >
@@ -170,7 +177,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           <button
             type="button"
             disabled={!current}
-            onClick={() => swipe(1)}
+            onClick={() => swipe(1, 620)}
             aria-label="Like"
             className="h-14 w-14 grid place-items-center rounded-full bg-[#FF2D46] active:scale-90 transition disabled:opacity-40"
           >

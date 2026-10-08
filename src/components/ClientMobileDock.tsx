@@ -1,13 +1,16 @@
 import { useLocation } from 'react-router-dom';
 import { Search, Calendar, User, Map as MapIcon, Sparkles } from 'lucide-react';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
+import { prefetchRoute } from '@/lib/routePrefetch';
+
+const pref = (to: string) => () => prefetchRoute(to);
 
 const navItems: DockItem[] = [
-  { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF2D46' },
-  { label: 'Map', icon: MapIcon, to: '/find-barber?tab=map', color: '#30D158' },
-  { label: 'Events', icon: Sparkles, to: '/events', color: '#FF9F0A' },
-  { label: 'Bookings', icon: Calendar, to: '/my-bookings', color: '#0A84FF' },
-  { label: 'Profile', icon: User, to: '/me', color: '#32ADE6' },
+  { label: 'Explore', icon: Search, to: '/find-barber', color: '#FF2D46', prefetch: pref('/find-barber') },
+  { label: 'Map', icon: MapIcon, to: '/find-barber?tab=map', color: '#30D158', prefetch: pref('/find-barber') },
+  { label: 'Events', icon: Sparkles, to: '/events', color: '#FF9F0A', prefetch: pref('/events') },
+  { label: 'Bookings', icon: Calendar, to: '/my-bookings', color: '#0A84FF', prefetch: pref('/my-bookings') },
+  { label: 'Profile', icon: User, to: '/me', color: '#32ADE6', prefetch: pref('/me') },
 ];
 
 export const ClientMobileDock = () => null;

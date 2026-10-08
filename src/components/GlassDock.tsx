@@ -14,6 +14,8 @@ export interface DockItem {
   icon: ComponentType<{ className?: string; size?: number | string; style?: React.CSSProperties }>;
   to?: string;
   onClick?: () => void;
+  /** Fired on pointer-down/hover to warm the destination's chunk early. */
+  prefetch?: () => void;
   color?: string;
 }
 
@@ -179,6 +181,8 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               key={item.label}
               type="button"
               onClick={handleClick}
+              onPointerDown={() => item.prefetch?.()}
+              onPointerEnter={() => item.prefetch?.()}
               onHoverStart={() => setHovered(i)}
               onHoverEnd={() => setHovered(null)}
               whileTap={{ scale: 0.9 }}
