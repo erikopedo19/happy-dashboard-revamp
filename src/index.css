@@ -1448,3 +1448,6 @@ html.is-native.platform-ios .pricing-footer { padding-bottom: 16px; }
   .cz-loop .cz-draw { animation-duration: 0.01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
   .cz-wm { opacity: 1; }
 }
+
+.cz-loader.cz-intro { background: #0A0A0C; min-height: 100dvh; width: 100%; animation: cz-bg-in .35s ease-out both; }
+@keyframes cz-bg-in { from { opacity: 0; } to { opacity: 1; } }

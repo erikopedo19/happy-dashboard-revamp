@@ -75,7 +75,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         layout
         transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
         className="mx-auto flex items-stretch justify-center gap-2.5"
-        style={{ width: compact ? "auto" : "min(400px,calc(100vw - 1.5rem))" }}
+        style={{ width: compact ? "min(330px,calc(100vw - 3.5rem))" : "min(400px,calc(100vw - 1.5rem))" }}
       >
       <motion.div
         layout
@@ -91,7 +91,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           paddingRight: compact ? 8 : 10,
         }}
         transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
-        className={cn("pointer-events-auto relative isolate flex items-center overflow-hidden rounded-full px-2.5", compact ? "justify-center gap-0.5" : "flex-1 justify-around")}
+        className={cn("pointer-events-auto relative isolate flex items-center overflow-hidden rounded-full px-2.5", "flex-1 justify-around")}
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -184,7 +184,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
               layout
-              className={cn("relative flex cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", compact ? "w-11 px-0" : "flex-1 px-2")}
+              className={cn("relative flex cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", "flex-1 px-2")}
             >
               {isActive && (
                 <motion.div
