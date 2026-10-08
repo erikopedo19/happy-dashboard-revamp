@@ -211,7 +211,7 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    window.location.href = "/auth";
   };
 
   const handleAgreeToggle = (checked: boolean) => {
@@ -242,7 +242,7 @@ const Settings = () => {
     }
     toast({ title: "Account deleted" });
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/auth";
   };
 
   const { isPremium } = usePremium();

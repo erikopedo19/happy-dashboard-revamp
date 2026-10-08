@@ -5,12 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import {
-  Loader2, Calendar, Heart, Star, Scissors, ChevronRight,
+  Calendar, Heart, Star, Scissors, ChevronRight,
   LogOut, Bell, Shield, Sparkles, Settings, BellRing, Flame, Award, Zap,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { ScreenLoader } from "@/components/ScreenLoader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/beui-tabs";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { PushToggle } from "@/components/PushToggle";
@@ -99,11 +100,7 @@ const Me = () => {
   })();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
-      </div>
-    );
+    return <ScreenLoader />;
   }
   if (!user) return <Navigate to="/auth" replace state={{ from: "/me" }} />;
 

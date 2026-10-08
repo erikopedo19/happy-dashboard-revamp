@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Phone, Loader2, CheckCircle2, XCircle, ArrowLeft, Star } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { ScreenLoader } from "@/components/ScreenLoader";
 
 type Booking = {
   id: string;
@@ -109,11 +110,7 @@ export default function ManageBooking() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
-      </div>
-    );
+    return <ScreenLoader className="bg-[#0A0A0B]" />;
   }
 
   if (!booking) {

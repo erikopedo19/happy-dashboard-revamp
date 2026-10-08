@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import maplibregl, { Map as MLMap, MapOptions } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -24,7 +24,28 @@ export interface MapProps {
   children?: React.ReactNode;
 }
 
-const DEFAULT_STYLE = "https://tiles.openfreemap.org/styles/positron";
+// CARTO basemaps — free, key-less vector styles on a fast global CDN.
+const DEFAULT_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
+// Same provider as flat raster tiles — no glyphs/sprites needed, so it still
+// works when the vector-style endpoint (or WebGL labels) can't load.
+const rasterFallbackStyle = (dark: boolean): maplibregl.StyleSpecification => ({
+  version: 8,
+  sources: {
+    carto: {
+      type: "raster",
+      tiles: [
+        `https://basemaps.cartocdn.com/rastertiles/${dark ? "dark_all" : "light_all"}/{z}/{x}/{y}@2x.png`,
+      ],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors © CARTO",
+    },
+  },
+  layers: [
+    { id: "bg", type: "background", paint: { "background-color": dark ? "#101014" : "#f4f4f6" } },
+    { id: "carto", type: "raster", source: "carto", paint: { "raster-fade-duration": 120 } },
+  ],
+});
 
 export const Map = forwardRef<MapRef, MapProps>(function Map(
   { initialViewState, mapStyle, className, style, onLoad, onStyleLoad, navigationControl = true, children },
@@ -35,9 +56,27 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
   const appliedStyleRef = useRef<string | undefined>(mapStyle);
   const onStyleLoadRef = useRef(onStyleLoad);
   onStyleLoadRef.current = onStyleLoad;
+  const [glFailed, setGlFailed] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
+    // WebViews without hardware acceleration silently produce a blank canvas.
+    // Do our own WebGL probe — this maplibre version doesn't export supported().
+    let supported = true;
+    try {
+      const probe = document.createElement("canvas");
+      supported = !!(
+        probe.getContext("webgl2") ||
+        probe.getContext("webgl") ||
+        probe.getContext("experimental-webgl")
+      );
+    } catch {
+      supported = false;
+    }
+    if (!supported) {
+      setGlFailed(true);
+      return;
+    }
     const opts: MapOptions = {
       container: containerRef.current,
       style: mapStyle || DEFAULT_STYLE,
@@ -59,7 +98,13 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
       fadeDuration: 120,
       pixelRatio: Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2),
     };
-    const map = new maplibregl.Map(opts);
+    let map: MLMap;
+    try {
+      map = new maplibregl.Map(opts);
+    } catch {
+      setGlFailed(true);
+      return;
+    }
     map.touchZoomRotate.disableRotation();
     if (navigationControl) {
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -73,6 +118,17 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
     }
     map.on("style.load", () => onStyleLoadRef.current?.(map));
     map.on("load", () => onLoad?.(map));
+    // If the vector style can't be fetched (provider down/blocked), swap to
+    // raster tiles once so the map still renders instead of a black box.
+    let fellBack = false;
+    let loaded = false;
+    map.on("load", () => { loaded = true; });
+    map.on("error", () => {
+      if (loaded || fellBack) return;
+      fellBack = true;
+      const wantsDark = typeof mapStyle === "string" && mapStyle.includes("dark");
+      map.setStyle(rasterFallbackStyle(wantsDark));
+    });
     // Styles reference sprite images we don't ship; give MapLibre a 1px blank
     // so it stops logging and keeps rendering.
     map.on("styleimagemissing", (e) => {
@@ -106,6 +162,23 @@ export const Map = forwardRef<MapRef, MapProps>(function Map(
   return (
     <div ref={containerRef} className={className} style={style}>
       {children}
+      {glFailed && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            background: "#101014",
+            color: "rgba(255,255,255,0.55)",
+            font: "500 13px/1.4 system-ui, -apple-system, sans-serif",
+            padding: 24,
+            textAlign: "center",
+          }}
+        >
+          Map isn't available on this device.
+        </div>
+      )}
     </div>
   );
 });

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Search, ExternalLink, User, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Seo } from "@/components/Seo";
+import { ScreenLoader } from "@/components/ScreenLoader";
 
 const BookingForms = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,14 +54,7 @@ const BookingForms = () => {
   ) || [];
 //fix the stylist to not let book on blocked day
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-secondary/40 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading booking forms...</p>
-        </div>
-      </div>
-    );
+    return <ScreenLoader className="bg-secondary/40" />;
   }
 
   return (

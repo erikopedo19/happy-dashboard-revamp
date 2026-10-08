@@ -154,28 +154,31 @@ function buildCluster(members: Barbershop[]) {
   return root;
 }
 
-// Gives the flat openfreemap dark style some depth: navy water, green parks,
-// rose-tinted major roads and brighter labels.
+// Gives the CARTO Dark Matter style a brand pass: deeper background, navy
+// water, greener parks and rose-tinted road casings. Layer ids are the
+// dark-matter schema (road_*/place_*/watername_*), not openfreemap's.
 const DARK_PALETTE: Array<[string, string, string]> = [
-  ["background", "background-color", "#111216"],
-  ["water", "fill-color", "#0c2236"],
-  ["waterway", "line-color", "#0c2236"],
-  ["landuse_residential", "fill-color", "#16161b"],
-  ["landcover_wood", "fill-color", "#11241a"],
-  ["landuse_park", "fill-color", "#132a1d"],
-  ["building", "fill-color", "#1b1b22"],
-  ["building", "fill-outline-color", "#262630"],
-  ["highway_minor", "line-color", "#212128"],
-  ["highway_major_subtle", "line-color", "#2d2a33"],
-  ["highway_motorway_subtle", "line-color", "#3a2730"],
-  ["highway_major_casing", "line-color", "rgba(251,113,133,0.22)"],
-  ["highway_motorway_casing", "line-color", "rgba(251,113,133,0.32)"],
-  ["boundary_country_z0-4", "line-color", "#3f3f46"],
-  ["boundary_country_z5-", "line-color", "#3f3f46"],
-  ["water_name", "text-color", "#4a7ba7"],
-  ["water_name", "text-halo-color", "rgba(0,0,0,0.6)"],
-  ...["place_other", "place_suburb", "place_village", "place_town", "place_city", "place_city_large", "place_state", "place_country_other", "place_country_minor", "place_country_major"].map(
-    (id) => [id, "text-color", "#a1a1aa"] as [string, string, string],
+  ["background", "background-color", "#0e0f13"],
+  ["water", "fill-color", "#0b1f30"],
+  ["water_shadow", "fill-color", "#0b1f30"],
+  ["waterway", "line-color", "#0b1f30"],
+  ["landuse", "fill-color", "#13131a"],
+  ["landuse_residential", "fill-color", "#15151b"],
+  ["landcover", "fill-color", "#101a14"],
+  ["park_national_park", "fill-color", "#12291c"],
+  ["park_nature_reserve", "fill-color", "#12291c"],
+  ["building", "fill-color", "#191920"],
+  ["building-top", "fill-color", "#1f1f28"],
+  ["boundary_country_inner", "line-color", "#3f3f46"],
+  ["boundary_country_outline", "line-color", "#3f3f46"],
+  ...["road_pri_case_noramp", "road_sec_case_noramp", "road_trunk_case_noramp", "road_mot_case_noramp", "road_pri_case_ramp", "road_trunk_case_ramp", "road_mot_case_ramp", "tunnel_pri_case", "tunnel_trunk_case", "tunnel_mot_case", "bridge_pri_case", "bridge_trunk_case", "bridge_mot_case"].map(
+    (id) => [id, "line-color", "rgba(251,113,133,0.28)"] as [string, string, string],
+  ),
+  ...["watername_ocean", "watername_sea", "watername_lake", "watername_lake_line", "waterway_label"].map(
+    (id) => [id, "text-color", "#4a7ba7"] as [string, string, string],
+  ),
+  ...["place_hamlet", "place_suburbs", "place_villages", "place_town", "place_city", "place_state", "place_country_2", "place_country_1"].map(
+    (id) => [id, "text-color", "#b9b9c2"] as [string, string, string],
   ),
 ];
 
@@ -193,8 +196,8 @@ function applyDarkPalette(map: maplibregl.Map) {
 const STORAGE_KEY = "barbershop-map-location";
 
 const STYLES = {
-  light: "https://tiles.openfreemap.org/styles/bright",
-  dark: "https://tiles.openfreemap.org/styles/dark",
+  light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
 };
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };

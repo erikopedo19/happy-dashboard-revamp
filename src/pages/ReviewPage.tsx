@@ -6,6 +6,7 @@ import { Button } from "@heroui/react";
 import { Loader2, Star, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ScreenLoader } from "@/components/ScreenLoader";
 
 const db = supabase as any;
 
@@ -68,11 +69,7 @@ export default function ReviewPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
-      </div>
-    );
+    return <ScreenLoader className="bg-[#0A0A0B]" />;
   }
 
   if (isError || !booking) {

@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link, Navigate } from "react-router-dom";
-import { Heart, Loader2, Scissors, Star, Calendar } from "lucide-react";
+import { Heart, Scissors, Star, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { ScreenLoader } from "@/components/ScreenLoader";
 import { Button } from "@heroui/react";
 
 
@@ -110,11 +111,7 @@ export function FavoritesList() {
 const Favorites = () => {
   const { user, loading } = useAuth();
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#0c0c0c]">
-      <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
-    </div>
-  );
+  if (loading) return <ScreenLoader />;
   if (!user) return <Navigate to="/auth" replace state={{ from: "/favorites" }} />;
 
   return (

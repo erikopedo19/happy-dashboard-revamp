@@ -28,6 +28,7 @@ import { AppointmentForm } from "@/components/AppointmentForm";
 import { ModernAppointmentsCalendar } from "@/components/ModernAppointmentsCalendar";
 import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
+import { CutziooLoader } from "@/components/CutziooLoader";
 import { AgendaUpgradeDrawer } from "@/components/AgendaUpgradeDrawer";
 import { Button } from "@heroui/react";
 import { Input } from "@/components/ui/input";
@@ -409,8 +410,7 @@ const Agenda = () => {
             <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen} />
             {agendaSettingsLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6">
-                <div className="w-10 h-10 rounded-2xl border-2 border-white/10 border-t-[#0A84FF] animate-spin" />
-                <p className="text-sm text-white/50 mt-4">Loading your schedule…</p>
+                <CutziooLoader variant="loop" size="64px" wordmark={false} />
               </div>
             ) : showHoursOnboarding ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6 relative overflow-hidden">

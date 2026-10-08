@@ -132,7 +132,7 @@ export function MobileSettings(props: any) {
     if (agreed) {
       const confirmed = confirm("You must agree to the Terms and Privacy Policy to use the app. If you decline, you will be signed out.");
       if (!confirmed) return;
-      supabase.auth.signOut().then(() => { window.location.href = "/login"; });
+      supabase.auth.signOut().then(() => { window.location.href = "/auth"; });
       return;
     }
     setAgreed(true);
@@ -188,7 +188,7 @@ export function MobileSettings(props: any) {
     }
     toast({ title: "Account deleted" });
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/auth";
   };
 
   const initials =
@@ -424,7 +424,7 @@ export function MobileSettings(props: any) {
                 danger
                 onClick={async () => {
                   await supabase.auth.signOut();
-                  window.location.href = "/login";
+                  window.location.href = "/auth";
                 }}
               />
             </>

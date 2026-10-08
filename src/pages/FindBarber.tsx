@@ -12,7 +12,6 @@ import {
   User,
   Star,
   Map as MapIcon,
-  Loader2,
   ChevronDown,
   ChevronRight,
   Clock,
@@ -39,10 +38,11 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
 const BarbershopMap = lazy(() => import("@/components/BarbershopMap").then((m) => ({ default: m.BarbershopMap })));
-if (typeof window !== "undefined") { const warm = () => { import("@/components/BarbershopMap").catch(() => {}); fetch("https://tiles.openfreemap.org/styles/positron").catch(() => {}); }; ((window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 800)))(warm); }
+if (typeof window !== "undefined") { const warm = () => { import("@/components/BarbershopMap").catch(() => {}); fetch("https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json").catch(() => {}); }; ((window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 800)))(warm); }
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ScreenLoader } from "@/components/ScreenLoader";
 import { Seo } from "@/components/Seo";
 import { StoriesRail } from "@/components/stories/StoriesRail";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -334,11 +334,7 @@ const FindBarber = () => {
 
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-6 h-6 animate-spin text-[#FF5A6E]" />
-      </div>
-    );
+    return <ScreenLoader />;
   }
   if (!user) {
     return <Navigate to="/auth" replace state={{ from: "/find-barber" }} />;

@@ -134,8 +134,8 @@ const LandingRoute = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        Loading...
+      <div className="grid min-h-dvh place-items-center bg-black">
+        <CutziooLoader variant="loop" size="72px" wordmark={false} />
       </div>
     );
   }

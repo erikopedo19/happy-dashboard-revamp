@@ -14,6 +14,7 @@ import { ShimmerText } from "@/components/ShimmerText";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { format } from 'date-fns';
 import AgendaBookingForm from "@/components/AgendaBookingForm";
+import { ScreenLoader } from "@/components/ScreenLoader";
 import { getBrowserTimezone } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
 import { CheckoutDialog, type CheckoutItem } from "@/components/CheckoutDialog";
@@ -760,14 +761,7 @@ const Booking = () => {
 
   // Show loading state (also while bookingLink is missing or query is fetching)
   if (!bookingLink || profileLoading || servicesLoading || (!businessProfile && !profileError)) {
-    return (
-      <div className="min-h-screen bg-[#0c0c0c] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E0152F] mx-auto"></div>
-          <p className="mt-4 text-[#8E8E93]">Loading booking page...</p>
-        </div>
-      </div>
-    );
+    return <ScreenLoader className="bg-[#0c0c0c]" />;
   }
 
   // Show error state
