@@ -71,7 +71,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
-      gsap.set(el, { opacity: 1, x: 0, y: 0, scale: 1 });
+      gsap.set(el, { clearProps: "transform,opacity" });
       prevType.current = type;
       return;
     }
@@ -79,12 +79,18 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     const tween = gsap.fromTo(
       el,
       { opacity: 0, x: fromX, y: fromY, scale: fromScale },
-      { opacity: 1, x: 0, y: 0, scale: 1, duration, ease: "power2.out" }
+      {
+        opacity: 1, x: 0, y: 0, scale: 1, duration, ease: "power2.out",
+        // A leftover transform turns this wrapper into the containing block for
+        // every `position: fixed` page (full-screen map, sheets), collapsing them.
+        clearProps: "transform,opacity",
+      }
     );
 
     prevType.current = type;
     return () => {
       tween.kill();
+      gsap.set(el, { clearProps: "transform,opacity" });
     };
   }, [pathname]);
 
