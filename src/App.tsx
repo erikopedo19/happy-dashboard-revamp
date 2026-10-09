@@ -237,7 +237,7 @@ function AnimatedRoutes() {
     );
   }
   return (
-    <PageTransition>
+    <RouteErrorBoundary><PageTransition>
       <Suspense fallback={<RouteFallback />}>
         <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
@@ -285,7 +285,7 @@ function AnimatedRoutes() {
       <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </PageTransition>
+    </PageTransition></RouteErrorBoundary>
   );
 }
 
