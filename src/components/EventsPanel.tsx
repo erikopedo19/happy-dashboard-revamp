@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Loader2, AlertCircle, RefreshCw, MapPin, CalendarDays, Clock, Search, Navigation, Ticket, User } from "lucide-react";
-import { Seo } from "@/components/Seo";
 
 export interface EventRow {
   id: string;
@@ -28,7 +27,7 @@ const fmtDate = (d: string) =>
   new Date(d + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 const fmtTime = (t?: string | null) => (t ? t.slice(0, 5) : null);
 
-export default function Events() {
+export function EventsPanel({ embedded = false }: { embedded?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -63,15 +62,14 @@ export default function Events() {
   const rest = filtered.filter((e) => e.id !== featured?.id);
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28">
-      <Seo
-        title="Barber Events & Seminars | Cutzioo"
-        description="Discover barber seminars, workshops and education events near you on Cutzioo."
-        path="/events"
-      />
-      <div className="max-w-3xl mx-auto px-4 pt-6">
-        <h1 className="text-[28px] font-bold tracking-tight">Events</h1>
-        <p className="text-sm text-muted-foreground mt-1">Seminars, workshops and barber education.</p>
+    <div className={embedded ? "" : "min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-28"}>
+      <div className={embedded ? "" : "max-w-3xl mx-auto px-4 pt-6"}>
+        {!embedded && (
+          <>
+            <h1 className="text-[28px] font-bold tracking-tight">Aggelies</h1>
+            <p className="text-sm text-muted-foreground mt-1">Seminars, workshops and barber education.</p>
+          </>
+        )}
 
         <div className="relative mt-4">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />

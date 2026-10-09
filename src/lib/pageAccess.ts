@@ -7,7 +7,7 @@ export const MEMBER_PAGES = [
   { path: "/services", label: "Services" },
   { path: "/stylists", label: "Stylists" },
   { path: "/teams", label: "Teams" },
-  { path: "/events/manage", label: "Events" },
+  { path: "/aggelies/manage", label: "Aggelies" },
   { path: "/reports", label: "Reports" },
   { path: "/booking-page", label: "Booking page" },
   { path: "/settings", label: "Settings" },
@@ -29,8 +29,14 @@ const ALWAYS_ALLOWED = [
   "/settings",
 ];
 
-const matches = (allowed: string, path: string) =>
-  path === allowed || path.startsWith(allowed + "/");
+// Old stored paths that moved — a member granted access keeps it after the rename.
+const canonical = (p: string) => (p === "/events/manage" ? "/aggelies/manage" : p);
+
+const matches = (allowed: string, path: string) => {
+  const a = canonical(allowed);
+  const p = canonical(path);
+  return p === a || p.startsWith(a + "/");
+};
 
 export function canAccessPage(allowedPages: string[] | null | undefined, path: string): boolean {
   // No list stored → full access (owners/admins never carry one).

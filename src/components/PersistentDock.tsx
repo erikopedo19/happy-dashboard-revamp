@@ -14,7 +14,7 @@ const CLIENT_ROUTES = [
   "/find-barbershop",
   "/my-bookings",
   "/favorites",
-  "/events",
+  "/aggelies",
   "/me",
 ];
 
@@ -31,6 +31,7 @@ const ADMIN_ROUTES = [
   "/products",
   "/booking-forms",
   "/brand",
+  "/aggelies/manage",
 ];
 
 export const PersistentDock = () => {
@@ -50,9 +51,10 @@ export const PersistentDock = () => {
   const isClientRoute = CLIENT_ROUTES.some((r) => location.pathname.startsWith(r));
   const isAdminRoute = ADMIN_ROUTES.some((r) => location.pathname.startsWith(r));
 
-  // Route-based wins (handles role mismatch). Client routes → client dock.
-  if (isClientRoute) return <ClientMobileDockInner />;
+  // Route-based wins (handles role mismatch). Admin first — /aggelies/manage
+  // shares the /aggelies prefix with the client-facing classifieds page.
   if (isAdminRoute && role !== "client") return <MobileDockInner />;
+  if (isClientRoute) return <ClientMobileDockInner />;
 
   // Fallback by role: only barbers/admins see admin dock.
   if (role === "barber" || role === "admin" || role === "owner") {

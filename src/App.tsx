@@ -84,8 +84,8 @@ const Reports = lazyRetry(() => import("./pages/Reports"), true);
 const MyBookings = lazyRetry(() => import("./pages/MyBookings"), true);
 const Me = lazyRetry(() => import("./pages/Me"), true);
 const Favorites = lazyRetry(() => import("./pages/Favorites"), true);
-const Events = lazyRetry(() => import("./pages/Events"), true);
-const EventsManage = lazyRetry(() => import("./pages/EventsManage"));
+const Aggelies = lazyRetry(() => import("./pages/Aggelies"), true);
+const AggeliesManage = lazyRetry(() => import("./pages/AggeliesManage"));
 const ManageBooking = lazyRetry(() => import("./pages/ManageBooking"));
 const ReviewPage = lazyRetry(() => import("./pages/ReviewPage"));
 const WaitlistClaim = lazyRetry(() => import("./pages/WaitlistClaim"));
@@ -255,8 +255,10 @@ function AnimatedRoutes() {
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/me" element={<Me />} />
       <Route path="/favorites" element={<Favorites />} />
-      <Route path="/events" element={<Events />} />
-      <Route path="/events/manage" element={<ProtectedRoute><EventsManage /></ProtectedRoute>} />
+      <Route path="/aggelies" element={<Aggelies />} />
+      <Route path="/aggelies/manage" element={<ProtectedRoute><AggeliesManage /></ProtectedRoute>} />
+      <Route path="/events" element={<Navigate to="/aggelies?tab=events" replace />} />
+      <Route path="/events/manage" element={<Navigate to="/aggelies/manage" replace />} />
       <Route path="/" element={<LandingRoute />} />
       <Route path="/app" element={<LandingRoute />} />
       <Route path="/superadmin" element={<SuperAdminLogin />} />

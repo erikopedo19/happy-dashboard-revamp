@@ -1009,9 +1009,9 @@ function FullScreenMap({
   setMinRating: (v: "any" | "3" | "4" | "4.5") => void;
   onBack: () => void;
 }) {
-  const activeFilters =
-    Number(maxDistance !== "any") + Number(minRating !== "any");
   const [vipOnly, setVipOnly] = useState(false);
+  const activeFilters =
+    Number(maxDistance !== "any") + Number(minRating !== "any") + Number(vipOnly);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [recenterSignal, setRecenterSignal] = useState(0);
   const [bookBarber, setBookBarber] = useState<BarberProfile | null>(null);
@@ -1061,14 +1061,17 @@ function FullScreenMap({
         initial: (b.brandName || "B").trim().charAt(0).toUpperCase(),
         vip: !!b.home_service,
       })).concat(
-        visible.length ? [] : [
+        // Demo pins are a placeholder for an empty map only — when real
+        // barbers exist but the filters exclude them all, show no pins
+        // instead of pretending the filter didn't run.
+        located.length === 0 ? [
           { n: "Fade Factory (demo)", la: 37.9795, lo: 23.7162, c: "#FF375F", v: false },
           { n: "Kings Cut (demo)", la: 37.9838, lo: 23.7275, c: "#0A84FF", v: false },
           { n: "Royal Home Barber (demo)", la: 37.9752, lo: 23.7348, c: "#FF9F0A", v: true },
           { n: "Sharp Studio (demo)", la: 37.9701, lo: 23.7225, c: "#30D158", v: false },
-        ].map((d, i) => ({ id: `demo-${i}`, name: d.n, location: d.v ? "VIP · Comes to your house" : "Demo shop", latitude: d.la, longitude: d.lo, color: d.c, avatarUrl: null, initial: d.n.charAt(0), vip: d.v })),
+        ].map((d, i) => ({ id: `demo-${i}`, name: d.n, location: d.v ? "VIP · Comes to your house" : "Demo shop", latitude: d.la, longitude: d.lo, color: d.c, avatarUrl: null, initial: d.n.charAt(0), vip: d.v })) : [],
       ),
-    [visible],
+    [visible, located],
   );
 
   useEffect(() => {
@@ -1118,7 +1121,7 @@ function FullScreenMap({
 
 
       {/* Top floating search + filters */}
-      <div className="absolute left-0 right-0 top-0 z-20 pt-3">
+      <div className="absolute left-0 right-0 top-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="mx-3 flex items-center gap-2">
           <button
             type="button"

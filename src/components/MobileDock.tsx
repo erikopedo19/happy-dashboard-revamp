@@ -30,7 +30,8 @@ const moreItems: MoreItem[] = [
   { label: 'Customers', icon: 'users', path: '/customers' },
   { label: 'Booking', icon: 'globe', path: '/booking-page' },
   { label: 'Stylists', icon: 'user-check', path: '/stylists' },
-  { label: 'Teams', icon: 'briefcase', path: '/teams', isNew: true },
+  { label: 'Teams', icon: 'briefcase', path: '/teams' },
+  { label: 'Aggelies', icon: 'megaphone', path: '/aggelies/manage', isNew: true },
 ];
 
 const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {
