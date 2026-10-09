@@ -177,6 +177,35 @@ function RouteFallback() {
   );
 }
 
+// Never leave a blank screen if a page file fails to load (e.g. after a new deploy).
+class RouteErrorBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch() {
+    const last = Number(sessionStorage.getItem("chunk-reload-at") || 0);
+    if (Date.now() - last > 10_000) {
+      sessionStorage.setItem("chunk-reload-at", String(Date.now()));
+      window.location.reload();
+    }
+  }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div className="grid min-h-dvh place-items-center bg-black px-6 text-center">
+        <div className="space-y-4">
+          <p className="text-[15px] font-semibold text-white">A new version of Cutzioo is available</p>
+          <button
+            onClick={() => { sessionStorage.removeItem("chunk-reload-at"); window.location.reload(); }}
+            className="rounded-full bg-[#FF375F] px-6 py-2.5 text-[14px] font-semibold text-white"
+          >
+            Reload
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
 // Redirects invited members away from pages their owner didn't grant.
 function PageAccessGuard() {
   const location = useLocation();
@@ -208,7 +237,7 @@ function AnimatedRoutes() {
     );
   }
   return (
-    <PageTransition>
+    <RouteErrorBoundary><PageTransition>
       <Suspense fallback={<RouteFallback />}>
         <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
@@ -256,7 +285,7 @@ function AnimatedRoutes() {
       <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </PageTransition>
+    </PageTransition></RouteErrorBoundary>
   );
 }
 
