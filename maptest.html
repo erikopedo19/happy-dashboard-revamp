@@ -1,8 +1,0 @@
-<!doctype html><html class="dark"><body style="margin:0;background:#000"><div id="r" style="position:fixed;inset:0"></div>
-<script type="module">
-import React from "react"; import { createRoot } from "react-dom/client";
-import { ThemeProvider } from "next-themes";
-import { BarbershopMap } from "/src/components/BarbershopMap.tsx";
-const shops=[[40.5162,21.2752],[40.5166,21.2684],[55.71,13.17],[51.04,4.75],[43.08,25.62]].map(([la,lo],i)=>({id:"s"+i,name:"Shop "+i,location:"x",latitude:la,longitude:lo,color:"#FF375F",avatarUrl:null,initial:"S"}));
-createRoot(document.getElementById("r")).render(React.createElement(ThemeProvider,{attribute:"class",defaultTheme:"dark"},React.createElement("div",{style:{position:"absolute",inset:0}},React.createElement(BarbershopMap,{barbershops:shops,height:"100%",hideSearch:true,showControls:false,fitToMarkers:true,showZoomControls:false}))));
-</script></body></html>
