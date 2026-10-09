@@ -55,7 +55,11 @@ Deno.serve(async (req: Request) => {
   const done = new Set((sent ?? []).map((r: any) => r.user_id));
   const { data: usersPage } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
   const users = new Map((usersPage?.users ?? []).map((u: any) => [u.id, u]));
-  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)
+  const byBookings = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+  // Top up with the most recently active sign-ins when fewer than 50 have bookings.
+  const byLogin = [...users.values()].filter((u: any) => u.last_sign_in_at && !counts.has(u.id))
+    .sort((a: any, b: any) => +new Date(b.last_sign_in_at) - +new Date(a.last_sign_in_at)).map((u: any) => u.id);
+  const ranked = [...byBookings, ...byLogin]
     .filter((id) => !done.has(id) && (users.get(id) as any)?.email).slice(0, LIMIT);
   const { data: profiles } = await admin.from("profiles").select("id, full_name, deleted_at").in("id", ranked.length ? ranked : ["00000000-0000-0000-0000-000000000000"]);
   const pmap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
