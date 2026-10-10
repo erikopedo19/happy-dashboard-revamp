@@ -655,6 +655,113 @@ export type Database = {
           },
         ]
       }
+      listing_applications: {
+        Row: {
+          applicant_id: string
+          created_at: string
+          full_name: string | null
+          id: string
+          listing_id: string
+          message: string | null
+          phone: string | null
+        }
+        Insert: {
+          applicant_id: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          listing_id: string
+          message?: string | null
+          phone?: string | null
+        }
+        Update: {
+          applicant_id?: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          listing_id?: string
+          message?: string | null
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_applications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          ai_found: boolean
+          contact_phone: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          featured: boolean
+          id: string
+          kind: string
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          price_text: string | null
+          profession: string
+          published: boolean
+          short_description: string | null
+          source_name: string | null
+          source_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_found?: boolean
+          contact_phone?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          featured?: boolean
+          id?: string
+          kind: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          price_text?: string | null
+          profession?: string
+          published?: boolean
+          short_description?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_found?: boolean
+          contact_phone?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          featured?: boolean
+          id?: string
+          kind?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          price_text?: string | null
+          profession?: string
+          published?: boolean
+          short_description?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_email_log: {
         Row: {
           campaign: string
@@ -1810,6 +1917,15 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { token_str: string }; Returns: Json }
+      apply_to_listing: {
+        Args: {
+          _full_name?: string
+          _listing_id: string
+          _message?: string
+          _phone?: string
+        }
+        Returns: Json
+      }
       cancel_appointment_by_barber: {
         Args: { _appointment_id: string }
         Returns: Json
@@ -1980,6 +2096,7 @@ export type Database = {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
       }
+      has_active_subscription: { Args: never; Returns: boolean }
       increment_story_views: { Args: { _story_id: string }; Returns: Json }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
