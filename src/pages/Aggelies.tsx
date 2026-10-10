@@ -28,12 +28,21 @@ import {
   AlertCircle,
   RefreshCw,
   Send,
+  Store,
+  ExternalLink,
+  Wand2,
 } from "lucide-react";
 
 export interface ListingRow {
   id: string;
   created_by: string | null;
-  kind: "rent" | "job";
+  kind: "rent" | "space" | "job";
+  profession?: "barber" | "salon" | "nails";
+  latitude?: number | null;
+  longitude?: number | null;
+  source_url?: string | null;
+  source_name?: string | null;
+  ai_found?: boolean;
   title: string;
   short_description: string | null;
   description: string | null;
@@ -44,21 +53,38 @@ export interface ListingRow {
   featured: boolean;
 }
 
-type TabKey = "rent" | "job" | "events";
+type TabKey = "rent" | "space" | "job" | "events";
+const PROFESSIONS = [
+  { key: "all", label: "All" },
+  { key: "barber", label: "Barbers" },
+  { key: "salon", label: "Hair salons" },
+  { key: "nails", label: "Nails" },
+] as const;
+const distKm = (a: number, b: number, c: number, d: number) => {
+  const R = 6371, t = Math.PI / 180;
+  const x = Math.sin(((c - a) * t) / 2) ** 2 + Math.cos(a * t) * Math.cos(c * t) * Math.sin(((d - b) * t) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+};
 const FREE_LIMIT = 2;
 const PRO_LIMIT = 10;
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
-  { key: "rent", label: "For Rent", icon: KeyRound },
+  { key: "rent", label: "Chairs", icon: KeyRound },
+  { key: "space", label: "Spaces", icon: Store },
   { key: "job", label: "Jobs", icon: Briefcase },
   { key: "events", label: "Events", icon: CalendarDays },
 ];
 
-const KIND_STYLE: Record<"rent" | "job", { badge: string; icon: any; gradient: string }> = {
+const KIND_STYLE: Record<"rent" | "space" | "job", { badge: string; icon: any; gradient: string }> = {
   rent: {
     badge: "bg-[#0A84FF]",
     icon: KeyRound,
     gradient: "from-[#0A84FF]/80 to-[#0055D4]",
+  },
+  space: {
+    badge: "bg-[#30D158]",
+    icon: Store,
+    gradient: "from-[#30D158]/80 to-[#1E8E3E]",
   },
   job: {
     badge: "bg-[#AF52DE]",
@@ -81,6 +107,41 @@ export default function Aggelies() {
   const [q, setQ] = useState("");
   const [applying, setApplying] = useState<ListingRow | null>(null);
   const [limitHit, setLimitHit] = useState(false);
+  const [prof, setProf] = useState<string>("all");
+  const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [finding, setFinding] = useState(false);
+
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { maximumAge: 600_000, timeout: 8000 }
+    );
+  }, []);
+
+  const findWithAi = async () => {
+    if (!user) { navigate("/auth", { state: { from: "/aggelies" } }); return; }
+    haptic("light");
+    let here = pos;
+    let city: string | undefined;
+    if (!here) {
+      city = window.prompt("Which city should we search?")?.trim() || undefined;
+      if (!city) return;
+    }
+    setFinding(true);
+    const { data, error: err } = await supabase.functions.invoke("find-listings", { body: { lat: here?.lat, lng: here?.lng, city } });
+    setFinding(false);
+    if (err || data?.error) {
+      let msg = data?.error;
+      try { msg = msg || JSON.parse(await (err as any).context.text()).error; } catch {}
+      toast.error(msg || "Couldn't search right now.");
+      return;
+    }
+    haptic("success");
+    if (data.cached) toast.success(`Listings near ${data.city} are already up to date.`);
+    else toast.success(data.added ? `Found ${data.added} new listings near ${data.city}.` : `No new listings near ${data.city} right now.`);
+    refetch();
+  };
 
   const limit = isPremium ? PRO_LIMIT : FREE_LIMIT;
 
@@ -128,14 +189,21 @@ export default function Aggelies() {
     const term = q.trim().toLowerCase();
     return listings
       .filter((l) => l.kind === activeTab)
+      .filter((l) => prof === "all" || (l.profession ?? "barber") === prof)
       .filter(
         (l) =>
           !term ||
           l.title.toLowerCase().includes(term) ||
           (l.location ?? "").toLowerCase().includes(term) ||
           (l.short_description ?? "").toLowerCase().includes(term)
-      );
-  }, [listings, activeTab, q]);
+      )
+      .sort((a, b) => {
+        if (!pos) return 0;
+        const da = a.latitude != null && a.longitude != null ? distKm(pos.lat, pos.lng, a.latitude, a.longitude) : 9999;
+        const db = b.latitude != null && b.longitude != null ? distKm(pos.lat, pos.lng, b.latitude, b.longitude) : 9999;
+        return da - db;
+      });
+  }, [listings, activeTab, q, prof, pos]);
 
   const openApply = (listing: ListingRow) => {
     haptic("light");
@@ -150,7 +218,7 @@ export default function Aggelies() {
   return (
     <div className="dark min-h-screen bg-[#000000] text-[#F2F2F7] pb-32">
       <Seo
-        title="Aggelies — Rentals, Jobs & Events | Cutzioo"
+        title="Rent & Staff — Chairs, Spaces, Jobs & Events | Cutzioo"
         description="Chairs and spaces for rent, staff openings and barber events — apply in one tap on Cutzioo."
         path="/aggelies"
       />
@@ -161,9 +229,9 @@ export default function Aggelies() {
       <div className="relative max-w-3xl mx-auto px-5 pt-14">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.03em]">Aggelies</h1>
+            <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.03em]">Rent &amp; Staff</h1>
             <p className="mt-1.5 text-[14px] text-white/45">
-              Spaces for rent, staff openings & events.
+              Chairs, salon spaces, jobs for barbers, hairdressers & nail artists.
             </p>
           </div>
           {user && (
@@ -182,7 +250,7 @@ export default function Aggelies() {
         </div>
 
         {/* Segmented tabs */}
-        <div className="mt-6 grid grid-cols-3 gap-1 rounded-full border border-white/[0.08] bg-[#1C1C1E] p-1">
+        <div className="mt-6 grid grid-cols-4 gap-1 rounded-full border border-white/[0.08] bg-[#1C1C1E] p-1">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = activeTab === t.key;
@@ -224,7 +292,33 @@ export default function Aggelies() {
               </div>
             ) : (
               <>
-                <div className="relative mt-5">
+                <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+                  {PROFESSIONS.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => { haptic("selection"); setProf(p.key); }}
+                      className={cn(
+                        "h-9 shrink-0 rounded-full px-4 text-[13px] font-semibold transition active:scale-95",
+                        prof === p.key ? "bg-white text-black" : "bg-white/[0.07] text-white/70"
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={findWithAi}
+                  disabled={finding}
+                  className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-gradient-to-r from-[#FF5A6E]/15 to-[#AF52DE]/15 text-[14px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-70"
+                >
+                  {finding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[#FF5A6E]" />}
+                  {finding ? "Searching the web near you…" : pos ? "Find listings near me with AI" : "Find listings with AI"}
+                </button>
+
+                <div className="relative mt-3">
                   <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                   <Input
                     value={q}
@@ -340,7 +434,7 @@ function ListingCard({
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
           <span className={cn("absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white", style.badge)}>
-            {listing.kind === "rent" ? "For rent" : "Hiring"}
+            {listing.kind === "rent" ? "Chair for rent" : listing.kind === "space" ? "Space for rent" : "Hiring"}
           </span>
           {listing.featured && (
             <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold text-amber-300">
@@ -366,6 +460,17 @@ function ListingCard({
             <p className={cn("mt-1.5 text-[13px] leading-relaxed text-white/55", !expanded && "line-clamp-2")}>
               {listing.short_description}
             </p>
+          )}
+          {listing.source_url && (
+            <a
+              href={listing.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[#FF5A6E]"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> Found on {listing.source_name || "the web"}
+            </a>
           )}
           {expanded && listing.description && (
             <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-white/60">{listing.description}</p>
