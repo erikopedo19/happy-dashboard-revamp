@@ -323,7 +323,7 @@ export default function Aggelies() {
                   <Input
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    placeholder={activeTab === "rent" ? "Search areas, prices, salons…" : "Search roles, salons, cities…"}
+                    placeholder={activeTab !== "job" ? "Search areas, prices, salons…" : "Search roles, salons, cities…"}
                     className="h-12 rounded-full border-white/[0.08] bg-white/[0.05] pl-11 text-[15px] text-white placeholder:text-white/35 focus-visible:ring-1 focus-visible:ring-[#FF5A6E]/50"
                   />
                 </div>
@@ -350,14 +350,14 @@ export default function Aggelies() {
                 {!isLoading && !error && filtered.length === 0 && (
                   <div className="mt-14 text-center">
                     <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[22px] border border-white/[0.06] bg-[#1C1C1E]">
-                      {activeTab === "rent" ? (
+                      {activeTab !== "job" ? (
                         <KeyRound className="h-8 w-8 text-white/40" />
                       ) : (
                         <Briefcase className="h-8 w-8 text-white/40" />
                       )}
                     </div>
                     <p className="mt-4 text-[17px] font-semibold">
-                      {q ? "Nothing matches your search" : activeTab === "rent" ? "No spaces yet" : "No openings yet"}
+                      {q ? "Nothing matches your search" : activeTab !== "job" ? "Nothing for rent yet — try AI search" : "No openings yet"}
                     </p>
                     <p className="mt-1 text-sm text-white/45">
                       {q ? "Try a different search." : "New aggelies will show up here."}
