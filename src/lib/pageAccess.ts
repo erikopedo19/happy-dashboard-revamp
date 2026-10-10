@@ -7,7 +7,7 @@ export const MEMBER_PAGES = [
   { path: "/services", label: "Services" },
   { path: "/stylists", label: "Stylists" },
   { path: "/teams", label: "Teams" },
-  { path: "/aggelies/manage", label: "Aggelies" },
+  { path: "/aggelies/manage", label: "Rent & Staff" },
   { path: "/reports", label: "Reports" },
   { path: "/booking-page", label: "Booking page" },
   { path: "/settings", label: "Settings" },
