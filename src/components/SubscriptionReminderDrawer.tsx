@@ -118,7 +118,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
 
   return (
     <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : handleDismiss())}>
-      <DrawerContent className="border-white/30 bg-white/80 backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/75">
+      <DrawerContent className="bg-white shadow-none dark:bg-[#1C1C1E]">
         <div className="mx-auto w-full max-w-md px-5 pb-9 pt-3">
           {/* Status tab */}
           <motion.div
@@ -129,10 +129,10 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
           >
             <span
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ring-1",
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em]",
                 isExpired
-                  ? "bg-rose-500/15 text-rose-600 ring-rose-500/30 dark:text-rose-300"
-                  : "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-300"
+                  ? "bg-[#FF2D46]/12 text-[#FF2D46]"
+                  : "bg-amber-500/12 text-amber-600 dark:text-amber-400"
               )}
             >
               <Crown className="h-3 w-3" />
@@ -145,9 +145,9 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.05 }}
-            className="mx-auto mt-5 grid h-[76px] w-[76px] place-items-center rounded-[22px] bg-gradient-to-b from-[#FF5A5F] to-[#D3001B] shadow-[0_14px_30px_-8px_rgba(211,0,27,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]"
+            className="mx-auto mt-5 grid h-[76px] w-[76px] place-items-center rounded-[22px] bg-[#FF2D46]/12 text-[#FF2D46]"
           >
-            <Crown className="h-9 w-9 text-white" strokeWidth={1.75} />
+            <Crown className="h-9 w-9" strokeWidth={1.75} />
           </motion.div>
 
           <motion.div
@@ -184,11 +184,11 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
                   transition={{ delay: 0.2 + i * 0.05, duration: 0.3 }}
                   className="flex items-center gap-3 px-4 py-3"
                 >
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#0A84FF]/12 text-[#0A84FF] dark:bg-[#0A84FF]/20">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#FF2D46]/10 text-[#FF2D46]">
                     <f.icon className="h-3.5 w-3.5" strokeWidth={2} />
                   </span>
                   <span className="flex-1 text-[14px] font-medium text-[#1C1C1E]/85 dark:text-white/85">{f.label}</span>
-                  <Check className="h-4 w-4 text-[#34C759]" strokeWidth={2.5} />
+                  <Check className="h-4 w-4 text-[#FF2D46]" strokeWidth={2.5} />
                 </motion.li>
               ))}
             </ul>
@@ -203,7 +203,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
             <button
               type="button"
               onClick={handleManage}
-              className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#0A84FF] text-[16px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(10,132,255,0.55)] transition active:scale-[0.98] active:bg-[#0066d6]"
+              className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF2D46] text-[16px] font-semibold text-white transition active:scale-[0.98] active:bg-[#E0152F]"
             >
               {isExpired ? "Renew Cutzioo Pro" : "Keep Pro — Renew"}
             </button>

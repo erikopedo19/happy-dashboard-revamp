@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Seo } from "@/components/Seo";
 import { EventsPanel } from "@/components/EventsPanel";
 import { haptic } from "@/lib/haptics";
@@ -31,6 +31,7 @@ import {
   Store,
   ExternalLink,
   Wand2,
+  ChevronRight,
 } from "lucide-react";
 
 export interface ListingRow {
@@ -66,6 +67,7 @@ const distKm = (a: number, b: number, c: number, d: number) => {
   return 2 * R * Math.asin(Math.sqrt(x));
 };
 const FREE_LIMIT = 2;
+const FREE_VISIBLE = 5;
 const PRO_LIMIT = 10;
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
@@ -75,21 +77,24 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "events", label: "Events", icon: CalendarDays },
 ];
 
-const KIND_STYLE: Record<"rent" | "space" | "job", { badge: string; icon: any; gradient: string }> = {
+const KIND_STYLE: Record<"rent" | "space" | "job", { badge: string; icon: any; gradient: string; label: string }> = {
   rent: {
     badge: "bg-[#0A84FF]",
     icon: KeyRound,
     gradient: "from-[#0A84FF]/80 to-[#0055D4]",
+    label: "Chair for rent",
   },
   space: {
     badge: "bg-[#30D158]",
     icon: Store,
     gradient: "from-[#30D158]/80 to-[#1E8E3E]",
+    label: "Space for rent",
   },
   job: {
     badge: "bg-[#AF52DE]",
     icon: Briefcase,
     gradient: "from-[#AF52DE]/80 to-[#7B2FBE]",
+    label: "Hiring",
   },
 };
 
@@ -110,6 +115,10 @@ export default function Aggelies() {
   const [prof, setProf] = useState<string>("all");
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [finding, setFinding] = useState(false);
+  const [applicationsOpen, setApplicationsOpen] = useState(false);
+  const gateRef = useRef<HTMLDivElement>(null);
+  const lastGateScrollRef = useRef(0);
+  const gateCardAnimation = useAnimation();
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -178,6 +187,7 @@ export default function Aggelies() {
   });
 
   const usedCount = myApplications?.size ?? 0;
+  const appliedListings = listings.filter((listing) => myApplications?.has(listing.id));
 
   const setTab = (key: TabKey) => {
     if (key === activeTab) return;
@@ -207,6 +217,35 @@ export default function Aggelies() {
         return da - db;
       });
   }, [listings, activeTab, q, prof, pos]);
+  const showGate = !isPremium && activeTab !== "events" && filtered.length > FREE_VISIBLE;
+
+  useEffect(() => {
+    let timer: number | undefined;
+    const onScroll = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (Date.now() - lastGateScrollRef.current < 700) return;
+        const gate = gateRef.current;
+        if (!gate) return;
+        const rect = gate.getBoundingClientRect();
+        if (rect.top >= window.innerHeight * 0.3) return;
+
+        lastGateScrollRef.current = Date.now();
+        window.scrollTo({
+          top: window.scrollY + rect.top - window.innerHeight * 0.55,
+          behavior: "smooth",
+        });
+        haptic("warning");
+        gateCardAnimation.start({ scale: [1, 1.03, 1], transition: { duration: 0.36 } });
+      }, 120);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [gateCardAnimation]);
 
   const openApply = (listing: ListingRow) => {
     haptic("light");
@@ -238,7 +277,10 @@ export default function Aggelies() {
             </p>
           </div>
           {user && (
-            <div
+            <button
+              type="button"
+              onClick={() => setApplicationsOpen(true)}
+              aria-label="My applications"
               className={cn(
                 "mb-1 flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold",
                 isPremium
@@ -247,8 +289,9 @@ export default function Aggelies() {
               )}
             >
               {isPremium && <Crown className="h-3.5 w-3.5" />}
-              {usedCount}/{limit} applied
-            </div>
+              Applied {usedCount}/{limit}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
 
@@ -369,7 +412,7 @@ export default function Aggelies() {
                 )}
 
                 <div className="mt-5 space-y-3">
-                  {filtered.map((l, i) => (
+                  {(showGate ? filtered.slice(0, FREE_VISIBLE) : filtered).map((l, i) => (
                     <ListingCard
                       key={l.id}
                       listing={l}
@@ -380,7 +423,49 @@ export default function Aggelies() {
                   ))}
                 </div>
 
-                {!isLoading && !error && filtered.length > 0 && (
+                {showGate && (
+                  <div ref={gateRef} className="relative mt-3 max-h-[460px] overflow-hidden">
+                    <div aria-hidden="true" className="pointer-events-none select-none space-y-3 blur-[6px] opacity-60">
+                      {filtered.slice(FREE_VISIBLE, FREE_VISIBLE + 3).map((listing, index) => (
+                        <ListingCard
+                          key={listing.id}
+                          listing={listing}
+                          index={FREE_VISIBLE + index}
+                          applied={myApplications?.has(listing.id) ?? false}
+                          onApply={() => {}}
+                        />
+                      ))}
+                    </div>
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-b from-transparent to-black" />
+                    <motion.div
+                      animate={gateCardAnimation}
+                      className="absolute inset-0 z-20 flex items-center justify-center px-3"
+                    >
+                      <div className="w-full max-w-[380px] rounded-[24px] border border-white/10 bg-[#1C1C1E] p-5 text-center">
+                        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FF2D46]/12">
+                          <Crown className="h-6 w-6 text-[#FF2D46]" />
+                        </div>
+                        <h3 className="mt-3 text-[19px] font-bold leading-tight">
+                          See all {filtered.length} listings with Pro
+                        </h3>
+                        <p className="mt-2 text-[13px] leading-relaxed text-white/55">
+                          Free accounts see the first 5 listings in each tab. Upgrade to Pro to unlock everything and apply to up to {PRO_LIMIT}.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => user
+                            ? navigate("/pricing")
+                            : navigate("/auth?mode=signup", { state: { from: "/aggelies" } })}
+                          className="mt-4 h-11 w-full rounded-full bg-[#FF2D46] text-[14px] font-semibold text-white transition active:scale-[0.98] active:bg-[#E0152F]"
+                        >
+                          Get Pro
+                        </button>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+
+                {!isLoading && !error && filtered.length > 0 && !showGate && (
                   <p className="mt-6 text-center text-[12px] text-white/35">
                     Free accounts can apply to {FREE_LIMIT} listings ·{" "}
                     <span className="text-amber-300/80">Pro gets {PRO_LIMIT}</span>
@@ -402,7 +487,79 @@ export default function Aggelies() {
         onClose={() => setApplying(null)}
         onApplied={() => qc.invalidateQueries({ queryKey: ["aggelies-my-applications", user?.id] })}
       />
+      <AggeliesApplicationsSheet
+        open={applicationsOpen}
+        onOpenChange={setApplicationsOpen}
+        listings={appliedListings}
+        onSelect={(listing) => {
+          setQ("");
+          setProf("all");
+          setTab(listing.kind);
+          window.setTimeout(() => {
+            document.getElementById(`listing-${listing.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 300);
+        }}
+      />
     </div>
+  );
+}
+
+export function AggeliesApplicationsSheet({
+  open,
+  onOpenChange,
+  listings,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  listings: ListingRow[];
+  onSelect: (listing: ListingRow) => void;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="max-h-[82vh] rounded-t-[28px] border-white/10 bg-[#1C1C1E] px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-6 text-[#F2F2F7]">
+        <SheetHeader className="mb-5 text-left">
+          <SheetTitle className="text-[20px] font-bold text-white">My applications</SheetTitle>
+        </SheetHeader>
+        <div className="max-h-[65vh] space-y-2 overflow-y-auto pb-3">
+          {listings.length === 0 ? (
+            <p className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-8 text-center text-[14px] text-white/50">
+              You haven't applied to anything yet
+            </p>
+          ) : listings.map((listing) => {
+            const style = KIND_STYLE[listing.kind];
+            const Icon = style.icon;
+            return (
+              <button
+                key={listing.id}
+                type="button"
+                onClick={() => {
+                  onOpenChange(false);
+                  onSelect(listing);
+                }}
+                className="flex w-full items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 text-left transition active:scale-[0.99]"
+              >
+                <span className={cn("mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white", style.badge)}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white", style.badge)}>
+                    {style.label}
+                  </span>
+                  <span className="mt-1 block truncate text-[14px] font-semibold text-white">{listing.title}</span>
+                  <span className="mt-1 flex min-w-0 items-center gap-1 text-[12px] text-white/50">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{listing.location || "Location not specified"}</span>
+                  </span>
+                  {listing.price_text && <span className="mt-1 block text-[12px] font-medium text-white/70">{listing.price_text}</span>}
+                </span>
+                <ChevronRight className="mt-3 h-4 w-4 shrink-0 text-white/35" />
+              </button>
+            );
+          })}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -423,6 +580,7 @@ function ListingCard({
 
   return (
     <motion.div
+      id={`listing-${listing.id}`}
       initial={{ opacity: 0, y: 14, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: Math.min(index, 10) * 0.04, ...spring }}
@@ -437,7 +595,7 @@ function ListingCard({
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
           <span className={cn("absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white", style.badge)}>
-            {listing.kind === "rent" ? "Chair for rent" : listing.kind === "space" ? "Space for rent" : "Hiring"}
+            {style.label}
           </span>
           {listing.featured && (
             <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold text-amber-300">

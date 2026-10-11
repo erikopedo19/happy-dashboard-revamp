@@ -210,7 +210,7 @@ export function Hero() {
         </motion.div>
 
         {/* phones + floating chips */}
-        <motion.div style={{ opacity: fadeOut }} className="relative mt-8 sm:mt-6">
+        <motion.div style={{ opacity: fadeOut }} className="relative mt-12 sm:mt-6">
           <div className="relative mx-auto flex h-[400px] items-end justify-center sm:h-[560px]">
             <motion.div style={{ y: ySides }} className="absolute bottom-0 left-1/2 z-0 hidden sm:block">
               <div className="w-[210px] -translate-x-[165%] rotate-[-9deg] lg:-translate-x-[178%]">

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, type PanInfo } from "framer-motion";
+import { animate, motion, AnimatePresence, useMotionValue, useTransform, type PanInfo, type MotionValue } from "framer-motion";
 import { X, Heart, Star, Calendar, Sparkles } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import { QuickBookSheet } from "@/components/QuickBookSheet";
@@ -18,11 +18,12 @@ const spring = { type: "spring" as const, stiffness: 320, damping: 30 };
 
 type ExitInfo = { dir: 1 | -1; vx: number };
 
-function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe: (dir: 1 | -1, vx: number) => void; isTop: boolean; depth: number }) {
+function Card({ barber, onSwipe, isTop, depth, edge }: { barber: SwipeBarber; onSwipe: (dir: 1 | -1, vx: number) => void; isTop: boolean; depth: number; edge: MotionValue<number> }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-220, 220], [-14, 14]);
   const likeOpacity = useTransform(x, [15, 95], [0, 1]);
   const nopeOpacity = useTransform(x, [-95, -15], [1, 0]);
+  const [snapToOrigin, setSnapToOrigin] = useState(true);
   const img = barber.avatar_url || barber.banner_url;
   const armed = useRef(0);
   useEffect(() => x.on("change", (v) => {
@@ -31,11 +32,17 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
   }), [x]);
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    const dir = info.offset.x > 110 || info.velocity.x > 600 ? 1 : info.offset.x < -110 || info.velocity.x < -600 ? -1 : 0;
-    if (!dir) return;
-    // Kill the constraint's return spring so the card flies out from where
-    // it was released — the exit spring then inherits the fling velocity.
+    const dir = Math.abs(info.offset.x) > 90
+      ? (info.offset.x > 0 ? 1 : -1)
+      : Math.abs(info.velocity.x) > 450
+        ? (info.velocity.x > 0 ? 1 : -1)
+        : 0;
+    if (!dir) {
+      animate(edge, 0, spring);
+      return;
+    }
     x.stop();
+    setSnapToOrigin(false);
     onSwipe(dir as 1 | -1, info.velocity.x);
   };
 
@@ -49,10 +56,10 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       exit="out"
       transition={spring}
       drag={isTop ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.6}
-      dragTransition={{ bounceStiffness: 340, bounceDamping: 26 }}
+      dragSnapToOrigin={snapToOrigin}
+      dragMomentum={false}
       onDragStart={() => haptic("selection")}
+      onDrag={isTop ? () => edge.set(x.get()) : undefined}
       onDragEnd={onDragEnd}
     >
       {img ? (
@@ -88,6 +95,11 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
 
 export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]; onClose: () => void; onLike: (id: string) => void }) {
   const [index, setIndex] = useState(0);
+  const edge = useMotionValue(0);
+  const leftGlowOpacity = useTransform(edge, [-160, 0], [1, 0]);
+  const rightGlowOpacity = useTransform(edge, [0, 160], [0, 1]);
+  const leftGlowScale = useTransform(edge, [-160, 0], [1.04, 1]);
+  const rightGlowScale = useTransform(edge, [0, 160], [1, 1.04]);
   const [exitInfo, setExitInfo] = useState<ExitInfo>({ dir: 1, vx: 500 });
   // The card still flying off screen — Book must target whoever is visible.
   const [leaving, setLeaving] = useState<SwipeBarber | null>(null);
@@ -105,6 +117,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
 
   const swipe = (d: 1 | -1, vx = d * 600) => {
     if (!current) return;
+    animate(edge, [edge.get(), d * 200, 0], { duration: 0.55, times: [0, 0.35, 1] });
     haptic(d === 1 ? "success" : "light");
     setExitInfo({ dir: d, vx });
     if (d === 1) onLike(current.id);
@@ -119,13 +132,14 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
 
   return (
     <motion.div
-      className="fixed inset-0 z-[80] h-[100dvh] flex flex-col bg-[#0A0A0C] text-white px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1rem)]"
+      className="fixed inset-0 z-[80] h-[100dvh] flex flex-col overscroll-contain touch-none bg-[#0A0A0C] text-white px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1rem)]"
+      style={{ touchAction: "none", overscrollBehavior: "contain" }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 40 }}
       transition={spring}
     >
-      <div className="flex items-center justify-between py-3">
+      <div className="relative z-30 flex items-center justify-between py-3">
         <div>
           <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 0.6, x: 0 }} className="text-xs uppercase tracking-widest flex items-center gap-1">
             <Sparkles className="h-3 w-3" /> New
@@ -139,14 +153,34 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
         </button>
       </div>
 
-      <div className="relative flex-1 my-3">
+      <div className="relative my-3 flex-1 overflow-hidden overscroll-contain touch-none" style={{ touchAction: "none", overscrollBehavior: "contain" }}>
         <AnimatePresence custom={exitInfo}>
           {visible.map((b, i) => (
-            <Card key={b.id} barber={b} isTop={i === 0} depth={i} onSwipe={swipe} />
+            <Card key={b.id} barber={b} isTop={i === 0} depth={i} onSwipe={swipe} edge={edge} />
           )).reverse()}
         </AnimatePresence>
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[38%]"
+          style={{
+            opacity: leftGlowOpacity,
+            scaleX: leftGlowScale,
+            transformOrigin: "left center",
+            background: "linear-gradient(to right, rgba(255,45,70,0.55), transparent)",
+          }}
+        />
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[38%]"
+          style={{
+            opacity: rightGlowOpacity,
+            scaleX: rightGlowScale,
+            transformOrigin: "right center",
+            background: "linear-gradient(to left, rgba(163,230,53,0.55), transparent)",
+          }}
+        />
         {!current && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 grid place-items-center text-center">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 z-10 grid place-items-center text-center">
             <div>
               <p className="text-xl font-semibold">You've seen everyone</p>
               <button onClick={() => { haptic("medium"); setLeaving(null); setIndex(0); }} className="mt-4 rounded-full bg-white text-black px-6 py-3 font-semibold active:scale-95 transition">Start again</button>
@@ -156,7 +190,7 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
       </div>
 
       {(current || leaving) && (
-        <div className="relative z-20 flex touch-manipulation items-center justify-center gap-5 pb-4 select-none">
+        <div className="relative z-30 flex touch-manipulation items-center justify-center gap-5 pb-4 select-none">
           <button
             type="button"
             disabled={!current}
