@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, AlertCircle, RefreshCw, Check, CalendarClock, ChevronRight, CreditCard, ShieldCheck } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw, Check, CalendarClock, ChevronRight, CreditCard, ShieldCheck, Database, Building2, Palette, Users, BarChart3, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
@@ -33,6 +30,15 @@ const money = (amount?: number | null, currency = "EUR") => {
     minimumFractionDigits: 2,
   }).format(Number(amount));
 };
+
+const FREE_PLAN_LOSSES = [
+  { icon: CalendarClock, label: "New bookings through your link are capped at 20 per month" },
+  { icon: Building2, label: "Rent & Staff: see 5 listings per tab and apply to 2" },
+  { icon: Palette, label: "Custom booking themes are Pro-only; free saves use the default" },
+  { icon: Users, label: "The Teams page is Pro-only" },
+  { icon: BarChart3, label: "Reports & Analytics are Pro-only" },
+  { icon: Globe, label: "Website tools are Pro-only" },
+];
 
 export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
   const navigate = useNavigate();
@@ -209,7 +215,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
 
           {status === "active" && (
             <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-              <Button variant="ghost" onClick={() => setConfirmOpen(true)} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
+              <Button variant="ghost" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
                 Cancel subscription
               </Button>
             </div>
@@ -235,26 +241,66 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         </TabsContent>
       </Tabs>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="z-[90] rounded-2xl border-border bg-card">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You'll keep full access until {fmt(data?.subscription_end)}. After that your account moves back to the free plan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep plan</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); cancelSubscription(); }}
-              disabled={busy}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel subscription"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Drawer open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DrawerContent className="z-[90] mx-auto max-h-[92dvh] w-full max-w-xl overflow-hidden border-white/[0.08] bg-white text-[#1C1C1E] shadow-none dark:bg-[#1C1C1E] dark:text-white">
+          <div className="mx-auto w-full max-w-xl overflow-y-auto overscroll-contain px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4 md:px-8">
+            <div className="mb-4 text-center">
+              <DrawerTitle className="text-[22px] font-bold tracking-tight">Cancel Cutzioo Pro?</DrawerTitle>
+              <DrawerDescription className="mt-1.5 text-[13px]">
+                Your Pro access continues until the end of your current billing period.
+              </DrawerDescription>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.025] dark:border-white/[0.07] dark:bg-white/[0.04]">
+              {[
+                { icon: CalendarClock, text: `Pro stays active until ${fmt(data?.subscription_end)}` },
+                { icon: ShieldCheck, text: "You won't be charged again" },
+                { icon: Database, text: "Your data is kept. Renew anytime to get everything back." },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3 border-b border-black/[0.06] px-3.5 py-3 last:border-b-0 dark:border-white/[0.06]">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#FF2D46]/15 text-[#FF2D46]">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="text-[13px] leading-snug text-[#1C1C1E]/85 dark:text-white/85">{text}</span>
+                </div>
+              ))}
+            </div>
+
+            <section className="mt-5">
+              <h3 className="mb-2 px-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#8E8E93] dark:text-white/45">
+                What you'll lose
+              </h3>
+              <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.025] dark:border-white/[0.07] dark:bg-white/[0.04]">
+                {FREE_PLAN_LOSSES.map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-3 border-b border-black/[0.06] px-3.5 py-2.5 last:border-b-0 dark:border-white/[0.06]">
+                    <Icon className="h-4 w-4 shrink-0 text-[#FF2D46]" />
+                    <span className="text-[13px] leading-snug text-[#1C1C1E]/85 dark:text-white/85">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="mt-5 space-y-1.5">
+              <Button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="h-12 w-full rounded-2xl bg-[#FF2D46] text-[15px] font-semibold text-white shadow-none hover:bg-[#E0152F]"
+              >
+                Keep Pro
+              </Button>
+              <button
+                type="button"
+                onClick={cancelSubscription}
+                disabled={busy}
+                className="flex h-10 w-full items-center justify-center gap-2 text-[14px] font-medium text-[#FF2D46] transition hover:text-[#E0152F] disabled:opacity-50"
+              >
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                Cancel subscription
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </section>
   );
 }
