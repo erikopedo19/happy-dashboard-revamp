@@ -72,7 +72,7 @@ export function FeaturesBand() {
   return (
     <section id="features" className="relative overflow-hidden bg-[#fbf7ee] py-20 dark:bg-[#0c0c0e] sm:py-28">
       {/* faint barber-vocabulary backdrop, like the reference's multilingual text */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[36%] bottom-[8%] select-none overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[36%] bottom-[8%] hidden select-none overflow-hidden sm:block">
         {FAINT_WORDS.map((w, i) => (
           <p
             key={i}
@@ -101,8 +101,24 @@ export function FeaturesBand() {
           </p>
         </Reveal>
 
+        {/* phones: one clean photo instead of the tilted collage */}
+        <Reveal delay={0.15} className="relative mx-auto mt-10 max-w-sm sm:hidden">
+          <div className="relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10">
+            <img
+              src="/landing/barber-portrait.jpg"
+              alt="A barber in his shop"
+              className="aspect-[4/3] w-full object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/90 py-1.5 pl-1.5 pr-3.5 shadow-lg backdrop-blur-md dark:bg-black/60">
+              <img src="/cutzioo-logo.webp" alt="" className="h-7 w-7 rounded-full" />
+              <span className="text-[13px] font-bold tracking-tight text-neutral-900 dark:text-white">cutzioo</span>
+            </div>
+          </div>
+        </Reveal>
+
         {/* tilted photo cards + frosted logo card */}
-        <Reveal delay={0.15} className="relative mx-auto mt-12 h-[220px] max-w-xl sm:h-[260px]">
+        <Reveal delay={0.15} className="relative mx-auto mt-12 hidden h-[260px] max-w-xl sm:block">
           <motion.img
             src="/landing/barber-portrait.jpg"
             alt="A barber in his shop"
