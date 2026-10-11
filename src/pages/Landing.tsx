@@ -1,6 +1,7 @@
 import { Seo } from "@/components/Seo";
 import { Hero, LandingNav } from "@/components/landing/hero";
 import { FeaturesBand, HowItWorks, Mission } from "@/components/landing/middle";
+import { Membership } from "@/components/landing/membership";
 import { Audience, Faq, FooterCta, Testimonial } from "@/components/landing/bottom";
 
 export default function Landing() {
@@ -20,6 +21,7 @@ export default function Landing() {
         <HowItWorks />
         <Audience />
         <Testimonial />
+        <Membership />
         <Faq />
       </main>
       <FooterCta />

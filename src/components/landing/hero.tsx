@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: "Features", href: "#features" },
   { label: "Our Mission", href: "#mission" },
   { label: "Built For You", href: "#who" },
+  { label: "Membership", href: "#pricing" },
   { label: "FAQs", href: "#faq" },
 ];
 
