@@ -21,6 +21,59 @@ type BookingToastLabels = {
   serviceName?: string | null;
 };
 
+export function formatBookingToastDateTime(
+  appointmentDate?: string | null,
+  appointmentTime?: string | null,
+  now = new Date(),
+) {
+  const dateMatch = appointmentDate?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const timeMatch = appointmentTime?.match(/^(\d{1,2}):(\d{2})/);
+  const time = timeMatch
+    ? `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`
+    : appointmentTime?.slice(0, 5);
+  let dateLabel = appointmentDate?.trim();
+
+  if (dateMatch) {
+    const [, yearValue, monthValue, dayValue] = dateMatch;
+    const year = Number(yearValue);
+    const month = Number(monthValue);
+    const day = Number(dayValue);
+    const date = new Date(year, month - 1, day, 12);
+
+    if (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    ) {
+      const dayNumber = (value: Date) =>
+        Math.floor(
+          Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()) /
+            86_400_000,
+        );
+      const difference = dayNumber(date) - dayNumber(now);
+
+      if (difference === 0) {
+        dateLabel = "Today";
+      } else if (difference === 1) {
+        dateLabel = "Tomorrow";
+      } else {
+        const parts = new Intl.DateTimeFormat("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        }).formatToParts(date);
+        const part = (type: Intl.DateTimeFormatPartTypes) =>
+          parts.find((item) => item.type === type)?.value;
+        dateLabel = [part("weekday"), part("day"), part("month")]
+          .filter(Boolean)
+          .join(" ");
+      }
+    }
+  }
+
+  return [dateLabel, time].filter(Boolean).join(" ");
+}
+
 export function bookingToastFromPayload(
   payload: BookingToastPayload,
   labels: BookingToastLabels = {},
@@ -53,7 +106,7 @@ export function bookingToastFromPayload(
 
   const customerName = labels.customerName?.trim() || row.customer_name?.trim() || "A client";
   const serviceName = labels.serviceName?.trim() || row.service_name?.trim();
-  const dateTime = [row.appointment_date, row.appointment_time?.slice(0, 5)].filter(Boolean).join(" ");
+  const dateTime = formatBookingToastDateTime(row.appointment_date, row.appointment_time);
 
   return {
     title,

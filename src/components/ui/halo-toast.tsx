@@ -76,7 +76,12 @@ export function showPolishedToast(opts: PolishedToastOptions) {
   const hapticStyle = opts.haptic ?? (rimVariant === "destructive" ? "warning" : "celebrate");
   const id = toast.custom(
     (id) => <HaloCard {...opts} id={id} rimVariant={rimVariant} />,
-    { id: opts.messageKey, duration: opts.duration },
+    {
+      id: opts.messageKey,
+      duration: opts.duration,
+      unstyled: true,
+      className: "!bg-transparent !border-0 !shadow-none !p-0",
+    },
   );
   if (hapticStyle) fireHaptic(hapticStyle);
   return id;
