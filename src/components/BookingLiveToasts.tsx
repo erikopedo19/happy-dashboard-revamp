@@ -1,9 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarCheck } from "lucide-react";
 import { showPolishedToast, type PolishedToastOptions } from "@/components/ui/halo-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  bookingActivityPropsFromPayload,
+  endLiveActivity,
+  formatBookingToastDateTime,
+  localAppointmentTimestamp,
+  showLiveActivity,
+  type LiveActivityProps,
+} from "@/lib/liveActivity";
+import { dateStrInTz, getBrowserTimezone } from "@/lib/tz";
+
+export {
+  bookingActivityPropsFromPayload,
+  formatBookingToastDateTime,
+} from "@/lib/liveActivity";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
@@ -21,62 +35,10 @@ type BookingToastLabels = {
   serviceName?: string | null;
 };
 
-export function formatBookingToastDateTime(
-  appointmentDate?: string | null,
-  appointmentTime?: string | null,
-  now = new Date(),
-) {
-  const dateMatch = appointmentDate?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  const timeMatch = appointmentTime?.match(/^(\d{1,2}):(\d{2})/);
-  const time = timeMatch
-    ? `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`
-    : appointmentTime?.slice(0, 5);
-  let dateLabel = appointmentDate?.trim();
-
-  if (dateMatch) {
-    const [, yearValue, monthValue, dayValue] = dateMatch;
-    const year = Number(yearValue);
-    const month = Number(monthValue);
-    const day = Number(dayValue);
-    const date = new Date(year, month - 1, day, 12);
-
-    if (
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day
-    ) {
-      const dayNumber = (value: Date) =>
-        Math.floor(
-          Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()) /
-            86_400_000,
-        );
-      const difference = dayNumber(date) - dayNumber(now);
-
-      if (difference === 0) {
-        dateLabel = "Today";
-      } else if (difference === 1) {
-        dateLabel = "Tomorrow";
-      } else {
-        const parts = new Intl.DateTimeFormat("en-GB", {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
-        }).formatToParts(date);
-        const part = (type: Intl.DateTimeFormatPartTypes) =>
-          parts.find((item) => item.type === type)?.value;
-        dateLabel = [part("weekday"), part("day"), part("month")]
-          .filter(Boolean)
-          .join(" ");
-      }
-    }
-  }
-
-  return [dateLabel, time].filter(Boolean).join(" ");
-}
-
 export function bookingToastFromPayload(
   payload: BookingToastPayload,
   labels: BookingToastLabels = {},
+  timezone?: string | null,
 ): PolishedToastOptions | null {
   const row = payload.new;
   let title: string;
@@ -106,7 +68,12 @@ export function bookingToastFromPayload(
 
   const customerName = labels.customerName?.trim() || row.customer_name?.trim() || "A client";
   const serviceName = labels.serviceName?.trim() || row.service_name?.trim();
-  const dateTime = formatBookingToastDateTime(row.appointment_date, row.appointment_time);
+  const dateTime = formatBookingToastDateTime(
+    row.appointment_date,
+    row.appointment_time,
+    new Date(),
+    timezone,
+  );
 
   return {
     title,
@@ -136,11 +103,112 @@ export function BookingLiveToasts() {
   const { user } = useAuth();
   const userId = user?.id;
   const role = user?.user_metadata?.role;
+  const [nextActivity, setNextActivity] = useState<LiveActivityProps | null>(null);
+  const nextActivityRef = useRef<LiveActivityProps | null>(null);
 
   useEffect(() => {
-    if (!userId || role === "client") return;
+    nextActivityRef.current = nextActivity;
+  }, [nextActivity]);
+
+  useEffect(() => {
+    if (!userId || role === "client") {
+      nextActivityRef.current = null;
+      setNextActivity(null);
+      endLiveActivity();
+      return;
+    }
 
     let active = true;
+    const browserTimezone = getBrowserTimezone();
+    const timezonePromise = supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => data?.timezone || browserTimezone)
+      .catch(() => browserTimezone);
+    const setCurrentNext = (next: LiveActivityProps | null) => {
+      nextActivityRef.current = next;
+      setNextActivity(next);
+    };
+    const refreshNextActivity = async (present = true) => {
+      const now = new Date();
+      const timezone = await timezonePromise;
+      const dateKey = dateStrInTz(now, timezone);
+      const formatLocalTime = (date: Date) => {
+        try {
+          const parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: timezone,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hourCycle: "h23",
+          }).formatToParts(date);
+          const part = (name: string) =>
+            parts.find((item) => item.type === name)?.value ?? "00";
+          return `${part("hour")}:${part("minute")}:${part("second")}`;
+        } catch {
+          return [
+            String(date.getHours()).padStart(2, "0"),
+            String(date.getMinutes()).padStart(2, "0"),
+            String(date.getSeconds()).padStart(2, "0"),
+          ].join(":");
+        }
+      };
+      const endOfToday =
+        localAppointmentTimestamp(dateKey, "23:59:59", timezone) ?? now.getTime();
+      const searchUntil = new Date(
+        Math.min(now.getTime() + 8 * 60 * 60 * 1000, endOfToday),
+      );
+
+      if (searchUntil.getTime() <= now.getTime()) {
+        setCurrentNext(null);
+        if (present) endLiveActivity();
+        return null;
+      }
+
+      try {
+        const { data, error } = await (supabase as any)
+          .from("appointments")
+          .select("id, appointment_date, appointment_time, customer:customers(name), service:services(name)")
+          .eq("user_id", userId)
+          .eq("appointment_date", dateKey)
+          .neq("status", "cancelled")
+          .gt("appointment_time", formatLocalTime(now))
+          .lte("appointment_time", formatLocalTime(searchUntil))
+          .order("appointment_time", { ascending: true })
+          .limit(1);
+        if (error || !active) return nextActivityRef.current;
+
+        const appointment = data?.[0];
+        const startsAt = localAppointmentTimestamp(
+          appointment?.appointment_date,
+          appointment?.appointment_time,
+          timezone,
+        );
+        if (!appointment || startsAt === null || startsAt <= now.getTime()) {
+          setCurrentNext(null);
+          if (present) endLiveActivity();
+          return null;
+        }
+
+        const next: LiveActivityProps = {
+          kind: "next",
+          title: `Next: ${appointment.customer?.name?.trim() || "Client"}`,
+          subtitle: appointment.service?.name?.trim() || "Appointment",
+          timeLabel: String(appointment.appointment_time).slice(0, 5),
+          startsAt,
+          countdownFrom: now.getTime(),
+        };
+        setCurrentNext(next);
+        if (present) showLiveActivity(next);
+        return next;
+      } catch {
+        return nextActivityRef.current;
+      }
+    };
+
+    void refreshNextActivity();
     const channel = supabase
       .channel(`booking-live-toasts:${userId}:${Date.now()}:${Math.random().toString(36).slice(2)}`)
       .on(
@@ -153,15 +221,30 @@ export function BookingLiveToasts() {
         },
         (payload) => {
           const change = payload as unknown as BookingToastPayload;
-          if (!bookingToastFromPayload(change)) return;
+          if (!bookingToastFromPayload(change)) {
+            void refreshNextActivity();
+            return;
+          }
 
           void (async () => {
             const labels = change.new.id
               ? await lookupBookingLabels(change.new.id)
               : undefined;
             if (!active) return;
-            const toastOptions = bookingToastFromPayload(change, labels);
+            const timezone = await timezonePromise;
+            const toastOptions = bookingToastFromPayload(change, labels, timezone);
+            const activityProps = bookingActivityPropsFromPayload(
+              change,
+              labels,
+              new Date(),
+              timezone,
+            );
+            const next = await refreshNextActivity(!activityProps);
+            if (!active) return;
             if (toastOptions) showPolishedToast(toastOptions);
+            if (activityProps) {
+              showLiveActivity(activityProps, next ?? undefined);
+            }
           })();
         },
       )
@@ -170,6 +253,7 @@ export function BookingLiveToasts() {
     return () => {
       active = false;
       void supabase.removeChannel(channel);
+      endLiveActivity();
     };
   }, [role, userId]);
 

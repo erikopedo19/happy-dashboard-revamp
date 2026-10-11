@@ -2,6 +2,10 @@
 // Called by DB trigger on notifications insert. No JWT (public endpoint, no PII in payload).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendNotification } from "npm:web-push-neo@0.1.2";
+import {
+  buildBookingActivityProps,
+  buildLiveActivityStartPayload,
+} from "./liveActivity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -91,6 +95,29 @@ async function sendApns(token: string, title: string, body: string, url = "/") {
   return { ok: res.ok, status: res.status };
 }
 
+async function sendApnsLiveActivity(
+  token: string,
+  payload: ReturnType<typeof buildLiveActivityStartPayload>,
+) {
+  const bundleId = Deno.env.get("APNS_BUNDLE_ID");
+  const sandbox = (Deno.env.get("APNS_USE_SANDBOX") ?? "true") === "true";
+  const jwt = await getApnsJwt();
+  if (!jwt || !bundleId) return { skipped: true };
+  const host = sandbox ? "api.sandbox.push.apple.com" : "api.push.apple.com";
+  const res = await fetch(`https://${host}/3/device/${token}`, {
+    method: "POST",
+    headers: {
+      "authorization": `bearer ${jwt}`,
+      "apns-topic": `${bundleId}.push-type.liveactivity`,
+      "apns-push-type": "liveactivity",
+      "apns-priority": "10",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  return { ok: res.ok, status: res.status };
+}
+
 // ---------- main ----------
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -125,8 +152,16 @@ Deno.serve(async (req) => {
 
     // Pick the click-through URL based on the recipient's role.
     let url = "/admin";
+    let recipientRole: string | null = null;
+    let recipientTimezone = "UTC";
     try {
-      const { data: profile } = await sb.from("profiles").select("role, booking_link").eq("id", user_id).maybeSingle();
+      const { data: profile } = await sb
+        .from("profiles")
+        .select("role, booking_link, timezone")
+        .eq("id", user_id)
+        .maybeSingle();
+      recipientRole = profile?.role ?? null;
+      recipientTimezone = profile?.timezone || "UTC";
       if (profile?.role === "client") {
         url = "/my-bookings";
       } else if (profile?.booking_link) {
@@ -184,7 +219,9 @@ Deno.serve(async (req) => {
     // Native: APNs device tokens (Capacitor) and Expo push tokens (Expo wrapper)
     let apnsResults: any[] = [];
     const { data: tokens } = await sb.from("device_tokens").select("*").eq("user_id", user_id);
-    apnsResults = await Promise.all((tokens ?? []).map(async (t: any) => {
+    apnsResults = await Promise.all((tokens ?? [])
+      .filter((t: any) => t.platform !== "ios_liveactivity_start")
+      .map(async (t: any) => {
       const r = t.platform === "expo" || String(t.token).startsWith("ExponentPushToken")
         ? await sendExpo(t.token, title, body, url)
         : await sendApns(t.token, title, body, url);
@@ -194,7 +231,62 @@ Deno.serve(async (req) => {
       return { token: t.token.slice(0, 8) + "…", ...r };
     }));
 
-    return new Response(JSON.stringify({ ok: true, web: webResults, apns: apnsResults }), {
+    let liveActivityResults: any[] = [];
+    const activityKind = type === "booking_created"
+      ? "new"
+      : type === "booking_cancelled"
+        ? "cancelled"
+        : null;
+    if (activityKind && recipientRole && recipientRole !== "client" && appointment_id) {
+      const { data: appointment } = await sb
+        .from("appointments")
+        .select("user_id, appointment_date, appointment_time, customer:customers(name), service:services(name)")
+        .eq("id", appointment_id)
+        .maybeSingle();
+
+      if (appointment && appointment.user_id === user_id) {
+        const activityProps = buildBookingActivityProps(
+          {
+            appointment_date: appointment.appointment_date,
+            appointment_time: appointment.appointment_time,
+            customer_name: appointment.customer?.name,
+            service_name: appointment.service?.name,
+          },
+          activityKind,
+          recipientTimezone,
+        );
+        if (activityProps) {
+          const { data: liveTokens } = await sb
+            .from("device_tokens")
+            .select("token")
+            .eq("user_id", user_id)
+            .eq("platform", "ios_liveactivity_start");
+          const payload = buildLiveActivityStartPayload(
+            activityProps,
+            title,
+            body,
+          );
+          liveActivityResults = await Promise.all((liveTokens ?? []).map(async (tokenRow: any) => {
+            const result = await sendApnsLiveActivity(tokenRow.token, payload);
+            if ((result as any).status === 410) {
+              await sb
+                .from("device_tokens")
+                .delete()
+                .eq("token", tokenRow.token)
+                .eq("platform", "ios_liveactivity_start");
+            }
+            return { token: tokenRow.token.slice(0, 8) + "…", ...result };
+          }));
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({
+      ok: true,
+      web: webResults,
+      apns: apnsResults,
+      liveActivities: liveActivityResults,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

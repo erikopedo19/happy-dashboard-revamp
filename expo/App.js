@@ -47,10 +47,33 @@ const injectPushToken = (token) => `
   true;
 `;
 
+const injectLiveActivityToken = (token) => `
+  window.__CUTZIO_LIVE_ACTIVITY__ = {
+    token: ${JSON.stringify(token)},
+    platform: 'ios_liveactivity_start'
+  };
+  window.dispatchEvent(new Event('cutzio-live-activity-token'));
+  true;
+`;
+
 const urlFromNotification = (response) => {
   const url = response?.notification?.request?.content?.data?.url;
   return typeof url === 'string' && url.startsWith('/') ? `${WEB_APP_URL}${url}` : null;
 };
+
+const agendaUrlFromDeepLink = (url) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'cutzioo:') return null;
+    const target = `${parsed.hostname}${parsed.pathname}`.replace(/^\/+/, '');
+    return target === 'agenda' || target.startsWith('agenda/')
+      ? `${WEB_APP_URL}/agenda`
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 const IMPACT_STYLES = {
   light: Haptics.ImpactFeedbackStyle.Light,
   medium: Haptics.ImpactFeedbackStyle.Medium,
@@ -61,7 +84,7 @@ const NOTIFICATION_STYLES = {
   warning: Haptics.NotificationFeedbackType.Warning,
   error: Haptics.NotificationFeedbackType.Error,
 };
-const HAPTIC_STYLES = new Set(['light', 'medium', 'heavy', 'selection', 'success', 'warning', 'error']);
+const HAPTIC_STYLES = new Set(['light', 'medium', 'heavy', 'selection', 'celebrate', 'success', 'warning', 'error']);
 const HAPTIC_VIBRATION_BRIDGE = `
   (function () {
     var bridge = window.ReactNativeWebView;
@@ -97,6 +120,7 @@ const NATIVE_FEEL_BOOT = `
 function hapticStyleForVibration(pattern) {
   const values = Array.isArray(pattern) ? pattern : [pattern];
   const signature = values.join(',');
+  if (signature === '10,70,45') return 'celebrate';
   if (signature === '10,40,18') return 'success';
   if (signature === '16,60,16') return 'warning';
   if (signature === '24,50,24,50,24') return 'error';
@@ -115,6 +139,8 @@ export default function App() {
 function Shell() {
   const webView = useRef(null);
   const pushToken = useRef(null);
+  const liveActivityToken = useRef(null);
+  const activityRevertTimeout = useRef(null);
   const canGoBack = useRef(false);
   const booted = useRef(false);
   const splashOpacity = useRef(new Animated.Value(1)).current;
@@ -149,6 +175,12 @@ function Shell() {
     if (pushToken.current) webView.current?.injectJavaScript(injectPushToken(pushToken.current));
   }, []);
 
+  const sendLiveActivityToken = useCallback(() => {
+    if (liveActivityToken.current) {
+      webView.current?.injectJavaScript(injectLiveActivityToken(liveActivityToken.current));
+    }
+  }, []);
+
   useEffect(() => {
     getExpoPushToken()
       .then((token) => {
@@ -169,6 +201,53 @@ function Shell() {
     return () => sub.remove();
   }, [sendPushToken]);
 
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return undefined;
+
+    let active = true;
+    let subscription;
+    import('expo-widgets')
+      .then(({ addPushToStartTokenListener }) => {
+        if (!active) return;
+        subscription = addPushToStartTokenListener((event) => {
+          const token = event?.activityPushToStartToken;
+          if (!token) return;
+          liveActivityToken.current = token;
+          sendLiveActivityToken();
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+      subscription?.remove?.();
+    };
+  }, [sendLiveActivityToken]);
+
+  const routeAgendaDeepLink = useCallback((url) => {
+    const agendaUrl = agendaUrlFromDeepLink(url);
+    if (!agendaUrl) return;
+    if (booted.current) {
+      webView.current?.injectJavaScript(
+        `window.location.assign(${JSON.stringify(agendaUrl)}); true;`,
+      );
+    } else {
+      setSourceUri(agendaUrl);
+    }
+  }, []);
+
+  useEffect(() => {
+    Linking.getInitialURL()
+      .then((url) => {
+        if (url) routeAgendaDeepLink(url);
+      })
+      .catch(() => {});
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      routeAgendaDeepLink(url);
+    });
+    return () => subscription.remove();
+  }, [routeAgendaDeepLink]);
+
   const handleMessage = useCallback(async (event) => {
     let message;
     try {
@@ -178,6 +257,43 @@ function Shell() {
     }
     if (message?.type === 'cutzio-push-request') {
       sendPushToken();
+      return;
+    }
+    if (message?.type === 'cutzio-live-activity') {
+      if (Platform.OS !== 'ios') return;
+      try {
+        const activityFactory = (await import('./BookingActivity')).default;
+        const showActivity = async (props) => {
+          const [instance] = activityFactory.getInstances();
+          if (instance) {
+            await instance.update(props);
+          } else {
+            activityFactory.start(props, 'cutzioo://agenda');
+          }
+        };
+
+        if (message.action === 'show' && message.props) {
+          if (activityRevertTimeout.current) {
+            clearTimeout(activityRevertTimeout.current);
+            activityRevertTimeout.current = null;
+          }
+          await showActivity(message.props);
+          if (message.revertTo) {
+            activityRevertTimeout.current = setTimeout(() => {
+              showActivity(message.revertTo).catch(() => {});
+              activityRevertTimeout.current = null;
+            }, 8000);
+          }
+        } else if (message.action === 'end') {
+          if (activityRevertTimeout.current) {
+            clearTimeout(activityRevertTimeout.current);
+            activityRevertTimeout.current = null;
+          }
+          await Promise.all(
+            activityFactory.getInstances().map((instance) => instance.end('immediate')),
+          );
+        }
+      } catch {}
       return;
     }
     const style = message?.type === 'cutzio-haptic'
@@ -190,6 +306,10 @@ function Shell() {
     try {
       if (style === 'selection') {
         await Haptics.selectionAsync();
+      } else if (style === 'celebrate') {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } else if (style in IMPACT_STYLES) {
         await Haptics.impactAsync(IMPACT_STYLES[style]);
       } else {
@@ -259,6 +379,7 @@ function Shell() {
         onLoadEnd={() => {
           finishSplash();
           sendPushToken();
+          sendLiveActivityToken();
         }}
         onError={() => {
           finishSplash();

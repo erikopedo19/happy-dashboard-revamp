@@ -1,28 +1,38 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isNative, nativePlatform } from "./native";
 
-type DeviceToken = { token: string; platform: "ios" | "android" | "expo" };
+type DeviceToken = {
+  token: string;
+  platform: "ios" | "android" | "expo" | "ios_liveactivity_start";
+};
 
 declare global {
   interface Window {
     __CUTZIO_PUSH__?: DeviceToken;
+    __CUTZIO_LIVE_ACTIVITY__?: DeviceToken;
     ReactNativeWebView?: { postMessage: (message: string) => void };
   }
 }
 
-let pending: DeviceToken | null = null;
-let savedFor: string | null = null;
+const pending = new Map<string, DeviceToken>();
+const savedFor = new Set<string>();
 
 async function saveToken(device: DeviceToken) {
-  pending = device;
+  pending.set(device.token, device);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
   const key = `${user.id}:${device.token}`;
-  if (savedFor === key) return;
+  if (savedFor.has(key)) {
+    pending.delete(device.token);
+    return;
+  }
   const { error } = await supabase
     .from("device_tokens")
     .upsert({ user_id: user.id, token: device.token, platform: device.platform }, { onConflict: "token" });
-  if (!error) savedFor = key;
+  if (!error) {
+    savedFor.add(key);
+    pending.delete(device.token);
+  }
 }
 
 async function registerCapacitorPush() {
@@ -52,8 +62,15 @@ export function initNativePush() {
   const onExpoToken = () => {
     if (window.__CUTZIO_PUSH__?.token) void saveToken(window.__CUTZIO_PUSH__);
   };
+  const onLiveActivityToken = () => {
+    if (window.__CUTZIO_LIVE_ACTIVITY__?.token) {
+      void saveToken(window.__CUTZIO_LIVE_ACTIVITY__);
+    }
+  };
   window.addEventListener("cutzio-push-token", onExpoToken);
+  window.addEventListener("cutzio-live-activity-token", onLiveActivityToken);
   onExpoToken();
+  onLiveActivityToken();
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: "cutzio-push-request" }));
   }
@@ -62,6 +79,8 @@ export function initNativePush() {
 
   // Tokens can arrive before sign-in — retry once a session exists.
   supabase.auth.onAuthStateChange((event) => {
-    if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && pending) void saveToken(pending);
+    if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      for (const device of pending.values()) void saveToken(device);
+    }
   });
 }
