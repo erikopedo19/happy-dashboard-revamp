@@ -1302,7 +1302,7 @@ html.is-native #root {
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 8px 24px 24px;
+  padding: 4px 24px 16px;
   scroll-padding-block: 16px;
   scrollbar-width: thin;
   scrollbar-color: var(--pw-border) transparent;
@@ -1317,16 +1317,16 @@ html.is-native #root {
   text-transform: uppercase;
 }
 .pricing-intro > .pricing-eyebrow { color: var(--pw-accent); }
-.pricing-intro h1 { margin-top: 12px; font-size: 2rem; font-weight: 650; line-height: 1.08; letter-spacing: -0.055em; }
-.pricing-description { margin-top: 12px; color: var(--pw-muted); font-size: 0.875rem; line-height: 1.6; }
+.pricing-intro h1 { margin-top: 10px; font-size: 1.75rem; font-weight: 650; line-height: 1.08; letter-spacing: -0.055em; }
+.pricing-description { margin-top: 10px; color: var(--pw-muted); font-size: 0.875rem; line-height: 1.55; }
 
 /* Frosted "membership pass" with a specular sheen sweeping across it. */
 .pricing-pass {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  margin-top: 24px;
-  padding: 20px;
+  margin-top: 16px;
+  padding: 16px;
   border: 1px solid var(--pw-border);
   border-radius: var(--pw-radius-lg);
   background:
@@ -1379,9 +1379,9 @@ html.is-native #root {
   background: var(--pw-accent-soft);
   color: var(--pw-accent);
 }
-.pricing-pass-title { margin: 20px 0; font-size: 1.75rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.045em; }
+.pricing-pass-title { margin: 12px 0; font-size: 1.5rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.045em; }
 .pricing-pass-title > span { color: var(--pw-accent); }
-.pricing-pass-bottom { justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--pw-border); font-size: 0.75rem; color: var(--pw-muted); }
+.pricing-pass-bottom { justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--pw-border); font-size: 0.75rem; color: var(--pw-muted); }
 .pricing-pass-bars {
   flex-shrink: 0;
   width: 44px;
@@ -1390,7 +1390,7 @@ html.is-native #root {
   background: repeating-linear-gradient(90deg, var(--pw-muted) 0 2px, transparent 2px 5px, var(--pw-muted) 5px 6px, transparent 6px 9px);
 }
 
-.pricing-benefits { margin-top: 24px; }
+.pricing-benefits { margin-top: 16px; }
 .pricing-benefits ul {
   margin-top: 8px;
   list-style: none;
@@ -1402,7 +1402,7 @@ html.is-native #root {
   box-shadow: var(--pw-glass-edge);
   padding: 4px 16px;
 }
-.pricing-benefits li { display: flex; align-items: center; gap: 12px; padding: 12px 0; font-size: 0.875rem; }
+.pricing-benefits li { display: flex; align-items: center; gap: 12px; padding: 10px 0; font-size: 0.875rem; }
 .pricing-benefits li + li { border-top: 1px solid var(--pw-border); }
 .pricing-benefit-icon { background: var(--pw-elevated); color: var(--pw-muted); }
 .pricing-benefit-check { margin-left: auto; flex-shrink: 0; color: var(--pw-accent); }
@@ -1412,7 +1412,7 @@ html.is-native #root {
 .pricing-screen .pricing-trial-switch { position: relative; min-height: 24px; transition-property: transform, opacity; }
 .pricing-trial-switch::before { content: ""; position: absolute; inset: -12px -4px; }
 
-.pricing-offer { margin-top: 24px; }
+.pricing-offer { margin-top: 16px; }
 .pricing-section-heading { justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
 .pricing-section-heading > span { font-size: 0.75rem; color: var(--pw-muted); }
 .pricing-options { display: grid; gap: 12px; }
@@ -1422,7 +1422,7 @@ html.is-native #root {
   flex-wrap: wrap;
   gap: 12px;
   width: 100%;
-  padding: 16px;
+  padding: 14px 16px;
   border: 1px solid var(--pw-border);
   border-radius: var(--pw-radius-md);
   background: var(--pw-surface);
@@ -1448,7 +1448,7 @@ html.is-native #root {
 .pricing-plan-price { margin-left: auto; text-align: right; }
 .pricing-plan-price strong { display: block; font-size: 1.375rem; font-weight: 650; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
 .pricing-plan-price > span { display: block; font-size: 0.75rem; color: var(--pw-muted); }
-.pricing-rating { justify-content: center; flex-wrap: wrap; margin-top: 20px; color: var(--pw-muted); font-size: 0.75rem; }
+.pricing-rating { justify-content: center; flex-wrap: wrap; margin-top: 14px; color: var(--pw-muted); font-size: 0.75rem; }
 .pricing-rating > svg { fill: currentColor; color: var(--pw-accent); }
 .pricing-rating > strong { color: var(--pw-text); font-variant-numeric: tabular-nums; }
 
@@ -1461,15 +1461,15 @@ html.is-native #root {
   backdrop-filter: var(--pw-glass-blur);
 }
 .light .pricing-footer { background: rgb(255 255 255 / 0.55); }
-.pricing-billing-summary { margin-bottom: 12px; font-size: 0.8125rem; text-align: center; color: var(--pw-text); }
+.pricing-billing-summary { margin-bottom: 10px; font-size: 0.8125rem; text-align: center; color: var(--pw-text); }
 .pricing-continue {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   width: 100%;
-  min-height: 56px;
-  padding: 16px;
+  min-height: 52px;
+  padding: 14px 16px;
   border: 1px solid rgb(255 255 255 / 0.18);
   border-radius: 999px;
   background: var(--pw-action);
@@ -1479,7 +1479,7 @@ html.is-native #root {
   box-shadow: 0 8px 24px -10px rgb(225 29 72 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.28);
 }
 .pricing-continue > svg { flex-shrink: 0; }
-.pricing-secure { justify-content: center; margin-top: 12px; color: var(--pw-muted); font-size: 0.6875rem; text-align: center; }
+.pricing-secure { justify-content: center; margin-top: 10px; color: var(--pw-muted); font-size: 0.6875rem; text-align: center; }
 .pricing-secure > svg { flex-shrink: 0; }
 
 html.is-native.platform-ios .pricing-screen { height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
@@ -1493,11 +1493,30 @@ html.is-native.platform-ios .pricing-footer { padding-bottom: 16px; }
   .pricing-screen { padding: 24px; }
   .pricing-shell { border: 1px solid var(--pw-border); border-radius: var(--pw-radius-lg); overflow: hidden; box-shadow: var(--pw-shadow); }
 }
+@media (max-height: 880px) {
+  .pricing-header { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); padding-bottom: 8px; }
+  .pricing-scroll { padding-top: 0; }
+  .pricing-intro h1 { margin-top: 8px; font-size: 1.5rem; }
+  .pricing-description { margin-top: 8px; line-height: 1.45; }
+  .pricing-pass { margin-top: 12px; padding: 14px 16px; }
+  .pricing-pass-title { margin: 8px 0; font-size: 1.3rem; }
+  .pricing-pass-bottom { padding-top: 8px; }
+  .pricing-benefits, .pricing-offer { margin-top: 12px; }
+  .pricing-benefits ul { margin-top: 6px; }
+  .pricing-benefits li { padding: 8px 0; }
+  .pricing-plan { padding: 12px 14px; }
+  .pricing-plan-price strong { font-size: 1.2rem; }
+  .pricing-rating { margin-top: 8px; }
+  .pricing-footer { padding-top: 12px; }
+  .pricing-billing-summary { margin-bottom: 8px; }
+  .pricing-continue { min-height: 48px; padding: 12px 16px; }
+  .pricing-secure { margin-top: 8px; }
+}
 @media (max-height: 740px) {
-  .pricing-scroll { padding-top: 4px; }
-  .pricing-pass { margin-top: 16px; padding: 16px; }
-  .pricing-pass-title { margin: 12px 0; font-size: 1.375rem; }
-  .pricing-benefits, .pricing-offer { margin-top: 16px; }
+  /* Very short screens: drop the decorative pass + rating so nothing scrolls */
+  .pricing-pass { display: none; }
+  .pricing-rating { display: none; }
+  .pricing-benefits { margin-top: 14px; }
 }
 @media (max-height: 480px) {
   .pricing-screen { height: auto; min-height: 100dvh; overflow: visible; }
