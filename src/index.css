@@ -1590,3 +1590,9 @@ html.is-native.platform-ios .pricing-footer { padding-bottom: 16px; }
 @media (prefers-reduced-motion: reduce) {
   [style*="marquee-x"] { animation: none !important; }
 }
+
+/* Subscription expiry banner: expanding red ring (~2.8s at 4 plays) */
+@keyframes expiry-ring {
+  0% { transform: scale(0.55); opacity: 0.85; }
+  80%, 100% { transform: scale(1.8); opacity: 0; }
+}
