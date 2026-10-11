@@ -1520,6 +1520,15 @@ const Settings = () => {
                       </button>
                     </CardContent>
                   </Card>
+                  <p className="col-span-full pt-2 text-center text-sm text-[#8E8E93] dark:text-gray-400">
+                    Need help? Chat with us at{" "}
+                    <a
+                      href="mailto:cutzioo.com@gmail.com"
+                      className="underline underline-offset-2 transition hover:text-[#FF2D46]"
+                    >
+                      cutzioo.com@gmail.com
+                    </a>
+                  </p>
                 </div>
               </div>
             </div>

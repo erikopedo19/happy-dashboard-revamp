@@ -444,6 +444,16 @@ export function MobileSettings(props: any) {
           </Group>
         )}
 
+        <p className="mt-5 text-center text-[12px] text-[#8E8E93] dark:text-white/40">
+          Need help? Chat with us at{" "}
+          <a
+            href="mailto:cutzioo.com@gmail.com"
+            className="underline underline-offset-2 transition hover:text-[#FF2D46]"
+          >
+            cutzioo.com@gmail.com
+          </a>
+        </p>
+
         <p className="text-center text-[11px] text-[#8E8E93] dark:text-white/35 pt-2">
           Cutzio · v1.0
         </p>

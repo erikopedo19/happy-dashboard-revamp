@@ -96,10 +96,10 @@ function Card({ barber, onSwipe, isTop, depth, edge }: { barber: SwipeBarber; on
 export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]; onClose: () => void; onLike: (id: string) => void }) {
   const [index, setIndex] = useState(0);
   const edge = useMotionValue(0);
-  const leftGlowOpacity = useTransform(edge, [-160, 0], [1, 0]);
-  const rightGlowOpacity = useTransform(edge, [0, 160], [0, 1]);
-  const leftGlowScale = useTransform(edge, [-160, 0], [1.04, 1]);
-  const rightGlowScale = useTransform(edge, [0, 160], [1, 1.04]);
+  const leftGlowOpacity = useTransform(edge, [-110, 0], [1, 0]);
+  const rightGlowOpacity = useTransform(edge, [0, 110], [0, 1]);
+  const leftGlowScale = useTransform(edge, [-110, 0], [1.04, 1]);
+  const rightGlowScale = useTransform(edge, [0, 110], [1, 1.04]);
   const [exitInfo, setExitInfo] = useState<ExitInfo>({ dir: 1, vx: 500 });
   // The card still flying off screen — Book must target whoever is visible.
   const [leaving, setLeaving] = useState<SwipeBarber | null>(null);
@@ -141,22 +141,22 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
     >
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[45%]"
+        className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[50%]"
         style={{
           opacity: leftGlowOpacity,
           scaleX: leftGlowScale,
           transformOrigin: "left center",
-          background: "linear-gradient(to right, rgba(255,45,70,0.9) 0%, rgba(255,45,70,0.35) 30%, transparent 100%)",
+          background: "linear-gradient(to right, rgba(255,45,70,1) 0%, rgba(255,45,70,0.6) 35%, transparent 100%)",
         }}
       />
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[45%]"
+        className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[50%]"
         style={{
           opacity: rightGlowOpacity,
           scaleX: rightGlowScale,
           transformOrigin: "right center",
-          background: "linear-gradient(to left, rgba(163,230,53,0.9) 0%, rgba(163,230,53,0.35) 30%, transparent 100%)",
+          background: "linear-gradient(to left, rgba(163,230,53,1) 0%, rgba(163,230,53,0.6) 35%, transparent 100%)",
         }}
       />
       <div className="relative z-30 flex items-center justify-between py-3">

@@ -2,7 +2,8 @@ import { cn } from "@/lib/utils";
 import { Link, type LinkProps } from "react-router-dom";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X } from "lucide";
+import { MorphIcon } from "morphicons/react";
 
 interface Links {
   label: string;
@@ -105,8 +106,16 @@ export const MobileSidebar = ({ className, children, ...props }: React.Component
         className={cn("h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-sidebar w-full")}
         {...props}
       >
-        <div className="flex justify-end z-20 w-full">
-          <Menu className="text-sidebar-foreground cursor-pointer" onClick={() => setOpen(!open)} />
+        <div className="relative z-[110] flex w-full justify-end">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((value) => !value)}
+            className="grid h-10 w-10 place-items-center rounded-full text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          >
+            <MorphIcon icon={open ? X : Menu} size={22} strokeWidth={2} color="currentColor" />
+          </button>
         </div>
         <AnimatePresence>
           {open && (
@@ -120,12 +129,6 @@ export const MobileSidebar = ({ className, children, ...props }: React.Component
                 className
               )}
             >
-              <div
-                className="absolute right-10 top-10 z-50 text-sidebar-foreground cursor-pointer"
-                onClick={() => setOpen(!open)}
-              >
-                <X />
-              </div>
               {children}
             </motion.div>
           )}
