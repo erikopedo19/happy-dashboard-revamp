@@ -155,7 +155,10 @@ export default function Aggelies() {
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false });
       if (err) throw err;
-      return (data ?? []) as ListingRow[];
+      const cutoff = Date.now() - 30 * 86400_000;
+      return ((data ?? []) as ListingRow[]).filter(
+        (l: any) => !l.ai_found || new Date(l.created_at).getTime() >= cutoff
+      );
     },
     staleTime: 60_000,
   });
@@ -486,6 +489,16 @@ function ListingCard({
         >
           {expanded ? "Less" : "Details"}
         </button>
+        {listing.ai_found && listing.source_url ? (
+          <a
+            href={listing.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-11 flex-[1.4] items-center justify-center gap-1.5 rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-[13.5px] font-semibold text-white shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35)] transition active:scale-[0.97]"
+          >
+            <ExternalLink className="h-4 w-4" /> Contact on {listing.source_name || "source"}
+          </a>
+        ) : (
         <button
           type="button"
           disabled={applied}
@@ -507,6 +520,7 @@ function ListingCard({
             </>
           )}
         </button>
+        )}
       </div>
     </motion.div>
   );

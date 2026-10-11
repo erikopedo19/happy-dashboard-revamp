@@ -693,6 +693,24 @@ export type Database = {
           },
         ]
       }
+      listing_searches: {
+        Row: {
+          city_key: string
+          found: number
+          searched_at: string
+        }
+        Insert: {
+          city_key: string
+          found?: number
+          searched_at?: string
+        }
+        Update: {
+          city_key?: string
+          found?: number
+          searched_at?: string
+        }
+        Relationships: []
+      }
       listings: {
         Row: {
           ai_found: boolean
