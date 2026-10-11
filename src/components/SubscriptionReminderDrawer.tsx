@@ -1,20 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Lock, Calendar, ChevronRight, AlertCircle } from "lucide-react";
-import { Button } from "@heroui/react";
+import { CalendarClock, Check, Crown, MapPin, Sparkles, Star, Users } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { STRIPE_PORTAL_LINK } from "@/lib/billingsdk-config";
 
-const LOCKED_FEATURES = [
-  { label: "Map listing & discoverability", icon: "Map" },
-  { label: "Unlimited appointments", icon: "Calendar" },
-  { label: "Revenue reports & analytics", icon: "BarChart3" },
-  { label: "Automatic review requests", icon: "Mail" },
-  { label: "Priority customer support", icon: "Headphones" },
-  { label: "Custom branding & themes", icon: "Sparkles" },
+const PRO_FEATURES = [
+  { icon: CalendarClock, label: "Unlimited bookings & clients" },
+  { icon: Users, label: "Team members & stylists" },
+  { icon: MapPin, label: "Map listing & discoverability" },
+  { icon: Sparkles, label: "Reports, branding & no-show protection" },
 ];
 
 const DISMISS_KEY = "subscription_reminder_dismissed";
@@ -36,24 +33,22 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
-      
+
       const { data } = await supabase
         .from("subscribers")
         .select("subscribed, subscription_end")
         .eq("user_id", user.id)
         .maybeSingle();
-      
+
       setSubscribed(!!data?.subscribed);
       setEndDate(data?.subscription_end ?? null);
-      
+
       if (data?.subscription_end) {
         const end = new Date(data.subscription_end);
-        const now = new Date();
-        const diffTime = end.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil((end.getTime() - Date.now()) / 86_400_000);
         setDaysRemaining(diffDays);
       }
-      
+
       setLoading(false);
     })();
   }, []);
@@ -64,25 +59,24 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
     // Show if expiring within 7 days, or expired (even after `subscribed` flipped to false)
     const shouldShow = subscribed ? daysRemaining <= 7 : daysRemaining <= 0;
     if (!shouldShow) return;
-    
-    // Check if dismissed recently (within 3 days)
+
+    // Check if dismissed recently (within 3 days) or shown today already
     try {
       const dismissed = localStorage.getItem(DISMISS_KEY);
       const lastShown = localStorage.getItem(LAST_SHOWN_KEY);
       const now = Date.now();
-      
+
       if (dismissed && now - Number(dismissed) < 3 * 24 * 60 * 60 * 1000) return;
       if (lastShown && now - Number(lastShown) < 24 * 60 * 60 * 1000) return;
     } catch { /* ignore */ }
-    
-    // Auto-show after a delay
+
     const timer = setTimeout(() => {
       setOpen(true);
       try {
         localStorage.setItem(LAST_SHOWN_KEY, String(Date.now()));
       } catch { /* ignore */ }
     }, 1500);
-    
+
     return () => clearTimeout(timer);
   }, [loading, subscribed, endDate, daysRemaining]);
 
@@ -110,110 +104,120 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
   if (loading || !visible) return null;
 
   const isExpired = daysRemaining <= 0;
-  const isUrgent = isExpired || daysRemaining <= 3;
-  const formattedDate = new Date(endDate).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    year: 'numeric'
+
+  const tabLabel = isExpired
+    ? "Expired"
+    : daysRemaining <= 1
+      ? "Expires tomorrow"
+      : "Expires this week";
+
+  const formattedDate = new Date(endDate).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
   });
 
   return (
     <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : handleDismiss())}>
-      <DrawerContent>
-        <div className="mx-auto w-full max-w-md px-6 pb-8 pt-2">
-          {/* Warning Icon */}
+      <DrawerContent className="border-white/30 bg-white/80 backdrop-blur-2xl dark:border-white/10 dark:bg-[#1C1C1E]/75">
+        <div className="mx-auto w-full max-w-md px-5 pb-9 pt-3">
+          {/* Status tab */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className={cn(
-              "mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[26px]",
-              isUrgent 
-                ? "bg-gradient-to-br from-rose-400 to-orange-500 shadow-lg shadow-rose-900/30" 
-                : "bg-gradient-to-br from-amber-300 to-yellow-500 shadow-lg shadow-amber-900/30"
-            )}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="flex justify-center"
           >
-            <AlertCircle className="h-8 w-8 text-white" />
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ring-1",
+                isExpired
+                  ? "bg-rose-500/15 text-rose-600 ring-rose-500/30 dark:text-rose-300"
+                  : "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-300"
+              )}
+            >
+              <Crown className="h-3 w-3" />
+              {tabLabel}
+            </span>
           </motion.div>
 
-          {/* Title */}
-          <h2 className="text-center text-[22px] font-bold tracking-tight text-[#1C1C1E] dark:text-white">
-            {isExpired ? "Your subscription has ended" : isUrgent ? "Subscription ending soon" : "Subscription expiring"}
-          </h2>
-          
-          {/* Date Info */}
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <Calendar className="w-4 h-4 text-[#8E8E93] dark:text-white/50" />
-            <p className="text-center text-[15px] font-medium text-[#1C1C1E] dark:text-white">
-              {formattedDate}
-            </p>
-          </div>
-          
-          {/* Days remaining badge */}
-          <div className="mt-2 flex justify-center">
-            <span className={cn(
-              "inline-flex items-center px-3 py-1 rounded-full text-[13px] font-semibold",
-              isUrgent
-                ? "bg-rose-500/10 text-rose-500 dark:text-rose-400"
-                : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-            )}>
-              {isExpired ? "Ended" : daysRemaining === 0 ? "Expires today" : daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`}
-            </span>
-          </div>
-
-          {/* Description */}
-          <p className="mx-auto mt-4 max-w-[280px] text-center text-[13px] text-[#8E8E93] dark:text-white/50">
-            {isExpired
-              ? "Your Pro features are now locked. Renew to restore full access instantly."
-              : isUrgent
-              ? "Your Pro features will be locked soon. Renew to keep everything running smoothly."
-              : "Your Pro subscription is ending. Don't lose access to your premium features."
-            }
-          </p>
-
-          {/* Locked Features */}
-          <div className="mt-6 space-y-2">
-            <p className="text-[12px] font-semibold text-[#8E8E93] dark:text-white/40 uppercase tracking-wider">
-              {isExpired ? "Locked features" : "Features you'll lose"}
-            </p>
-            {LOCKED_FEATURES.map((feature, index) => (
-              <motion.div
-                key={feature.label}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
-                className="flex items-center gap-3 rounded-2xl border border-black/[0.05] bg-black/[0.02] dark:border-white/[0.06] dark:bg-white/[0.03] px-4 py-3"
-              >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-500 dark:text-rose-400">
-                  <Lock className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-[14px] text-[#1C1C1E]/70 dark:text-white/70">{feature.label}</span>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Action Buttons */}
-          <Button
-            onPress={handleManage}
-            className={cn(
-              "mt-6 h-14 w-full rounded-full text-white text-[16px] font-semibold shadow-lg",
-              isUrgent 
-                ? "bg-rose-500 hover:bg-rose-600 shadow-rose-500/25" 
-                : "bg-[#0A84FF] hover:bg-[#0066d6] shadow-blue-500/25"
-            )}
+          {/* iOS-style squircle icon */}
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.05 }}
+            className="mx-auto mt-5 grid h-[76px] w-[76px] place-items-center rounded-[22px] bg-gradient-to-b from-[#FF5A5F] to-[#D3001B] shadow-[0_14px_30px_-8px_rgba(211,0,27,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]"
           >
-            <Crown className="h-4 w-4 mr-2" />
-            {isUrgent ? "Renew now" : "Manage subscription"}
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+            <Crown className="h-9 w-9 text-white" strokeWidth={1.75} />
+          </motion.div>
 
-          <Button
-            variant="light"
-            onPress={handleDismiss}
-            className="mt-3 w-full text-center text-[13px] font-medium text-[#8E8E93] dark:text-white/40 h-auto py-2"
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 280, damping: 26 }}
           >
-            Remind me later
-          </Button>
+            <h2 className="mt-4 text-center text-[24px] font-bold leading-tight tracking-[-0.02em] text-[#1C1C1E] dark:text-white">
+              {isExpired ? "Your Pro membership has ended" : "Your Pro membership is ending"}
+            </h2>
+            <p className="mx-auto mt-2 max-w-[300px] text-center text-[14px] leading-relaxed text-[#8E8E93] dark:text-white/55">
+              {isExpired
+                ? "Your plan ended on " + formattedDate + ". Renew to get everything back instantly — nothing was lost."
+                : "Your plan ends " + formattedDate + ". Renew now and everything stays exactly as it is — no gap."}
+            </p>
+          </motion.div>
+
+          {/* iOS grouped card */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16, type: "spring", stiffness: 280, damping: 28 }}
+            className="mt-5 overflow-hidden rounded-[20px] bg-black/[0.035] ring-1 ring-black/[0.04] dark:bg-white/[0.06] dark:ring-white/[0.07]"
+          >
+            <p className="px-4 pb-1.5 pt-3.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8E8E93] dark:text-white/40">
+              {isExpired ? "Paused with Pro" : "Included with Pro"}
+            </p>
+            <ul className="divide-y divide-black/[0.05] dark:divide-white/[0.06]">
+              {PRO_FEATURES.map((f, i) => (
+                <motion.li
+                  key={f.label}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + i * 0.05, duration: 0.3 }}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#0A84FF]/12 text-[#0A84FF] dark:bg-[#0A84FF]/20">
+                    <f.icon className="h-3.5 w-3.5" strokeWidth={2} />
+                  </span>
+                  <span className="flex-1 text-[14px] font-medium text-[#1C1C1E]/85 dark:text-white/85">{f.label}</span>
+                  <Check className="h-4 w-4 text-[#34C759]" strokeWidth={2.5} />
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24, type: "spring", stiffness: 280, damping: 26 }}
+          >
+            <button
+              type="button"
+              onClick={handleManage}
+              className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#0A84FF] text-[16px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(10,132,255,0.55)] transition active:scale-[0.98] active:bg-[#0066d6]"
+            >
+              {isExpired ? "Renew Cutzioo Pro" : "Keep Pro — Renew"}
+            </button>
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="mt-1 w-full py-2.5 text-center text-[14px] font-medium text-[#8E8E93] transition hover:text-[#1C1C1E] dark:text-white/45 dark:hover:text-white/80"
+            >
+              Remind me later
+            </button>
+            <p className="flex items-center justify-center gap-1 text-center text-[11px] text-[#AEAEB2] dark:text-white/30">
+              <Star className="h-3 w-3 fill-current" /> 4.8 from barbers on Cutzioo · cancel anytime
+            </p>
+          </motion.div>
         </div>
       </DrawerContent>
     </Drawer>
