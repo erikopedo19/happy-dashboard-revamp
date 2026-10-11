@@ -64,10 +64,11 @@ Deno.serve(async (req) => {
     if (!city) return json({ error: "We couldn't tell where you are. Allow location or type a city." }, 400);
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const since = new Date(Date.now() - COOLDOWN_HOURS * 3600_000).toISOString();
-    const { count } = await admin.from("listings").select("id", { count: "exact", head: true })
-      .eq("ai_found", true).ilike("location", `%${city}%`).gte("created_at", since);
-    if ((count ?? 0) > 0) return json({ city, added: 0, cached: true });
+    // Cache: each city is searched at most once per 24h, even when nothing was found
+    const cityKey = city.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const { data: prev } = await admin.from("listing_searches").select("searched_at").eq("city_key", cityKey).maybeSingle();
+    if (prev && Date.now() - new Date(prev.searched_at).getTime() < 24 * 3600_000) return json({ city, added: 0, cached: true });
+    await admin.from("listing_searches").upsert({ city_key: cityKey, searched_at: new Date().toISOString(), found: 0 });
 
     const LOVABLE = Deno.env.get("LOVABLE_API_KEY"), FC = Deno.env.get("FIRECRAWL_API_KEY");
     if (!LOVABLE || !FC) return json({ error: "Listing search is not set up yet." }, 500);
@@ -100,7 +101,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "openai/gpt-6-astra", stream: true, store: false,
         reasoning: { effort: "low", summary: "auto" }, include: ["reasoning.encrypted_content"],
-        instructions: "You sort public web search results for a barber app. Keep ONLY results that are a single, specific, current listing: a chair/booth for rent in a barbershop or salon (kind=rent), a whole shop/space for rent suited to a barbershop, hair or nail salon (kind=space), or a job opening for a barber, hairdresser or nail artist (kind=job). Drop directories, category pages, articles, social profiles and anything unrelated. Never invent facts: use only what the title/snippet says; use null when unknown. Write title and short_description (max 25 words) in English. profession: barber, salon (hairdresser) or nails.",
+        instructions: "You sort public web search results for a barber app. Keep ONLY results that are a single, specific, current listing: a chair/booth for rent in a barbershop or salon (kind=rent), a whole shop/space for rent suited to a barbershop, hair or nail salon (kind=space), or a job opening for a barber, hairdresser or nail artist (kind=job). Drop directories, category pages, articles, social profiles and anything unrelated. Legal filter: drop any ad that discriminates (age, gender, nationality, religion, etc.), offers undeclared/cash-in-hand work, looks like a scam, or is behind a login/paywall. Never invent facts: use only what the title/snippet says; use null when unknown. contact_phone only if it is a business number published in the ad itself, else null. Do not copy the ad text verbatim: write your own title and short_description (max 25 words) in English. profession: barber, salon (hairdresser) or nails.",
         input: `City: ${city}\n\nResults:\n${results.map((r, i) => `[${i}] ${r.title}\n${r.url}\n${r.description}`).join("\n\n")}`,
         text: { format: { type: "json_schema", name: "listings", strict: true, schema } },
       }),
@@ -146,6 +147,7 @@ Deno.serve(async (req) => {
     if (rows.length) {
       const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url", ignoreDuplicates: true });
       if (error) console.error(error);
+      await admin.from("listing_searches").update({ found: rows.length }).eq("city_key", cityKey);
     }
     return json({ city, added: rows.length }, 200, aig);
   } catch (e) {
