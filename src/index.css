@@ -1486,6 +1486,15 @@ html.is-native.platform-ios .pricing-screen { height: calc(100dvh - env(safe-are
 html.is-native.platform-ios .pricing-header { padding-top: 12px; }
 html.is-native.platform-ios .pricing-footer { padding-bottom: 16px; }
 
+/* When a floating dock is mounted, lift the CTA above it (~96px band) */
+body:has([data-glass-dock]) .pricing-footer {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+}
+html.is-native.platform-ios body:has([data-glass-dock]) .pricing-footer,
+body.is-native.platform-ios:has([data-glass-dock]) .pricing-footer {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+}
+
 @media (hover: hover) {
   .pricing-screen button:hover { opacity: 0.88; }
 }
