@@ -40,6 +40,38 @@ const FREE_PLAN_LOSSES = [
   { icon: Globe, label: "Website tools are Pro-only" },
 ];
 
+type ManageAction = "cancel" | "resume";
+type ManageResult =
+  | { kind: "fallback" }
+  | { kind: "error" }
+  | { kind: "success"; subscriptionEnd: string | null };
+
+async function manageSubscription(action: ManageAction): Promise<ManageResult> {
+  const { data, error } = await supabase.functions.invoke("manage-subscription", {
+    body: { action },
+  });
+  let errorCode = typeof data?.error === "string" ? data.error : undefined;
+
+  if (!errorCode && error) {
+    const context = (error as { context?: unknown }).context;
+    if (context instanceof Response) {
+      const payload = await context.clone().json().catch(() => null);
+      if (
+        payload &&
+        typeof payload === "object" &&
+        "error" in payload &&
+        typeof payload.error === "string"
+      ) {
+        errorCode = payload.error;
+      }
+    }
+  }
+
+  if (errorCode === "no_stripe_subscription") return { kind: "fallback" };
+  if (error || errorCode || data?.ok !== true) return { kind: "error" };
+  return { kind: "success", subscriptionEnd: data.subscription_end ?? null };
+}
+
 export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
   const navigate = useNavigate();
   // MobileSettings embeds this inside an always-dark (#0A0A0C) surface that
@@ -117,21 +149,54 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   async function setAutoRenew(enabled: boolean) {
     haptic("selection");
     setBusy(true);
-    const { error: e } = await supabase.rpc("set_subscription_auto_renew", { _enabled: enabled });
-    setBusy(false);
-    if (e) return toast.error("Couldn't update auto-renewal. Please try again.");
-    toast.success(enabled ? "Auto-renewal turned on" : "Auto-renewal turned off");
-    await refresh();
+    try {
+      const result = await manageSubscription(enabled ? "resume" : "cancel");
+      if (result.kind === "error") {
+        toast.error("Couldn't update auto-renewal. Please try again.");
+        return;
+      }
+      if (result.kind === "fallback") {
+        const { error: rpcError } = await supabase.rpc("set_subscription_auto_renew", { _enabled: enabled });
+        if (rpcError) {
+          toast.error("Couldn't update auto-renewal. Please try again.");
+          return;
+        }
+      }
+      toast.success(enabled ? "Auto-renewal turned on" : "Auto-renewal turned off");
+      await refresh();
+    } catch {
+      toast.error("Couldn't update auto-renewal. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function cancelSubscription() {
     setBusy(true);
-    const { error: e } = await supabase.rpc("cancel_subscription_at_period_end");
-    setBusy(false);
-    setConfirmOpen(false);
-    if (e) return toast.error("Couldn't cancel your subscription. Please try again.");
-    toast.success("Subscription set to cancel at the end of the period");
-    await refresh();
+    try {
+      const result = await manageSubscription("cancel");
+      if (result.kind === "error") {
+        toast.error("Couldn't cancel your subscription. Please try again.");
+        return;
+      }
+      if (result.kind === "fallback") {
+        const { error: rpcError } = await supabase.rpc("cancel_subscription_at_period_end");
+        if (rpcError) {
+          toast.error("Couldn't cancel your subscription. Please try again.");
+          return;
+        }
+      }
+      setConfirmOpen(false);
+      const subscriptionEnd = result.kind === "success"
+        ? result.subscriptionEnd ?? data?.subscription_end
+        : data?.subscription_end;
+      toast.success(`Pro cancelled. You keep it until ${fmt(subscriptionEnd)}.`);
+      await refresh();
+    } catch {
+      toast.error("Couldn't cancel your subscription. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const openBilling = () => {
@@ -213,11 +278,23 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Billing changes are handled securely through Stripe.</p>
           </div>
 
-          {status === "active" && (
+          {(status === "active" || status === "canceling") && (
             <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-              <Button variant="ghost" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
-                Cancel subscription
-              </Button>
+              {status === "canceling" ? (
+                <Button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setAutoRenew(true)}
+                  className="h-14 w-full rounded-none border-0 bg-[#FF2D46] text-[16px] font-semibold text-white shadow-none hover:bg-[#E0152F]"
+                >
+                  {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Resume Pro
+                </Button>
+              ) : (
+                <Button variant="ghost" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
+                  Cancel subscription
+                </Button>
+              )}
             </div>
           )}
         </>
@@ -256,6 +333,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
                 { icon: CalendarClock, text: `Pro stays active until ${fmt(data?.subscription_end)}` },
                 { icon: ShieldCheck, text: "You won't be charged again" },
                 { icon: Database, text: "Your data is kept. Renew anytime to get everything back." },
+                { icon: ShieldCheck, text: "Cancel anytime, no fees" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-3 border-b border-black/[0.06] px-3.5 py-3 last:border-b-0 dark:border-white/[0.06]">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#FF2D46]/15 text-[#FF2D46]">

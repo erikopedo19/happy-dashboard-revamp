@@ -230,8 +230,9 @@ export default function Pricing() {
           </button>
           <p className="pricing-secure">
             <ShieldCheck aria-hidden="true" size={15} strokeWidth={1.75} />
-            Secure payment by Stripe · cancel anytime
+            Secure payment by Stripe
           </p>
+          <p className="pricing-secure">Cancel anytime in Settings → Subscription.</p>
         </footer>
       </motion.div>
     </div>
