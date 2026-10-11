@@ -33,9 +33,9 @@ const cleanSlug = (raw: string) =>
     .replace(/^-+|-+$/g, "");
 
 const TABS = [
-  { value: "link", label: "Booking Link", icon: Link2 },
-  { value: "qr", label: "QR Flyer", icon: QrCode },
-  { value: "site", label: "Website", icon: Globe },
+  { value: "link", label: "Booking Link", shortLabel: "Link", icon: Link2 },
+  { value: "qr", label: "QR Flyer", shortLabel: "QR", icon: QrCode },
+  { value: "site", label: "Website", shortLabel: "Website", icon: Globe },
 ] as const;
 
 const STEPS = [
@@ -145,18 +145,6 @@ const BookingPage = () => {
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-screen flex w-full bg-[#0A0A0C] font-geist relative overflow-hidden">
-        {/* Ambient glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-40 right-0 h-[480px] w-[480px] rounded-full opacity-25 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(255,45,111,0.4) 0%, transparent 70%)" }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 -left-32 h-[420px] w-[420px] rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(94,92,230,0.4) 0%, transparent 70%)" }}
-        />
-
         <AppSidebar />
 
         <main className="flex-1 overflow-y-auto relative z-10">
@@ -174,7 +162,7 @@ const BookingPage = () => {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]">
                     Share & grow
                   </p>
-                  <h1 className="text-[34px] md:text-[40px] font-bold text-white tracking-[-0.03em] leading-none">
+                  <h1 className="text-[28px] md:text-[40px] font-bold text-white tracking-[-0.03em] leading-none">
                     Booking
                   </h1>
                 </motion.div>
@@ -203,7 +191,8 @@ const BookingPage = () => {
                         />
                       )}
                       <t.icon className="relative w-4 h-4" strokeWidth={2.3} />
-                      <span className="relative">{t.label}</span>
+                      <span className="relative sm:hidden">{t.shortLabel}</span>
+                      <span className="relative hidden sm:inline">{t.label}</span>
                     </button>
                   );
                 })}
@@ -211,7 +200,7 @@ const BookingPage = () => {
             </div>
           </div>
 
-          <div className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-8 space-y-5">
+          <div className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-[calc(env(safe-area-inset-bottom)+6rem)] md:pb-10 space-y-5">
             {/* Main content */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -220,9 +209,9 @@ const BookingPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={springSoft}
-                className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+                className="md:rounded-[28px] md:bg-[#15151A] md:border md:border-white/[0.08] md:overflow-hidden"
               >
-                <div className="p-4 sm:p-6 md:p-8">
+                <div className="p-0 md:p-8">
                   {tab === "site" ? (
                     <MicrositePanel slug={profile?.booking_link || fallbackSlug} />
                   ) : tab === "qr" ? (
@@ -232,7 +221,7 @@ const BookingPage = () => {
                       isPremium={isPremium}
                     />
                   ) : (
-                    <BookingLinkGenerator />
+                    <BookingLinkGenerator stickySave />
                   )}
                 </div>
               </motion.div>
@@ -244,13 +233,13 @@ const BookingPage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={springSoft}
-              className="rounded-[28px] bg-[#15151A] border border-white/[0.08] overflow-hidden"
+              className="md:rounded-[28px] md:bg-[#15151A] md:border md:border-white/[0.08] md:overflow-hidden"
             >
-              <div className="px-5 md:px-6 pt-5 pb-2">
+              <div className="px-4 md:px-6 pt-5 pb-2">
                 <h3 className="text-[17px] font-bold text-white tracking-tight">How it works</h3>
                 <p className="text-[12px] text-[#8E8E93] mt-1">Four steps to a full chair.</p>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 divide-white/[0.06]">
+              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-0 sm:overflow-visible sm:pb-0 sm:snap-none sm:divide-y sm:divide-y-0 sm:divide-white/[0.06]">
                 {STEPS.map((s, i) => (
                   <motion.div
                     key={s.title}
@@ -258,7 +247,7 @@ const BookingPage = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.08, ...springSoft }}
-                    className="flex items-start gap-3.5 p-5"
+                    className="snap-start shrink-0 w-[72%] rounded-2xl bg-[#15151A] border border-white/[0.08] p-4 flex items-start gap-3.5 sm:w-auto sm:shrink sm:rounded-none sm:bg-transparent sm:border-0 sm:p-5"
                   >
                     <div className="h-10 w-10 rounded-[12px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
                       <s.icon className="h-4.5 w-4.5 text-[#FF6B95]" strokeWidth={2.3} />
