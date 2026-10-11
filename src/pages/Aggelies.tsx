@@ -442,7 +442,7 @@ export default function Aggelies() {
                       className="absolute inset-0 z-20 flex items-center justify-center px-3"
                     >
                       <div className="w-full max-w-[380px] rounded-[24px] border border-white/10 bg-[#1C1C1E] p-5 text-center">
-                        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FF2D46]/12">
+                        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FF2D46]/15">
                           <Crown className="h-6 w-6 text-[#FF2D46]" />
                         </div>
                         <h3 className="mt-3 text-[19px] font-bold leading-tight">

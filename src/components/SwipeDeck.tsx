@@ -139,6 +139,26 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
       exit={{ opacity: 0, y: 40 }}
       transition={spring}
     >
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[45%]"
+        style={{
+          opacity: leftGlowOpacity,
+          scaleX: leftGlowScale,
+          transformOrigin: "left center",
+          background: "linear-gradient(to right, rgba(255,45,70,0.9) 0%, rgba(255,45,70,0.35) 30%, transparent 100%)",
+        }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[45%]"
+        style={{
+          opacity: rightGlowOpacity,
+          scaleX: rightGlowScale,
+          transformOrigin: "right center",
+          background: "linear-gradient(to left, rgba(163,230,53,0.9) 0%, rgba(163,230,53,0.35) 30%, transparent 100%)",
+        }}
+      />
       <div className="relative z-30 flex items-center justify-between py-3">
         <div>
           <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 0.6, x: 0 }} className="text-xs uppercase tracking-widest flex items-center gap-1">
@@ -159,26 +179,6 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
             <Card key={b.id} barber={b} isTop={i === 0} depth={i} onSwipe={swipe} edge={edge} />
           )).reverse()}
         </AnimatePresence>
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[38%]"
-          style={{
-            opacity: leftGlowOpacity,
-            scaleX: leftGlowScale,
-            transformOrigin: "left center",
-            background: "linear-gradient(to right, rgba(255,45,70,0.55), transparent)",
-          }}
-        />
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[38%]"
-          style={{
-            opacity: rightGlowOpacity,
-            scaleX: rightGlowScale,
-            transformOrigin: "right center",
-            background: "linear-gradient(to left, rgba(163,230,53,0.55), transparent)",
-          }}
-        />
         {!current && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 z-10 grid place-items-center text-center">
             <div>

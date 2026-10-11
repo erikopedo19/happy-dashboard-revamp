@@ -131,8 +131,8 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em]",
                 isExpired
-                  ? "bg-[#FF2D46]/12 text-[#FF2D46]"
-                  : "bg-amber-500/12 text-amber-600 dark:text-amber-400"
+                  ? "bg-[#FF2D46]/15 text-[#FF2D46]"
+                  : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
               )}
             >
               <Crown className="h-3 w-3" />
@@ -145,7 +145,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.05 }}
-            className="mx-auto mt-5 grid h-[76px] w-[76px] place-items-center rounded-[22px] bg-[#FF2D46]/12 text-[#FF2D46]"
+            className="mx-auto mt-5 grid h-[76px] w-[76px] place-items-center rounded-[22px] bg-[#FF2D46]/15 text-[#FF2D46]"
           >
             <Crown className="h-9 w-9" strokeWidth={1.75} />
           </motion.div>
