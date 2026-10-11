@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { Search, Calendar, User, Map as MapIcon, Sparkles } from 'lucide-react';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
 import { prefetchRoute } from '@/lib/routePrefetch';
+import { createPortal } from 'react-dom';
 
 const pref = (to: string) => () => prefetchRoute(to);
 
@@ -33,7 +34,10 @@ export const ClientMobileDockInner = () => {
 
   const activeIndex = navItems.findIndex((item) => item.to && isItemActive(item.to));
 
-  return <GlassDock items={navItems} activeIndex={activeIndex >= 0 ? activeIndex : 0} />;
+  return createPortal(
+    <GlassDock items={navItems} activeIndex={activeIndex >= 0 ? activeIndex : 0} />,
+    document.body,
+  );
 };
 
 export default ClientMobileDock;

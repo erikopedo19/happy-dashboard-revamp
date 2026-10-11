@@ -69,15 +69,16 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
     <div
       data-glass-dock
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(calc(env(safe-area-inset-bottom,0px)+0.5rem),0.875rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
+        "fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
+      style={{ paddingBottom: "max(var(--sab, env(safe-area-inset-bottom, 0px)), 12px)" }}
     >
       <motion.div
         layout
         transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
         className="mx-auto flex items-stretch justify-center gap-2.5"
-        style={{ width: compact ? "min(330px,calc(100vw - 3.5rem))" : "min(400px,calc(100vw - 1.5rem))" }}
+        style={{ width: compact ? "min(360px,calc(100vw - 24px))" : "min(400px,calc(100vw - 24px))" }}
       >
       <motion.div
         layout
@@ -132,7 +133,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
             <motion.div
               transition={{ type: "spring", stiffness: 420, damping: 30 }}
               style={{ transformOrigin: "center bottom" }}
-              className="relative z-10 flex flex-col items-center gap-px"
+              className="relative z-10 flex min-w-0 max-w-full flex-col items-center gap-px"
             >
               <motion.div
                 animate={{ scale: isActive ? 1.15 : 1, y: isActive ? -1 : 0 }}
@@ -160,7 +161,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
                   </span>
                 ) : (
                   <span
-                    className="block text-[10px] font-medium"
+                    className="block max-w-full truncate text-[10px] font-medium"
                     style={{ color: itemTextColor, transition: "color 0.2s ease" }}
                   >
                     {item.label}
@@ -188,7 +189,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
               layout
-              className={cn("relative flex cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", "flex-1 px-2")}
+              className={cn("relative flex min-w-0 cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", "flex-1 px-1.5")}
             >
               {isActive && (
                 <motion.div

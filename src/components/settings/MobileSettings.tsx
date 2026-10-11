@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -1131,7 +1132,7 @@ function Sheet({
     if (bodyRef.current) bodyRef.current.scrollTop = 0;
   }, []);
 
-  return (
+  return createPortal(
     <>
       <motion.div
         initial={{ opacity: 0 }}
@@ -1147,7 +1148,7 @@ function Sheet({
         transition={{ type: "spring", stiffness: 320, damping: 34 }}
         className="fixed inset-0 z-[70] h-[100dvh] min-h-0 bg-[#0A0A0C] flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)]"
       >
-        <header className="relative shrink-0 flex items-center justify-center px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 bg-[#0A0A0C]/80 backdrop-blur-xl border-b border-white/[0.06]">
+        <header className="relative shrink-0 flex items-center justify-center px-2 pt-[max(0.75rem,var(--sat,env(safe-area-inset-top,0px)))] pb-2.5 bg-[#0A0A0C]/80 backdrop-blur-xl border-b border-white/[0.06]">
           <button
             onClick={onClose}
             aria-label="Back"
@@ -1161,12 +1162,16 @@ function Sheet({
         <div
           ref={bodyRef}
           className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y px-4 pt-5"
-          style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(8rem + env(safe-area-inset-bottom))" }}
+          style={{
+            WebkitOverflowScrolling: "touch" as any,
+            paddingBottom: "calc(1.25rem + var(--sab, env(safe-area-inset-bottom, 0px)))",
+          }}
         >
           {children}
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body,
   );
 }
 

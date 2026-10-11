@@ -3,6 +3,7 @@ import { LayoutDashboard, Calendar, BarChart3, Settings, MoreHorizontal, Globe, 
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -191,10 +192,11 @@ export const MobileDockInner = () => {
 
   const activeIndex = moreActive || moreOpen ? glassItems.length - 1 : mainIndex >= 0 ? mainIndex : 0;
 
-  return (
+  return createPortal(
     <>
       <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} items={visibleMoreItems} />
       <GlassDock items={glassItems} activeIndex={activeIndex} />
-    </>
+    </>,
+    document.body,
   );
 };
