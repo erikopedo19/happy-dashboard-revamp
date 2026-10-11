@@ -956,7 +956,7 @@ export function MobileSettings(props: any) {
             {panel === "location" && (
               <PanelStack>
                 <p className="text-[13px] text-white/50 px-1">
-                  Search your address, then tap where your shop is.
+                  Search the address, paste your Google Maps link, or use your current location — then tap the map to fine-tune.
                 </p>
                 <div className="rounded-2xl overflow-hidden border border-white/10">
                   <BarbershopMap
@@ -1020,6 +1020,18 @@ export function MobileSettings(props: any) {
                     />
                   </Field>
                 </div>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#FF2D46] to-[#E0152F] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save location</>
+                  )}
+                </motion.button>
               </PanelStack>
             )}
           </Sheet>

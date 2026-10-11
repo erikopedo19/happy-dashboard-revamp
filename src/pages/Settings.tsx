@@ -56,6 +56,7 @@ import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
+import { buildGoogleMapsUrl, extractLatLngFromGoogleUrl } from "@/lib/geo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
@@ -101,24 +102,6 @@ type BrandProfileRecord = {
   avatar_url?: string;
   banner_url?: string;
 };
-
-// Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
-const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } | null => {
-  if (!url) return null;
-  // Pattern 1: /@lat,lng,zoom
-  const at = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (at) return { lat: parseFloat(at[1]), lng: parseFloat(at[2]) };
-  // Pattern 2: q=lat,lng or destination=lat,lng or ll=lat,lng
-  const q = url.match(/[?&](?:q|destination|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (q) return { lat: parseFloat(q[1]), lng: parseFloat(q[2]) };
-  // Pattern 3: !3dlat!4dlng (places format)
-  const place = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-  if (place) return { lat: parseFloat(place[1]), lng: parseFloat(place[2]) };
-  return null;
-};
-
-const buildGoogleMapsUrl = (lat: number, lng: number) =>
-  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
 const defaultAgendaSettings: AgendaSettingsRecord = {
   user_id: "",

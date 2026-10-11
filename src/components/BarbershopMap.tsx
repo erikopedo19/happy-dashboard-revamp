@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LocateFixed, Search, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
+import { Check, Link2, LocateFixed, Search, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
 import { Map, type MapRef, maplibregl } from "@/components/ui/map";
 import { normalizeHex, readableTextOn } from "@/lib/barberTheme";
+import { buildGoogleMapsUrl, extractLatLngFromGoogleUrl } from "@/lib/geo";
 
 interface Barbershop {
   id: string;
@@ -202,9 +203,6 @@ const STYLES = {
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
-const buildGoogleMapsUrl = (lat: number, lng: number) =>
-  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-
 const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
   const R = 6371, dLat = ((b.lat - a.lat) * Math.PI) / 180, dLng = ((b.lng - a.lng) * Math.PI) / 180;
   const h = Math.sin(dLat / 2) ** 2 + Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
@@ -259,10 +257,14 @@ export function BarbershopMap({
   const [zoom, setZoom] = useState(pickMode ? 15 : 13);
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
+  const [mapsLink, setMapsLink] = useState("");
+  const [mapsLinkState, setMapsLinkState] = useState<"idle" | "ok" | "bad">("idle");
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(
     initialCenter ?? null,
   );
   const searchAbort = useRef<AbortController | null>(null);
+  const skipSuggest = useRef(false);
 
   function persist(c: [number, number]) {
     try {
@@ -485,12 +487,7 @@ export function BarbershopMap({
         .addTo(map);
     }
     const onClick = (event: maplibregl.MapMouseEvent) => {
-      const next = { lat: event.lngLat.lat, lng: event.lngLat.lng };
-      setPickedLocation(next);
-      onLocationPick?.(next);
-      setCenter([next.lat, next.lng]);
-      setZoom(16);
-      persist([next.lat, next.lng]);
+      applyPick({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     };
     map.on("click", onClick);
     return () => {
@@ -546,10 +543,65 @@ export function BarbershopMap({
     if (isDarkRef.current) applyDarkPalette(map);
   }, []);
 
+  function applyPick(next: { lat: number; lng: number }) {
+    setPickedLocation(next);
+    onLocationPick?.(next);
+    setCenter([next.lat, next.lng]);
+    setZoom(16);
+    persist([next.lat, next.lng]);
+  }
+
+  // Pick mode: as you type, offer real address suggestions to choose from
+  // instead of silently dropping the pin on the first match.
+  useEffect(() => {
+    if (!pickMode) return;
+    const query = search.trim();
+    if (query.length < 3 || skipSuggest.current) {
+      setSuggestions([]);
+      return;
+    }
+    const id = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`,
+          { headers: { Accept: "application/json" } },
+        );
+        const data = await response.json();
+        setSuggestions(Array.isArray(data) ? data : []);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 350);
+    return () => clearTimeout(id);
+  }, [search, pickMode]);
+
+  function chooseSuggestion(s: { display_name: string; lat: string; lon: string }) {
+    skipSuggest.current = true;
+    applyPick({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
+    setSearch(s.display_name.split(",")[0]);
+    setSuggestions([]);
+  }
+
+  function applyMapsLink(value: string) {
+    setMapsLink(value);
+    const parsed = extractLatLngFromGoogleUrl(value.trim());
+    if (parsed) {
+      applyPick(parsed);
+      setMapsLinkState("ok");
+    } else {
+      setMapsLinkState(/https?:|maps\.app|goo\.gl/i.test(value) ? "bad" : "idle");
+    }
+  }
+
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const query = search.trim();
     if (!query) return;
+
+    if (pickMode && suggestions.length > 0) {
+      chooseSuggestion(suggestions[0]);
+      return;
+    }
 
     searchAbort.current?.abort();
     const controller = new AbortController();
@@ -564,13 +616,12 @@ export function BarbershopMap({
       const data = await response.json();
       if (Array.isArray(data) && data[0]) {
         const next: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        setCenter(next);
-        setZoom(pickMode ? 15 : 14);
-        persist(next);
         if (pickMode) {
-          const current = { lat: next[0], lng: next[1] };
-          setPickedLocation(current);
-          onLocationPick?.(current);
+          applyPick({ lat: next[0], lng: next[1] });
+        } else {
+          setCenter(next);
+          setZoom(14);
+          persist(next);
         }
       }
     } catch {
@@ -583,10 +634,14 @@ export function BarbershopMap({
   function locateMe() {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition((position) => {
-      const next: [number, number] = [position.coords.latitude, position.coords.longitude];
-      setCenter(next);
-      setZoom(pickMode ? 15 : 14);
-      persist(next);
+      const next = { lat: position.coords.latitude, lng: position.coords.longitude };
+      if (pickMode) {
+        applyPick(next);
+      } else {
+        setCenter([next.lat, next.lng]);
+        setZoom(14);
+        persist([next.lat, next.lng]);
+      }
     });
   }
 
@@ -620,9 +675,27 @@ export function BarbershopMap({
                   <Input
                     placeholder={pickMode ? "Search your business address..." : "Search a city or address..."}
                     value={search}
-                    onChange={(event) => setSearch(event.target.value)}
+                    onChange={(event) => {
+                      skipSuggest.current = false;
+                      setSearch(event.target.value);
+                    }}
+                    onBlur={() => setTimeout(() => setSuggestions([]), 150)}
                     className="h-12 rounded-2xl border-white/60 bg-white/90 pl-11 shadow-none placeholder:text-muted-foreground/70 dark:border-white/10 dark:bg-[#1C1C1E]/90"
                   />
+                  {pickMode && suggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]">
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={`${s.lat},${s.lon}-${i}`}
+                          type="button"
+                          onClick={() => chooseSuggestion(s)}
+                          className="block w-full truncate px-4 py-3 text-left text-[13px] text-[#1C1C1E] transition hover:bg-black/[0.04] dark:text-[#F2F2F7] dark:hover:bg-white/[0.08]"
+                        >
+                          {s.display_name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <Button type="submit" disabled={searching} className="sm:min-w-28 rounded-2xl">
                   {searching ? "Searching..." : "Search"}
@@ -634,10 +707,37 @@ export function BarbershopMap({
             </div>
           </div>
           {pickMode && (
+            <div className="mt-2">
+              <div className="relative">
+                <Link2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Or paste your Google Maps link..."
+                  value={mapsLink}
+                  onChange={(event) => applyMapsLink(event.target.value)}
+                  className={`h-11 rounded-2xl border-white/60 bg-white/90 pl-11 text-[13px] shadow-none placeholder:text-muted-foreground/70 dark:border-white/10 dark:bg-[#1C1C1E]/90 ${
+                    mapsLinkState === "ok"
+                      ? "border-emerald-400 dark:border-emerald-500/60"
+                      : mapsLinkState === "bad"
+                        ? "border-[#FF2D55]/60"
+                        : ""
+                  }`}
+                />
+                {mapsLinkState === "ok" && (
+                  <Check className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
+                )}
+              </div>
+              {mapsLinkState === "bad" && (
+                <p className="mt-1.5 px-1 text-[11px] leading-snug text-[#FF2D55]">
+                  Couldn't read that link — open your shop in Google Maps, tap Share, and copy the full link.
+                </p>
+              )}
+            </div>
+          )}
+          {pickMode && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#3C3C43] dark:text-[#EBEBF5]/75">
               <span className="inline-flex items-center gap-1 rounded-full bg-[#FF2D55]/10 px-3 py-1 font-medium text-[#FF2D55]">
                 <Sparkles className="h-3.5 w-3.5" />
-                Tap the map to drop the pin
+                Tap the map to fine-tune
               </span>
               {pickedLocation && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#007AFF]/10 px-3 py-1 font-medium text-[#007AFF]">
