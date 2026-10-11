@@ -221,7 +221,7 @@ const BookingPage = () => {
                       isPremium={isPremium}
                     />
                   ) : (
-                    <BookingLinkGenerator stickySave />
+                    <BookingLinkGenerator />
                   )}
                 </div>
               </motion.div>
