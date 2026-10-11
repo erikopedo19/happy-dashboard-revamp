@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTheme } from "next-themes";
 import { ArrowRight, BellRing, CalendarCheck, Moon, Star, Sun, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { EASE, Em } from "./ui";
 import { AgendaScene, BookingScene, ExploreScene, PhoneFrame } from "./phones";
 
@@ -63,12 +64,14 @@ export function LandingNav() {
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Link
+          <HoverBorderGradient
+            as={Link}
             to={LOGIN_HREF}
-            className="rounded-full px-3.5 py-2 text-[14px] font-semibold text-neutral-800 transition-colors hover:bg-black/[0.06] dark:text-white dark:hover:bg-white/10 sm:text-[13px]"
+            containerClassName="rounded-full"
+            className="px-3.5 py-2 text-[14px] font-semibold sm:text-[13px]"
           >
             Log in
-          </Link>
+          </HoverBorderGradient>
           <Link
             to={TRY_HREF}
             className="rounded-full bg-neutral-900 px-4 py-2 text-[14px] font-semibold text-white transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900 sm:text-[13px]"
@@ -201,12 +204,14 @@ export function Hero() {
             <span className="hidden sm:inline">Start free — no card needed</span>
             <ArrowRight className="h-4 w-4 sm:hidden" />
           </Link>
-          <Link
+          <HoverBorderGradient
+            as={Link}
             to={LOGIN_HREF}
-            className="flex h-14 items-center justify-center rounded-full bg-white/75 px-6 text-[17px] font-semibold text-neutral-900 ring-1 ring-black/[0.06] backdrop-blur-md dark:bg-white/15 dark:text-white dark:ring-white/30 transition-transform hover:scale-[1.04] active:scale-[0.97] sm:h-auto sm:py-3 sm:text-[15px]"
+            containerClassName="rounded-full w-full sm:w-auto"
+            className="h-14 sm:h-auto sm:py-3 w-full justify-center flex items-center text-[17px] sm:text-[15px] font-semibold px-6"
           >
             Log in
-          </Link>
+          </HoverBorderGradient>
         </motion.div>
 
         {/* phones + floating chips */}
