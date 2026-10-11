@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTheme } from "next-themes";
-import { BellRing, CalendarCheck, Moon, Star, Sun, Wallet } from "lucide-react";
+import { ArrowRight, BellRing, CalendarCheck, Moon, Star, Sun, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EASE, Em } from "./ui";
 import { AgendaScene, BookingScene, ExploreScene, PhoneFrame } from "./phones";
+
+export const LOGIN_HREF = "/auth?mode=signin";
+export const TRY_HREF = "/auth?mode=signup";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -25,7 +28,7 @@ function ThemeToggle() {
       type="button"
       aria-label="Toggle theme"
       onClick={() => setTheme(dark ? "light" : "dark")}
-      className="grid h-9 w-9 place-items-center rounded-full text-neutral-700 transition-colors hover:bg-black/[0.06] dark:text-neutral-200 dark:hover:bg-white/10"
+      className="hidden h-9 w-9 place-items-center rounded-full sm:grid text-neutral-700 transition-colors hover:bg-black/[0.06] dark:text-neutral-200 dark:hover:bg-white/10"
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
@@ -43,7 +46,7 @@ export function LandingNav() {
       >
         <a href="#top" className="flex items-center gap-2">
           <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-7 w-7 rounded-lg" />
-          <span className="hidden text-[15px] font-bold tracking-tight text-neutral-900 dark:text-white xs:inline sm:inline">
+          <span className="text-[15px] font-bold tracking-tight text-neutral-900 dark:text-white">
             cutzioo
           </span>
         </a>
@@ -61,10 +64,17 @@ export function LandingNav() {
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <Link
-            to="/auth"
-            className="rounded-full bg-neutral-900 px-4 py-2 text-[13px] font-semibold text-white transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900"
+            to={LOGIN_HREF}
+            className="rounded-full px-3.5 py-2 text-[14px] font-semibold text-neutral-800 transition-colors hover:bg-black/[0.06] dark:text-white dark:hover:bg-white/10 sm:text-[13px]"
           >
-            Get Started
+            Log in
+          </Link>
+          <Link
+            to={TRY_HREF}
+            className="rounded-full bg-neutral-900 px-4 py-2 text-[14px] font-semibold text-white transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900 sm:text-[13px]"
+          >
+            <span className="sm:hidden">Try free</span>
+            <span className="hidden sm:inline">Get Started</span>
           </Link>
         </div>
       </motion.nav>
@@ -129,7 +139,7 @@ function FloatChip({
         y: { duration: 4.5, delay: 0.7 + delay, repeat: Infinity, ease: "easeInOut" },
       }}
       className={cn(
-        "absolute z-20 flex items-center gap-2.5 rounded-2xl bg-white/90 px-3.5 py-2.5 text-left shadow-xl shadow-black/10 ring-1 ring-black/5 backdrop-blur-md",
+        "absolute z-20 hidden items-center gap-2.5 sm:flex rounded-2xl bg-white/90 px-3.5 py-2.5 text-left shadow-xl shadow-black/10 ring-1 ring-black/5 backdrop-blur-md",
         className
       )}
     >
@@ -162,29 +172,46 @@ export function Hero() {
           initial={{ opacity: 0, y: 26 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-          className="mx-auto max-w-3xl text-center text-[38px] font-bold leading-[1.06] tracking-tight text-white drop-shadow-[0_2px_18px_rgba(30,64,120,0.35)] sm:text-6xl"
+          className="mx-auto max-w-3xl text-center text-[34px] font-bold leading-[1.06] tracking-tight text-white drop-shadow-[0_2px_18px_rgba(30,64,120,0.35)] sm:text-6xl"
         >
           Your <Em>agenda</Em>, <Em>clients</Em> &<br className="hidden sm:block" />{" "}
           <Em>barbershop</Em> in one place
         </motion.h1>
 
+        <motion.p
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
+          className="mx-auto mt-4 max-w-md text-center text-[16px] leading-snug text-white/85 drop-shadow-[0_1px_8px_rgba(30,64,120,0.35)] sm:hidden"
+        >
+          Online booking, reminders and payments for barbers. First month free.
+        </motion.p>
+
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
-          className="mt-7 flex justify-center"
+          className="mx-auto mt-7 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center"
         >
           <Link
-            to="/auth"
-            className="rounded-full bg-neutral-900 px-6 py-3 text-[15px] font-semibold text-white shadow-[0_16px_34px_-10px_rgba(0,0,0,0.5)] transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900"
+            to={TRY_HREF}
+            className="flex h-14 items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 text-[17px] font-semibold text-white shadow-[0_16px_34px_-10px_rgba(0,0,0,0.5)] transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900 sm:h-auto sm:py-3 sm:text-[15px]"
           >
-            Start free — no card needed
+            <span className="sm:hidden">Try it free</span>
+            <span className="hidden sm:inline">Start free — no card needed</span>
+            <ArrowRight className="h-4 w-4 sm:hidden" />
+          </Link>
+          <Link
+            to={LOGIN_HREF}
+            className="flex h-14 items-center justify-center rounded-full bg-white/75 px-6 text-[17px] font-semibold text-neutral-900 ring-1 ring-black/[0.06] backdrop-blur-md dark:bg-white/15 dark:text-white dark:ring-white/30 transition-transform hover:scale-[1.04] active:scale-[0.97] sm:h-auto sm:py-3 sm:text-[15px]"
+          >
+            Log in
           </Link>
         </motion.div>
 
         {/* phones + floating chips */}
-        <motion.div style={{ opacity: fadeOut }} className="relative mt-4 sm:mt-6">
-          <div className="relative mx-auto flex h-[460px] items-end justify-center sm:h-[560px]">
+        <motion.div style={{ opacity: fadeOut }} className="relative mt-8 sm:mt-6">
+          <div className="relative mx-auto flex h-[400px] items-end justify-center sm:h-[560px]">
             <motion.div style={{ y: ySides }} className="absolute bottom-0 left-1/2 z-0 hidden sm:block">
               <div className="w-[210px] -translate-x-[165%] rotate-[-9deg] lg:-translate-x-[178%]">
                 <motion.div
@@ -217,7 +244,7 @@ export function Hero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.35, ease: EASE }}
               >
-                <PhoneFrame className="w-[232px] sm:w-[262px]">
+                <PhoneFrame className="w-[210px] sm:w-[262px]">
                   <BookingScene />
                 </PhoneFrame>
               </motion.div>
@@ -261,7 +288,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.9 }}
           className="relative flex flex-col items-center justify-between gap-3 pb-10 sm:flex-row sm:pb-14"
         >
-          <div className="text-center sm:text-left">
+          <div className="hidden text-center sm:block sm:text-left">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
               Trusted by
             </p>
@@ -272,7 +299,7 @@ export function Hero() {
             </p>
           </div>
           <div className="text-center sm:text-right">
-            <p className="max-w-[240px] text-[11px] leading-snug text-neutral-500 dark:text-neutral-400">
+            <p className="hidden max-w-[240px] text-[11px] leading-snug sm:block text-neutral-500 dark:text-neutral-400">
               The booking & management app for barbers, shops and everyone who cuts hair.
             </p>
             <div className="mt-1.5 flex items-center justify-center gap-1.5 sm:justify-end">
@@ -297,5 +324,43 @@ export function Hero() {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+/** Phone-only sticky Log in / Try it free bar, shown once the hero buttons scroll away. */
+export function MobileCtaBar() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 520);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ y: show ? 0 : 140, opacity: show ? 1 : 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+      className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:hidden"
+      aria-hidden={!show}
+    >
+      <div className="flex gap-2 rounded-full bg-white/80 p-1.5 shadow-2xl shadow-black/20 ring-1 ring-black/[0.06] backdrop-blur-2xl dark:bg-[#141416]/80 dark:ring-white/10">
+        <Link
+          to={LOGIN_HREF}
+          tabIndex={show ? 0 : -1}
+          className="flex h-12 flex-1 items-center justify-center rounded-full text-[16px] font-semibold text-neutral-900 ring-1 ring-black/10 active:scale-[0.97] dark:text-white dark:ring-white/15"
+        >
+          Log in
+        </Link>
+        <Link
+          to={TRY_HREF}
+          tabIndex={show ? 0 : -1}
+          className="flex h-12 flex-[1.4] items-center justify-center gap-1.5 rounded-full bg-neutral-900 text-[16px] font-semibold text-white active:scale-[0.97] dark:bg-white dark:text-neutral-900"
+        >
+          Try it free <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </motion.div>
   );
 }

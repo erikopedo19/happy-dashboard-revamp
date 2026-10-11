@@ -1,12 +1,12 @@
 import { Seo } from "@/components/Seo";
-import { Hero, LandingNav } from "@/components/landing/hero";
+import { Hero, LandingNav, MobileCtaBar } from "@/components/landing/hero";
 import { FeaturesBand, HowItWorks, Mission } from "@/components/landing/middle";
 import { Membership } from "@/components/landing/membership";
 import { Audience, Faq, FooterCta, Testimonial } from "@/components/landing/bottom";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen scroll-smooth bg-white font-geist text-neutral-900 antialiased dark:bg-[#0a0a0c] dark:text-white">
+    <div className="min-h-screen scroll-smooth pb-20 sm:pb-0 bg-white font-geist text-neutral-900 antialiased dark:bg-[#0a0a0c] dark:text-white">
       <Seo
         title="Cutzioo — Barbershop Booking & Management for Modern Barbers"
         description="Run your chair like a premium app. Publish a booking page, manage your agenda, and grow your barbershop with Cutzioo."
@@ -17,14 +17,20 @@ export default function Landing() {
       <main>
         <Hero />
         <FeaturesBand />
-        <Mission />
+        {/* Phones get a shorter page: these story sections are desktop-only. */}
+        <div className="hidden sm:block">
+          <Mission />
+        </div>
         <HowItWorks />
-        <Audience />
-        <Testimonial />
+        <div className="hidden sm:block">
+          <Audience />
+          <Testimonial />
+        </div>
         <Membership />
         <Faq />
       </main>
       <FooterCta />
+      <MobileCtaBar />
     </div>
   );
 }
