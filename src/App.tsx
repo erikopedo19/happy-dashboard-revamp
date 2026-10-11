@@ -29,6 +29,7 @@ import { ThemeProvider } from "next-themes";
 import { PremiumGate } from "./components/PremiumGate";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
+import { BookingLiveToasts } from "@/components/BookingLiveToasts";
 import { PhoneAlerts, PhoneAlertsProvider } from "@/components/PhoneAlerts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistentDock } from "./components/PersistentDock";
@@ -433,6 +434,7 @@ function App() {
                   <PersistentDock />
                   <Toaster />
                   <Sonner />
+                  <BookingLiveToasts />
                   <PhoneAlerts />
 
                 </GlimmProvider>

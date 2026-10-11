@@ -295,12 +295,6 @@ const Agenda = () => {
           // Force immediate refetch
           await queryClient.refetchQueries({ queryKey: ['appointments'], exact: false });
 
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "New Booking!",
-              description: "A new appointment has been scheduled.",
-            });
-          }
         }
       )
       .subscribe();

@@ -13,6 +13,7 @@ export type HapticStyle =
   | "medium"
   | "heavy"
   | "selection"
+  | "celebrate"
   | "success"
   | "warning"
   | "error";
@@ -22,6 +23,7 @@ const PATTERNS: Record<HapticStyle, number | number[]> = {
   medium: 14,
   heavy: 24,
   selection: 6,
+  celebrate: [10, 70, 45],
   success: [10, 40, 18],
   warning: [16, 60, 16],
   error: [24, 50, 24, 50, 24],
@@ -44,6 +46,10 @@ async function nativeHaptic(style: HapticStyle) {
       return Haptics.impact({ style: ImpactStyle.Medium });
     case "heavy":
       return Haptics.impact({ style: ImpactStyle.Heavy });
+    case "celebrate":
+      await Haptics.impact({ style: ImpactStyle.Light });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      return Haptics.notification({ type: NotificationType.Success });
     case "success":
       return Haptics.notification({ type: NotificationType.Success });
     case "warning":
