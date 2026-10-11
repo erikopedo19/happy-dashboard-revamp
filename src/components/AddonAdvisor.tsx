@@ -100,7 +100,7 @@ export function AddonAdvisor() {
               </div>
             ))}
           </div>
-          <p className="px-1 text-[12px] text-muted-foreground">AI-powered suggestions — review before buying.</p>
+          <p className="px-1 text-[12px] text-muted-foreground">AI-powered suggestions. Review before buying.</p>
         </div>
       )}
     </div>

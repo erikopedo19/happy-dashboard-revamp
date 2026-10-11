@@ -71,7 +71,7 @@ export function AgendaUpgradeDrawer({ suppress = false }: { suppress?: boolean }
 
           <h2 className="text-[24px] font-bold tracking-tight text-white">Unlock Cutzioo Pro</h2>
           <p className="mx-auto mt-2 max-w-[300px] text-[15px] leading-6 text-white/50">
-            You're on the free plan — {FREE_BOOKINGS} bookings included. Upgrade for unlimited bookings
+            You're on the free plan, with {FREE_BOOKINGS} bookings included. Upgrade for unlimited bookings
             and your own barbershop website.
           </p>
 

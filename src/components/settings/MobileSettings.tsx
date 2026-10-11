@@ -824,7 +824,7 @@ export function MobileSettings(props: any) {
                 <div className="rounded-[28px] bg-[#1C1C1E] p-5">
                   <p className="text-[13px] leading-5 text-[#8E8E93]">
                     Payouts go straight to your connected account. Sales tax is calculated automatically at
-                    checkout and a flat $0.25 platform fee is deducted per transaction — the price your client
+                    checkout and a flat $0.25 platform fee is deducted per transaction, but the price your client
                     pays never changes.
                   </p>
                 </div>
@@ -1508,7 +1508,7 @@ function TeamAccessPanel() {
         <Users className="mx-auto h-6 w-6 text-white/40" />
         <p className="mt-2 text-[14px] font-medium text-white">No team members yet</p>
         <p className="mt-1 text-[12px] text-white/45">
-          Invite barbers from Teams — then choose which pages each one can see here.
+          Invite barbers from Teams, then choose which pages each one can see here.
         </p>
       </div>
     );

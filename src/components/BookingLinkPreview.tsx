@@ -170,7 +170,7 @@ const BookingLinkPreview = ({
                 )}
               >
                 {about ||
-                  "Tell your clients what makes your shop special — your style, specialities and what to expect."}
+                  "Tell your clients what makes your shop special: your style, specialities and what to expect."}
               </p>
 
               {/* Bottom action bar */}

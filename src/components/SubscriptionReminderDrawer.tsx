@@ -160,8 +160,8 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
             </h2>
             <p className="mx-auto mt-2 max-w-[300px] text-center text-[14px] leading-relaxed text-[#8E8E93] dark:text-white/55">
               {isExpired
-                ? "Your plan ended on " + formattedDate + ". Renew to get everything back instantly — nothing was lost."
-                : "Your plan ends " + formattedDate + ". Renew now and everything stays exactly as it is — no gap."}
+                ? "Your plan ended on " + formattedDate + ". Renew to get everything back instantly. Nothing was lost."
+                : "Your plan ends " + formattedDate + ". Renew now and everything stays exactly as it is. There will be no gap."}
             </p>
           </motion.div>
 
@@ -205,7 +205,7 @@ export function SubscriptionReminderDrawer({ forceOpen }: SubscriptionReminderDr
               onClick={handleManage}
               className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF2D46] text-[16px] font-semibold text-white transition active:scale-[0.98] active:bg-[#E0152F]"
             >
-              {isExpired ? "Renew Cutzioo Pro" : "Keep Pro — Renew"}
+              {isExpired ? "Renew Cutzioo Pro" : "Keep Pro: Renew"}
             </button>
             <button
               type="button"

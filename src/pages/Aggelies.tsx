@@ -260,8 +260,8 @@ export default function Aggelies() {
   return (
     <div className="dark min-h-screen bg-[#000000] text-[#F2F2F7] pb-32">
       <Seo
-        title="Rent & Staff — Chairs, Spaces, Jobs & Events | Cutzioo"
-        description="Chairs and spaces for rent, staff openings and barber events — apply in one tap on Cutzioo."
+        title="Rent & Staff: Chairs, Spaces, Jobs & Events | Cutzioo"
+        description="Chairs and spaces for rent, staff openings and barber events. Apply in one tap on Cutzioo."
         path="/aggelies"
       />
 
@@ -403,7 +403,7 @@ export default function Aggelies() {
                       )}
                     </div>
                     <p className="mt-4 text-[17px] font-semibold">
-                      {q ? "Nothing matches your search" : activeTab !== "job" ? "Nothing for rent yet — try AI search" : "No openings yet"}
+                      {q ? "Nothing matches your search" : activeTab !== "job" ? "Nothing for rent yet. Try AI search." : "No openings yet"}
                     </p>
                     <p className="mt-1 text-sm text-white/45">
                       {q ? "Try a different search." : "New aggelies will show up here."}

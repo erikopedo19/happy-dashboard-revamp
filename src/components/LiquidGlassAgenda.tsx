@@ -1764,7 +1764,7 @@ export const LiquidGlassAgenda = ({
                         />
                         <Plus className="w-3.5 h-3.5 relative z-10" />
                         <span className="relative z-10 text-[12px] font-medium">
-                          {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past — ${hour}` : `Tap to book at ${hour}`}
+                          {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past: ${hour}` : `Tap to book at ${hour}`}
                         </span>
                       </button>
                     </div>

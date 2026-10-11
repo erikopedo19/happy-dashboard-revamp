@@ -748,7 +748,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       {stylists.length === 0 ? (
                         <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
                           <p className="text-sm text-gray-400">
-                            No stylists yet — book without one, or add your team.
+                            No stylists yet. Book without one, or add your team.
                           </p>
                           <div className="flex flex-col sm:flex-row gap-2 justify-center">
                             <button
@@ -938,7 +938,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Optional — we'll send an SMS confirmation if provided.
+                      Optional. We'll send an SMS confirmation if provided.
                     </p>
                   </div>
 
@@ -1270,7 +1270,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       {stylists.length === 0 ? (
                         <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
                           <p className="text-sm text-gray-400">
-                            No stylists yet — book without one, or add your team.
+                            No stylists yet. Book without one, or add your team.
                           </p>
                           <div className="flex gap-2 justify-center">
                             <button
@@ -1442,7 +1442,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Optional — we'll send an SMS confirmation if provided.
+                      Optional. We'll send an SMS confirmation if provided.
                     </p>
                   </div>
 

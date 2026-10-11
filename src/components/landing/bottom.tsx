@@ -18,13 +18,13 @@ const AUDIENCE = [
     img: "/landing/aud-owner.jpg",
     title: "Shop",
     em: "owners",
-    desc: "See every chair, every booking, every euro — from one screen.",
+    desc: "See every chair, every booking, every euro. All from one screen.",
   },
   {
     img: "/landing/aud-mobile.jpg",
     title: "Mobile",
     em: "barbers",
-    desc: "Take your kit anywhere. Clients pick the time — you pick the place.",
+    desc: "Take your kit anywhere. Clients pick the time; you pick the place.",
   },
   {
     img: "/landing/aud-team.jpg",
@@ -36,7 +36,7 @@ const AUDIENCE = [
     img: "/landing/aud-apprentice.jpg",
     title: "New",
     em: "barbers",
-    desc: "Look pro from day one — a booking page clients actually trust.",
+    desc: "Look pro from day one. Give clients a booking page they actually trust.",
   },
   {
     img: "/landing/aud-clients.jpg",
@@ -61,8 +61,7 @@ export function Audience() {
           </Reveal>
           <Reveal delay={0.1}>
             <p className="max-w-sm text-[15px] leading-relaxed text-neutral-500 dark:text-neutral-400 md:text-right">
-              Whether you rent a chair, own the shop or just want a cut without the wait —
-              Cutzioo fits.
+              Whether you rent a chair, own the shop or just want a cut without the wait, Cutzioo fits.
             </p>
           </Reveal>
         </div>
@@ -107,14 +106,14 @@ const QUOTES = [
     name: "Marco Duarte",
     role: "Owner, Fade Club · Porto",
     quote:
-      "I stopped losing bookings to DMs and missed calls. My week fills itself — clients tap the link, pay the deposit and show up. Cutzioo paid for itself in the first weekend.",
+    "I stopped losing bookings to DMs and missed calls. My week fills itself. Clients tap the link, pay the deposit and show up. Cutzioo paid for itself in the first weekend.",
   },
   {
     img: "/landing/barber-portrait.jpg",
     name: "Sofia Ramos",
     role: "Independent barber · Lisbon",
     quote:
-      "I rent one chair and work alone — but my booking page looks like a full salon. Clients book while I'm mid-fade and I haven't had a no-show in two months.",
+    "I rent one chair and work alone, but my booking page looks like a full salon. Clients book while I'm mid-fade and I haven't had a no-show in two months.",
   },
 ];
 
@@ -224,19 +223,19 @@ export function Testimonial() {
 const FAQS = [
   {
     q: "Is Cutzioo free to start?",
-    a: "Yes — your first month is free, no card needed. Claim your booking link, add your services and you're live in minutes.",
+    a: "Yes, your first month is free, with no card needed. Claim your booking link, add your services and you're live in minutes.",
   },
   {
     q: "Do my clients need to download an app?",
-    a: "No. Your booking link works in any browser — clients pick a service and a time, and get automatic reminders before their slot.",
+    a: "No. Your booking link works in any browser. Clients pick a service and a time, and get automatic reminders before their slot.",
   },
   {
     q: "Can I take card payments?",
-    a: "Yes. Connect Stripe and take deposits or full payment at booking — paid straight to your bank.",
+    a: "Yes. Connect Stripe and take deposits or full payment at booking. Payments go straight to your bank.",
   },
   {
     q: "Does it work for a whole barbershop?",
-    a: "Add your team — every barber gets their own chair, agenda and bookings under one shop page. Owners see everything.",
+    a: "Add your team: every barber gets their own chair, agenda and bookings under one shop page. Owners see everything.",
   },
   {
     q: "What about no-shows?",
@@ -313,7 +312,7 @@ export function FooterCta() {
         </Reveal>
         <Reveal delay={0.05}>
           <p className="mx-auto mt-4 max-w-md text-[15px] text-white/70">
-            Set up your shop in under two minutes — your first month is on us.
+            Set up your shop in under two minutes. Your first month is on us.
           </p>
         </Reveal>
         <Reveal delay={0.1}>

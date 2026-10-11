@@ -383,7 +383,7 @@ function NativeShell() {
       role="status"
       className="fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[90] -translate-x-1/2 rounded-full border border-black/5 bg-white/95 px-4 py-2 text-[12px] font-semibold text-[#1C1C1E] shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/95 dark:text-[#F2F2F7]"
     >
-      Offline — showing saved data
+      Offline. Showing saved data.
     </div>
   );
 }

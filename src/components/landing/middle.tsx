@@ -96,8 +96,8 @@ export function FeaturesBand() {
         </Reveal>
         <Reveal delay={0.1}>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-            Agenda, clients, payments and your own booking page — the tools that used to
-            cost a front desk, now in your pocket.
+            Agenda, clients, payments and your own booking page. Everything a front desk used to handle
+            is now in your pocket.
           </p>
         </Reveal>
 
@@ -179,7 +179,7 @@ export function Mission() {
           </Reveal>
           <Reveal delay={0.1}>
             <p className="max-w-sm text-[15px] leading-relaxed text-neutral-500 dark:text-neutral-400 md:text-right">
-              Barbers run on skill and reputation — but the software was built for salons
+              Barbers run on skill and reputation, but the software was built for salons
               and spreadsheets. Cutzioo changes that.
             </p>
           </Reveal>
@@ -216,7 +216,7 @@ export function Mission() {
                 Booked <Em>while you cut</Em>
               </p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-                Your link works in any browser — clients book, pay and get reminded. No DMs, no phone tag.
+              Your link works in any browser. Clients book, pay and get reminded. No DMs, no phone tag.
               </p>
             </div>
           </Reveal>
@@ -231,7 +231,7 @@ export function Mission() {
                 Your brand, <Em>front and center</Em>
               </p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-                Your colors, your services, your page — clients book you, not a marketplace.
+              Your colors, your services, your page. Clients book you, not a marketplace.
               </p>
             </div>
           </Reveal>
@@ -251,7 +251,7 @@ export function Mission() {
                   Built for barbers, <Em className="text-white/80">finally</Em>
                 </p>
                 <p className="mt-1.5 max-w-md text-[13px] leading-relaxed text-white/60">
-                  Walk-ins, waitlists, chair swaps, no-show protection — shaped around how a
+                  Walk-ins, waitlists, chair swaps and no-show protection, built around how a
                   shop actually runs, not how a salon chain does.
                 </p>
               </div>
@@ -276,7 +276,7 @@ const STEPS = [
     n: "02",
     title: "Clients book",
     em: "themselves",
-    desc: "They pick a service and a time — deposits and reminders are handled for you.",
+    desc: "They pick a service and a time. Deposits and reminders are handled for you.",
     scene: <AgendaScene />,
   },
   {
@@ -303,7 +303,7 @@ export function HowItWorks() {
         </Reveal>
         <Reveal delay={0.1} className="text-center">
           <p className="mx-auto mt-4 max-w-md text-[15px] text-neutral-500 dark:text-neutral-400">
-            From sign-up to a full agenda in one afternoon — no setup calls, no training.
+            From sign-up to a full agenda in one afternoon. No setup calls, no training.
           </p>
         </Reveal>
 

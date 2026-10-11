@@ -55,7 +55,7 @@ export default function AggeliesManage() {
       <div className="max-w-3xl mx-auto px-4 pt-6 space-y-5">
         <div>
           <h1 className="text-[26px] font-bold tracking-tight">Aggelies</h1>
-          <p className="text-sm text-muted-foreground mt-1">Post a space for rent or a staff opening — clients see and apply instantly.</p>
+          <p className="text-sm text-muted-foreground mt-1">Post a space for rent or a staff opening. Clients see it and can apply instantly.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-1 rounded-full border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] p-1">
@@ -208,7 +208,7 @@ function ListingsManagePanel() {
         <Input placeholder="Cover image URL (optional)" value={form.cover_url} onChange={(e) => set("cover_url", e.target.value)} className="rounded-2xl" />
         <Input placeholder="Short description" value={form.short_description} onChange={(e) => set("short_description", e.target.value)} className="rounded-2xl" />
         <Textarea
-          placeholder={form.kind === "rent" ? "Details — size, utilities, what's included…" : "Details — schedule, pay terms, what you're looking for…"}
+          placeholder={form.kind === "rent" ? "Details: size, utilities, what's included…" : "Details: schedule, pay terms, what you're looking for…"}
           value={form.description}
           onChange={(e) => set("description", e.target.value)}
           className="rounded-2xl min-h-[96px]"
@@ -245,7 +245,7 @@ function ListingsManagePanel() {
       )}
       {!loading && !error && rows.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-6">
-          No listings yet — publish a space for rent or a staff opening above.
+          No listings yet. Publish a space for rent or a staff opening above.
         </p>
       )}
 

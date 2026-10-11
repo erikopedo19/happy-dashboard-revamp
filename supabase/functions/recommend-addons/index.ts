@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
         model: "openai/gpt-6-astra", stream: true, store: false,
         reasoning: { effort: "low", summary: "auto" }, include: ["reasoning.encrypted_content"],
         instructions: "You advise barbershop and salon owners using the Cutzioo booking app. Recommend 2-4 add-ons ONLY from the catalog, most impactful first. Each reason: one friendly sentence under 25 words tied to their inputs. Summary: one sentence. Answer in the same language as the owner's notes if given, else English. Never use the word 'boost'.",
-        input: `Catalog:\n${CATALOG.map((c) => `- ${c.id}: ${c.name} — ${c.desc}`).join("\n")}\n\nSalon size: ${size}\nMonthly bookings: ${volume}\nGoals: ${goals.join(", ") || "none given"}\nNotes: ${notes || "none"}`,
+        input: `Catalog:\n${CATALOG.map((c) => `- ${c.id}: ${c.name}: ${c.desc}`).join("\n")}\n\nSalon size: ${size}\nMonthly bookings: ${volume}\nGoals: ${goals.join(", ") || "none given"}\nNotes: ${notes || "none"}`,
         text: { format: { type: "json_schema", name: "addon_recs", strict: true, schema } },
       }),
     });
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       let msg = "Couldn't get recommendations right now.";
       try { msg = JSON.parse(t)?.error?.message || JSON.parse(t)?.message || msg; } catch {}
       if (res.status === 402) msg = "AI credits have run out. Please try again later.";
-      if (res.status === 429) msg = "Too many requests — please try again in a minute.";
+      if (res.status === 429) msg = "Too many requests. Please try again in a minute.";
       return json({ error: msg }, res.status, aig);
     }
 

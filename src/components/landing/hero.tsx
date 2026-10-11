@@ -201,7 +201,7 @@ export function Hero() {
             className="flex h-14 items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 text-[17px] font-semibold text-white shadow-[0_16px_34px_-10px_rgba(0,0,0,0.5)] transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900 sm:h-auto sm:py-3 sm:text-[15px]"
           >
             <span className="sm:hidden">Try it free</span>
-            <span className="hidden sm:inline">Start free — no card needed</span>
+            <span className="hidden sm:inline">Start free. No card needed.</span>
             <ArrowRight className="h-4 w-4 sm:hidden" />
           </Link>
           <HoverBorderGradient

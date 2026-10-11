@@ -180,7 +180,7 @@ const FindBarbershop = () => {
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-32">
       <Seo
-        title="Find Barbershops Near You — Cutzioo"
+        title="Find Barbershops Near You | Cutzioo"
         description="Browse nearby barbershops by location, rating, and shop type. Book your next haircut in seconds with Cutzioo."
         path="/find-barbershop"
       />

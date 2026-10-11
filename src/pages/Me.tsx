@@ -195,7 +195,7 @@ const Me = () => {
                   </p>
                   <p className="text-[12px] text-[#8E8E93]">
                     {stats.total >= 5
-                      ? "You're a regular — keep it up"
+                      ? "You're a regular. Keep it up!"
                       : `${5 - stats.total} more booking${5 - stats.total !== 1 ? "s" : ""} to earn Regular`}
                   </p>
                 </div>

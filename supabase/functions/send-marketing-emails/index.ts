@@ -98,7 +98,7 @@ type Campaign = {
 const CAMPAIGNS: Record<string, Campaign> = {
   welcome_24h: {
     key: "welcome_24h",
-    subject: () => "Your Cutzioo agenda is ready — take 2 minutes",
+    subject: () => "Your Cutzioo agenda is ready: take 2 minutes",
     html: (c) =>
       shell({
         kicker: "Getting started",
@@ -118,20 +118,20 @@ const CAMPAIGNS: Record<string, Campaign> = {
         kicker: "Almost there",
         title: "Your booking link isn't live yet",
         body: `<p style="margin:0 0 14px;">Hi ${esc(c.firstName)}, your Cutzioo account is set up but clients can't book you yet.</p>
-<p style="margin:0;">Publish your link and drop it in your Instagram bio — that single change is what most barbers say doubled their bookings.</p>`,
+<p style="margin:0;">Publish your link and drop it in your Instagram bio. That single change is what most barbers say doubled their bookings.</p>`,
         ctaLabel: "Publish my booking link",
         ctaUrl: `${APP_URL}/settings`,
       }),
   },
   inactive_14d: {
     key: "inactive_14d",
-    subject: () => "Your chair has been quiet — let's fill it",
+    subject: () => "Your chair has been quiet. Let's fill it",
     html: (c) =>
       shell({
         kicker: "We miss you",
         title: "Come back and keep your bookings in one place",
         body: `<p style="margin:0 0 14px;">Hi ${esc(c.firstName)}, we haven't seen a booking on your Cutzioo agenda in a while.</p>
-<p style="margin:0 0 14px;">Share your link once and clients book themselves — no DMs, no missed calls, no double bookings.</p>
+<p style="margin:0 0 14px;">Share your link once and clients book themselves. No DMs, no missed calls, no double bookings.</p>
 <p style="margin:0;padding:14px 16px;background:#f2f2f7;border-radius:14px;font-size:14px;">🎁 Reach <strong>200 appointments</strong> on Cutzioo and we'll give you <strong>a free month of Premium</strong>.</p>`,
         ctaLabel: "Open my agenda",
         ctaUrl: `${APP_URL}/agenda`,
@@ -145,7 +145,7 @@ const CAMPAIGNS: Record<string, Campaign> = {
         kicker: "Milestone",
         title: `${c.total} appointments and counting`,
         body: `<p style="margin:0 0 14px;">Nice work, ${esc(c.firstName)}. You've booked <strong>${c.total}</strong> appointments through Cutzioo.</p>
-<p style="margin:0;padding:14px 16px;background:#f2f2f7;border-radius:14px;font-size:14px;">Hit <strong>200</strong> and your next month of Premium is on us — just <strong>${c.remaining}</strong> to go.</p>`,
+<p style="margin:0;padding:14px 16px;background:#f2f2f7;border-radius:14px;font-size:14px;">Hit <strong>200</strong> and your next month of Premium is on us. Just <strong>${c.remaining}</strong> to go.</p>`,
         ctaLabel: "Keep booking",
         ctaUrl: `${APP_URL}/agenda`,
       }),
@@ -161,7 +161,7 @@ const CAMPAIGNS: Record<string, Campaign> = {
 <ol style="margin:0 0 14px;padding-left:20px;">
   <li style="margin-bottom:8px;"><strong>Pin your booking link</strong> in your Instagram bio and WhatsApp status.</li>
   <li style="margin-bottom:8px;"><strong>Block your days off</strong> so clients never book you on a break.</li>
-  <li><strong>Turn on review requests</strong> — ratings bring in new clients on their own.</li>
+  <li><strong>Turn on review requests:</strong> ratings bring in new clients on their own.</li>
 </ol>
 <p style="margin:0;font-size:14px;color:#8e8e93;">We only send this once a month.</p>`,
         ctaLabel: "Open Cutzioo",
@@ -183,22 +183,22 @@ const CAMPAIGNS: Record<string, Campaign> = {
   },
   active_free_upgrade: {
     key: "active_free_upgrade",
-    subject: () => "You're busy — unlock Cutzioo Premium for $9/month",
+    subject: () => "You're busy. Unlock Cutzioo Premium for $9/month",
     html: (c) =>
       shell({
         kicker: "Premium offer",
         title: `You're outgrowing the free plan, ${esc(c.firstName)}`,
-        body: `<p style="margin:0 0 14px;">You've been taking bookings on Cutzioo regularly — nice. The free plan stops at <strong>20 appointments a month</strong>, and that ceiling gets close fast.</p>
+        body: `<p style="margin:0 0 14px;">You've been taking bookings on Cutzioo regularly. Nice. The free plan stops at <strong>20 appointments a month</strong>, and that ceiling gets close fast.</p>
 <p style="margin:0 0 14px;">Premium is <strong>$9 / month</strong>. Here's what you get:</p>
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f7;border-radius:16px;margin-bottom:14px;">
-  <tr><td style="padding:16px 18px 6px;font-size:14px;">✓ <strong>Unlimited bookings</strong> — no monthly cap</td></tr>
+  <tr><td style="padding:16px 18px 6px;font-size:14px;">✓ <strong>Unlimited bookings:</strong> no monthly cap</td></tr>
   <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Unlimited services, clients & stylists</td></tr>
   <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Your own website page for your shop</td></tr>
   <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Reports, revenue tracking & payouts</td></tr>
   <tr><td style="padding:0 18px 6px;font-size:14px;">✓ Automatic review requests & reminders</td></tr>
   <tr><td style="padding:0 18px 16px;font-size:14px;">✓ Card payments at booking</td></tr>
 </table>
-<p style="margin:0;font-size:14px;color:#8e8e93;">Cancel any time — one tap in Settings.</p>`,
+<p style="margin:0;font-size:14px;color:#8e8e93;">Cancel any time. One tap in Settings.</p>`,
         ctaLabel: "Get Premium for $9/month",
         ctaUrl: `${APP_URL}/pricing`,
       }),
@@ -218,7 +218,7 @@ const CAMPAIGNS: Record<string, Campaign> = {
   <tr><td style="padding:0 18px 16px;font-size:14px;color:#8e8e93;">All time</td><td align="right" style="padding:0 18px 16px;font-size:17px;font-weight:700;">${c.total}</td></tr>
 </table>
 ${barChart(c.weekly)}
-<p style="margin:16px 0 0;font-size:14px;">Share your booking link again this week — it's the easiest way to grow next month's number.</p>`,
+<p style="margin:16px 0 0;font-size:14px;">Share your booking link again this week. It's the easiest way to grow next month's number.</p>`,
         ctaLabel: "View my dashboard",
         ctaUrl: `${APP_URL}/admin`,
       }),

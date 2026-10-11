@@ -23,7 +23,7 @@ const PLANS: Record<PlanKey, { price: string; per: string; note: string }> = {
 const PERKS = [
   { icon: CalendarClock, label: "Unlimited bookings & clients" },
   { icon: Users, label: "Team members & stylists" },
-  { icon: MapPin, label: "Map listing — get found" },
+  { icon: MapPin, label: "Map listing: get found" },
   { icon: ShieldCheck, label: "No-show protection & deposits" },
 ];
 

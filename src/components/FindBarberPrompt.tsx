@@ -93,7 +93,7 @@ export function FindBarberPrompt() {
               </div>
 
               <p className="text-sm text-white/70 mb-5 leading-relaxed">
-                You're set up as a <span className="text-white font-medium">barber</span> by default —
+                You're set up as a <span className="text-white font-medium">barber</span> by default.
                 this is your shop dashboard. Just here to <span className="text-white font-medium">book a cut</span>?
               </p>
 

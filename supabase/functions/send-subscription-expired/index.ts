@@ -38,7 +38,7 @@ function html(name: string, endedOn: string) {
 <tr><td style="padding:16px 32px 0;">
   <p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#48484a;">Hi <strong style="color:#1c1c1e;">${esc(name || "there")}</strong>,</p>
   <p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#48484a;">
-    Your Cutzioo Pro plan ended on <strong style="color:#1c1c1e;">${esc(endedOn)}</strong>. Your account is still here — it's just back on the free plan,
+    Your Cutzioo Pro plan ended on <strong style="color:#1c1c1e;">${esc(endedOn)}</strong>. Your account is still here. It's just back on the free plan,
     so Pro features like unlimited bookings, teams and analytics are paused.
   </p>
   <p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#48484a;">
@@ -61,7 +61,7 @@ function soonHtml(name: string, endsOn: string, daysLeft: number) {
 <tr><td style="padding:16px 32px 0;">
   <p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#48484a;">Hi <strong style="color:#1c1c1e;">${esc(name || "there")}</strong>,</p>
   <p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#48484a;">
-    Just a heads-up — your Cutzioo Pro membership ends on <strong style="color:#1c1c1e;">${esc(endsOn)}</strong>.
+    Just a heads-up: your Cutzioo Pro membership ends on <strong style="color:#1c1c1e;">${esc(endsOn)}</strong>.
     Renew now and there'll be no gap: unlimited bookings, your team and your map listing stay exactly as they are.
   </p>
 </td></tr>

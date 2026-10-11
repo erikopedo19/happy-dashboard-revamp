@@ -389,7 +389,7 @@ export default function SuperAdminDashboard() {
           <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
             <div>
               <CardTitle>Users</CardTitle>
-              <CardDescription>Manage subscriptions — flip premium on or off, or set a custom end date.</CardDescription>
+              <CardDescription>Manage subscriptions: flip premium on or off, or set a custom end date.</CardDescription>
             </div>
             <div className="relative w-64 max-w-[40vw]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

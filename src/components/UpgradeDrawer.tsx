@@ -55,7 +55,7 @@ const PLAN_OPTIONS = ALL_PLAN_OPTIONS.filter((option) =>
 
 const TIMELINE = [
   { icon: Unlock, title: "Today", body: "Full access to reports, themes, review emails and priority support." },
-  { icon: Bell, title: "Day 5", body: "We'll remind you before the trial ends — check your inbox." },
+  { icon: Bell, title: "Day 5", body: "We'll remind you before the trial ends. Check your inbox." },
   { icon: Star, title: "Day 7", body: "You'll be charged unless you cancel anytime before." },
 ];
 
@@ -119,7 +119,7 @@ export function UpgradeDrawer() {
     : [
         TIMELINE[0],
         { icon: Bell, title: "Billing", body: selectedPlan.billing },
-        { icon: Star, title: "Anytime", body: "Cancel whenever you need — no long-term commitment." },
+        { icon: Star, title: "Anytime", body: "Cancel whenever you need, with no long-term commitment." },
       ];
 
   if (loading || isPremium) return null;

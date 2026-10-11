@@ -64,7 +64,7 @@ const SuperAdminLogin: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold font-sora mb-1">Super Admin</h1>
           <p className="text-sm text-muted-foreground">
-            Restricted access — authorized personnel only
+            Restricted access. Authorized personnel only.
           </p>
         </div>
 

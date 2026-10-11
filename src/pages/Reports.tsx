@@ -668,7 +668,7 @@ const Reports = () => {
                     text={
                       analytics.revenueDelta >= 0
                         ? `Revenue is up ${analytics.revenueDelta}% vs the first half of this period. Keep it rolling.`
-                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}% — try a reminder blast or promo on slow days.`
+                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}%. Try a reminder blast or promo on slow days.`
                     }
                   />
                 </div>

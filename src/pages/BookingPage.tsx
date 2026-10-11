@@ -41,7 +41,7 @@ const TABS = [
 const STEPS = [
   { icon: Link2, title: "Claim your slug", desc: "Pick a short URL that fits your brand." },
   { icon: Printer, title: "Print the QR flyer", desc: "Scannable code for mirrors and counters." },
-  { icon: Share2, title: "Share everywhere", desc: "Bio links, stories, WhatsApp — one tap." },
+  { icon: Share2, title: "Share everywhere", desc: "Bio links, stories, WhatsApp. One tap." },
   { icon: CalendarCheck, title: "Get booked 24/7", desc: "Auto-synced straight to your agenda." },
 ];
 

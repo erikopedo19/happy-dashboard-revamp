@@ -1154,7 +1154,7 @@ const Settings = () => {
                                 onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
                                 className="w-full"
                                 maxSizeMB={bannerMaxMB}
-                                helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
+                                helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : ". Upgrade for 8MB"}.`}
                               />
                               {!brandForm.banner_url && (
                                 <div className="w-2 h-2 rounded-full pulse-dot pulse-dot-rose shrink-0 mt-6" />
@@ -1168,7 +1168,7 @@ const Settings = () => {
                               circle
                               onChange={(url) => setBrandForm((prev) => ({ ...prev, avatar_url: url }))}
                               maxSizeMB={avatarMaxMB}
-                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 5MB"}.`}
+                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : ". Upgrade for 5MB"}.`}
                             />
                           </div>
 

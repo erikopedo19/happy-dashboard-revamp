@@ -489,7 +489,7 @@ const Microsite = () => {
               <div className="mt-6 rounded-2xl p-4 flex items-center gap-3" style={{ background: t.chip }}>
                 <Coffee className="h-5 w-5" style={{ color: t.accent }} />
                 <div className="text-[13px]" style={{ color: t.subtext }}>
-                  Walk-ins welcome — but a quick booking guarantees your spot.
+                  Walk-ins welcome, but a quick booking guarantees your spot.
                 </div>
               </div>
             </div>

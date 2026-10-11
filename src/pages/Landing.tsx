@@ -8,7 +8,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen scroll-smooth pb-20 sm:pb-0 bg-white font-geist text-neutral-900 antialiased dark:bg-[#0a0a0c] dark:text-white">
       <Seo
-        title="Cutzioo — Barbershop Booking & Management for Modern Barbers"
+        title="Cutzioo | Barbershop Booking & Management for Modern Barbers"
         description="Run your chair like a premium app. Publish a booking page, manage your agenda, and grow your barbershop with Cutzioo."
         path="/"
         jsonLd={{ "@context": "https://schema.org", "@type": "WebSite", name: "Cutzioo", url: "https://cutzioo.com/" }}

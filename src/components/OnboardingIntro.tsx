@@ -28,7 +28,7 @@ const SLIDES = [
     image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1600&auto=format&fit=crop",
     title: ["Look sharp,", "feel ready,"],
     flip: ["every day", "every cut", "every week"],
-    text: "Find the closest barbers and salons, see real open times, and book in two taps — no calls, no waiting.",
+    text: "Find the closest barbers and salons, see real open times, and book in two taps. No calls, no waiting.",
   },
   {
     image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1600&auto=format&fit=crop",

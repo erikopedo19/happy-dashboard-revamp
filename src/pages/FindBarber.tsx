@@ -365,7 +365,7 @@ const FindBarber = () => {
         <main className="relative flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="relative min-h-screen bg-[#000000] pb-28">
       <Seo
-        title="Cutzio — Find Your Next Barber"
+        title="Cutzio | Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />

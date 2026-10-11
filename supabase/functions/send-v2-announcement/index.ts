@@ -21,15 +21,15 @@ const html = (name: string) => `<!DOCTYPE html><html><body style="margin:0;backg
 <tr><td style="padding:18px 32px 4px;"><div style="font-size:11px;color:#8e8e93;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:10px;">Introducing</div>
 <h1 style="margin:0;font-size:26px;font-weight:700;letter-spacing:-.02em;">Cutzioo v2 is here ✨</h1></td></tr>
 <tr><td style="padding:16px 32px 0;font-size:15px;line-height:1.7;color:#48484a;">
-<p style="margin:0 0 14px;">Hi ${esc(name)}, you're one of our most active barbers — so you're hearing it first. We rebuilt Cutzioo to feel like a real iPhone app.</p>
+<p style="margin:0 0 14px;">Hi ${esc(name)}, you're one of our most active barbers, so you're hearing it first. We rebuilt Cutzioo to feel like a real iPhone app.</p>
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f7;border-radius:16px;margin-bottom:14px;">
-<tr><td style="padding:16px 18px 6px;font-size:14px;">✓ <strong>Fresh redesign</strong> — cleaner, faster, smoother</td></tr>
-<tr><td style="padding:0 18px 6px;font-size:14px;">✓ <strong>Drag & drop agenda</strong> — move or swap bookings, clients get the new time by email</td></tr>
-<tr><td style="padding:0 18px 6px;font-size:14px;">✓ <strong>Barbershop map</strong> — pin your shop so nearby clients find you</td></tr>
-<tr><td style="padding:0 18px 6px;font-size:14px;">✓ <strong>Swipe to find a barber</strong> — clients discover you in seconds</td></tr>
+<tr><td style="padding:16px 18px 6px;font-size:14px;">✓ <strong>Fresh redesign:</strong> cleaner, faster, smoother</td></tr>
+<tr><td style="padding:0 18px 6px;font-size:14px;">✓ <strong>Drag & drop agenda:</strong> move or swap bookings; clients get the new time by email</td></tr>
+<tr><td style="padding:0 18px 6px;font-size:14px;">✓ <strong>Barbershop map:</strong> pin your shop so nearby clients find you</td></tr>
+<tr><td style="padding:0 18px 6px;font-size:14px;">✓ <strong>Swipe to find a barber:</strong> clients discover you in seconds</td></tr>
 <tr><td style="padding:0 18px 16px;font-size:14px;">✓ <strong>Smart add-on advice</strong> in Subscription</td></tr>
 </table>
-<p style="margin:0;">Open the app and pin your location — it's the quickest way to get new clients from the map.</p></td></tr>
+<p style="margin:0;">Open the app and pin your location. It's the quickest way to get new clients from the map.</p></td></tr>
 <tr><td style="padding:28px 32px 8px;"><a href="https://cutzioo.com/admin" style="display:block;text-align:center;background:#1c1c1e;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 24px;border-radius:14px;">Explore Cutzioo v2</a></td></tr>
 <tr><td style="padding:20px 32px 36px;text-align:center;font-size:12px;color:#a1a1a6;">You're receiving this because you have a Cutzioo account.</td></tr>
 </table></td></tr></table></body></html>`;
@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
     const res = await fetch("https://connector-gateway.lovable.dev/brevo/smtp/email", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE}`, "X-Connection-Api-Key": BREVO },
-      body: JSON.stringify({ sender: { name: "Cutzioo", email: "hello@cutzioo.com" }, to: [{ email }], subject: "Cutzioo v2 is here — redesigned, with new features", htmlContent: html(first) }),
+      body: JSON.stringify({ sender: { name: "Cutzioo", email: "hello@cutzioo.com" }, to: [{ email }], subject: "Cutzioo v2 is here: redesigned, with new features", htmlContent: html(first) }),
     });
     if (res.ok) await admin.from("marketing_email_log").update({ status: "sent" }).eq("id", r.id);
     else { console.error("send failed", res.status, await res.text()); await admin.from("marketing_email_log").delete().eq("id", r.id); }

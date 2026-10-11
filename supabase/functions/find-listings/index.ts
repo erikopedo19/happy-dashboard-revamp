@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     });
     const aig = getLovableAiGatewayResponseHeaders(res.headers);
     if (!res.ok) {
-      const msg = res.status === 402 ? "AI credits have run out. Please try again later." : res.status === 429 ? "Too many requests — try again in a minute." : "Couldn't search right now.";
+      const msg = res.status === 402 ? "AI credits have run out. Please try again later." : res.status === 429 ? "Too many requests. Try again in a minute." : "Couldn't search right now.";
       return json({ error: msg }, res.status, aig);
     }
     const reader = res.body!.getReader(); const dec = new TextDecoder();

@@ -60,7 +60,7 @@ const BookingForms = () => {
   return (
     <div className="min-h-screen bg-secondary/40">
       <Seo
-        title="Booking Forms Directory — Cutzioo"
+        title="Booking Forms Directory | Cutzioo"
         description="Browse every business accepting appointments through Cutzioo and book with your favourite in seconds."
         path="/bookingforms"
       />
