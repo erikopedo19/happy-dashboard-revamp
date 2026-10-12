@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
         cover_url,
         source_url: src.url, source_name: host, ai_found: true, published: true,
       };
-    })).filter(Boolean);
+    }))).filter(Boolean);
     if (rows.length) {
       const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url" });
       if (error) console.error(error);
