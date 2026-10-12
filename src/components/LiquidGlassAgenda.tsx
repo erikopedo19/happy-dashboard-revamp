@@ -82,6 +82,7 @@ import { haptic, type HapticStyle } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
+import { TNumber } from "@/components/ui/t-number";
 
 
 interface Service {
@@ -1274,7 +1275,7 @@ export const LiquidGlassAgenda = ({
                       </span>
                     </div>
                     <p className={cn("text-xs mt-1", isDark ? "text-white/50" : "text-gray-500")}>
-                      {items.length} appointment{items.length === 1 ? '' : 's'}
+                      <TNumber value={items.length} /> appointment{items.length === 1 ? '' : 's'}
                     </p>
                   </div>
                   <span className={cn("text-xs font-medium", isDark ? "text-white/60" : "text-gray-600")}>
@@ -1544,14 +1545,24 @@ export const LiquidGlassAgenda = ({
 
               const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
               const rowHeight = isMobile ? 76 : ROW_H;
-              const maxSpanMinutes = Math.max(
-                ...hourAppointments.map((apt) => apt.totalDurationMinutes || apt.service.duration || 30),
-                ...hourEvents.map((ev) => eventDuration(ev)),
+              // Cover every hour an appointment/event occupies: measure from its
+              // real start offset inside this slot to its real end, so a service
+              // that needs N hours always spans N rows even off the grid.
+              const spanToEnd = (startMin: number, dur: number) => startMin - slotStartMin + dur;
+              const maxSpanEnd = Math.max(
+                ...hourAppointments.map((apt) => {
+                  const [ah, am] = apt.appointment_time.split(':').map(Number);
+                  return spanToEnd(ah * 60 + am, apt.totalDurationMinutes || apt.service.duration || 30);
+                }),
+                ...hourEvents.map((ev) => {
+                  const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
+                  return spanToEnd(eh * 60 + em, eventDuration(ev));
+                }),
                 0
               );
               const cardGap = isMobile ? 4 : 12;
               const minCardHeight = isMobile ? 72 : 64;
-              const cardStackHeight = Math.max((maxSpanMinutes / slotInterval) * rowHeight - cardGap, minCardHeight);
+              const cardStackHeight = Math.max((maxSpanEnd / slotInterval) * rowHeight - cardGap, minCardHeight);
 
               return (
                 <div
@@ -1743,7 +1754,7 @@ export const LiquidGlassAgenda = ({
                                     "rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums",
                                     isDark ? "bg-white/[0.08] text-white/85" : "bg-black/[0.05] text-gray-700"
                                   )}>
-                                    {formatPrice(Number(apt.price))}
+                                    <TNumber value={formatPrice(Number(apt.price))} />
                                   </span>
                                 )}
                               </span>

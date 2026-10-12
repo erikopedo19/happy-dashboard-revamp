@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { haptic } from "@/lib/haptics";
 import { ensureNotificationPermission, notifyNow } from "@/lib/nativeNotifications";
+import { TNumber } from "@/components/ui/t-number";
 
 type N = { id: string; type: string; title: string; body: string | null; read: boolean; created_at: string; appointment_id?: string | null };
 type WaitlistOffer = { claim_token: string; offered_appointment_id: string; status: string };
@@ -139,7 +140,7 @@ export function NotificationBell({ floating = false }: { floating?: boolean }) {
           {unread > 0 && (
             <span className="t-badge" data-open="true">
               <span className="t-badge-dot min-w-[18px] h-[18px] px-1 rounded-full bg-[#E0152F] text-[10px] font-bold text-white flex items-center justify-center">
-                {unread > 9 ? "9+" : unread}
+                <TNumber value={unread > 9 ? "9+" : unread} />
               </span>
             </span>
           )}

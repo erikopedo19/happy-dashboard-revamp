@@ -33,6 +33,7 @@ import { Button } from "@heroui/react";
 import { SearchBar } from "@/components/ui/search-bar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { TNumber } from "@/components/ui/t-number";
 import {
   Empty,
   EmptyContent,
@@ -753,15 +754,15 @@ const Agenda = () => {
                             <div className="grid grid-cols-3 gap-2">
                               <div className="bg-[#22222A] rounded-xl p-3">
                                 <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Bookings</p>
-                                <p className="text-xl font-semibold text-white mt-0.5">{week.appointments.length}</p>
+                                <p className="text-xl font-semibold text-white mt-0.5"><TNumber value={week.appointments.length} /></p>
                               </div>
                               <div className="bg-[#22222A] rounded-xl p-3">
                                 <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Revenue</p>
-                                <p className="text-xl font-semibold text-white mt-0.5">${week.revenue}</p>
+                                <p className="text-xl font-semibold text-white mt-0.5">$<TNumber value={week.revenue} /></p>
                               </div>
                               <div className="bg-[#22222A] rounded-xl p-3">
                                 <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Clients</p>
-                                <p className="text-xl font-semibold text-white mt-0.5">{week.customers}</p>
+                                <p className="text-xl font-semibold text-white mt-0.5"><TNumber value={week.customers} /></p>
                               </div>
                             </div>
                             {week.appointments.length > 0 && (
