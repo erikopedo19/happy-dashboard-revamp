@@ -12,6 +12,7 @@ export interface SwipeBarber {
   rating: number | null;
   description: string | null;
   booking_link: string | null;
+  monthly_capped?: boolean;
 }
 
 const spring = { type: "spring" as const, stiffness: 320, damping: 30 };
@@ -83,6 +84,11 @@ function Card({ barber, onSwipe, isTop, depth, edge }: { barber: SwipeBarber; on
         <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 0.75, y: 0 }} transition={{ delay: 0.2, duration: 0.45 }} className="mt-1 text-sm line-clamp-2">
           {barber.description || "Barber"}
         </motion.p>
+        {barber.monthly_capped && (
+          <span className="mt-2 inline-flex rounded-full bg-[#FF2D46] px-2.5 py-1 text-[10px] font-bold text-white">
+            Sold out
+          </span>
+        )}
         {barber.rating ? (
           <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-sm font-semibold">
             <Star className="h-3.5 w-3.5 fill-current" /> {Number(barber.rating).toFixed(1)}
@@ -202,11 +208,17 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           </button>
           <button
             type="button"
-            disabled={!onScreen?.booking_link}
-            onClick={() => { haptic("heavy"); if (onScreen?.booking_link) setBookBarber(onScreen); }}
-            className="h-14 px-7 rounded-full bg-white text-black font-semibold flex items-center gap-2 active:scale-95 transition disabled:opacity-40"
+            disabled={!onScreen?.booking_link || !!onScreen?.monthly_capped}
+            onClick={() => {
+              if (onScreen?.booking_link && !onScreen.monthly_capped) {
+                haptic("heavy");
+                setBookBarber(onScreen);
+              }
+            }}
+            className="h-14 max-w-[58vw] min-w-0 px-4 rounded-full bg-white text-black text-[13px] leading-tight text-center font-semibold flex items-center justify-center gap-2 active:scale-95 transition disabled:opacity-40"
           >
-            <Calendar className="h-4 w-4" /> Book now
+            <Calendar className="h-4 w-4 shrink-0" />
+            {onScreen?.monthly_capped ? "Fully booked this month" : "Book now"}
           </button>
           <button
             type="button"

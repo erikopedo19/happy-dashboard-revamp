@@ -53,6 +53,7 @@ import { prefetchRoute } from "@/lib/routePrefetch";
 
 interface BarberProfile {
   id: string;
+  monthly_capped?: boolean;
   latitude?: number | null;
   longitude?: number | null;
   home_service?: boolean;
@@ -196,6 +197,21 @@ const FindBarber = () => {
     },
   });
 
+  const { data: monthlyCappedIds } = useQuery({
+    queryKey: ["monthly-capped-businesses"],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_monthly_capped_businesses");
+      if (error) return new Set<string>();
+      return new Set<string>(
+        ((data ?? []) as unknown[])
+          .map((id) => (typeof id === "string" ? id : null))
+          .filter((id): id is string => id !== null)
+      );
+    },
+  });
+
   const { data: barbers, isLoading: barbersLoading } = useQuery({
     queryKey: ["find-barbers"],
     enabled: !!user,
@@ -269,7 +285,10 @@ const FindBarber = () => {
   const boostRank = (id: string) => (boostedIds?.has(id) ? 1 : 0);
 
   const sortedBarbers = useMemo(() => {
-    const list = barbers ?? [];
+    const list = (barbers ?? []).map((barber) => ({
+      ...barber,
+      monthly_capped: monthlyCappedIds?.has(barber.id) ?? false,
+    }));
     const counts = todayCounts ?? new Map<string, number>();
     return [...list].sort(
       (a, b) =>
@@ -277,7 +296,7 @@ const FindBarber = () => {
         ((counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)) ||
         ((b.rating ?? 0) - (a.rating ?? 0))
     );
-  }, [barbers, todayCounts, boostedIds]);
+  }, [barbers, todayCounts, boostedIds, monthlyCappedIds]);
 
 
 
@@ -670,6 +689,11 @@ function BarberCard({
             : theme.banner,
         }}
       >
+        {barber.monthly_capped && (
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-[#FF2D46] px-2.5 py-1 text-[10px] font-bold text-white">
+            Sold out
+          </span>
+        )}
         {!barber.banner_url && (
           <>
             {/* subtle diagonal sheen so the gradient doesn't look flat */}
@@ -787,7 +811,7 @@ function BarberCard({
             {barber.booking_link ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </motion.span>
         </button>
-        {barber.booking_link ? (
+        {barber.booking_link && !barber.monthly_capped ? (
           <Button
             onPress={() => { haptic("medium"); navigate(`/b/${barber.booking_link}`, { state: detailState }); }}
             className={cn(
@@ -804,8 +828,8 @@ function BarberCard({
             Book
           </Button>
         ) : (
-          <Button isDisabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
-            Unavailable
+          <Button isDisabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] px-2 text-[12px] leading-tight text-[#8E8E93] dark:bg-[#2C2C2E]">
+            {barber.monthly_capped ? "Fully booked this month" : "Unavailable"}
           </Button>
         )}
       </div>
@@ -1447,6 +1471,11 @@ function MapBarberCard({
           </p>
         </div>
       </div>
+      {barber.monthly_capped && (
+        <span className="mt-2 inline-flex rounded-full bg-[#FF2D46]/15 px-2.5 py-1 text-[10px] font-semibold text-[#FF8292]">
+          Sold out
+        </span>
+      )}
       <div className="mt-3 flex gap-2">
         {barber.latitude != null && barber.longitude != null && (
           <a
@@ -1462,7 +1491,7 @@ function MapBarberCard({
         )}
         <button
           type="button"
-          disabled={!barber.booking_link}
+          disabled={!barber.booking_link || !!barber.monthly_capped}
           onClick={(e) => { e.stopPropagation(); onBook(); }}
           className={cn(
             "flex h-10 flex-[1.3] items-center justify-center gap-1.5 rounded-[12px] text-[13px] font-semibold active:scale-[0.97] transition-transform disabled:opacity-50",
@@ -1471,7 +1500,7 @@ function MapBarberCard({
           style={theme.isCustom ? { background: theme.button, color: theme.onBase } : undefined}
         >
           <Calendar className="h-4 w-4" style={theme.isCustom ? undefined : { color: theme.accent }} />
-          {barber.booking_link ? "Book" : "Unavailable"}
+          {barber.monthly_capped ? "Fully booked this month" : barber.booking_link ? "Book" : "Unavailable"}
         </button>
       </div>
     </motion.div>
