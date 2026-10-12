@@ -1,3 +1,4 @@
+import { useRef, type TouchEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
@@ -22,6 +23,7 @@ import {
   Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { haptic } from "@/lib/haptics";
 
 const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
 
@@ -95,10 +97,49 @@ const BookingPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get("tab");
   const tab = rawTab === "qr" || rawTab === "site" ? rawTab : "link";
+  const panelGesture = useRef<{
+    x: number;
+    y: number;
+    axis: "horizontal" | "vertical" | null;
+  } | null>(null);
   const setTab = (value: (typeof TABS)[number]["value"]) => {
+    if (value === tab) return;
+    haptic("selection");
     const next = new URLSearchParams(searchParams);
     next.set("tab", value);
     setSearchParams(next, { replace: true });
+  };
+  const onPanelTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 1) {
+      panelGesture.current = null;
+      return;
+    }
+    const touch = event.touches[0];
+    panelGesture.current = { x: touch.clientX, y: touch.clientY, axis: null };
+  };
+  const onPanelTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const gesture = panelGesture.current;
+    const touch = event.touches[0];
+    if (!gesture || !touch || gesture.axis) return;
+    const dx = Math.abs(touch.clientX - gesture.x);
+    const dy = Math.abs(touch.clientY - gesture.y);
+    if (Math.max(dx, dy) >= 8) {
+      gesture.axis = dx > dy ? "horizontal" : "vertical";
+    }
+  };
+  const onPanelTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const gesture = panelGesture.current;
+    panelGesture.current = null;
+    const touch = event.changedTouches[0];
+    if (!gesture || gesture.axis !== "horizontal" || !touch) return;
+    const dx = touch.clientX - gesture.x;
+    const dy = touch.clientY - gesture.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    const currentIndex = visibleTabs.findIndex((item) => item.value === tab);
+    const nextIndex = currentIndex + (dx < 0 ? 1 : -1);
+    if (nextIndex >= 0 && nextIndex < visibleTabs.length) {
+      setTab(visibleTabs[nextIndex].value);
+    }
   };
 
   const visibleTabs = isPremium ? TABS : TABS.filter((t) => t.value === "link");
@@ -147,7 +188,7 @@ const BookingPage = () => {
       <div className="h-screen flex w-full bg-[#0A0A0C] font-geist relative overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 overflow-y-auto relative z-10">
+        <main className="relative z-10 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
           {/* iOS large-title header */}
           <div className="sticky top-0 z-30 bg-[#0A0A0C]/90 backdrop-blur-2xl border-b border-white/[0.08]">
             <div className="max-w-6xl mx-auto px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
@@ -209,7 +250,12 @@ const BookingPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={springSoft}
-                className="md:rounded-[28px] md:bg-[#15151A] md:border md:border-white/[0.08] md:overflow-hidden"
+                onTouchStart={onPanelTouchStart}
+                onTouchMove={onPanelTouchMove}
+                onTouchEnd={onPanelTouchEnd}
+                onTouchCancel={() => { panelGesture.current = null; }}
+                className="touch-pan-y overscroll-y-contain md:rounded-[28px] md:bg-[#15151A] md:border md:border-white/[0.08] md:overflow-hidden"
+                style={{ touchAction: "pan-y", WebkitTapHighlightColor: "transparent" }}
               >
                 <div className="p-0 md:p-8">
                   {tab === "site" ? (
@@ -239,7 +285,10 @@ const BookingPage = () => {
                 <h3 className="text-[17px] font-bold text-white tracking-tight">How it works</h3>
                 <p className="text-[12px] text-[#8E8E93] mt-1">Four steps to a full chair.</p>
               </div>
-              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-0 sm:overflow-visible sm:pb-0 sm:snap-none sm:divide-y sm:divide-y-0 sm:divide-white/[0.06]">
+              <div
+                className="mx-auto flex min-w-0 max-w-full gap-3 overflow-x-auto overscroll-x-contain scroll-smooth snap-x snap-mandatory -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-0 sm:overflow-visible sm:pb-0 sm:snap-none sm:divide-y sm:divide-y-0 sm:divide-white/[0.06]"
+                style={{ WebkitOverflowScrolling: "touch", WebkitTapHighlightColor: "transparent" }}
+              >
                 {STEPS.map((s, i) => (
                   <motion.div
                     key={s.title}
@@ -247,7 +296,7 @@ const BookingPage = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.08, ...springSoft }}
-                    className="snap-start shrink-0 w-[72%] rounded-2xl bg-[#15151A] border border-white/[0.08] p-4 flex items-start gap-3.5 sm:w-auto sm:shrink sm:rounded-none sm:bg-transparent sm:border-0 sm:p-5"
+                    className="snap-start shrink-0 w-[72%] max-w-[calc(100vw-40px)] rounded-2xl bg-[#15151A] border border-white/[0.08] p-4 flex items-start gap-3.5 sm:w-auto sm:max-w-none sm:shrink sm:rounded-none sm:bg-transparent sm:border-0 sm:p-5"
                   >
                     <div className="h-10 w-10 rounded-[12px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
                       <s.icon className="h-4.5 w-4.5 text-[#FF6B95]" strokeWidth={2.3} />
