@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTheme } from "next-themes";
 import { ArrowRight, BellRing, CalendarCheck, Moon, Star, Sun, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+import { ShinyButton } from "@/components/ui/shiny-button";
 import { EASE, Em } from "./ui";
 import { AgendaScene, BookingScene, ExploreScene, PhoneFrame } from "./phones";
 
@@ -64,14 +64,13 @@ export function LandingNav() {
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <HoverBorderGradient
+          <ShinyButton
             as={Link}
             to={LOGIN_HREF}
-            containerClassName="rounded-full"
-            className="px-3.5 py-2 text-[14px] font-semibold sm:text-[13px]"
+            className="shiny-cta-sm"
           >
             Log in
-          </HoverBorderGradient>
+          </ShinyButton>
           <Link
             to={TRY_HREF}
             className="rounded-full bg-neutral-900 px-4 py-2 text-[14px] font-semibold text-white transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900 sm:text-[13px]"
@@ -204,14 +203,13 @@ export function Hero() {
             <span className="hidden sm:inline">Start free. No card needed.</span>
             <ArrowRight className="h-4 w-4 sm:hidden" />
           </Link>
-          <HoverBorderGradient
+          <ShinyButton
             as={Link}
             to={LOGIN_HREF}
-            containerClassName="rounded-full w-full sm:w-auto"
-            className="h-14 sm:h-auto sm:py-3 w-full justify-center flex items-center text-[17px] sm:text-[15px] font-semibold px-6"
+            className="shiny-cta-lg w-full sm:w-auto"
           >
             Log in
-          </HoverBorderGradient>
+          </ShinyButton>
         </motion.div>
 
         {/* phones + floating chips */}
@@ -351,13 +349,15 @@ export function MobileCtaBar() {
       aria-hidden={!show}
     >
       <div className="flex gap-2 rounded-full bg-white/80 p-1.5 shadow-2xl shadow-black/20 ring-1 ring-black/[0.06] backdrop-blur-2xl dark:bg-[#141416]/80 dark:ring-white/10">
-        <Link
+        <ShinyButton
+          as={Link}
           to={LOGIN_HREF}
           tabIndex={show ? 0 : -1}
-          className="flex h-12 flex-1 items-center justify-center rounded-full text-[16px] font-semibold text-neutral-900 ring-1 ring-black/10 active:scale-[0.97] dark:text-white dark:ring-white/15"
+          className="flex-1"
+          style={{ padding: "0.5rem 1rem", minHeight: "3rem", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}
         >
           Log in
-        </Link>
+        </ShinyButton>
         <Link
           to={TRY_HREF}
           tabIndex={show ? 0 : -1}
