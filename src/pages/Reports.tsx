@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChartCard } from "@/components/ui/chart-card";
-import { DateRangePicker, type DateRange } from "@/components/ui/date-range-picker";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -204,14 +203,7 @@ const Reports = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
-  const [customRange, setCustomRange] = useState<DateRange | null>(null);
-  const { startDate, endDate } = useMemo(() => {
-    if (customRange) {
-      const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      return { startDate: iso(customRange.start), endDate: iso(customRange.end) };
-    }
-    return getRangeDates(dateRange);
-  }, [dateRange, customRange]);
+  const { startDate, endDate } = useMemo(() => getRangeDates(dateRange), [dateRange]);
 
   const { data: reviewsData } = useQuery<ReviewRow[]>({
     queryKey: ["reports-reviews", user?.id],
@@ -546,17 +538,6 @@ const Reports = () => {
                     ))}
                   </TabsList>
                 </Tabs>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <DateRangePicker
-                    value={customRange}
-                    onValueChange={setCustomRange}
-                    onClear={() => setCustomRange(null)}
-                    maxDate={new Date()}
-                  />
-                  {customRange && (
-                    <span className="text-xs text-white/50">Custom range overrides the presets above</span>
-                  )}
-                </div>
               </div>
             )}
           </div>
