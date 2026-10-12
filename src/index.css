@@ -1795,11 +1795,11 @@ body.is-native.platform-ios:has([data-glass-dock]) .pricing-footer {
 }
 
 .shiny-cta {
-  --shiny-cta-bg: #120609;
-  --shiny-cta-bg-subtle: #2a0d15;
+  --shiny-cta-bg: #000000;
+  --shiny-cta-bg-subtle: #1a1818;
   --shiny-cta-fg: #ffffff;
-  --shiny-cta-highlight: #ff2d46;
-  --shiny-cta-highlight-subtle: #ff8fa6;
+  --shiny-cta-highlight: #5b5bff;
+  --shiny-cta-highlight-subtle: #8484ff;
   --animation: gradient-angle linear infinite;
   --duration: 3s;
   --shadow-size: 2px;
