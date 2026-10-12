@@ -73,7 +73,12 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         "fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
-      style={{ paddingBottom: "max(calc(var(--sab, env(safe-area-inset-bottom, 0px)) - 12px), 8px)" }}
+      style={{
+        paddingBottom:
+          typeof window !== "undefined" && (window as any).ReactNativeWebView
+            ? "calc(max(calc(var(--sab, env(safe-area-inset-bottom, 0px)) - 12px), 8px) + 20px)"
+            : "max(calc(var(--sab, env(safe-area-inset-bottom, 0px)) - 12px), 8px)",
+      }}
     >
       <motion.div
         layout

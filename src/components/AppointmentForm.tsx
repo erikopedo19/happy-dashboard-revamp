@@ -1131,12 +1131,12 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
       side="right"
       title="New booking"
       description="Pick a service, stylist, date and time."
-      className="bg-[#0b0b0d]"
+      className="bg-[#0b0b0d] !max-w-[880px]"
     >
-      <div className="dark">
+      <div className="dark -mx-6 -my-6 sm:-mx-8 sm:-my-6 flex flex-col h-[calc(100dvh-120px)]">
         <motion.div
           ref={contentRef}
-          className="flex h-full overflow-hidden rounded-[28px] bg-[#0b0b0d] border border-white/[0.08]"
+          className="flex flex-1 min-h-0 overflow-hidden bg-[#0b0b0d]"
         >
 
           {/* Left Panel - Service Info */}
