@@ -132,7 +132,24 @@ Deno.serve(async (req) => {
     if (failed || !text) return json({ error: "Couldn't sort the results right now." }, 502, aig);
 
     const parsed = JSON.parse(text);
-    const rows = (parsed.listings ?? []).map((l: any) => {
+
+    // Grab the ad's main photo (og:image) so listings can show a picture.
+    const scrapeImage = async (url: string): Promise<string | null> => {
+      try {
+        const r = await fetch("https://connector-gateway.lovable.dev/firecrawl/v2/scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE}`, "X-Connection-Api-Key": FC },
+          body: JSON.stringify({ url, formats: ["markdown"], onlyMainContent: true }),
+        });
+        if (!r.ok) return null;
+        const j = await r.json();
+        const m = j?.data?.metadata ?? j?.metadata ?? {};
+        const img = m.ogImage || m["og:image"] || m.twitterImage || m["twitter:image"];
+        return typeof img === "string" && img.startsWith("http") ? img : null;
+      } catch { return null; }
+    };
+
+    const rows = (await Promise.all((parsed.listings ?? []).map(async (l: any) => {
       const src = results[l.source_index]; if (!src) return null;
       let host = ""; try { host = new URL(src.url).hostname.replace(/^www\./, ""); } catch {}
       return {
