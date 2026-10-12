@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BookingLinkPreview from "@/components/BookingLinkPreview";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BOOKING_LANGUAGES, isBookingLocale, type BookingLocale } from "@/lib/bookingLocales";
+import { CopyButton as ArcCopyButton } from "@/components/arc/copy-button/copy-button";
 
 const BUTTON_COLORS: { value: string; label: string; tw: string }[] = [
   { value: "default", label: "Default UI", tw: "bg-white/10 border border-white/20" },
@@ -53,7 +54,6 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
   const [askPhone, setAskPhone] = useState(true);
   const [askNotes, setAskNotes] = useState(true);
   const [bookingLocale, setBookingLocale] = useState<BookingLocale>("en");
-  const [copied, setCopied] = useState(false);
   const [bookingTheme, setBookingTheme] = useState<string>("default");
   const [brandColor, setBrandColor] = useState<string>("#E0152F");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -230,9 +230,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
     if (!bookingUrl) return;
     try {
       await navigator.clipboard.writeText(bookingUrl);
-      setCopied(true);
       haptic("success");
-      setTimeout(() => setCopied(false), 1400);
     } catch {
       toast({ title: "Copy failed", variant: "destructive" });
     }
@@ -332,15 +330,16 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
           {displayUrl || <span className="text-white/30">set a name below</span>}
         </p>
         <div className="grid grid-cols-3 gap-2 pt-1">
-          <button
-            type="button"
-            onClick={copyToClipboard}
-            disabled={!bookingUrl}
-            className="h-16 rounded-2xl bg-white/[0.06] flex flex-col items-center justify-center gap-1 text-[12px] font-semibold text-white active:scale-[0.98] transition disabled:opacity-40"
-          >
-            {copied ? <Check className="h-4 w-4 text-[#FF2D46]" /> : <Copy className="h-4 w-4" />}
-            <span>{copied ? "Copied" : "Copy"}</span>
-          </button>
+          <div className="arc-copy-scope h-16 rounded-2xl bg-white/[0.06] flex items-center justify-center">
+            <ArcCopyButton
+              value={bookingUrl || ""}
+              label="Copy"
+              variant="plain"
+              disabled={!bookingUrl}
+              onCopied={() => haptic("success")}
+              className="!min-h-0 !h-10 !w-full !justify-center !rounded-2xl !border-transparent !bg-transparent text-[12px] font-semibold !text-white"
+            />
+          </div>
           <button
             type="button"
             onClick={shareLink}
