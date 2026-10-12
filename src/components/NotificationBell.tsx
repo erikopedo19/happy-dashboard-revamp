@@ -137,8 +137,10 @@ export function NotificationBell({ floating = false }: { floating?: boolean }) {
         >
           <Bell className="w-5 h-5 text-[#1C1C1E] dark:text-white" />
           {unread > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E0152F] text-[10px] font-bold text-white flex items-center justify-center">
-              {unread > 9 ? "9+" : unread}
+            <span className="t-badge" data-open="true">
+              <span className="t-badge-dot min-w-[18px] h-[18px] px-1 rounded-full bg-[#E0152F] text-[10px] font-bold text-white flex items-center justify-center">
+                {unread > 9 ? "9+" : unread}
+              </span>
             </span>
           )}
         </button>
