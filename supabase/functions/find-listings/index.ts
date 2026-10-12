@@ -79,6 +79,9 @@ Deno.serve(async (req) => {
       `ζητείται κομμώτρια κομμωτήριο ${city}`,
       `ζητείται nail artist ${city}`,
       `κουρείο κομμωτήριο προς ενοικίαση ${city}`,
+      `ενοικίαση καταστήματος ${city} spitogatos`,
+      `επαγγελματικός χώρος προς ενοικίαση ισόγειο κατάστημα ${city}`,
+      `παραχώρηση κομμωτηρίου εξοπλισμένο ${city}`,
     ];
     const results: { url: string; title: string; description: string }[] = [];
     for (const q of queries) {
