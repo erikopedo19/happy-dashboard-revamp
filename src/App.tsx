@@ -276,6 +276,7 @@ function AnimatedRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+      <Route path="/payment-failed" element={<PaymentFailed />} />
       <Route path="/pricing/failure" element={<ProtectedRoute><PricingFailure /></ProtectedRoute>} />
       <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
       <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />

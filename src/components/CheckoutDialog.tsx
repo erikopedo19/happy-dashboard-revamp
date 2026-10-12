@@ -54,7 +54,7 @@ export function CheckoutDialog({ open, onOpenChange, item }: CheckoutDialogProps
         customer_name: item.customer_name,
         terms_accepted: true,
         success_url: `${window.location.origin}${window.location.pathname}?paid=1`,
-        cancel_url: window.location.href,
+        cancel_url: `${window.location.origin}/payment-failed?type=booking&reason=cancelled&back=${encodeURIComponent(window.location.pathname + window.location.search)}`,
       },
     });
     setBusy(false);
