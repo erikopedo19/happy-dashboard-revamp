@@ -1,15 +1,8 @@
-import { useEffect, useState } from "react";
-import { Check, QrCode, Share2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { QrReveal } from "@/components/QrReveal";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { useEffect, useRef, useState } from "react";
+import { QrCode, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
+import BookingQR3D from "@/lib/booking-qr-3d";
 
 interface BookingQRProps {
   url: string;
@@ -17,14 +10,75 @@ interface BookingQRProps {
   isPremium: boolean;
 }
 
+// Short ascending chime when the QR code lands.
+function playQrChime() {
+  try {
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    [659.25, 830.61, 987.77, 1318.51].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + i * 0.09;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.75);
+    });
+    setTimeout(() => ctx.close().catch(() => {}), 1400);
+  } catch {
+    /* audio blocked until a user gesture */
+  }
+}
+
+// Distinct "QR landed" pulse: tap-tap, then one long thump.
+function qrHaptic() {
+  try {
+    (navigator as Navigator & { vibrate?: (p: number | number[]) => boolean })
+      .vibrate?.([16, 40, 16, 40, 140]);
+  } catch {
+    /* no vibration API */
+  }
+}
+
 export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
   const { toast } = useToast();
   const [qrBlob, setQrBlob] = useState<Blob | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [open, setOpen] = useState(false);
+  const sceneRef = useRef<any>(null);
 
   const displayName = businessName?.trim() || "Cutzioo";
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(url)}`;
+
+  const showQr = () => {
+    if (!url) return;
+    if (!sceneRef.current) {
+      sceneRef.current = new BookingQR3D({
+        url,
+        name: displayName,
+        title: "Scan to book",
+        readyTitle: "Preparing your code",
+        theme: "auto",
+        onDone: () => {
+          playQrChime();
+          qrHaptic();
+        },
+      });
+    }
+    sceneRef.current.setUrl(url);
+    sceneRef.current.open();
+  };
+
+  useEffect(() => {
+    return () => {
+      sceneRef.current?.destroy?.();
+      sceneRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isPremium || !url) return;
@@ -40,10 +94,8 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
 
   // Full-screen reveal plays each time the QR tab is opened.
   useEffect(() => {
-    if (isPremium && url) {
-      setRevealed(false);
-      setOpen(true);
-    }
+    if (isPremium && url) showQr();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPremium, url]);
 
   if (!isPremium) {
@@ -94,84 +146,36 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
   };
 
   return (
-    <>
-      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center space-y-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-          Book with
-        </p>
-        <h3 className="text-xl font-semibold text-white -mt-2">{displayName}</h3>
+    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center space-y-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+        Book with
+      </p>
+      <h3 className="text-xl font-semibold text-white -mt-2">{displayName}</h3>
 
+      <button
+        type="button"
+        onClick={showQr}
+        disabled={!url}
+        className="mx-auto flex h-14 w-full max-w-[16rem] items-center justify-center gap-2.5 rounded-2xl bg-white text-[15px] font-semibold text-[#1C1C1E] transition active:scale-[0.98] disabled:opacity-40"
+      >
+        <QrCode className="h-5 w-5" />
+        {url ? "Show QR code" : "Save a slug first"}
+      </button>
+
+      <div className="flex items-center justify-center gap-3">
         <button
-          type="button"
-          onClick={() => url && setOpen(true)}
-          disabled={!url}
-          className="mx-auto flex h-14 w-full max-w-[16rem] items-center justify-center gap-2.5 rounded-2xl bg-white text-[15px] font-semibold text-[#1C1C1E] transition active:scale-[0.98] disabled:opacity-40"
+          onClick={handleShare}
+          disabled={!qrBlob}
+          className="h-11 px-4 rounded-xl bg-rose-500 text-white text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
         >
-          <QrCode className="h-5 w-5" />
-          {url ? "Show QR code" : "Save a slug first"}
+          <Share2 className="h-4 w-4" /> Share flyer
         </button>
-
-        <div className="flex items-center justify-center gap-3">
-          <button
-            onClick={handleShare}
-            disabled={!qrBlob}
-            className="h-11 px-4 rounded-xl bg-rose-500 text-white text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
-          >
-            <Share2 className="h-4 w-4" /> Share flyer
-          </button>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 pt-1">
-          <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-5 w-5 rounded-md" />
-          <span className="text-xs text-white/30">Powered by cutzioo.com</span>
-        </div>
       </div>
 
-      <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false}>
-        <DrawerContent className="mt-0 h-[100dvh] max-h-[100dvh] rounded-t-[28px] bg-[#0B0B0F] px-6 pb-[calc(env(safe-area-inset-bottom)+28px)]">
-          <DrawerTitle className="sr-only">Booking QR code for {displayName}</DrawerTitle>
-          <DrawerClose className="absolute right-5 top-[calc(env(safe-area-inset-top)+16px)] z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 transition active:scale-90">
-            <X className="h-5 w-5" />
-          </DrawerClose>
-
-          <div className="relative flex min-h-0 flex-1">
-            {url && (
-              <QrReveal
-                url={url}
-                businessName={displayName}
-                onDone={() => setRevealed(true)}
-                scene
-              />
-            )}
-            <div className="pointer-events-none relative z-10 flex flex-1 flex-col items-center justify-between pt-8 pb-2">
-              <div className="space-y-1 text-center">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">
-                  Book with
-                </p>
-                <h3 className="text-2xl font-semibold text-white">{displayName}</h3>
-              </div>
-
-              <div className="pointer-events-auto flex flex-col items-center gap-4">
-                <p
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full bg-[#A3E635]/15 px-3 py-1 text-[12px] font-semibold text-[#A3E635] transition-all duration-300",
-                    revealed ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
-                  )}
-                >
-                  <Check className="h-3.5 w-3.5" /> Ready to scan · tap to replay
-                </p>
-                <button
-                  onClick={handleShare}
-                  disabled={!qrBlob}
-                  className="h-12 px-6 rounded-2xl bg-rose-500 text-white text-[14px] font-semibold inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
-                >
-                  <Share2 className="h-4 w-4" /> Share flyer
-                </button>
-              </div>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </>
+      <div className="flex items-center justify-center gap-2 pt-1">
+        <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-5 w-5 rounded-md" />
+        <span className="text-xs text-white/30">Powered by cutzioo.com</span>
+      </div>
+    </div>
   );
 }
