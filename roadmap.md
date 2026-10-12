@@ -6,3 +6,5 @@
 - [x] Make the mobile Settings list and every subpage scroll reliably.
 - [x] Add a subscription summary tab with current plan details.
 - [x] Offer and save a salon choice during onboarding.
+- [x] Fix security findings (tightened organizations insert, blocked-slots read, story uploads; ignored intentional-public ones).
+- [ ] Show images on rent/staff listings (scrape og:image in find-listings, render in Aggelies cards).
