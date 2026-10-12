@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { QrReveal } from "@/components/QrReveal";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
 
@@ -12,6 +14,7 @@ interface BookingQRProps {
 export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
   const { toast } = useToast();
   const [qrBlob, setQrBlob] = useState<Blob | null>(null);
+  const [revealed, setRevealed] = useState(false);
 
   const displayName = businessName?.trim() || "Cutzioo";
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(url)}`;
@@ -83,11 +86,21 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
       <h3 className="text-xl font-semibold text-white -mt-3">{displayName}</h3>
 
       {url ? (
-        <img
-          src={qrApiUrl}
-          alt="Booking QR code"
-          className="mx-auto h-56 w-56 rounded-2xl bg-white p-2 object-contain"
-        />
+        <div className="mx-auto w-full max-w-[16rem] space-y-3">
+          <QrReveal
+            url={url}
+            businessName={displayName}
+            onDone={() => setRevealed(true)}
+          />
+          <p
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full bg-[#A3E635]/15 px-3 py-1 text-[12px] font-semibold text-[#A3E635] transition-all duration-300",
+              revealed ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
+            )}
+          >
+            <Check className="h-3.5 w-3.5" /> Ready to scan
+          </p>
+        </div>
       ) : (
         <div className="mx-auto h-56 w-56 rounded-2xl bg-white/[0.06] flex items-center justify-center text-white/40 text-sm">
           Save a slug first
