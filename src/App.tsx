@@ -64,6 +64,7 @@ const Settings = lazyRetry(() => import("./pages/Settings"), true);
 const Pricing = lazyRetry(() => import("./pages/Pricing"));
 const PricingSuccess = lazyRetry(() => import("./pages/PricingSuccess"));
 const PricingFailure = lazyRetry(() => import("./pages/PricingFailure"));
+const PaymentFailed = lazyRetry(() => import("./pages/PaymentFailed"));
 const Terms = lazyRetry(() => import("./pages/Terms"));
 const PrivacyPolicy = lazyRetry(() => import("./pages/PrivacyPolicy"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));

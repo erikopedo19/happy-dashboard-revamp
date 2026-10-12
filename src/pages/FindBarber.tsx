@@ -329,18 +329,18 @@ const FindBarber = () => {
     let list = sortedBarbers;
 
     if (sortFilter === "reviews") {
-      list = [...(barbers ?? [])].sort((a, b) =>
+      list = [...sortedBarbers].sort((a, b) =>
         (boostRank(b.id) - boostRank(a.id)) ||
         (b.rating_count ?? 0) - (a.rating_count ?? 0) ||
         (b.rating ?? 0) - (a.rating ?? 0)
       );
     } else if (sortFilter === "likes") {
-      list = [...(barbers ?? [])].sort(
+      list = [...sortedBarbers].sort(
         (a, b) => (boostRank(b.id) - boostRank(a.id)) || (b.rating ?? 0) - (a.rating ?? 0)
       );
     } else if (sortFilter === "bookings") {
       const counts = todayCounts ?? new Map<string, number>();
-      list = [...(barbers ?? [])].sort(
+      list = [...sortedBarbers].sort(
         (a, b) =>
           (boostRank(b.id) - boostRank(a.id)) ||
           (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
