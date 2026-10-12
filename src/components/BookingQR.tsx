@@ -134,40 +134,41 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
             <X className="h-5 w-5" />
           </DrawerClose>
 
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 pt-6">
-            <div className="space-y-1 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
-                Book with
-              </p>
-              <h3 className="text-2xl font-semibold text-white">{displayName}</h3>
-            </div>
-
+          <div className="relative flex min-h-0 flex-1">
             {url && (
-              <div className="w-[min(84vw,380px)] space-y-4">
-                <QrReveal
-                  url={url}
-                  businessName={displayName}
-                  onDone={() => setRevealed(true)}
-                  className="shadow-[0_24px_60px_-16px_rgba(0,0,0,0.65)]"
-                />
+              <QrReveal
+                url={url}
+                businessName={displayName}
+                onDone={() => setRevealed(true)}
+                scene
+              />
+            )}
+            <div className="pointer-events-none relative z-10 flex flex-1 flex-col items-center justify-between pt-8 pb-2">
+              <div className="space-y-1 text-center">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">
+                  Book with
+                </p>
+                <h3 className="text-2xl font-semibold text-white">{displayName}</h3>
+              </div>
+
+              <div className="pointer-events-auto flex flex-col items-center gap-4">
                 <p
                   className={cn(
-                    "mx-auto flex w-fit items-center gap-1.5 rounded-full bg-[#A3E635]/15 px-3 py-1 text-[12px] font-semibold text-[#A3E635] transition-all duration-300",
+                    "flex items-center gap-1.5 rounded-full bg-[#A3E635]/15 px-3 py-1 text-[12px] font-semibold text-[#A3E635] transition-all duration-300",
                     revealed ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
                   )}
                 >
                   <Check className="h-3.5 w-3.5" /> Ready to scan · tap to replay
                 </p>
+                <button
+                  onClick={handleShare}
+                  disabled={!qrBlob}
+                  className="h-12 px-6 rounded-2xl bg-rose-500 text-white text-[14px] font-semibold inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
+                >
+                  <Share2 className="h-4 w-4" /> Share flyer
+                </button>
               </div>
-            )}
-
-            <button
-              onClick={handleShare}
-              disabled={!qrBlob}
-              className="h-12 px-6 rounded-2xl bg-rose-500 text-white text-[14px] font-semibold inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
-            >
-              <Share2 className="h-4 w-4" /> Share flyer
-            </button>
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
