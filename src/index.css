@@ -1998,3 +1998,31 @@ html.cz-sheet-open::-webkit-scrollbar { display: none; }
 .dark {
   --line: rgb(255 255 255 / 0.08);
 }
+
+/* Center-morph modal (beui): surface unfolds outward from its center */
+@keyframes cz-dialog-unfold {
+  from { clip-path: inset(48% 48% 48% 48% round 16px); }
+  to { clip-path: inset(0% 0% 0% 0% round 16px); }
+}
+@keyframes cz-dialog-fold {
+  from { clip-path: inset(0% 0% 0% 0% round 16px); }
+  to { clip-path: inset(48% 48% 48% 48% round 16px); }
+}
+@keyframes cz-dialog-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cz-dialog-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.cz-morph-alert[data-state="open"] { animation: cz-dialog-unfold 0.43s cubic-bezier(0.2, 0, 0.2, 1) both !important; }
+.cz-morph-alert[data-state="closed"] { animation: cz-dialog-fold 0.43s cubic-bezier(0.2, 0, 0.2, 1) both !important; }
+@media (min-width: 640px) {
+  .cz-morph-dialog[data-state="open"] { animation: cz-dialog-unfold 0.43s cubic-bezier(0.2, 0, 0.2, 1) both !important; }
+  .cz-morph-dialog[data-state="closed"] { animation: cz-dialog-fold 0.43s cubic-bezier(0.2, 0, 0.2, 1) both !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cz-morph-dialog[data-state="open"], .cz-morph-alert[data-state="open"] { animation: cz-dialog-fade-in 0.14s ease-out both !important; }
+  .cz-morph-dialog[data-state="closed"], .cz-morph-alert[data-state="closed"] { animation: cz-dialog-fade-out 0.14s ease-out both !important; }
+}
