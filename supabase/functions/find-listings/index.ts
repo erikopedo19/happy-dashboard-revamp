@@ -152,15 +152,17 @@ Deno.serve(async (req) => {
     const rows = (await Promise.all((parsed.listings ?? []).map(async (l: any) => {
       const src = results[l.source_index]; if (!src) return null;
       let host = ""; try { host = new URL(src.url).hostname.replace(/^www\./, ""); } catch {}
+      const cover_url = await scrapeImage(src.url);
       return {
         kind: l.kind, profession: l.profession,
         title: String(l.title).slice(0, 120), short_description: String(l.short_description ?? "").slice(0, 300),
         location: l.location ? `${l.location}${l.location.includes(city) ? "" : `, ${city}`}` : city,
         latitude: Number.isFinite(lat) ? lat : null, longitude: Number.isFinite(lng) ? lng : null,
         price_text: l.price_text, contact_phone: l.contact_phone,
+        cover_url,
         source_url: src.url, source_name: host, ai_found: true, published: true,
       };
-    }).filter(Boolean);
+    })).filter(Boolean);
     if (rows.length) {
       const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url", ignoreDuplicates: true });
       if (error) console.error(error);
