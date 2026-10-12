@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { BorderBeamInput } from "@/components/ui/border-beam-input";
 import { Badge, Button } from "@heroui/react";
 import {
   Search,
@@ -129,6 +130,7 @@ const FindBarber = () => {
   const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
   const [swipeOpen, setSwipeOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -459,27 +461,36 @@ const FindBarber = () => {
                   className="overflow-hidden"
                 >
                   <div className="relative mt-5">
-                    <div className="relative flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.05] pl-4 pr-3 transition-colors focus-within:border-white/20 focus-within:bg-white/[0.07]">
-                      <Search className="h-[17px] w-[17px] shrink-0 text-white/40" />
-                      <Input
-                        ref={searchRef}
-                        type="text"
-                        placeholder="Search barbers, styles, vibes"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="h-12 flex-1 border-0 bg-transparent px-0 text-[15px] text-white shadow-none placeholder:text-white/35 focus-visible:ring-0"
-                      />
-                      {searchTerm && (
+                    <BorderBeamInput
+                      ref={searchRef}
+                      type="text"
+                      placeholder="Search barbers, styles, vibes"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onFocus={() => setSearchFocused(true)}
+                      onBlur={() => setSearchFocused(false)}
+                      leadingSlot={<Search className="h-[17px] w-[17px] text-white/45" />}
+                      trailingSlot={searchTerm ? (
                         <button
                           type="button"
                           aria-label="Clear search"
                           onClick={() => { haptic("light"); setSearchTerm(""); searchRef.current?.focus(); }}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/60 transition active:scale-90"
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/70 transition active:scale-90"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
-                      )}
-                    </div>
+                      ) : null}
+                      active
+                      beamSize="md"
+                      colorVariant="sunset"
+                      staticColors
+                      pill
+                      translucent={searchFocused}
+                      className="text-white placeholder:text-white/35"
+                      innerRowClassName="bg-white/[0.05] px-4"
+                      shellClassName="border-white/10 shadow-none focus-within:border-white/20"
+                      borderBeamClassName="rounded-full"
+                    />
                   </div>
                 </motion.div>
               )}

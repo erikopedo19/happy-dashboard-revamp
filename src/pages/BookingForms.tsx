@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { BorderBeamInput } from "@/components/ui/border-beam-input";
 import { Button } from "@/components/ui/button";
 import { Search, ExternalLink, User, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,6 +12,7 @@ import { ScreenLoader } from "@/components/ScreenLoader";
 
 const BookingForms = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // Fetch all profiles with booking links and brand profiles
   const { data: brands, isLoading } = useQuery({
@@ -73,14 +74,23 @@ const BookingForms = () => {
           </p>
           
           {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
+          <div className="max-w-md mx-auto">
+            <BorderBeamInput
               type="text"
               placeholder="Search by business name, industry, or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-3 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              leadingSlot={<Search className="h-5 w-5" />}
+              active
+              beamSize="md"
+              colorVariant="sunset"
+              staticColors
+              pill
+              translucent={searchFocused}
+              innerRowClassName="bg-background"
+              borderBeamClassName="rounded-full"
             />
           </div>
         </div>
