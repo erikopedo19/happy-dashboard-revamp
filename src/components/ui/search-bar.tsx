@@ -97,7 +97,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         value={value}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        active
+        active={focused}
         beamSize="md"
         colorVariant="sunset"
         staticColors
