@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ComponentType } from "react";
+import { FlipWords } from "@/components/ui/flip-words";
 
 export interface DockItem {
   label: string;
@@ -72,7 +73,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
         "fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
-      style={{ paddingBottom: "max(var(--sab, env(safe-area-inset-bottom, 0px)), 12px)" }}
+      style={{ paddingBottom: "max(calc(var(--sab, env(safe-area-inset-bottom, 0px)) - 12px), 8px)" }}
     >
       <motion.div
         layout
@@ -156,8 +157,11 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
                 className="overflow-hidden"
               >
                 {item.label === "More" ? (
-                  <span className="block animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#FF2D46,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
-                    {item.label}
+                  <span
+                    className="block h-[15px] w-10 text-center text-[10px] font-semibold leading-[15px]"
+                    style={{ color: itemTextColor, transition: "color 0.2s ease" }}
+                  >
+                    <FlipWords words={["More", "Menu", "Tools"]} duration={3500} />
                   </span>
                 ) : (
                   <span
