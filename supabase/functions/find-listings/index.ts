@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
       };
     })).filter(Boolean);
     if (rows.length) {
-      const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url", ignoreDuplicates: true });
+      const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url" });
       if (error) console.error(error);
       await admin.from("listing_searches").update({ found: rows.length }).eq("city_key", cityKey);
     }
