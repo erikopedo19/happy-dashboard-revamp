@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from '@tanstack/react-query';
 import { cn } from "@/lib/utils";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 // Simple RadialMenu replacement - just renders children with right-click menu
 const RadialMenu = ({ children, menuItems, onSelect }: {
@@ -341,21 +342,25 @@ export const ModernAppointmentsCalendar = ({
     setShowAppointmentDetails(false);
     setShowDeleteDialog(true);
   };
-  const handleConfirmDelete = async () => {
+  const deleteAppointment = async () => {
     if (!selectedAppointment) return;
+    const {
+      error
+    } = await (supabase as any).from('appointments').delete().eq('id', selectedAppointment.id);
+    if (error) throw error;
+    toast({
+      title: "Appointment Deleted",
+      description: "The appointment has been cancelled successfully."
+    });
+    setShowDeleteDialog(false);
+    setShowAppointmentDetails(false);
+    setSelectedAppointment(null);
+    // Refresh data without page reload
+    window.dispatchEvent(new Event('appointmentUpdated'));
+  };
+  const handleConfirmDelete = async () => {
     try {
-      const {
-        error
-      } = await (supabase as any).from('appointments').delete().eq('id', selectedAppointment.id);
-      if (error) throw error;
-      toast({
-        title: "Appointment Deleted",
-        description: "The appointment has been cancelled successfully."
-      });
-      setShowDeleteDialog(false);
-      setSelectedAppointment(null);
-      // Refresh data without page reload
-      window.dispatchEvent(new Event('appointmentUpdated'));
+      await deleteAppointment();
     } catch (error) {
       console.error('Error deleting appointment:', error);
       toast({
@@ -1108,10 +1113,15 @@ export const ModernAppointmentsCalendar = ({
                   <Edit3 className="h-4 w-4 mr-2" />
                   Reschedule
                 </Button>
-                <Button variant="destructive" className="flex-1 bg-[#E0152F]/90 hover:bg-[#E0152F]/80 border border-[#fda4af]" onClick={handleDelete}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
+                <DeleteButton
+                  label="Cancel appointment"
+                  confirmLabel="Yes, cancel it"
+                  cancelLabel="Keep"
+                  pendingLabel="Cancelling"
+                  doneLabel="Cancelled"
+                  onConfirm={deleteAppointment}
+                  className="flex-1 justify-center"
+                />
               </div>
             </div>
           )}

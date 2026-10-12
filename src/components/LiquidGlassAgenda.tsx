@@ -84,6 +84,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { TNumber } from "@/components/ui/t-number";
 import { StatusBadge } from "@/components/status-badge";
+import { CopyButton } from "@/components/ui/copy-button";
 
 
 interface Service {
@@ -432,6 +433,18 @@ export const LiquidGlassAgenda = ({
 
 
 
+  const { data: bookingLink } = useQuery<string | null>({
+    queryKey: ["agenda-booking-link", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("profiles")
+        .select("booking_link")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return (data?.booking_link as string) || null;
+    },
+  });
   const { data: timeOffRows = [] } = useQuery<{ off_date: string; reason: string | null }[]>({
     queryKey: ["time_off", user?.id],
     queryFn: async () => {
@@ -1053,6 +1066,17 @@ export const LiquidGlassAgenda = ({
                   <Palmtree className="w-4 h-4 mr-2" />
                   Days off
                 </DropdownMenuItem>
+                {bookingLink && (
+                  <div className="px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
+                    <CopyButton
+                      size="sm"
+                      className="w-full"
+                      label="Copy booking link"
+                      copiedLabel="Copied!"
+                      value={`${window.location.origin}/book/${bookingLink}`}
+                    />
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             {!isMobile && (
