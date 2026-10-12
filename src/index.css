@@ -1990,3 +1990,11 @@ html.cz-sheet-open::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .cz-bell-item { animation: none !important; }
 }
+
+:root {
+  --line: rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --line: rgb(255 255 255 / 0.08);
+}
