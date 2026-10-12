@@ -266,7 +266,7 @@ export default function Aggelies() {
       />
 
       {/* Ambient wash */}
-      <div aria-hidden className="pointer-events-none fixed -top-40 left-1/2 h-72 w-[34rem] -translate-x-1/2 rounded-full bg-[#FF2D46]/[0.12] blur-[110px]" />
+      <div aria-hidden className="pointer-events-none fixed -top-40 left-1/2 h-72 w-[min(34rem,100vw)] -translate-x-1/2 rounded-full bg-[#FF2D46]/[0.12] blur-[110px]" />
 
       <div className="relative max-w-3xl mx-auto px-5 pt-14">
         <div className="flex items-end justify-between gap-3">
