@@ -125,8 +125,7 @@ export function BookingLiveToasts() {
       .select("timezone")
       .eq("id", userId)
       .maybeSingle()
-      .then(({ data }) => data?.timezone || browserTimezone)
-      .catch(() => browserTimezone);
+      .then(({ data }) => data?.timezone || browserTimezone, () => browserTimezone);
     const setCurrentNext = (next: LiveActivityProps | null) => {
       nextActivityRef.current = next;
       setNextActivity(next);

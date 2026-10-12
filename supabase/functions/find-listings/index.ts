@@ -132,20 +132,39 @@ Deno.serve(async (req) => {
     if (failed || !text) return json({ error: "Couldn't sort the results right now." }, 502, aig);
 
     const parsed = JSON.parse(text);
-    const rows = (parsed.listings ?? []).map((l: any) => {
+
+    // Grab the ad's main photo (og:image) so listings can show a picture.
+    const scrapeImage = async (url: string): Promise<string | null> => {
+      try {
+        const r = await fetch("https://connector-gateway.lovable.dev/firecrawl/v2/scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE}`, "X-Connection-Api-Key": FC },
+          body: JSON.stringify({ url, formats: ["markdown"], onlyMainContent: true }),
+        });
+        if (!r.ok) return null;
+        const j = await r.json();
+        const m = j?.data?.metadata ?? j?.metadata ?? {};
+        const img = m.ogImage || m["og:image"] || m.twitterImage || m["twitter:image"];
+        return typeof img === "string" && img.startsWith("http") ? img : null;
+      } catch { return null; }
+    };
+
+    const rows = (await Promise.all((parsed.listings ?? []).map(async (l: any) => {
       const src = results[l.source_index]; if (!src) return null;
       let host = ""; try { host = new URL(src.url).hostname.replace(/^www\./, ""); } catch {}
+      const cover_url = await scrapeImage(src.url);
       return {
         kind: l.kind, profession: l.profession,
         title: String(l.title).slice(0, 120), short_description: String(l.short_description ?? "").slice(0, 300),
         location: l.location ? `${l.location}${l.location.includes(city) ? "" : `, ${city}`}` : city,
         latitude: Number.isFinite(lat) ? lat : null, longitude: Number.isFinite(lng) ? lng : null,
         price_text: l.price_text, contact_phone: l.contact_phone,
+        cover_url,
         source_url: src.url, source_name: host, ai_found: true, published: true,
       };
-    }).filter(Boolean);
+    }))).filter(Boolean);
     if (rows.length) {
-      const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url", ignoreDuplicates: true });
+      const { error } = await admin.from("listings").upsert(rows, { onConflict: "source_url" });
       if (error) console.error(error);
       await admin.from("listing_searches").update({ found: rows.length }).eq("city_key", cityKey);
     }
