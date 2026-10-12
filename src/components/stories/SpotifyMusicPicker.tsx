@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Loader2, Music, Pause, Play, Search, X } from "lucide-react";
+import { SearchBar } from "@/components/ui/search-bar";
+import { Loader2, Music, Pause, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type SpotifyTrack = {
@@ -133,12 +133,12 @@ export function SpotifyMusicPicker({
         </div>
         <div className="p-4 border-b border-white/10 shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <Input
+            <SearchBar
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search a song or artist"
-              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+              tone="dark"
+              className="text-white placeholder:text-white/40"
             />
           </div>
           {!q && (

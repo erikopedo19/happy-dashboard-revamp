@@ -6,7 +6,6 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Search,
   LayoutGrid,
   List,
   Plus,
@@ -31,7 +30,7 @@ import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { CutziooLoader } from "@/components/CutziooLoader";
 import { AgendaUpgradeDrawer } from "@/components/AgendaUpgradeDrawer";
 import { Button } from "@heroui/react";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import {
@@ -570,12 +569,13 @@ const Agenda = () => {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="relative flex-1 md:flex-none md:max-w-[260px]">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-                      <Input
+                      <SearchBar
                         placeholder="Search in calendar..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30 w-full"
+                        tone="dark"
+                        compact
+                        className="w-full text-sm"
                       />
                     </div>
                     <Button

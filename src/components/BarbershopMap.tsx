@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
-import { Check, Link2, LocateFixed, Search, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
+import { Check, Link2, LocateFixed, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
 import { Map, type MapRef, maplibregl } from "@/components/ui/map";
 import { normalizeHex, readableTextOn } from "@/lib/barberTheme";
 import { buildGoogleMapsUrl, extractLatLngFromGoogleUrl } from "@/lib/geo";
@@ -671,8 +672,7 @@ export function BarbershopMap({
             <div className="flex-1">
               <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
+                  <SearchBar
                     placeholder={pickMode ? "Search your business address..." : "Search a city or address..."}
                     value={search}
                     onChange={(event) => {
@@ -680,7 +680,9 @@ export function BarbershopMap({
                       setSearch(event.target.value);
                     }}
                     onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-                    className="h-12 rounded-2xl border-white/60 bg-white/90 pl-11 shadow-none placeholder:text-muted-foreground/70 dark:border-white/10 dark:bg-[#1C1C1E]/90"
+                    className="h-12 shadow-none placeholder:text-muted-foreground/70"
+                    innerRowClassName="bg-white/90 dark:bg-[#1C1C1E]/90"
+                    shellClassName="border-white/60 dark:border-white/10"
                   />
                   {pickMode && suggestions.length > 0 && (
                     <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]">

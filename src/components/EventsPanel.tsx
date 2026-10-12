@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Loader2, AlertCircle, RefreshCw, MapPin, CalendarDays, Clock, Search, Navigation, Ticket, User } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw, MapPin, CalendarDays, Clock, Navigation, Ticket, User } from "lucide-react";
 
 export interface EventRow {
   id: string;
@@ -72,12 +72,13 @@ export function EventsPanel({ embedded = false }: { embedded?: boolean }) {
         )}
 
         <div className="relative mt-4">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <SearchBar
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search events, cities, organizers…"
-            className="pl-10 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-[#2C2C2E]"
+            className="h-11"
+            innerRowClassName="bg-white dark:bg-[#1C1C1E]"
+            shellClassName="border-[#E5E5EA] dark:border-[#2C2C2E]"
           />
         </div>
 

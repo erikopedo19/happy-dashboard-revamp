@@ -31,6 +31,7 @@ import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { enableBookingPush } from "@/lib/push";
@@ -694,13 +695,14 @@ const Settings = () => {
 
                     <TabsContent value="overview" className="mt-0 space-y-6 animate-fade-in">
                       <div className="relative max-w-md">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
-                        <Input
+                        <SearchBar
                           type="text"
                           placeholder="Search settings..."
                           value={settingsSearch}
                           onChange={(e) => setSettingsSearch(e.target.value)}
-                          className="w-full h-11 pl-10 rounded-2xl bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93]"
+                          className="w-full h-11 text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93]"
+                          innerRowClassName="bg-white dark:bg-[#1C1C1E]"
+                          shellClassName="border-[#C6C6C8] dark:border-[#2C2C2E]"
                         />
                       </div>
 

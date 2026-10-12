@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   Calendar, Users, Plus, ArrowUpRight, ArrowDownRight, DollarSign, Clock,
-  Scissors, Search, Bell,
+  Scissors, Bell,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Table,
@@ -207,10 +207,13 @@ export function DashboardContent() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <div className="hidden md:block relative max-w-[260px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-                <Input
+                <SearchBar
                   placeholder="Search..."
-                  className="pl-10 h-9 bg-[#22222A] border-white/[0.06] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30"
+                  tone="dark"
+                  compact
+                  className="w-full text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30"
+                  innerRowClassName="bg-[#22222A]"
+                  shellClassName="border-white/[0.06]"
                 />
               </div>
               <NotificationBell />

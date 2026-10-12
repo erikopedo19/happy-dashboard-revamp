@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo, lazy, Suspense, useRef } from "rea
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { BorderBeamInput } from "@/components/ui/border-beam-input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Badge, Button } from "@heroui/react";
 import {
   Search,
@@ -131,7 +130,6 @@ const FindBarber = () => {
   const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
   const [swipeOpen, setSwipeOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -480,35 +478,14 @@ const FindBarber = () => {
                   className="overflow-hidden"
                 >
                   <div className="relative mt-5">
-                    <BorderBeamInput
+                    <SearchBar
                       ref={searchRef}
                       type="text"
                       placeholder="Search barbers, styles, vibes"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      onFocus={() => setSearchFocused(true)}
-                      onBlur={() => setSearchFocused(false)}
-                      leadingSlot={<Search className="h-[17px] w-[17px] text-white/45" />}
-                      trailingSlot={searchTerm ? (
-                        <button
-                          type="button"
-                          aria-label="Clear search"
-                          onClick={() => { haptic("light"); setSearchTerm(""); searchRef.current?.focus(); }}
-                          className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/70 transition active:scale-90"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      ) : null}
-                      active
-                      beamSize="md"
-                      colorVariant="sunset"
-                      staticColors
-                      pill
-                      translucent={searchFocused}
-                      className="text-white placeholder:text-white/35"
-                      innerRowClassName="bg-white/[0.05] px-4"
-                      shellClassName="border-white/10 shadow-none focus-within:border-white/20"
-                      borderBeamClassName="rounded-full"
+                      onClear={() => setSearchTerm("")}
+                      tone="dark"
                     />
                   </div>
                 </motion.div>
@@ -1168,13 +1145,15 @@ function FullScreenMap({
           </button>
 
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8E8E93]" />
-            <Input
+            <SearchBar
               type="text"
               value={mapSearch}
               onChange={(e) => setMapSearch(e.target.value)}
               placeholder="Search city, area or barber"
-              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FF5A6E] dark:border-white/10 dark:bg-[#1C1C1E]/90"
+              tone="auto"
+              className="h-11 pr-4 placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FF5A6E]"
+              innerRowClassName="bg-white/90 dark:bg-[#1C1C1E]/90"
+              shellClassName="border border-black/5 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10"
             />
           </div>
 

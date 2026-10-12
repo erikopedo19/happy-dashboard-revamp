@@ -7,6 +7,7 @@ import { usePremium } from "@/hooks/use-premium";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Seo } from "@/components/Seo";
@@ -19,7 +20,6 @@ import {
   Briefcase,
   CalendarDays,
   MapPin,
-  Search,
   Crown,
   Loader2,
   CheckCircle2,
@@ -365,12 +365,12 @@ export default function Aggelies() {
                 </button>
 
                 <div className="relative mt-3">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                  <Input
+                  <SearchBar
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder={activeTab !== "job" ? "Search areas, prices, salons…" : "Search roles, salons, cities…"}
-                    className="h-12 rounded-full border-white/[0.08] bg-white/[0.05] pl-11 text-[15px] text-white placeholder:text-white/35 focus-visible:ring-1 focus-visible:ring-[#FF5A6E]/50"
+                    tone="dark"
+                    className="h-12 focus-visible:ring-1 focus-visible:ring-[#FF5A6E]/50"
                   />
                 </div>
 

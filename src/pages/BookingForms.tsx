@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BorderBeamInput } from "@/components/ui/border-beam-input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
 import { Search, ExternalLink, User, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,7 +12,6 @@ import { ScreenLoader } from "@/components/ScreenLoader";
 
 const BookingForms = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
 
   // Fetch all profiles with booking links and brand profiles
   const { data: brands, isLoading } = useQuery({
@@ -75,22 +74,11 @@ const BookingForms = () => {
           
           {/* Search */}
           <div className="max-w-md mx-auto">
-            <BorderBeamInput
+            <SearchBar
               type="text"
               placeholder="Search by business name, industry, or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              leadingSlot={<Search className="h-5 w-5" />}
-              active
-              beamSize="md"
-              colorVariant="sunset"
-              staticColors
-              pill
-              translucent={searchFocused}
-              innerRowClassName="bg-background"
-              borderBeamClassName="rounded-full"
             />
           </div>
         </div>

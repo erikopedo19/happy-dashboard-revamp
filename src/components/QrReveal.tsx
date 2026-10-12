@@ -23,6 +23,10 @@ const T_BLEND_SPREAD = 650;
 const T_BLEND = 300;
 const T_DONE = T_CANVAS_IN + T_ZOOM_OUT + 50;
 const START_ZOOM = 6;
+const FACADE_TILT = 12;
+const CANVAS_TILT = -18;
+const STAGE_TILT_X = 14;
+const STAGE_TILT_Y = -12;
 
 const START_COLORS: [number, number, number][] = [
   [27, 27, 32],
@@ -54,6 +58,7 @@ export function QrReveal({ url, businessName, className, onDone }: QrRevealProps
   const reduceMotion = useReducedMotion() ?? false;
   const stageRef = useRef<HTMLDivElement>(null);
   const facadeRef = useRef<HTMLDivElement>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const onDoneRef = useRef(onDone);
@@ -130,13 +135,17 @@ export function QrReveal({ url, businessName, className, onDone }: QrRevealProps
   );
 
   useEffect(() => {
+    const stage = stageRef.current;
     const facade = facadeRef.current;
+    const canvasWrap = canvasWrapRef.current;
     const canvas = canvasRef.current;
-    if (!facade || !canvas || !qr) return;
+    if (!stage || !facade || !canvasWrap || !canvas || !qr) return;
 
     const finish = () => {
+      stage.style.transform = "none";
       facade.style.opacity = "0";
-      canvas.style.opacity = "1";
+      canvasWrap.style.opacity = "1";
+      canvasWrap.style.transform = "none";
       draw(Number.POSITIVE_INFINITY);
       onDoneRef.current?.();
     };
@@ -147,7 +156,7 @@ export function QrReveal({ url, businessName, className, onDone }: QrRevealProps
     }
 
     facade.style.opacity = "1";
-    canvas.style.opacity = "0";
+    canvasWrap.style.opacity = "0";
     let start: number | null = null;
     let doneFired = false;
 
@@ -155,18 +164,29 @@ export function QrReveal({ url, businessName, className, onDone }: QrRevealProps
       if (start === null) start = now;
       const t = now - start;
 
+      const settle = easeOutCubic(clamp01(t / T_CANVAS_IN));
+      const sx = STAGE_TILT_X * (1 - settle);
+      const sy = STAGE_TILT_Y * (1 - settle);
+      stage.style.transform = `rotateX(${sx}deg) rotateY(${sy}deg)`;
+
       let scale: number;
+      let facadeTilt: number;
       if (t < T_PULLBACK) {
         scale = 1.12 - 0.12 * easeOutCubic(t / T_PULLBACK);
+        facadeTilt = FACADE_TILT + 3 - 3 * easeOutCubic(t / T_PULLBACK);
       } else {
-        scale = 1 + 8 * easeInCubic(clamp01((t - T_PULLBACK) / (T_PUSH_END - T_PULLBACK)));
+        const p = easeInCubic(clamp01((t - T_PULLBACK) / (T_PUSH_END - T_PULLBACK)));
+        scale = 1 + 8 * p;
+        facadeTilt = FACADE_TILT * (1 - p);
       }
-      facade.style.transform = `scale(${scale})`;
+      facade.style.transform = `scale(${scale}) rotateX(${facadeTilt}deg)`;
 
       const ct = t - T_CANVAS_IN;
       if (ct >= 0) {
         const fade = clamp01(ct / T_CANVAS_FADE);
-        canvas.style.opacity = String(fade);
+        const zt = easeOutCubic(clamp01(ct / T_ZOOM_OUT));
+        canvasWrap.style.opacity = String(fade);
+        canvasWrap.style.transform = `rotateX(${CANVAS_TILT * (1 - zt)}deg) scale(${0.97 + 0.03 * zt})`;
         facade.style.opacity = String(1 - fade);
         draw(ct);
       }
@@ -210,21 +230,39 @@ export function QrReveal({ url, businessName, className, onDone }: QrRevealProps
       )}
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
-      <div ref={stageRef} className="absolute inset-0">
+      <div className="absolute inset-0" style={{ perspective: "1100px" }}>
         <div
-          ref={facadeRef}
-          aria-hidden
+          ref={stageRef}
           className="absolute inset-0 will-change-transform"
-          style={{ transformOrigin: DOOR_ORIGIN, transform: "scale(1.12)" }}
+          style={{
+            transform: `rotateX(${STAGE_TILT_X}deg) rotateY(${STAGE_TILT_Y}deg)`,
+            transformStyle: "preserve-3d",
+          }}
         >
-          <Storefront sign={sign} />
+          <div
+            ref={facadeRef}
+            aria-hidden
+            className="absolute inset-0 will-change-transform"
+            style={{
+              transformOrigin: DOOR_ORIGIN,
+              transform: `scale(1.12) rotateX(${FACADE_TILT + 3}deg)`,
+            }}
+          >
+            <Storefront sign={sign} />
+          </div>
+          <div
+            ref={canvasWrapRef}
+            aria-hidden
+            className="absolute inset-0 will-change-transform"
+            style={{
+              opacity: 0,
+              transformOrigin: "50% 50%",
+              transform: `rotateX(${CANVAS_TILT}deg) scale(0.97)`,
+            }}
+          >
+            <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+          </div>
         </div>
-        <canvas
-          ref={canvasRef}
-          aria-hidden
-          className="absolute inset-0 h-full w-full"
-          style={{ opacity: 0 }}
-        />
       </div>
     </button>
   );

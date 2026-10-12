@@ -1,8 +1,9 @@
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, addMinutes } from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight, Search, Filter, Calendar, Clock, Users, Sun, Moon, Eye, EyeOff, Coffee, Settings, Grid3X3, Edit3, Trash2, X, MoreHorizontal, RefreshCw, AlertTriangle, Check, Send, Edit, Phone, Scissors, DollarSign, User, Star, TrendingUp, Copy, ClipboardPaste, Pin } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Filter, Calendar, Clock, Users, Sun, Moon, Eye, EyeOff, Coffee, Settings, Grid3X3, Edit3, Trash2, X, MoreHorizontal, RefreshCw, AlertTriangle, Check, Send, Edit, Phone, Scissors, DollarSign, User, Star, TrendingUp, Copy, ClipboardPaste, Pin } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SearchBar } from '@/components/ui/search-bar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -735,12 +736,13 @@ export const ModernAppointmentsCalendar = ({
           {/* Center: Search */}
           <div className="flex-1 max-w-md mx-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
+              <SearchBar
                 placeholder="Search appointments..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 bg-white/60 border-gray-200 focus:border-gray-300 focus:bg-white/80 transition-all rounded-full backdrop-blur-sm"
+                className="h-10 transition-all"
+                innerRowClassName="bg-white/60 focus-within:bg-white/80 dark:bg-[#1C1C1E]/60"
+                shellClassName="border-gray-200 backdrop-blur-sm focus-within:border-gray-300"
               />
             </div>
           </div>

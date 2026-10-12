@@ -10,11 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@heroui/react";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar } from "@heroui/react";
-import { Plus, Search, Edit, Trash2, UserCheck, X, Star, Clock, Briefcase, AlertTriangle, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, UserCheck, X, Star, Clock, Briefcase, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Stylist {
@@ -315,12 +316,13 @@ const Stylists = () => {
 
               {/* Search */}
               <div className="relative mt-4">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93]" />
-                <Input
+                <SearchBar
                   placeholder="Search stylists, titles, specialties…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-12 pl-11 pr-4 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/5 dark:border-white/10 shadow-sm focus-visible:ring-2 focus-visible:ring-[#1C1C1E]/10 text-[#1C1C1E] dark:text-[#F2F2F7]"
+                  className="h-12 text-[#1C1C1E] dark:text-[#F2F2F7]"
+                  innerRowClassName="bg-white dark:bg-[#1C1C1E]"
+                  shellClassName="border-black/5 shadow-sm dark:border-white/10"
                 />
               </div>
             </div>
