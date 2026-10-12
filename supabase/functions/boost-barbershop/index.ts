@@ -116,7 +116,7 @@ serve(async (req: Request) => {
         customer_email: user.email ?? undefined,
         metadata: { kind: "boost", user_id: user.id },
         success_url: `${origin}/settings?boost_session={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/settings?boost=cancelled`,
+        cancel_url: `${origin}/payment-failed?type=boost&reason=cancelled&back=/settings`,
       });
 
       await admin.from("boost_campaigns").insert({
