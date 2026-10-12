@@ -39,7 +39,8 @@ function AnimatedControlShell({
   return (
     <div
       className={cn(
-        "relative isolate w-full max-w-full rounded-xl p-px",
+        "relative isolate w-full max-w-full p-px",
+        pill ? "rounded-full" : "rounded-xl",
         className
       )}
       data-slot="halo-input-shell"
@@ -48,7 +49,12 @@ function AnimatedControlShell({
         Clip to the same 11px round as the shell (not `rounded-xl`) so the rim and gradient share one curve —
         matches `SelectGradientUnderlay` / `HaloSwitch` underglow.
       */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[11px]">
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-0 overflow-hidden",
+          pill ? "rounded-full" : RIM_RADIUS
+        )}
+      >
         {translucent ? (
           <div
             className={cn(
@@ -121,7 +127,10 @@ function AnimatedControlShell({
             : "before:pointer-events-none before:absolute before:inset-0 before:z-0 before:rounded-[10px] before:shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] before:content-['']",
           "dark:before:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
           "transition-[border-color,box-shadow] duration-200 ease-out",
-          "focus-within:border-ring/80 focus-within:ring-2 focus-within:ring-ring/30",
+          /* Pills sit inside the border beam, which already draws the focus outline. */
+          pill
+            ? "focus-within:border-ring/60"
+            : "focus-within:border-ring/80 focus-within:ring-2 focus-within:ring-ring/30",
           invalid &&
             "border-destructive/90 focus-within:border-destructive focus-within:ring-destructive/25 dark:border-destructive/70",
           pill ? "rounded-full" : RIM_RADIUS,

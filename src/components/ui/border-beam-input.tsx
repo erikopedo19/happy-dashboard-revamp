@@ -36,6 +36,9 @@ import {
 const borderBeamFieldShellClass =
   "flex w-full min-w-0 max-w-full flex-col items-stretch !overflow-visible"
 
+/** Large radius so the beam's clip and stroke follow a fully rounded pill. */
+const PILL_RADIUS = 9999
+
 type BeamShellProps = Pick<
   BorderBeamProps,
   | "colorVariant"
@@ -92,7 +95,7 @@ export const BorderBeamInput = forwardRef<HTMLInputElement, BorderBeamInputProps
     return (
       <BorderBeam
         active={active}
-        borderRadius={borderRadius}
+        borderRadius={borderRadius ?? (pill ? PILL_RADIUS : undefined)}
         brightness={brightness}
         className={cn(
           borderBeamFieldShellClass,
@@ -166,7 +169,7 @@ export const BorderBeamInputGroup = forwardRef<
   return (
     <BorderBeam
       active={active}
-      borderRadius={borderRadius}
+      borderRadius={borderRadius ?? (pill ? PILL_RADIUS : undefined)}
       brightness={brightness}
       className={cn(borderBeamFieldShellClass, borderBeamClassName, className)}
       colorVariant={colorVariant}
