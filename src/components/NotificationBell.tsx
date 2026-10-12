@@ -149,52 +149,67 @@ export function NotificationBell({ floating = false }: { floating?: boolean }) {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="z-50 w-80 p-0 rounded-2xl border border-black/5 dark:border-white/10 bg-white/95 dark:bg-[#0E0E0F]/95 backdrop-blur-2xl shadow-2xl max-h-96 overflow-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-2"
+        className="z-50 w-80 p-0 rounded-3xl border border-black/5 dark:border-white/10 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl shadow-2xl max-h-96 overflow-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-2"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-black/5 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur">
-          <div className="font-semibold text-sm">Notifications</div>
+        {/* Morph header — mirrors the activity-dropdown card */}
+        <div className="flex items-center gap-4 p-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800">
+            <Bell className="h-5 w-5 text-neutral-600 dark:text-neutral-300" />
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+              {unread > 0 ? `${unread} New ${unread === 1 ? "Activity" : "Activities"}` : "Notifications"}
+            </h3>
+            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
+              What's happening around you
+            </p>
+          </div>
           {unread > 0 && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={markAllRead}>
               <Check className="w-3 h-3 mr-1" /> Mark all read
             </Button>
           )}
         </div>
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-72 overflow-y-auto px-2 pb-3">
           {items.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">No notifications yet</div>
           ) : (
-            items.map((i) => {
-              const meta = typeMeta[i.type] || typeMeta.default;
-              const Icon = meta.icon;
-              const offer = i.type === "waitlist_offer" && i.appointment_id
-                ? waitlistOffers.get(i.appointment_id)
-                : undefined;
-              return (
-                <div
-                  key={i.id}
-                  className={`flex items-start gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 ${!i.read ? "bg-blue-500/[0.03]" : ""}`}
-                >
-                  <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${meta.color}`}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className={`text-sm truncate ${!i.read ? "font-semibold" : "font-medium"}`}>{i.title}</div>
-                    {i.body && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{i.body}</div>}
-                    {offer && (
-                      <Link
-                        to={`/waitlist/claim/${offer.claim_token}`}
-                        onClick={() => haptic("medium")}
-                        className="mt-2 inline-flex h-9 items-center rounded-full bg-rose-500 px-3 text-[12px] font-semibold text-white active:scale-95"
-                      >
-                        Claim it
-                      </Link>
-                    )}
-                    <div className="text-[10px] text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}</div>
+            <div className="space-y-1">
+              {items.map((i, idx) => {
+                const meta = typeMeta[i.type] || typeMeta.default;
+                const Icon = meta.icon;
+                const offer = i.type === "waitlist_offer" && i.appointment_id
+                  ? waitlistOffers.get(i.appointment_id)
+                  : undefined;
+                return (
+                  <div
+                    key={i.id}
+                    className={`cz-bell-item flex items-start gap-3 rounded-xl p-3 transition-colors duration-500 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 ${!i.read ? "bg-blue-500/[0.03]" : ""}`}
+                    style={{ animationDelay: `${idx * 75}ms` }}
+                  >
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.color}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className={`text-sm truncate ${!i.read ? "font-semibold" : "font-medium"} text-neutral-900 dark:text-white`}>{i.title}</h4>
+                      {i.body && <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{i.body}</p>}
+                      {offer && (
+                        <Link
+                          to={`/waitlist/claim/${offer.claim_token}`}
+                          onClick={() => haptic("medium")}
+                          className="mt-2 inline-flex h-9 items-center rounded-full bg-rose-500 px-3 text-[12px] font-semibold text-white active:scale-95"
+                        >
+                          Claim it
+                        </Link>
+                      )}
+                    </div>
+                    <span className="shrink-0 pt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
+                      {formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}
+                    </span>
                   </div>
-                  {!i.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#007AFF]" />}
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       </DropdownMenuContent>

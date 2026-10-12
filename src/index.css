@@ -1969,3 +1969,24 @@ body.is-native.platform-ios:has([data-glass-dock]) .pricing-footer {
     animation: none !important;
   }
 }
+
+/* Big login button: full dot field instead of the conic-masked wedge */
+.shiny-cta-lg::before {
+  mask-image: none;
+  opacity: 0.35;
+}
+
+/* Hide the document scrollbar while a settings sheet owns the scroll —
+   prevents the double scrollbar on the map location picker. */
+html.cz-sheet-open { scrollbar-width: none; }
+html.cz-sheet-open::-webkit-scrollbar { display: none; }
+
+/* Notification item entrance (morph list) */
+@keyframes cz-bell-item-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.cz-bell-item { animation: cz-bell-item-in 500ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .cz-bell-item { animation: none !important; }
+}

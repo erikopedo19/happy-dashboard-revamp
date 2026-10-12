@@ -1140,8 +1140,12 @@ function Sheet({
 
   // The full-screen panel owns its scroll area. Do not lock body scrolling:
   // iOS can retain that lock after a nested dialog or an animated close.
+  // We only hide the (now redundant) document scrollbar so the panel doesn't
+  // render next to a second bar.
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    document.documentElement.classList.add("cz-sheet-open");
+    return () => document.documentElement.classList.remove("cz-sheet-open");
   }, []);
 
   return createPortal(

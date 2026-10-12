@@ -83,6 +83,7 @@ import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { TNumber } from "@/components/ui/t-number";
+import { StatusBadge } from "@/components/status-badge";
 
 
 interface Service {
@@ -1700,10 +1701,9 @@ export const LiquidGlassAgenda = ({
                                 )}>
                                   {apt.customer.name}
                                   {isCancelled && (
-                                    <span className={cn(
-                                      "ml-2 no-underline inline-block align-middle text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md",
-                                      isDark ? "bg-red-500/20 text-red-300" : "bg-red-100 text-red-600"
-                                    )}>Cancelled</span>
+                                    <span className="ml-2 inline-block align-middle">
+                                      <StatusBadge state="failed" size="sm" labels={{ failed: "Cancelled" }} />
+                                    </span>
                                   )}
                                 </h3>
                                 <div className={cn("flex items-center gap-1.5", isMobile ? "mt-1" : "mt-1.5")}>
@@ -1740,14 +1740,7 @@ export const LiquidGlassAgenda = ({
                               </span>
                               <span className="flex items-center gap-1.5">
                                 {apt.payment_status === "paid" && (
-                                  <span className={cn(
-                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
-                                    isDark
-                                      ? "bg-green-400/15 text-green-300"
-                                      : "bg-green-100 text-green-700"
-                                  )}>
-                                    Paid
-                                  </span>
+                                  <StatusBadge state="success" size="sm" labels={{ success: "Paid" }} />
                                 )}
                                 {apt.price != null && (
                                   <span className={cn(
