@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { QrCode, Share2 } from "lucide-react";
+import { QrCode, Share2, Download, Copy, Expand } from "lucide-react";
+import QRCode from "qrcode";
 import { useToast } from "@/hooks/use-toast";
+import { haptic } from "@/lib/haptics";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
 import BookingQR3D from "@/lib/booking-qr-3d";
+import CandyButton from "@/components/ui/candy-button";
 
 interface BookingQRProps {
   url: string;
   businessName?: string | null;
   isPremium: boolean;
 }
+
+// The shopfront reveal is a one-shot moment: it plays the first time the user
+// asks for their QR on this page load, then never again until they refresh.
+const playedReveal = new Set<string>();
 
 // Short ascending chime when the QR code lands.
 function playQrChime() {
@@ -48,14 +55,35 @@ function qrHaptic() {
 
 export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
   const { toast } = useToast();
-  const [qrBlob, setQrBlob] = useState<Blob | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const sceneRef = useRef<any>(null);
 
   const displayName = businessName?.trim() || "Cutzioo";
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(url)}`;
 
-  const showQr = () => {
-    if (!url) return;
+  // Permanent, offline QR — rendered locally once per link, so it always
+  // scans and never depends on an external image API.
+  useEffect(() => {
+    let cancelled = false;
+    if (!url) {
+      setQrDataUrl(null);
+      return;
+    }
+    QRCode.toDataURL(url, { errorCorrectionLevel: "M", width: 1024, margin: 2 })
+      .then((data) => { if (!cancelled) setQrDataUrl(data); })
+      .catch(() => { if (!cancelled) setQrDataUrl(null); });
+    return () => { cancelled = true; };
+  }, [url]);
+
+  useEffect(() => {
+    return () => {
+      sceneRef.current?.destroy?.();
+      sceneRef.current = null;
+    };
+  }, []);
+
+  const ensureScene = () => {
     if (!sceneRef.current) {
       sceneRef.current = new BookingQR3D({
         url,
@@ -69,45 +97,29 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
         },
       });
     }
-    sceneRef.current.setUrl(url);
-    sceneRef.current.open();
+    return sceneRef.current;
   };
 
-  useEffect(() => {
-    return () => {
-      sceneRef.current?.destroy?.();
-      sceneRef.current = null;
-    };
-  }, []);
+  // First press plays the full reveal; every later press jumps straight to
+  // the finished code — the animation never replays until a page refresh.
+  const showQr = () => {
+    if (!url) return;
+    haptic("medium");
+    setRevealed(true);
+    const scene = ensureScene();
+    scene.setUrl(url);
+    if (playedReveal.has(url)) {
+      scene.showFinal();
+    } else {
+      playedReveal.add(url);
+      scene.open();
+    }
+  };
 
-  useEffect(() => {
-    if (!isPremium || !url) return;
-    let cancelled = false;
-    fetch(qrApiUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        if (!cancelled) setQrBlob(blob);
-      })
-      .catch(() => setQrBlob(null));
-    return () => { cancelled = true; };
-  }, [url, isPremium, qrApiUrl]);
-
-  // Full-screen reveal plays each time the QR tab is opened.
-  useEffect(() => {
-    if (isPremium && url) showQr();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPremium, url]);
-
-  if (!isPremium) {
-    return (
-      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center">
-        <p className="text-white font-medium">QR flyer is a premium feature</p>
-        <p className="text-sm text-white/50 mt-1">
-          Upgrade to download and share your scannable booking code.
-        </p>
-      </div>
-    );
-  }
+  const qrBlob = async (): Promise<Blob> => {
+    if (!qrDataUrl) throw new Error("QR not ready");
+    return (await fetch(qrDataUrl)).blob();
+  };
 
   const downloadBlob = (blob: Blob, filename: string) => {
     const blobUrl = URL.createObjectURL(blob);
@@ -120,13 +132,28 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
     URL.revokeObjectURL(blobUrl);
   };
 
+  const flyerFilename = () =>
+    `qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const flyer = await generateBookingFlyer(await qrBlob(), displayName);
+      downloadBlob(flyer, flyerFilename());
+    } catch {
+      toast({ title: "Couldn't create flyer", variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleShare = async () => {
-    if (!qrBlob) return;
+    if (exporting) return;
+    setExporting(true);
     try {
-      const flyer = await generateBookingFlyer(qrBlob, displayName);
-      const filename = `qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
-      const file = new File([flyer], filename, { type: "image/png" });
+      const flyer = await generateBookingFlyer(await qrBlob(), displayName);
+      const file = new File([flyer], flyerFilename(), { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
@@ -138,39 +165,98 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
           /* cancelled */
         }
       } else {
-        downloadBlob(flyer, filename);
+        downloadBlob(flyer, flyerFilename());
       }
     } catch {
       toast({ title: "Couldn't create flyer", variant: "destructive" });
+    } finally {
+      setExporting(false);
     }
   };
 
-  return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center space-y-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-        Book with
-      </p>
-      <h3 className="text-xl font-semibold text-white -mt-2">{displayName}</h3>
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      haptic("selection");
+      toast({ title: "Booking link copied" });
+    } catch {
+      toast({ title: "Couldn't copy link", variant: "destructive" });
+    }
+  };
 
-      <button
-        type="button"
+  if (!isPremium) {
+    return (
+      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center">
+        <p className="text-white font-medium">QR flyer is a premium feature</p>
+        <p className="text-sm text-white/50 mt-1">
+          Upgrade to download and share your scannable booking code.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center space-y-5">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          Book with
+        </p>
+        <h3 className="text-xl font-semibold text-white mt-1">{displayName}</h3>
+      </div>
+
+      {revealed && qrDataUrl && (
+        <div className="space-y-2">
+          <div className="mx-auto w-fit rounded-[24px] bg-white p-3 shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
+            <img
+              src={qrDataUrl}
+              alt={`QR code that opens ${url}`}
+              className="h-48 w-48 sm:h-56 sm:w-56"
+            />
+          </div>
+          <p className="text-[13px] text-white/50 break-all">
+            Scan to book · {url.replace(/^https?:\/\//, "")}
+          </p>
+        </div>
+      )}
+
+      <CandyButton
+        variant="ruby"
+        size="lg"
+        className="w-full max-w-[16rem]"
+        leftIcon={revealed ? <Expand /> : <QrCode />}
         onClick={showQr}
         disabled={!url}
-        className="mx-auto flex h-14 w-full max-w-[16rem] items-center justify-center gap-2.5 rounded-2xl bg-white text-[15px] font-semibold text-[#1C1C1E] transition active:scale-[0.98] disabled:opacity-40"
       >
-        <QrCode className="h-5 w-5" />
-        {url ? "Show QR code" : "Save a slug first"}
-      </button>
+        {url ? (revealed ? "Show QR" : "Give me my QR") : "Save a slug first"}
+      </CandyButton>
 
-      <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={handleShare}
-          disabled={!qrBlob}
-          className="h-11 px-4 rounded-xl bg-rose-500 text-white text-[13px] font-medium inline-flex items-center gap-2 disabled:opacity-40 active:scale-[0.98] transition"
-        >
-          <Share2 className="h-4 w-4" /> Share flyer
-        </button>
-      </div>
+      {qrDataUrl && (
+        <div className="flex items-center justify-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="h-11 px-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-white/[0.1] active:scale-[0.98] transition"
+          >
+            <Copy className="h-4 w-4" /> Copy link
+          </button>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting}
+            className="h-11 px-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-white/[0.1] active:scale-[0.98] transition disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" /> Export QR
+          </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={exporting}
+            className="h-11 px-4 rounded-xl bg-rose-500 text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-rose-600 active:scale-[0.98] transition disabled:opacity-40"
+          >
+            <Share2 className="h-4 w-4" /> Share flyer
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center justify-center gap-2 pt-1">
         <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-5 w-5 rounded-md" />

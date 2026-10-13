@@ -173,6 +173,11 @@ P.open=function(){ var t=this; if(this.isOpen)return; this.isOpen=true; this.las
   this.el.classList.remove('go','m'); this.melted=false; cancelAnimationFrame(this.mr); this._draw(-1); this.e=0; this._apply(0);
   this.el.classList.add('on'); this.el.removeAttribute('aria-hidden'); this.el.querySelector('.cl').focus&&setTimeout(function(){t.el.querySelector('.x').focus()},50);
   setTimeout(function(){ t._go(1,3500); },250); };
+/** Opens already finished: camera landed, QR fully formed, no replay of the reveal. */
+P.showFinal=function(){ var t=this; if(this.isOpen)return; this.isOpen=true; this.lastFocus=document.activeElement; document.addEventListener('keydown',this._onKey);
+  cancelAnimationFrame(this.raf); cancelAnimationFrame(this.mr); this.melted=true; this.e=1; this._apply(1);
+  this._draw(99); this.el.classList.add('on','go','m'); this.el.removeAttribute('aria-hidden');
+  setTimeout(function(){var x=t.el.querySelector('.x'); x&&x.focus&&x.focus()},50); };
 P.close=function(){ if(!this.isOpen)return; this.isOpen=false; document.removeEventListener('keydown',this._onKey); this.melted=false; cancelAnimationFrame(this.mr);
   this.el.classList.remove('m','go'); this._draw(-1); this._go(0,1700); if(this.lastFocus&&this.lastFocus.focus)this.lastFocus.focus(); this.o.onClose&&this.o.onClose(); };
 P.destroy=function(){ cancelAnimationFrame(this.raf); cancelAnimationFrame(this.mr); document.removeEventListener('keydown',this._onKey); this.ro&&this.ro.disconnect(); this.el.remove(); };

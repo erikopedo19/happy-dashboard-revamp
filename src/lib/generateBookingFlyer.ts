@@ -77,11 +77,11 @@ export async function generateBookingFlyer(
   ctx.closePath();
   ctx.fill();
 
-  // "Book here" header
+  // "Scan to book" header
   ctx.textAlign = "center";
   ctx.fillStyle = "#FFFFFF";
   ctx.font = "bold 84px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
-  ctx.fillText("Book here", W / 2, 230);
+  ctx.fillText("Scan to book", W / 2, 230);
 
   // White card behind the QR
   const qrSize = 620;
