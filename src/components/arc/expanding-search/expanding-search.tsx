@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, ReactNode, RefObject } from "react";
+import type { KeyboardEvent, MutableRefObject, ReactNode, RefObject } from "react";
 import { flushSync } from "react-dom";
 import { AnimatePresence, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion } from "motion/react";
 import type { MotionValue } from "motion/react";
@@ -114,7 +114,7 @@ function offsetWithin(node: HTMLElement, container: HTMLElement) {
   return top;
 }
 
-interface ListboxProps { id: string; label: string; groups: Group[]; query: string; activeIndex: number; optionId: (item: ExpandingSearchItem) => string; reduced: boolean; keyboard: RefObject<boolean>; onHover: (index: number) => void; onChoose: (item: ExpandingSearchItem) => void }
+interface ListboxProps { id: string; label: string; groups: Group[]; query: string; activeIndex: number; optionId: (item: ExpandingSearchItem) => string; reduced: boolean; keyboard: MutableRefObject<boolean>; onHover: (index: number) => void; onChoose: (item: ExpandingSearchItem) => void }
 
 function Listbox({ id, label, groups, query, activeIndex, optionId, reduced, keyboard, onHover, onChoose }: ListboxProps) {
   const listRef = useRef<HTMLDivElement>(null);
@@ -198,7 +198,7 @@ export function ExpandingSearch({ label, items, suggestions = [], suggestionsLab
   const size = useRef({ collapsed: FALLBACK_SIZE, expanded: expandedWidth });
   const width = useMotionValue(FALLBACK_SIZE);
   /** True while the last highlight move came from the keyboard, so only keyboard moves scroll the list. */
-  const keyboard = useRef(false);
+  const keyboard = useRef<boolean>(false);
 
   // The corner radius follows the width: a circle while collapsed, the control radius once open. It rides the same spring, so the two never drift apart.
   const syncShape = useCallback((value: number) => {
