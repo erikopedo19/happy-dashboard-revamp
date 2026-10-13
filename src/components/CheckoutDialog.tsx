@@ -59,11 +59,8 @@ export function CheckoutDialog({ open, onOpenChange, item }: CheckoutDialogProps
     });
     setBusy(false);
     if (error || !data?.url) {
-      toast({
-        title: "Payment unavailable",
-        description: "This business hasn't finished setting up payments yet."); window.location.href = "/payment-failed?type=booking&reason=not_set_up"; void (",
-        variant: "destructive",
-      });
+      const back = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/payment-failed?type=booking&reason=not_set_up&back=${back}`;
       return;
     }
     window.location.href = data.url;
