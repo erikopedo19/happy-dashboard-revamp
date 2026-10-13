@@ -8,3 +8,6 @@
 - [x] Offer and save a salon choice during onboarding.
 - [x] Fix security findings (tightened organizations insert, blocked-slots read, story uploads; ignored intentional-public ones).
 - [x] Show images on rent/staff listings (scrape og:image in find-listings, render in Aggelies cards).
+- [ ] Polish the existing Expo shell with theme-aware chrome and smooth loading recovery.
+- [ ] Add the supplied stepper to team creation and connect email invitations.
+- [ ] Check team setup, invitation validation, and the updated preview.
