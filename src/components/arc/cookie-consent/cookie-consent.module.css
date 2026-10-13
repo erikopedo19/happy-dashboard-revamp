@@ -3,7 +3,7 @@
 .absolute { position: absolute; z-index: 5; }
 
 /* One surface whose position, size, and corner spring between the bar, the panel, and the reopen button. */
-.surface { position: absolute; bottom: 0; left: 0; overflow: hidden; background: var(--surface-raised); box-shadow: 0 0 0 1px var(--border), var(--shadow-floating); color: var(--foreground); pointer-events: auto; transform-origin: bottom center; will-change: transform, width, height; }
+.surface { position: absolute; bottom: 0; left: 0; overflow: hidden; background: color-mix(in srgb, var(--surface-raised) 82%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); box-shadow: 0 0 0 1px var(--border), var(--shadow-floating); color: var(--foreground); pointer-events: auto; transform-origin: bottom center; will-change: transform, width, height; }
 
 /* Faces sit on the bottom edge at their final width, so the surface grows upward into them. */
 .face { position: absolute; bottom: 0; left: 0; box-sizing: border-box; }

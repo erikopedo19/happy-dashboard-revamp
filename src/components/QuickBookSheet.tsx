@@ -298,7 +298,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       <SheetContent
         side="bottom"
         hideClose
-        className="z-[90] rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5] dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
+        className="z-[90] rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5]/85 dark:bg-[#1C1C1E]/85 p-0 max-h-[92vh] overflow-hidden flex flex-col"
       >
         {/* Grabber */}
         <div className="pt-3 pb-1 flex justify-center shrink-0">
