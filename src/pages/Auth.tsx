@@ -6,12 +6,16 @@ import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const { user } = useAuth()
-  const [showIntro, setShowIntro] = useState(() => !hasSeenIntro())
+  const [showIntro, setShowIntro] = useState(
+    () =>
+      !hasSeenIntro() &&
+      !/error|mode=signin/.test(window.location.search + window.location.hash)
+  )
 
   return (
     <>
       <Seo
-        title="Sign in to Cutzioo — Barbershop Booking"
+        title="Sign in to Cutzioo | Barbershop Booking"
         description="Sign in or create a Cutzioo account to manage bookings, publish your booking page, and grow your barbershop."
         path="/auth"
       />

@@ -4,10 +4,11 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
-import { Calendar, Clock, Scissors, Loader2, ChevronRight, Star, Settings2, Heart } from "lucide-react";
+import { Calendar, Clock, Scissors, ChevronRight, Star, Settings2, Heart } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import { FavoritesList } from "@/pages/Favorites";
 import { ClientMobileDock } from "@/components/ClientMobileDock";
+import { ScreenLoader } from "@/components/ScreenLoader";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { BookAgainCard } from "@/components/client/BookAgainCard";
@@ -63,11 +64,7 @@ const MyBookings = () => {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#007AFF]" />
-      </div>
-    );
+    return <ScreenLoader />;
   }
   if (!user) return <Navigate to="/auth" replace state={{ from: "/my-bookings" }} />;
 

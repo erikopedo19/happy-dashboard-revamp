@@ -340,7 +340,7 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
                   ? etaSent
                     ? `${booking.barber_name || "Your barber"} knows you're ${etaSent === "on_my_way" ? "on the way" : "running late"}`
                     : profile?.address || "One tap lets your barber know"
-                  : `${friendlyDate} · ${String(booking.appointment_time).slice(0, 5)} — reminders included`}
+                  : `${friendlyDate} · ${String(booking.appointment_time).slice(0, 5)} · reminders included`}
               </div>
             </div>
           </div>

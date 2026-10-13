@@ -1,4 +1,5 @@
 import confetti from "canvas-confetti";
+import { playBookingConfirmed } from "./sounds";
 
 // canvas-confetti uses rAF + canvas — fine on iOS 15+. Below that it can
 // glitch in WKWebView, so we check the OS version from the UA (allowed, it's
@@ -12,6 +13,8 @@ const iosMajor = (): number | null => {
 };
 
 export function fireBookingConfetti() {
+  // Springy confirm chime — plays even where the confetti itself is skipped.
+  playBookingConfirmed();
   const v = iosMajor();
   if (v !== null && v < 15) return;
   const colors = ["#FF2D46", "#FF5A6E", "#E0152F", "#FFD0DA", "#FFFFFF"];

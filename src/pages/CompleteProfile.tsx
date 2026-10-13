@@ -219,7 +219,7 @@ const CompleteProfile = () => {
                       onClick={() => update("workType", "solo")}
                       icon={<UserIcon className="h-5 w-5" />}
                       title="Solo Barber"
-                      desc="Just me — independent chair."
+                      desc="Just me: independent chair."
                     />
                     <ChoiceCard
                       active={data.workType === "team"}

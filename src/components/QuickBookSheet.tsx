@@ -627,7 +627,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
             </Button>
           ) : (
             <div className="flex h-12 items-center justify-center rounded-[14px] bg-black/[0.04] text-[13px] font-medium text-[#8E8E93] dark:bg-white/[0.05]">
-              {!serviceId ? "Pick a service" : !railOnOpenSlot ? "That time is taken — slide to an open slot" : "Pick a time"}
+              {!serviceId ? "Pick a service" : !railOnOpenSlot ? "That time is taken. Slide to an open slot." : "Pick a time"}
             </div>
           ))}
           {step === "details" && (

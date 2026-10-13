@@ -8,7 +8,7 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
-import { Drawer, DrawerContent } from "@heroui/react";
+import { RevealSheet } from "@/components/ui/reveal-sheet";
 import {
   Drawer as BottomDrawer,
   DrawerContent as BottomDrawerContent,
@@ -748,7 +748,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       {stylists.length === 0 ? (
                         <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
                           <p className="text-sm text-gray-400">
-                            No stylists yet — book without one, or add your team.
+                            No stylists yet. Book without one, or add your team.
                           </p>
                           <div className="flex flex-col sm:flex-row gap-2 justify-center">
                             <button
@@ -938,7 +938,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Optional — we'll send an SMS confirmation if provided.
+                      Optional. We'll send an SMS confirmation if provided.
                     </p>
                   </div>
 
@@ -1123,29 +1123,21 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     );
   }
 
-  // PC: use Drawer
+  // PC: reveal-sheet booking form
   return (
-    <Drawer
-      isOpen={isOpen}
+    <RevealSheet
+      open={isOpen}
       onOpenChange={(open) => !open && handleClose()}
-      size="2xl"
-      placement="right"
+      side="right"
+      title="New booking"
+      description="Pick a service, stylist, date and time."
+      className="bg-[#0b0b0d] !max-w-[880px]"
     >
-      <DrawerContent className="bg-[#0b0b0d] p-0 overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)] my-3 mr-3 h-[calc(100vh-1.5rem)]">
+      <div className="dark -mx-6 -my-6 sm:-mx-8 sm:-my-6 flex flex-col h-[calc(100dvh-120px)]">
         <motion.div
           ref={contentRef}
-          initial={{ x: 20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-          className="flex h-full overflow-hidden rounded-[28px]"
+          className="flex flex-1 min-h-0 overflow-hidden bg-[#0b0b0d]"
         >
-          {/* Desktop close */}
-          <button
-            onClick={handleClose}
-            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.12] transition-all active:scale-95 z-20"
-          >
-            <X className="h-4 w-4" />
-          </button>
 
           {/* Left Panel - Service Info */}
           <div className="w-[264px] shrink-0 p-6 bg-white/[0.02] border-r border-white/[0.06] flex flex-col">
@@ -1270,7 +1262,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       {stylists.length === 0 ? (
                         <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
                           <p className="text-sm text-gray-400">
-                            No stylists yet — book without one, or add your team.
+                            No stylists yet. Book without one, or add your team.
                           </p>
                           <div className="flex gap-2 justify-center">
                             <button
@@ -1442,7 +1434,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       className="w-full px-4 py-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl focus:border-white/30 focus:bg-white/[0.06] focus:outline-none transition-all text-white placeholder-gray-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Optional — we'll send an SMS confirmation if provided.
+                      Optional. We'll send an SMS confirmation if provided.
                     </p>
                   </div>
 
@@ -1568,7 +1560,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
             </div>
           )}
         </motion.div>
-      </DrawerContent>
-    </Drawer>
+      </div>
+    </RevealSheet>
   );
 }

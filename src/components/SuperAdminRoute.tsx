@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { ScreenLoader } from "@/components/ScreenLoader";
 
 interface SuperAdminRouteProps {
   children: React.ReactNode;
@@ -32,11 +32,7 @@ export const SuperAdminRoute: React.FC<SuperAdminRouteProps> = ({ children }) =>
   }, [user, loading]);
 
   if (loading || checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <ScreenLoader />;
   }
 
   if (!allowed) {

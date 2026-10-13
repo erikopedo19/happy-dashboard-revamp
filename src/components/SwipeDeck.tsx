@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, type PanInfo } from "framer-motion";
+import { animate, motion, AnimatePresence, useMotionValue, useTransform, type PanInfo, type MotionValue } from "framer-motion";
 import { X, Heart, Star, Calendar, Sparkles } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import { QuickBookSheet } from "@/components/QuickBookSheet";
@@ -12,15 +12,19 @@ export interface SwipeBarber {
   rating: number | null;
   description: string | null;
   booking_link: string | null;
+  monthly_capped?: boolean;
 }
 
 const spring = { type: "spring" as const, stiffness: 320, damping: 30 };
 
-function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe: (dir: 1 | -1) => void; isTop: boolean; depth: number }) {
+type ExitInfo = { dir: 1 | -1; vx: number };
+
+function Card({ barber, onSwipe, isTop, depth, edge }: { barber: SwipeBarber; onSwipe: (dir: 1 | -1, vx: number) => void; isTop: boolean; depth: number; edge: MotionValue<number> }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-220, 220], [-14, 14]);
-  const likeOpacity = useTransform(x, [30, 120], [0, 1]);
-  const nopeOpacity = useTransform(x, [-120, -30], [1, 0]);
+  const likeOpacity = useTransform(x, [15, 95], [0, 1]);
+  const nopeOpacity = useTransform(x, [-95, -15], [1, 0]);
+  const [snapToOrigin, setSnapToOrigin] = useState(true);
   const img = barber.avatar_url || barber.banner_url;
   const armed = useRef(0);
   useEffect(() => x.on("change", (v) => {
@@ -29,8 +33,18 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
   }), [x]);
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x > 110 || info.velocity.x > 600) onSwipe(1);
-    else if (info.offset.x < -110 || info.velocity.x < -600) onSwipe(-1);
+    const dir = Math.abs(info.offset.x) > 90
+      ? (info.offset.x > 0 ? 1 : -1)
+      : Math.abs(info.velocity.x) > 450
+        ? (info.velocity.x > 0 ? 1 : -1)
+        : 0;
+    if (!dir) {
+      animate(edge, 0, spring);
+      return;
+    }
+    x.stop();
+    setSnapToOrigin(false);
+    onSwipe(dir as 1 | -1, info.velocity.x);
   };
 
   return (
@@ -39,13 +53,14 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
       style={{ x: isTop ? x : 0, rotate: isTop ? rotate : 0, zIndex: 10 - depth }}
       initial={{ scale: 0.9, y: 30, opacity: 0 }}
       animate={{ scale: 1 - depth * 0.05, y: depth * -14, opacity: depth > 2 ? 0 : 1 }}
-      variants={{ out: (dir: number) => ({ x: dir * 480, rotate: dir * 22, opacity: 0, transition: { duration: 0.35 } }) }}
+      variants={{ out: ({ dir, vx }: ExitInfo) => ({ x: dir * 560, rotate: dir * 20, opacity: 0, transition: { type: "spring", velocity: vx, stiffness: 170, damping: 26 } }) }}
       exit="out"
       transition={spring}
       drag={isTop ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.9}
+      dragSnapToOrigin={snapToOrigin}
+      dragMomentum={false}
       onDragStart={() => haptic("selection")}
+      onDrag={isTop ? () => edge.set(x.get()) : undefined}
       onDragEnd={onDragEnd}
     >
       {img ? (
@@ -69,6 +84,11 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
         <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 0.75, y: 0 }} transition={{ delay: 0.2, duration: 0.45 }} className="mt-1 text-sm line-clamp-2">
           {barber.description || "Barber"}
         </motion.p>
+        {barber.monthly_capped && (
+          <span className="mt-2 inline-flex rounded-full bg-[#FF2D46] px-2.5 py-1 text-[10px] font-bold text-white">
+            Sold out
+          </span>
+        )}
         {barber.rating ? (
           <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-sm font-semibold">
             <Star className="h-3.5 w-3.5 fill-current" /> {Number(barber.rating).toFixed(1)}
@@ -81,7 +101,12 @@ function Card({ barber, onSwipe, isTop, depth }: { barber: SwipeBarber; onSwipe:
 
 export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]; onClose: () => void; onLike: (id: string) => void }) {
   const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState<1 | -1>(1);
+  const edge = useMotionValue(0);
+  const leftGlowOpacity = useTransform(edge, [-110, 0], [1, 0]);
+  const rightGlowOpacity = useTransform(edge, [0, 110], [0, 1]);
+  const leftGlowScale = useTransform(edge, [-110, 0], [1.04, 1]);
+  const rightGlowScale = useTransform(edge, [0, 110], [1, 1.04]);
+  const [exitInfo, setExitInfo] = useState<ExitInfo>({ dir: 1, vx: 500 });
   // The card still flying off screen — Book must target whoever is visible.
   const [leaving, setLeaving] = useState<SwipeBarber | null>(null);
   const [bookBarber, setBookBarber] = useState<SwipeBarber | null>(null);
@@ -96,29 +121,51 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
     return () => { document.body.classList.remove("stories-open"); document.body.style.overflow = prev; };
   }, []);
 
-  const swipe = (d: 1 | -1) => {
+  const swipe = (d: 1 | -1, vx = d * 600) => {
     if (!current) return;
+    animate(edge, [edge.get(), d * 200, 0], { duration: 0.55, times: [0, 0.35, 1] });
     haptic(d === 1 ? "success" : "light");
-    setDir(d);
+    setExitInfo({ dir: d, vx });
     if (d === 1) onLike(current.id);
     const swiped = current;
     setLeaving(swiped);
     setIndex((i) => i + 1);
-    // Clear once the exit flight (~350ms) is over.
+    // Clear once the exit flight is over.
     window.setTimeout(() => {
       setLeaving((s) => (s === swiped ? null : s));
-    }, 420);
+    }, 520);
   };
 
   return (
     <motion.div
-      className="fixed inset-0 z-[80] h-[100dvh] flex flex-col bg-[#0A0A0C] text-white px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1rem)]"
+      className="fixed inset-0 z-[80] h-[100dvh] flex flex-col overscroll-contain touch-none bg-[#0A0A0C] text-white px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1rem)]"
+      style={{ touchAction: "none", overscrollBehavior: "contain" }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 40 }}
       transition={spring}
     >
-      <div className="flex items-center justify-between py-3">
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[50%]"
+        style={{
+          opacity: leftGlowOpacity,
+          scaleX: leftGlowScale,
+          transformOrigin: "left center",
+          background: "linear-gradient(to right, rgba(255,45,70,1) 0%, rgba(255,45,70,0.6) 35%, transparent 100%)",
+        }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[50%]"
+        style={{
+          opacity: rightGlowOpacity,
+          scaleX: rightGlowScale,
+          transformOrigin: "right center",
+          background: "linear-gradient(to left, rgba(163,230,53,1) 0%, rgba(163,230,53,0.6) 35%, transparent 100%)",
+        }}
+      />
+      <div className="relative z-30 flex items-center justify-between py-3">
         <div>
           <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 0.6, x: 0 }} className="text-xs uppercase tracking-widest flex items-center gap-1">
             <Sparkles className="h-3 w-3" /> New
@@ -132,14 +179,14 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
         </button>
       </div>
 
-      <div className="relative flex-1 my-3">
-        <AnimatePresence custom={dir}>
+      <div className="relative my-3 flex-1 overflow-hidden overscroll-contain touch-none" style={{ touchAction: "none", overscrollBehavior: "contain" }}>
+        <AnimatePresence custom={exitInfo}>
           {visible.map((b, i) => (
-            <Card key={b.id} barber={b} isTop={i === 0} depth={i} onSwipe={swipe} />
+            <Card key={b.id} barber={b} isTop={i === 0} depth={i} onSwipe={swipe} edge={edge} />
           )).reverse()}
         </AnimatePresence>
         {!current && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 grid place-items-center text-center">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 z-10 grid place-items-center text-center">
             <div>
               <p className="text-xl font-semibold">You've seen everyone</p>
               <button onClick={() => { haptic("medium"); setLeaving(null); setIndex(0); }} className="mt-4 rounded-full bg-white text-black px-6 py-3 font-semibold active:scale-95 transition">Start again</button>
@@ -149,11 +196,11 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
       </div>
 
       {(current || leaving) && (
-        <div className="relative z-20 flex touch-manipulation items-center justify-center gap-5 pb-4 select-none">
+        <div className="relative z-30 flex touch-manipulation items-center justify-center gap-5 pb-4 select-none">
           <button
             type="button"
             disabled={!current}
-            onClick={() => swipe(-1)}
+            onClick={() => swipe(-1, -620)}
             aria-label="Skip"
             className="h-14 w-14 grid place-items-center rounded-full bg-white/10 active:scale-90 transition disabled:opacity-40"
           >
@@ -161,16 +208,22 @@ export function SwipeDeck({ barbers, onClose, onLike }: { barbers: SwipeBarber[]
           </button>
           <button
             type="button"
-            disabled={!onScreen?.booking_link}
-            onClick={() => { haptic("heavy"); if (onScreen?.booking_link) setBookBarber(onScreen); }}
-            className="h-14 px-7 rounded-full bg-white text-black font-semibold flex items-center gap-2 active:scale-95 transition disabled:opacity-40"
+            disabled={!onScreen?.booking_link || !!onScreen?.monthly_capped}
+            onClick={() => {
+              if (onScreen?.booking_link && !onScreen.monthly_capped) {
+                haptic("heavy");
+                setBookBarber(onScreen);
+              }
+            }}
+            className="h-14 max-w-[58vw] min-w-0 px-4 rounded-full bg-white text-black text-[13px] leading-tight text-center font-semibold flex items-center justify-center gap-2 active:scale-95 transition disabled:opacity-40"
           >
-            <Calendar className="h-4 w-4" /> Book now
+            <Calendar className="h-4 w-4 shrink-0" />
+            {onScreen?.monthly_capped ? "Fully booked this month" : "Book now"}
           </button>
           <button
             type="button"
             disabled={!current}
-            onClick={() => swipe(1)}
+            onClick={() => swipe(1, 620)}
             aria-label="Like"
             className="h-14 w-14 grid place-items-center rounded-full bg-[#FF2D46] active:scale-90 transition disabled:opacity-40"
           >

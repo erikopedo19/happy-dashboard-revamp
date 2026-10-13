@@ -8,12 +8,15 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ComponentType } from "react";
+import { FlipWords } from "@/components/ui/flip-words";
 
 export interface DockItem {
   label: string;
   icon: ComponentType<{ className?: string; size?: number | string; style?: React.CSSProperties }>;
   to?: string;
   onClick?: () => void;
+  /** Fired on pointer-down/hover to warm the destination's chunk early. */
+  prefetch?: () => void;
   color?: string;
 }
 
@@ -67,15 +70,21 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
     <div
       data-glass-dock
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-4 pb-[max(calc(env(safe-area-inset-bottom,0px)+0.5rem),0.875rem)] transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
+        "fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 transition-opacity duration-200 [body.stories-open_&]:opacity-0 [body.stories-open_&]:pointer-events-none",
         className
       )}
+      style={{
+        paddingBottom:
+          typeof window !== "undefined" && (window as any).ReactNativeWebView
+            ? "calc(max(calc(var(--sab, env(safe-area-inset-bottom, 0px)) - 12px), 8px) + 20px)"
+            : "max(calc(var(--sab, env(safe-area-inset-bottom, 0px)) - 12px), 8px)",
+      }}
     >
       <motion.div
         layout
         transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
         className="mx-auto flex items-stretch justify-center gap-2.5"
-        style={{ width: compact ? "auto" : "min(400px,calc(100vw - 1.5rem))" }}
+        style={{ width: compact ? "min(360px,calc(100vw - 24px))" : "min(400px,calc(100vw - 24px))" }}
       >
       <motion.div
         layout
@@ -91,7 +100,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
           paddingRight: compact ? 8 : 10,
         }}
         transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
-        className={cn("pointer-events-auto relative isolate flex items-center overflow-hidden rounded-full px-2.5", compact ? "justify-center gap-0.5" : "flex-1 justify-around")}
+        className={cn("pointer-events-auto relative isolate flex items-center overflow-hidden rounded-full px-2.5", "flex-1 justify-around")}
         style={{
           background: "rgba(28, 28, 30, 0.65)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -130,7 +139,7 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
             <motion.div
               transition={{ type: "spring", stiffness: 420, damping: 30 }}
               style={{ transformOrigin: "center bottom" }}
-              className="relative z-10 flex flex-col items-center gap-px"
+              className="relative z-10 flex min-w-0 max-w-full flex-col items-center gap-px"
             >
               <motion.div
                 animate={{ scale: isActive ? 1.15 : 1, y: isActive ? -1 : 0 }}
@@ -153,12 +162,15 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
                 className="overflow-hidden"
               >
                 {item.label === "More" ? (
-                  <span className="block animate-gradient-x bg-[linear-gradient(90deg,#3B82F6,#F59E0B,#FF2D46,#EC4899,#3B82F6)] bg-[length:220%_100%] bg-clip-text text-[10px] font-semibold text-transparent">
-                    {item.label}
+                  <span
+                    className="block h-[15px] w-10 text-center text-[10px] font-semibold leading-[15px]"
+                    style={{ color: itemTextColor, transition: "color 0.2s ease" }}
+                  >
+                    <FlipWords words={["More", "Menu", "Tools"]} duration={3500} />
                   </span>
                 ) : (
                   <span
-                    className="block text-[10px] font-medium"
+                    className="block max-w-full truncate text-[10px] font-medium"
                     style={{ color: itemTextColor, transition: "color 0.2s ease" }}
                   >
                     {item.label}
@@ -179,12 +191,14 @@ export const GlassDock = ({ items, activeIndex, className, trailing, trailingAct
               key={item.label}
               type="button"
               onClick={handleClick}
+              onPointerDown={() => item.prefetch?.()}
+              onPointerEnter={() => item.prefetch?.()}
               onHoverStart={() => setHovered(i)}
               onHoverEnd={() => setHovered(null)}
               whileTap={{ scale: 0.9 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
               layout
-              className={cn("relative flex cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", compact ? "w-11 px-0" : "flex-1 px-2")}
+              className={cn("relative flex min-w-0 cursor-pointer flex-col items-center gap-[3px] rounded-full py-1.5", "flex-1 px-1.5")}
             >
               {isActive && (
                 <motion.div

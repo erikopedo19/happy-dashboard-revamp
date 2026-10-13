@@ -74,8 +74,8 @@ const mainItems = [
     icon: Users,
   },
   {
-    title: "Events",
-    url: "/events/manage",
+    title: "Rent & Staff",
+    url: "/aggelies/manage",
     icon: Calendar,
   },
   {

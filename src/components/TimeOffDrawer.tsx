@@ -161,7 +161,7 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
             </div>
             <div>
               <h2 className="text-[17px] font-semibold leading-tight text-[#1C1C1E] dark:text-white">Days off</h2>
-              <p className="text-[13px] text-[#8E8E93] dark:text-white/50">Tap or drag across days — they are hidden from booking</p>
+              <p className="text-[13px] text-[#8E8E93] dark:text-white/50">Tap or drag across days. They are hidden from booking.</p>
             </div>
           </div>
 

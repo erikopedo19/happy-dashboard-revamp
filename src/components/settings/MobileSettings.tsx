@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -132,7 +133,7 @@ export function MobileSettings(props: any) {
     if (agreed) {
       const confirmed = confirm("You must agree to the Terms and Privacy Policy to use the app. If you decline, you will be signed out.");
       if (!confirmed) return;
-      supabase.auth.signOut().then(() => { window.location.href = "/login"; });
+      supabase.auth.signOut().then(() => { window.location.href = "/auth"; });
       return;
     }
     setAgreed(true);
@@ -188,7 +189,7 @@ export function MobileSettings(props: any) {
     }
     toast({ title: "Account deleted" });
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/auth";
   };
 
   const initials =
@@ -424,7 +425,7 @@ export function MobileSettings(props: any) {
                 danger
                 onClick={async () => {
                   await supabase.auth.signOut();
-                  window.location.href = "/login";
+                  window.location.href = "/auth";
                 }}
               />
             </>
@@ -443,6 +444,16 @@ export function MobileSettings(props: any) {
             />
           </Group>
         )}
+
+        <p className="mt-5 text-center text-[12px] text-[#8E8E93] dark:text-white/40">
+          Need help? Chat with us at{" "}
+          <a
+            href="mailto:cutzioo.com@gmail.com"
+            className="underline underline-offset-2 transition hover:text-[#FF2D46]"
+          >
+            cutzioo.com@gmail.com
+          </a>
+        </p>
 
         <p className="text-center text-[11px] text-[#8E8E93] dark:text-white/35 pt-2">
           Cutzio · v1.0
@@ -824,7 +835,7 @@ export function MobileSettings(props: any) {
                 <div className="rounded-[28px] bg-[#1C1C1E] p-5">
                   <p className="text-[13px] leading-5 text-[#8E8E93]">
                     Payouts go straight to your connected account. Sales tax is calculated automatically at
-                    checkout and a flat $0.25 platform fee is deducted per transaction — the price your client
+                    checkout and a flat $0.25 platform fee is deducted per transaction, but the price your client
                     pays never changes.
                   </p>
                 </div>
@@ -945,7 +956,7 @@ export function MobileSettings(props: any) {
             {panel === "location" && (
               <PanelStack>
                 <p className="text-[13px] text-white/50 px-1">
-                  Search your address, then tap where your shop is.
+                  Search the address, paste your Google Maps link, or use your current location — then tap the map to fine-tune.
                 </p>
                 <div className="rounded-2xl overflow-hidden border border-white/10">
                   <BarbershopMap
@@ -1009,6 +1020,18 @@ export function MobileSettings(props: any) {
                     />
                   </Field>
                 </div>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#FF2D46] to-[#E0152F] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saveMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="h-4 w-4" strokeWidth={2.5} /> Save location</>
+                  )}
+                </motion.button>
               </PanelStack>
             )}
           </Sheet>
@@ -1117,11 +1140,15 @@ function Sheet({
 
   // The full-screen panel owns its scroll area. Do not lock body scrolling:
   // iOS can retain that lock after a nested dialog or an animated close.
+  // We only hide the (now redundant) document scrollbar so the panel doesn't
+  // render next to a second bar.
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    document.documentElement.classList.add("cz-sheet-open");
+    return () => document.documentElement.classList.remove("cz-sheet-open");
   }, []);
 
-  return (
+  return createPortal(
     <>
       <motion.div
         initial={{ opacity: 0 }}
@@ -1137,7 +1164,7 @@ function Sheet({
         transition={{ type: "spring", stiffness: 320, damping: 34 }}
         className="fixed inset-0 z-[70] h-[100dvh] min-h-0 bg-[#0A0A0C] flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)]"
       >
-        <header className="relative shrink-0 flex items-center justify-center px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2.5 bg-[#0A0A0C]/80 backdrop-blur-xl border-b border-white/[0.06]">
+        <header className="relative shrink-0 flex items-center justify-center px-2 pt-[max(0.75rem,var(--sat,env(safe-area-inset-top,0px)))] pb-2.5 bg-[#0A0A0C]/80 backdrop-blur-xl border-b border-white/[0.06]">
           <button
             onClick={onClose}
             aria-label="Back"
@@ -1151,12 +1178,16 @@ function Sheet({
         <div
           ref={bodyRef}
           className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y px-4 pt-5"
-          style={{ WebkitOverflowScrolling: "touch" as any, paddingBottom: "calc(8rem + env(safe-area-inset-bottom))" }}
+          style={{
+            WebkitOverflowScrolling: "touch" as any,
+            paddingBottom: "calc(1.25rem + var(--sab, env(safe-area-inset-bottom, 0px)))",
+          }}
         >
           {children}
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body,
   );
 }
 
@@ -1508,7 +1539,7 @@ function TeamAccessPanel() {
         <Users className="mx-auto h-6 w-6 text-white/40" />
         <p className="mt-2 text-[14px] font-medium text-white">No team members yet</p>
         <p className="mt-1 text-[12px] text-white/45">
-          Invite barbers from Teams — then choose which pages each one can see here.
+          Invite barbers from Teams, then choose which pages each one can see here.
         </p>
       </div>
     );

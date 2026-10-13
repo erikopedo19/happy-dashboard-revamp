@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@heroui/react";
-import { Loader2, CheckCircle2, XCircle, Sparkles, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Sparkles, Clock } from "lucide-react";
+import { CutziooLoader } from "@/components/CutziooLoader";
 import { haptic } from "@/lib/haptics";
 
 interface OfferInfo {
@@ -96,7 +97,7 @@ export default function WaitlistClaim() {
       >
         {state === "loading" && (
           <div className="text-center py-10">
-            <Loader2 className="w-8 h-8 mx-auto animate-spin text-rose-500" />
+            <CutziooLoader variant="loop" size="56px" wordmark={false} />
           </div>
         )}
 

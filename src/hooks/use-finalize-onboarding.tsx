@@ -79,9 +79,9 @@ export function useFinalizeOnboarding() {
               navigate("/admin", { replace: true });
               return;
             }
-            toast.error("Invite couldn't be applied", { description: res?.error || "Continuing as solo — ask your owner for a fresh invite link." });
+            toast.error("Invite couldn't be applied", { description: res?.error || "Continuing as solo. Ask your owner for a fresh invite link." });
           } catch (e: any) {
-            toast.error("Invalid invite link", { description: e?.message || "Continuing as solo — ask your owner for a fresh invite link." });
+            toast.error("Invalid invite link", { description: e?.message || "Continuing as solo. Ask your owner for a fresh invite link." });
           }
         }
 

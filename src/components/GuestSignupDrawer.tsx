@@ -17,7 +17,7 @@ const MUTED_EXACT = ["/"];
 const PERKS = [
   "Full access to bookings, agenda & clients",
   "Your own booking link in under a minute",
-  "Cancel any time — nothing to unsubscribe",
+  "No long-term commitment. Cancel any time.",
 ];
 
 /**

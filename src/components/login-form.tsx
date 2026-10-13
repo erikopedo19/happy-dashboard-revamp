@@ -71,6 +71,26 @@ export function LoginForm() {
     }
   }, [user, navigate, next]);
 
+  // Handle auth errors returned in the URL (expired links, cancelled Google sign-in).
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const q = new URLSearchParams(window.location.search);
+    const code = q.get("error_code") || hash.get("error_code");
+    const desc = q.get("error_description") || hash.get("error_description") || q.get("error") || hash.get("error");
+    if (!desc && !code) return;
+    const friendly =
+      code === "otp_expired"
+        ? "This link has expired. Please request a new one."
+        : code === "access_denied" || desc === "access_denied"
+        ? "Sign-in was cancelled. Please try again."
+        : (desc || "Something went wrong signing in.").replace(/\+/g, " ");
+    toast({ title: "Couldn't sign you in", description: friendly, variant: "destructive" });
+    ["error", "error_code", "error_description"].forEach((k) => q.delete(k));
+    const qs = q.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const canSubmit =
     mode === "signin"
       ? email.trim().length > 3 && password.length > 0

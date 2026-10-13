@@ -6,7 +6,6 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Search,
   LayoutGrid,
   List,
   Plus,
@@ -28,11 +27,13 @@ import { AppointmentForm } from "@/components/AppointmentForm";
 import { ModernAppointmentsCalendar } from "@/components/ModernAppointmentsCalendar";
 import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
+import { CutziooLoader } from "@/components/CutziooLoader";
 import { AgendaUpgradeDrawer } from "@/components/AgendaUpgradeDrawer";
 import { Button } from "@heroui/react";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { TNumber } from "@/components/ui/t-number";
 import {
   Empty,
   EmptyContent,
@@ -294,12 +295,6 @@ const Agenda = () => {
           // Force immediate refetch
           await queryClient.refetchQueries({ queryKey: ['appointments'], exact: false });
 
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "New Booking!",
-              description: "A new appointment has been scheduled.",
-            });
-          }
         }
       )
       .subscribe();
@@ -312,7 +307,7 @@ const Agenda = () => {
   const handleDateTimeClick = (date: string, time: string) => {
     const today = format(new Date(), 'yyyy-MM-dd');
     if (date < today) {
-      toast({ title: "Past day — view only", description: "You can see appointments but can't add new ones on past dates." });
+      toast({ title: "Past day: view only", description: "You can see appointments but can't add new ones on past dates." });
       return;
     }
     if (date === today) {
@@ -409,8 +404,7 @@ const Agenda = () => {
             <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen} />
             {agendaSettingsLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6">
-                <div className="w-10 h-10 rounded-2xl border-2 border-white/10 border-t-[#0A84FF] animate-spin" />
-                <p className="text-sm text-white/50 mt-4">Loading your schedule…</p>
+                <CutziooLoader variant="loop" size="64px" wordmark={false} />
               </div>
             ) : showHoursOnboarding ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6 relative overflow-hidden">
@@ -576,12 +570,13 @@ const Agenda = () => {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="relative flex-1 md:flex-none md:max-w-[260px]">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-                      <Input
+                      <SearchBar
                         placeholder="Search in calendar..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="pl-10 h-9 bg-[#22222A] border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30 w-full"
+                        tone="dark"
+                        compact
+                        className="w-full text-sm"
                       />
                     </div>
                     <Button
@@ -759,15 +754,15 @@ const Agenda = () => {
                             <div className="grid grid-cols-3 gap-2">
                               <div className="bg-[#22222A] rounded-xl p-3">
                                 <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Bookings</p>
-                                <p className="text-xl font-semibold text-white mt-0.5">{week.appointments.length}</p>
+                                <p className="text-xl font-semibold text-white mt-0.5"><TNumber value={week.appointments.length} /></p>
                               </div>
                               <div className="bg-[#22222A] rounded-xl p-3">
                                 <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Revenue</p>
-                                <p className="text-xl font-semibold text-white mt-0.5">${week.revenue}</p>
+                                <p className="text-xl font-semibold text-white mt-0.5">$<TNumber value={week.revenue} /></p>
                               </div>
                               <div className="bg-[#22222A] rounded-xl p-3">
                                 <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Clients</p>
-                                <p className="text-xl font-semibold text-white mt-0.5">{week.customers}</p>
+                                <p className="text-xl font-semibold text-white mt-0.5"><TNumber value={week.customers} /></p>
                               </div>
                             </div>
                             {week.appointments.length > 0 && (

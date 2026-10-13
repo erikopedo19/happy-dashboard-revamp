@@ -17,6 +17,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
 import { PremiumGate } from "@/components/PremiumGate";
+import { CutziooLoader } from "@/components/CutziooLoader";
 
 const upload = async (file: File, folder: string) => {
   const ext = file.name.split(".").pop();
@@ -135,8 +136,8 @@ export const MicrositeEditorPanel = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-gray-400">
-        <Loader2 className="animate-spin h-5 w-5" />
+      <div className="flex items-center justify-center py-16">
+        <CutziooLoader variant="loop" size="48px" wordmark={false} />
       </div>
     );
   }

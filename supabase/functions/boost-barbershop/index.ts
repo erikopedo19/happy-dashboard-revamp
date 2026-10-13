@@ -46,7 +46,7 @@ function reminderHtml(opts: { name: string; shop: string; url: string }) {
       </td></tr>
       <tr><td style="padding:14px 32px 0;font-size:15px;line-height:1.7;color:#48484a;">
         It's been a while since your last visit to <strong>${esc(opts.shop)}</strong>.
-        Grab a slot that suits you — booking takes about 20 seconds.
+        Grab a slot that suits you. Booking takes about 20 seconds.
       </td></tr>
       <tr><td style="padding:26px 32px 8px;">
         <a href="${opts.url}" style="display:block;text-align:center;background:#1c1c1e;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:15px 24px;border-radius:14px;">Book your appointment</a>
@@ -116,7 +116,7 @@ serve(async (req: Request) => {
         customer_email: user.email ?? undefined,
         metadata: { kind: "boost", user_id: user.id },
         success_url: `${origin}/settings?boost_session={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/settings?boost=cancelled`,
+        cancel_url: `${origin}/payment-failed?type=boost&reason=cancelled&back=/settings`,
       });
 
       await admin.from("boost_campaigns").insert({
@@ -237,7 +237,7 @@ serve(async (req: Request) => {
           else console.error("Brevo send failed", res.status, await res.text());
         }
       } else {
-        console.error("Missing LOVABLE_API_KEY or BREVO_API_KEY — cannot send boost emails");
+        console.error("Missing LOVABLE_API_KEY or BREVO_API_KEY: cannot send boost emails");
       }
 
       await admin

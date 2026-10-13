@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@heroui/react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar, Sparkles, Globe } from "lucide-react";
+import { ArrowLeft, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loader2, Mail, Send, Pencil, Gift, Settings2, Calendar, Sparkles, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { OffersPanel } from "@/components/OffersPanel";
@@ -389,11 +390,10 @@ export default function SuperAdminDashboard() {
           <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
             <div>
               <CardTitle>Users</CardTitle>
-              <CardDescription>Manage subscriptions — flip premium on or off, or set a custom end date.</CardDescription>
+              <CardDescription>Manage subscriptions: flip premium on or off, or set a custom end date.</CardDescription>
             </div>
             <div className="relative w-64 max-w-[40vw]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search email or name…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+              <SearchBar placeholder="Search email or name…" value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
           </CardHeader>
           <CardContent className="p-0">

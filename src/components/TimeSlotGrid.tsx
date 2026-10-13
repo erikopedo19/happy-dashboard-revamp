@@ -1,7 +1,7 @@
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay } from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight, Search, Calendar, Clock, Filter } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Calendar, Clock, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { SearchBar } from '@/components/ui/search-bar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AppointmentTimeCard } from './AppointmentTimeCard';
 import { useState, useMemo } from 'react';
@@ -92,8 +92,14 @@ export const TimeSlotGrid = ({
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border p-4 space-y-4">
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search appointments..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-muted/50 border-0 focus-visible:ring-1" />
+            <SearchBar
+              placeholder="Search appointments..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              innerRowClassName="bg-muted/50"
+              shellClassName="border-0"
+              className="focus-visible:ring-1"
+            />
           </div>
           
           {/* Week Navigation */}
@@ -205,15 +211,15 @@ export const TimeSlotGrid = ({
           {/* Search and Actions Row */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input 
-                  placeholder="Search appointments, customers, services..." 
-                  value={searchQuery} 
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-10 h-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
-                />
-              </div>
+              <SearchBar
+                placeholder="Search appointments, customers, services..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                compact
+                className="w-full text-sm transition-colors focus:bg-white"
+                innerRowClassName="bg-gray-50"
+                shellClassName="border-gray-200"
+              />
             </div>
             
             <div className="flex items-center gap-2">

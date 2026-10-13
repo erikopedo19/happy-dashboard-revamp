@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Calendar, Users, Plus, ArrowUpRight, ArrowDownRight, DollarSign, Clock,
-  Scissors, Search, Bell,
+  Scissors, Bell, ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Table,
@@ -27,6 +27,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { StatusBadge } from "@/components/status-badge";
 
 const db = supabase as any;
 
@@ -189,8 +190,42 @@ export function DashboardContent() {
     return appointments
       .filter(a => a.appointment_date >= today && a.status !== 'cancelled')
       .sort((a, b) => (a.appointment_date + a.appointment_time).localeCompare(b.appointment_date + b.appointment_time))
-      .slice(0, 6);
   }, [appointments]);
+
+  const [sortKey, setSortKey] = useState<'customer' | 'service' | 'date' | 'price' | 'status'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const sortedBookings = useMemo(() => {
+    const STATUS_ORDER: Record<string, number> = { scheduled: 0, confirmed: 0, paid: 1, completed: 2, cancelled: 3 };
+    const val = (a: any): string | number => {
+      switch (sortKey) {
+        case 'customer': return (a.customer?.name || 'Walk-in').toLowerCase();
+        case 'service': return (a.service?.name || '').toLowerCase();
+        case 'price': return Number(a.price || a.service?.price || 0);
+        case 'status': return STATUS_ORDER[(a.status || 'scheduled').toLowerCase()] ?? 4;
+        case 'date':
+        default: return `${a.appointment_date}T${a.appointment_time || '00:00'}`;
+      }
+    };
+    return [...upcoming].sort((a, b) => {
+      const va = val(a); const vb = val(b);
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [upcoming, sortKey, sortDir]);
+
+  const bookingStatusBadge = (status: string | null) => {
+    const s = (status || 'scheduled').toLowerCase();
+    if (s === 'cancelled') return <StatusBadge state="failed" size="sm" labels={{ failed: 'Cancelled' }} />;
+    if (s === 'completed') return <StatusBadge state="success" size="sm" labels={{ success: 'Completed' }} />;
+    if (s === 'paid' || s === 'confirmed') return <StatusBadge state="success" size="sm" labels={{ success: 'Paid' }} />;
+    return <StatusBadge state="pending" size="sm" labels={{ pending: 'Scheduled' }} />;
+  };
 
   return (
     <div className="h-full overflow-hidden bg-[#0A0A0C] text-white font-geist">
@@ -207,10 +242,13 @@ export function DashboardContent() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <div className="hidden md:block relative max-w-[260px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-                <Input
+                <SearchBar
                   placeholder="Search..."
-                  className="pl-10 h-9 bg-[#22222A] border-white/[0.06] rounded-xl text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30"
+                  tone="dark"
+                  compact
+                  className="w-full text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30"
+                  innerRowClassName="bg-[#22222A]"
+                  shellClassName="border-white/[0.06]"
                 />
               </div>
               <NotificationBell />
@@ -304,11 +342,11 @@ export function DashboardContent() {
               </div>
             </div>
 
-            {/* Recent bookings */}
-            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
+            {/* Bookings table */}
+            <div className="bg-[#16161A] border border-white/[0.06] rounded-[28px] overflow-hidden">
+              <div className="flex items-center justify-between px-5 sm:px-6 pt-5 pb-4">
                 <div>
-                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Recent bookings</p>
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.16em] font-semibold text-white/40">Bookings</p>
                   <h2 className="text-base font-semibold text-white mt-1">{upcoming.length} upcoming</h2>
                 </div>
                 <button onClick={() => navigate('/agenda')} className="text-xs font-bold text-[#FF2D46] hover:underline uppercase tracking-wider">See all</button>
@@ -319,25 +357,56 @@ export function DashboardContent() {
                   <p className="text-sm text-white/40">No upcoming bookings</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-white/40 border-b border-white/[0.06]">
-                        <th className="pb-3 font-medium">Customer</th>
-                        <th className="pb-3 font-medium">Service</th>
-                        <th className="pb-3 font-medium">Date</th>
-                        <th className="pb-3 font-medium">Time</th>
-                        <th className="pb-3 font-medium text-right">Price</th>
+                <div className="overflow-auto max-h-[440px] border-t border-white/[0.06]">
+                  <table className="w-full table-fixed border-collapse text-sm">
+                    <colgroup>
+                      <col style={{ width: '22%' }} />
+                      <col style={{ width: '20%' }} />
+                      <col style={{ width: '13%' }} />
+                      <col style={{ width: '11%' }} />
+                      <col style={{ width: '20%' }} />
+                      <col style={{ width: '14%' }} />
+                    </colgroup>
+                    <thead className="sticky top-0 z-10 bg-[#16161A] shadow-[0_1px_0_rgba(255,255,255,0.06)]">
+                      <tr>
+                        {(
+                          [
+                            { key: 'customer', label: 'Customer' },
+                            { key: 'service', label: 'Service' },
+                            { key: 'date', label: 'Date' },
+                            { key: 'status', label: 'Status' },
+                            { key: 'price', label: 'Price' },
+                          ] as const
+                        ).map((c) => (
+                          <th key={c.key} className={cn('px-4 py-3 font-medium', c.key === 'price' ? 'text-right' : 'text-left')}>
+                            <button
+                              type="button"
+                              onClick={() => toggleSort(c.key)}
+                              className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/40 transition-colors hover:text-white/80"
+                            >
+                              {c.label}
+                              {sortKey === c.key ? (
+                                sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-[#FF2D46]" /> : <ArrowDown className="h-3 w-3 text-[#FF2D46]" />
+                              ) : (
+                                <ArrowUpDown className="h-3 w-3 opacity-40" />
+                              )}
+                            </button>
+                          </th>
+                        ))}
+                        <th className="px-4 py-3" aria-hidden />
                       </tr>
                     </thead>
                     <tbody>
-                      {upcoming.map((a) => (
-                        <tr key={a.id} className="border-b border-white/[0.06] last:border-0">
-                          <td className="py-3 font-medium text-white">{a.customer?.name || 'Walk-in'}</td>
-                          <td className="py-3 text-white/70">{a.service?.name || 'Service'}</td>
-                          <td className="py-3 text-white/70">{format(parseISO(a.appointment_date), 'MMM d')}</td>
-                          <td className="py-3 text-white/70">{a.appointment_time?.slice(0, 5)}</td>
-                          <td className="py-3 text-right font-semibold text-white">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
+                      {sortedBookings.map((a) => (
+                        <tr key={a.id} className="border-b border-white/[0.06] last:border-0 transition-colors hover:bg-white/[0.03]">
+                          <td className="truncate px-4 py-3 font-medium text-white">{a.customer?.name || 'Walk-in'}</td>
+                          <td className="truncate px-4 py-3 text-white/70">{a.service?.name || 'Service'}</td>
+                          <td className="truncate px-4 py-3 text-white/70">
+                            {format(parseISO(a.appointment_date), 'MMM d')} · {a.appointment_time?.slice(0, 5)}
+                          </td>
+                          <td className="truncate px-4 py-3">{bookingStatusBadge(a.status)}</td>
+                          <td className="truncate px-4 py-3 text-right font-semibold text-white">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
+                          <td aria-hidden />
                         </tr>
                       ))}
                     </tbody>

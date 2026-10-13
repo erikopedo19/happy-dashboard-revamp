@@ -246,7 +246,7 @@ export default function Onboarding() {
                 <>
                   <Header
                     title="Let's get you set up"
-                    subtitle="A few quick questions — no account needed yet."
+                    subtitle="A few quick questions. No account needed yet."
                   />
                   <LanguagePicker value={data.appLanguage} onChange={(language) => update("appLanguage", language)} />
                   <div className="grid gap-3">
@@ -305,7 +305,7 @@ export default function Onboarding() {
                       <div>
                         <p className="text-sm font-medium text-white">Joining an existing team?</p>
                         <p className="text-xs text-white/55 mt-0.5">
-                          Paste the invite / referral link from your barbershop owner. Leave blank if you're setting up a new team — you'll get your own invite links after signup.
+                          Paste the invite / referral link from your barbershop owner. Leave blank if you're setting up a new team. You'll get your own invite links after signup.
                         </p>
                       </div>
                       <DarkInput
@@ -709,7 +709,7 @@ export default function Onboarding() {
 
               {isClient && step === 3 && (
                 <>
-                  <Header title="What should we call you?" subtitle="Optional — we use this on your bookings." />
+                  <Header title="What should we call you?" subtitle="Optional. We use this on your bookings." />
                   <Field label="Full name" icon={<UserIcon className="h-4 w-4" />}>
                     <DarkInput
                       value={data.clientFullName}
@@ -873,7 +873,7 @@ function StylistsEditor({
         <DarkInput
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title (optional — e.g. Senior Barber)"
+          placeholder="Title (optional, e.g. Senior Barber)"
           onKeyDown={(e) => e.key === "Enter" && add()}
         />
         <button
@@ -889,7 +889,7 @@ function StylistsEditor({
       {stylists.length === 0 ? (
         <div className="rounded-2xl bg-[#1c1c1e] border border-white/5 p-5 text-center">
           <UserPlus className="h-5 w-5 text-white/40 mx-auto mb-2" />
-          <p className="text-[13px] text-white/50">No stylists yet — you can skip and add later.</p>
+          <p className="text-[13px] text-white/50">No stylists yet. You can skip and add later.</p>
         </div>
       ) : (
         <ul className="rounded-2xl bg-[#1c1c1e] border border-white/5 divide-y divide-white/[0.06] overflow-hidden">

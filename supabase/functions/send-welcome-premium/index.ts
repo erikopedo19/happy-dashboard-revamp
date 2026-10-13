@@ -30,7 +30,7 @@ function buildHtml(name: string, trialEnds: string) {
       <tr><td style="padding:40px 32px 24px;text-align:center;">
         <div style="display:inline-block;width:64px;height:64px;border-radius:20px;background:#FF375F;color:#fff;font-size:30px;line-height:64px;text-align:center;margin-bottom:20px;box-shadow:0 8px 24px rgba(255,55,95,0.35);">★</div>
         <div style="font-size:12px;color:#8e8e93;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;font-weight:600;">A gift from the developers</div>
-        <h1 style="margin:0;font-size:26px;font-weight:700;color:#1c1c1e;letter-spacing:-0.02em;line-height:1.25;">You've been awarded 1 month of Cutzioo Premium — on us.</h1>
+        <h1 style="margin:0;font-size:26px;font-weight:700;color:#1c1c1e;letter-spacing:-0.02em;line-height:1.25;">You've been awarded 1 month of Cutzioo Premium. It's on us.</h1>
       </td></tr>
 
       <tr><td style="padding:0 32px 8px;">
@@ -39,7 +39,7 @@ function buildHtml(name: string, trialEnds: string) {
         </p>
         <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#48484a;">
           Welcome to Cutzioo. To thank you for signing up, our team has activated a
-          <strong style="color:#1c1c1e;">complimentary Premium trial</strong> on your account — no credit card, no strings attached.
+          <strong style="color:#1c1c1e;">complimentary Premium trial</strong> on your account. No credit card or commitment required.
           Everything unlocked, for a full month.
         </p>
       </td></tr>
@@ -63,7 +63,7 @@ function buildHtml(name: string, trialEnds: string) {
 
       <tr><td style="padding:24px 32px 40px;">
         <p style="margin:0;font-size:13px;line-height:1.6;color:#8e8e93;text-align:center;">
-          Questions? Just reply to this email — a human on our team will get back to you.
+          Questions? Just reply to this email. A human on our team will get back to you.
         </p>
       </td></tr>
     </table>

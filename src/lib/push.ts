@@ -32,7 +32,7 @@ export async function registerSW() {
 export async function enableBookingPush(): Promise<{ ok: boolean; reason?: string }> {
   if (!pushSupported()) return { ok: false, reason: "Push not supported on this device/browser" };
   const vapid = await getVapidPublicKey();
-  if (!vapid) return { ok: false, reason: "Server missing VAPID public key — add VAPID_PUBLIC_KEY secret" };
+  if (!vapid) return { ok: false, reason: "Server missing VAPID public key. Add the VAPID_PUBLIC_KEY secret." };
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, reason: "Not signed in" };

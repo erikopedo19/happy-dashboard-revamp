@@ -219,6 +219,8 @@ serve(async (req) => {
             subscribed: active,
             subscription_tier: active ? "Pro" : null,
             stripe_customer_id: sub.customer,
+            cancel_at_period_end: !!sub.cancel_at_period_end,
+            auto_renew: !sub.cancel_at_period_end,
             subscription_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
             updated_at: new Date().toISOString(),
           });

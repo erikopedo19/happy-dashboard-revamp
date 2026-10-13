@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { QrCode, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
+import BookingQR3D from "@/lib/booking-qr-3d";
 
 interface BookingQRProps {
   url: string;
@@ -9,12 +10,75 @@ interface BookingQRProps {
   isPremium: boolean;
 }
 
+// Short ascending chime when the QR code lands.
+function playQrChime() {
+  try {
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    [659.25, 830.61, 987.77, 1318.51].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + i * 0.09;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.75);
+    });
+    setTimeout(() => ctx.close().catch(() => {}), 1400);
+  } catch {
+    /* audio blocked until a user gesture */
+  }
+}
+
+// Distinct "QR landed" pulse: tap-tap, then one long thump.
+function qrHaptic() {
+  try {
+    (navigator as Navigator & { vibrate?: (p: number | number[]) => boolean })
+      .vibrate?.([16, 40, 16, 40, 140]);
+  } catch {
+    /* no vibration API */
+  }
+}
+
 export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
   const { toast } = useToast();
   const [qrBlob, setQrBlob] = useState<Blob | null>(null);
+  const sceneRef = useRef<any>(null);
 
   const displayName = businessName?.trim() || "Cutzioo";
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(url)}`;
+
+  const showQr = () => {
+    if (!url) return;
+    if (!sceneRef.current) {
+      sceneRef.current = new BookingQR3D({
+        url,
+        name: displayName,
+        title: "Scan to book",
+        readyTitle: "Preparing your code",
+        theme: "auto",
+        onDone: () => {
+          playQrChime();
+          qrHaptic();
+        },
+      });
+    }
+    sceneRef.current.setUrl(url);
+    sceneRef.current.open();
+  };
+
+  useEffect(() => {
+    return () => {
+      sceneRef.current?.destroy?.();
+      sceneRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isPremium || !url) return;
@@ -27,6 +91,12 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
       .catch(() => setQrBlob(null));
     return () => { cancelled = true; };
   }, [url, isPremium, qrApiUrl]);
+
+  // Full-screen reveal plays each time the QR tab is opened.
+  useEffect(() => {
+    if (isPremium && url) showQr();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium, url]);
 
   if (!isPremium) {
     return (
@@ -76,23 +146,21 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center space-y-5">
+    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 text-center space-y-4">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
         Book with
       </p>
-      <h3 className="text-xl font-semibold text-white -mt-3">{displayName}</h3>
+      <h3 className="text-xl font-semibold text-white -mt-2">{displayName}</h3>
 
-      {url ? (
-        <img
-          src={qrApiUrl}
-          alt="Booking QR code"
-          className="mx-auto h-56 w-56 rounded-2xl bg-white p-2 object-contain"
-        />
-      ) : (
-        <div className="mx-auto h-56 w-56 rounded-2xl bg-white/[0.06] flex items-center justify-center text-white/40 text-sm">
-          Save a slug first
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={showQr}
+        disabled={!url}
+        className="mx-auto flex h-14 w-full max-w-[16rem] items-center justify-center gap-2.5 rounded-2xl bg-white text-[15px] font-semibold text-[#1C1C1E] transition active:scale-[0.98] disabled:opacity-40"
+      >
+        <QrCode className="h-5 w-5" />
+        {url ? "Show QR code" : "Save a slug first"}
+      </button>
 
       <div className="flex items-center justify-center gap-3">
         <button

@@ -1,8 +1,9 @@
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, addMinutes } from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight, Search, Filter, Calendar, Clock, Users, Sun, Moon, Eye, EyeOff, Coffee, Settings, Grid3X3, Edit3, Trash2, X, MoreHorizontal, RefreshCw, AlertTriangle, Check, Send, Edit, Phone, Scissors, DollarSign, User, Star, TrendingUp, Copy, ClipboardPaste, Pin } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Filter, Calendar, Clock, Users, Sun, Moon, Eye, EyeOff, Coffee, Settings, Grid3X3, Edit3, Trash2, X, MoreHorizontal, RefreshCw, AlertTriangle, Check, Send, Edit, Phone, Scissors, DollarSign, User, Star, TrendingUp, Copy, ClipboardPaste, Pin } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SearchBar } from '@/components/ui/search-bar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -19,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from '@tanstack/react-query';
 import { cn } from "@/lib/utils";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 // Simple RadialMenu replacement - just renders children with right-click menu
 const RadialMenu = ({ children, menuItems, onSelect }: {
@@ -340,21 +342,25 @@ export const ModernAppointmentsCalendar = ({
     setShowAppointmentDetails(false);
     setShowDeleteDialog(true);
   };
-  const handleConfirmDelete = async () => {
+  const deleteAppointment = async () => {
     if (!selectedAppointment) return;
+    const {
+      error
+    } = await (supabase as any).from('appointments').delete().eq('id', selectedAppointment.id);
+    if (error) throw error;
+    toast({
+      title: "Appointment Deleted",
+      description: "The appointment has been cancelled successfully."
+    });
+    setShowDeleteDialog(false);
+    setShowAppointmentDetails(false);
+    setSelectedAppointment(null);
+    // Refresh data without page reload
+    window.dispatchEvent(new Event('appointmentUpdated'));
+  };
+  const handleConfirmDelete = async () => {
     try {
-      const {
-        error
-      } = await (supabase as any).from('appointments').delete().eq('id', selectedAppointment.id);
-      if (error) throw error;
-      toast({
-        title: "Appointment Deleted",
-        description: "The appointment has been cancelled successfully."
-      });
-      setShowDeleteDialog(false);
-      setSelectedAppointment(null);
-      // Refresh data without page reload
-      window.dispatchEvent(new Event('appointmentUpdated'));
+      await deleteAppointment();
     } catch (error) {
       console.error('Error deleting appointment:', error);
       toast({
@@ -735,12 +741,13 @@ export const ModernAppointmentsCalendar = ({
           {/* Center: Search */}
           <div className="flex-1 max-w-md mx-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
+              <SearchBar
                 placeholder="Search appointments..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 bg-white/60 border-gray-200 focus:border-gray-300 focus:bg-white/80 transition-all rounded-full backdrop-blur-sm"
+                className="h-10 transition-all"
+                innerRowClassName="bg-white/60 focus-within:bg-white/80 dark:bg-[#1C1C1E]/60"
+                shellClassName="border-gray-200 backdrop-blur-sm focus-within:border-gray-300"
               />
             </div>
           </div>
@@ -1106,10 +1113,15 @@ export const ModernAppointmentsCalendar = ({
                   <Edit3 className="h-4 w-4 mr-2" />
                   Reschedule
                 </Button>
-                <Button variant="destructive" className="flex-1 bg-[#E0152F]/90 hover:bg-[#E0152F]/80 border border-[#fda4af]" onClick={handleDelete}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
+                <DeleteButton
+                  label="Cancel appointment"
+                  confirmLabel="Yes, cancel it"
+                  cancelLabel="Keep"
+                  pendingLabel="Cancelling"
+                  doneLabel="Cancelled"
+                  onConfirm={deleteAppointment}
+                  className="flex-1 justify-center"
+                />
               </div>
             </div>
           )}

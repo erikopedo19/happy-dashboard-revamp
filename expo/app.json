@@ -54,7 +54,13 @@
           "color": "#FF2D46"
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-widgets",
+        {
+          "enablePushNotifications": true
+        }
+      ]
     ],
     "web": {
       "favicon": "../public/favicon.ico"

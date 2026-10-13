@@ -29,6 +29,7 @@ import { ThemeProvider } from "next-themes";
 import { PremiumGate } from "./components/PremiumGate";
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
+import { BookingLiveToasts } from "@/components/BookingLiveToasts";
 import { PhoneAlerts, PhoneAlertsProvider } from "@/components/PhoneAlerts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistentDock } from "./components/PersistentDock";
@@ -63,6 +64,7 @@ const Settings = lazyRetry(() => import("./pages/Settings"), true);
 const Pricing = lazyRetry(() => import("./pages/Pricing"));
 const PricingSuccess = lazyRetry(() => import("./pages/PricingSuccess"));
 const PricingFailure = lazyRetry(() => import("./pages/PricingFailure"));
+const PaymentFailed = lazyRetry(() => import("./pages/PaymentFailed"));
 const Terms = lazyRetry(() => import("./pages/Terms"));
 const PrivacyPolicy = lazyRetry(() => import("./pages/PrivacyPolicy"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
@@ -84,8 +86,8 @@ const Reports = lazyRetry(() => import("./pages/Reports"), true);
 const MyBookings = lazyRetry(() => import("./pages/MyBookings"), true);
 const Me = lazyRetry(() => import("./pages/Me"), true);
 const Favorites = lazyRetry(() => import("./pages/Favorites"), true);
-const Events = lazyRetry(() => import("./pages/Events"), true);
-const EventsManage = lazyRetry(() => import("./pages/EventsManage"));
+const Aggelies = lazyRetry(() => import("./pages/Aggelies"), true);
+const AggeliesManage = lazyRetry(() => import("./pages/AggeliesManage"));
 const ManageBooking = lazyRetry(() => import("./pages/ManageBooking"));
 const ReviewPage = lazyRetry(() => import("./pages/ReviewPage"));
 const WaitlistClaim = lazyRetry(() => import("./pages/WaitlistClaim"));
@@ -134,8 +136,8 @@ const LandingRoute = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        Loading...
+      <div className="grid min-h-dvh place-items-center bg-black">
+        <CutziooLoader variant="loop" size="72px" wordmark={false} />
       </div>
     );
   }
@@ -177,6 +179,35 @@ function RouteFallback() {
   );
 }
 
+// Never leave a blank screen if a page file fails to load (e.g. after a new deploy).
+class RouteErrorBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch() {
+    const last = Number(sessionStorage.getItem("chunk-reload-at") || 0);
+    if (Date.now() - last > 10_000) {
+      sessionStorage.setItem("chunk-reload-at", String(Date.now()));
+      window.location.reload();
+    }
+  }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div className="grid min-h-dvh place-items-center bg-black px-6 text-center">
+        <div className="space-y-4">
+          <p className="text-[15px] font-semibold text-white">A new version of Cutzioo is available</p>
+          <button
+            onClick={() => { sessionStorage.removeItem("chunk-reload-at"); window.location.reload(); }}
+            className="rounded-full bg-[#FF375F] px-6 py-2.5 text-[14px] font-semibold text-white"
+          >
+            Reload
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
 // Redirects invited members away from pages their owner didn't grant.
 function PageAccessGuard() {
   const location = useLocation();
@@ -208,7 +239,7 @@ function AnimatedRoutes() {
     );
   }
   return (
-    <PageTransition>
+    <RouteErrorBoundary><PageTransition>
       <Suspense fallback={<RouteFallback />}>
         <Routes location={location}>
       <Route path="/auth" element={<Auth />} />
@@ -226,8 +257,10 @@ function AnimatedRoutes() {
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/me" element={<Me />} />
       <Route path="/favorites" element={<Favorites />} />
-      <Route path="/events" element={<Events />} />
-      <Route path="/events/manage" element={<ProtectedRoute><EventsManage /></ProtectedRoute>} />
+      <Route path="/aggelies" element={<Aggelies />} />
+      <Route path="/aggelies/manage" element={<ProtectedRoute><AggeliesManage /></ProtectedRoute>} />
+      <Route path="/events" element={<Navigate to="/aggelies?tab=events" replace />} />
+      <Route path="/events/manage" element={<Navigate to="/aggelies/manage" replace />} />
       <Route path="/" element={<LandingRoute />} />
       <Route path="/app" element={<LandingRoute />} />
       <Route path="/superadmin" element={<SuperAdminLogin />} />
@@ -244,6 +277,7 @@ function AnimatedRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
+      <Route path="/payment-failed" element={<PaymentFailed />} />
       <Route path="/pricing/failure" element={<ProtectedRoute><PricingFailure /></ProtectedRoute>} />
       <Route path="/brand" element={<ProtectedRoute><Brand /></ProtectedRoute>} />
       <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
@@ -256,7 +290,7 @@ function AnimatedRoutes() {
       <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </PageTransition>
+    </PageTransition></RouteErrorBoundary>
   );
 }
 
@@ -352,19 +386,24 @@ function NativeShell() {
       role="status"
       className="fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-[90] -translate-x-1/2 rounded-full border border-black/5 bg-white/95 px-4 py-2 text-[12px] font-semibold text-[#1C1C1E] shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/95 dark:text-[#F2F2F7]"
     >
-      Offline — showing saved data
+      Offline. Showing saved data.
     </div>
   );
 }
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [splashLeaving, setSplashLeaving] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 2100);
-    const idle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500));
-    idle(() => PRELOAD.reduce((p, load) => p.then(() => load().catch(() => {})), Promise.resolve() as Promise<unknown>));
-    return () => clearTimeout(t);
+    // Glow blooms in the last stretch of the splash, then the overlay fades
+    // away to reveal the content already mounted underneath.
+    const t1 = setTimeout(() => setSplashLeaving(true), 1900);
+    const t2 = setTimeout(() => setShowSplash(false), 2400);
+    // Splash is the perfect idle window — warm every route chunk now instead
+    // of waiting for requestIdleCallback after first paint.
+    PRELOAD.forEach((load) => { load().catch(() => {}); });
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   return (
@@ -373,8 +412,8 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
             {showSplash && (
-              <div className="splash-screen">
-                <CutziooLoader variant="intro" />
+              <div className={splashLeaving ? "splash-screen is-leaving" : "splash-screen"}>
+                <CutziooLoader variant="intro" wordmark={false} />
               </div>
             )}
           <PhoneAlertsProvider>
@@ -397,6 +436,7 @@ function App() {
                   <PersistentDock />
                   <Toaster />
                   <Sonner />
+                  <BookingLiveToasts />
                   <PhoneAlerts />
 
                 </GlimmProvider>

@@ -3,11 +3,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
 import { Search, ExternalLink, User, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Seo } from "@/components/Seo";
+import { ScreenLoader } from "@/components/ScreenLoader";
 
 const BookingForms = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,20 +54,13 @@ const BookingForms = () => {
   ) || [];
 //fix the stylist to not let book on blocked day
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-secondary/40 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading booking forms...</p>
-        </div>
-      </div>
-    );
+    return <ScreenLoader className="bg-secondary/40" />;
   }
 
   return (
     <div className="min-h-screen bg-secondary/40">
       <Seo
-        title="Booking Forms Directory — Cutzioo"
+        title="Booking Forms Directory | Cutzioo"
         description="Browse every business accepting appointments through Cutzioo and book with your favourite in seconds."
         path="/bookingforms"
       />
@@ -79,14 +73,12 @@ const BookingForms = () => {
           </p>
           
           {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
+          <div className="max-w-md mx-auto">
+            <SearchBar
               type="text"
               placeholder="Search by business name, industry, or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-3 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>

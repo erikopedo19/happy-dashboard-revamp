@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Mail, Phone, MoreHorizontal, Edit, Trash2, Users, Sparkles, Repeat, X, ChevronRight } from "lucide-react";
+import { Plus, Search, Mail, Phone, MoreHorizontal, Edit, Trash2, Users, Sparkles, Repeat, ChevronRight, X } from "lucide-react";
 import { format, formatDistanceToNowStrict, parseISO, subDays } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -36,6 +36,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useVirtualRows } from "@/lib/useVirtualRows";
 import { cn } from "@/lib/utils";
+import { SearchBar } from "@/components/ui/search-bar";
 
 interface Customer {
   id: string;
@@ -284,19 +285,15 @@ const Customers = () => {
             </div>
 
             <div className="mx-auto mt-3 flex max-w-4xl gap-2">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8E8E93]" />
-                <input
+              <div className="flex-1">
+                <SearchBar
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search customers"
-                  className="h-11 w-full rounded-2xl border border-black/5 bg-white pl-10 pr-9 text-[15px] text-[#1C1C1E] outline-none placeholder:text-[#8E8E93] focus:ring-2 focus:ring-[#FB7185]/50 dark:border-white/10 dark:bg-[#1C1C1E] dark:text-white"
+                  onClear={() => setQuery("")}
+                  className="h-11 w-full text-[#1C1C1E] placeholder:text-[#8E8E93] focus:ring-2 focus:ring-[#FB7185]/50 dark:text-white"
+                  shellClassName="border-black/5 dark:border-white/10"
                 />
-                {query && (
-                  <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-black/10 text-[#3A3A3C] dark:bg-white/15 dark:text-white">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
               </div>
               <select
                 value={sort}

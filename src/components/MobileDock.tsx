@@ -3,6 +3,7 @@ import { LayoutDashboard, Calendar, BarChart3, Settings, MoreHorizontal, Globe, 
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,7 +31,8 @@ const moreItems: MoreItem[] = [
   { label: 'Customers', icon: 'users', path: '/customers' },
   { label: 'Booking', icon: 'globe', path: '/booking-page' },
   { label: 'Stylists', icon: 'user-check', path: '/stylists' },
-  { label: 'Teams', icon: 'briefcase', path: '/teams', isNew: true },
+  { label: 'Teams', icon: 'briefcase', path: '/teams' },
+  { label: 'Rent & Staff', icon: 'megaphone', path: '/aggelies/manage', isNew: true },
 ];
 
 const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {
@@ -190,10 +192,11 @@ export const MobileDockInner = () => {
 
   const activeIndex = moreActive || moreOpen ? glassItems.length - 1 : mainIndex >= 0 ? mainIndex : 0;
 
-  return (
+  return createPortal(
     <>
       <MoreOverlay open={moreOpen} onClose={() => setMoreOpen(false)} items={visibleMoreItems} />
       <GlassDock items={glassItems} activeIndex={activeIndex} />
-    </>
+    </>,
+    document.body,
   );
 };

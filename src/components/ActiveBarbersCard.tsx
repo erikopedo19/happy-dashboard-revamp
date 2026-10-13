@@ -52,7 +52,7 @@ export const ActiveBarbersCard = () => {
               Most active barbers
             </CardTitle>
             <CardDescription>
-              Usage &amp; administrative activity — not a quality or performance ranking.
+              Usage &amp; administrative activity, not a quality or performance ranking.
             </CardDescription>
           </div>
           <div className="flex items-center gap-1">
@@ -138,7 +138,7 @@ export const ActiveBarbersCard = () => {
             This report only aggregates data the app already stores to run the product: bookings created,
             calendar edits, clients and services. No browsing, location or device tracking is collected.
             The score (bookings ×3 + calendar updates ×2 + clients) is an administrative usage indicator used
-            to spot engaged and at-risk accounts — it does not measure service quality or employee performance.
+            to spot engaged and at-risk accounts. It does not measure service quality or employee performance.
           </span>
         </p>
       </CardContent>

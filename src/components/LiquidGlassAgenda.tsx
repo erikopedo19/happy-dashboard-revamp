@@ -82,6 +82,9 @@ import { haptic, type HapticStyle } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
+import { TNumber } from "@/components/ui/t-number";
+import { StatusBadge } from "@/components/status-badge";
+import { CopyButton } from "@/components/ui/copy-button";
 
 
 interface Service {
@@ -218,6 +221,7 @@ export const LiquidGlassAgenda = ({
   const [movingIds, setMovingIds] = useState<string[]>([]);
   const dragRef = useRef<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const dropHoverRef = useRef<string | null>(null);
+  const autoScrollFrameRef = useRef<number | null>(null);
 
   const findDropTarget = (x: number, y: number) => {
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
@@ -277,15 +281,38 @@ export const LiquidGlassAgenda = ({
     }
     haptic("medium");
     const initial = { id: apt.id, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0 };
+    let pointerX = e.clientX;
+    let pointerY = e.clientY;
+    let scrollCompensation = 0;
     dragRef.current = initial;
     dropHoverRef.current = null;
     setDrag(initial);
+
+    const updateDropHover = (x: number, y: number, draggedId: string) => {
+      const target = findDropTarget(x, y);
+      const key = target
+        ? target.aptId && target.aptId !== draggedId
+          ? `a:${target.aptId}`
+          : target.time
+            ? `t:${target.time}`
+            : null
+        : null;
+      if (key !== dropHoverRef.current) {
+        dropHoverRef.current = key;
+        setDropHover(key);
+        if (key) haptic(key.startsWith("a:") ? "medium" : "light");
+      }
+    };
 
     const cleanup = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onCancel);
       document.removeEventListener("touchmove", blockScroll);
+      if (autoScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(autoScrollFrameRef.current);
+        autoScrollFrameRef.current = null;
+      }
       dragRef.current = null;
       dropHoverRef.current = null;
       setDrag(null);
@@ -296,7 +323,13 @@ export const LiquidGlassAgenda = ({
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current;
       if (!d) return;
-      const next = { ...d, dx: ev.clientX - d.x0, dy: ev.clientY - d.y0 };
+      pointerX = ev.clientX;
+      pointerY = ev.clientY;
+      const next = {
+        ...d,
+        dx: ev.clientX - d.x0,
+        dy: ev.clientY - d.y0 + scrollCompensation,
+      };
       dragRef.current = next;
       setDrag(next);
       // Picker-style detents: a light tick every ~24px of vertical travel.
@@ -305,13 +338,7 @@ export const LiquidGlassAgenda = ({
         lastTickStep = tickStep;
         haptic("selection");
       }
-      const t = findDropTarget(ev.clientX, ev.clientY);
-      const key = t ? (t.aptId && t.aptId !== next.id ? `a:${t.aptId}` : t.time ? `t:${t.time}` : null) : null;
-      if (key !== dropHoverRef.current) {
-        dropHoverRef.current = key;
-        setDropHover(key);
-        if (key) haptic(key.startsWith("a:") ? "medium" : "light");
-      }
+      updateDropHover(pointerX, pointerY, next.id);
     };
 
     const onUp = (ev: PointerEvent) => {
@@ -327,10 +354,55 @@ export const LiquidGlassAgenda = ({
       if (ev.cancelable) ev.preventDefault();
     };
 
+    const autoScroll = () => {
+      const current = dragRef.current;
+      const scroller = scrollRef.current;
+      if (!current || !scroller) {
+        autoScrollFrameRef.current = null;
+        return;
+      }
+
+      const bounds = scroller.getBoundingClientRect();
+      const dock = document.querySelector<HTMLElement>("[data-glass-dock]");
+      const visibleBottom = Math.min(
+        bounds.bottom,
+        dock?.getBoundingClientRect().top ?? window.innerHeight
+      );
+      const maxScroll = scroller.scrollHeight - scroller.clientHeight;
+      let speed = 0;
+      const topDistance = pointerY - bounds.top;
+      const bottomDistance = visibleBottom - pointerY;
+
+      if (topDistance >= 0 && topDistance < 90 && scroller.scrollTop > 0) {
+        speed = -6 * Math.max(0, Math.min(1, (90 - topDistance) / 90));
+      } else if (
+        bottomDistance >= 0 &&
+        bottomDistance < 90 &&
+        scroller.scrollTop < maxScroll
+      ) {
+        speed = 6 * Math.max(0, Math.min(1, (90 - bottomDistance) / 90));
+      }
+
+      if (speed !== 0) {
+        const previousScrollTop = scroller.scrollTop;
+        scroller.scrollTop = previousScrollTop + speed;
+        const scrollDelta = scroller.scrollTop - previousScrollTop;
+        if (scrollDelta !== 0) {
+          scrollCompensation += scrollDelta;
+          const compensated = { ...current, dy: current.dy + scrollDelta };
+          dragRef.current = compensated;
+          setDrag(compensated);
+          updateDropHover(pointerX, pointerY, compensated.id);
+        }
+      }
+      autoScrollFrameRef.current = window.requestAnimationFrame(autoScroll);
+    };
+
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onCancel);
     document.addEventListener("touchmove", blockScroll, { passive: false });
+    autoScrollFrameRef.current = window.requestAnimationFrame(autoScroll);
   };
   const [pressingSlot, setPressingSlot] = useState<string | null>(null);
   const [pendingBlockSlot, setPendingBlockSlot] = useState<{ hour: string; start: Date; end: Date } | null>(null);
@@ -361,6 +433,18 @@ export const LiquidGlassAgenda = ({
 
 
 
+  const { data: bookingLink } = useQuery<string | null>({
+    queryKey: ["agenda-booking-link", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("profiles")
+        .select("booking_link")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return (data?.booking_link as string) || null;
+    },
+  });
   const { data: timeOffRows = [] } = useQuery<{ off_date: string; reason: string | null }[]>({
     queryKey: ["time_off", user?.id],
     queryFn: async () => {
@@ -982,6 +1066,17 @@ export const LiquidGlassAgenda = ({
                   <Palmtree className="w-4 h-4 mr-2" />
                   Days off
                 </DropdownMenuItem>
+                {bookingLink && (
+                  <div className="px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
+                    <CopyButton
+                      size="sm"
+                      className="w-full"
+                      label="Copy booking link"
+                      copiedLabel="Copied!"
+                      value={`${window.location.origin}/book/${bookingLink}`}
+                    />
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             {!isMobile && (
@@ -1205,7 +1300,7 @@ export const LiquidGlassAgenda = ({
                       </span>
                     </div>
                     <p className={cn("text-xs mt-1", isDark ? "text-white/50" : "text-gray-500")}>
-                      {items.length} appointment{items.length === 1 ? '' : 's'}
+                      <TNumber value={items.length} /> appointment{items.length === 1 ? '' : 's'}
                     </p>
                   </div>
                   <span className={cn("text-xs font-medium", isDark ? "text-white/60" : "text-gray-600")}>
@@ -1474,15 +1569,25 @@ export const LiquidGlassAgenda = ({
 
 
               const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
-              const rowHeight = isMobile ? 68 : ROW_H;
-              const maxSpanMinutes = Math.max(
-                ...hourAppointments.map((apt) => apt.totalDurationMinutes || apt.service.duration || 30),
-                ...hourEvents.map((ev) => eventDuration(ev)),
+              const rowHeight = isMobile ? 76 : ROW_H;
+              // Cover every hour an appointment/event occupies: measure from its
+              // real start offset inside this slot to its real end, so a service
+              // that needs N hours always spans N rows even off the grid.
+              const spanToEnd = (startMin: number, dur: number) => startMin - slotStartMin + dur;
+              const maxSpanEnd = Math.max(
+                ...hourAppointments.map((apt) => {
+                  const [ah, am] = apt.appointment_time.split(':').map(Number);
+                  return spanToEnd(ah * 60 + am, apt.totalDurationMinutes || apt.service.duration || 30);
+                }),
+                ...hourEvents.map((ev) => {
+                  const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
+                  return spanToEnd(eh * 60 + em, eventDuration(ev));
+                }),
                 0
               );
               const cardGap = isMobile ? 4 : 12;
-              const minCardHeight = isMobile ? 52 : 64;
-              const cardStackHeight = Math.max((maxSpanMinutes / slotInterval) * rowHeight - cardGap, minCardHeight);
+              const minCardHeight = isMobile ? 72 : 64;
+              const cardStackHeight = Math.max((maxSpanEnd / slotInterval) * rowHeight - cardGap, minCardHeight);
 
               return (
                 <div
@@ -1557,7 +1662,7 @@ export const LiquidGlassAgenda = ({
                           onTouchMove={clearLongPressTimer}
                           className={cn(
                             "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "px-3 py-2.5" : "p-3.5",
+                            isMobile ? "px-3.5 py-2" : "p-4",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1620,10 +1725,9 @@ export const LiquidGlassAgenda = ({
                                 )}>
                                   {apt.customer.name}
                                   {isCancelled && (
-                                    <span className={cn(
-                                      "ml-2 no-underline inline-block align-middle text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md",
-                                      isDark ? "bg-red-500/20 text-red-300" : "bg-red-100 text-red-600"
-                                    )}>Cancelled</span>
+                                    <span className="ml-2 inline-block align-middle">
+                                      <StatusBadge state="failed" size="sm" labels={{ failed: "Cancelled" }} />
+                                    </span>
                                   )}
                                 </h3>
                                 <div className={cn("flex items-center gap-1.5", isMobile ? "mt-1" : "mt-1.5")}>
@@ -1660,21 +1764,14 @@ export const LiquidGlassAgenda = ({
                               </span>
                               <span className="flex items-center gap-1.5">
                                 {apt.payment_status === "paid" && (
-                                  <span className={cn(
-                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
-                                    isDark
-                                      ? "bg-green-400/15 text-green-300"
-                                      : "bg-green-100 text-green-700"
-                                  )}>
-                                    Paid
-                                  </span>
+                                  <StatusBadge state="success" size="sm" labels={{ success: "Paid" }} />
                                 )}
-                                {apt.price != null && Number(apt.price) > 0 && (
+                                {apt.price != null && (
                                   <span className={cn(
                                     "rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums",
                                     isDark ? "bg-white/[0.08] text-white/85" : "bg-black/[0.05] text-gray-700"
                                   )}>
-                                    {formatPrice(Number(apt.price))}
+                                    <TNumber value={formatPrice(Number(apt.price))} />
                                   </span>
                                 )}
                               </span>
@@ -1764,7 +1861,7 @@ export const LiquidGlassAgenda = ({
                         />
                         <Plus className="w-3.5 h-3.5 relative z-10" />
                         <span className="relative z-10 text-[12px] font-medium">
-                          {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past — ${hour}` : `Tap to book at ${hour}`}
+                          {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past: ${hour}` : `Tap to book at ${hour}`}
                         </span>
                       </button>
                     </div>

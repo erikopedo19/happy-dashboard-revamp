@@ -134,7 +134,7 @@ const mockNotifications: Notification[] = [
     id: "7",
     type: "clients",
     title: "Returning Client",
-    message: "Emma K. re-booked after 2 months — welcome back!",
+    message: "Emma K. re-booked after 2 months. Welcome back!",
     time: "5 hr ago",
     read: true,
   },

@@ -523,13 +523,9 @@ const AgendaBookingForm = ({
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 18 }}
             >
-              <motion.span
-                initial={{ opacity: 0, scale: 0.4 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.18, type: "spring", stiffness: 420, damping: 22 }}
-              >
+              <span className="t-success-check" data-state="in">
                 <Check className="w-12 h-12 text-white" strokeWidth={3} />
-              </motion.span>
+              </span>
             </motion.div>
           </div>
           <motion.h2

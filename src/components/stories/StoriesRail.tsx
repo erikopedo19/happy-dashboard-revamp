@@ -153,7 +153,7 @@ export function StoriesRail() {
             );
           })}
           {groups.length === 0 && !isBarber && (
-            <div className="text-xs text-white/40 py-4">No stories yet — check back soon.</div>
+            <div className="text-xs text-white/40 py-4">No stories yet. Check back soon.</div>
           )}
         </div>
       </div>

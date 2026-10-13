@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { CutziooLoader } from "@/components/CutziooLoader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
@@ -329,10 +330,7 @@ const Teams = () => {
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
           <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30">
-            <div className="flex flex-col items-center gap-3 text-muted-foreground">
-              <div className="h-10 w-10 border-4 border-muted rounded-full border-t-primary animate-spin" />
-              <p className="text-sm">Loading organization…</p>
-            </div>
+            <CutziooLoader variant="loop" size="64px" wordmark={false} />
           </main>
         </div>
       </SidebarProvider>

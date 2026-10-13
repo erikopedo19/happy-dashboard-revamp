@@ -158,7 +158,7 @@ export default function BarberDetail() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-white">
-      <Seo title={`${name} — Book on Cutzioo`} description={profile?.description || `Book ${name} on Cutzioo.`} path={`/b/${slug}`} />
+      <Seo title={`${name} | Book on Cutzioo`} description={profile?.description || `Book ${name} on Cutzioo.`} path={`/b/${slug}`} />
 
       {/* Hero */}
       <div className="relative h-[46vh] min-h-[300px] w-full overflow-hidden">
@@ -304,7 +304,7 @@ export default function BarberDetail() {
                     <p className="mt-2 text-[11px] text-white/35">{format(new Date(r.created_at), "MMM d, yyyy")}</p>
                   </motion.div>
                 )) : (
-                  <p className="py-4 text-center text-[13px] text-white/40">{ratingCount > 0 ? "Written reviews are private for this shop." : "No reviews yet — be the first."}</p>
+                  <p className="py-4 text-center text-[13px] text-white/40">{ratingCount > 0 ? "Written reviews are private for this shop." : "No reviews yet. Be the first."}</p>
                 )}
               </div>
             )}

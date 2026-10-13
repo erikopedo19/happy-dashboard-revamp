@@ -1,4 +1,5 @@
 import * as React from "react";
+import { SearchBar } from "@/components/ui/search-bar";
 import { 
   Scissors, 
   Sparkles, 
@@ -198,12 +199,12 @@ export function IconPicker({ value, onChange, className }: IconPickerProps) {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start">
         <div className="p-3 border-b">
-          <input
-            type="text"
+          <SearchBar
             placeholder="Search icons..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full focus-visible:ring-2 focus-visible:ring-blue-500"
+            shellClassName="border"
           />
         </div>
         <div className="p-3 max-h-64 overflow-y-auto">

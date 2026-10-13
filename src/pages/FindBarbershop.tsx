@@ -4,7 +4,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@heroui/react";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import {
   Drawer,
   DrawerContent,
@@ -180,7 +180,7 @@ const FindBarbershop = () => {
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#0c0c0c] pb-32">
       <Seo
-        title="Find Barbershops Near You — Cutzioo"
+        title="Find Barbershops Near You | Cutzioo"
         description="Browse nearby barbershops by location, rating, and shop type. Book your next haircut in seconds with Cutzioo."
         path="/find-barbershop"
       />
@@ -212,12 +212,13 @@ const FindBarbershop = () => {
 
             <div className="hidden items-center gap-2 md:flex">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8E8E93]" />
-                <Input
+                <SearchBar
                   placeholder="Search shops..."
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  className="h-12 rounded-2xl border-transparent bg-[#F2F2F7] pl-11 text-[#1C1C1E] shadow-none placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-[#FF2D55] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
+                  className="h-12 text-[#1C1C1E] placeholder:text-[#8E8E93] focus-visible:ring-2 focus-visible:ring-[#FF2D55] dark:text-[#F2F2F7]"
+                  innerRowClassName="bg-[#F2F2F7] dark:bg-[#2C2C2E]"
+                  shellClassName="border-transparent shadow-none"
                 />
               </div>
               <Button
@@ -408,13 +409,14 @@ const FindBarbershop = () => {
 
           <div className="space-y-4 px-0 pb-2">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8E8E93]" />
-              <Input
+              <SearchBar
                 autoFocus
                 placeholder="Search shops..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="h-12 rounded-2xl border-black/10 bg-[#F2F2F7] pl-11 dark:border-white/10 dark:bg-[#2C2C2E]"
+                className="h-12"
+                innerRowClassName="bg-[#F2F2F7] dark:bg-[#2C2C2E]"
+                shellClassName="border-black/10 dark:border-white/10"
               />
             </div>
 

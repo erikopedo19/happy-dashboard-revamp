@@ -26,12 +26,20 @@ export default function PricingSuccess() {
       if (doneRef.current || premiumRef.current) return setDone(true);
       tries += 1;
       await refreshRef.current();
-      if (premiumRef.current || tries >= 5 || Date.now() - started >= 4000) return setDone(true);
+      // Stripe webhooks can take a few seconds to land — keep polling ~12s so
+      // the Pro unlock is almost always picked up before we stop.
+      if (premiumRef.current || tries >= 15 || Date.now() - started >= 12000) return setDone(true);
       t = setTimeout(tick, 800);
     };
     tick();
     return () => clearTimeout(t);
   }, []);
+
+  // Tell every premium-gated widget (sidebar, drawers, panels) to re-check.
+  useEffect(() => {
+    if (!isPremium) return;
+    window.dispatchEvent(new Event("premium:refresh"));
+  }, [isPremium]);
 
   useEffect(() => {
     if (!done) return;

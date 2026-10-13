@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
-import { LocateFixed, Search, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
+import { Check, Link2, LocateFixed, MapPin, MoveHorizontal, Sparkles } from "lucide-react";
 import { Map, type MapRef, maplibregl } from "@/components/ui/map";
 import { normalizeHex, readableTextOn } from "@/lib/barberTheme";
+import { buildGoogleMapsUrl, extractLatLngFromGoogleUrl } from "@/lib/geo";
 
 interface Barbershop {
   id: string;
@@ -154,28 +156,31 @@ function buildCluster(members: Barbershop[]) {
   return root;
 }
 
-// Gives the flat openfreemap dark style some depth: navy water, green parks,
-// rose-tinted major roads and brighter labels.
+// Gives the CARTO Dark Matter style a brand pass: deeper background, navy
+// water, greener parks and rose-tinted road casings. Layer ids are the
+// dark-matter schema (road_*/place_*/watername_*), not openfreemap's.
 const DARK_PALETTE: Array<[string, string, string]> = [
-  ["background", "background-color", "#111216"],
-  ["water", "fill-color", "#0c2236"],
-  ["waterway", "line-color", "#0c2236"],
-  ["landuse_residential", "fill-color", "#16161b"],
-  ["landcover_wood", "fill-color", "#11241a"],
-  ["landuse_park", "fill-color", "#132a1d"],
-  ["building", "fill-color", "#1b1b22"],
-  ["building", "fill-outline-color", "#262630"],
-  ["highway_minor", "line-color", "#212128"],
-  ["highway_major_subtle", "line-color", "#2d2a33"],
-  ["highway_motorway_subtle", "line-color", "#3a2730"],
-  ["highway_major_casing", "line-color", "rgba(251,113,133,0.22)"],
-  ["highway_motorway_casing", "line-color", "rgba(251,113,133,0.32)"],
-  ["boundary_country_z0-4", "line-color", "#3f3f46"],
-  ["boundary_country_z5-", "line-color", "#3f3f46"],
-  ["water_name", "text-color", "#4a7ba7"],
-  ["water_name", "text-halo-color", "rgba(0,0,0,0.6)"],
-  ...["place_other", "place_suburb", "place_village", "place_town", "place_city", "place_city_large", "place_state", "place_country_other", "place_country_minor", "place_country_major"].map(
-    (id) => [id, "text-color", "#a1a1aa"] as [string, string, string],
+  ["background", "background-color", "#0e0f13"],
+  ["water", "fill-color", "#0b1f30"],
+  ["water_shadow", "fill-color", "#0b1f30"],
+  ["waterway", "line-color", "#0b1f30"],
+  ["landuse", "fill-color", "#13131a"],
+  ["landuse_residential", "fill-color", "#15151b"],
+  ["landcover", "fill-color", "#101a14"],
+  ["park_national_park", "fill-color", "#12291c"],
+  ["park_nature_reserve", "fill-color", "#12291c"],
+  ["building", "fill-color", "#191920"],
+  ["building-top", "fill-color", "#1f1f28"],
+  ["boundary_country_inner", "line-color", "#3f3f46"],
+  ["boundary_country_outline", "line-color", "#3f3f46"],
+  ...["road_pri_case_noramp", "road_sec_case_noramp", "road_trunk_case_noramp", "road_mot_case_noramp", "road_pri_case_ramp", "road_trunk_case_ramp", "road_mot_case_ramp", "tunnel_pri_case", "tunnel_trunk_case", "tunnel_mot_case", "bridge_pri_case", "bridge_trunk_case", "bridge_mot_case"].map(
+    (id) => [id, "line-color", "rgba(251,113,133,0.28)"] as [string, string, string],
+  ),
+  ...["watername_ocean", "watername_sea", "watername_lake", "watername_lake_line", "waterway_label"].map(
+    (id) => [id, "text-color", "#4a7ba7"] as [string, string, string],
+  ),
+  ...["place_hamlet", "place_suburbs", "place_villages", "place_town", "place_city", "place_state", "place_country_2", "place_country_1"].map(
+    (id) => [id, "text-color", "#b9b9c2"] as [string, string, string],
   ),
 ];
 
@@ -193,14 +198,11 @@ function applyDarkPalette(map: maplibregl.Map) {
 const STORAGE_KEY = "barbershop-map-location";
 
 const STYLES = {
-  light: "https://tiles.openfreemap.org/styles/bright",
-  dark: "https://tiles.openfreemap.org/styles/dark",
+  light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
 };
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
-
-const buildGoogleMapsUrl = (lat: number, lng: number) =>
-  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
 const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
   const R = 6371, dLat = ((b.lat - a.lat) * Math.PI) / 180, dLng = ((b.lng - a.lng) * Math.PI) / 180;
@@ -256,10 +258,14 @@ export function BarbershopMap({
   const [zoom, setZoom] = useState(pickMode ? 15 : 13);
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
+  const [mapsLink, setMapsLink] = useState("");
+  const [mapsLinkState, setMapsLinkState] = useState<"idle" | "ok" | "bad">("idle");
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(
     initialCenter ?? null,
   );
   const searchAbort = useRef<AbortController | null>(null);
+  const skipSuggest = useRef(false);
 
   function persist(c: [number, number]) {
     try {
@@ -268,6 +274,12 @@ export function BarbershopMap({
       // Ignore storage issues.
     }
   }
+
+  const validBarbershops = useMemo(
+    () => barbershops.filter((barbershop) => typeof barbershop.latitude === "number" && typeof barbershop.longitude === "number"),
+    [barbershops],
+  );
+  const autoFit = fitToMarkers && !pickMode && validBarbershops.length > 0;
 
   useEffect(() => {
     if (initialCenter) {
@@ -287,6 +299,17 @@ export function BarbershopMap({
 
     if (center) return;
 
+    // When the camera is going to fit the pins anyway, mount on the pins
+    // straight away — waiting on a geolocation round-trip (which can hang
+    // silently inside WebViews) left the map stuck on "Loading map…".
+    if (autoFit) {
+      const lat = validBarbershops.reduce((s, b) => s + b.latitude!, 0) / validBarbershops.length;
+      const lng = validBarbershops.reduce((s, b) => s + b.longitude!, 0) / validBarbershops.length;
+      setCenter([lat, lng]);
+      return;
+    }
+
+    const fallback = () => setCenter([40.7128, -74.006]);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -294,19 +317,14 @@ export function BarbershopMap({
           setCenter(next);
           persist(next);
         },
-        () => setCenter([40.7128, -74.006]),
+        fallback,
+        { timeout: 8000, maximumAge: 300000 },
       );
     } else {
-      setCenter([40.7128, -74.006]);
+      fallback();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCenter?.lat, initialCenter?.lng, userLocation?.lat, userLocation?.lng]);
-
-  const validBarbershops = useMemo(
-    () => barbershops.filter((barbershop) => typeof barbershop.latitude === "number" && typeof barbershop.longitude === "number"),
-    [barbershops],
-  );
-  const autoFit = fitToMarkers && !pickMode && validBarbershops.length > 0;
+  }, [initialCenter?.lat, initialCenter?.lng, userLocation?.lat, userLocation?.lng, autoFit]);
 
   useEffect(() => {
     // When auto-fitting to pins, the fit effect owns the camera.
@@ -375,18 +393,20 @@ export function BarbershopMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
-    map.on("zoomend", recluster);
+    // moveend covers pans as well as zooms — a zoomend-only listener left
+    // stale clusters and hidden pins behind after dragging the map.
+    map.on("moveend", recluster);
     return () => {
-      map.off("zoomend", recluster);
+      map.off("moveend", recluster);
     };
   }, [mapReady, recluster]);
 
-  // User location dot.
+  // User location dot — only when a real position was supplied; a stored map
+  // center is not the user, so never label it "You are here".
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || pickMode) return;
-    const pos = userLocation ?? (center ? { lat: center[0], lng: center[1] } : null);
-    if (!pos) return;
+    if (!map || !mapReady || pickMode || !userLocation) return;
+    const pos = userLocation;
     ensurePinStyles();
     if (!userMarkerRef.current) {
       const el = document.createElement("div");
@@ -399,7 +419,7 @@ export function BarbershopMap({
       userMarkerRef.current.setLngLat([pos.lng, pos.lat]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapReady, pickMode, userLocation?.lat, userLocation?.lng, userLocation ? null : center]);
+  }, [mapReady, pickMode, userLocation?.lat, userLocation?.lng]);
 
   // Barber pins — diffed by id so taps and re-renders don't rebuild the DOM.
   useEffect(() => {
@@ -468,12 +488,7 @@ export function BarbershopMap({
         .addTo(map);
     }
     const onClick = (event: maplibregl.MapMouseEvent) => {
-      const next = { lat: event.lngLat.lat, lng: event.lngLat.lng };
-      setPickedLocation(next);
-      onLocationPick?.(next);
-      setCenter([next.lat, next.lng]);
-      setZoom(16);
-      persist([next.lat, next.lng]);
+      applyPick({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     };
     map.on("click", onClick);
     return () => {
@@ -529,10 +544,65 @@ export function BarbershopMap({
     if (isDarkRef.current) applyDarkPalette(map);
   }, []);
 
+  function applyPick(next: { lat: number; lng: number }) {
+    setPickedLocation(next);
+    onLocationPick?.(next);
+    setCenter([next.lat, next.lng]);
+    setZoom(16);
+    persist([next.lat, next.lng]);
+  }
+
+  // Pick mode: as you type, offer real address suggestions to choose from
+  // instead of silently dropping the pin on the first match.
+  useEffect(() => {
+    if (!pickMode) return;
+    const query = search.trim();
+    if (query.length < 3 || skipSuggest.current) {
+      setSuggestions([]);
+      return;
+    }
+    const id = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`,
+          { headers: { Accept: "application/json" } },
+        );
+        const data = await response.json();
+        setSuggestions(Array.isArray(data) ? data : []);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 350);
+    return () => clearTimeout(id);
+  }, [search, pickMode]);
+
+  function chooseSuggestion(s: { display_name: string; lat: string; lon: string }) {
+    skipSuggest.current = true;
+    applyPick({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
+    setSearch(s.display_name.split(",")[0]);
+    setSuggestions([]);
+  }
+
+  function applyMapsLink(value: string) {
+    setMapsLink(value);
+    const parsed = extractLatLngFromGoogleUrl(value.trim());
+    if (parsed) {
+      applyPick(parsed);
+      setMapsLinkState("ok");
+    } else {
+      setMapsLinkState(/https?:|maps\.app|goo\.gl/i.test(value) ? "bad" : "idle");
+    }
+  }
+
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const query = search.trim();
     if (!query) return;
+
+    if (pickMode && suggestions.length > 0) {
+      chooseSuggestion(suggestions[0]);
+      return;
+    }
 
     searchAbort.current?.abort();
     const controller = new AbortController();
@@ -547,13 +617,12 @@ export function BarbershopMap({
       const data = await response.json();
       if (Array.isArray(data) && data[0]) {
         const next: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        setCenter(next);
-        setZoom(pickMode ? 15 : 14);
-        persist(next);
         if (pickMode) {
-          const current = { lat: next[0], lng: next[1] };
-          setPickedLocation(current);
-          onLocationPick?.(current);
+          applyPick({ lat: next[0], lng: next[1] });
+        } else {
+          setCenter(next);
+          setZoom(14);
+          persist(next);
         }
       }
     } catch {
@@ -566,10 +635,14 @@ export function BarbershopMap({
   function locateMe() {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition((position) => {
-      const next: [number, number] = [position.coords.latitude, position.coords.longitude];
-      setCenter(next);
-      setZoom(pickMode ? 15 : 14);
-      persist(next);
+      const next = { lat: position.coords.latitude, lng: position.coords.longitude };
+      if (pickMode) {
+        applyPick(next);
+      } else {
+        setCenter([next.lat, next.lng]);
+        setZoom(14);
+        persist([next.lat, next.lng]);
+      }
     });
   }
 
@@ -599,13 +672,32 @@ export function BarbershopMap({
             <div className="flex-1">
               <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
+                  <SearchBar
                     placeholder={pickMode ? "Search your business address..." : "Search a city or address..."}
                     value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    className="h-12 rounded-2xl border-white/60 bg-white/90 pl-11 shadow-none placeholder:text-muted-foreground/70 dark:border-white/10 dark:bg-[#1C1C1E]/90"
+                    onChange={(event) => {
+                      skipSuggest.current = false;
+                      setSearch(event.target.value);
+                    }}
+                    onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+                    className="h-12 shadow-none placeholder:text-muted-foreground/70"
+                    innerRowClassName="bg-white/90 dark:bg-[#1C1C1E]/90"
+                    shellClassName="border-white/60 dark:border-white/10"
                   />
+                  {pickMode && suggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-[#1C1C1E]">
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={`${s.lat},${s.lon}-${i}`}
+                          type="button"
+                          onClick={() => chooseSuggestion(s)}
+                          className="block w-full truncate px-4 py-3 text-left text-[13px] text-[#1C1C1E] transition hover:bg-black/[0.04] dark:text-[#F2F2F7] dark:hover:bg-white/[0.08]"
+                        >
+                          {s.display_name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <Button type="submit" disabled={searching} className="sm:min-w-28 rounded-2xl">
                   {searching ? "Searching..." : "Search"}
@@ -617,10 +709,37 @@ export function BarbershopMap({
             </div>
           </div>
           {pickMode && (
+            <div className="mt-2">
+              <div className="relative">
+                <Link2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Or paste your Google Maps link..."
+                  value={mapsLink}
+                  onChange={(event) => applyMapsLink(event.target.value)}
+                  className={`h-11 rounded-2xl border-white/60 bg-white/90 pl-11 text-[13px] shadow-none placeholder:text-muted-foreground/70 dark:border-white/10 dark:bg-[#1C1C1E]/90 ${
+                    mapsLinkState === "ok"
+                      ? "border-emerald-400 dark:border-emerald-500/60"
+                      : mapsLinkState === "bad"
+                        ? "border-[#FF2D55]/60"
+                        : ""
+                  }`}
+                />
+                {mapsLinkState === "ok" && (
+                  <Check className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
+                )}
+              </div>
+              {mapsLinkState === "bad" && (
+                <p className="mt-1.5 px-1 text-[11px] leading-snug text-[#FF2D55]">
+                  Couldn't read that link — open your shop in Google Maps, tap Share, and copy the full link.
+                </p>
+              )}
+            </div>
+          )}
+          {pickMode && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#3C3C43] dark:text-[#EBEBF5]/75">
               <span className="inline-flex items-center gap-1 rounded-full bg-[#FF2D55]/10 px-3 py-1 font-medium text-[#FF2D55]">
                 <Sparkles className="h-3.5 w-3.5" />
-                Tap the map to drop the pin
+                Tap the map to fine-tune
               </span>
               {pickedLocation && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#007AFF]/10 px-3 py-1 font-medium text-[#007AFF]">

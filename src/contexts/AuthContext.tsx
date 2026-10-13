@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signOut = async () => {
     try { localStorage.removeItem("cutzio:mode-choice"); } catch {}
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/auth";
   };
 
   const refreshUser = async () => {

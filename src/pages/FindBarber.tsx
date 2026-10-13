@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, lazy, Suspense, useRef } from "rea
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Badge, Button } from "@heroui/react";
 import {
   Search,
@@ -12,7 +12,6 @@ import {
   User,
   Star,
   Map as MapIcon,
-  Loader2,
   ChevronDown,
   ChevronRight,
   Clock,
@@ -39,18 +38,21 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
 const BarbershopMap = lazy(() => import("@/components/BarbershopMap").then((m) => ({ default: m.BarbershopMap })));
-if (typeof window !== "undefined") { const warm = () => { import("@/components/BarbershopMap").catch(() => {}); fetch("https://tiles.openfreemap.org/styles/positron").catch(() => {}); }; ((window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 800)))(warm); }
+if (typeof window !== "undefined") { const warm = () => { import("@/components/BarbershopMap").catch(() => {}); fetch("https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json").catch(() => {}); }; ((window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 800)))(warm); }
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ScreenLoader } from "@/components/ScreenLoader";
 import { Seo } from "@/components/Seo";
 import { StoriesRail } from "@/components/stories/StoriesRail";
 import { NotificationBell } from "@/components/NotificationBell";
 import { getBarberTheme } from "@/lib/barberTheme";
+import { prefetchRoute } from "@/lib/routePrefetch";
 
 
 interface BarberProfile {
   id: string;
+  monthly_capped?: boolean;
   latitude?: number | null;
   longitude?: number | null;
   home_service?: boolean;
@@ -161,13 +163,13 @@ const FindBarber = () => {
 
   useEffect(() => {
     if (!user) return;
-    if (!("geolocation" in navigator)) {
-      setUserLocation({ lat: 40.7128, lng: -74.006 });
-      return;
-    }
+    if (!("geolocation" in navigator)) return;
+    // No fake fallback: a wrong position would draw a bogus "You are here"
+    // dot — the map already fits to the barber pins without it.
     navigator.geolocation.getCurrentPosition(
       (p) => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => setUserLocation({ lat: 40.7128, lng: -74.006 })
+      () => {},
+      { timeout: 8000, maximumAge: 300000 }
     );
   }, [user]);
 
@@ -190,6 +192,21 @@ const FindBarber = () => {
       const m = new Map<string, number>();
       for (const r of (data || []) as any[]) m.set(r.user_id, Number(r.count) || 0);
       return m;
+    },
+  });
+
+  const { data: monthlyCappedIds } = useQuery({
+    queryKey: ["monthly-capped-businesses"],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_monthly_capped_businesses");
+      if (error) return new Set<string>();
+      return new Set<string>(
+        ((data ?? []) as unknown[])
+          .map((id) => (typeof id === "string" ? id : null))
+          .filter((id): id is string => id !== null)
+      );
     },
   });
 
@@ -266,7 +283,10 @@ const FindBarber = () => {
   const boostRank = (id: string) => (boostedIds?.has(id) ? 1 : 0);
 
   const sortedBarbers = useMemo(() => {
-    const list = barbers ?? [];
+    const list = (barbers ?? []).map((barber) => ({
+      ...barber,
+      monthly_capped: monthlyCappedIds?.has(barber.id) ?? false,
+    }));
     const counts = todayCounts ?? new Map<string, number>();
     return [...list].sort(
       (a, b) =>
@@ -274,7 +294,7 @@ const FindBarber = () => {
         ((counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)) ||
         ((b.rating ?? 0) - (a.rating ?? 0))
     );
-  }, [barbers, todayCounts, boostedIds]);
+  }, [barbers, todayCounts, boostedIds, monthlyCappedIds]);
 
 
 
@@ -307,18 +327,18 @@ const FindBarber = () => {
     let list = sortedBarbers;
 
     if (sortFilter === "reviews") {
-      list = [...(barbers ?? [])].sort((a, b) =>
+      list = [...sortedBarbers].sort((a, b) =>
         (boostRank(b.id) - boostRank(a.id)) ||
         (b.rating_count ?? 0) - (a.rating_count ?? 0) ||
         (b.rating ?? 0) - (a.rating ?? 0)
       );
     } else if (sortFilter === "likes") {
-      list = [...(barbers ?? [])].sort(
+      list = [...sortedBarbers].sort(
         (a, b) => (boostRank(b.id) - boostRank(a.id)) || (b.rating ?? 0) - (a.rating ?? 0)
       );
     } else if (sortFilter === "bookings") {
       const counts = todayCounts ?? new Map<string, number>();
-      list = [...(barbers ?? [])].sort(
+      list = [...sortedBarbers].sort(
         (a, b) =>
           (boostRank(b.id) - boostRank(a.id)) ||
           (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)
@@ -333,11 +353,7 @@ const FindBarber = () => {
 
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-6 h-6 animate-spin text-[#FF5A6E]" />
-      </div>
-    );
+    return <ScreenLoader />;
   }
   if (!user) {
     return <Navigate to="/auth" replace state={{ from: "/find-barber" }} />;
@@ -368,7 +384,7 @@ const FindBarber = () => {
         <main className="relative flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="relative min-h-screen bg-[#000000] pb-28">
       <Seo
-        title="Cutzio — Find Your Next Barber"
+        title="Cutzio | Find Your Next Barber"
         description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
         path="/find-barber"
       />
@@ -462,27 +478,15 @@ const FindBarber = () => {
                   className="overflow-hidden"
                 >
                   <div className="relative mt-5">
-                    <div className="relative flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.05] pl-4 pr-3 transition-colors focus-within:border-white/20 focus-within:bg-white/[0.07]">
-                      <Search className="h-[17px] w-[17px] shrink-0 text-white/40" />
-                      <Input
-                        ref={searchRef}
-                        type="text"
-                        placeholder="Search barbers, styles, vibes"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="h-12 flex-1 border-0 bg-transparent px-0 text-[15px] text-white shadow-none placeholder:text-white/35 focus-visible:ring-0"
-                      />
-                      {searchTerm && (
-                        <button
-                          type="button"
-                          aria-label="Clear search"
-                          onClick={() => { haptic("light"); setSearchTerm(""); searchRef.current?.focus(); }}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/60 transition active:scale-90"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
+                    <SearchBar
+                      ref={searchRef}
+                      type="text"
+                      placeholder="Search barbers, styles, vibes"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onClear={() => setSearchTerm("")}
+                      tone="dark"
+                    />
                   </div>
                 </motion.div>
               )}
@@ -631,6 +635,7 @@ function BarberCard({
     haptic("light");
     navigate(`/b/${barber.booking_link}`, { state: detailState });
   };
+  const warmDetail = () => { if (barber.booking_link) prefetchRoute("/b"); };
 
 
   return (
@@ -641,6 +646,7 @@ function BarberCard({
       initial="hidden"
       animate="show"
       transition={spring}
+      onPointerDown={warmDetail}
       className={cn(
         "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
         isExpanded && "sm:col-span-2 lg:col-span-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
@@ -660,6 +666,11 @@ function BarberCard({
             : theme.banner,
         }}
       >
+        {barber.monthly_capped && (
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-[#FF2D46] px-2.5 py-1 text-[10px] font-bold text-white">
+            Sold out
+          </span>
+        )}
         {!barber.banner_url && (
           <>
             {/* subtle diagonal sheen so the gradient doesn't look flat */}
@@ -777,7 +788,7 @@ function BarberCard({
             {barber.booking_link ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </motion.span>
         </button>
-        {barber.booking_link ? (
+        {barber.booking_link && !barber.monthly_capped ? (
           <Button
             onPress={() => { haptic("medium"); navigate(`/b/${barber.booking_link}`, { state: detailState }); }}
             className={cn(
@@ -794,8 +805,8 @@ function BarberCard({
             Book
           </Button>
         ) : (
-          <Button isDisabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93]">
-            Unavailable
+          <Button isDisabled className="flex-[1.4] h-12 rounded-[14px] bg-[#E5E5EA] px-2 text-[12px] leading-tight text-[#8E8E93] dark:bg-[#2C2C2E]">
+            {barber.monthly_capped ? "Fully booked this month" : "Unavailable"}
           </Button>
         )}
       </div>
@@ -1010,9 +1021,9 @@ function FullScreenMap({
   setMinRating: (v: "any" | "3" | "4" | "4.5") => void;
   onBack: () => void;
 }) {
-  const activeFilters =
-    Number(maxDistance !== "any") + Number(minRating !== "any");
   const [vipOnly, setVipOnly] = useState(false);
+  const activeFilters =
+    Number(maxDistance !== "any") + Number(minRating !== "any") + Number(vipOnly);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [recenterSignal, setRecenterSignal] = useState(0);
   const [bookBarber, setBookBarber] = useState<BarberProfile | null>(null);
@@ -1061,8 +1072,18 @@ function FullScreenMap({
         avatarUrl: b.avatar_url,
         initial: (b.brandName || "B").trim().charAt(0).toUpperCase(),
         vip: !!b.home_service,
-      })),
-    [visible],
+      })).concat(
+        // Demo pins are a placeholder for an empty map only — when real
+        // barbers exist but the filters exclude them all, show no pins
+        // instead of pretending the filter didn't run.
+        located.length === 0 ? [
+          { n: "Fade Factory (demo)", la: 37.9795, lo: 23.7162, c: "#FF375F", v: false },
+          { n: "Kings Cut (demo)", la: 37.9838, lo: 23.7275, c: "#0A84FF", v: false },
+          { n: "Royal Home Barber (demo)", la: 37.9752, lo: 23.7348, c: "#FF9F0A", v: true },
+          { n: "Sharp Studio (demo)", la: 37.9701, lo: 23.7225, c: "#30D158", v: false },
+        ].map((d, i) => ({ id: `demo-${i}`, name: d.n, location: d.v ? "VIP · Comes to your house" : "Demo shop", latitude: d.la, longitude: d.lo, color: d.c, avatarUrl: null, initial: d.n.charAt(0), vip: d.v })) : [],
+      ),
+    [visible, located],
   );
 
   useEffect(() => {
@@ -1112,7 +1133,7 @@ function FullScreenMap({
 
 
       {/* Top floating search + filters */}
-      <div className="absolute left-0 right-0 top-0 z-20 pt-3">
+      <div className="absolute left-0 right-0 top-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="mx-3 flex items-center gap-2">
           <button
             type="button"
@@ -1124,13 +1145,15 @@ function FullScreenMap({
           </button>
 
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8E8E93]" />
-            <Input
+            <SearchBar
               type="text"
               value={mapSearch}
               onChange={(e) => setMapSearch(e.target.value)}
               placeholder="Search city, area or barber"
-              className="h-11 rounded-full border border-black/5 bg-white/90 pl-11 pr-4 text-[14px] shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FF5A6E] dark:border-white/10 dark:bg-[#1C1C1E]/90"
+              tone="auto"
+              className="h-11 pr-4 placeholder:text-[#8E8E93]/80 focus-visible:ring-2 focus-visible:ring-[#FF5A6E]"
+              innerRowClassName="bg-white/90 dark:bg-[#1C1C1E]/90"
+              shellClassName="border border-black/5 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10"
             />
           </div>
 
@@ -1427,6 +1450,11 @@ function MapBarberCard({
           </p>
         </div>
       </div>
+      {barber.monthly_capped && (
+        <span className="mt-2 inline-flex rounded-full bg-[#FF2D46]/15 px-2.5 py-1 text-[10px] font-semibold text-[#FF8292]">
+          Sold out
+        </span>
+      )}
       <div className="mt-3 flex gap-2">
         {barber.latitude != null && barber.longitude != null && (
           <a
@@ -1442,7 +1470,7 @@ function MapBarberCard({
         )}
         <button
           type="button"
-          disabled={!barber.booking_link}
+          disabled={!barber.booking_link || !!barber.monthly_capped}
           onClick={(e) => { e.stopPropagation(); onBook(); }}
           className={cn(
             "flex h-10 flex-[1.3] items-center justify-center gap-1.5 rounded-[12px] text-[13px] font-semibold active:scale-[0.97] transition-transform disabled:opacity-50",
@@ -1451,7 +1479,7 @@ function MapBarberCard({
           style={theme.isCustom ? { background: theme.button, color: theme.onBase } : undefined}
         >
           <Calendar className="h-4 w-4" style={theme.isCustom ? undefined : { color: theme.accent }} />
-          {barber.booking_link ? "Book" : "Unavailable"}
+          {barber.monthly_capped ? "Fully booked this month" : barber.booking_link ? "Book" : "Unavailable"}
         </button>
       </div>
     </motion.div>

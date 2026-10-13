@@ -31,6 +31,7 @@ import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { enableBookingPush } from "@/lib/push";
@@ -56,6 +57,7 @@ import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
+import { buildGoogleMapsUrl, extractLatLngFromGoogleUrl } from "@/lib/geo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const serviceDurationOptions = [10, 15, 20, 25, 30, 45, 60, 90];
@@ -101,24 +103,6 @@ type BrandProfileRecord = {
   avatar_url?: string;
   banner_url?: string;
 };
-
-// Extract lat/lng from a Google Maps share URL (supports @lat,lng and q=lat,lng patterns)
-const extractLatLngFromGoogleUrl = (url: string): { lat: number; lng: number } | null => {
-  if (!url) return null;
-  // Pattern 1: /@lat,lng,zoom
-  const at = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (at) return { lat: parseFloat(at[1]), lng: parseFloat(at[2]) };
-  // Pattern 2: q=lat,lng or destination=lat,lng or ll=lat,lng
-  const q = url.match(/[?&](?:q|destination|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (q) return { lat: parseFloat(q[1]), lng: parseFloat(q[2]) };
-  // Pattern 3: !3dlat!4dlng (places format)
-  const place = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-  if (place) return { lat: parseFloat(place[1]), lng: parseFloat(place[2]) };
-  return null;
-};
-
-const buildGoogleMapsUrl = (lat: number, lng: number) =>
-  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
 const defaultAgendaSettings: AgendaSettingsRecord = {
   user_id: "",
@@ -211,7 +195,7 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    window.location.href = "/auth";
   };
 
   const handleAgreeToggle = (checked: boolean) => {
@@ -242,7 +226,7 @@ const Settings = () => {
     }
     toast({ title: "Account deleted" });
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/auth";
   };
 
   const { isPremium } = usePremium();
@@ -711,13 +695,14 @@ const Settings = () => {
 
                     <TabsContent value="overview" className="mt-0 space-y-6 animate-fade-in">
                       <div className="relative max-w-md">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
-                        <Input
+                        <SearchBar
                           type="text"
                           placeholder="Search settings..."
                           value={settingsSearch}
                           onChange={(e) => setSettingsSearch(e.target.value)}
-                          className="w-full h-11 pl-10 rounded-2xl bg-white dark:bg-[#1C1C1E] border-[#C6C6C8] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93]"
+                          className="w-full h-11 text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93]"
+                          innerRowClassName="bg-white dark:bg-[#1C1C1E]"
+                          shellClassName="border-[#C6C6C8] dark:border-[#2C2C2E]"
                         />
                       </div>
 
@@ -1154,7 +1139,7 @@ const Settings = () => {
                                 onChange={(url) => setBrandForm((prev) => ({ ...prev, banner_url: url }))}
                                 className="w-full"
                                 maxSizeMB={bannerMaxMB}
-                                helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 8MB"}.`}
+                                helperText={`Best 1200×400. Max ${bannerMaxMB}MB${isPremium ? " (Premium)" : ". Upgrade for 8MB"}.`}
                               />
                               {!brandForm.banner_url && (
                                 <div className="w-2 h-2 rounded-full pulse-dot pulse-dot-rose shrink-0 mt-6" />
@@ -1168,7 +1153,7 @@ const Settings = () => {
                               circle
                               onChange={(url) => setBrandForm((prev) => ({ ...prev, avatar_url: url }))}
                               maxSizeMB={avatarMaxMB}
-                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : " — upgrade for 5MB"}.`}
+                              helperText={`Square image works best. Max ${avatarMaxMB}MB${isPremium ? " (Premium)" : ". Upgrade for 5MB"}.`}
                             />
                           </div>
 
@@ -1520,6 +1505,15 @@ const Settings = () => {
                       </button>
                     </CardContent>
                   </Card>
+                  <p className="col-span-full pt-2 text-center text-sm text-[#8E8E93] dark:text-gray-400">
+                    Need help? Chat with us at{" "}
+                    <a
+                      href="mailto:cutzioo.com@gmail.com"
+                      className="underline underline-offset-2 transition hover:text-[#FF2D46]"
+                    >
+                      cutzioo.com@gmail.com
+                    </a>
+                  </p>
                 </div>
               </div>
             </div>

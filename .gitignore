@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .env
 .expo/
+/expo/ios/
+/expo/android/
 mobile/.expo/
 *.bak
 *.new

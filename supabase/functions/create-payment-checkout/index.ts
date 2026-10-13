@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
     params.append("payment_intent_data[transfer_data][destination]", profile.stripe_account_id);
     params.append(
       "payment_intent_data[description]",
-      `${label} — ${profile.business_name || profile.full_name || "Cutzioo"}`,
+      `${label}: ${profile.business_name || profile.full_name || "Cutzioo"}`,
     );
     params.append("metadata[lovable_kind]", "marketplace");
     params.append("metadata[business_id]", b.business_id);

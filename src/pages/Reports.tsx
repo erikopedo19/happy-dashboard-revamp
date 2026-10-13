@@ -19,6 +19,7 @@ import {
   type ExpandableActionBarItem,
 } from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
+import { ChartCard } from "@/components/ui/chart-card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -368,6 +369,16 @@ const Reports = () => {
     };
   }, [data, dateRange]);
 
+  const weekdayBookings = useMemo(() => {
+    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+    (data?.appointments || []).forEach((a) => {
+      const d = new Date(`${a.appointment_date}T00:00:00`);
+      if (!Number.isNaN(d.getTime())) counts[d.getDay()] += 1;
+    });
+    return [1, 2, 3, 4, 5, 6, 0].map((i) => ({ label: labels[i], value: counts[i] }));
+  }, [data]);
+
   const topCustomers = useMemo<TopCustomerRow[]>(() => {
     if (!data?.appointments || !customersData.length) return [];
     const map = new Map<string, { bookings: number; revenue: number; lastVisit: string | null }>();
@@ -668,10 +679,27 @@ const Reports = () => {
                     text={
                       analytics.revenueDelta >= 0
                         ? `Revenue is up ${analytics.revenueDelta}% vs the first half of this period. Keep it rolling.`
-                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}% — try a reminder blast or promo on slow days.`
+                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}%. Try a reminder blast or promo on slow days.`
                     }
                   />
                 </div>
+              )}
+
+              {/* Bookings by weekday — devignerui chart-card */}
+              {analytics.totalAppointments > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={springSoft}
+                >
+                  <ChartCard
+                    title="Bookings by weekday"
+                    caption="Which days clients pick"
+                    total={analytics.totalAppointments}
+                    data={weekdayBookings}
+                    className="rounded-[24px] border border-white/[0.08] bg-[#121215] text-white"
+                  />
+                </motion.div>
               )}
 
               {/* KPI grid */}

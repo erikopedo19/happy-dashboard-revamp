@@ -316,7 +316,7 @@ export function PayoutSettingsCard() {
               >
                 {ready ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                 {ready
-                  ? "Your account is active — payments and payouts are enabled."
+                  ? "Your account is active. Payments and payouts are enabled."
                   : status?.stripe_account_id
                   ? "Onboarding is incomplete. Finish the Stripe steps to start receiving payouts."
                   : "No payout account connected yet."}
@@ -344,7 +344,7 @@ export function PayoutSettingsCard() {
 
             <p className="mt-3 text-[11.5px] leading-[1.5] text-white/35">
               Balances are read directly from your connected Stripe account and shown read-only. Cutzioo never moves or
-              holds your money — payouts are made by Stripe on your own payout schedule.
+              holds your money. Payouts are made by Stripe on your own payout schedule.
             </p>
           </>
         )}

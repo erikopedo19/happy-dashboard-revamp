@@ -120,7 +120,7 @@ export const PublicVisibilityCard = ({ userId }: { userId: string }) => {
           <div className="flex-1">
             <CardTitle className="flex items-center gap-2 flex-wrap">
               Public visibility
-              {mode === "team" && <Badge variant="secondary"><Users className="h-3 w-3 mr-1" />Team — {membership?.team?.name}</Badge>}
+              {mode === "team" && <Badge variant="secondary"><Users className="h-3 w-3 mr-1" />Team: {membership?.team?.name}</Badge>}
               {isLockedMember && <Badge variant="outline" className="text-amber-600 border-amber-300"><Lock className="h-3 w-3 mr-1" />Member</Badge>}
             </CardTitle>
             <CardDescription>
@@ -175,7 +175,7 @@ export const PublicVisibilityCard = ({ userId }: { userId: string }) => {
             <Label className="text-sm font-semibold">Show on public map</Label>
             <p className="text-xs text-[#8E8E93] mt-0.5">
               {isLockedMember
-                ? "Disabled — only the team owner controls visibility."
+                ? "Disabled. Only the team owner controls visibility."
                 : mode === "team"
                 ? `Publishes team "${membership?.team?.name}" on the discovery map.`
                 : "Anyone can find and book you on the discovery page."}
