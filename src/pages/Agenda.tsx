@@ -29,6 +29,8 @@ import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { CutziooLoader } from "@/components/CutziooLoader";
 import { AgendaUpgradeDrawer } from "@/components/AgendaUpgradeDrawer";
+import { AppointmentDetailsDrawer } from "@/components/AppointmentDetailsDrawer";
+import type { DetailsAppointment } from "@/components/AppointmentDetailsDrawer";
 import { Button } from "@heroui/react";
 import { SearchBar } from "@/components/ui/search-bar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -106,6 +108,7 @@ const Agenda = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [detailAppointment, setDetailAppointment] = useState<DetailsAppointment | null>(null);
 
   // Always default to grid (day) view; user can switch to weekly overview manually.
   useEffect(() => {
@@ -401,7 +404,7 @@ const Agenda = () => {
         <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C]">
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
-            <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen} />
+            <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen || !!detailAppointment} />
             {agendaSettingsLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6">
                 <CutziooLoader variant="loop" size="64px" wordmark={false} />
@@ -467,6 +470,7 @@ const Agenda = () => {
               <LiquidGlassAgenda
                 appointments={filteredAppointments}
                 onDateTimeClick={handleDateTimeClick}
+                onAppointmentClick={(apt) => setDetailAppointment(apt)}
                 services={services}
                 currentWeek={currentWeek}
                 onWeekChange={setCurrentWeek}
@@ -489,6 +493,11 @@ const Agenda = () => {
             initialServiceId={selectedServiceId}
           />
         )}
+        <AppointmentDetailsDrawer
+          appointment={detailAppointment}
+          open={!!detailAppointment}
+          onOpenChange={(open) => { if (!open) setDetailAppointment(null); }}
+        />
       </SidebarProvider>
     );
   }

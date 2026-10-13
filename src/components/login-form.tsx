@@ -9,6 +9,9 @@ import { triggerGlimm } from "@/components/GlimmIntercept";
 import { TermsAcceptCard } from "@/components/TermsAcceptCard";
 import { haptic } from "@/lib/haptics";
 import { FlipWords } from "@/components/aceternity/flip-words";
+import { PasswordStrength, createPasswordRules } from "@/components/arc/password-strength/password-strength";
+
+const signupPasswordRules = createPasswordRules({ minLength: 6 });
 
 const AUTH_HERO_IMAGE =
   "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1400&auto=format&fit=crop";
@@ -348,23 +351,36 @@ export function LoginForm() {
                   autoComplete="email"
                 />
 
-                <AppleField
-                  label="Password"
-                  type={showPwd ? "text" : "password"}
-                  value={password}
-                  onChange={setPassword}
-                  autoComplete={isSignup ? "new-password" : "current-password"}
-                  trailing={
-                    <button
-                      type="button"
-                      onClick={() => setShowPwd((v) => !v)}
-                      className="text-foreground/40 transition hover:text-foreground"
-                      tabIndex={-1}
-                    >
-                      {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  }
-                />
+                {isSignup ? (
+                  <div data-arc-theme="dark">
+                    <PasswordStrength
+                      label="Password"
+                      value={password}
+                      onValueChange={setPassword}
+                      rules={signupPasswordRules}
+                      shortLength={6}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                ) : (
+                  <AppleField
+                    label="Password"
+                    type={showPwd ? "text" : "password"}
+                    value={password}
+                    onChange={setPassword}
+                    autoComplete="current-password"
+                    trailing={
+                      <button
+                        type="button"
+                        onClick={() => setShowPwd((v) => !v)}
+                        className="text-foreground/40 transition hover:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    }
+                  />
+                )}
 
                 {!isSignup && (
                   <div className="flex justify-end pt-1">

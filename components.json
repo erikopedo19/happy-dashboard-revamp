@@ -22,6 +22,7 @@
     "@reui": "https://reui.io/r/{style}/{name}.json",
     "@coss": "https://coss.com/ui/r/{name}.json",
     "@abui": "https://abui.io/r/{name}.json",
-    "@magicui": "https://magicui.design/r/{name}"
+    "@magicui": "https://magicui.design/r/{name}",
+    "@uiarc": "https://uiarc.dev/r/{name}.json"
   }
 }

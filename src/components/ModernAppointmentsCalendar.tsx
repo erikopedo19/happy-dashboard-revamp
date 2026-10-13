@@ -1,6 +1,6 @@
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, addMinutes } from 'date-fns';
 import { Plus, ChevronLeft, ChevronRight, Filter, Calendar, Clock, Users, Sun, Moon, Eye, EyeOff, Coffee, Settings, Grid3X3, Edit3, Trash2, X, MoreHorizontal, RefreshCw, AlertTriangle, Check, Send, Edit, Phone, Scissors, DollarSign, User, Star, TrendingUp, Copy, ClipboardPaste, Pin } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { AppointmentDetailsDrawer } from '@/components/AppointmentDetailsDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchBar } from '@/components/ui/search-bar';
@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from '@tanstack/react-query';
 import { cn } from "@/lib/utils";
-import { DeleteButton } from "@/components/ui/delete-button";
+import { HoldToConfirm } from "@/components/arc/hold-to-confirm/hold-to-confirm";
 
 // Simple RadialMenu replacement - just renders children with right-click menu
 const RadialMenu = ({ children, menuItems, onSelect }: {
@@ -290,13 +290,6 @@ export const ModernAppointmentsCalendar = ({
     setIsLongPressing(false);
     setLongPressedId(null);
   }, []);
-  const handleReschedule = async () => {
-    if (!selectedAppointment) return;
-    setRescheduleDate(selectedAppointment.appointment_date);
-    setRescheduleTime(selectedAppointment.appointment_time.slice(0, 5));
-    setShowAppointmentDetails(false);
-    setShowRescheduleDialog(true);
-  };
   const handleConfirmReschedule = async () => {
     if (!selectedAppointment || !rescheduleDate || !rescheduleTime) return;
 
@@ -336,11 +329,6 @@ export const ModernAppointmentsCalendar = ({
         variant: "destructive"
       });
     }
-  };
-  const handleDelete = () => {
-    if (!selectedAppointment) return;
-    setShowAppointmentDetails(false);
-    setShowDeleteDialog(true);
   };
   const deleteAppointment = async () => {
     if (!selectedAppointment) return;
@@ -1059,74 +1047,24 @@ export const ModernAppointmentsCalendar = ({
         </div>
       )}
 
-      {/* Appointment Details Side Sheet */}
-      <Sheet open={showAppointmentDetails} onOpenChange={(open) => {
-        if (!open) {
-          setShowAppointmentDetails(false);
-          setSelectedAppointment(null);
-        }
-      }}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Appointment Details</SheetTitle>
-            <SheetDescription>
-              View and manage appointment information
-            </SheetDescription>
-          </SheetHeader>
-          {selectedAppointment && (
-            <div className="mt-6 space-y-4">
-              <div className="p-4 bg-white/60 dark:bg-[#1C1C1E]/60 rounded-lg border border-gray-200 dark:border-[#2C2C2E] backdrop-blur-sm relative overflow-hidden">
-                {/* Subtle colored background based on service */}
-                <div className="absolute inset-0 opacity-10" style={{
-                  background: getServiceGradient(selectedAppointment.service)
-                }} />
-                <h3 className="font-medium text-lg text-gray-800 dark:text-gray-200 relative z-10">{selectedAppointment.service.name}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 relative z-10">{selectedAppointment.customer.name}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  <span className="text-gray-700 dark:text-gray-300">{format(new Date(selectedAppointment.appointment_date), 'EEEE, MMMM d, yyyy')}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  <span className="text-gray-700 dark:text-gray-300">{selectedAppointment.appointment_time}</span>
-                </div>
-                {selectedAppointment.price && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <DollarSign className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    <span className="text-gray-700 dark:text-gray-300">${selectedAppointment.price}</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  className="flex-1 border-green-200 hover:bg-green-50 hover:border-green-300 text-green-700"
-                  onClick={handleCompleteAppointment}
-                  disabled={isCompleting || selectedAppointment.status === 'completed'}
-                >
-                  <Check className="h-4 w-4 mr-2" />
-                  {selectedAppointment.status === 'completed' ? 'Completed' : 'Complete'}
-                </Button>
-                <Button variant="outline" className="flex-1 border-gray-200 hover:bg-white/60 hover:border-gray-300 text-gray-700" onClick={handleReschedule}>
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Reschedule
-                </Button>
-                <DeleteButton
-                  label="Cancel appointment"
-                  confirmLabel="Yes, cancel it"
-                  cancelLabel="Keep"
-                  pendingLabel="Cancelling"
-                  doneLabel="Cancelled"
-                  onConfirm={deleteAppointment}
-                  className="flex-1 justify-center"
-                />
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+      {/* Appointment Details Drawer */}
+      <AppointmentDetailsDrawer
+        appointment={selectedAppointment}
+        open={showAppointmentDetails}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowAppointmentDetails(false);
+            setSelectedAppointment(null);
+          }
+        }}
+        onCompleted={(apt) => {
+          // Re-set the appointment so the rating dialog can pick up the stylist.
+          if (apt.stylist?.id) {
+            setSelectedAppointment(apt as Appointment);
+            setShowRatingDialog(true);
+          }
+        }}
+      />
 
       {/* Reschedule Dialog */}
       <Dialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
@@ -1215,10 +1153,14 @@ export const ModernAppointmentsCalendar = ({
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="border-gray-200 hover:bg-white/60 hover:border-gray-300 text-gray-700">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete} className="bg-[#E0152F]/90 hover:bg-[#E0152F]/80 border border-[#fda4af]">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Appointment
-            </Button>
+            <div className="arc-scope">
+              <HoldToConfirm
+                label="Hold to delete"
+                confirmedLabel="Deleted"
+                duration={1400}
+                onConfirm={handleConfirmDelete}
+              />
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
