@@ -2062,11 +2062,14 @@ html.cz-sheet-open::-webkit-scrollbar { display: none; }
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 15px;
+  --text-lg: 17px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 20px;
+  --space-6: 24px;
+  --radius-surface: 22px;
   --control-height-sm: 32px;
   --control-height-md: 38px;
   --control-height-lg: 46px;
