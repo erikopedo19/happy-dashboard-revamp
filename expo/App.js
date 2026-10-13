@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, BackHandler, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants';
+import { requireOptionalNativeModule } from 'expo';
 import * as Device from 'expo-device';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
@@ -40,6 +41,12 @@ async function getExpoPushToken() {
   const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
   return data;
 }
+
+// The ExpoWidgets native module only exists in dev/production builds — not in
+// Expo Go. Check before importing so the module factory (which calls
+// requireNativeModule and throws) never runs where it can't exist.
+const hasExpoWidgets = () =>
+  Platform.OS === 'ios' && !!requireOptionalNativeModule('ExpoWidgets');
 
 const injectPushToken = (token) => `
   window.__CUTZIO_PUSH__ = { token: ${JSON.stringify(token)}, platform: 'expo' };
@@ -202,7 +209,7 @@ function Shell() {
   }, [sendPushToken]);
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') return undefined;
+    if (!hasExpoWidgets()) return undefined;
 
     let active = true;
     let subscription;
@@ -260,7 +267,7 @@ function Shell() {
       return;
     }
     if (message?.type === 'cutzio-live-activity') {
-      if (Platform.OS !== 'ios') return;
+      if (!hasExpoWidgets()) return;
       try {
         const activityFactory = (await import('./BookingActivity')).default;
         const showActivity = async (props) => {
