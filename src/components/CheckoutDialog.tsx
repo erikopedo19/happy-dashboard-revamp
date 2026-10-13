@@ -61,7 +61,7 @@ export function CheckoutDialog({ open, onOpenChange, item }: CheckoutDialogProps
     if (error || !data?.url) {
       toast({
         title: "Payment unavailable",
-        description: "This business hasn't finished setting up payments yet.",
+        description: "This business hasn't finished setting up payments yet."); window.location.href = "/payment-failed?type=booking&reason=not_set_up"; void (",
         variant: "destructive",
       });
       return;
