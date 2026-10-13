@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { format, addMinutes } from 'date-fns';
-import { Calendar, Clock, DollarSign, User, Phone, Mail, Check, RefreshCw, Trash2, FileText } from 'lucide-react';
+import { Calendar, Clock, DollarSign, User, Phone, Mail, Check, RefreshCw, Trash2, FileText, History } from 'lucide-react';
 import { BottomSheet } from '@/components/arc/bottom-sheet/bottom-sheet';
-import { Button } from '@/components/ui/button';
+import { CandyButton } from '@/components/ui/candy-button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmMorph } from '@/components/arc/confirm-morph/confirm-morph';
@@ -10,7 +10,7 @@ import type { ConfirmMorphState } from '@/components/arc/confirm-morph/confirm-m
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { haptic } from '@/lib/haptics';
 
 interface Service {
@@ -97,6 +97,30 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('');
   const lastMorphState = useRef<ConfirmMorphState>('idle');
+
+  const { data: recentBookings = [] } = useQuery({
+    queryKey: ['customer-recent-appointments', appointment?.customer.id, appointment?.id],
+    enabled: open && !!appointment?.customer.id,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('appointments')
+        .select('id, appointment_date, appointment_time, status, price, service:services(name)')
+        .eq('customer_id', appointment!.customer.id)
+        .neq('id', appointment!.id)
+        .order('appointment_date', { ascending: false })
+        .order('appointment_time', { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return (data ?? []).map((row: any) => ({
+        id: row.id as string,
+        date: row.appointment_date as string,
+        time: (row.appointment_time as string).slice(0, 5),
+        status: row.status as string,
+        price: row.price as number | null,
+        serviceName: (Array.isArray(row.service) ? row.service[0]?.name : row.service?.name) ?? 'Appointment',
+      })) as { id: string; date: string; time: string; status: string; price: number | null; serviceName: string }[];
+    },
+  });
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['appointments'], exact: false });
@@ -200,7 +224,7 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
       onOpenChange={(o) => { if (!o) setRescheduling(false); onOpenChange(o); }}
       title="Appointment Details"
       description={appointment ? `${appointment.service.name} · ${appointment.customer.name}` : undefined}
-      detents={[0.55, 0.92]}
+      detents={[0.62, 0.94]}
     >
       {appointment && (
         <div className="px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-1">
@@ -239,18 +263,6 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
                   <span>${appointment.price}</span>
                 </div>
               )}
-              {appointment.customer.phone && (
-                <div className="flex items-center gap-2.5 text-[#3C3C43] dark:text-white/70">
-                  <Phone className="h-4 w-4 text-[#8E8E93] dark:text-white/40" />
-                  <span>{appointment.customer.phone}</span>
-                </div>
-              )}
-              {appointment.customer.email && (
-                <div className="flex items-center gap-2.5 text-[#3C3C43] dark:text-white/70">
-                  <Mail className="h-4 w-4 text-[#8E8E93] dark:text-white/40" />
-                  <span className="truncate">{appointment.customer.email}</span>
-                </div>
-              )}
               {appointment.notes && (
                 <div className="flex items-start gap-2.5 text-[#3C3C43] dark:text-white/70">
                   <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[#8E8E93] dark:text-white/40" />
@@ -258,6 +270,76 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
                 </div>
               )}
             </div>
+
+            {/* Contact */}
+            {(appointment.customer.phone || appointment.customer.email) && (
+              <div className="mt-5">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8E8E93] dark:text-white/40">Contact</p>
+                <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] dark:border-white/[0.08] dark:bg-white/[0.04]">
+                  {appointment.customer.phone && (
+                    <a
+                      href={`tel:${appointment.customer.phone}`}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-[#3C3C43] transition-colors hover:bg-black/[0.03] dark:text-white/80 dark:hover:bg-white/[0.06]"
+                    >
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                        <Phone className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{appointment.customer.phone}</span>
+                      <span className="text-[11px] font-medium text-[#8E8E93] dark:text-white/40">Call</span>
+                    </a>
+                  )}
+                  {appointment.customer.email && (
+                    <a
+                      href={`mailto:${appointment.customer.email}`}
+                      className="flex items-center gap-3 border-t border-black/[0.05] px-4 py-3 text-sm text-[#3C3C43] transition-colors hover:bg-black/[0.03] dark:border-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.06]"
+                    >
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400">
+                        <Mail className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{appointment.customer.email}</span>
+                      <span className="text-[11px] font-medium text-[#8E8E93] dark:text-white/40">Email</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Latest bookings from this client */}
+            {recentBookings.length > 0 && (
+              <div className="mt-5">
+                <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8E8E93] dark:text-white/40">
+                  <History className="h-3.5 w-3.5" />
+                  Latest bookings
+                </p>
+                <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.02] dark:border-white/[0.08] dark:bg-white/[0.04]">
+                  {recentBookings.map((booking, index) => (
+                    <div
+                      key={booking.id}
+                      className={`flex items-center gap-3 px-4 py-3 ${index > 0 ? 'border-t border-black/[0.05] dark:border-white/[0.06]' : ''}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-[#1C1C1E] dark:text-white/90">{booking.serviceName}</p>
+                        <p className="mt-0.5 text-xs text-[#8E8E93] dark:text-white/45">
+                          {format(new Date(booking.date), 'MMM d, yyyy')} · {booking.time}
+                        </p>
+                      </div>
+                      {booking.price != null && (
+                        <span className="shrink-0 text-sm font-medium text-[#3C3C43] dark:text-white/70">${booking.price}</span>
+                      )}
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${
+                        booking.status === 'completed'
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                          : booking.status === 'cancelled'
+                            ? 'bg-red-500/15 text-red-600 dark:text-red-400'
+                            : 'bg-black/[0.05] text-[#8E8E93] dark:bg-white/[0.08] dark:text-white/50'
+                      }`}>
+                        {booking.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             {rescheduling ? (
@@ -285,43 +367,45 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-black/10 dark:border-white/10"
+                  <CandyButton
+                    variant="obsidian"
+                    className="flex-1"
                     onClick={() => setRescheduling(false)}
                   >
                     Back
-                  </Button>
-                  <Button
+                  </CandyButton>
+                  <CandyButton
+                    variant="emerald"
                     className="flex-1"
+                    leftIcon={<RefreshCw size={16} strokeWidth={1.75} />}
                     onClick={saveReschedule}
                     disabled={!rescheduleDate || !rescheduleTime || isSavingReschedule}
                   >
-                    <RefreshCw className="mr-2 h-4 w-4" />
                     {isSavingReschedule ? 'Saving…' : 'Reschedule'}
-                  </Button>
+                  </CandyButton>
                 </div>
               </div>
             ) : (
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 border-emerald-600/30 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-400"
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+                <CandyButton
+                  variant="emerald"
+                  className="min-w-[140px] flex-1"
+                  leftIcon={<Check size={16} strokeWidth={1.75} />}
                   onClick={completeAppointment}
                   disabled={isCompleting || appointment.status === 'completed'}
                 >
-                  <Check className="mr-1.5 h-4 w-4" />
                   {appointment.status === 'completed' ? 'Completed' : 'Complete'}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 border-black/10 dark:border-white/10"
+                </CandyButton>
+                <CandyButton
+                  variant="obsidian"
+                  className="min-w-[140px] flex-1"
+                  leftIcon={<RefreshCw size={16} strokeWidth={1.75} />}
                   onClick={startReschedule}
                 >
-                  <RefreshCw className="mr-1.5 h-4 w-4" />
                   Reschedule
-                </Button>
+                </CandyButton>
                 <ConfirmMorph
+                  className="[--control-height-sm:48px] [--text-sm:15px]"
                   label="Cancel appointment"
                   icon={<Trash2 size={16} strokeWidth={1.75} />}
                   prompt="Cancel this appointment?"

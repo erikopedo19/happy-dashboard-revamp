@@ -23,10 +23,8 @@
   border: 1px solid var(--border);
   border-bottom: 0;
   border-radius: var(--radius-surface) var(--radius-surface) 0 0;
-  /* Liquid glass: the page shows through a frosted sheet instead of a solid panel. */
-  background: color-mix(in srgb, var(--surface-raised) 80%, transparent);
-  -webkit-backdrop-filter: blur(28px) saturate(1.6);
-  backdrop-filter: blur(28px) saturate(1.6);
+  /* Solid surface: scrolling content stays readable and never picks up a blurred page behind it. */
+  background: var(--surface-raised);
   color: var(--foreground);
   box-shadow: var(--shadow-floating);
   font-family: var(--font-body);

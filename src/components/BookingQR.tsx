@@ -17,30 +17,10 @@ interface BookingQRProps {
 // asks for their QR on this page load, then never again until they refresh.
 const playedReveal = new Set<string>();
 
-// Short ascending chime when the QR code lands.
-function playQrChime() {
-  try {
-    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-    const ctx = new Ctx();
-    const now = ctx.currentTime;
-    [659.25, 830.61, 987.77, 1318.51].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const t = now + i * 0.09;
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.75);
-    });
-    setTimeout(() => ctx.close().catch(() => {}), 1400);
-  } catch {
-    /* audio blocked until a user gesture */
-  }
+// Pickup-style camera: rises from street level to a bird view over the roof.
+function pickupCam(k: number, z: number) {
+  const s = Math.sin(Math.PI * k);
+  return `rotateZ(${2 * s}deg) translate3d(0,${(58 + 232 * k + 50 * s) * z}px,${(330 - 810 * k - 60 * s) * z}px) rotateX(${-90 * k}deg) rotateY(${-16 * s}deg) scale3d(${z},${z},${z})`;
 }
 
 // Distinct "QR landed" pulse: tap-tap, then one long thump.
@@ -85,17 +65,37 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
 
   const ensureScene = () => {
     if (!sceneRef.current) {
-      sceneRef.current = new BookingQR3D({
+      const scene: any = new BookingQR3D({
         url,
         name: displayName,
         title: "Scan to book",
         readyTitle: "Preparing your code",
-        theme: "auto",
-        onDone: () => {
-          playQrChime();
-          qrHaptic();
+        // Pickup variant: night city, camera lifts to a bird view and the
+        // code forms on the shop roof, then wipes to the permanent flat QR.
+        theme: "dark",
+        night: true,
+        noHaze: true,
+        noProps: true,
+        lamps: true,
+        noMelt: true,
+        squareRoof: true,
+        roofQR: true,
+        nb: 4,
+        cam: pickupCam,
+        onFrame: (e: number) => {
+          if (e > 0.78 && !scene.formed) {
+            scene.formed = true;
+            scene.formQR(() => {
+              qrHaptic();
+              const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+              setTimeout(() => scene.idle(), 1200);
+              setTimeout(() => scene.wipe(reduced ? 1 : 1700), 4800);
+            });
+          }
         },
       });
+      scene.formed = false;
+      sceneRef.current = scene;
     }
     return sceneRef.current;
   };
@@ -112,7 +112,7 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
       scene.showFinal();
     } else {
       playedReveal.add(url);
-      scene.open();
+      scene.open(5400);
     }
   };
 

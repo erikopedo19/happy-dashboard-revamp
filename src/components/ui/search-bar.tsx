@@ -72,7 +72,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       <BorderBeam
         active={focused}
         borderRadius={9999}
-        className="flex w-full min-w-0 max-w-full flex-col items-stretch !overflow-visible rounded-full"
+        className="flex w-full min-w-0 max-w-full flex-col items-stretch rounded-full"
         colorVariant="sunset"
         size="md"
         staticColors

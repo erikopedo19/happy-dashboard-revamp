@@ -232,10 +232,10 @@ P._go=function(target,dur){ var t=this,s=this.e,t0=performance.now(),reduce=root
   (function f(now){ var p=Math.min(1,(now-t0)/d),k=p*p*p*(p*(6*p-15)+10); t.e=s+(target-s)*k; t._apply(t.e); if(t.o.onFrame)t.o.onFrame(t.e);
     if(target===1){ if(t.e>.5)t.el.classList.add('go'); if(t.e>.55&&!t.melted&&!t.o.noMelt)t._melt(); }
     if(p<1)t.raf=requestAnimationFrame(f); else if(target===1&&t.o.onDone)t.o.onDone(); else if(target===0){t.el.classList.remove('on');t.el.setAttribute('aria-hidden','true');} })(t0); };
-P.open=function(){ var t=this; if(this.isOpen)return; this.isOpen=true; this._tick(); this.lastFocus=document.activeElement; document.addEventListener('keydown',this._onKey);
+P.open=function(dur){ var t=this; if(this.isOpen)return; this.isOpen=true; this._tick(); this.lastFocus=document.activeElement; document.addEventListener('keydown',this._onKey);
   this.el.classList.remove('go','m'); this.melted=false; cancelAnimationFrame(this.mr); this._draw(-1); this.e=0; this._apply(0);
   this.el.classList.add('on'); this.el.removeAttribute('aria-hidden'); this.el.querySelector('.cl').focus&&setTimeout(function(){t.el.querySelector('.x').focus()},50);
-  setTimeout(function(){ t._go(1,4300); },250); };
+  setTimeout(function(){ t._go(1,dur||4300); },250); };
 /** Opens already finished: camera landed, QR fully formed, no replay of the reveal. */
 P.showFinal=function(){ var t=this; if(this.isOpen)return; this.isOpen=true; this._tick(); this.lastFocus=document.activeElement; document.addEventListener('keydown',this._onKey);
   cancelAnimationFrame(this.raf); cancelAnimationFrame(this.mr); this.melted=true; this.e=1; this._apply(1);

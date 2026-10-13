@@ -429,6 +429,7 @@ function App() {
                   <CookieConsent
                     storageKey="cutzioo-consent"
                     version="1"
+                    showReopenButton={false}
                     policy={{ label: "Privacy & cookie policy", href: "/privacy" }}
                     labels={{
                       message: "Cutzioo uses cookies to keep you signed in, remember your choices, and understand usage. By continuing you accept our Terms of Service.",
