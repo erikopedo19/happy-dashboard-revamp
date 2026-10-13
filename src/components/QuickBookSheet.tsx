@@ -12,7 +12,7 @@ import { Loader2, Check, Calendar as CalendarIcon, Clock, Scissors, ArrowLeft, S
 import { cn } from "@/lib/utils";
 import { getBrowserTimezone, formatTzLabel } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Calendar as ArcCalendar } from "@/components/arc/calendar/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SlotRail } from "@/components/SlotRail";
 import { haptic } from "@/lib/haptics";
@@ -413,22 +413,16 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="z-[95] w-auto p-0 rounded-2xl" align="end">
-                        <CalendarPicker
-                          mode="single"
-                          selected={date}
-                          onSelect={(d) => {
-                            if (d) {
-                              haptic("selection");
-                              setDate(d);
-                              setTime("");
-                              setCalendarOpen(false);
-                            }
+                        <ArcCalendar
+                          value={date}
+                          onChange={(d) => {
+                            haptic("selection");
+                            setDate(d);
+                            setTime("");
+                            setCalendarOpen(false);
                           }}
-                          disabled={[
-                            { before: startOfDay(new Date()) },
-                            { dayOfWeek: [0, 1, 2, 3, 4, 5, 6].filter((d) => !workingDays.includes(d)) },
-                          ]}
-                          initialFocus
+                          minDate={new Date()}
+                          disabledDates={(d) => !workingDays.includes(d.getDay())}
                         />
                       </PopoverContent>
                     </Popover>

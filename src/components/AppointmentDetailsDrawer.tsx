@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { format, addMinutes } from 'date-fns';
 import { Calendar, Clock, DollarSign, User, Phone, Mail, Check, RefreshCw, Trash2, FileText } from 'lucide-react';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { BottomSheet } from '@/components/arc/bottom-sheet/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -195,14 +195,15 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
   const duration = appointment ? appointment.totalDurationMinutes || appointment.service.duration : 0;
 
   return (
-    <Drawer open={open} onOpenChange={(o) => { if (!o) setRescheduling(false); onOpenChange(o); }}>
-      <DrawerContent>
-        <DrawerHeader className="sr-only">
-          <DrawerTitle>Appointment Details</DrawerTitle>
-          <DrawerDescription>View and manage appointment information</DrawerDescription>
-        </DrawerHeader>
-        {appointment && (
-          <div className="overflow-y-auto px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3">
+    <BottomSheet
+      open={open}
+      onOpenChange={(o) => { if (!o) setRescheduling(false); onOpenChange(o); }}
+      title="Appointment Details"
+      description={appointment ? `${appointment.service.name} · ${appointment.customer.name}` : undefined}
+      detents={[0.55, 0.92]}
+    >
+      {appointment && (
+        <div className="px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-1">
             {/* Service card */}
             <div className="relative overflow-hidden rounded-2xl border border-black/[0.06] dark:border-white/[0.08] p-4">
               <div className="absolute inset-0" style={{ background: serviceGradient(appointment.service.color) }} />
@@ -337,9 +338,8 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
               </div>
             )}
           </div>
-        )}
-      </DrawerContent>
-    </Drawer>
+      )}
+    </BottomSheet>
   );
 }
 

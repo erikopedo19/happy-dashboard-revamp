@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Calendar, Users, Plus, ArrowUpRight, ArrowDownRight, DollarSign, Clock,
-  Scissors, Bell, ArrowUp, ArrowDown, ArrowUpDown,
+  Scissors, Bell, ArrowUp, ArrowDown, ArrowUpDown, BarChart3, Link2, Settings,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { NotificationBell } from "@/components/NotificationBell";
-import { SearchBar } from "@/components/ui/search-bar";
+import { ExpandingSearch } from "@/components/arc/expanding-search/expanding-search";
+import type { ExpandingSearchItem } from "@/components/arc/expanding-search/expanding-search";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Table,
@@ -76,6 +77,32 @@ export function DashboardContent() {
     },
     enabled: !!user,
   });
+
+  const NAV_DESTINATIONS: (ExpandingSearchItem & { href: string })[] = [
+    { id: "nav-agenda", title: "Agenda", href: "/agenda", icon: <Calendar size={14} />, keywords: ["calendar", "appointments", "schedule"] },
+    { id: "nav-customers", title: "Customers", href: "/customers", icon: <Users size={14} />, keywords: ["clients"] },
+    { id: "nav-reports", title: "Reports", href: "/reports", icon: <BarChart3 size={14} />, keywords: ["analytics", "revenue", "stats"] },
+    { id: "nav-booking", title: "Booking link", href: "/booking-page", icon: <Link2 size={14} />, keywords: ["booking page", "share", "link"] },
+    { id: "nav-settings", title: "Settings", href: "/settings", icon: <Settings size={14} />, keywords: ["preferences", "account"] },
+  ];
+
+  const { searchItems, searchSuggestions, searchDest } = useMemo(() => {
+    const dest: Record<string, string> = {};
+    NAV_DESTINATIONS.forEach((item) => { dest[item.id] = item.href; });
+    const apptItems: ExpandingSearchItem[] = appointments.slice(0, 80).map((a: any) => {
+      const id = `appt-${a.id}`;
+      dest[id] = "/agenda";
+      return {
+        id,
+        title: a.customer?.name || "Appointment",
+        meta: `${a.service?.name ?? "Service"} · ${format(parseISO(a.appointment_date), "MMM d")} · ${String(a.appointment_time || "").slice(0, 5)}`,
+        group: "Appointments",
+        keywords: [a.service?.name, a.customer?.email].filter(Boolean) as string[],
+      };
+    });
+    return { searchItems: [...NAV_DESTINATIONS, ...apptItems], searchSuggestions: NAV_DESTINATIONS, searchDest: dest };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointments]);
 
   const stats = useMemo(() => {
     const todays = appointments.filter(a => isToday(parseISO(a.appointment_date)));
@@ -241,14 +268,15 @@ export function DashboardContent() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <div className="hidden md:block relative max-w-[260px]">
-                <SearchBar
-                  placeholder="Search..."
-                  tone="dark"
-                  compact
-                  className="w-full text-sm text-white placeholder:text-white/40 focus-visible:ring-[#FF2D46]/30"
-                  innerRowClassName="bg-[#22222A]"
-                  shellClassName="border-white/[0.06]"
+              <div className="hidden md:block relative w-[300px]">
+                <ExpandingSearch
+                  label="Search appointments and pages"
+                  placeholder="Search appointments, pages…"
+                  items={searchItems}
+                  suggestions={searchSuggestions}
+                  suggestionsLabel="Go to"
+                  onSelect={(item) => navigate(searchDest[item.id] ?? "/agenda")}
+                  expandedWidth={300}
                 />
               </div>
               <NotificationBell />

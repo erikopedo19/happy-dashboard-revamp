@@ -1,41 +1,28 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useRef, useState, type ReactNode } from "react"
-import { Search, X } from "lucide-react"
+import { forwardRef, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from "react"
+import { BorderBeam } from "border-beam"
 
-import { BorderBeamInput, type BorderBeamInputProps } from "@/components/ui/border-beam-input"
+import { SearchField } from "@/components/arc/search-field/search-field"
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 
-type FixedBeamProps =
-  | "active"
-  | "beamSize"
-  | "borderBeamClassName"
-  | "borderBeamStyle"
-  | "borderRadius"
-  | "brightness"
-  | "colorVariant"
-  | "duration"
-  | "hueRange"
-  | "onActivate"
-  | "onDeactivate"
-  | "saturation"
-  | "staticColors"
-  | "strength"
-  | "theme"
-  | "pill"
-  | "translucent"
-  | "leadingSlot"
-  | "trailingSlot"
-
-export type SearchBarProps = Omit<BorderBeamInputProps, FixedBeamProps> & {
+export type SearchBarProps = InputHTMLAttributes<HTMLInputElement> & {
   leadingSlot?: ReactNode
   trailingSlot?: ReactNode
   onClear?: () => void
   tone?: "auto" | "dark"
   compact?: boolean
+  /** Deprecated shell hooks kept for API compatibility — the arc field styles itself. */
+  innerRowClassName?: string
+  shellClassName?: string
 }
 
+/**
+ * uiarc SearchField wrapped in the app's border-beam glow — the new default
+ * search input everywhere. Slots are ignored: the field renders its own
+ * search icon and animated clear button.
+ */
 export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
   function SearchBar(
     {
@@ -47,92 +34,68 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       onClear,
       onFocus,
       onBlur,
+      onChange,
       tone = "auto",
       compact = false,
       value,
+      placeholder,
       ...inputProps
     },
     ref
   ) {
-    const inputRef = useRef<HTMLInputElement>(null)
     const [focused, setFocused] = useState(false)
 
-    useImperativeHandle(ref, () => inputRef.current as HTMLInputElement, [])
-
-    const handleFocus: BorderBeamInputProps["onFocus"] = (event) => {
+    const handleFocus: SearchBarProps["onFocus"] = (event) => {
       setFocused(true)
       onFocus?.(event)
     }
 
-    const handleBlur: BorderBeamInputProps["onBlur"] = (event) => {
+    const handleBlur: SearchBarProps["onBlur"] = (event) => {
       setFocused(false)
       onBlur?.(event)
     }
 
-    const clearButton =
-      onClear && typeof value === "string" && value.length > 0 ? (
-        <button
-          type="button"
-          aria-label="Clear search"
-          onClick={() => {
-            haptic("light")
-            onClear()
-            inputRef.current?.focus()
-          }}
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-full transition active:scale-90",
-            tone === "dark"
-              ? "bg-white/10 text-white/70"
-              : "bg-muted text-muted-foreground"
-          )}
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      ) : null
+    const handleValueChange = (next: string) => {
+      if (next === "" && typeof value === "string" && value.length > 0) {
+        haptic("light")
+        onClear?.()
+      }
+      onChange?.({ target: { value: next } } as React.ChangeEvent<HTMLInputElement>)
+    }
+
+    const shellStyle = {
+      "--radius-control": "999px",
+      ...(compact ? { "--control-height-md": "36px" } : {}),
+    } as CSSProperties
 
     return (
-      <BorderBeamInput
-        {...inputProps}
-        ref={inputRef}
-        value={value}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
+      <BorderBeam
         active={focused}
-        beamSize="md"
+        borderRadius={9999}
+        className="flex w-full min-w-0 max-w-full flex-col items-stretch !overflow-visible rounded-full"
         colorVariant="sunset"
+        size="md"
         staticColors
-        pill
-        borderBeamClassName="rounded-full"
-        leadingSlot={
-          leadingSlot === undefined ? (
-            <Search
-              className={cn(
-                "h-4 w-4",
-                tone === "dark" ? "text-white/45" : "text-muted-foreground"
-              )}
-            />
-          ) : (
-            leadingSlot
-          )
-        }
-        trailingSlot={trailingSlot === undefined ? clearButton : trailingSlot}
-        translucent={focused}
-        className={cn(
-          tone === "dark" && "text-white placeholder:text-white/35",
-          compact && "min-h-0",
-          className
-        )}
-        innerRowClassName={cn(
-          tone === "dark" ? "bg-white/[0.05] px-4" : "bg-background",
-          compact && "min-h-9 py-1",
-          innerRowClassName
-        )}
-        shellClassName={cn(
-          tone === "dark" &&
-            "border-white/10 shadow-none focus-within:border-white/20",
-          shellClassName
-        )}
-      />
+      >
+        <div
+          className="arc-scope [&_label]:sr-only"
+          data-arc-theme={tone === "dark" ? "dark" : undefined}
+          style={shellStyle}
+        >
+          <SearchField
+            {...inputProps}
+            ref={ref}
+            label={typeof placeholder === "string" && placeholder ? placeholder : "Search"}
+            value={typeof value === "string" ? value : ""}
+            onValueChange={handleValueChange}
+            placeholder={placeholder}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            readOnly={!onChange || undefined}
+            className={className}
+          />
+        </div>
+      </BorderBeam>
     )
   }
 )
