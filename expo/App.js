@@ -231,6 +231,7 @@ function Shell() {
         setBuiltInZoomControls={false}
         displayZoomControls={false}
         allowsInlineMediaPlayback
+
         geolocationEnabled
         sharedCookiesEnabled
         style={styles.webview}
