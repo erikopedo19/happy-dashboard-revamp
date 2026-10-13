@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { AnimationPlaybackControls, MotionValue, TargetAndTransition } from "motion/react";
@@ -161,11 +161,11 @@ export function HoldToConfirm({ label, confirmedLabel = "Done", onConfirm, durat
   }
 
   // A reset rewinds the fill as the label morphs back; a confirmation the parent declined rewinds too.
-  const syncFill = useEffectEvent(() => {
+  useEffect(() => {
     if (done && progress.get() < 1 && !source.current) { fill.current?.stop(); if (reduced) progress.jump(1); else fill.current = animate(progress, 1, motionTokens.spring.smooth); }
     if (!done && progress.get() > 0 && !source.current) rewind();
-  });
-  useEffect(() => { syncFill(); }, [done, completions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, completions]);
   useEffect(() => () => { fill.current?.stop(); press.current?.stop(); }, []);
 
   function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {

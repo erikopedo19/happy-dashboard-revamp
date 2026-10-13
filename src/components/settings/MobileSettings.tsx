@@ -201,13 +201,14 @@ export function MobileSettings(props: any) {
       .toUpperCase();
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F2F2F7] dark:bg-[#0A0A0C] text-[#1C1C1E] dark:text-white relative overflow-x-hidden touch-pan-y pb-[max(7rem,env(safe-area-inset-bottom))]">
-      <header className="relative z-10 px-5 pt-4 pb-3">
+    <div className="h-[100dvh] w-full bg-[#F2F2F7] dark:bg-[#0A0A0C] text-[#1C1C1E] dark:text-white relative overflow-hidden flex flex-col">
+      <header className="relative z-10 shrink-0 px-5 pt-4 pb-3">
         <div className="flex h-11 items-center justify-center">
           <h1 className="text-[17px] font-semibold tracking-tight text-[#1C1C1E] dark:text-white">Settings</h1>
         </div>
       </header>
 
+      <div className="relative z-10 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
       <section className="relative z-10 px-6 pb-5 pt-2 text-center">
         <motion.button
           whileTap={{ scale: 0.98 }}
@@ -459,6 +460,7 @@ export function MobileSettings(props: any) {
           Cutzio · v1.0
         </p>
       </section>
+      </div>
 
       <MobileDock />
 

@@ -1,2 +1,5 @@
 Business onboarding uses the existing profile `freelancer_mode` and `business_name` fields for solo versus salon setup; keep both the public onboarding draft and first-login setup aligned so no new schema or role is needed.
 Mobile Settings subpages use their own full-height scrolling area without locking document scrolling, preventing stale scroll locks after overlays close.
+Mobile pages use a fixed `h-[100dvh]`/`h-screen` shell with an inner `overflow-y-auto` region — never let the document itself scroll, and never leave a `transform`/`filter`/`animation-fill-mode` on `body`, `html`, or `#root` (it becomes the containing block for portaled `position:fixed` UI like the dock and pins it to the document bottom).
+npm installs require `--legacy-peer-deps` (`devignerui` wants tailwind >=4 while the app is on tailwind 3); keep `@heroui/theme` installed at top level so nested `@heroui/system-rsc` resolves it. Verify with `npm run build`.
+Expo dev shell lives in `expo/`; if Expo Go shows "couldn't connect to server" on Windows LAN (virtual adapters pick the wrong IP), use `npm run tunnel` — `@expo/ngrok` is installed for that.

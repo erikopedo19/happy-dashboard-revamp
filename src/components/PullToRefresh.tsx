@@ -48,11 +48,14 @@ export function PullToRefresh() {
   const [refreshing, setRefreshing] = useState(false);
   const s = useRef({ tracking: false, startY: 0, pull: 0, refreshing: false });
 
-  // Rubber-band the whole page content down while pulling (native feel).
+  // Rubber-band the page content down while pulling (native feel). Applied to
+  // #root, not body: a body transform turns it into the containing block for
+  // every portaled position:fixed element (dock, sheets, toasts), teleporting
+  // them to the bottom of the document on long pages.
   const setContentPull = (v: number, animated: boolean) => {
-    const body = document.body;
-    body.style.transition = animated ? "transform .32s cubic-bezier(.22,.9,.32,1)" : "none";
-    body.style.transform = v > 0.5 ? `translateY(${v}px)` : "";
+    const el = document.getElementById("root") ?? document.body;
+    el.style.transition = animated ? "transform .32s cubic-bezier(.22,.9,.32,1)" : "none";
+    el.style.transform = v > 0.5 ? `translateY(${v}px)` : "";
   };
 
   useEffect(() => {
@@ -130,8 +133,9 @@ export function PullToRefresh() {
       window.removeEventListener("touchmove", onMove, true);
       window.removeEventListener("touchend", onEnd, true);
       window.removeEventListener("touchcancel", onEnd, true);
-      document.body.style.transition = "";
-      document.body.style.transform = "";
+      const el = document.getElementById("root") ?? document.body;
+      el.style.transition = "";
+      el.style.transform = "";
     };
   }, [qc]);
 

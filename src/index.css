@@ -1136,8 +1136,11 @@ html.no-doc-scroll body {
   0% { opacity: 0; transform: scale(0.985); }
   100% { opacity: 1; transform: scale(1); }
 }
+/* No fill-mode: a lingering transform would make #root the containing block
+   for every position:fixed descendant (dock, sheets) and pin them to the
+   bottom of the document on long pages. */
 html.is-native #root {
-  animation: app-boot-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: app-boot-in 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* iOS-style pressable feedback */

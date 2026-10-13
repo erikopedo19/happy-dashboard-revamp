@@ -34,6 +34,7 @@
     "@fontsource-variable/geist-mono": "^5.2.8",
     "@gsap/react": "^2.1.2",
     "@heroui/react": "^2.8.9",
+    "@heroui/theme": "^2.4.26",
     "@hookform/resolvers": "^3.9.0",
     "@internationalized/date": "^3.11.0",
     "@lovable.dev/mcp-js": "^0.20.0",

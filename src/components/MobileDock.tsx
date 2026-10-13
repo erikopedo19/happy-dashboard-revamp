@@ -4,13 +4,14 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { GlassDock, type DockItem } from '@/components/GlassDock';
 import { RollingText } from '@/components/RollingText';
 import { useOrganization } from '@/hooks/use-organization';
 import { canAccessPage, isRestrictedMember } from '@/lib/pageAccess';
+import { prefetchRouteData } from '@/lib/prefetch';
 
 interface MoreItem {
   label: string;
@@ -38,6 +39,8 @@ const moreItems: MoreItem[] = [
 const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => void; items: MoreItem[] }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Lock body scroll while the overlay is open
   useEffect(() => {
@@ -102,6 +105,7 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
                     damping: 28,
                     delay: 0.04 + (moreItems.length - 1 - i) * 0.04,
                   }}
+                  onPointerDown={() => prefetchRouteData(queryClient, item.path, user?.id)}
                   onClick={() => {
                     onClose();
                     navigate(item.path);
@@ -155,6 +159,7 @@ export const MobileDockInner = () => {
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { membership } = useOrganization();
   const allowedPages = isRestrictedMember(membership?.role, membership?.allowed_pages) ? membership?.allowed_pages : null;
 
@@ -177,7 +182,10 @@ export const MobileDockInner = () => {
   const visibleMainItems = allowedPages ? mainItems.filter((i) => !i.to || canAccessPage(allowedPages, i.to)) : mainItems;
 
   const glassItems: DockItem[] = [
-    ...visibleMainItems,
+    ...visibleMainItems.map((item) => ({
+      ...item,
+      prefetch: item.to ? () => prefetchRouteData(queryClient, item.to!, user?.id) : undefined,
+    })),
     { label: 'More', icon: MoreHorizontal, onClick: () => setMoreOpen(true), color: '#FF2D46' },
   ];
 

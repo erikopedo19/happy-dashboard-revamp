@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChartCard } from "@/components/ui/chart-card";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Area,
@@ -230,6 +230,9 @@ const Reports = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["reports-analytics", user?.id, dateRange, startDate, endDate],
     enabled: !!user,
+    // Keep the previous range on screen while the new one loads — switching
+    // ranges feels instant instead of flashing empty charts.
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!user) return { appointments: [] as AppointmentRow[], stylists: [] as StylistRow[], services: [] as ServiceRow[] };
       const [appointmentsResult, stylistsResult, servicesResult] = await Promise.all([
