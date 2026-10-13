@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { sendOrgInvitation } from "@/lib/invitations";
 import { useOrganization } from "@/hooks/use-organization";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Mail } from "lucide-react";
@@ -35,34 +35,16 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
 
     setLoading(true);
     try {
-      const invitationToken = crypto.randomUUID();
-      const allowedPages = role === "member" ? pages : null;
-
-      // Persist the invitation so accept_invitation can create the membership
-      // with the chosen page access. invitations.org_id is the owner's profile
-      // id (the RLS policy requires org_id = auth.uid()).
-      const { error: inviteError } = await (supabase as any).from("invitations").insert({
-        org_id: user.id,
-        email: email.trim().toLowerCase(),
+      const { emailSent } = await sendOrgInvitation({
+        ownerId: user.id,
+        orgId: organization.id,
+        orgName: organization.name,
+        email,
         role,
-        token: invitationToken,
-        allowed_pages: allowedPages,
-        status: "pending",
-      });
-      if (inviteError) throw inviteError;
-
-      const { error: fnError } = await supabase.functions.invoke("send-invitation", {
-        body: {
-          org_id: organization.id,
-          org_name: organization.name,
-          email: email.trim().toLowerCase(),
-          token: invitationToken,
-          role: role
-        }
+        pages,
       });
 
-      if (fnError) {
-        console.error("Failed to send email:", fnError);
+      if (!emailSent) {
         toast({
           title: "Invitation saved, email failed",
           description: "The invite was created but the email couldn't be sent. Share the link manually.",
