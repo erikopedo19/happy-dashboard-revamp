@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { InviteMemberDialog } from "@/components/InviteMemberDialog";
+import { CreateTeamDialog } from "@/components/CreateTeamDialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -175,7 +176,7 @@ const Teams = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
-      setIsCreateDialogOpen(false);
+
       setFormData({ name: "", description: "", color: "bg-blue-500" });
       toast({ title: "Team created successfully" });
     },
@@ -302,7 +303,7 @@ const Teams = () => {
 
   const handleAddMembers = () => {
     if (!selectedTeam) return;
-    const existingIds = new Set(allTeamMembers.map((m) => m.stylist_id));
+    const existingIds = new Set(allTeamMembers.filter((m) => m.team_id === selectedTeam.id).map((m) => m.stylist_id));
     const newIds = selectedStylistIds.filter((id) => !existingIds.has(id));
     if (newIds.length === 0) {
       toast({
@@ -339,9 +340,9 @@ const Teams = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
+      <div className="h-[100dvh] lg:min-h-screen lg:h-auto overflow-hidden lg:overflow-visible flex w-full bg-background text-foreground">
         <AppSidebar />
-        <main className="flex-1">
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain pb-[max(7rem,env(safe-area-inset-bottom))] lg:pb-0">
           <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] p-4 lg:hidden">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="text-[#1C1C1E] dark:text-white" />
@@ -350,8 +351,8 @@ const Teams = () => {
             </div>
           </div>
 
-          <div className="px-6 lg:px-10 py-8 max-w-[1400px] mx-auto">
-            <div className="flex items-end justify-between mb-8">
+          <div className="px-4 lg:px-10 py-6 max-w-[1400px] mx-auto">
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#8E8E93]">
                   Organization
@@ -515,7 +516,7 @@ const Teams = () => {
             ) : (
               <div className="space-y-3">
                 {stylists.map((stylist) => {
-                  const memberIds = new Set(allTeamMembers.map((m) => m.stylist_id));
+                  const memberIds = new Set(allTeamMembers.filter((m) => m.team_id === selectedTeam?.id).map((m) => m.stylist_id));
                   const alreadyMember = memberIds.has(stylist.id);
                   const checked = selectedStylistIds.includes(stylist.id);
                   return (
@@ -566,61 +567,7 @@ const Teams = () => {
       {/* Invite Dialog (email) */}
       <InviteMemberDialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen} />
 
-      {/* Create Team Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Team</DialogTitle>
-            <DialogDescription>Add a new team to organize your stylists</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Team Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Senior Stylists"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description of the team"
-              />
-            </div>
-            <div>
-              <Label htmlFor="color">Color Theme</Label>
-              <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {colorOptions.map((color) => (
-                    <SelectItem key={color.value} value={color.value}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color.dot }} />
-                        {color.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="bordered" onPress={() => setIsCreateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onPress={handleCreateTeam} isDisabled={!formData.name}>
-              Create Team
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateTeamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onCreate={(data) => createTeamMutation.mutateAsync(data)} />
 
       {/* Edit Team Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
