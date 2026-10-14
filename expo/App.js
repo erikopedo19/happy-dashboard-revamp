@@ -107,12 +107,21 @@ const HAPTIC_VIBRATION_BRIDGE = `
 // page behaves like an app screen instead of a document.
 const NATIVE_FEEL_BOOT = `
   (function () {
+    document.documentElement.classList.add('is-native', 'platform-expo');
+    if (${JSON.stringify(Platform.OS)} === 'ios') document.documentElement.classList.add('platform-ios');
     var style = document.createElement('style');
     style.textContent =
       'html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-touch-callout:none;background:#0A0A0C}' +
       'body{-webkit-user-select:none;user-select:none}' +
+      'button,a,[role="button"]{-webkit-tap-highlight-color:transparent;touch-action:manipulation}' +
       'input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text}';
     (document.head || document.documentElement).appendChild(style);
+    function syncTheme() {
+      var light = document.documentElement.classList.contains('light');
+      window.ReactNativeWebView.postMessage(JSON.stringify({type:'cutzio-theme',light:light}));
+    }
+    syncTheme();
+    new MutationObserver(syncTheme).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   })();
   true;
 `;
@@ -148,6 +157,7 @@ function Shell() {
   const [splashDone, setSplashDone] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [sourceUri, setSourceUri] = useState(WEB_APP_URL);
+  const [lightTheme, setLightTheme] = useState(false);
 
   // iOS: the page is full-bleed and handles notch / home-indicator insets itself
   // (viewport-fit=cover + env()). Android WebViews don't report those reliably,
@@ -255,6 +265,10 @@ function Shell() {
     } catch {
       return;
     }
+    if (message?.type === 'cutzio-theme') {
+      setLightTheme(message.light === true);
+      return;
+    }
     if (message?.type === 'cutzio-push-request') {
       sendPushToken();
       return;
@@ -319,7 +333,7 @@ function Shell() {
   }, [sendPushToken]);
 
   return (
-    <View style={[styles.container, androidInsets]}>
+    <View style={[styles.container, lightTheme && styles.lightSurface, androidInsets]}>
       <WebView
         ref={webView}
         source={{ uri: sourceUri }}
@@ -354,7 +368,7 @@ function Shell() {
 
         geolocationEnabled
         sharedCookiesEnabled
-        style={styles.webview}
+        style={[styles.webview, lightTheme && styles.lightSurface]}
         injectedJavaScriptBeforeContentLoaded={HAPTIC_VIBRATION_BRIDGE + NATIVE_FEEL_BOOT}
         allowsBackForwardNavigationGestures
         javaScriptEnabled
@@ -386,6 +400,12 @@ function Shell() {
           finishSplash();
           setLoadError(true);
         }}
+        onHttpError={(event) => {
+          if (event.nativeEvent.url === sourceUri && event.nativeEvent.statusCode >= 400) {
+            finishSplash();
+            setLoadError(true);
+          }
+        }}
         onMessage={handleMessage}
       />
       {!splashDone && (
@@ -409,12 +429,13 @@ function Shell() {
           </Pressable>
         </View>
       )}
-      <StatusBar style="light" />
+      <StatusBar style={lightTheme && !loadError && splashDone ? 'dark' : 'light'} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  lightSurface: { backgroundColor: '#FFFFFF' },
   container: {
     flex: 1,
     backgroundColor: '#0A0A0C',
