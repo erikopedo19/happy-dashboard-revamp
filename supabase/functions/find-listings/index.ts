@@ -40,11 +40,13 @@ const schema = {
   },
 };
 
+let lastCountry = "";
 async function reverseCity(lat: number, lng: number): Promise<string | null> {
   try {
     const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lng}`, { headers: { "User-Agent": "Cutzioo/1.0 (cutzioo.com)" } });
     const j = await r.json();
     const a = j?.address ?? {};
+    lastCountry = String(a.country_code ?? "").toUpperCase();
     return a.city || a.town || a.municipality || a.county || a.state || null;
   } catch { return null; }
 }
@@ -61,7 +63,10 @@ Deno.serve(async (req) => {
     const lat = Number(body.lat), lng = Number(body.lng);
     let city = typeof body.city === "string" ? body.city.slice(0, 60).trim() : "";
     if (!city && Number.isFinite(lat) && Number.isFinite(lng)) city = (await reverseCity(lat, lng)) ?? "";
-    if (!city) return json({ error: "We couldn't tell where you are. Allow location or type a city." }, 400);
+    // No location → search worldwide instead of failing
+    const worldwide = !city || /^(world|worldwide|everywhere|anywhere)$/i.test(city);
+    if (worldwide) city = "Worldwide";
+    const country = worldwide ? "" : lastCountry;
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     // Cache: each city is searched at most once per 24h, even when nothing was found
@@ -73,22 +78,29 @@ Deno.serve(async (req) => {
     const LOVABLE = Deno.env.get("LOVABLE_API_KEY"), FC = Deno.env.get("FIRECRAWL_API_KEY");
     if (!LOVABLE || !FC) return json({ error: "Listing search is not set up yet." }, 500);
 
+    const where = worldwide ? "" : ` ${city}`;
     const queries = [
+      `barber job hiring${where}`,
+      `hairdresser stylist job vacancy${where}`,
+      `nail technician job opening${where}`,
+      `barber chair rental booth rent${where}`,
+      `salon suite for rent${where}`,
+      `barbershop for sale or lease${where}`,
+    ];
+    const isGreek = !worldwide && (country === "GR" || country === "CY" || /[\u0370-\u03ff]/.test(city));
+    if (isGreek) queries.push(
       `ενοικίαση καρέκλας κουρείο ${city}`,
       `ζητείται κουρέας ${city}`,
       `ζητείται κομμώτρια κομμωτήριο ${city}`,
-      `ζητείται nail artist ${city}`,
       `κουρείο κομμωτήριο προς ενοικίαση ${city}`,
-      `ενοικίαση καταστήματος ${city} spitogatos`,
-      `επαγγελματικός χώρος προς ενοικίαση ισόγειο κατάστημα ${city}`,
       `παραχώρηση κομμωτηρίου εξοπλισμένο ${city}`,
-    ];
+    );
     const results: { url: string; title: string; description: string }[] = [];
     for (const q of queries) {
       const r = await fetch("https://connector-gateway.lovable.dev/firecrawl/v2/search", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE}`, "X-Connection-Api-Key": FC },
-        body: JSON.stringify({ query: q, limit: 6, tbs: "qdr:m", country: "GR" }),
+        body: JSON.stringify({ query: q, limit: 6, tbs: "qdr:m", ...(country ? { country } : {}) }),
       });
       if (!r.ok) { console.error("firecrawl", r.status, await r.text()); if (r.status === 402 || r.status === 403) break; continue; }
       const j = await r.json();
