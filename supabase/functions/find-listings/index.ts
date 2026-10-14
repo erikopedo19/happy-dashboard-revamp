@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "openai/gpt-6-astra", stream: true, store: false,
         reasoning: { effort: "low", summary: "auto" }, include: ["reasoning.encrypted_content"],
-        instructions: "You sort public web search results for a barber app. Keep ONLY results that are a single, specific, current listing: a chair/booth for rent in a barbershop or salon (kind=rent), a whole shop, salon or small ground-floor commercial space for rent or takeover that could host a barbershop, hair or nail salon (kind=space), or a job opening for a barber, hairdresser or nail artist (kind=job). Drop directories, category pages, articles, social profiles and anything unrelated. Legal filter: drop any ad that discriminates (age, gender, nationality, religion, etc.), offers undeclared/cash-in-hand work, looks like a scam, or is behind a login/paywall. Never invent facts: use only what the title/snippet says; use null when unknown. contact_phone only if it is a business number published in the ad itself, else null. Do not copy the ad text verbatim: write your own title and short_description (max 25 words) in English. profession: barber, salon (hairdresser) or nails.",
+        instructions: "You sort public web search results for a barber app. Keep ONLY results that are a single, specific, current listing: a chair/booth for rent in a barbershop or salon (kind=rent), a whole shop, salon or small ground-floor commercial space for rent or takeover that could host a barbershop, hair or nail salon (kind=space), or a job opening for a barber, hairdresser or nail artist (kind=job). Drop directories, category pages, articles, social profiles and anything unrelated. Legal filter: drop any ad that discriminates (age, gender, nationality, religion, etc.), offers undeclared/cash-in-hand work, looks like a scam, or is behind a login/paywall. Never invent facts: use only what the title/snippet says; use null when unknown. contact_phone only if it is a business number published in the ad itself, else null. Do not copy the ad text verbatim: write your own title and short_description (max 25 words) in English. profession: barber, salon (hairdresser) or nails. Ads may be from any country and in any language; location should be \"City, Country\" when known.",
         input: `City: ${city}\n\nResults:\n${results.map((r, i) => `[${i}] ${r.title}\n${r.url}\n${r.description}`).join("\n\n")}`,
         text: { format: { type: "json_schema", name: "listings", strict: true, schema } },
       }),
@@ -160,7 +160,8 @@ Deno.serve(async (req) => {
         const j = await r.json();
         const m = j?.data?.metadata ?? j?.metadata ?? {};
         const img = m.ogImage || m["og:image"] || m.twitterImage || m["twitter:image"];
-        return typeof img === "string" && img.startsWith("http") ? img : null;
+        // Only the publisher's own share preview image (og/twitter), hot-linked, never re-hosted.
+        return typeof img === "string" && img.startsWith("https://") ? img : null;
       } catch { return null; }
     };
 
@@ -171,8 +172,8 @@ Deno.serve(async (req) => {
       return {
         kind: l.kind, profession: l.profession,
         title: String(l.title).slice(0, 120), short_description: String(l.short_description ?? "").slice(0, 300),
-        location: l.location ? `${l.location}${l.location.includes(city) ? "" : `, ${city}`}` : city,
-        latitude: Number.isFinite(lat) ? lat : null, longitude: Number.isFinite(lng) ? lng : null,
+        location: worldwide ? (l.location ?? null) : l.location ? `${l.location}${l.location.includes(city) ? "" : `, ${city}`}` : city,
+        latitude: !worldwide && Number.isFinite(lat) ? lat : null, longitude: !worldwide && Number.isFinite(lng) ? lng : null,
         price_text: l.price_text, contact_phone: l.contact_phone,
         cover_url,
         source_url: src.url, source_name: host, ai_found: true, published: true,
