@@ -12,7 +12,7 @@ import { Loader2, Check, Calendar as CalendarIcon, Clock, Scissors, ArrowLeft, S
 import { cn } from "@/lib/utils";
 import { getBrowserTimezone, formatTzLabel } from "@/lib/tz";
 import { generateBookingTimeSlots, getAvailableBookingSlots, type BookedSlotLike } from "@/lib/bookingSlots";
-import { Calendar as ArcCalendar } from "@/components/arc/calendar/calendar";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SlotRail } from "@/components/SlotRail";
 import { haptic } from "@/lib/haptics";
@@ -298,7 +298,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       <SheetContent
         side="bottom"
         hideClose
-        className="z-[90] rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5]/85 dark:bg-[#1C1C1E]/85 p-0 max-h-[92vh] overflow-hidden flex flex-col"
+        className="z-[90] rounded-t-[32px] border border-black/5 dark:border-white/10 bg-[#FAF7F5] dark:bg-[#1C1C1E] p-0 max-h-[92vh] overflow-hidden flex flex-col"
       >
         {/* Grabber */}
         <div className="pt-3 pb-1 flex justify-center shrink-0">
@@ -413,16 +413,22 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="z-[95] w-auto p-0 rounded-2xl" align="end">
-                        <ArcCalendar
-                          value={date}
-                          onChange={(d) => {
-                            haptic("selection");
-                            setDate(d);
-                            setTime("");
-                            setCalendarOpen(false);
+                        <CalendarPicker
+                          mode="single"
+                          selected={date}
+                          onSelect={(d) => {
+                            if (d) {
+                              haptic("selection");
+                              setDate(d);
+                              setTime("");
+                              setCalendarOpen(false);
+                            }
                           }}
-                          minDate={new Date()}
-                          disabledDates={(d) => !workingDays.includes(d.getDay())}
+                          disabled={[
+                            { before: startOfDay(new Date()) },
+                            { dayOfWeek: [0, 1, 2, 3, 4, 5, 6].filter((d) => !workingDays.includes(d)) },
+                          ]}
+                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>

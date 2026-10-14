@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { InviteMemberDialog } from "@/components/InviteMemberDialog";
+import { CreateTeamDialog } from "@/components/CreateTeamDialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -19,12 +20,9 @@ import { Badge } from "@/components/ui/badge";
 import { CutziooLoader } from "@/components/CutziooLoader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar, Check } from "lucide-react";
+import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
 import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
-import { TeamSetupStepper } from "@/components/TeamSetupStepper";
-import { sendOrgInvitation } from "@/lib/invitations";
-import { MEMBER_PAGES, DEFAULT_MEMBER_PAGES } from "@/lib/pageAccess";
 
 interface Team {
   id: string;
@@ -65,13 +63,6 @@ const Teams = () => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [formData, setFormData] = useState({ name: "", description: "", color: "bg-blue-500" });
   const [selectedStylistIds, setSelectedStylistIds] = useState<string[]>([]);
-  const [createStep, setCreateStep] = useState(0);
-  const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("member");
-  const [invitePages, setInvitePages] = useState<string[]>([...DEFAULT_MEMBER_PAGES]);
-  const [inviteSending, setInviteSending] = useState(false);
-  const [invitesSent, setInvitesSent] = useState(0);
   const isPremium = true; // placeholder plan flag
   const maxTeams = isPremium ? 3 : 1;
 
@@ -151,35 +142,33 @@ const Teams = () => {
     enabled: !!user,
   });
 
-  // Create team mutation — returns the new row so the wizard can keep editing it
+  // Create team mutation
   const createTeamMutation = useMutation({
-    mutationFn: async (data: typeof formData): Promise<{ id: string } | null> => {
+    mutationFn: async (data: typeof formData) => {
       try {
         const userId = user?.id;
         if (!userId) throw new Error("User ID not available");
-        const { data: row, error } = await (db.from("teams" as any) as any).insert({
+        const { error } = await (db.from("teams" as any) as any).insert({
           user_id: userId,
           org_id: organization?.id,
           name: data.name,
           description: data.description,
           color: data.color,
-        }).select("id").single();
+        });
         if (error) throw error;
-        return row;
       } catch (error: any) {
         if (error.message && error.message.includes("column") && error.message.includes("color")) {
           const userId = user?.id;
           if (!userId) throw new Error("User ID not available");
-
-          const { data: row, error: fallbackError } = await (db.from("teams" as any) as any).insert({
+          
+          const { error: fallbackError } = await (db.from("teams" as any) as any).insert({
             user_id: userId,
             org_id: organization?.id,
             name: data.name,
             description: data.description,
             color: data.color,
-          }).select("id").single();
+          });
           if (fallbackError) throw fallbackError;
-          return row;
         } else {
           throw error;
         }
@@ -187,6 +176,8 @@ const Teams = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+
+      setFormData({ name: "", description: "", color: "bg-blue-500" });
       toast({ title: "Team created successfully" });
     },
     onError: (error: any) => {
@@ -294,70 +285,8 @@ const Teams = () => {
     },
   });
 
-  const resetCreateWizard = () => {
-    setCreateStep(0);
-    setCreatedTeamId(null);
-    setFormData({ name: "", description: "", color: "bg-blue-500" });
-    setInviteEmail("");
-    setInviteRole("member");
-    setInvitePages([...DEFAULT_MEMBER_PAGES]);
-    setInvitesSent(0);
-  };
-
-  const handleCreateDialogChange = (open: boolean) => {
-    setIsCreateDialogOpen(open);
-    if (!open) resetCreateWizard();
-  };
-
-  // Step 0 → creates the team the first time; stepping back edits the same row.
-  const handleContinueDetails = () => {
-    if (createdTeamId) {
-      updateTeamMutation.mutate({ ...formData, id: createdTeamId }, { onSuccess: () => setCreateStep(1) });
-    } else {
-      createTeamMutation.mutate(formData, {
-        onSuccess: (row) => {
-          setCreatedTeamId(row?.id ?? null);
-          setCreateStep(1);
-        },
-      });
-    }
-  };
-
-  const toggleInvitePage = (path: string) =>
-    setInvitePages((prev) => (prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]));
-
-  const handleWizardInvite = async () => {
-    if (!inviteEmail.trim() || !user || !organization) return;
-    setInviteSending(true);
-    try {
-      const { emailSent } = await sendOrgInvitation({
-        ownerId: user.id,
-        orgId: organization.id,
-        orgName: organization.name,
-        email: inviteEmail,
-        role: inviteRole,
-        pages: inviteRole === "member" ? invitePages : null,
-      });
-      if (emailSent) {
-        toast({ title: "Invitation sent", description: `An invitation has been sent to ${inviteEmail}` });
-      } else {
-        toast({
-          title: "Invitation saved, email failed",
-          description: "The invite was created but the email couldn't be sent. Share the link manually.",
-          variant: "destructive",
-        });
-      }
-      setInvitesSent((c) => c + 1);
-      setInviteEmail("");
-    } catch (error: any) {
-      toast({
-        title: "Failed to invite member",
-        description: error?.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setInviteSending(false);
-    }
+  const handleCreateTeam = () => {
+    createTeamMutation.mutate(formData);
   };
 
   const handleUpdateTeam = () => {
@@ -374,7 +303,7 @@ const Teams = () => {
 
   const handleAddMembers = () => {
     if (!selectedTeam) return;
-    const existingIds = new Set(allTeamMembers.map((m) => m.stylist_id));
+    const existingIds = new Set(allTeamMembers.filter((m) => m.team_id === selectedTeam.id).map((m) => m.stylist_id));
     const newIds = selectedStylistIds.filter((id) => !existingIds.has(id));
     if (newIds.length === 0) {
       toast({
@@ -411,9 +340,9 @@ const Teams = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
+      <div className="h-[100dvh] lg:min-h-screen lg:h-auto overflow-hidden lg:overflow-visible flex w-full bg-background text-foreground">
         <AppSidebar />
-        <main className="flex-1">
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain pb-[max(7rem,env(safe-area-inset-bottom))] lg:pb-0">
           <div className="sticky top-0 z-10 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] p-4 lg:hidden">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="text-[#1C1C1E] dark:text-white" />
@@ -422,8 +351,8 @@ const Teams = () => {
             </div>
           </div>
 
-          <div className="px-6 lg:px-10 py-8 max-w-[1400px] mx-auto">
-            <div className="flex items-end justify-between mb-8">
+          <div className="px-4 lg:px-10 py-6 max-w-[1400px] mx-auto">
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#8E8E93]">
                   Organization
@@ -587,7 +516,7 @@ const Teams = () => {
             ) : (
               <div className="space-y-3">
                 {stylists.map((stylist) => {
-                  const memberIds = new Set(allTeamMembers.map((m) => m.stylist_id));
+                  const memberIds = new Set(allTeamMembers.filter((m) => m.team_id === selectedTeam?.id).map((m) => m.stylist_id));
                   const alreadyMember = memberIds.has(stylist.id);
                   const checked = selectedStylistIds.includes(stylist.id);
                   return (
@@ -638,171 +567,7 @@ const Teams = () => {
       {/* Invite Dialog (email) */}
       <InviteMemberDialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen} />
 
-      {/* Create Team Dialog — stepped popup: details → invite → ready */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={handleCreateDialogChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {createStep === 0 ? "Create New Team" : createStep === 1 ? "Invite your team" : "You're all set"}
-            </DialogTitle>
-            <DialogDescription>
-              {createStep === 0
-                ? "Add a new team to organize your stylists"
-                : createStep === 1
-                  ? "Email an invitation to join your organization"
-                  : `${formData.name || "Your team"} is ready`}
-            </DialogDescription>
-          </DialogHeader>
-          <TeamSetupStepper current={createStep} onStepSelect={setCreateStep} />
-
-          {createStep === 0 && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Team Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Senior Stylists"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of the team"
-                />
-              </div>
-              <div>
-                <Label htmlFor="color">Color Theme</Label>
-                <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colorOptions.map((color) => (
-                      <SelectItem key={color.value} value={color.value}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color.dot }} />
-                          {color.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {createStep === 1 && (
-            <div className="space-y-4">
-              {organization ? (
-                <>
-                  <div>
-                    <Label htmlFor="invite-email">Email address</Label>
-                    <Input
-                      id="invite-email"
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="colleague@example.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="invite-role">Role</Label>
-                    <Select value={inviteRole} onValueChange={setInviteRole}>
-                      <SelectTrigger id="invite-role">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="member">Member (Limited Access)</SelectItem>
-                        <SelectItem value="admin">Admin (Full Access)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {inviteRole === "member" && (
-                    <div>
-                      <Label>Pages they can see</Label>
-                      <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-border p-3 max-h-36 overflow-y-auto">
-                        {MEMBER_PAGES.map((p) => (
-                          <label key={p.path} className="flex items-center gap-2 py-1 text-sm cursor-pointer">
-                            <Checkbox
-                              checked={invitePages.includes(p.path)}
-                              onCheckedChange={() => toggleInvitePage(p.path)}
-                            />
-                            {p.label}
-                          </label>
-                        ))}
-                      </div>
-                      {invitePages.length === 0 && (
-                        <p className="mt-1 text-xs text-[#E0152F]">Pick at least one page, or they'll only see Settings.</p>
-                      )}
-                    </div>
-                  )}
-                  <Button
-                    variant="bordered"
-                    className="w-full"
-                    onPress={handleWizardInvite}
-                    isLoading={inviteSending}
-                    isDisabled={!inviteEmail.trim() || (inviteRole === "member" && invitePages.length === 0)}
-                  >
-                    <UserPlus className="h-4 w-4 mr-1.5" />
-                    Send invitation
-                  </Button>
-                  {invitesSent > 0 && (
-                    <p className="text-xs text-center text-muted-foreground">
-                      {invitesSent} invitation{invitesSent > 1 ? "s" : ""} sent
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Set up an organization first to invite members — you can always invite later from the team card.
-                </p>
-              )}
-            </div>
-          )}
-
-          {createStep === 2 && (
-            <div className="flex flex-col items-center gap-2 py-6 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#34C759]/15">
-                <Check className="h-6 w-6 text-[#34C759]" />
-              </div>
-              <p className="text-base font-semibold">{formData.name || "Your team"} is ready</p>
-              <p className="text-sm text-muted-foreground">
-                {invitesSent > 0 ? `${invitesSent} invitation${invitesSent > 1 ? "s" : ""} sent. ` : ""}
-                Add stylists to the team from its card anytime.
-              </p>
-            </div>
-          )}
-
-          <DialogFooter>
-            {createStep === 0 && (
-              <>
-                <Button variant="bordered" onPress={() => handleCreateDialogChange(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onPress={handleContinueDetails}
-                  isDisabled={!formData.name || createTeamMutation.isPending || updateTeamMutation.isPending}
-                >
-                  {createTeamMutation.isPending || updateTeamMutation.isPending ? "Saving..." : "Continue"}
-                </Button>
-              </>
-            )}
-            {createStep === 1 && (
-              <Button onPress={() => setCreateStep(2)}>
-                {invitesSent > 0 ? "Continue" : "Skip for now"}
-              </Button>
-            )}
-            {createStep === 2 && (
-              <Button onPress={() => handleCreateDialogChange(false)}>Done</Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateTeamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onCreate={(data) => createTeamMutation.mutateAsync(data)} />
 
       {/* Edit Team Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

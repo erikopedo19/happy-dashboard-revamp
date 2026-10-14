@@ -38,7 +38,6 @@ import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
 import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
-import { CookieConsent } from "./components/arc/cookie-consent/cookie-consent";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
 import { PullToRefresh } from "./components/PullToRefresh";
@@ -426,15 +425,6 @@ function App() {
                   <FreeUpgradeBanner />
                   <UpdatePopup />
                   <GuestSignupDrawer />
-                  <CookieConsent
-                    storageKey="cutzioo-consent"
-                    version="1"
-                    showReopenButton={false}
-                    policy={{ label: "Privacy & cookie policy", href: "/privacy" }}
-                    labels={{
-                      message: "Cutzioo uses cookies to keep you signed in, remember your choices, and understand usage. By continuing you accept our Terms of Service.",
-                    }}
-                  />
                   <ScrollToTop />
                   <NativeShell />
                   <NativeScrollGuard />

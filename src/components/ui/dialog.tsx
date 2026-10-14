@@ -18,9 +18,8 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    data-native-surface="sheet"
     className={cn(
-      "fixed inset-0 z-50 bg-black/55 backdrop-blur-[2px]  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -63,10 +62,9 @@ const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={setRefs}
-      data-native-surface="sheet"
       className={cn(
         // Mobile: bottom sheet with iOS-style spring slide-up, safe-area, drag handle space
-        "cz-morph-dialog fixed z-50 bg-background/80 backdrop-blur-xl backdrop-saturate-150 shadow-2xl duration-300",
+        "cz-morph-dialog fixed z-50 bg-background shadow-2xl duration-300",
         "inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto overscroll-contain rounded-t-3xl border-t p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",

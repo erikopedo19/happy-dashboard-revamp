@@ -113,15 +113,16 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { user } = useAuth();
-  const presetRole = params.get("role") as "barber" | "client" | null;
+  const inviteToken = params.get("invite")?.trim() || "";
+  const presetRole = inviteToken ? "barber" : params.get("role") as "barber" | "client" | null;
 
   const [data, setData] = useState<OnboardingDraft>(() => {
     try {
       const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
       const base = raw ? { ...DEFAULT_DRAFT, ...JSON.parse(raw) } : DEFAULT_DRAFT;
-      return presetRole ? { ...base, role: presetRole } : base;
+      return inviteToken ? { ...base, role: "barber", workType: "team", teamInviteCode: inviteToken } : presetRole ? { ...base, role: presetRole } : base;
     } catch {
-      return presetRole ? { ...DEFAULT_DRAFT, role: presetRole } : DEFAULT_DRAFT;
+      return inviteToken ? { ...DEFAULT_DRAFT, role: "barber", workType: "team", teamInviteCode: inviteToken } : presetRole ? { ...DEFAULT_DRAFT, role: presetRole } : DEFAULT_DRAFT;
     }
   });
 

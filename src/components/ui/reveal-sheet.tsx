@@ -202,7 +202,6 @@ const RevealSheetPanel = ({
   return (
     <Dialog.Content
       ref={contentRef}
-      data-native-surface="sheet"
       onOpenAutoFocus={() => {
         returnFocusRef.current =
           document.activeElement instanceof HTMLElement
@@ -217,7 +216,7 @@ const RevealSheetPanel = ({
         target.focus({ preventScroll: true });
       }}
       className={cn(
-        "fixed z-50 flex flex-col overflow-hidden border-border/80 bg-[linear-gradient(155deg,rgba(255,255,255,0.82)_0%,rgba(245,245,247,0.82)_100%)] backdrop-blur-xl backdrop-saturate-150 text-foreground shadow-[0_24px_80px_-28px_rgba(0,0,0,0.75)] outline-none dark:bg-[linear-gradient(155deg,rgba(28,28,32,0.82)_0%,rgba(16,16,19,0.82)_100%)]",
+        "fixed z-50 flex flex-col overflow-hidden border-border/80 bg-[linear-gradient(155deg,#fff_0%,#f5f5f7_100%)] text-foreground shadow-[0_24px_80px_-28px_rgba(0,0,0,0.75)] outline-none dark:bg-[linear-gradient(155deg,#1c1c20_0%,#101013_100%)]",
         sideClasses[side],
         className,
       )}
