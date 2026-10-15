@@ -223,7 +223,7 @@ export function Testimonial() {
 const FAQS = [
   {
     q: "Is Cutzioo free to start?",
-    a: "Yes, your first month is free, with no card needed. Claim your booking link, add your services and you're live in minutes.",
+    a: "Yes. The free plan includes your booking link, agenda and up to 15 bookings a month. Upgrade to Pro whenever you're ready — cancel anytime.",
   },
   {
     q: "Do my clients need to download an app?",
