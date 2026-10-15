@@ -8,10 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Seo } from "@/components/Seo";
 import { EventsManagePanel } from "@/components/EventsManagePanel";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  Loader2, Plus, Trash2, Pencil, AlertCircle, RefreshCw,
+  Loader2, Plus, Pencil, AlertCircle, RefreshCw,
   KeyRound, Briefcase, MapPin, ChevronDown, Phone, User, Inbox,
 } from "lucide-react";
 
@@ -149,7 +150,10 @@ function ListingsManagePanel() {
 
   async function remove(id: string) {
     const { error: err } = await (supabase as any).from("listings").delete().eq("id", id);
-    if (err) return toast.error("Couldn't delete the listing.");
+    if (err) {
+      toast.error("Couldn't delete the listing.");
+      throw err;
+    }
     toast.success("Listing deleted");
     load();
   }
@@ -274,9 +278,15 @@ function ListingsManagePanel() {
                 <Button size="icon" variant="ghost" className="rounded-full" onClick={() => { setEditingId(l.id); setForm({ ...emptyListing, ...l }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
                   <Pencil className="w-4 h-4" />
                 </Button>
-                <Button size="icon" variant="ghost" className="rounded-full text-red-500" onClick={() => remove(l.id)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <DeleteButton
+                  label="Delete listing"
+                  confirmLabel="Delete"
+                  pendingLabel="Deleting"
+                  doneLabel="Deleted"
+                  onConfirm={() => remove(l.id)}
+                  className="bg-transparent shadow-none"
+                  classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+                />
               </div>
 
               <button

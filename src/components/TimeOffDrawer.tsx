@@ -5,10 +5,11 @@ import {
   eachDayOfInterval,
   format,
 } from "date-fns";
-import { Loader2, Palmtree, Sunset, Trash2 } from "lucide-react";
+import { Loader2, Palmtree, Sunset } from "lucide-react";
 import { Button } from "@heroui/react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { DateRangePicker, type DateRange } from "@/components/ui/date-range-picker";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -211,12 +212,16 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
                       <div className="text-[14px] font-medium text-[#1C1C1E] dark:text-white">{format(new Date(d.off_date), "EEE, MMM d")}</div>
                       <div className="text-[12px] text-[#8E8E93] dark:text-white/40 capitalize">{d.reason || "closed"}</div>
                     </div>
-                    <button
-                      onClick={() => removeDay(d.id)}
-                      className="w-9 h-9 rounded-full bg-black/[0.04] dark:bg-white/5 flex items-center justify-center active:scale-95 transition"
-                    >
-                      <Trash2 className="w-4 h-4 text-[#8E8E93] dark:text-white/60" />
-                    </button>
+                    <DeleteButton
+                      label="Remove day off"
+                      confirmLabel="Remove"
+                      cancelLabel="Keep"
+                      pendingLabel="Removing"
+                      doneLabel="Removed"
+                      onConfirm={() => removeDay(d.id)}
+                      className="bg-transparent shadow-none"
+                      classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+                    />
                   </div>
                 ))}
               </div>

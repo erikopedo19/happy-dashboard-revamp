@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Loader2, Maximize2, Minimize2, Trash2, Volume2, VolumeX, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Maximize2, Minimize2, Volume2, VolumeX, X } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 type Story = {
   id: string;
@@ -174,7 +175,7 @@ export function StoryViewer({
   const qc = useQueryClient();
 
   const handleDelete = async () => {
-    if (!story || !user || !confirm("Delete this story?")) return;
+    if (!story || !user) return;
     setBusy(true);
     try {
       const { error: dbError } = await supabase.from("stories").delete().eq("id", story.id);
@@ -187,6 +188,7 @@ export function StoryViewer({
       closeViewer();
     } catch (e: any) {
       toast({ title: "Could not delete story", description: e?.message, variant: "destructive" });
+      throw e;
     } finally {
       setBusy(false);
     }
@@ -310,14 +312,15 @@ export function StoryViewer({
               {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </button>
             {user?.id === group?.user_id && (
-              <button
-                onClick={handleDelete}
-                disabled={busy}
-                className="p-1.5 rounded-full bg-white/10 text-white backdrop-blur disabled:opacity-50"
-                aria-label="Delete story"
-              >
-                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-              </button>
+              <DeleteButton
+                label="Delete story"
+                confirmLabel="Delete"
+                pendingLabel="Deleting"
+                doneLabel="Deleted"
+                onConfirm={handleDelete}
+                className="bg-white/10 text-white backdrop-blur shadow-none"
+                classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+              />
             )}
             {onToggle && (
               <button

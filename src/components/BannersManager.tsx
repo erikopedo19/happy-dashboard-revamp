@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Banner } from "@/components/Banner";
-import { Loader2, Plus, Trash2, Megaphone } from "lucide-react";
+import { Loader2, Plus, Megaphone } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 interface BannerRecord {
   id: string;
@@ -109,12 +110,12 @@ export function BannersManager() {
   };
 
   const deleteBanner = async (id: string) => {
-    if (!window.confirm("Delete this banner?")) return;
     setBanners((prev) => prev.filter((b) => b.id !== id));
     const { error } = await (supabase as any).from("banners").delete().eq("id", id);
     if (error) {
       toast.error("Delete failed", { description: error.message });
       fetchBanners();
+      throw error;
     }
   };
 
@@ -194,9 +195,15 @@ export function BannersManager() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <Switch checked={banner.active} onCheckedChange={() => toggleActive(banner)} />
-                    <Button variant="ghost" size="icon" className="rounded-full text-destructive" onClick={() => deleteBanner(banner.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <DeleteButton
+                      label="Delete banner"
+                      confirmLabel="Delete"
+                      pendingLabel="Deleting"
+                      doneLabel="Deleted"
+                      onConfirm={() => deleteBanner(banner.id)}
+                      className="bg-transparent shadow-none"
+                      classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+                    />
                   </div>
                 </div>
               ))}

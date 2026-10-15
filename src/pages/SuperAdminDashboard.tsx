@@ -18,6 +18,7 @@ import { ArrowLeft, Shield, Crown, Users, CheckCircle2, XCircle, RefreshCcw, Loa
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { OffersPanel } from "@/components/OffersPanel";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { ActiveBarbersCard } from "@/components/ActiveBarbersCard";
 
 
@@ -235,13 +236,12 @@ export default function SuperAdminDashboard() {
   };
 
   const clearFakeShops = async () => {
-    if (!confirm("Delete ALL fake barbershops?")) return;
     setFakeShopsBusy(true);
     const { error } = await (supabase as any).functions.invoke("superadmin-users", {
       body: { action: "clear_fake_shops" },
     });
     setFakeShopsBusy(false);
-    if (error) { toast.error("Clear failed", { description: error.message }); return; }
+    if (error) { toast.error("Clear failed", { description: error.message }); throw error; }
     setFakeShopsCount(0);
     toast.success("All fake barbershops removed");
   };
@@ -568,14 +568,14 @@ export default function SuperAdminDashboard() {
                     {fakeShopsBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                     Generate now
                   </Button>
-                  <Button
-                    onPress={clearFakeShops}
-                    isDisabled={fakeShopsBusy || fakeShopsCount === 0}
-                    variant="bordered"
-                    className="rounded-full"
-                  >
-                    Clear all
-                  </Button>
+                  <DeleteButton
+                    label="Clear all"
+                    confirmLabel="Delete all"
+                    pendingLabel="Clearing"
+                    doneLabel="Cleared"
+                    disabled={fakeShopsBusy || fakeShopsCount === 0}
+                    onConfirm={clearFakeShops}
+                  />
                 </div>
               </div>
             </CardContent>

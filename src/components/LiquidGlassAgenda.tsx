@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 // Custom SVG icons for a more distinctive day-off icon design
 const CustomDayOffIcon = ({ type, className }: { type: string; className?: string }) => {
@@ -540,7 +541,7 @@ export const LiquidGlassAgenda = ({
     } catch (e: any) {
       haptic("error");
       toast({ title: "Couldn't cancel", description: e?.message || "Please try again.", variant: "destructive" });
-
+      throw e;
     } finally {
       setCancellingId(null);
     }
@@ -2046,27 +2047,20 @@ export const LiquidGlassAgenda = ({
               </div>
 
               {contextMenu.appointment.status !== "cancelled" && !isAppointmentPast(contextMenu.appointment) && (
-                <button
-                  onClick={() => {
-                    if (cancellingId) return;
-                    if (window.confirm("Cancel this appointment? The client's slot will be freed up.")) {
-                      cancelAppointment(contextMenu.appointment.id);
-                    }
-                  }}
-                  disabled={cancellingId === contextMenu.appointment.id}
-                  className={cn(
-                    "mt-3 w-full h-11 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60",
-                    isDark
-                      ? "bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/20"
-                      : "bg-red-50 hover:bg-red-100 text-red-600 border border-red-100"
-                  )}
-                >
-                  {cancellingId === contextMenu.appointment.id ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Cancelling…</>
-                  ) : (
-                    <><Ban className="h-4 w-4" /> Cancel appointment</>
-                  )}
-                </button>
+                <div className="mt-3 flex justify-center">
+                  <DeleteButton
+                    label="Cancel appointment"
+                    confirmLabel="Yes, cancel it"
+                    cancelLabel="Keep"
+                    pendingLabel="Cancelling"
+                    doneLabel="Cancelled"
+                    disabled={!!cancellingId}
+                    onConfirm={() => cancelAppointment(contextMenu.appointment.id)}
+                    onError={() => {}}
+                    className={cn("shadow-elevated", isDark && "bg-[#1C1C1E] text-white")}
+                    classNames={{ tile: "text-red-500" }}
+                  />
+                </div>
               )}
 
               {contextMenu.appointment.status === "cancelled" && !isAppointmentPast(contextMenu.appointment) && (

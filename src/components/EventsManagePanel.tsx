@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Pencil, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, Plus, Pencil, AlertCircle, RefreshCw } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 import type { EventRow } from "@/components/EventsPanel";
 
 const empty = {
@@ -63,7 +64,10 @@ export function EventsManagePanel() {
 
   async function remove(id: string) {
     const { error: err } = await supabase.from("events").delete().eq("id", id);
-    if (err) return toast.error("Couldn't delete the event.");
+    if (err) {
+      toast.error("Couldn't delete the event.");
+      throw err;
+    }
     toast.success("Event deleted");
     load();
   }
@@ -130,9 +134,15 @@ export function EventsManagePanel() {
             <Button size="icon" variant="ghost" className="rounded-full" onClick={() => { setEditingId(e.id); setForm({ ...empty, ...e }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
               <Pencil className="w-4 h-4" />
             </Button>
-            <Button size="icon" variant="ghost" className="rounded-full text-red-500" onClick={() => remove(e.id)}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <DeleteButton
+              label="Delete event"
+              confirmLabel="Delete"
+              pendingLabel="Deleting"
+              doneLabel="Deleted"
+              onConfirm={() => remove(e.id)}
+              className="bg-transparent shadow-none"
+              classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+            />
           </div>
         ))}
       </div>

@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, Phone, Loader2, CheckCircle2, XCircle, ArrowLe
 import { format, addDays, startOfDay } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { ScreenLoader } from "@/components/ScreenLoader";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 type Booking = {
   id: string;
@@ -78,13 +79,12 @@ export default function ManageBooking() {
 
   const handleCancel = async () => {
     if (!token) return;
-    if (!confirm("Cancel this booking? This cannot be undone.")) return;
     setBusy(true);
     const { data, error } = await (supabase as any).rpc("cancel_appointment_by_token", { _token: token });
     setBusy(false);
     if (error || !data?.success) {
       toast({ title: "Could not cancel", description: data?.error || error?.message, variant: "destructive" });
-      return;
+      throw error ?? new Error(data?.error || "Cancel failed");
     }
     toast({ title: "Booking cancelled" });
     fetchBooking();
@@ -226,14 +226,19 @@ export default function ManageBooking() {
                 >
                   Reschedule
                 </Button>
-                <Button
-                  onPress={handleCancel}
-                  isDisabled={busy}
-                  variant="bordered"
-                  className="h-14 rounded-2xl text-base font-semibold border-white/15 bg-white/5 text-white hover:bg-white/10"
-                >
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel booking"}
-                </Button>
+                <div className="flex justify-center">
+                  <DeleteButton
+                    label="Cancel booking"
+                    confirmLabel="Yes, cancel"
+                    cancelLabel="Keep"
+                    pendingLabel="Cancelling"
+                    doneLabel="Cancelled"
+                    disabled={busy}
+                    onConfirm={handleCancel}
+                    onError={() => {}}
+                    className="bg-white/5 border border-white/15 text-white shadow-none"
+                  />
+                </div>
               </div>
             )}
           </>

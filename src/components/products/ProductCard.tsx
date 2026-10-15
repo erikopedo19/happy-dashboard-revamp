@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical, Edit, Trash2, Package, Eye, EyeOff } from "lucide-react";
+import { MoreVertical, Edit, Package, Eye, EyeOff } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,11 +24,13 @@ export const ProductCard = ({ product, onEdit, onRefetch }: ProductCardProps) =>
   const { toast } = useToast();
 
   const handleDelete = async () => {
-    if (!confirm("Delete this product?")) return;
     setBusy(true);
     const { error } = await supabase.from("products").delete().eq("id", product.id);
     setBusy(false);
-    if (error) return toast({ title: "Couldn't delete", variant: "destructive" });
+    if (error) {
+      toast({ title: "Couldn't delete", variant: "destructive" });
+      throw error;
+    }
     toast({ title: "Product deleted" });
     onRefetch();
   };
@@ -91,11 +94,20 @@ export const ProductCard = ({ product, onEdit, onRefetch }: ProductCardProps) =>
                   <><Eye className="h-4 w-4 mr-2" /> Activate</>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} disabled={busy} className="text-destructive focus:text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <DeleteButton
+            label="Delete product"
+            confirmLabel="Delete"
+            pendingLabel="Deleting"
+            doneLabel="Deleted"
+            onConfirm={handleDelete}
+            className="bg-black/40 hover:bg-black/60 backdrop-blur-md border-0 shadow-none"
+            classNames={{ tile: "size-8", confirmation: "h-8 px-2" }}
+          />
         </div>
       </div>
 

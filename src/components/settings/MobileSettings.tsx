@@ -21,7 +21,6 @@ import {
   Scissors,
   UserCircle2,
   LogOut,
-  Trash2,
   FileText,
   Shield,
   ChevronLeft,
@@ -36,6 +35,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,18 +174,18 @@ export function MobileSettings(props: any) {
   const handleDeleteAccount = async () => {
     if (!user?.id) {
       toast({ title: "Not signed in", description: "Please sign in again.", variant: "destructive" });
-      return;
+      throw new Error("Not signed in");
     }
     const confirmation = window.prompt("To permanently delete your account, type 'delete my account' below.");
-    if (confirmation === null) return;
+    if (confirmation === null) throw new Error("Deletion cancelled");
     if (confirmation.trim().toLowerCase() !== "delete my account") {
       toast({ title: "Deletion cancelled", description: "The confirmation phrase did not match.", variant: "destructive" });
-      return;
+      throw new Error("Confirmation phrase mismatch");
     }
     const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
     if (error || !data?.success) {
       toast({ title: "Could not delete account", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
-      return;
+      throw error ?? new Error(data?.error || "Unknown error");
     }
     toast({ title: "Account deleted" });
     await supabase.auth.signOut();
@@ -435,14 +435,17 @@ export function MobileSettings(props: any) {
 
         {user && (
           <Group label="Danger zone" className="border-[#F3D4D4]">
-            <Row
-              icon={Trash2}
-              tint="#ef4444"
-              label="Delete account"
-              value="Permanently remove"
-              danger
-              onClick={handleDeleteAccount}
-            />
+            <div className="flex justify-center px-4 py-3">
+              <DeleteButton
+                label="Delete account"
+                confirmLabel="Delete forever"
+                cancelLabel="Keep"
+                pendingLabel="Deleting"
+                doneLabel="Deleted"
+                onConfirm={handleDeleteAccount}
+                classNames={{ tile: "text-red-500" }}
+              />
+            </div>
           </Group>
         )}
 

@@ -20,7 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { CutziooLoader } from "@/components/CutziooLoader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Users, Edit, Trash2, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
+import { Plus, Users, Edit, UserPlus, Crown, Scissors, Calendar } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { Avatar } from "@heroui/react";
 import { useOrganization } from "@/hooks/use-organization";
 
@@ -426,16 +427,16 @@ const Teams = () => {
                               </p>
                             </div>
                           </div>
-                          <button
-                            className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E] transition-all"
-                            onClick={() => {
-                              if (confirm("Delete this team?")) {
-                                deleteTeamMutation.mutate(team.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-[#8E8E93]" />
-                          </button>
+                          <DeleteButton
+                            label="Delete team"
+                            confirmLabel="Delete"
+                            pendingLabel="Deleting"
+                            doneLabel="Deleted"
+                            onConfirm={() => deleteTeamMutation.mutateAsync(team.id)}
+                            onError={() => toast({ title: "Couldn't delete team", variant: "destructive" })}
+                            className="bg-transparent shadow-none opacity-0 group-hover:opacity-100 transition-opacity"
+                            classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+                          />
                         </div>
 
                         {/* Members preview */}

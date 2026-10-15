@@ -11,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { LimitedOfferDialog, type Offer as DialogOffer } from "@/components/LimitedOfferDialog";
 import { BannersManager } from "@/components/BannersManager";
-import { Loader2, Plus, Trash2, Eye, Gift } from "lucide-react";
+import { Loader2, Plus, Eye, Gift } from "lucide-react";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 interface Offer extends DialogOffer {
   active: boolean;
@@ -116,12 +117,12 @@ export function OffersPanel() {
   };
 
   const deleteOffer = async (id: string) => {
-    if (!window.confirm("Delete this offer?")) return;
     setOffers((prev) => prev.filter((o) => o.id !== id));
     const { error } = await (supabase as any).from("offers").delete().eq("id", id);
     if (error) {
       toast.error("Delete failed", { description: error.message });
       fetchOffers();
+      throw error;
     }
   };
 
@@ -218,9 +219,15 @@ export function OffersPanel() {
                     <Button variant="ghost" size="icon" className="rounded-full" onClick={() => { setPreviewOffer(offer); setPreviewOpen(true); }}>
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="rounded-full text-destructive" onClick={() => deleteOffer(offer.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <DeleteButton
+                      label="Delete offer"
+                      confirmLabel="Delete"
+                      pendingLabel="Deleting"
+                      doneLabel="Deleted"
+                      onConfirm={() => deleteOffer(offer.id)}
+                      className="bg-transparent shadow-none"
+                      classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
+                    />
                   </div>
                 </div>
               ))}

@@ -47,6 +47,7 @@ import { MessageTemplates } from "@/components/MessageTemplates";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import { Button } from "@heroui/react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
@@ -211,18 +212,18 @@ const Settings = () => {
   const handleDeleteAccount = async () => {
     if (!user?.id) {
       toast({ title: "Not signed in", description: "Please sign in again.", variant: "destructive" });
-      return;
+      throw new Error("Not signed in");
     }
     const confirmation = window.prompt("To permanently delete your account, type 'delete my account' below.");
-    if (confirmation === null) return;
+    if (confirmation === null) throw new Error("Deletion cancelled");
     if (confirmation.trim().toLowerCase() !== "delete my account") {
       toast({ title: "Deletion cancelled", description: "The confirmation phrase did not match.", variant: "destructive" });
-      return;
+      throw new Error("Confirmation phrase mismatch");
     }
     const { data, error } = await (supabase as any).rpc("soft_delete_account", { _user_id: user.id });
     if (error || !data?.success) {
       toast({ title: "Could not delete account", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
-      return;
+      throw error ?? new Error(data?.error || "Unknown error");
     }
     toast({ title: "Account deleted" });
     await supabase.auth.signOut();
@@ -1495,14 +1496,18 @@ const Settings = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <button
-                        type="button"
-                        onClick={handleDeleteAccount}
-                        className="w-full flex items-center justify-between rounded-2xl border-2 border-red-500/40 dark:border-red-500/40 bg-white dark:bg-[#1C1C1E] p-4 text-left text-sm font-medium text-red-600 dark:text-red-300 transition hover:opacity-80"
-                      >
-                        Delete account
-                        <ArrowRight className="h-4 w-4 text-red-400" />
-                      </button>
+                      <div className="flex justify-center">
+                        <DeleteButton
+                          label="Delete account"
+                          confirmLabel="Delete forever"
+                          cancelLabel="Keep account"
+                          pendingLabel="Deleting"
+                          doneLabel="Deleted"
+                          onConfirm={handleDeleteAccount}
+                          className="border-2 border-red-500/40 shadow-none"
+                          classNames={{ tile: "text-red-600 dark:text-red-300" }}
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                   <p className="col-span-full pt-2 text-center text-sm text-[#8E8E93] dark:text-gray-400">
