@@ -80,6 +80,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { haptic, type HapticStyle } from "@/lib/haptics";
 import { TimeOffDrawer } from "@/components/TimeOffDrawer";
+import { AppointmentSlotSheet } from "@/components/AppointmentSlotSheet";
 import { NotificationBell } from "@/components/NotificationBell";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { TNumber } from "@/components/ui/t-number";
@@ -211,6 +212,7 @@ export const LiquidGlassAgenda = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
+  const [slotSheetAppointment, setSlotSheetAppointment] = useState<Appointment | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -921,7 +923,8 @@ export const LiquidGlassAgenda = ({
     if (!touch) return;
 
     longPressTimerRef.current = window.setTimeout(() => {
-      openAppointmentInfo(appointment, touch.clientX, touch.clientY);
+      haptic("medium");
+      setSlotSheetAppointment(appointment);
       longPressTimerRef.current = null;
     }, 550);
   };
@@ -2091,6 +2094,12 @@ export const LiquidGlassAgenda = ({
       )}
 
       <TimeOffDrawer open={timeOffOpen} onOpenChange={setTimeOffOpen} initialDate={timeOffDate} />
+
+      <AppointmentSlotSheet
+        appointment={slotSheetAppointment}
+        open={!!slotSheetAppointment}
+        onOpenChange={(open) => { if (!open) setSlotSheetAppointment(null); }}
+      />
 
 
       <Drawer open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>

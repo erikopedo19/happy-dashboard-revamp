@@ -1,0 +1,171 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.55);
+}
+:global(.dark) .overlay {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+/* The sheet is pinned to the bottom edge; --sheet-extension hangs below the
+   fold so an upward rubber-band stretch never exposes a gap. `y` (motion)
+   slides it between detents. */
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--sheet-extension) * -1);
+  z-index: 70;
+  margin-inline: auto;
+  width: min(680px, 100%);
+  height: calc(100dvh * var(--sheet-max) + var(--sheet-extension));
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--sheet-extension);
+  background: #ffffff;
+  border-radius: 26px 26px 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.22);
+  outline: none;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+:global(.dark) .sheet {
+  background: #0a0a0c;
+  border-top-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.header {
+  flex: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.sheet[data-dragging] .header {
+  cursor: grabbing;
+}
+
+.grabber {
+  display: block;
+  width: 100%;
+  padding: 10px 0 6px;
+  cursor: grab;
+}
+.grabber:active {
+  cursor: grabbing;
+}
+.grabberBar {
+  display: block;
+  width: 38px;
+  height: 5px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  transition: background-color 0.16s ease, transform 0.16s ease;
+}
+:global(.dark) .grabberBar {
+  background: rgba(255, 255, 255, 0.28);
+}
+.grabber:hover .grabberBar,
+.sheet[data-expanded] .grabberBar {
+  background: rgba(0, 0, 0, 0.38);
+}
+:global(.dark) .grabber:hover .grabberBar,
+:global(.dark) .sheet[data-expanded] .grabberBar {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.headRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 20px 12px;
+  border-bottom: 1px solid transparent;
+}
+/* Hairline appears once the body scrolls under the header. */
+.sheet[data-scrolled] .headRow {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+:global(.dark) .sheet[data-scrolled] .headRow {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.headText {
+  min-width: 0;
+}
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111113;
+}
+:global(.dark) .title {
+  color: #f4f4f5;
+}
+.description {
+  margin-top: 2px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+}
+:global(.dark) .description {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.05);
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+.close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.75);
+}
+:global(.dark) .close {
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.08);
+}
+:global(.dark) .close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 20px calc(20px + var(--sab, env(safe-area-inset-bottom, 0px)));
+  touch-action: pan-y;
+}
+/* While the sheet itself is being dragged, the body must not also scroll. */
+.sheet[data-dragging] .body {
+  overflow: hidden;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grabberBar,
+  .close,
+  .headRow {
+    transition: none;
+  }
+}
