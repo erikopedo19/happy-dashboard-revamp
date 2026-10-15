@@ -8,6 +8,8 @@
 - [x] Offer and save a salon choice during onboarding.
 - [x] Fix security findings (tightened organizations insert, blocked-slots read, story uploads; ignored intentional-public ones).
 - [x] Show images on rent/staff listings (scrape og:image in find-listings, render in Aggelies cards).
-- [ ] Polish the existing Expo shell with theme-aware chrome and smooth loading recovery.
-- [ ] Add the supplied stepper to team creation and connect email invitations.
-- [ ] Check team setup, invitation validation, and the updated preview.
+- [x] Polish the existing Expo shell with theme-aware chrome and smooth loading recovery.
+- [x] Add the supplied stepper to team creation and connect email invitations.
+- [x] Check public invitation capture, invitation validation tests, Expo syntax, and preview build.
+- [ ] Verify signed-in team creation and received invitation email; blocked by unavailable external Supabase test session.
+- [ ] Verify Expo on a physical iPhone; blocked by unavailable device runtime.

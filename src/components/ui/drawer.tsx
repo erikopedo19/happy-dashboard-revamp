@@ -50,7 +50,7 @@ const DrawerContent = React.forwardRef<
       className={cn(
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[92vh] flex-col overflow-hidden",
         "rounded-t-[32px] border border-black/[0.04] dark:border-white/[0.08]",
-        "bg-white/85 dark:bg-[#121214]/85 backdrop-blur-xl backdrop-saturate-150 text-[#1C1C1E] dark:text-white",
+        "bg-white dark:bg-[#121214] text-[#1C1C1E] dark:text-white",
         "shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.6)]",
         "transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
         className
