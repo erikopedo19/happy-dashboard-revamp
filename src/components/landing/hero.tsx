@@ -186,7 +186,7 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
           className="mx-auto mt-4 max-w-md text-center text-[16px] leading-snug text-white/85 drop-shadow-[0_1px_8px_rgba(30,64,120,0.35)] sm:hidden"
         >
-          Online booking, reminders and payments for barbers. First month free.
+          Online booking, reminders and payments for barbers. Free to start.
         </motion.p>
 
         <motion.div
@@ -199,8 +199,8 @@ export function Hero() {
             to={TRY_HREF}
             className="flex h-14 items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 text-[17px] font-semibold text-white shadow-[0_16px_34px_-10px_rgba(0,0,0,0.5)] transition-transform hover:scale-[1.04] active:scale-[0.97] dark:bg-white dark:text-neutral-900 sm:h-auto sm:py-3 sm:text-[15px]"
           >
-            <span className="sm:hidden">Try it free</span>
-            <span className="hidden sm:inline">Start free. No card needed.</span>
+            <span className="sm:hidden">Get started</span>
+            <span className="hidden sm:inline">Start free. Upgrade when you're ready.</span>
             <ArrowRight className="h-4 w-4 sm:hidden" />
           </Link>
           <ShinyButton
@@ -293,36 +293,21 @@ export function Hero() {
         >
           <div className="hidden text-center sm:block sm:text-left">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
-              Trusted by
+              Made for
             </p>
             <p className="mt-1.5 flex gap-4 text-[15px] font-bold tracking-tight text-neutral-700 dark:text-neutral-300">
-              <span>FADE CLUB</span>
-              <span>SHARP STYLE</span>
-              <span>KING'S CUTS</span>
+              <span>BARBERS</span>
+              <span>SHOPS</span>
+              <span>CHAIRS</span>
             </p>
           </div>
           <div className="text-center sm:text-right">
             <p className="hidden max-w-[240px] text-[11px] leading-snug sm:block text-neutral-500 dark:text-neutral-400">
               The booking & management app for barbers, shops and everyone who cuts hair.
             </p>
-            <div className="mt-1.5 flex items-center justify-center gap-1.5 sm:justify-end">
-              <div className="flex -space-x-2">
-                {["/landing/barber-portrait.jpg", "/landing/testimonial.jpg", "/landing/aud-team.jpg"].map(
-                  (src) => (
-                    <img
-                      key={src}
-                      src={src}
-                      alt=""
-                      className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-[#141416]"
-                    />
-                  )
-                )}
-              </div>
-              <span className="flex items-center gap-1 text-[12px] font-semibold text-neutral-800 dark:text-neutral-200">
-                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> 4.9
-              </span>
-              <span className="text-[11px] text-neutral-500">1.2k+ barbers</span>
-            </div>
+            <p className="mt-1.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+              No commission on your clients. Ever.
+            </p>
           </div>
         </motion.div>
       </div>
