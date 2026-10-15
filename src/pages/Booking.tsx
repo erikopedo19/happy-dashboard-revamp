@@ -327,6 +327,42 @@ const Booking = () => {
     placeholderData: keepPreviousData,
   });
 
+  // Manually blocked agenda ranges must remove slots from the public flow too.
+  const { data: blockedRanges = [] } = useQuery<{ start_time: string; end_time: string }[]>({
+    queryKey: [
+      'public-blocked-slots',
+      businessProfile?.id ?? 'no-business',
+      selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'no-date',
+    ],
+    queryFn: async () => {
+      if (!businessProfile?.id || !selectedDate) return [];
+      const { data, error } = await (supabase as any).rpc('get_blocked_slots', {
+        _business_id: businessProfile.id,
+        _date: format(selectedDate, 'yyyy-MM-dd'),
+      });
+      if (error) return [];
+      return (data || []) as { start_time: string; end_time: string }[];
+    },
+    enabled: !!businessProfile?.id && !!selectedDate,
+    staleTime: 15000,
+    placeholderData: keepPreviousData,
+  });
+
+  // A blocked range behaves like a booking with no stylist — it closes the
+  // slot for the whole business.
+  const bookedAndBlocked = useMemo<BookedSlotLike[]>(() => {
+    const minutes = (t: string) => {
+      const [h, m] = String(t).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const blocks: BookedSlotLike[] = blockedRanges.map((b) => ({
+      appointment_time: String(b.start_time).slice(0, 5),
+      service_duration: Math.max(minutes(b.end_time) - minutes(b.start_time), 1),
+      stylist_id: null,
+    }));
+    return [...(existingAppointments as BookedSlotLike[]), ...blocks];
+  }, [existingAppointments, blockedRanges]);
+
   // Prefetch adjacent days so the slot rail updates instantly when switching dates
   useEffect(() => {
     if (!businessProfile?.id || !selectedDate) return;
@@ -496,7 +532,7 @@ const Booking = () => {
           endHour: hoursForDate.end,
           interval: slotInterval,
           serviceDuration: totalDuration,
-          bookedSlots: existingAppointments as BookedSlotLike[],
+          bookedSlots: bookedAndBlocked,
           workingDays: settings?.working_days,
           timezone: settings?.timezone,
           stylistId: candidateStylistId,
@@ -539,7 +575,7 @@ const Booking = () => {
         endHour: hoursForDate.end,
         interval: slotInterval,
         serviceDuration: totalDur,
-        bookedSlots: existingAppointments as BookedSlotLike[],
+        bookedSlots: bookedAndBlocked,
         workingDays: settings?.working_days,
         timezone: settings?.timezone,
         stylistId: stylist.id,
@@ -602,7 +638,7 @@ const Booking = () => {
       endHour: hoursForDate.end,
       interval: slotInterval,
       serviceDuration: totalDuration,
-      bookedSlots: existingAppointments as BookedSlotLike[],
+      bookedSlots: bookedAndBlocked,
       workingDays: settings?.working_days,
       timezone: settings?.timezone,
       stylistId,

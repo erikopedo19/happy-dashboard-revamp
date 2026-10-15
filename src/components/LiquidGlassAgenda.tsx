@@ -1592,13 +1592,17 @@ export const LiquidGlassAgenda = ({
               slotDate.setHours(slotHour, slotMinute, 0, 0);
               const isPastSlot = isPastDay || (isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime());
 
-              const isBlocked = selectedDayIsOff || (blockedSlots || []).some((b: any) => {
+              const slotEndMin = slotStartMin + slotInterval;
+              // Overlap, not containment: an off-grid block (e.g. 13:15–14:00 on
+              // an hourly grid) still covers the slots it touches.
+              const inBlockedRange = (blockedSlots || []).some((b: any) => {
                 const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
                 const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
                 const startMin = sh * 60 + sm;
                 const endMin = eh * 60 + em;
-                return slotStartMin >= startMin && slotStartMin < endMin;
+                return slotStartMin < endMin && slotEndMin > startMin;
               });
+              const isBlocked = selectedDayIsOff || inBlockedRange;
 
 
               const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
@@ -1626,7 +1630,7 @@ export const LiquidGlassAgenda = ({
                 <div
                   key={hour}
                   data-slot-time={hour}
-                  className={cn("relative rounded-2xl transition-colors duration-200", (isPastSlot || isBlocked) && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
+                  className={cn("relative rounded-2xl transition-colors duration-200", isPastSlot && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
                   style={{ height: rowHeight }}
                 >
                   {/* Time label */}
@@ -1917,7 +1921,7 @@ export const LiquidGlassAgenda = ({
                             const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
                             const startMin = sh * 60 + sm;
                             const endMin = eh * 60 + em;
-                            return slotStartMin >= startMin && slotStartMin < endMin;
+                            return slotStartMin < endMin && slotEndMin > startMin;
                           });
                           if (blockedSlot) {
                             setPendingUnblockSlot({
@@ -1929,14 +1933,20 @@ export const LiquidGlassAgenda = ({
                         }}
                         className={cn(
                           "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
-                          isDark
-                            ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
-                            : "border-gray-300/60 text-gray-500 hover:border-gray-400 hover:text-gray-600"
+                          selectedDayIsOff
+                            ? (isDark
+                                ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
+                                : "border-gray-300/60 text-gray-500 hover:border-gray-400 hover:text-gray-600")
+                            : (isDark
+                                ? "border-[#FF2D46]/25 text-[#FF2D46]/60 hover:border-[#FF2D46]/40 hover:text-[#FF2D46]/80"
+                                : "border-[#FF2D46]/30 text-[#FF2D46]/70 hover:border-[#FF2D46]/50 hover:text-[#FF2D46]")
                         )}
                         style={{
-                          backgroundImage: isDark
-                            ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
-                            : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
+                          backgroundImage: selectedDayIsOff
+                            ? (isDark
+                                ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
+                                : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)")
+                            : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,45,70,0.10) 8px, rgba(255,45,70,0.10) 16px)",
                         }}
                       >
                         {selectedDayIsOff ? (
