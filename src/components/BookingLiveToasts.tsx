@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarCheck } from "lucide-react";
+import { BookingIsland } from "@/components/BookingIsland";
 import { showPolishedToast, type PolishedToastOptions } from "@/components/ui/halo-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,7 +105,10 @@ export function BookingLiveToasts() {
   const userId = user?.id;
   const role = user?.user_metadata?.role;
   const [nextActivity, setNextActivity] = useState<LiveActivityProps | null>(null);
+  const [islandEvent, setIslandEvent] = useState<LiveActivityProps | null>(null);
   const nextActivityRef = useRef<LiveActivityProps | null>(null);
+  const inWebView =
+    typeof window !== "undefined" && !!(window as any).ReactNativeWebView;
 
   useEffect(() => {
     nextActivityRef.current = nextActivity;
@@ -240,8 +244,9 @@ export function BookingLiveToasts() {
             );
             const next = await refreshNextActivity(!activityProps);
             if (!active) return;
-            if (toastOptions) showPolishedToast(toastOptions);
+            if (toastOptions && !inWebView) showPolishedToast(toastOptions);
             if (activityProps) {
+              if (inWebView) setIslandEvent(activityProps);
               showLiveActivity(activityProps, next ?? undefined);
             }
           })();
@@ -256,5 +261,11 @@ export function BookingLiveToasts() {
     };
   }, [role, userId]);
 
-  return null;
+  return (
+    <BookingIsland
+      event={islandEvent}
+      next={nextActivity}
+      onEventDone={() => setIslandEvent(null)}
+    />
+  );
 }
