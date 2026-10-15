@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { format, addMinutes } from 'date-fns';
 import { Calendar, Clock, DollarSign, User, Phone, Mail, Check, RefreshCw, Trash2, FileText, History } from 'lucide-react';
-import { BottomSheet } from '@/components/arc/bottom-sheet/bottom-sheet';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import { CandyButton } from '@/components/ui/candy-button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -99,8 +99,8 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
   const lastMorphState = useRef<ConfirmMorphState>('idle');
 
   const { data: recentBookings = [] } = useQuery({
-    queryKey: ['customer-recent-appointments', appointment?.customer.id, appointment?.id],
-    enabled: open && !!appointment?.customer.id,
+    queryKey: ['customer-recent-appointments', appointment?.customer?.id, appointment?.id],
+    enabled: open && !!appointment?.customer?.id,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from('appointments')
@@ -219,15 +219,14 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
   const duration = appointment ? appointment.totalDurationMinutes || appointment.service.duration : 0;
 
   return (
-    <BottomSheet
-      open={open}
-      onOpenChange={(o) => { if (!o) setRescheduling(false); onOpenChange(o); }}
-      title="Appointment Details"
-      description={appointment ? `${appointment.service.name} · ${appointment.customer.name}` : undefined}
-      detents={[0.62, 0.94]}
-    >
-      {appointment && (
-        <div className="px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-1">
+    <Drawer open={open} onOpenChange={(o) => { if (!o) setRescheduling(false); onOpenChange(o); }}>
+      <DrawerContent className="bg-white dark:bg-[#0A0A0C] backdrop-blur-none dark:border-white/10">
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Appointment Details</DrawerTitle>
+          <DrawerDescription>View and manage appointment information</DrawerDescription>
+        </DrawerHeader>
+        {appointment && (
+          <div className="overflow-y-auto px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3">
             {/* Service card */}
             <div className="relative overflow-hidden rounded-2xl border border-black/[0.06] dark:border-white/[0.08] p-4">
               <div className="absolute inset-0" style={{ background: serviceGradient(appointment.service.color) }} />
@@ -422,8 +421,9 @@ export function AppointmentDetailsDrawer({ appointment, open, onOpenChange, onCo
               </div>
             )}
           </div>
-      )}
-    </BottomSheet>
+        )}
+      </DrawerContent>
+    </Drawer>
   );
 }
 
