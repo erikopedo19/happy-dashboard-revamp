@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:release": "bash scripts/ios-release.sh",
-    "ios:upload": "UPLOAD=1 bash scripts/ios-release.sh"
+    "ios:upload": "UPLOAD=1 bash scripts/ios-release.sh",
+    "mobile": "npm --prefix expo run tunnel",
+    "mobile:lan": "npm --prefix expo run start"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
