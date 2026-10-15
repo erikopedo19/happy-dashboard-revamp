@@ -74,6 +74,11 @@ const agendaUrlFromDeepLink = (url) => {
   }
 };
 
+// Expo Go can't host expo-widgets or @expo/ui — both are native modules that
+// only exist in a dev/EAS build. Skipping their lazy chunks in Go keeps the
+// app working there instead of throwing on module evaluation.
+const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
+
 const IMPACT_STYLES = {
   light: Haptics.ImpactFeedbackStyle.Light,
   medium: Haptics.ImpactFeedbackStyle.Medium,
@@ -164,6 +169,17 @@ function Shell() {
   // so there the native side keeps the page inside the system bars instead.
   const androidInsets = Platform.OS === 'android' ? { paddingTop: insets.top, paddingBottom: insets.bottom } : null;
 
+  // The dock reads --sab/--sat; WKWebView's env() can lag or report 0, so the
+  // real native insets are pinned before first paint.
+  const nativeInsetsBoot = `
+    (function () {
+      var s = document.documentElement.style;
+      s.setProperty('--sat', ${JSON.stringify(`${insets.top}px`)});
+      s.setProperty('--sab', ${JSON.stringify(`${insets.bottom}px`)});
+    })();
+    true;
+  `;
+
   const finishSplash = useCallback(() => {
     if (booted.current) return;
     booted.current = true;
@@ -212,7 +228,7 @@ function Shell() {
   }, [sendPushToken]);
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') return undefined;
+    if (Platform.OS !== 'ios' || IS_EXPO_GO) return undefined;
 
     let active = true;
     let subscription;
@@ -274,7 +290,7 @@ function Shell() {
       return;
     }
     if (message?.type === 'cutzio-live-activity') {
-      if (Platform.OS !== 'ios') return;
+      if (Platform.OS !== 'ios' || IS_EXPO_GO) return;
       try {
         const activityFactory = (await import('./BookingActivity')).default;
         const showActivity = async (props) => {
@@ -369,7 +385,7 @@ function Shell() {
         geolocationEnabled
         sharedCookiesEnabled
         style={[styles.webview, lightTheme && styles.lightSurface]}
-        injectedJavaScriptBeforeContentLoaded={HAPTIC_VIBRATION_BRIDGE + NATIVE_FEEL_BOOT}
+        injectedJavaScriptBeforeContentLoaded={HAPTIC_VIBRATION_BRIDGE + NATIVE_FEEL_BOOT + nativeInsetsBoot}
         allowsBackForwardNavigationGestures
         javaScriptEnabled
         domStorageEnabled

@@ -85,7 +85,7 @@ const MoreOverlay = ({ open, onClose, items }: { open: boolean; onClose: () => v
 
           {/* Menu items — bottom right, slide up staggered */}
           <div
-            className="absolute bottom-0 right-0 flex flex-col items-end gap-1.5 px-7 pb-[calc(env(safe-area-inset-bottom)+7.5rem)]"
+            className="absolute bottom-0 right-0 flex flex-col items-end gap-1.5 px-7 pb-[calc(var(--sab,env(safe-area-inset-bottom))+7.5rem)]"
             onClick={(e) => e.stopPropagation()}
           >
             {items.map((item, i) => {
