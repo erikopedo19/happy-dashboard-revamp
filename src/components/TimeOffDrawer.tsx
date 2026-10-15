@@ -132,6 +132,12 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
               r ? `${differenceInCalendarDays(r.end, r.start) + 1} day${r.end > r.start ? "s" : ""}` : null
             }
             className="mt-1"
+            classNames={{
+              // bg-accent is the brand red in this theme — swap the frame for a neutral surface.
+              root: "bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08]",
+              presets: "flex-wrap gap-y-2 px-3 pb-2.5",
+              presetButton: "h-8 px-3.5 text-[12px] dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/10",
+            }}
           />
 
           {/* Reasons */}

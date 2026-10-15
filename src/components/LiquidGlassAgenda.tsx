@@ -214,6 +214,9 @@ export const LiquidGlassAgenda = ({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
   const [slotSheetAppointment, setSlotSheetAppointment] = useState<Appointment | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
+  const lastTouchStartRef = useRef(0);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const longPressFiredRef = useRef(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -915,18 +918,38 @@ export const LiquidGlassAgenda = ({
 
   const handleAppointmentContextMenu = (event: React.MouseEvent, appointment: Appointment) => {
     event.preventDefault();
+    // A long-press on touch devices also fires contextmenu (~500ms) — let the
+    // sheet own the gesture instead of the floating menu.
+    if (Date.now() - lastTouchStartRef.current < 1500) return;
     openAppointmentInfo(appointment, event.clientX, event.clientY);
   };
 
   const handleAppointmentTouchStart = (event: React.TouchEvent, appointment: Appointment) => {
     const touch = event.touches[0];
     if (!touch) return;
+    lastTouchStartRef.current = Date.now();
+    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
 
     longPressTimerRef.current = window.setTimeout(() => {
       haptic("medium");
+      longPressFiredRef.current = true;
       setSlotSheetAppointment(appointment);
       longPressTimerRef.current = null;
-    }, 550);
+    }, 500);
+  };
+
+  const handleAppointmentTouchMove = (event: React.TouchEvent) => {
+    const start = touchStartPosRef.current;
+    const touch = event.touches[0];
+    if (!start || !touch) {
+      clearLongPressTimer();
+      return;
+    }
+    // Only abandon the hold once the finger really travels — micro-jitters
+    // during a press must not cancel it.
+    if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 12) {
+      clearLongPressTimer();
+    }
   };
 
   const clearLongPressTimer = () => {
@@ -1665,11 +1688,18 @@ export const LiquidGlassAgenda = ({
 
                         {/* Liquid Glass Card */}
                         <button
-                          onClick={() => onAppointmentClick?.(apt)}
+                          onClick={() => {
+                            if (longPressFiredRef.current) {
+                              longPressFiredRef.current = false;
+                              return;
+                            }
+                            onAppointmentClick?.(apt);
+                          }}
                           onContextMenu={(event) => handleAppointmentContextMenu(event, apt)}
                           onTouchStart={(event) => handleAppointmentTouchStart(event, apt)}
                           onTouchEnd={clearLongPressTimer}
-                          onTouchMove={clearLongPressTimer}
+                          onTouchCancel={clearLongPressTimer}
+                          onTouchMove={handleAppointmentTouchMove}
                           className={cn(
                             "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
                             isMobile ? "px-3.5 py-2" : "p-4",
