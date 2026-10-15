@@ -66,8 +66,7 @@ const CustomDayOffIcon = ({ type, className }: { type: string; className?: strin
 };
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -1062,7 +1061,7 @@ export const LiquidGlassAgenda = ({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => { haptic("light"); openTimeOff(selectedDay); }}
-                  className="text-rose-500 dark:text-rose-300 focus:bg-rose-500/10 cursor-pointer"
+                  className="cursor-pointer"
                 >
                   <Palmtree className="w-4 h-4 mr-2" />
                   Days off
@@ -1102,7 +1101,7 @@ export const LiquidGlassAgenda = ({
               {format(selectedDay, 'MMMM yyyy')}
             </span>
             {selectedDayIsOff && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/12 px-2 py-1 text-[11px] font-semibold text-rose-500 dark:text-rose-300 ring-1 ring-rose-500/25">
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/[0.05] dark:bg-white/10 px-2 py-1 text-[11px] font-semibold text-gray-600 dark:text-white/70 ring-1 ring-black/10 dark:ring-white/15">
                 <span className="w-3 h-3">
                   <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
                 </span>
@@ -1160,8 +1159,7 @@ export const LiquidGlassAgenda = ({
                           "py-1.5 px-2 rounded-xl transition-all",
                           isSelected ? "bg-gray-900 dark:bg-white" : "hover:bg-gray-100 dark:hover:bg-white/5"
                         ),
-                    isOff && !isSelected && "bg-rose-500/10 ring-1 ring-rose-500/40",
-                    isOff && isSelected && !isMobile && "!bg-rose-500"
+                    isOff && !isSelected && "bg-black/[0.05] ring-1 ring-black/10 dark:bg-white/[0.07] dark:ring-white/15"
                   )}
                 >
                   {isMobile && isSelected && (
@@ -1176,7 +1174,7 @@ export const LiquidGlassAgenda = ({
                       <span className={cn(
                         "relative z-10 text-[12px] font-medium leading-none",
                         isOff
-                          ? "text-rose-400/90"
+                          ? "text-gray-400 dark:text-white/40"
                           : isToday
                             ? "text-blue-500/70 dark:text-blue-400/70"
                             : isSelected
@@ -1188,7 +1186,7 @@ export const LiquidGlassAgenda = ({
                       <span className={cn(
                         "relative z-10 mt-1.5 text-[18px] font-semibold leading-none transition-colors duration-200",
                         isOff
-                          ? "text-rose-500 dark:text-rose-400"
+                          ? "text-gray-400 dark:text-white/45"
                           : isToday
                             ? "text-blue-600 dark:text-blue-400"
                             : isSelected
@@ -1211,7 +1209,7 @@ export const LiquidGlassAgenda = ({
                       <span className={cn(
                         "text-[10px] font-semibold uppercase",
                         isOff && !isSelected
-                          ? "text-rose-400"
+                          ? "text-gray-400 dark:text-white/40"
                           : isSelected
                             ? "text-white dark:text-black"
                             : "text-gray-400 dark:text-gray-500"
@@ -1221,7 +1219,7 @@ export const LiquidGlassAgenda = ({
                       <span className={cn(
                         "text-[15px] font-semibold mt-0.5",
                         isOff && !isSelected
-                          ? "text-rose-500 dark:text-rose-400"
+                          ? "text-gray-400 dark:text-white/45"
                           : isSelected
                             ? "text-white dark:text-black"
                             : isToday
@@ -1235,7 +1233,7 @@ export const LiquidGlassAgenda = ({
                   {isOff ? (
                     <span
                       title={offReason}
-                      className={cn("mt-0.5 w-3.5 h-3.5", isSelected && !isMobile ? "text-white" : "text-rose-500 dark:text-rose-400")}
+                      className={cn("mt-0.5 w-3.5 h-3.5", isSelected && !isMobile ? "text-white dark:text-black" : "text-gray-400 dark:text-white/50")}
                     >
                       <CustomDayOffIcon type={offReason} className="w-full h-full" />
                     </span>
@@ -1262,7 +1260,7 @@ export const LiquidGlassAgenda = ({
               exit={{ opacity: 0, y: -6 }}
               className="mt-2 flex justify-center"
             >
-              <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-rose-500/10 text-rose-500 dark:text-rose-300">
+              <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-black/[0.05] text-gray-500 dark:bg-white/10 dark:text-white/60">
                 Tip: hold a date to mark it as a day off 🏝️
               </span>
             </motion.div>
@@ -1362,12 +1360,12 @@ export const LiquidGlassAgenda = ({
                   }}
                   className={cn(
                     "w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6",
-                    "bg-gradient-to-tr from-rose-500/10 to-orange-500/5 dark:from-rose-500/15 dark:to-orange-500/5",
-                    "border border-rose-500/10 dark:border-rose-500/10 shadow-[0_12px_30px_rgba(244,63,94,0.08)]",
+                    "bg-black/[0.04] dark:bg-white/[0.07]",
+                    "border border-black/[0.06] dark:border-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]",
                     "backdrop-blur-xl"
                   )}
                 >
-                  <span className="w-10 h-10 text-rose-500 dark:text-rose-400">
+                  <span className="w-10 h-10 text-gray-500 dark:text-white/70">
                     <CustomDayOffIcon type={selectedDayOffReason} className="w-full h-full" />
                   </span>
                 </motion.div>
@@ -1390,31 +1388,39 @@ export const LiquidGlassAgenda = ({
                   {selectedDayOffReason}
                 </motion.p>
 
-                <motion.button
+                <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  whileTap={{ scale: 0.96 }}
                   transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 20 }}
-                  onClick={async () => {
-                    haptic("warning");
-                    try {
-                      const { error } = await (supabase as any)
-                        .from("time_off")
-                        .delete()
-                        .eq("user_id", user.id)
-                        .eq("off_date", selectedDayKey);
-                      if (error) throw error;
-                      toast({ title: "Day off removed", description: "This day is now available for booking." });
-                      await queryClient.invalidateQueries({ queryKey: ["time_off"] });
-                      window.dispatchEvent(new Event("appointmentUpdated"));
-                    } catch (e: any) {
-                      toast({ title: "Couldn't remove", description: e?.message || "Please try again.", variant: "destructive" });
-                    }
-                  }}
-                  className="mt-6 px-6 h-11 rounded-full bg-rose-500 text-white text-sm font-semibold active:scale-[0.98] transition"
+                  className="mt-6"
                 >
-                  Remove day off
-                </motion.button>
+                  <DeleteButton
+                    label="Remove day off"
+                    confirmLabel="Yes, remove it"
+                    cancelLabel="Keep"
+                    pendingLabel="Removing"
+                    doneLabel="Removed"
+                    onConfirm={async () => {
+                      haptic("warning");
+                      try {
+                        const { error } = await (supabase as any)
+                          .from("time_off")
+                          .delete()
+                          .eq("user_id", user.id)
+                          .eq("off_date", selectedDayKey);
+                        if (error) throw error;
+                        toast({ title: "Day off removed", description: "This day is now available for booking." });
+                        await queryClient.invalidateQueries({ queryKey: ["time_off"] });
+                        window.dispatchEvent(new Event("appointmentUpdated"));
+                      } catch (e: any) {
+                        toast({ title: "Couldn't remove", description: e?.message || "Please try again.", variant: "destructive" });
+                        throw e;
+                      }
+                    }}
+                    onError={() => {}}
+                    className="border border-black/[0.06] shadow-elevated dark:border-white/10 dark:bg-[#1C1C1E]"
+                  />
+                </motion.div>
               </motion.div>
             ) : (
               <motion.div
@@ -1667,8 +1673,8 @@ export const LiquidGlassAgenda = ({
                             "border",
                             isCancelled
                               ? (isDark
-                                  ? "border-red-500/25 border-dashed opacity-60 shadow-none"
-                                  : "border-red-300/60 border-dashed opacity-70 shadow-none")
+                                  ? "border-white/15 border-dashed opacity-50 shadow-none"
+                                  : "border-gray-300/80 border-dashed opacity-60 shadow-none")
                               : isMobile
                                 ? (isDark
                                     ? "border-white/[0.07] shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
@@ -1680,7 +1686,7 @@ export const LiquidGlassAgenda = ({
                           style={{
 
                             background: isCancelled
-                              ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)")
+                              ? (isDark ? "rgba(120,120,128,0.08)" : "rgba(120,120,128,0.05)")
                               : isMobile
                                 ? (isDark ? "#161618" : "#FFFFFF")
                                 : getGlassGradient(serviceColor, isDark),
@@ -1847,7 +1853,7 @@ export const LiquidGlassAgenda = ({
                           isPastSlot
                             ? "border-gray-200 dark:border-white/5 bg-transparent text-gray-300 dark:text-white/20 cursor-not-allowed"
                             : pressingSlot === hour
-                            ? "border-rose-500/60 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/40"
+                            ? "border-black/30 dark:border-white/40 bg-black/[0.05] dark:bg-white/10 text-gray-800 dark:text-white ring-2 ring-black/10 dark:ring-white/25"
                             : isDark
                             ? "border-white/15 bg-white/[0.03] hover:bg-white/[0.07] text-white/60 active:scale-[0.98]"
                             : "border-gray-300/70 bg-gray-50/60 hover:bg-blue-50 hover:border-blue-300 text-gray-500 active:scale-[0.98]"
@@ -1858,7 +1864,7 @@ export const LiquidGlassAgenda = ({
                           animate={{ scaleX: pressingSlot === hour ? 1 : 0 }}
                           transition={pressingSlot === hour ? { duration: 1, ease: "linear" } : { duration: 0 }}
                           style={{ originX: 0 }}
-                          className="absolute inset-0 z-0 bg-rose-500/20"
+                          className="absolute inset-0 z-0 bg-black/[0.07] dark:bg-white/15"
                         />
                         <Plus className="w-3.5 h-3.5 relative z-10" />
                         <span className="relative z-10 text-[12px] font-medium">
@@ -1890,18 +1896,14 @@ export const LiquidGlassAgenda = ({
                         }}
                         className={cn(
                           "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
-                          selectedDayIsOff
-                            ? "border-rose-500/30 text-rose-500/80 dark:text-rose-300/80"
-                            : isDark
-                              ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
-                              : "border-gray-300/60 text-gray-500 hover:border-gray-400 hover:text-gray-600"
+                          isDark
+                            ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
+                            : "border-gray-300/60 text-gray-500 hover:border-gray-400 hover:text-gray-600"
                         )}
                         style={{
-                          backgroundImage: selectedDayIsOff
-                            ? "repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(244,63,94,0.10) 7px, rgba(244,63,94,0.10) 14px)"
-                            : isDark
-                              ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
-                              : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
+                          backgroundImage: isDark
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.04) 16px)"
+                            : "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 16px)",
                         }}
                       >
                         {selectedDayIsOff ? (
@@ -2057,8 +2059,7 @@ export const LiquidGlassAgenda = ({
                     disabled={!!cancellingId}
                     onConfirm={() => cancelAppointment(contextMenu.appointment.id)}
                     onError={() => {}}
-                    className={cn("shadow-elevated", isDark && "bg-[#1C1C1E] text-white")}
-                    classNames={{ tile: "text-red-500" }}
+                    className={cn("border shadow-elevated", isDark ? "bg-[#1C1C1E] border-white/10 text-white" : "border-black/[0.06]")}
                   />
                 </div>
               )}
@@ -2092,59 +2093,65 @@ export const LiquidGlassAgenda = ({
       <TimeOffDrawer open={timeOffOpen} onOpenChange={setTimeOffOpen} initialDate={timeOffDate} />
 
 
-      <Dialog open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
-        <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>
-          <DialogHeader>
-            <DialogTitle>Block this 45 min buffer?</DialogTitle>
-            <DialogDescription className={cn(isDark ? "text-white/60" : "text-gray-600")}>
-              {pendingBlockSlot && `${format(pendingBlockSlot.start, "HH:mm")} – ${pendingBlockSlot.hour}`} will be marked as blocked.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => { setPendingBlockSlot(null); isLongPressBlock.current = false; }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="bg-rose-500 hover:bg-rose-600 text-white"
-              onClick={confirmBlockSlot}
-            >
-              Block slot
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Drawer open={!!pendingBlockSlot} onOpenChange={(open) => { if (!open) { setPendingBlockSlot(null); isLongPressBlock.current = false; } }}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-sm px-6 pb-8 pt-2">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] bg-black/[0.05] dark:bg-white/[0.08]">
+              <Ban className="h-6 w-6 text-gray-500 dark:text-white/70" />
+            </div>
+            <DrawerTitle className="text-center">Block this slot?</DrawerTitle>
+            <DrawerDescription className="mt-1.5 text-center">
+              {pendingBlockSlot && `${format(pendingBlockSlot.start, "HH:mm")} – ${pendingBlockSlot.hour}`} will show as unavailable for booking.
+            </DrawerDescription>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={confirmBlockSlot}
+                className="h-12 rounded-2xl bg-[#1C1C1E] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-[0.98] dark:bg-white dark:text-black"
+              >
+                Block slot
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPendingBlockSlot(null); isLongPressBlock.current = false; }}
+                className="h-12 rounded-2xl bg-black/[0.05] text-[15px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
+              >
+                Keep it open
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-      <Dialog open={!!pendingUnblockSlot} onOpenChange={(open) => { if (!open) setPendingUnblockSlot(null); }}>
-        <DialogContent className={cn("rounded-2xl", isDark ? "bg-[#111] border-white/10 text-white" : "bg-white border-gray-200 text-gray-900")}>
-          <DialogHeader>
-            <DialogTitle>Unblock this slot?</DialogTitle>
-            <DialogDescription className={cn(isDark ? "text-white/60" : "text-gray-600")}>
-              {pendingUnblockSlot && `${pendingUnblockSlot.start_time} – ${pendingUnblockSlot.end_time}`} will be available for booking again.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPendingUnblockSlot(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={confirmUnblockSlot}
-            >
-              Unblock slot
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Drawer open={!!pendingUnblockSlot} onOpenChange={(open) => { if (!open) setPendingUnblockSlot(null); }}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-sm px-6 pb-8 pt-2">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[20px] bg-emerald-500/10 dark:bg-emerald-500/15">
+              <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <DrawerTitle className="text-center">Unblock this slot?</DrawerTitle>
+            <DrawerDescription className="mt-1.5 text-center">
+              {pendingUnblockSlot && `${(pendingUnblockSlot.start_time || "").slice(0, 5)} – ${(pendingUnblockSlot.end_time || "").slice(0, 5)}`} will be available for booking again.
+            </DrawerDescription>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={confirmUnblockSlot}
+                className="h-12 rounded-2xl bg-emerald-500 text-[15px] font-semibold text-white transition-opacity hover:bg-emerald-600 active:scale-[0.98]"
+              >
+                Unblock slot
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingUnblockSlot(null)}
+                className="h-12 rounded-2xl bg-black/[0.05] text-[15px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
+              >
+                Keep blocked
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
