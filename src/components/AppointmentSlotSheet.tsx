@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { addMinutes, format, isBefore } from "date-fns";
+import { addMinutes, format, formatDistanceToNow, isBefore } from "date-fns";
 import {
   Banknote,
   CalendarDays,
@@ -165,9 +165,21 @@ export function AppointmentSlotSheet({
       <div className="mb-2 flex items-center justify-between rounded-2xl bg-black/[0.03] px-4 py-3 dark:bg-white/[0.05]">
         <div className="flex items-center gap-2.5">
           <Clock3 className="h-4 w-4 text-gray-500 dark:text-zinc-400" />
-          <span className="text-[17px] font-bold tabular-nums text-gray-900 dark:text-white">
-            {format(start, "HH:mm")} – {format(end, "HH:mm")}
-          </span>
+          <div>
+            <span className="block text-[17px] font-bold tabular-nums leading-5 text-gray-900 dark:text-white">
+              {format(start, "HH:mm")} – {format(end, "HH:mm")}
+            </span>
+            <span
+              className={cn(
+                "block text-[11px] font-medium leading-4",
+                isBefore(start, new Date())
+                  ? "text-gray-400 dark:text-zinc-500"
+                  : "text-emerald-600 dark:text-emerald-400",
+              )}
+            >
+              {isBefore(start, new Date()) ? "Past" : "Future"} · {formatDistanceToNow(start, { addSuffix: true })}
+            </span>
+          </div>
         </div>
         <span
           className={cn(

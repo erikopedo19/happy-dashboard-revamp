@@ -350,6 +350,13 @@ export const LiquidGlassAgenda = ({
       const current = dragRef.current;
       cleanup();
       if (!current) return;
+      // A tap on the grip (no real travel) opens the booking sheet instead
+      // of performing a no-op drop.
+      if (Math.hypot(current.dx, current.dy) < 8) {
+        haptic("medium");
+        setSlotSheetAppointment(apt);
+        return;
+      }
       void performDrop(current, findDropTarget(ev.clientX, ev.clientY));
     };
 
@@ -924,11 +931,11 @@ export const LiquidGlassAgenda = ({
     openAppointmentInfo(appointment, event.clientX, event.clientY);
   };
 
-  const handleAppointmentTouchStart = (event: React.TouchEvent, appointment: Appointment) => {
-    const touch = event.touches[0];
-    if (!touch) return;
-    lastTouchStartRef.current = Date.now();
-    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+  // Pointer events cover mouse holds (desktop) as well as touch (mobile/WebView).
+  const handleAppointmentPointerDown = (event: React.PointerEvent, appointment: Appointment) => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    if (event.pointerType === "touch") lastTouchStartRef.current = Date.now();
+    touchStartPosRef.current = { x: event.clientX, y: event.clientY };
 
     longPressTimerRef.current = window.setTimeout(() => {
       haptic("medium");
@@ -938,16 +945,15 @@ export const LiquidGlassAgenda = ({
     }, 500);
   };
 
-  const handleAppointmentTouchMove = (event: React.TouchEvent) => {
+  const handleAppointmentPointerMove = (event: React.PointerEvent) => {
     const start = touchStartPosRef.current;
-    const touch = event.touches[0];
-    if (!start || !touch) {
+    if (!start) {
       clearLongPressTimer();
       return;
     }
-    // Only abandon the hold once the finger really travels — micro-jitters
+    // Only abandon the hold once the pointer really travels — micro-jitters
     // during a press must not cancel it.
-    if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 12) {
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 12) {
       clearLongPressTimer();
     }
   };
@@ -1700,10 +1706,11 @@ export const LiquidGlassAgenda = ({
                             onAppointmentClick?.(apt);
                           }}
                           onContextMenu={(event) => handleAppointmentContextMenu(event, apt)}
-                          onTouchStart={(event) => handleAppointmentTouchStart(event, apt)}
-                          onTouchEnd={clearLongPressTimer}
-                          onTouchCancel={clearLongPressTimer}
-                          onTouchMove={handleAppointmentTouchMove}
+                          onPointerDown={(event) => handleAppointmentPointerDown(event, apt)}
+                          onPointerUp={clearLongPressTimer}
+                          onPointerCancel={clearLongPressTimer}
+                          onPointerLeave={clearLongPressTimer}
+                          onPointerMove={handleAppointmentPointerMove}
                           className={cn(
                             "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
                             isMobile ? "px-3.5 py-2" : "p-4",
