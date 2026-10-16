@@ -2,7 +2,7 @@ import { Seo } from "@/components/Seo";
 import { Hero, LandingNav, MobileCtaBar } from "@/components/landing/hero";
 import { FeaturesBand, HowItWorks, Mission } from "@/components/landing/middle";
 import { Membership } from "@/components/landing/membership";
-import { Audience, Faq, FooterCta, Testimonial } from "@/components/landing/bottom";
+import { Audience, Faq, FooterCta } from "@/components/landing/bottom";
 
 export default function Landing() {
   return (
@@ -24,7 +24,6 @@ export default function Landing() {
         <HowItWorks />
         <div className="hidden sm:block">
           <Audience />
-          <Testimonial />
         </div>
         <Membership />
         <Faq />
