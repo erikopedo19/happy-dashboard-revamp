@@ -72,7 +72,7 @@ const SuperAdminLogin = lazyRetry(() => import("./pages/SuperAdminLogin"));
 const SuperAdminDashboard = lazyRetry(() => import("./pages/SuperAdminDashboard"));
 const Brand = lazyRetry(() => import("./pages/Brand"));
 const Booking = lazyRetry(() => import("./pages/Booking"));
-const BookingPage = lazyRetry(() => import("./pages/BookingPage"));
+const BookingPage = lazyRetry(() => import("./pages/BookingPage"), true);
 const BookingForms = lazyRetry(() => import("./pages/BookingForms"));
 const FindBarber = lazyRetry(() => import("./pages/FindBarber"), true);
 const BarberDetail = lazyRetry(() => import("./pages/BarberDetail"), true);

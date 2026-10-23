@@ -13,3 +13,5 @@
 - [x] Check public invitation capture, invitation validation tests, Expo syntax, and preview build.
 - [ ] Verify signed-in team creation and received invitation email; blocked by unavailable external Supabase test session.
 - [ ] Verify Expo on a physical iPhone; blocked by unavailable device runtime.
+## Open
+- [ ] Help create first ad campaign (user asked 2026-10-16); no ad accounts linked yet, snapshot empty
