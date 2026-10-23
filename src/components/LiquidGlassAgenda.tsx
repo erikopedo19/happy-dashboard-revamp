@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
 import { DeleteButton } from "@/components/ui/delete-button";
+import { HoldButton } from "@/components/ui/hold-button";
 
 // Custom SVG icons for a more distinctive day-off icon design
 const CustomDayOffIcon = ({ type, className }: { type: string; className?: string }) => {
@@ -2100,16 +2101,18 @@ export const LiquidGlassAgenda = ({
 
               {contextMenu.appointment.status !== "cancelled" && !isAppointmentPast(contextMenu.appointment) && (
                 <div className="mt-3 flex justify-center">
-                  <DeleteButton
-                    label="Cancel appointment"
-                    confirmLabel="Yes, cancel it"
-                    cancelLabel="Keep"
-                    pendingLabel="Cancelling"
+                  <HoldButton
+                    label="Hold to cancel"
                     doneLabel="Cancelled"
                     disabled={!!cancellingId}
                     onConfirm={() => cancelAppointment(contextMenu.appointment.id)}
                     onError={() => {}}
-                    className={cn("border shadow-elevated", isDark ? "bg-[#1C1C1E] border-white/10 text-white" : "border-black/[0.06]")}
+                    className={cn(
+                      "border shadow-elevated",
+                      isDark
+                        ? "bg-[#1C1C1E] border-white/10 text-white"
+                        : "bg-white border-black/[0.06] text-gray-900",
+                    )}
                   />
                 </div>
               )}
