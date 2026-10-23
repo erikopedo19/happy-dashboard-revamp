@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Trash2,
   LogOut,
+  Play,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -706,6 +707,23 @@ const Settings = () => {
                           shellClassName="border-[#C6C6C8] dark:border-[#2C2C2E]"
                         />
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={() => navigate("/recap")}
+                        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-[#0b0b0e] px-5 py-4 text-left shadow-sm transition-transform active:scale-[0.99]"
+                      >
+                        <span aria-hidden className="pointer-events-none absolute -left-12 -top-20 h-56 w-56 rounded-full bg-[#ff7a1a] opacity-60 blur-3xl transition-transform duration-700 group-hover:translate-x-6" />
+                        <span aria-hidden className="pointer-events-none absolute -right-10 -bottom-24 h-56 w-56 rounded-full bg-[#ff3d71] opacity-50 blur-3xl transition-transform duration-700 group-hover:-translate-x-6" />
+                        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur">
+                          <Play className="h-5 w-5 fill-current" />
+                        </span>
+                        <span className="relative min-w-0 flex-1">
+                          <span className="block text-base font-semibold text-white">Your week, wrapped</span>
+                          <span className="mt-0.5 block text-sm text-white/70">Bookings, revenue, busiest hours and top clients — as a story you can share.</span>
+                        </span>
+                        <ArrowRight className="relative h-5 w-5 shrink-0 text-white/70 transition-transform group-hover:translate-x-1" />
+                      </button>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[

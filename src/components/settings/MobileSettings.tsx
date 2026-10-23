@@ -32,6 +32,7 @@ import {
   Banknote,
   Rocket,
   Users,
+  Play,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -246,6 +247,23 @@ export function MobileSettings(props: any) {
             <span className="mt-0.5 block truncate text-[12px] text-[#65577A] dark:text-white/60">Let clients book their next visit</span>
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#65577A] dark:text-white/50" />
+        </motion.button>
+
+        <motion.button
+          whileTap={{ scale: 0.985 }}
+          onClick={() => navigate("/recap")}
+          className="relative mt-3 flex min-h-[76px] w-full items-center gap-3 overflow-hidden rounded-[22px] border border-white/10 bg-[#0b0b0e] px-4 py-3 text-left shadow-sm"
+        >
+          <span aria-hidden className="pointer-events-none absolute -left-10 -top-16 h-40 w-40 rounded-full bg-[#ff7a1a] opacity-60 blur-3xl" />
+          <span aria-hidden className="pointer-events-none absolute -right-8 -bottom-16 h-40 w-40 rounded-full bg-[#ff3d71] opacity-50 blur-3xl" />
+          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur">
+            <Play className="h-5 w-5 fill-current" />
+          </span>
+          <span className="relative min-w-0 flex-1">
+            <span className="block text-[14px] font-semibold text-white">Your week, wrapped</span>
+            <span className="mt-0.5 block truncate text-[12px] text-white/70">Bookings, revenue, top clients — as a story</span>
+          </span>
+          <ChevronRight className="relative h-4 w-4 shrink-0 text-white/70" />
         </motion.button>
       </section>
 

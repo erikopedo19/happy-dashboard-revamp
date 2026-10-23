@@ -1,13 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@heroui/react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Phone, Loader2, CheckCircle2, XCircle, ArrowLeft, Star } from "lucide-react";
-import { format, addDays, startOfDay } from "date-fns";
+import {
+  ArrowLeft,
+  CalendarPlus,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  MapPin,
+  Navigation,
+  Phone,
+  Star,
+  XCircle,
+  CalendarClock,
+} from "lucide-react";
+import { format, addDays, startOfDay, isBefore, formatDistanceToNowStrict, addMinutes } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { ScreenLoader } from "@/components/ScreenLoader";
 import { DeleteButton } from "@/components/ui/delete-button";
+import { cn } from "@/lib/utils";
 
 type Booking = {
   id: string;
@@ -28,6 +40,14 @@ type Booking = {
   customer: { name: string; email: string; phone: string | null };
 };
 
+const ease = [0.22, 1, 0.36, 1] as const;
+const rise = (i = 0) => ({
+  initial: { opacity: 0, y: 18 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease, delay: 0.08 * i } },
+});
+
+const icsStamp = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
+
 export default function ManageBooking() {
   const { token } = useParams<{ token: string }>();
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -42,17 +62,12 @@ export default function ManageBooking() {
     if (!token) return;
     setLoading(true);
     const { data, error } = await (supabase as any).rpc("get_appointment_by_token", { _token: token });
-    if (error || !data) {
-      setBooking(null);
-    } else {
-      setBooking(data as Booking);
-    }
+    setBooking(error || !data ? null : (data as Booking));
     setLoading(false);
   };
 
   useEffect(() => { fetchBooking(); /* eslint-disable-next-line */ }, [token]);
 
-  // Load booked slots for selected date when in reschedule mode
   useEffect(() => {
     const run = async () => {
       if (!booking || mode !== "reschedule") return;
@@ -67,14 +82,9 @@ export default function ManageBooking() {
 
   const slots = useMemo(() => {
     const out: string[] = [];
-    for (let h = 8; h < 20; h++) {
-      for (const m of [0, 30]) {
-        out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-      }
-    }
+    for (let h = 8; h < 20; h++) for (const m of [0, 30]) out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
     return out;
   }, []);
-
   const dates = useMemo(() => Array.from({ length: 14 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
 
   const handleCancel = async () => {
@@ -109,227 +119,269 @@ export default function ManageBooking() {
     fetchBooking();
   };
 
-  if (loading) {
-    return <ScreenLoader className="bg-[#0A0A0B]" />;
-  }
+  if (loading) return <ScreenLoader className="bg-[#0A0A0B]" />;
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center px-6 text-center">
-        <div>
+      <div className="min-h-[100dvh] bg-[#0A0A0B] flex items-center justify-center px-6 text-center">
+        <motion.div {...rise()}>
           <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-semibold text-white mb-2">Booking not found</h1>
           <p className="text-white/60 mb-6">This link is invalid or has expired.</p>
-          <Link to="/" className="text-amber-400 underline underline-offset-4">Back home</Link>
-        </div>
+          <Link to="/" className="text-white underline underline-offset-4">Back home</Link>
+        </motion.div>
       </div>
     );
   }
 
+  const accent = booking.business.brand_color || "#FF2D46";
+  const start = new Date(`${booking.appointment_date}T${booking.appointment_time}`);
+  const end = addMinutes(start, booking.service.duration || 30);
   const cancelled = booking.status === "cancelled";
-  const accent = booking.business.brand_color;
-  const date = new Date(`${booking.appointment_date}T${booking.appointment_time}`);
+  const completed = booking.status === "completed";
+  const past = isBefore(start, new Date());
+  const statusLabel = cancelled ? "Cancelled" : completed ? "Completed" : past ? "Past" : "Confirmed";
+  const statusTone = cancelled
+    ? "bg-[#FF5A6E]/15 text-[#FF8A98]"
+    : completed
+      ? "bg-emerald-500/15 text-emerald-300"
+      : past
+        ? "bg-white/10 text-white/60"
+        : "bg-white/10 text-white";
+  const initials = booking.business.name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+
+  const addToCalendar = () => {
+    const ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Cutzioo//Booking//EN", "BEGIN:VEVENT",
+      `UID:${booking.id}@cutzioo.com`, `DTSTAMP:${icsStamp(new Date())}`, `DTSTART:${icsStamp(start)}`, `DTEND:${icsStamp(end)}`,
+      `SUMMARY:${booking.service.name} at ${booking.business.name}`,
+      booking.business.address ? `LOCATION:${booking.business.address.replace(/,/g, "\\,")}` : "",
+      `URL:${window.location.href}`, "END:VEVENT", "END:VCALENDAR",
+    ].filter(Boolean).join("\r\n");
+    const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${booking.business.name.replace(/\s+/g, "-").toLowerCase()}-booking.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] to-[#1A1A1C] text-white">
-      {/* Banner */}
-      <div className="relative h-44 sm:h-56 overflow-hidden">
-        {booking.business.banner_url ? (
-          <img src={booking.business.banner_url} alt="" className="w-full h-full object-cover opacity-70" />
-        ) : (
-          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accent}, #1a1a1c)` }} />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-transparent" />
+    <div className="min-h-[100dvh] bg-[#0A0A0B] text-white">
+      {/* Backdrop glow */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full opacity-40 blur-3xl" style={{ background: accent }} />
       </div>
 
-      <div className="max-w-xl mx-auto px-5 -mt-16 relative pb-32">
-        <div className="flex items-center gap-4 mb-6">
+      <div className="relative mx-auto max-w-md px-5 pb-[calc(env(safe-area-inset-bottom,0px)+40px)] pt-[calc(env(safe-area-inset-top,0px)+20px)]">
+        {/* Business */}
+        <motion.div {...rise(0)} className="flex items-center gap-3">
           {booking.business.avatar_url ? (
-            <img src={booking.business.avatar_url} alt="" className="w-20 h-20 rounded-3xl object-cover ring-4 ring-[#0A0A0B]" />
+            <img src={booking.business.avatar_url} alt="" className="h-12 w-12 rounded-2xl object-cover ring-1 ring-white/10" />
           ) : (
-            <div className="w-20 h-20 rounded-3xl ring-4 ring-[#0A0A0B] flex items-center justify-center text-2xl font-bold" style={{ background: accent }}>
-              {booking.business.name.charAt(0)}
-            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-base font-bold ring-1 ring-white/10" style={{ background: accent }}>{initials}</div>
           )}
-          <div className="pt-8">
-            <h1 className="text-2xl font-bold leading-tight">{booking.business.name}: Manage Your Appointment</h1>
-            <p className="text-white/50 text-sm">Booking management</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-semibold leading-tight">{booking.business.name}</p>
+            <p className="text-[12px] text-white/50">Your booking</p>
           </div>
-        </div>
+          <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", statusTone)}>{statusLabel}</span>
+        </motion.div>
 
-        {cancelled && (
-          <Card className="rounded-3xl border-[#E0152F]/20 bg-[#E0152F]/10 mb-5">
-            <CardContent className="p-5 flex items-center gap-3">
-              <XCircle className="w-5 h-5 text-[#FF5A6E]" />
-              <div>
-                <div className="font-semibold text-[#FF5A6E]">Cancelled</div>
-                <div className="text-sm text-[#FF5A6E]/70">This appointment was cancelled.</div>
+        {/* Ticket */}
+        <motion.div {...rise(1)} className="relative mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-[#111114]">
+          {booking.business.banner_url && (
+            <img src={booking.business.banner_url} alt="" className="absolute inset-x-0 top-0 h-28 w-full object-cover opacity-40" />
+          )}
+          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-transparent to-[#111114]" />
+
+          <div className="relative px-6 pt-7">
+            <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-white/50">{format(start, "EEEE")}</p>
+            <div className="mt-1 flex items-end gap-3">
+              <span className="text-[56px] font-bold leading-none tracking-tight tabular-nums">{format(start, "d")}</span>
+              <div className="pb-1">
+                <p className="text-[18px] font-semibold leading-tight">{format(start, "MMMM yyyy")}</p>
+                <p className="text-[14px] text-white/60 tabular-nums">{format(start, "HH:mm")} – {format(end, "HH:mm")}</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+            {!cancelled && !completed && (
+              <p className={cn("mt-3 text-[13px] font-medium", past ? "text-white/45" : "text-emerald-300")}>
+                {past ? `${formatDistanceToNowStrict(start)} ago` : `In ${formatDistanceToNowStrict(start)}`}
+              </p>
+            )}
+          </div>
 
-        {mode === "view" ? (
-          <>
-            <Card className="rounded-3xl border-white/10 bg-white/5 backdrop-blur mb-5">
-              <CardContent className="p-6 space-y-5">
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-white/40 mb-1">Service</div>
-                  <div className="text-lg font-semibold">{booking.service.name}</div>
-                  {booking.service.price != null && (
-                    <div className="text-sm text-white/60">€{Number(booking.service.price).toFixed(2)} · {booking.service.duration} min</div>
-                  )}
-                </div>
-                <div className="h-px bg-white/10" />
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 mt-0.5" style={{ color: accent }} />
-                    <div>
-                      <div className="text-xs text-white/40">Date</div>
-                      <div className="font-medium">{format(date, "EEE, MMM d")}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 mt-0.5" style={{ color: accent }} />
-                    <div>
-                      <div className="text-xs text-white/40">Time</div>
-                      <div className="font-medium">{booking.appointment_time.slice(0, 5)}</div>
-                    </div>
-                  </div>
-                </div>
-                {(booking.business.address || booking.business.phone) && (
-                  <>
-                    <div className="h-px bg-white/10" />
-                    <div className="space-y-2">
-                      {booking.business.address && (
-                        <div className="flex items-center gap-3 text-sm text-white/70">
-                          <MapPin className="w-4 h-4" /> {booking.business.address}
-                        </div>
-                      )}
-                      {booking.business.phone && (
-                        <div className="flex items-center gap-3 text-sm text-white/70">
-                          <Phone className="w-4 h-4" /> {booking.business.phone}
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+          {/* perforation */}
+          <div className="relative my-6 flex items-center">
+            <span className="h-6 w-6 -ml-3 rounded-full bg-[#0A0A0B]" />
+            <span className="mx-2 h-px flex-1 border-t border-dashed border-white/15" />
+            <span className="h-6 w-6 -mr-3 rounded-full bg-[#0A0A0B]" />
+          </div>
 
-            {!cancelled && (
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  onPress={() => setMode("reschedule")}
-                  className="h-14 rounded-2xl text-base font-semibold border-0"
-                  style={{ background: accent, color: "#0A0A0B" }}
-                >
-                  Reschedule
-                </Button>
-                <div className="flex justify-center">
-                  <DeleteButton
-                    label="Cancel booking"
-                    confirmLabel="Yes, cancel"
-                    cancelLabel="Keep"
-                    pendingLabel="Cancelling"
-                    doneLabel="Cancelled"
-                    disabled={busy}
-                    onConfirm={handleCancel}
-                    onError={() => {}}
-                    className="bg-white/5 border border-white/15 text-white shadow-none"
-                  />
+          <div className="relative space-y-4 px-6 pb-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wider text-white/40">Service</p>
+                <p className="mt-0.5 truncate text-[16px] font-semibold">{booking.service.name}</p>
+                <p className="text-[13px] text-white/55">{booking.service.duration} min</p>
+              </div>
+              {booking.service.price != null && (
+                <div className="text-right">
+                  <p className="text-[11px] uppercase tracking-wider text-white/40">Price</p>
+                  <p className="mt-0.5 text-[16px] font-semibold tabular-nums">€{Number(booking.service.price).toFixed(2)}</p>
                 </div>
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-white/40">Booked for</p>
+              <p className="mt-0.5 text-[15px] font-medium">{booking.customer.name}</p>
+            </div>
+            {booking.business.address && (
+              <div className="flex items-start gap-2.5 text-[13px] text-white/70">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                <span>{booking.business.address}</span>
               </div>
             )}
-          </>
-        ) : (
-          <Card className="rounded-3xl border-white/10 bg-white/5 backdrop-blur">
-            <CardContent className="p-5 space-y-5">
-              <button onClick={() => setMode("view")} className="flex items-center gap-2 text-sm text-white/60 hover:text-white">
-                <ArrowLeft className="w-4 h-4" /> Back
+          </div>
+        </motion.div>
+
+        {/* Quick actions */}
+        {!cancelled && (
+          <motion.div {...rise(2)} className="mt-4 grid grid-cols-3 gap-2.5">
+            <QuickAction icon={CalendarPlus} label="Calendar" onClick={addToCalendar} />
+            <QuickAction
+              icon={Navigation}
+              label="Directions"
+              href={booking.business.address ? `https://maps.google.com/?q=${encodeURIComponent(booking.business.address)}` : undefined}
+            />
+            <QuickAction icon={Phone} label="Call" href={booking.business.phone ? `tel:${booking.business.phone}` : undefined} />
+          </motion.div>
+        )}
+
+        <AnimatePresence mode="wait" initial={false}>
+          {mode === "view" ? (
+            <motion.div key="view" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35, ease }} className="mt-6 space-y-3">
+              {cancelled ? (
+                <div className="rounded-3xl border border-[#FF5A6E]/20 bg-[#FF5A6E]/10 p-5 text-center">
+                  <p className="text-[15px] font-semibold text-[#FF8A98]">This appointment was cancelled</p>
+                  <p className="mt-1 text-[13px] text-[#FF8A98]/70">Book again whenever you're ready — {booking.business.name} will be glad to see you.</p>
+                </div>
+              ) : completed ? (
+                token && (
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 text-center">
+                    <p className="text-[14px] text-white/70">How was your visit at <span className="font-semibold text-white">{booking.business.name}</span>?</p>
+                    <a href={`/review/${token}`} className="mt-3 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-[#0A0A0B] transition active:scale-95" style={{ background: accent }}>
+                      <Star className="h-4 w-4" /> Leave a review
+                    </a>
+                  </div>
+                )
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setMode("reschedule")}
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-[#0A0A0B] transition active:scale-[0.98]"
+                    style={{ background: accent }}
+                  >
+                    <CalendarClock className="h-5 w-5" /> Reschedule
+                  </button>
+                  <div className="flex justify-center pt-1">
+                    <DeleteButton
+                      label="Cancel booking"
+                      confirmLabel="Yes, cancel"
+                      cancelLabel="Keep"
+                      pendingLabel="Cancelling"
+                      doneLabel="Cancelled"
+                      disabled={busy}
+                      onConfirm={handleCancel}
+                      onError={() => {}}
+                      className="border border-white/15 bg-white/5 text-white shadow-none"
+                    />
+                  </div>
+                </>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div key="reschedule" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35, ease }} className="mt-6 rounded-[28px] border border-white/10 bg-[#111114] p-5">
+              <button type="button" onClick={() => setMode("view")} className="flex items-center gap-1.5 text-[13px] text-white/60 hover:text-white">
+                <ArrowLeft className="h-4 w-4" /> Back
               </button>
 
-              <div>
-                <div className="text-xs uppercase tracking-wider text-white/40 mb-3">Pick a new date</div>
-                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
-                  {dates.map((d) => {
-                    const active = format(d, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
-                    return (
-                      <button
-                        key={d.toISOString()}
-                        onClick={() => { setSelectedDate(d); setSelectedTime(""); }}
-                        className={`shrink-0 snap-start w-16 py-3 rounded-2xl border text-center transition ${
-                          active ? "text-[#0A0A0B] border-transparent" : "border-white/10 text-white/80 hover:bg-white/5"
-                        }`}
-                        style={active ? { background: accent } : {}}
-                      >
-                        <div className="text-[10px] uppercase opacity-70">{format(d, "EEE")}</div>
-                        <div className="text-lg font-bold">{format(d, "d")}</div>
-                      </button>
-                    );
-                  })}
-                </div>
+              <p className="mt-5 text-[11px] uppercase tracking-wider text-white/40">New date</p>
+              <div className="mt-3 -mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+                {dates.map((d) => {
+                  const active = format(d, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
+                  return (
+                    <button
+                      key={d.toISOString()}
+                      type="button"
+                      onClick={() => { setSelectedDate(d); setSelectedTime(""); }}
+                      className={cn(
+                        "w-[60px] shrink-0 snap-start rounded-2xl border py-2.5 text-center transition active:scale-95",
+                        active ? "border-transparent text-[#0A0A0B]" : "border-white/10 text-white/80 hover:bg-white/5",
+                      )}
+                      style={active ? { background: accent } : undefined}
+                    >
+                      <div className="text-[10px] uppercase opacity-70">{format(d, "EEE")}</div>
+                      <div className="text-[17px] font-bold leading-tight">{format(d, "d")}</div>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div>
-                <div className="text-xs uppercase tracking-wider text-white/40 mb-3">Pick a time</div>
-                <div className="grid grid-cols-4 gap-2">
-                  {slots.map((s) => {
-                    const taken = bookedTimes.includes(s);
-                    const active = s === selectedTime;
-                    return (
-                      <button
-                        key={s}
-                        disabled={taken}
-                        onClick={() => setSelectedTime(s)}
-                        className={`py-3 rounded-xl text-sm font-medium border transition ${
-                          active ? "text-[#0A0A0B] border-transparent" :
-                          taken ? "border-white/5 text-white/20 line-through cursor-not-allowed" :
-                          "border-white/10 text-white/80 hover:bg-white/5"
-                        }`}
-                        style={active ? { background: accent } : {}}
-                      >
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
+              <p className="mt-5 text-[11px] uppercase tracking-wider text-white/40">New time</p>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {slots.map((t) => {
+                  const taken = bookedTimes.includes(t);
+                  const active = t === selectedTime;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={taken}
+                      onClick={() => setSelectedTime(t)}
+                      className={cn(
+                        "rounded-xl border py-2.5 text-[13px] font-medium tabular-nums transition active:scale-95",
+                        active ? "border-transparent text-[#0A0A0B]"
+                          : taken ? "cursor-not-allowed border-white/5 text-white/20 line-through"
+                            : "border-white/10 text-white/80 hover:bg-white/5",
+                      )}
+                      style={active ? { background: accent } : undefined}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
               </div>
 
-              <Button
-                onPress={handleReschedule}
-                isDisabled={!selectedTime || busy}
-                className="w-full h-14 rounded-2xl text-base font-semibold border-0"
-                style={{ background: accent, color: "#0A0A0B" }}
+              <button
+                type="button"
+                onClick={handleReschedule}
+                disabled={!selectedTime || busy}
+                className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-[#0A0A0B] transition active:scale-[0.98] disabled:opacity-40"
+                style={{ background: accent }}
               >
-                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                  <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> Confirm new time</span>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-5 w-5" /> Confirm {selectedTime ? `${format(selectedDate, "EEE d")} · ${selectedTime}` : "new time"}</>}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Review CTA for completed bookings */}
-        {booking.status === "completed" && token && (
-          <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 backdrop-blur p-5 text-center">
-            <p className="text-sm text-white/70 mb-3">
-              How was your experience at <span className="text-white font-semibold">{booking.business.name}</span>?
-            </p>
-            <a
-              href={`/review/${token}`}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition active:scale-95"
-              style={{ background: accent, color: "#0A0A0B" }}
-            >
-              <Star className="w-4 h-4" /> Leave a review
-            </a>
-          </div>
-        )}
-
-        <div className="mt-10 text-center text-xs text-white/30">
-          Powered by <span className="text-white/60 font-semibold">cutzioo.com</span>
-        </div>
+        <p className="mt-10 text-center text-[11px] text-white/30">
+          Powered by <span className="font-semibold text-white/60">cutzioo.com</span>
+        </p>
       </div>
     </div>
   );
+}
+
+function QuickAction({ icon: Icon, label, onClick, href }: { icon: typeof Clock; label: string; onClick?: () => void; href?: string }) {
+  const cls = cn(
+    "flex h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] text-[12px] font-medium text-white/80 transition active:scale-95",
+    !onClick && !href && "pointer-events-none opacity-35",
+  );
+  if (href) {
+    return <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls}><Icon className="h-5 w-5" />{label}</a>;
+  }
+  return <button type="button" onClick={onClick} className={cls}><Icon className="h-5 w-5" />{label}</button>;
 }

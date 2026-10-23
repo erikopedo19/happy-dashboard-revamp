@@ -89,6 +89,7 @@ const Favorites = lazyRetry(() => import("./pages/Favorites"), true);
 const Aggelies = lazyRetry(() => import("./pages/Aggelies"), true);
 const AggeliesManage = lazyRetry(() => import("./pages/AggeliesManage"));
 const ManageBooking = lazyRetry(() => import("./pages/ManageBooking"));
+const Recap = lazyRetry(() => import("./pages/recap/Recap"));
 const ReviewPage = lazyRetry(() => import("./pages/ReviewPage"));
 const WaitlistClaim = lazyRetry(() => import("./pages/WaitlistClaim"));
 const Landing = lazyRetry(() => import("./pages/Landing"));
@@ -275,6 +276,7 @@ function AnimatedRoutes() {
       <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
       <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/recap" element={<ProtectedRoute><Recap /></ProtectedRoute>} />
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/pricing/success" element={<ProtectedRoute><PricingSuccess /></ProtectedRoute>} />
       <Route path="/payment-failed" element={<PaymentFailed />} />

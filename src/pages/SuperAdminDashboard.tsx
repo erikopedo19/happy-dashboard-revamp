@@ -20,6 +20,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { OffersPanel } from "@/components/OffersPanel";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { ActiveBarbersCard } from "@/components/ActiveBarbersCard";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { haptic } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
+
+const TABS = [
+  { key: "users", label: "Users", short: "Users", Icon: Users },
+  { key: "campaigns", label: "Email Campaigns", short: "Email", Icon: Mail },
+  { key: "gifts", label: "Gift", short: "Gift", Icon: Gift },
+  { key: "settings", label: "Settings", short: "Settings", Icon: Settings2 },
+  { key: "offers", label: "Offers", short: "Offers", Icon: Gift },
+  { key: "stripe", label: "Stripe", short: "Stripe", Icon: Crown },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+const tabMotion = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 },
+  transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] as const },
+};
 
 
 
@@ -62,7 +81,8 @@ export default function SuperAdminDashboard() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"users" | "campaigns" | "gifts" | "settings" | "offers" | "stripe">("users");
+  const [tab, setTab] = useState<TabKey>("users");
+  const isMobile = useIsMobile();
   const [showGoogleButton, setShowGoogleButton] = useState(true);
   const [totalBookings, setTotalBookings] = useState(0);
   const [fakeShopsEnabled, setFakeShopsEnabled] = useState(false);
@@ -290,39 +310,61 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="sticky top-0 z-10 backdrop-blur-xl bg-background/80 border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="light" size="sm" onPress={() => navigate("/")}>
-            <ArrowLeft className="w-4 h-4 mr-1" /> Home
-          </Button>
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-red-500" />
-            <span className="font-semibold">Super Admin</span>
+    <div className="min-h-[100dvh] bg-background text-foreground">
+      <div className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl" style={{ paddingTop: "var(--sat, env(safe-area-inset-top, 0px))" }}>
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:py-3">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition active:scale-90 active:bg-muted sm:w-auto sm:gap-1 sm:px-3"
+            aria-label="Home"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden text-sm sm:inline">Home</span>
+          </button>
+          <div className="flex min-w-0 items-center gap-2">
+            <Shield className="h-5 w-5 shrink-0 text-red-500" />
+            <span className="truncate font-semibold">Super Admin</span>
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            <Button variant="bordered" size="sm" onPress={load} isDisabled={busy}>
-              <RefreshCcw className={`w-3.5 h-3.5 mr-1.5 ${busy ? "animate-spin" : ""}`} /> Refresh
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={() => { haptic("light"); load(); }}
+            disabled={busy}
+            className="ml-auto flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-sm text-muted-foreground transition active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCcw className={cn("h-3.5 w-3.5", busy && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
-      </div>
 
-      {/* Tab nav */}
-      <div className="max-w-6xl mx-auto px-4 pt-4 pb-0">
-        <div className="flex gap-1 p-1 bg-muted rounded-2xl w-fit">
-          {(["users", "campaigns", "gifts", "settings", "offers", "stripe"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t === "users" ? <Users className="w-3.5 h-3.5" /> : t === "campaigns" ? <Mail className="w-3.5 h-3.5" /> : t === "gifts" ? <Gift className="w-3.5 h-3.5" /> : t === "offers" ? <Gift className="w-3.5 h-3.5" /> : t === "stripe" ? <Crown className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-              {t === "users" ? "Users" : t === "campaigns" ? "Email Campaigns" : t === "gifts" ? "Gift" : t === "offers" ? "Offers" : t === "stripe" ? "Stripe" : "Settings"}
-            </button>
-          ))}
+        {/* Tab nav — scrolls horizontally on phone, with a sliding indicator */}
+        <div className="mx-auto max-w-6xl px-4 pb-2.5">
+          <div className="-mx-4 flex snap-x gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:w-fit sm:gap-1 sm:rounded-2xl sm:bg-muted sm:p-1 sm:px-1">
+            {TABS.map(({ key, label, short, Icon }) => {
+              const on = tab === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => { if (!on) { haptic("selection"); setTab(key); } }}
+                  className={cn(
+                    "relative flex shrink-0 snap-start items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors sm:rounded-xl sm:px-4 sm:text-sm",
+                    on ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {on && (
+                    <motion.span
+                      layoutId="superadmin-tab"
+                      className="absolute inset-0 rounded-full bg-muted shadow-sm sm:rounded-xl sm:bg-background"
+                      transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                    />
+                  )}
+                  <Icon className="relative h-3.5 w-3.5" />
+                  <span className="relative">{isMobile ? short : label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -352,9 +394,9 @@ export default function SuperAdminDashboard() {
         />
       )}
       {tab === "users" && (
-      <motion.div key="users" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        <div className="grid grid-cols-4 gap-3">
+      <motion.div key="users" {...tabMotion}>
+      <div className="mx-auto max-w-6xl space-y-4 px-4 py-4 sm:space-y-6 sm:py-6">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
           <StatCard icon={<Users className="w-4 h-4" />} label="Total users" value={stats.total} />
           <StatCard icon={<Crown className="w-4 h-4 text-amber-500" />} label="Premium" value={stats.active} />
           <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Free" value={stats.free} />
@@ -369,7 +411,7 @@ export default function SuperAdminDashboard() {
             <CardDescription>Source breakdown from onboarding answers.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-5">
               {(Object.entries(heardStats) as [string, number][])
                 .filter(([, count]) => count > 0)
                 .sort(([, a], [, b]) => b - a)
@@ -387,12 +429,13 @@ export default function SuperAdminDashboard() {
         </Card>
 
         <Card className="rounded-3xl">
-          <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
+          <CardHeader className="gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>Users</CardTitle>
-              <CardDescription>Manage subscriptions: flip premium on or off, or set a custom end date.</CardDescription>
+              <CardDescription className="hidden sm:block">Manage subscriptions: flip premium on or off, or set a custom end date.</CardDescription>
+              <CardDescription className="sm:hidden">{filtered.length} of {rows.length}</CardDescription>
             </div>
-            <div className="relative w-64 max-w-[40vw]">
+            <div className="relative w-full sm:w-64">
               <SearchBar placeholder="Search email or name…" value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
           </CardHeader>
@@ -416,40 +459,41 @@ export default function SuperAdminDashboard() {
                   .split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                 const active = !!r.subscription?.active;
                 return (
-                  <div key={r.id} className="flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors">
-                    <Avatar
-                      src={r.avatar_url ?? undefined}
-                      name={initials}
-                      className="w-10 h-10"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{r.full_name || r.business_name || r.email}</span>
-                        {r.id === user?.id && <Badge variant="outline" className="text-[10px] border-red-500/40 text-red-500">admin</Badge>}
-                        {active ? (
-                          <Badge className="bg-amber-500/15 text-amber-600 hover:bg-amber-500/15 border-0">
-                            <Crown className="w-3 h-3 mr-1" /> {r.subscription?.subscription_tier ?? "Pro"}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="border-0">Free</Badge>
-                        )}
+                  <div key={r.id} className="flex items-center gap-3 p-3.5 transition-colors hover:bg-muted/40 sm:p-4">
+                    <button type="button" onClick={() => setEditing(r)} className="relative shrink-0 rounded-full transition active:scale-95" aria-label="Edit subscription">
+                      <Avatar src={r.avatar_url ?? undefined} name={initials} className="h-10 w-10" />
+                      {active && <Crown className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-background p-0.5 text-amber-500 sm:hidden" />}
+                    </button>
+                    <button type="button" onClick={() => setEditing(r)} className="min-w-0 flex-1 text-left">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="truncate font-medium">{r.full_name || r.business_name || r.email}</span>
+                        {r.id === user?.id && <Badge variant="outline" className="border-red-500/40 text-[10px] text-red-500">admin</Badge>}
+                        <span className="hidden sm:inline-flex">
+                          {active ? (
+                            <Badge className="border-0 bg-amber-500/15 text-amber-600 hover:bg-amber-500/15">
+                              <Crown className="mr-1 h-3 w-3" /> {r.subscription?.subscription_tier ?? "Pro"}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="border-0">Free</Badge>
+                          )}
+                        </span>
                       </div>
-                      <div className="text-xs text-muted-foreground truncate">
+                      <div className="truncate text-xs text-muted-foreground">
                         {r.email}
                         {r.subscription?.subscription_end ? ` · until ${new Date(r.subscription.subscription_end).toLocaleDateString()}` : ""}
                       </div>
                       {r.website_design_requested && (
-                        <Badge variant="outline" className="mt-1 w-fit text-[10px] border-rose-500/30 text-rose-500 flex items-center gap-1">
-                          <Globe className="w-3 h-3" /> Website requested
+                        <Badge variant="outline" className="mt-1 flex w-fit items-center gap-1 border-rose-500/30 text-[10px] text-rose-500">
+                          <Globe className="h-3 w-3" /> Website requested
                         </Badge>
                       )}
-                    </div>
-                    <div className="flex items-center gap-3">
+                    </button>
+                    <div className="flex shrink-0 items-center gap-3">
                       <div className="flex items-center gap-2">
-                        {active ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
-                        <Switch checked={!!r.subscription?.subscribed} onCheckedChange={(v) => quickToggle(r, v)} />
+                        {active ? <CheckCircle2 className="hidden h-4 w-4 text-emerald-500 sm:block" /> : <XCircle className="hidden h-4 w-4 text-muted-foreground sm:block" />}
+                        <Switch checked={!!r.subscription?.subscribed} onCheckedChange={(v) => { haptic("light"); quickToggle(r, v); }} />
                       </div>
-                      <Button size="sm" variant="bordered" onPress={() => setEditing(r)}>Edit</Button>
+                      <Button size="sm" variant="bordered" className="hidden sm:inline-flex" onPress={() => setEditing(r)}>Edit</Button>
                     </div>
                   </div>
                 );
@@ -462,8 +506,8 @@ export default function SuperAdminDashboard() {
       )}
 
       {tab === "campaigns" && (
-      <motion.div key="campaigns" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-        <div className="max-w-6xl mx-auto px-4 py-6">
+      <motion.div key="campaigns" {...tabMotion}>
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:py-6">
           <EmailCampaignPanel
             theme={emailTheme}
             subject={emailSubject}
@@ -482,15 +526,15 @@ export default function SuperAdminDashboard() {
       )}
 
       {tab === "gifts" && (
-      <motion.div key="gifts" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <motion.div key="gifts" {...tabMotion}>
+        <div className="mx-auto max-w-6xl space-y-4 px-4 py-4 sm:space-y-6 sm:py-6">
           <Card className="rounded-3xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Gift className="w-5 h-5" /> Gift newcomer premium</CardTitle>
               <CardDescription>Grant 10 days of Pro access to free users who joined in the last 14 days.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                 <StatCard icon={<Gift className="w-4 h-4" />} label="Eligible newcomers" value={newcomers.length} />
                 <StatCard icon={<Crown className="w-4 h-4 text-amber-500" />} label="Gift duration" value={10} />
                 <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Window days" value={14} />
@@ -523,15 +567,15 @@ export default function SuperAdminDashboard() {
       )}
 
       {tab === "settings" && (
-      <motion.div key="settings" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-        <div className="max-w-6xl mx-auto px-4 py-6">
+      <motion.div key="settings" {...tabMotion}>
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:py-6">
           <Card className="rounded-3xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> App settings</CardTitle>
               <CardDescription>Control global sign-in and platform features.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="flex items-center justify-between gap-4 rounded-3xl border border-border p-5">
+              <div className="flex items-center justify-between gap-4 rounded-3xl border border-border p-4 sm:p-5">
                 <div>
                   <div className="font-medium">Show Google sign-in button</div>
                   <div className="text-sm text-muted-foreground">Turn this off to remove the Google button from the auth page for everyone.</div>
@@ -539,7 +583,7 @@ export default function SuperAdminDashboard() {
                 <Switch checked={showGoogleButton} disabled={saving} onCheckedChange={updateGoogleButton} />
               </div>
 
-              <div className="rounded-3xl border border-border p-5 space-y-4">
+              <div className="space-y-4 rounded-3xl border border-border p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="font-medium">Fake barbershops on Find Barber</div>
@@ -585,7 +629,7 @@ export default function SuperAdminDashboard() {
       )}
 
       {tab === "offers" && (
-      <motion.div key="offers" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+      <motion.div key="offers" {...tabMotion}>
         <OffersPanel />
       </motion.div>
       )}
@@ -722,9 +766,17 @@ function EmailCampaignPanel({
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <Card className="rounded-2xl">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}<span>{label}</span></div>
-        <div className="text-2xl font-semibold mt-1">{value}</div>
+      <CardContent className="p-3.5 sm:p-4">
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground sm:text-xs">{icon}<span className="truncate">{label}</span></div>
+        <motion.div
+          key={value}
+          initial={{ opacity: 0.4, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-1 text-[22px] font-semibold tabular-nums sm:text-2xl"
+        >
+          {value.toLocaleString()}
+        </motion.div>
       </CardContent>
     </Card>
   );
@@ -737,8 +789,8 @@ function StripeConfigTab({ config, onChange, onSave, saving }: {
   saving: boolean;
 }) {
   return (
-    <motion.div key="stripe" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <motion.div key="stripe" {...tabMotion}>
+      <div className="mx-auto max-w-6xl space-y-4 px-4 py-4 sm:space-y-6 sm:py-6">
         <Card className="rounded-3xl">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
