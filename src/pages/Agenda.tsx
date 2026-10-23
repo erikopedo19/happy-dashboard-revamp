@@ -29,6 +29,8 @@ import { LiquidGlassAgenda } from "@/components/LiquidGlassAgenda";
 import { QuickEventDialog } from "@/components/QuickEventDialog";
 import { CutziooLoader } from "@/components/CutziooLoader";
 import { AgendaUpgradeDrawer } from "@/components/AgendaUpgradeDrawer";
+import { BookingLimitBanner } from "@/components/BookingLimitBanner";
+import { useBookingLimit } from "@/hooks/use-booking-limit";
 import { Button } from "@heroui/react";
 import { SearchBar } from "@/components/ui/search-bar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -106,6 +108,7 @@ const Agenda = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const bookingLimit = useBookingLimit();
 
   // Always default to grid (day) view; user can switch to weekly overview manually.
   useEffect(() => {
@@ -319,6 +322,15 @@ const Agenda = () => {
         return;
       }
     }
+    if (bookingLimit.atLimit) {
+      toast({
+        title: "You're on the limit",
+        description: `Free plan is ${bookingLimit.limit} bookings/mo — upgrade for more.`,
+        variant: "destructive",
+      });
+      navigate('/pricing');
+      return;
+    }
     setSelectedTimeSlot({ date, time });
     setIsSlotBooking(true);
     setIsAppointmentFormOpen(true);
@@ -402,6 +414,11 @@ const Agenda = () => {
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
             <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen} />
+            {!agendaSettingsLoading && !showHoursOnboarding && (
+              <div className="shrink-0 px-3 pt-3">
+                <BookingLimitBanner />
+              </div>
+            )}
             {agendaSettingsLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center px-6">
                 <CutziooLoader variant="loop" size="64px" wordmark={false} />
@@ -498,6 +515,9 @@ const Agenda = () => {
       <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
         <main className="relative flex-1 flex flex-col overflow-hidden bg-[#0A0A0C] text-white">
+          <div className="shrink-0 px-4 md:px-6 pt-3">
+            <BookingLimitBanner />
+          </div>
           <div className="h-full overflow-hidden lg:p-2 w-full">
             <div className="lg:border lg:rounded-[20px] overflow-hidden flex flex-col bg-[#15151A] border-white/[0.08] h-full w-full">
               {/* Header */}
