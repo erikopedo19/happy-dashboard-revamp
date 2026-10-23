@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Calendar, Users, Plus, ArrowUpRight, ArrowDownRight, DollarSign, Clock,
-  Scissors, Bell, ArrowUp, ArrowDown, ArrowUpDown,
+  Scissors, Bell,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
+import { BeuiTable, type TableColumn } from "@/components/ui/beui-table";
 
 const db = supabase as any;
 
@@ -192,33 +193,6 @@ export function DashboardContent() {
       .sort((a, b) => (a.appointment_date + a.appointment_time).localeCompare(b.appointment_date + b.appointment_time))
   }, [appointments]);
 
-  const [sortKey, setSortKey] = useState<'customer' | 'service' | 'date' | 'price' | 'status'>('date');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-
-  const toggleSort = (key: typeof sortKey) => {
-    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else { setSortKey(key); setSortDir('asc'); }
-  };
-
-  const sortedBookings = useMemo(() => {
-    const STATUS_ORDER: Record<string, number> = { scheduled: 0, confirmed: 0, paid: 1, completed: 2, cancelled: 3 };
-    const val = (a: any): string | number => {
-      switch (sortKey) {
-        case 'customer': return (a.customer?.name || 'Walk-in').toLowerCase();
-        case 'service': return (a.service?.name || '').toLowerCase();
-        case 'price': return Number(a.price || a.service?.price || 0);
-        case 'status': return STATUS_ORDER[(a.status || 'scheduled').toLowerCase()] ?? 4;
-        case 'date':
-        default: return `${a.appointment_date}T${a.appointment_time || '00:00'}`;
-      }
-    };
-    return [...upcoming].sort((a, b) => {
-      const va = val(a); const vb = val(b);
-      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [upcoming, sortKey, sortDir]);
-
   const bookingStatusBadge = (status: string | null) => {
     const s = (status || 'scheduled').toLowerCase();
     if (s === 'cancelled') return <StatusBadge state="failed" size="sm" labels={{ failed: 'Cancelled' }} />;
@@ -226,6 +200,51 @@ export function DashboardContent() {
     if (s === 'paid' || s === 'confirmed') return <StatusBadge state="success" size="sm" labels={{ success: 'Paid' }} />;
     return <StatusBadge state="pending" size="sm" labels={{ pending: 'Scheduled' }} />;
   };
+
+  const STATUS_ORDER: Record<string, number> = { scheduled: 0, confirmed: 0, paid: 1, completed: 2, cancelled: 3 };
+
+  const bookingColumns: TableColumn<any>[] = [
+    {
+      key: 'customer',
+      label: 'Customer',
+      width: '22%',
+      accessor: (a) => (a.customer?.name || 'Walk-in').toLowerCase(),
+      cell: (a) => <span className="font-medium text-white">{a.customer?.name || 'Walk-in'}</span>,
+    },
+    {
+      key: 'service',
+      label: 'Service',
+      width: '20%',
+      accessor: (a) => (a.service?.name || '').toLowerCase(),
+      cell: (a) => <span className="text-white/70">{a.service?.name || 'Service'}</span>,
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      width: '16%',
+      accessor: (a) => `${a.appointment_date}T${a.appointment_time || '00:00'}`,
+      cell: (a) => (
+        <span className="text-white/70">
+          {format(parseISO(a.appointment_date), 'MMM d')} · {a.appointment_time?.slice(0, 5)}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      width: '20%',
+      accessor: (a) => STATUS_ORDER[(a.status || 'scheduled').toLowerCase()] ?? 4,
+      cell: (a) => bookingStatusBadge(a.status),
+    },
+    {
+      key: 'price',
+      label: 'Price',
+      width: '14%',
+      align: 'right',
+      accessor: (a) => Number(a.price || a.service?.price || 0),
+      cell: (a) => <span className="font-semibold text-white">€{Number(a.price || a.service?.price || 0).toFixed(0)}</span>,
+    },
+  ];
 
   return (
     <div className="h-full overflow-hidden bg-[#0A0A0C] text-white font-geist">
@@ -357,60 +376,17 @@ export function DashboardContent() {
                   <p className="text-sm text-white/40">No upcoming bookings</p>
                 </div>
               ) : (
-                <div className="overflow-auto max-h-[440px] border-t border-white/[0.06]">
-                  <table className="w-full table-fixed border-collapse text-sm">
-                    <colgroup>
-                      <col style={{ width: '22%' }} />
-                      <col style={{ width: '20%' }} />
-                      <col style={{ width: '13%' }} />
-                      <col style={{ width: '11%' }} />
-                      <col style={{ width: '20%' }} />
-                      <col style={{ width: '14%' }} />
-                    </colgroup>
-                    <thead className="sticky top-0 z-10 bg-[#16161A] shadow-[0_1px_0_rgba(255,255,255,0.06)]">
-                      <tr>
-                        {(
-                          [
-                            { key: 'customer', label: 'Customer' },
-                            { key: 'service', label: 'Service' },
-                            { key: 'date', label: 'Date' },
-                            { key: 'status', label: 'Status' },
-                            { key: 'price', label: 'Price' },
-                          ] as const
-                        ).map((c) => (
-                          <th key={c.key} className={cn('px-4 py-3 font-medium', c.key === 'price' ? 'text-right' : 'text-left')}>
-                            <button
-                              type="button"
-                              onClick={() => toggleSort(c.key)}
-                              className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-white/40 transition-colors hover:text-white/80"
-                            >
-                              {c.label}
-                              {sortKey === c.key ? (
-                                sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-[#FF2D46]" /> : <ArrowDown className="h-3 w-3 text-[#FF2D46]" />
-                              ) : (
-                                <ArrowUpDown className="h-3 w-3 opacity-40" />
-                              )}
-                            </button>
-                          </th>
-                        ))}
-                        <th className="px-4 py-3" aria-hidden />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedBookings.map((a) => (
-                        <tr key={a.id} className="border-b border-white/[0.06] last:border-0 transition-colors hover:bg-white/[0.03]">
-                          <td className="truncate px-4 py-3 font-medium text-white">{a.customer?.name || 'Walk-in'}</td>
-                          <td className="truncate px-4 py-3 text-white/70">{a.service?.name || 'Service'}</td>
-                          <td className="truncate px-4 py-3 text-white/70">
-                            {format(parseISO(a.appointment_date), 'MMM d')} · {a.appointment_time?.slice(0, 5)}
-                          </td>
-                          <td className="truncate px-4 py-3">{bookingStatusBadge(a.status)}</td>
-                          <td className="truncate px-4 py-3 text-right font-semibold text-white">€{Number(a.price || a.service?.price || 0).toFixed(0)}</td>
-                          <td aria-hidden />
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="border-t border-white/[0.06]">
+                  <BeuiTable
+                    data={upcoming}
+                    columns={bookingColumns}
+                    getRowId={(a) => String(a.id)}
+                    defaultSort={{ key: 'date', direction: 'asc' }}
+                    resizable
+                    reorderable
+                    height={440}
+                    className="border-0 bg-transparent text-white [&_td]:text-white/80"
+                  />
                 </div>
               )}
             </div>
