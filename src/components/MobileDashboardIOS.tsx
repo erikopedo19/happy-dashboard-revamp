@@ -199,6 +199,10 @@ export function MobileDashboardIOS() {
     return metrics.spark.map((item) => ({ ...item, height: Math.max(6, Math.round((item.revenue / max) * 64)) }));
   }, [metrics.spark]);
   const topServiceMax = Math.max(...metrics.top_services.map((item) => item.bookings), 1);
+  const busiestDay = metrics.week.reduce<(typeof metrics.week)[number] | null>(
+    (best, d) => (d.bookings > (best?.bookings ?? 0) ? d : best),
+    null,
+  );
 
   const priceOf = (a: TodayAppointment) => Number(a.price ?? a.service?.price ?? 0);
   const completedToday = appointments.filter((a) => a.status === "completed");
@@ -428,6 +432,14 @@ export function MobileDashboardIOS() {
           </motion.button>
         )}
 
+        {/* Stat bento — today at a glance */}
+        <motion.section variants={revealItem} className="grid grid-cols-2 gap-3">
+          <MiniStat icon={CircleDollarSign} label="Today" value={money.format(metrics.today_revenue)} accent />
+          <MiniStat icon={CalendarDays} label="Bookings today" value={String(metrics.today_bookings)} />
+          <MiniStat icon={UsersRound} label="Upcoming" value={String(metrics.upcoming_bookings)} onClick={() => navigate("/agenda")} />
+          <MiniStat icon={Check} label="Completion" value={`${metrics.completion_rate}%`} />
+        </motion.section>
+
         {/* Today + daily goal */}
         <motion.section variants={revealItem} className="grid grid-cols-[1.25fr_1fr] gap-3">
           <div className="rounded-[26px] bg-white dark:bg-[#1C1C1E] p-4">
@@ -446,8 +458,7 @@ export function MobileDashboardIOS() {
                     initial={{ height: 4 }}
                     animate={{ height: item.height }}
                     transition={{ delay: index * 0.02, duration: 0.35 }}
-                    className="w-full rounded-full"
-                    style={{ backgroundColor: index === chart.length - 1 ? ACCENT : "#3A3A3C" }}
+                    className={cn("w-full rounded-full", index === chart.length - 1 ? "bg-[#FF2D46]" : "bg-[#D1D1D6] dark:bg-[#3A3A3C]")}
                   />
                 </div>
               ))}
@@ -595,6 +606,14 @@ export function MobileDashboardIOS() {
               );
             })}
           </div>
+          {busiestDay && (
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-[#F2F2F7] px-3.5 py-2.5 dark:bg-[#2C2C2E]">
+              <TrendingUp className="h-4 w-4 shrink-0 text-[#FF5A6E]" />
+              <p className="truncate text-[13px] font-medium">
+                <span className="font-bold">{format(new Date(`${busiestDay.date}T12:00:00`), "EEEE")}</span> is your busiest day · {busiestDay.bookings} bookings
+              </p>
+            </div>
+          )}
         </motion.section>
 
         {/* 30-day snapshot — grouped iOS list */}
@@ -607,6 +626,7 @@ export function MobileDashboardIOS() {
             <StatRow icon={Check} label="Completion" value={`${metrics.completion_rate}%`} detail={`${metrics.cancelled_30d} cancelled`} />
           </div>
           <OutcomeBar completed={metrics.completed_30d} cancelled={metrics.cancelled_30d} upcoming={Math.max(0, metrics.bookings_30d - metrics.completed_30d - metrics.cancelled_30d)} />
+          <ClientMix fresh={metrics.new_customers_30d} returning={metrics.returning_customers_30d} />
         </motion.section>
 
         {metrics.top_services.length > 0 && (
@@ -859,5 +879,58 @@ function Sparkline({ data }: { data: Array<{ date: string; revenue: number }> })
         <animate attributeName="r" values="4;10;4" dur="2s" repeatCount="indefinite" />
       </circle>
     </svg>
+  );
+}
+
+/** Compact stat tile for the today bento grid. */
+function MiniStat({ icon: Icon, label, value, accent, onClick }: { icon: typeof CalendarDays; label: string; value: string; accent?: boolean; onClick?: () => void }) {
+  return (
+    <motion.button
+      type="button"
+      variants={revealItem}
+      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      disabled={!onClick}
+      className="rounded-[24px] bg-white p-4 text-left ring-1 ring-black/[0.04] transition active:bg-[#F7F7FA] disabled:cursor-default dark:bg-[#1C1C1E] dark:ring-white/[0.05] dark:active:bg-[#2C2C2E]"
+    >
+      <span className={cn("flex h-8 w-8 items-center justify-center rounded-[10px]", accent ? "bg-[#FF2D46]" : "bg-[#F2F2F7] dark:bg-[#2C2C2E]")}>
+        <Icon className={cn("h-4 w-4", accent ? "text-white" : "text-[#8E8E93]")} />
+      </span>
+      <p className="mt-3 truncate text-[22px] font-bold leading-none tracking-[-0.03em] tabular-nums">{value}</p>
+      <p className="mt-1.5 truncate text-[11px] font-medium text-[#8E8E93]">{label}</p>
+    </motion.button>
+  );
+}
+
+/** New vs returning clients — animated split bar. */
+function ClientMix({ fresh, returning }: { fresh: number; returning: number }) {
+  const total = fresh + returning;
+  if (!total) return null;
+  const pct = Math.round((returning / total) * 100);
+  return (
+    <div className="mt-3 rounded-[26px] bg-white p-4 dark:bg-[#1C1C1E]">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[14px] font-semibold">New vs returning clients</p>
+        <p className="text-[12px] font-semibold tabular-nums text-[#8E8E93]">{pct}% come back</p>
+      </div>
+      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E]">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${(fresh / total) * 100}%` }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="h-full bg-[#FF9F0A]"
+        />
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${(returning / total) * 100}%` }}
+          transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+          className="h-full bg-[#FF2D46]"
+        />
+      </div>
+      <div className="mt-3 flex items-center gap-4 text-[12px] font-medium">
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#FF9F0A]" />New · {fresh}</span>
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#FF2D46]" />Returning · {returning}</span>
+      </div>
+    </div>
   );
 }
