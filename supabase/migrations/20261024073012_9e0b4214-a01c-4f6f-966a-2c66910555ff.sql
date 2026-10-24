@@ -1,0 +1,1 @@
+CREATE POLICY "Payment service manages email delivery" ON public.billing_email_deliveries FOR ALL TO service_role USING (true) WITH CHECK (true);
