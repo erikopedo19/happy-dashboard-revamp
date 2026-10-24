@@ -264,6 +264,39 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_email_deliveries: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          delivery_key: string
+          kind: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          delivery_key: string
+          kind: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          delivery_key?: string
+          kind?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       boost_campaigns: {
         Row: {
           completed_at: string | null
@@ -1680,14 +1713,17 @@ export type Database = {
       subscribers: {
         Row: {
           auto_renew: boolean
+          billing_status: string | null
           cancel_at_period_end: boolean
           created_at: string
           email: string
           expiration_email_sent_at: string | null
           id: string
+          payment_failed_at: string | null
           renewal_amount: number | null
           renewal_currency: string
           stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           subscribed: boolean
           subscription_end: string | null
           subscription_start: string | null
@@ -1697,14 +1733,17 @@ export type Database = {
         }
         Insert: {
           auto_renew?: boolean
+          billing_status?: string | null
           cancel_at_period_end?: boolean
           created_at?: string
           email: string
           expiration_email_sent_at?: string | null
           id?: string
+          payment_failed_at?: string | null
           renewal_amount?: number | null
           renewal_currency?: string
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_start?: string | null
@@ -1714,14 +1753,17 @@ export type Database = {
         }
         Update: {
           auto_renew?: boolean
+          billing_status?: string | null
           cancel_at_period_end?: boolean
           created_at?: string
           email?: string
           expiration_email_sent_at?: string | null
           id?: string
+          payment_failed_at?: string | null
           renewal_amount?: number | null
           renewal_currency?: string
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_start?: string | null
@@ -1950,6 +1992,10 @@ export type Database = {
       }
       cancel_appointment_by_token: { Args: { _token: string }; Returns: Json }
       cancel_subscription_at_period_end: { Args: never; Returns: Json }
+      claim_billing_email: {
+        Args: { p_key: string; p_kind: string; p_user_id: string }
+        Returns: boolean
+      }
       claim_referral: { Args: { p_code: string }; Returns: Json }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       clean_booking_link: { Args: { raw: string }; Returns: string }
