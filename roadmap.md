@@ -1,5 +1,9 @@
 # Current work
 
+- [ ] Repair subscription payment, renewal, cancellation, and return-to-app synchronization.
+- [ ] Send reliable renewal and cancellation confirmation emails.
+- [ ] Test subscription lifecycle and verify deployed payment endpoints; live money movements require a safe test account.
+
 - [x] Remove the decorative gradient from Reports.
 - [x] Redesign Manage Subscription as a functional Apple-style Settings list.
 - [x] Verify the updated screens and build status.
