@@ -14,7 +14,7 @@ export default function PricingFailure() {
         secondaryButtonText="Home"
         tertiaryButtonText="Contact Support"
         onRetry={() => navigate("/pricing")}
-        onSecondary={() => navigate("/admin")}
+        onSecondary={() => navigate("/dashboard")}
         onTertiary={() => window.location.href = "mailto:support@cutzioo.com"}
       />
     </div>

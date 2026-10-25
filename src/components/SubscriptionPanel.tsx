@@ -44,7 +44,7 @@ type ManageAction = "cancel" | "resume";
 type ManageResult =
   | { kind: "fallback" }
   | { kind: "error" }
-  | { kind: "success"; subscriptionEnd: string | null };
+  | { kind: "success"; subscriptionEnd: string | null; emailPending: boolean };
 
 async function manageSubscription(action: ManageAction): Promise<ManageResult> {
   const { data, error } = await supabase.functions.invoke("manage-subscription", {
@@ -69,7 +69,7 @@ async function manageSubscription(action: ManageAction): Promise<ManageResult> {
 
   if (errorCode === "no_stripe_subscription") return { kind: "fallback" };
   if (error || errorCode || data?.ok !== true) return { kind: "error" };
-  return { kind: "success", subscriptionEnd: data.subscription_end ?? null };
+  return { kind: "success", subscriptionEnd: data.subscription_end ?? null, emailPending: data.email_pending === true };
 }
 
 export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
@@ -156,14 +156,13 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         return;
       }
       if (result.kind === "fallback") {
-        const { error: rpcError } = await supabase.rpc("set_subscription_auto_renew", { _enabled: enabled });
-        if (rpcError) {
-          toast.error("Couldn't update auto-renewal. Please try again.");
-          return;
-        }
+        toast.info("This plan has no recurring Stripe subscription to change.");
+        return;
       }
       toast.success(enabled ? "Auto-renewal turned on" : "Auto-renewal turned off");
+      if (result.emailPending) toast.info("Your membership was updated; the confirmation email is pending.");
       await refresh();
+      window.dispatchEvent(new Event("premium:refresh"));
     } catch {
       toast.error("Couldn't update auto-renewal. Please try again.");
     } finally {
@@ -180,18 +179,17 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         return;
       }
       if (result.kind === "fallback") {
-        const { error: rpcError } = await supabase.rpc("cancel_subscription_at_period_end");
-        if (rpcError) {
-          toast.error("Couldn't cancel your subscription. Please try again.");
-          return;
-        }
+        toast.info("This plan has no recurring Stripe subscription to cancel.");
+        return;
       }
       setConfirmOpen(false);
       const subscriptionEnd = result.kind === "success"
         ? result.subscriptionEnd ?? data?.subscription_end
         : data?.subscription_end;
       toast.success(`Pro cancelled. You keep it until ${fmt(subscriptionEnd)}.`);
+      if (result.emailPending) toast.info("Cancellation is confirmed; the confirmation email is pending.");
       await refresh();
+      window.dispatchEvent(new Event("premium:refresh"));
     } catch {
       toast.error("Couldn't cancel your subscription. Please try again.");
     } finally {
@@ -199,13 +197,20 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
     }
   }
 
-  const openBilling = () => {
+  const openBilling = async () => {
     haptic("light");
-    if (STRIPE_PORTAL_LINK) {
-      window.open(STRIPE_PORTAL_LINK, "_blank", "noopener,noreferrer");
-      return;
+    setBusy(true);
+    try {
+      const { data: portal, error: portalError } = await supabase.functions.invoke("manage-subscription", { body: { action: "portal" } });
+      if (!portalError && portal?.url) {
+        window.location.assign(portal.url);
+        return;
+      }
+      if (STRIPE_PORTAL_LINK) window.location.assign(STRIPE_PORTAL_LINK);
+      else toast.error("Stripe billing management is not available yet. Please try again later.");
+    } finally {
+      setBusy(false);
     }
-    navigate("/pricing");
   };
 
   return (
@@ -270,7 +275,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
                 <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />{status === "canceling" ? "Access ends" : "Renewal date"}</span>
                 <span className="text-right text-[16px] text-muted-foreground">{fmt(data?.subscription_end)}</span>
               </div>
-              <Button variant="ghost" onClick={openBilling} className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
+              <Button variant="ghost" disabled={busy} onClick={openBilling} className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
                 <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Manage payment methods</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Button>

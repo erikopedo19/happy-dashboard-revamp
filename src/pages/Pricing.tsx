@@ -57,6 +57,7 @@ export default function Pricing() {
   const requestedPlan = getRequestedPlan(searchParams.get("plan"));
   const [plan, setPlan] = useState<PlanKey>(requestedPlan ?? OPTIONS[0]?.key ?? "monthly");
   const [freeTrial, setFreeTrial] = useState(STRIPE_TRIAL_ENABLED);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
 
   useEffect(() => {
     if (requestedPlan) setPlan(requestedPlan);
@@ -65,17 +66,21 @@ export default function Pricing() {
   const active = OPTIONS.find((o) => o.key === plan) ?? OPTIONS[0];
 
   async function handleContinue() {
+    if (checkoutBusy) return;
     haptic("medium");
-    const { data: { user } } = await supabase.auth.getUser();
-    const link = plan === "yearly" && STRIPE_PAYMENT_LINK_YEARLY
-      ? STRIPE_PAYMENT_LINK_YEARLY
-      : STRIPE_PAYMENT_LINK;
-    const url = new URL(link);
-    if (user?.email) url.searchParams.set("prefilled_email", user.email);
-    if (user?.id) url.searchParams.set("client_reference_id", user.id);
-    url.searchParams.set("success_url", `${window.location.origin}/pricing/success`);
-    toast.info("Opening secure checkout…");
-    window.location.href = url.toString();
+    setCheckoutBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate("/auth"); return; }
+      const { data, error } = await supabase.functions.invoke("subscription-checkout", { body: { plan, return_origin: window.location.origin } });
+      if (error || !data?.url) {
+        let code = data?.error;
+        if (error?.context instanceof Response) code = (await error.context.clone().json().catch(() => null))?.error;
+        toast.error(code === "subscription_exists" ? "You already have a subscription. Manage it in Settings instead." : "Checkout is unavailable. Please try again.");
+        return;
+      }
+      window.location.assign(data.url);
+    } finally { setCheckoutBusy(false); }
   }
 
   return (
