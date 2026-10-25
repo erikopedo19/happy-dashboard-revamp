@@ -59,10 +59,18 @@ export function useSubscription(): SubscriptionState {
   }, [user?.id]);
 
   useEffect(() => {
-    load();
+    const sync = async () => {
+      if (user) await supabase.functions.invoke("manage-subscription", { body: { action: "sync" } });
+      await load();
+    };
+    sync();
     const onRefresh = () => load();
+    window.addEventListener("focus", sync);
     window.addEventListener("premium:refresh", onRefresh);
-    return () => window.removeEventListener("premium:refresh", onRefresh);
+    return () => {
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("premium:refresh", onRefresh);
+    };
   }, [load]);
 
   const end = data?.subscription_end ? new Date(data.subscription_end) : null;
