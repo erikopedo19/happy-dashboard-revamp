@@ -1,5 +1,7 @@
 # Current work
 
+- [ ] Diagnose and repair Agenda form appointment creation; verify relevant validation and errors.
+
 - [x] Repair subscription payment, renewal, cancellation, and return-to-app synchronization.
 - [x] Implement renewal/cancellation emails, retry tracking, and duplicate protection; deploy payment functions.
 - [x] Pass nine lifecycle tests, verify unauthenticated rejection, confirm €8.99 pricing, enable billing portal, and check public checkout behavior.
