@@ -51,7 +51,8 @@ export async function syncSubscription(admin: ReturnType<typeof adminClient>, us
   const { data: old, error: lookupError } = await admin.from('subscribers').select('subscription_end, stripe_subscription_id, cancel_at_period_end').eq('user_id', userId).maybeSingle();
   if (lookupError) throw lookupError;
   const fields = subscriptionFields(sub, old?.subscription_end);
-  const { error } = await admin.from('subscribers').upsert({ user_id: userId, email, ...fields, updated_at: new Date().toISOString(), ...(fields.subscribed && sub.status === 'active' ? { payment_failed_at: null, expiration_email_sent_at: null, expiry_reminder_sent_at: null } : {}) }, { onConflict: 'user_id' });
+  const renewed = fields.subscribed && sub.status === 'active' && fields.subscription_end !== old?.subscription_end;
+  const { error } = await admin.from('subscribers').upsert({ user_id: userId, email, ...fields, updated_at: new Date().toISOString(), ...(sub.status === 'active' ? { payment_failed_at: null } : {}), ...(renewed ? { expiration_email_sent_at: null, expiry_reminder_sent_at: null } : {}) }, { onConflict: 'user_id' });
   if (error) throw error;
   return fields;
 }

@@ -227,6 +227,7 @@ export default function Pricing() {
           <button
             type="button"
             onClick={handleContinue}
+            disabled={checkoutBusy}
             aria-describedby="pricing-billing-summary"
             className="pricing-continue"
           >
