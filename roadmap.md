@@ -3,7 +3,7 @@
 - [x] Repair subscription payment, renewal, cancellation, and return-to-app synchronization.
 - [x] Implement renewal/cancellation emails, retry tracking, and duplicate protection; deploy payment functions.
 - [x] Pass nine lifecycle tests, verify unauthenticated rejection, confirm €8.99 pricing, enable billing portal, and check public checkout behavior.
-- [ ] Complete automatic renewal/cancellation delivery: user must save the signing secret for Stripe endpoint we_1UUhOr1j0n3P0aipTWB2jxNZ.
+- [x] Save Stripe notification signing secret and verify deployed signature acceptance with a harmless event (200 acknowledged).
 - [ ] Verify signed-in payment, renewal, cancellation, and received emails end-to-end; external Supabase session and safe payment test account unavailable.
 
 - [x] Remove the decorative gradient from Reports.
