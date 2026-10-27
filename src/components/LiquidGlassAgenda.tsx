@@ -211,6 +211,11 @@ export const LiquidGlassAgenda = ({
 }: LiquidGlassAgendaProps) => {
   const [selectedDay, setSelectedDay] = useState(new Date());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [nowTick, setNowTick] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
   const [slotSheetAppointment, setSlotSheetAppointment] = useState<Appointment | null>(null);
@@ -805,14 +810,14 @@ export const LiquidGlassAgenda = ({
     const now = new Date();
     const minutesFromStart = (now.getHours() - timeRange.startHour) * 60 + now.getMinutes();
     if (minutesFromStart < 0) return;
-    const pixelsPerMinute = 80 / 60;
+    const pixelsPerMinute = (isMobile ? 96 : 76) / Math.max(agendaSettings?.service_duration || 60, 1);
     const target = Math.max(0, minutesFromStart * pixelsPerMinute - 80);
     // Defer until layout is painted
     const id = window.setTimeout(() => {
       el.scrollTo({ top: target, behavior: 'smooth' });
     }, 150);
     return () => window.clearTimeout(id);
-  }, [selectedDay, timeRange.startHour, hours.length]);
+  }, [selectedDay, timeRange.startHour, hours.length, isMobile, agendaSettings?.service_duration]);
 
   // Format time display (e.g., "3 PM")
   const formatTimeLabel = (time: string) => {
@@ -1561,6 +1566,32 @@ export const LiquidGlassAgenda = ({
             animate="visible"
             variants={slotListVariants}
           >
+            {(() => {
+              if (!hours.length || !isSameDay(selectedDay, nowTick)) return null;
+              const interval = Math.max(agendaSettings?.service_duration || 60, 1);
+              const [fh, fm] = hours[0].split(':').map(Number);
+              const startMin = fh * 60 + fm;
+              const endMin = startMin + hours.length * interval;
+              const nowMin = nowTick.getHours() * 60 + nowTick.getMinutes();
+              if (nowMin < startMin || nowMin > endMin) return null;
+              const top = 16 + ((nowMin - startMin) / interval) * (isMobile ? 96 : 76);
+              return (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute left-0 right-0 z-30 flex -translate-y-1/2 items-center"
+                  style={{ top }}
+                >
+                  <span className="w-12 shrink-0">
+                    <span className="rounded-full bg-[#FF3B30] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-[0_2px_8px_rgba(255,59,48,0.45)]">
+                      {format(nowTick, 'HH:mm')}
+                    </span>
+                  </span>
+                  <span className="ml-1 h-2 w-2 shrink-0 rounded-full bg-[#FF3B30]" />
+                  <span className="h-[1.5px] flex-1 bg-[#FF3B30] shadow-[0_0_8px_rgba(255,59,48,0.55)]" />
+                </div>
+              );
+            })()}
+
             {/* Time markers and appointment cards */}
             {hours.map((hour) => {
               const [slotHour, slotMinute] = hour.split(':').map(Number);
@@ -1613,7 +1644,7 @@ export const LiquidGlassAgenda = ({
 
 
               const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
-              const rowHeight = isMobile ? 76 : ROW_H;
+              const rowHeight = isMobile ? 96 : ROW_H;
               // Cover every hour an appointment/event occupies: measure from its
               // real start offset inside this slot to its real end, so a service
               // that needs N hours always spans N rows even off the grid.
@@ -1630,7 +1661,7 @@ export const LiquidGlassAgenda = ({
                 0
               );
               const cardGap = isMobile ? 4 : 12;
-              const minCardHeight = isMobile ? 72 : 64;
+              const minCardHeight = isMobile ? 88 : 64;
               const cardStackHeight = Math.max((maxSpanEnd / slotInterval) * rowHeight - cardGap, minCardHeight);
 
               return (
@@ -1690,10 +1721,13 @@ export const LiquidGlassAgenda = ({
                             aria-label="Drag to move"
                             onPointerDown={(e) => startDrag(e, apt)}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/[0.08] dark:text-gray-300 cursor-grab active:cursor-grabbing"
+                            className={cn(
+                              "absolute right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full cursor-grab active:cursor-grabbing",
+                              isMobile ? "top-2 text-gray-400 dark:text-white/45" : "top-1/2 -translate-y-1/2 bg-black/5 text-gray-500 dark:bg-white/[0.08] dark:text-gray-300"
+                            )}
                             style={{ touchAction: "none", pointerEvents: drag?.id === apt.id ? "none" : "auto" }}
                           >
-                            <GripVertical className="h-4 w-4" />
+                            {isMobile ? <MoreHorizontal className="h-4 w-4" /> : <GripVertical className="h-4 w-4" />}
                           </span>
                         )}
 
@@ -1713,8 +1747,8 @@ export const LiquidGlassAgenda = ({
                           onPointerLeave={clearLongPressTimer}
                           onPointerMove={handleAppointmentPointerMove}
                           className={cn(
-                            "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "px-3.5 py-2" : "p-4",
+                            "w-full h-full text-left relative overflow-hidden transition-all active:scale-[0.98]",
+                            isMobile ? "rounded-[22px] pl-3 pr-3.5 py-3" : "rounded-2xl p-4",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1733,11 +1767,11 @@ export const LiquidGlassAgenda = ({
                             background: isCancelled
                               ? (isDark ? "rgba(120,120,128,0.08)" : "rgba(120,120,128,0.05)")
                               : isMobile
-                                ? (isDark ? "#161618" : "#FFFFFF")
+                                ? (isDark ? "#1C1C1E" : "#FFFFFF")
                                 : getGlassGradient(serviceColor, isDark),
                             backdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
                             WebkitBackdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
-                            borderLeft: isCancelled ? undefined : `4px solid ${colorToRgba(serviceColor, isMobile ? 1 : 0.9)}`,
+                            borderLeft: isCancelled || isMobile ? undefined : `4px solid ${colorToRgba(serviceColor, 0.9)}`,
                           }}
                         >
                           {!isMobile && (
@@ -1765,7 +1799,41 @@ export const LiquidGlassAgenda = ({
                             </>
                           )}
 
-                          {/* Content */}
+                          {isMobile ? (() => {
+                            const [sh, sm] = apt.appointment_time.split(':').map(Number);
+                            const startAt = new Date(selectedDay); startAt.setHours(sh, sm, 0, 0);
+                            const endAt = addMinutes(startAt, duration);
+                            const status = isCancelled ? "Cancelled" : isCompleted ? "Completed"
+                              : nowTick >= startAt && nowTick < endAt ? "In progress"
+                              : nowTick >= endAt ? "Finished" : "Upcoming";
+                            const initials = (apt.customer.name || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+                            return (
+                              <div className={cn("relative z-10 flex h-full gap-3", !isCancelled && "pr-8")}>
+                                <span className="w-[3px] shrink-0 rounded-full" style={{ backgroundColor: isDark ? "#F2F2F7" : "#1C1C1E", opacity: isCancelled ? 0.3 : 0.85 }} />
+                                <div className="flex min-w-0 flex-1 flex-col">
+                                  <h3 className={cn("truncate text-[15px] font-semibold leading-tight tracking-[-0.01em]", isCancelled && "line-through", isDark ? "text-white" : "text-[#1C1C1E]")}>
+                                    {apt.service.name}
+                                  </h3>
+                                  <p className={cn("mt-0.5 text-[12.5px] font-medium", status === "In progress" ? "text-[#30D158]" : isDark ? "text-white/40" : "text-gray-400")}>
+                                    {status}
+                                  </p>
+                                  <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
+                                    <span className="flex min-w-0 items-center gap-2">
+                                      <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10.5px] font-semibold text-white ring-2", isDark ? "ring-[#1C1C1E]" : "ring-white")} style={{ backgroundColor: serviceColor }}>
+                                        {initials}
+                                      </span>
+                                      <span className={cn("truncate text-[12.5px] font-medium", isDark ? "text-white/70" : "text-gray-600")}>{apt.customer.name}</span>
+                                    </span>
+                                    <span className={cn("flex shrink-0 items-center gap-1 text-[11.5px] font-medium tabular-nums", isDark ? "text-white/55" : "text-gray-500")}>
+                                      <Clock className="h-3.5 w-3.5" />
+                                      {format(startAt, 'h:mm a')} - {format(endAt, 'h:mm a')}
+                                    </span>
+                                  </div>
+                                </div>
+                                {isCompleted && <CheckCircle2 className={cn("absolute right-0 bottom-0 h-4 w-4", isDark ? "text-green-400" : "text-green-600")} />}
+                              </div>
+                            );
+                          })() : (
                           <div className={cn("relative z-10 flex flex-col justify-between h-full", !isCancelled && "pr-10")}>
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
@@ -1830,6 +1898,7 @@ export const LiquidGlassAgenda = ({
                             </div>
 
                           </div>
+                          )}
                         </button>
                       </motion.div>
                     );
@@ -1978,6 +2047,21 @@ export const LiquidGlassAgenda = ({
                 </div>
               );
             })}
+            {hours.length > 0 && (() => {
+              const interval = Math.max(agendaSettings?.service_duration || 60, 1);
+              const [lh, lm] = hours[hours.length - 1].split(':').map(Number);
+              const closeMin = lh * 60 + lm + interval;
+              const close = `${String(Math.floor(closeMin / 60) % 24).padStart(2, '0')}:${String(closeMin % 60).padStart(2, '0')}`;
+              return (
+                <div className="flex h-7 items-center gap-3">
+                  <span className="w-12 shrink-0 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                    {close.endsWith(':00') ? formatTimeLabel(close) : close}
+                  </span>
+                  <span className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">Closing</span>
+                </div>
+              );
+            })()}
           </motion.div>
         )}
       </div>

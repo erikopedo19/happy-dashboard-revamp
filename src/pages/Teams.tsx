@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
@@ -374,6 +375,26 @@ const Teams = () => {
               </Button>
             </div>
 
+            <div className="mb-6 grid grid-cols-3 gap-3">
+              {[
+                { label: "Teams", value: `${teams.length}/${maxTeams}`, icon: Users },
+                { label: "Members", value: String(allTeamMembers.length), icon: UserPlus },
+                { label: "Stylists", value: String(stylists.length), icon: Scissors },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: i * 0.06 }}
+                  className="rounded-[22px] bg-white dark:bg-[#1C1C1E] p-4 ring-1 ring-black/[0.05] dark:ring-white/[0.06]"
+                >
+                  <stat.icon className="h-4 w-4 text-[#8E8E93]" />
+                  <p className="mt-3 text-[22px] font-semibold tabular-nums tracking-tight text-[#1C1C1E] dark:text-white leading-none">{stat.value}</p>
+                  <p className="mt-1 text-[12px] text-[#8E8E93]">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
+
             {isLoading ? (
               <div className="text-center py-16 text-sm text-[#8E8E93]">Loading teams…</div>
             ) : teams.length === 0 ? (
@@ -397,16 +418,26 @@ const Teams = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {teams.map((team) => {
+                {teams.map((team, teamIndex) => {
                   const colorScheme = team.color ? colorOptions.find((c) => c.value === team.color) || colorOptions[0] : colorOptions[0];
                   const memberCount = allTeamMembers.filter(member => member.team_id === team.id).length;
                   const teamMembers = allTeamMembers.filter(m => m.team_id === team.id).slice(0, 4);
                   return (
-                    <Card
+                    <motion.div
                       key={team.id}
-                      className="group bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all overflow-hidden"
+                      initial={{ opacity: 0, y: 22, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 260, damping: 26, delay: 0.1 + teamIndex * 0.06 }}
                     >
-                      <CardContent className="p-6">
+                    <Card
+                      className="group relative bg-white dark:bg-[#1C1C1E] border-0 rounded-[28px] ring-1 ring-black/[0.05] dark:ring-white/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all overflow-hidden"
+                    >
+                      <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-90"
+                        style={{ background: `linear-gradient(180deg, ${colorScheme.dot}2E 0%, ${colorScheme.dot}00 100%)` }}
+                      />
+                      <CardContent className="relative p-5 lg:p-6">
                         <div className="flex items-start justify-between mb-5">
                           <div className="flex items-center gap-3 min-w-0">
                             <div
@@ -427,6 +458,15 @@ const Teams = () => {
                               </p>
                             </div>
                           </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            aria-label="Edit team"
+                            onClick={() => handleEditClick(team)}
+                            className="flex size-9 items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-white active:scale-90 transition"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
                           <DeleteButton
                             label="Delete team"
                             confirmLabel="Delete"
@@ -434,9 +474,10 @@ const Teams = () => {
                             doneLabel="Deleted"
                             onConfirm={() => deleteTeamMutation.mutateAsync(team.id)}
                             onError={() => toast({ title: "Couldn't delete team", variant: "destructive" })}
-                            className="bg-transparent shadow-none opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="bg-transparent shadow-none lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                             classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
                           />
+                          </div>
                         </div>
 
                         {/* Members preview */}
@@ -460,7 +501,7 @@ const Teams = () => {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-xs text-[#8E8E93]">No members yet</span>
+                              <span className="text-xs text-[#8E8E93]">No members yet · tap Add</span>
                             )}
                           </div>
                           <Button
@@ -478,6 +519,7 @@ const Teams = () => {
                         </div>
                       </CardContent>
                     </Card>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -494,7 +536,7 @@ const Teams = () => {
           if (!open) setSelectedStylistIds([]);
         }}
       >
-        <DialogContent>
+        <DialogContent className="rounded-[28px] sm:rounded-[28px] bg-[#F2F2F7] dark:bg-[#121214] border-black/[0.05] dark:border-white/[0.08]">
           <DialogHeader>
             <DialogTitle>Add members to team</DialogTitle>
             <DialogDescription>Select existing stylists or invite by email.</DialogDescription>
@@ -523,7 +565,7 @@ const Teams = () => {
                   return (
                     <div
                       key={stylist.id}
-                      className={`flex items-center gap-3 p-2 rounded-md border ${alreadyMember ? "opacity-60" : ""}`}
+                      className={`flex items-center gap-3 px-3.5 py-3 rounded-[14px] bg-white dark:bg-[#1C1C1E] ${alreadyMember ? "opacity-60" : ""}`}
                     >
                       <Checkbox
                         checked={checked}
@@ -572,32 +614,34 @@ const Teams = () => {
 
       {/* Edit Team Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-[28px] sm:rounded-[28px] bg-[#F2F2F7] dark:bg-[#121214] border-black/[0.05] dark:border-white/[0.08]">
           <DialogHeader>
             <DialogTitle>Edit Team</DialogTitle>
             <DialogDescription>Update team information</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-name">Team Name</Label>
+              <Label className="px-1 text-[13px] font-normal uppercase tracking-[0.04em] text-[#8E8E93]" htmlFor="edit-name">Team Name</Label>
               <Input
+                className="mt-1.5 h-12 rounded-[12px] border-0 bg-white dark:bg-[#1C1C1E] text-[17px]"
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">Description</Label>
+              <Label className="px-1 text-[13px] font-normal uppercase tracking-[0.04em] text-[#8E8E93]" htmlFor="edit-description">Description</Label>
               <Textarea
+                className="mt-1.5 rounded-[12px] border-0 bg-white dark:bg-[#1C1C1E] text-[17px]"
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="edit-color">Color Theme</Label>
+              <Label className="px-1 text-[13px] font-normal uppercase tracking-[0.04em] text-[#8E8E93]" htmlFor="edit-color">Color Theme</Label>
               <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5 h-12 rounded-[12px] border-0 bg-white dark:bg-[#1C1C1E]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

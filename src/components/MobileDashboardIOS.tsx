@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
 import { RollingText } from "@/components/RollingText";
+import { NextBookingsCard } from "@/components/NextBookingsCard";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -404,6 +405,10 @@ export function MobileDashboardIOS() {
               </div>
             </div>
           )}
+        </motion.section>
+
+        <motion.section variants={revealItem}>
+          <NextBookingsCard />
         </motion.section>
 
         {/* Quick actions — Control Center style */}
