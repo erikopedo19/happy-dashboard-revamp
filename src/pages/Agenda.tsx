@@ -724,7 +724,7 @@ const Agenda = () => {
                     </EmptyHeader>
                     <EmptyContent>
                       <div className="flex gap-2">
-                        <Button size="sm" onPress={() => setIsAppointmentFormOpen(true)}>
+                        <Button size="sm" onPress={handleNewAppointment}>
                           Create booking
                         </Button>
                       </div>
