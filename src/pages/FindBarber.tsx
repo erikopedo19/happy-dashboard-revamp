@@ -373,6 +373,7 @@ const FindBarber = () => {
         minRating={minRating}
         setMinRating={setMinRating}
         onBack={() => changeTab("today")}
+        onTab={changeTab}
       />
     );
   }
@@ -1012,6 +1013,7 @@ function FullScreenMap({
   minRating,
   setMinRating,
   onBack,
+  onTab,
 }: {
   barbers: BarberProfile[];
   userLocation: { lat: number; lng: number } | null;
@@ -1024,6 +1026,7 @@ function FullScreenMap({
   minRating: "any" | "3" | "4" | "4.5";
   setMinRating: (v: "any" | "3" | "4" | "4.5") => void;
   onBack: () => void;
+  onTab: (key: TabKey) => void;
 }) {
   const [vipOnly, setVipOnly] = useState(false);
   const activeFilters =
@@ -1249,6 +1252,27 @@ function FullScreenMap({
             </SheetContent>
           </Sheet>
         </div>
+        <motion.div
+          initial={{ opacity: 0, y: -18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 28, delay: 0.08 }}
+          className="mx-3 mt-2 flex rounded-full border border-black/5 bg-white/90 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90"
+        >
+          {([["today", "Barbers"], ["map", "Map"], ["favorites", "Saved"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => key !== "map" && onTab(key)}
+              className={cn(
+                "relative h-9 flex-1 rounded-full text-[13px] font-semibold transition-colors",
+                key === "map" ? "text-white" : "text-[#1C1C1E]/70 active:bg-black/5 dark:text-white/70 dark:active:bg-white/10"
+              )}
+            >
+              {key === "map" && <span className="absolute inset-0 rounded-full bg-[#FF2D46] shadow-[0_4px_12px_rgba(255,45,70,0.35)]" />}
+              <span className="relative">{label}</span>
+            </button>
+          ))}
+        </motion.div>
 
         <div className="mx-3 mt-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-[#FF2D46] shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#FDA4AF]">

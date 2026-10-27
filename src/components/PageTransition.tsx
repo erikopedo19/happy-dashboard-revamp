@@ -2,6 +2,7 @@ import { ReactNode, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { gsap } from "gsap";
+import { CutziooLoader } from "./CutziooLoader";
 
 const CLIENT_PREFIXES = [
   "/find-barber",
@@ -38,8 +39,8 @@ function routeType(path: string): RouteKind {
 
 /**
  * Fast GSAP page transition.
- * Switching between client and barber mode rises from the bottom behind a soft
- * gradient veil; everything else gets a quick fade/slide so there is no loading feel.
+ * Switching between client and barber mode shows the loader, which then fades
+ * up and away over 1.5s while the new page rises in; everything else gets a quick fade/slide so there is no loading feel.
  */
 export const PageTransition = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
@@ -78,29 +79,21 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
 
     if (modeSwitch) {
       const v = veil.current;
-      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+      const tl = gsap.timeline();
       if (v) {
         const tint = type === "client" ? "255,45,70" : "168,85,247";
-        v.style.background = `linear-gradient(180deg, rgba(10,10,12,0) 0%, rgba(${tint},0.32) 30%, rgba(10,10,12,0.92) 55%, rgba(${tint},0.18) 78%, rgba(10,10,12,0) 100%)`;
-        tl.fromTo(
-          v,
-          { yPercent: 100, opacity: 1, display: "block" },
-          { yPercent: -110, duration: 1.1, ease: "power3.inOut" },
-          0
-        )
-          .to(v, { opacity: 0, duration: 0.45, ease: "power1.out" }, 0.65)
-          .set(v, { display: "none" });
+        v.style.background = `radial-gradient(120% 70% at 50% 100%, rgba(${tint},0.28) 0%, rgba(${tint},0) 60%), radial-gradient(circle at 50% 40%, hsl(var(--muted) / 0.5), transparent 55%), hsl(var(--background))`;
+        tl.set(v, { display: "grid", opacity: 1, yPercent: 0 })
+          .fromTo(v.firstElementChild, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" }, 0)
+          .to(v, { yPercent: -100, opacity: 0, duration: 1.5, ease: "power3.inOut" }, 0.9)
+          .set(v, { display: "none", clearProps: "transform,opacity" });
       }
-      tl.fromTo(
-        el,
-        { opacity: 0, y: 64, scale: 0.985, filter: "blur(8px)" },
-        { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.9, clearProps: clear },
-        0.18
-      );
+      gsap.set(el, { opacity: 0, y: 48 });
+      tl.to(el, { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", clearProps: clear }, 1.0);
       return () => {
         tl.kill();
         gsap.set(el, { clearProps: clear });
-        if (v) gsap.set(v, { display: "none" });
+        if (v) gsap.set(v, { display: "none", clearProps: "transform,opacity" });
       };
     }
 
@@ -129,9 +122,13 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           <div
             ref={veil}
             aria-hidden
-            className="pointer-events-none fixed inset-x-0 -top-[20vh] z-[350] h-[140vh]"
+            className="pointer-events-none fixed inset-0 z-[350] place-items-center"
             style={{ display: "none" }}
-          />,
+          >
+            <div>
+              <CutziooLoader variant="loop" size="72px" wordmark={false} />
+            </div>
+          </div>,
           document.body
         )}
     </>
