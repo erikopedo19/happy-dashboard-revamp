@@ -1,0 +1,10 @@
+CREATE SCHEMA IF NOT EXISTS private;
+GRANT USAGE ON SCHEMA private TO authenticated, service_role;
+CREATE OR REPLACE FUNCTION private.agenda_is_org_creator(_user_id uuid,_org_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT EXISTS(SELECT 1 FROM public.organizations WHERE id=_org_id AND created_by=_user_id); $$;
+REVOKE ALL ON FUNCTION private.agenda_is_org_creator(uuid,uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION private.agenda_is_org_creator(uuid,uuid) TO authenticated,service_role;
+CREATE OR REPLACE FUNCTION private.agenda_is_org_admin(_user_id uuid,_org_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT EXISTS(SELECT 1 FROM public.memberships WHERE user_id=_user_id AND org_id=_org_id AND role IN ('owner','admin')); $$;
+REVOKE ALL ON FUNCTION private.agenda_is_org_admin(uuid,uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION private.agenda_is_org_admin(uuid,uuid) TO authenticated,service_role;
+CREATE OR REPLACE FUNCTION public.is_org_creator(_user_id uuid,_org_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path=public AS $$ SELECT private.agenda_is_org_creator(_user_id,_org_id); $$;
+CREATE OR REPLACE FUNCTION public.is_org_admin(_user_id uuid,_org_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path=public AS $$ SELECT private.agenda_is_org_admin(_user_id,_org_id); $$;

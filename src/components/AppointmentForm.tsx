@@ -108,7 +108,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   // Fetch services
   const { data: fetchedServices = [] } = useQuery<Service[]>({
-    queryKey: ['services'],
+    queryKey: ['services', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await (supabase as any)
@@ -213,7 +213,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     queryKey: ['time-off-dates', user?.id],
     enabled: !!user && isOpen,
     queryFn: async () => {
-      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user!.id });
+      if (!user) return [];
+      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user.id });
       return (data || []).map((r: any) => r.off_date as string);
     },
   });
@@ -525,7 +526,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         title: isDuplicateSlot ? "Time unavailable" : "Error",
         description: isDuplicateSlot
           ? "That time slot is already taken. Please choose another one."
-          : "Failed to book appointment. Please try again.",
+          : error?.code === '42501'
+            ? "Your account couldn't access this booking. Please refresh and try again."
+            : "Failed to book appointment. Please try again.",
         variant: "destructive",
       });
 
@@ -543,6 +546,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     setSelectedTimeSlot(selectedTime);
     setCustomerName("");
     setCustomerEmail("");
+    setCustomerPhone("");
     setNotes("");
     setServiceId("");
     setStylistId("");

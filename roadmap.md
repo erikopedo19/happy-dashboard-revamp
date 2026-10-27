@@ -1,6 +1,7 @@
 # Current work
 
-- [ ] Diagnose and repair Agenda form appointment creation; verify relevant validation and errors.
+- [x] Repair logged Agenda organization-permission errors and the empty-state Create booking button; pass five permission regression checks and preview compilation.
+- [ ] Verify Agenda booking creation end-to-end; blocked by unavailable signed-in session on external Supabase.
 
 - [x] Repair subscription payment, renewal, cancellation, and return-to-app synchronization.
 - [x] Implement renewal/cancellation emails, retry tracking, and duplicate protection; deploy payment functions.

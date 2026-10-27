@@ -7,3 +7,4 @@ Expo marks the document as native before first paint and relays theme changes to
 Team setup uses a dedicated guided dialog; email invitations grant organization membership through the existing invitation RPC, not squad membership, because squads contain stylist records.
 Membership checkout and management use authenticated Edge Functions and the shared billing service; Stripe is authoritative, so local-only cancellation RPCs must never change renewal settings.
 Billing emails use a service-only delivery ledger and stable invoice/cancellation keys; this prevents duplicate confirmation emails across webhook retries and app synchronization.
+Organization checks used by RLS keep signed-in execute access through public invoker wrappers over private definer functions; revoking those wrappers breaks Agenda-related reads.
