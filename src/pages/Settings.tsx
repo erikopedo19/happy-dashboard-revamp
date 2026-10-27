@@ -10,7 +10,6 @@ import {
   Loader2,
   Save,
   Settings2,
-  Sparkles,
   Store,
   User,
   UserCircle2,
@@ -44,7 +43,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageTemplates } from "@/components/MessageTemplates";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
@@ -58,6 +56,7 @@ import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
+import { AppComingSoon } from "@/components/settings/AppComingSoon";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 import { buildGoogleMapsUrl, extractLatLngFromGoogleUrl } from "@/lib/geo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -153,7 +152,8 @@ const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") || "overview";
+  const requestedTab = searchParams.get("tab");
+  const initialTab = requestedTab && requestedTab !== "messages" ? requestedTab : "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [settingsSearch, setSettingsSearch] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -664,12 +664,11 @@ const Settings = () => {
                     }}
                     className="space-y-6"
                   >
-                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
+                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 gap-1 rounded-[12px] bg-[#1C1C1E] border border-white/[0.06] p-1 h-auto shadow-sm">
                       {[
                         { v: "overview", icon: Settings2, label: "Overview" },
                         { v: "general", icon: User, label: "General" },
                         { v: "booking", icon: Link2, label: "Booking" },
-                        { v: "messages", icon: Sparkles, label: "Messages" },
                         { v: "notifications", icon: Bell, label: "Alerts", badge: "New" },
                         { v: "business", icon: Store, label: "Business" },
                       ].map(({ v, icon: Icon, label, badge }) => (
@@ -729,7 +728,6 @@ const Settings = () => {
                         {[
                           { v: "general", icon: User, label: "General", desc: "Profile, language, timezone and preferences." },
                           { v: "booking", icon: Link2, label: "Booking", desc: "Your public booking link and page options." },
-                          { v: "messages", icon: Sparkles, label: "Messages", desc: "Email and SMS message templates." },
                           { v: "notifications", icon: Bell, label: "Alerts", desc: "Push and cancellation alerts." },
                           { v: "business", icon: Store, label: "Business", desc: "Working hours, services and brand identity." },
                         ]
@@ -753,10 +751,10 @@ const Settings = () => {
                             </Card>
                           ))}
                       </div>
-                    </TabsContent>
 
-                    <TabsContent value="messages" className="mt-0 space-y-6 animate-fade-in">
-                      <MessageTemplates />
+                      <div className="max-w-md">
+                        <AppComingSoon />
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="general" className="mt-0 space-y-6 animate-fade-in">

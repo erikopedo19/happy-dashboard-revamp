@@ -181,8 +181,12 @@ function Section({ title, items, upcoming }: { title: string; items: Booking[]; 
               className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 overflow-hidden"
             >
               <div className="p-4 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shrink-0">
-                  <Scissors className="w-6 h-6 text-white" />
+                <div className={cn(
+                  "w-[52px] h-[58px] rounded-[16px] flex flex-col items-center justify-center shrink-0",
+                  upcoming ? "bg-white text-[#1C1C1E] ring-1 ring-black/5 shadow-[0_6px_16px_rgba(0,0,0,0.3)]" : "bg-white/[0.06] text-white/70"
+                )}>
+                  <span className="text-[11px] font-medium leading-none opacity-70">{format(parseISO(b.appointment_date), "MMM")}</span>
+                  <span className="mt-0.5 text-[22px] font-medium leading-none tabular-nums">{format(parseISO(b.appointment_date), "d")}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[15px] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">

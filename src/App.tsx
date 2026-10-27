@@ -38,6 +38,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
 import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
+import { WelcomeTour } from "./components/WelcomeTour";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
 import { PullToRefresh } from "./components/PullToRefresh";
@@ -436,6 +437,7 @@ function App() {
                   <HeaderActions />
 
                   <PersistentDock />
+                  <WelcomeTour />
                   <Toaster />
                   <Sonner />
                   <BookingLiveToasts />

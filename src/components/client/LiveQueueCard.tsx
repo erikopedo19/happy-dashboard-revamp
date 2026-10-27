@@ -233,6 +233,11 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
   const calendarUrl = `https://calendar.google.com/calendar/render?${calendarParams.toString()}`;
 
   const friendlyDate = format(new Date(`${booking.appointment_date}T12:00:00`), "EEE, MMM d");
+  const dayDate = new Date(`${booking.appointment_date}T12:00:00`);
+  const monthLabel = format(dayDate, "MMM");
+  const dayLabel = format(dayDate, "d");
+  const weekdayLabel = format(dayDate, "EEEE");
+  const timeLabel = String(booking.appointment_time).slice(0, 5);
 
   const sendEta = async (kind: "on_my_way" | "running_late") => {
     if (etaSending || etaSent === kind) return;
@@ -258,220 +263,206 @@ export function LiveQueueCard({ booking }: { booking?: BookingLike | null }) {
   };
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={spring}
-      className="relative overflow-hidden rounded-[28px] border border-black/[0.05] bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.08)] dark:border-white/[0.07] dark:bg-[#1C1C1E]"
-    >
-      <div
-        className="pointer-events-none absolute -left-16 -top-20 h-44 w-44 rounded-full opacity-20"
-        style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
-      />
-      <motion.div
-        className="relative"
-        variants={revealParent}
-        initial="hidden"
-        animate={introGone ? "show" : "hidden"}
+    <div>
+      <div className="mb-2.5 flex items-baseline justify-between px-1">
+        <h2 className="text-[20px] font-medium tracking-[-0.01em] text-[#F2F2F7]">Your next cut</h2>
+        <span className="text-[12px] font-medium text-white/40">{isToday ? "Today" : friendlyDate}</span>
+      </div>
+      <motion.section
+        initial={{ opacity: 0, y: 14, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={spring}
+        className="relative overflow-hidden rounded-[30px] border border-white/[0.08] p-4 text-white shadow-[0_20px_50px_rgba(0,0,0,0.45)]"
+        style={{ background: "linear-gradient(118deg, #2a1730 0%, #1b1420 46%, #2b241b 100%)" }}
       >
-        <motion.div variants={revealItem} className="flex items-start justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-300">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                <span className="relative h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              Live queue
-            </div>
-            <h2 className="mt-2 text-[22px] font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">
-              {!isToday
-                ? "Upcoming appointment"
-                : !queueFetched
-                  ? "Checking live queue"
-                  : queue.peopleAhead === 0
-                    ? "You're up next"
-                    : `${queue.peopleAhead} ${queue.peopleAhead === 1 ? "person" : "people"} ahead`}
-            </h2>
-            <p className="mt-1 text-[13px] text-[#8E8E93]">
-              {!isToday || queue.peopleAhead === 0
-                ? `${booking.service_name || "Appointment"} at ${booking.appointment_time.slice(0, 5)}`
-                : `About ${queue.waitMinutes} min`}
-            </p>
-          </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-[16px]" style={{ backgroundColor: `${accent}18` }}>
-            <Radio className="h-5 w-5" style={{ color: accent }} />
-          </div>
-        </motion.div>
-
-        <motion.div variants={revealItem} className="mt-4">
-          <div className="h-2 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.08]">
-            <motion.div
-              className="h-full origin-left rounded-full"
-              style={{ backgroundColor: accent }}
-              animate={{ scaleX: queue.progress }}
-              transition={{ type: "spring", stiffness: 140, damping: 24 }}
-            />
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-[#8E8E93]">
-            <span>{isToday ? "Today" : "Upcoming"}</span>
-            <span className="tabular-nums">{formatTimeUntil(minutesUntilAppointment)}</span>
-          </div>
-        </motion.div>
-
-        <motion.div variants={revealItem} className="mt-4 rounded-[22px] bg-[#F2F2F7] p-3 dark:bg-[#2C2C2E]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white dark:bg-[#1C1C1E]">
-              {isToday ? (
-                <MessageSquare className="h-5 w-5 text-[#8E8E93]" />
-              ) : (
-                <CalendarPlus className="h-5 w-5 text-[#8E8E93]" />
-              )}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full opacity-30 blur-2xl"
+          style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
+        />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_0%,rgba(255,255,255,0.07),transparent_60%)]" />
+        <motion.div
+          className="relative"
+          variants={revealParent}
+          initial="hidden"
+          animate={introGone ? "show" : "hidden"}
+        >
+          <motion.div variants={revealItem} className="flex items-center gap-4">
+            <div className="flex h-[74px] w-[66px] shrink-0 flex-col items-center justify-center rounded-[20px] bg-white text-[#1C1C1E] shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+              <span className="text-[13px] font-medium leading-none text-[#1C1C1E]/70">{monthLabel}</span>
+              <span className="mt-1 text-[30px] font-medium leading-none tracking-[-0.02em] tabular-nums">{dayLabel}</span>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                {isToday
-                  ? etaSent
-                    ? "Update sent"
-                    : "Keep them posted"
-                  : "Save it to your calendar"}
-              </div>
-              <div className="truncate text-[11px] text-[#8E8E93]">
+              <h3 className="truncate text-[23px] font-semibold leading-tight tracking-[-0.02em]">
+                {booking.service_name || "Appointment"}
+              </h3>
+              <p className="mt-1 truncate text-[13px] text-white/65">
+                {[booking.barber_name || "Barber", timeLabel, isToday ? "Today" : weekdayLabel].join(" • ")}
+              </p>
+              <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/[0.07] px-2.5 py-1 text-[12px] font-medium text-white/80 ring-1 ring-white/10 backdrop-blur">
+                <span className="relative flex h-1.5 w-1.5">
+                  {isToday && <span className="absolute h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />}
+                  <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                </span>
+                {!isToday
+                  ? "You're booked"
+                  : !queueFetched
+                    ? "Checking live queue"
+                    : queue.peopleAhead === 0
+                      ? "You're up next"
+                      : `${queue.peopleAhead} ${queue.peopleAhead === 1 ? "person" : "people"} ahead · ~${queue.waitMinutes} min`}
+              </span>
+            </div>
+          </motion.div>
+
+          <motion.div variants={revealItem} className="mt-4">
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+              <motion.div
+                className="h-full origin-left rounded-full"
+                style={{ backgroundColor: accent }}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: isToday ? queue.progress : 0.08 }}
+                transition={{ type: "spring", stiffness: 140, damping: 24 }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-white/45">
+              <span className="truncate">
                 {isToday
                   ? etaSent
                     ? `${booking.barber_name || "Your barber"} knows you're ${etaSent === "on_my_way" ? "on the way" : "running late"}`
-                    : profile?.address || "One tap lets your barber know"
-                  : `${friendlyDate} · ${String(booking.appointment_time).slice(0, 5)} · reminders included`}
+                    : profile?.address || "Live queue"
+                  : "Reminders included"}
+              </span>
+              <span className="shrink-0 tabular-nums">{formatTimeUntil(minutesUntilAppointment)}</span>
+            </div>
+          </motion.div>
+
+          <motion.div variants={revealItem} className="mt-4 flex gap-2">
+            {isToday ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => sendEta("on_my_way")}
+                  disabled={!!etaSending || etaSent === "on_my_way"}
+                  className={cn(
+                    "flex h-11 flex-1 items-center justify-center gap-2 rounded-full text-[13px] font-semibold transition active:scale-[0.98] disabled:opacity-70",
+                    etaSent === "on_my_way" ? "bg-emerald-400/15 text-emerald-300" : "bg-white text-[#1C1C1E]"
+                  )}
+                >
+                  {etaSending === "on_my_way" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : etaSent === "on_my_way" ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Navigation className="h-4 w-4" />
+                  )}
+                  On my way
+                </button>
+                <button
+                  type="button"
+                  onClick={() => sendEta("running_late")}
+                  disabled={!!etaSending || etaSent === "running_late"}
+                  className={cn(
+                    "flex h-11 flex-1 items-center justify-center gap-2 rounded-full text-[13px] font-semibold ring-1 transition active:scale-[0.98] disabled:opacity-70",
+                    etaSent === "running_late"
+                      ? "bg-amber-400/15 text-amber-300 ring-amber-300/20"
+                      : "bg-white/[0.08] text-white ring-white/10"
+                  )}
+                >
+                  {etaSending === "running_late" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : etaSent === "running_late" ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <MessageSquare className="h-4 w-4" />
+                  )}
+                  Running late
+                </button>
+              </>
+            ) : (
+              <a
+                href={calendarUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => haptic("light")}
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[14px] font-semibold text-[#1C1C1E] transition active:scale-[0.98]"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Add to calendar
+              </a>
+            )}
+            {directions ? (
+              <a
+                href={directions}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => haptic("light")}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white ring-1 ring-white/10 transition active:scale-95"
+                aria-label="Get directions"
+              >
+                <MapPin className="h-4 w-4" />
+              </a>
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-white/40 ring-1 ring-white/10">
+                <Radio className="h-4 w-4" />
               </div>
-            </div>
-          </div>
+            )}
+          </motion.div>
         </motion.div>
 
-        <motion.div variants={revealItem} className="mt-4 flex gap-2">
-          {isToday ? (
-            <>
-              <button
-                type="button"
-                onClick={() => sendEta("on_my_way")}
-                disabled={!!etaSending || etaSent === "on_my_way"}
-                className={cn(
-                  "flex h-11 flex-1 items-center justify-center gap-2 rounded-[16px] text-[13px] font-semibold transition active:scale-[0.98] disabled:opacity-70",
-                  etaSent === "on_my_way"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-                    : "text-white"
-                )}
-                style={etaSent === "on_my_way" ? undefined : { backgroundColor: accent }}
+        {/* Countdown intro — covers the card, then lifts away to reveal the content */}
+        <AnimatePresence>
+          {!introGone && (
+            <motion.button
+              type="button"
+              onClick={() => setIntroGone(true)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -18, filter: "blur(6px)" }}
+              transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+              className="absolute inset-0 z-10 flex flex-col items-start justify-center gap-1 overflow-hidden rounded-[30px] px-5 text-left"
+              style={{ background: "linear-gradient(118deg, #2a1730 0%, #1b1420 46%, #2b241b 100%)" }}
+            >
+              <motion.span
+                initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 26 }}
+                className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50"
               >
-                {etaSending === "on_my_way" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : etaSent === "on_my_way" ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Navigation className="h-4 w-4" />
-                )}
-                On my way
-              </button>
-              <button
-                type="button"
-                onClick={() => sendEta("running_late")}
-                disabled={!!etaSending || etaSent === "running_late"}
-                className={cn(
-                  "flex h-11 flex-1 items-center justify-center gap-2 rounded-[16px] text-[13px] font-semibold transition active:scale-[0.98] disabled:opacity-70",
-                  etaSent === "running_late"
-                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-300"
-                    : "bg-black/[0.05] text-[#1C1C1E] dark:bg-white/[0.08] dark:text-[#F2F2F7]"
-                )}
+                Next appointment is in
+              </motion.span>
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 24 }}
               >
-                {etaSending === "running_late" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : etaSent === "running_late" ? (
-                  <Check className="h-4 w-4" />
-                ) : null}
-                Running late
-              </button>
-            </>
-          ) : (
-            <a
-              href={calendarUrl}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => haptic("light")}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-[16px] text-[14px] font-semibold text-white transition active:scale-[0.98]"
-              style={{ backgroundColor: accent }}
-            >
-              <CalendarPlus className="h-4 w-4" />
-              Add to calendar
-            </a>
-          )}
-          {directions ? (
-            <a
-              href={directions}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => haptic("light")}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-black/[0.05] text-[#1C1C1E] transition active:scale-95 dark:bg-white/[0.08] dark:text-[#F2F2F7]"
-              aria-label="Get directions"
-            >
-              <Navigation className="h-4 w-4" />
-            </a>
-          ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-black/[0.04] text-[#8E8E93] dark:bg-white/[0.06]">
-              <MapPin className="h-4 w-4" />
-            </div>
-          )}
-        </motion.div>
-      </motion.div>
-
-      {/* Countdown intro — covers the card, then lifts away to reveal the content */}
-      <AnimatePresence>
-        {!introGone && (
-          <motion.button
-            type="button"
-            onClick={() => setIntroGone(true)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: -18, filter: "blur(6px)" }}
-            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0 z-10 flex flex-col items-start justify-center gap-1 overflow-hidden rounded-[28px] bg-white px-5 text-left dark:bg-[#1C1C1E]"
-          >
-            <motion.span
-              initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ delay: 0.05, type: "spring", stiffness: 300, damping: 26 }}
-              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8E8E93]"
-            >
-              Next appointment is in
-            </motion.span>
-            <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 24 }}
-            >
-              <RollingText
-                text={formatTimeUntil(minutesUntilAppointment).replace(/ away$/, "")}
-                stagger={0.05}
-                variant="flip"
-                className="mt-1.5 text-[38px] font-bold leading-none tracking-[-0.01em] tabular-nums text-[#1C1C1E] dark:text-[#F2F2F7]"
+                <RollingText
+                  text={formatTimeUntil(minutesUntilAppointment).replace(/ away$/, "")}
+                  stagger={0.05}
+                  variant="flip"
+                  className="mt-1.5 text-[38px] font-bold leading-none tracking-[-0.01em] tabular-nums text-white"
+                />
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55, type: "spring", stiffness: 300, damping: 26 }}
+                className="mt-3.5 w-full truncate text-[13px] text-white/55"
+              >
+                {booking.service_name || "Appointment"} · {booking.barber_name || "Barber"} · {timeLabel}
+              </motion.span>
+              <motion.div
+                aria-hidden
+                initial={{ scaleX: 0, opacity: 0 }}
+                animate={{ scaleX: 1, opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+                className="mt-3 h-[3px] w-16 origin-left rounded-full"
+                style={{ backgroundColor: accent }}
               />
-            </motion.div>
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55, type: "spring", stiffness: 300, damping: 26 }}
-              className="mt-3.5 w-full truncate text-[13px] text-[#8E8E93]"
-            >
-              {booking.service_name || "Appointment"} · {booking.barber_name || "Barber"} · {String(booking.appointment_time).slice(0, 5)}
-            </motion.span>
-            <motion.div
-              aria-hidden
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-              className="mt-3 h-[3px] w-16 origin-left rounded-full"
-              style={{ backgroundColor: accent }}
-            />
-          </motion.button>
-        )}
-      </AnimatePresence>
-    </motion.section>
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.section>
+    </div>
   );
 }

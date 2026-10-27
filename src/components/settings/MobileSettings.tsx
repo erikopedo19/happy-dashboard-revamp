@@ -42,7 +42,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { enableBookingPush } from "@/lib/push";
-import { MessageTemplates } from "@/components/MessageTemplates";
+import { AppComingSoon } from "@/components/settings/AppComingSoon";
 import { BarbershopMap } from "@/components/BarbershopMap";
 import { PublicVisibilityCard } from "@/components/PublicVisibilityCard";
 import { SubscriptionPanel } from "@/components/SubscriptionPanel";
@@ -89,7 +89,6 @@ type Panel =
   | "agenda"
   | "appearance"
   | "notifications"
-  | "messages"
   | "booking"
   | "social"
   | "business"
@@ -355,13 +354,6 @@ export function MobileSettings(props: any) {
             onClick={() => setPanel("social")}
           />
           <Row
-            icon={Sparkles}
-            tint="#ec4899"
-            label="Message templates"
-            value="WhatsApp & SMS"
-            onClick={() => setPanel("messages")}
-          />
-          <Row
             icon={Banknote}
             tint="#22c55e"
             label="Payments & payouts"
@@ -414,6 +406,8 @@ export function MobileSettings(props: any) {
             onClick={() => setPanel("notifications")}
           />
         </Group>
+
+        <AppComingSoon />
 
         <Group label="Legal">
           <Row
@@ -825,12 +819,6 @@ export function MobileSettings(props: any) {
                 <div className="mt-4">
                   <ReviewRequestsCard />
                 </div>
-              </PanelStack>
-            )}
-
-            {panel === "messages" && (
-              <PanelStack>
-                <MessageTemplates />
               </PanelStack>
             )}
 
@@ -1280,8 +1268,6 @@ function titleFor(p: Panel): string {
       return "Appearance";
     case "notifications":
       return "Notifications";
-    case "messages":
-      return "Messages";
     case "booking":
       return "Booking link";
     case "social":

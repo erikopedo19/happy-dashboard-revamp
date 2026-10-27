@@ -541,13 +541,14 @@ const FindBarber = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           >
             {activeTab === "today" && (
               <ExploreList
+                key={sortFilter ?? "default"}
                 loading={barbersLoading}
                 items={filtered}
                 favorites={favorites}
@@ -590,12 +591,17 @@ function PageHeader({ children }: { children: React.ReactNode }) {
 
 
 const cardItem: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.98 },
+  hidden: { opacity: 0, y: 28, scale: 0.97 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: Math.min(i, 10) * 0.04, type: "spring" as const, stiffness: 380, damping: 30 },
+    transition: {
+      delay: 0.04 + Math.min(i, 8) * 0.055,
+      y: { type: "spring" as const, stiffness: 240, damping: 28, mass: 0.9 },
+      scale: { type: "spring" as const, stiffness: 240, damping: 28, mass: 0.9 },
+      opacity: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+    },
   }),
 };
 
@@ -640,12 +646,10 @@ function BarberCard({
 
   return (
     <motion.div
-      layout
       custom={index}
       variants={cardItem}
       initial="hidden"
       animate="show"
-      transition={spring}
       onPointerDown={warmDetail}
       className={cn(
         "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
@@ -875,7 +879,7 @@ function ExploreList({
     );
   }
   return (
-    <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
         <React.Fragment key={b.id}>
           <BarberCard
@@ -889,7 +893,7 @@ function ExploreList({
           />
         </React.Fragment>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
@@ -923,7 +927,7 @@ function FavoritesList({
     );
   }
   return (
-    <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
         <React.Fragment key={b.id}>
           <BarberCard
@@ -937,7 +941,7 @@ function FavoritesList({
           />
         </React.Fragment>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
