@@ -1748,7 +1748,7 @@ export const LiquidGlassAgenda = ({
                           onPointerMove={handleAppointmentPointerMove}
                           className={cn(
                             "w-full h-full text-left relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "rounded-[22px] pl-3 pr-3.5 py-3" : "rounded-2xl p-4",
+                            isMobile ? "flex flex-col justify-start rounded-[22px] pl-3 pr-3.5 py-2.5" : "rounded-2xl p-4",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1808,18 +1808,18 @@ export const LiquidGlassAgenda = ({
                               : nowTick >= endAt ? "Finished" : "Upcoming";
                             const initials = (apt.customer.name || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                             return (
-                              <div className={cn("relative z-10 flex h-full gap-3", !isCancelled && "pr-8")}>
+                              <div className={cn("relative z-10 flex h-full w-full min-h-0 gap-3", !isCancelled && "pr-8")}>
                                 <span className="w-[3px] shrink-0 rounded-full" style={{ backgroundColor: isDark ? "#F2F2F7" : "#1C1C1E", opacity: isCancelled ? 0.3 : 0.85 }} />
                                 <div className="flex min-w-0 flex-1 flex-col">
                                   <h3 className={cn("truncate text-[15px] font-semibold leading-tight tracking-[-0.01em]", isCancelled && "line-through", isDark ? "text-white" : "text-[#1C1C1E]")}>
                                     {apt.service.name}
                                   </h3>
-                                  <p className={cn("mt-0.5 text-[12.5px] font-medium", status === "In progress" ? "text-[#30D158]" : isDark ? "text-white/40" : "text-gray-400")}>
+                                  <p className={cn("text-[12px] font-medium leading-4", status === "In progress" ? "text-[#30D158]" : isDark ? "text-white/40" : "text-gray-400")}>
                                     {status}
                                   </p>
-                                  <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
+                                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                                     <span className="flex min-w-0 items-center gap-2">
-                                      <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10.5px] font-semibold text-white ring-2", isDark ? "ring-[#1C1C1E]" : "ring-white")} style={{ backgroundColor: serviceColor }}>
+                                      <span className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2", isDark ? "ring-[#1C1C1E]" : "ring-white")} style={{ backgroundColor: serviceColor }}>
                                         {initials}
                                       </span>
                                       <span className={cn("truncate text-[12.5px] font-medium", isDark ? "text-white/70" : "text-gray-600")}>{apt.customer.name}</span>
