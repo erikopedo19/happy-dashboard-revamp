@@ -146,6 +146,7 @@ export function WelcomeTour() {
       /* ignore */
     }
     setOpen(true);
+    sessionStorage.setItem("cutzio:welcome-tour-shown", "1");
     supabase.auth.updateUser({ data: { welcome_tour_seen: true } }).catch(() => {});
     // Only evaluate once per signed-in user.
     // eslint-disable-next-line react-hooks/exhaustive-deps

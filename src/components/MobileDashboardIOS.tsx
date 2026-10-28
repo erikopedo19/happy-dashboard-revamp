@@ -23,6 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ReviewAnnouncement } from "@/components/ReviewAnnouncement";
+import { StreakCelebration } from "@/components/streak/StreakCelebration";
 import { RollingText } from "@/components/RollingText";
 import { NextBookingsCard } from "@/components/NextBookingsCard";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -310,6 +311,7 @@ export function MobileDashboardIOS() {
       <main className="h-full space-y-4 overflow-y-auto overscroll-contain px-4 pb-32 pt-1">
         <h1 className="truncate px-1 text-[30px] font-bold leading-tight tracking-[-0.035em]">Hi, {displayName}</h1>
         <ReviewAnnouncement />
+        <StreakCelebration />
 
         {/* Intro — rolling countdown, fades into the page */}
         <AnimatePresence>
