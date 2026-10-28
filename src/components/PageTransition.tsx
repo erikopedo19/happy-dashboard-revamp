@@ -48,6 +48,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
   const veil = useRef<HTMLDivElement>(null);
   const prevType = useRef<RouteKind | null>(null);
   const didMount = useRef(false);
+  const veilTl = useRef<gsap.core.Timeline | null>(null);
 
   useLayoutEffect(() => {
     const type = routeType(pathname);
@@ -79,21 +80,30 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
 
     if (modeSwitch) {
       const v = veil.current;
-      const tl = gsap.timeline();
-      if (v) {
+      const logo = v?.firstElementChild ?? null;
+      // The veil runs to completion even if the route changes again mid-way
+      // (redirects, quick taps), so the switch never cuts off abruptly.
+      if (v && logo && !veilTl.current?.isActive()) {
         const tint = type === "client" ? "255,45,70" : "168,85,247";
         v.style.background = `radial-gradient(120% 70% at 50% 100%, rgba(${tint},0.28) 0%, rgba(${tint},0) 60%), radial-gradient(circle at 50% 40%, hsl(var(--muted) / 0.5), transparent 55%), hsl(var(--background))`;
-        tl.set(v, { display: "grid", opacity: 1, yPercent: 0 })
-          .fromTo(v.firstElementChild, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" }, 0)
-          .to(v, { yPercent: -100, opacity: 0, duration: 1.5, ease: "power3.inOut" }, 0.9)
-          .set(v, { display: "none", clearProps: "transform,opacity" });
+        veilTl.current = gsap
+          .timeline()
+          .set(v, { display: "grid", opacity: 0, yPercent: 0, filter: "blur(0px)" })
+          .to(v, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0)
+          .fromTo(logo, { opacity: 0, y: 28, scale: 0.92, filter: "blur(10px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, 0.05)
+          .to(logo, { y: -56, opacity: 0, filter: "blur(12px)", duration: 1.1, ease: "power2.inOut" }, 0.95)
+          .to(v, { yPercent: -35, opacity: 0, filter: "blur(18px)", duration: 1.5, ease: "power2.inOut" }, 1.0)
+          .set(v, { display: "none", clearProps: "transform,opacity,filter" })
+          .set(logo, { clearProps: "transform,opacity,filter" });
       }
-      gsap.set(el, { opacity: 0, y: 48 });
-      tl.to(el, { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", clearProps: clear }, 1.0);
+      const tween = gsap.fromTo(
+        el,
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 1.0, clearProps: clear }
+      );
       return () => {
-        tl.kill();
+        tween.kill();
         gsap.set(el, { clearProps: clear });
-        if (v) gsap.set(v, { display: "none", clearProps: "transform,opacity" });
       };
     }
 

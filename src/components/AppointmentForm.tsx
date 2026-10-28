@@ -562,7 +562,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
   if (isMobile) {
     return (
       <BottomDrawer open={isOpen} onOpenChange={(v) => (!v ? handleClose() : null)}>
-        <BottomDrawerContent className="h-[94dvh] bg-[#0B0B0D] dark:bg-[#0B0B0D] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
+        <BottomDrawerContent className="h-[94dvh] max-h-[94dvh] bg-[#0B0B0D] dark:bg-[#0B0B0D] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
           <BottomDrawerTitle className="sr-only">Book Appointment</BottomDrawerTitle>
           <BottomDrawerDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</BottomDrawerDescription>
 
@@ -570,7 +570,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
           ref={contentRef}
           className={cn(
             "bg-[#0B0B0D]",
-            isMobile ? "h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
+            isMobile ? "min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-6" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
           )}
         >
           {/* Mobile sticky top bar with drag-handle + close */}
@@ -1111,23 +1111,27 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </div>
               )}
 
-              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0B0B0D]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
-                <button
-                  onClick={handleContinue}
-                  disabled={!selectedTimeSlot}
-                  className={cn(
-                    "w-full min-h-[52px] py-3.5 px-6 rounded-[14px] text-[17px] font-semibold text-white transition-all",
-                    selectedTimeSlot
-                      ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                      : "bg-white/[0.08] text-white/40 cursor-not-allowed"
-                  )}
-                >
-                  Continue
-                </button>
-              </div>
             </div>
           )}
         </div>
+          {step === "datetime" && showTimeSelection && selectedService && (
+            <div className="relative z-30 shrink-0 border-t border-white/[0.08] bg-[#0B0B0D]/95 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={handleContinue}
+                disabled={!selectedTimeSlot}
+                className={cn(
+                  "w-full min-h-[54px] rounded-[18px] px-6 text-[17px] font-semibold text-white transition-all active:scale-[0.98]",
+                  selectedTimeSlot
+                    ? "shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35),0_12px_26px_rgba(255,45,70,0.35)]"
+                    : "bg-white/[0.08] text-white/40 cursor-not-allowed"
+                )}
+                style={selectedTimeSlot ? { background: "linear-gradient(180deg,#FF5A6E 0%,#FF2D46 55%,#E0152F 100%)" } : undefined}
+              >
+                Continue
+              </button>
+            </div>
+          )}
       </BottomDrawerContent>
     </BottomDrawer>
     );

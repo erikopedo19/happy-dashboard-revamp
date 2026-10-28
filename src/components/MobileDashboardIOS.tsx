@@ -343,72 +343,8 @@ export function MobileDashboardIOS() {
           initial="hidden"
           animate="show"
         >
-        {/* Up next — live */}
-        <motion.section
-          variants={revealItem}
-          className={cn(
-            "relative overflow-hidden rounded-[30px] p-5 ring-1",
-            upNext ? "text-white ring-[#FF5A6E]/25" : "bg-white ring-black/[0.06] dark:bg-[#1C1C1E] dark:ring-white/[0.08]",
-          )}
-          style={upNext ? { background: "linear-gradient(160deg, #5A1630 0%, #2A1120 55%, #121214 100%)" } : undefined}
-        >
-          {upNext ? (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/85">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute h-full w-full animate-ping rounded-full bg-[#30D158] opacity-60" />
-                    <span className="relative h-2 w-2 rounded-full bg-[#30D158]" />
-                  </span>
-                  {inProgress ? "In the chair" : "Up next"}
-                </span>
-                <span className="text-[13px] font-semibold tabular-nums text-white/70">
-                  {inProgress ? "Now" : formatIn(upNextStart - nowMinutes)}
-                </span>
-              </div>
-              <p className="mt-4 truncate text-[26px] font-bold tracking-[-0.03em]">{upNext.customer?.name || "Walk-in"}</p>
-              <p className="mt-0.5 truncate text-[14px] text-white/60">
-                {upNext.service?.name || "Service"} · {upNext.appointment_time.slice(0, 5)}
-                {priceOf(upNext) > 0 && ` · ${money.format(priceOf(upNext))}`}
-              </p>
-              <div className="mt-5 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => markDone(upNext.id)}
-                  disabled={completing === upNext.id}
-                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-[16px] text-[14px] font-semibold text-white active:scale-[0.98] transition disabled:opacity-60 shadow-[inset_0_1.5px_0_rgba(255,255,255,0.35),0_12px_26px_rgba(255, 45, 70,0.35)]"
-                  style={{ background: "linear-gradient(180deg,#FF5A6E 0%,#FF2D46 55%,#E0152F 100%)" }}
-                >
-                  {completing === upNext.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  Mark done
-                </button>
-                {phone && (
-                  <>
-                    <a href={`tel:${phone}`} aria-label="Call client" onClick={() => haptic("light")} className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/10 active:scale-95 transition">
-                      <Phone className="h-[18px] w-[18px]" />
-                    </a>
-                    <a href={`https://wa.me/${phone.replace("+", "")}`} target="_blank" rel="noreferrer" aria-label="Message client" onClick={() => haptic("light")} className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/10 active:scale-95 transition">
-                      <MessageCircle className="h-[18px] w-[18px]" />
-                    </a>
-                  </>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E]">
-                <CalendarDays className="h-6 w-6 text-[#8E8E93]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[16px] font-semibold">{appointments.length ? "You're done for today" : "Your day is clear"}</p>
-                <p className="mt-0.5 text-[13px] text-[#8E8E93]">Share your link to fill open slots.</p>
-              </div>
-            </div>
-          )}
-        </motion.section>
-
         <motion.section variants={revealItem}>
-          <NextBookingsCard />
+          <NextBookingsCard currency={profile?.currency} />
         </motion.section>
 
         {/* Quick actions — Control Center style */}
