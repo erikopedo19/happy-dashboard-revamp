@@ -33,13 +33,13 @@ serve(async req => {
       const all = await Promise.all((customers.data ?? []).map((c: {id:string}) => findSubscriptions(c.id)));
       subscription = newestSubscription(all.flat());
     }
-    if (!subscription) return action === 'sync' ? json({ ok:true, pending:false, has_subscription:false }) : json({ error:'no_stripe_subscription' },404);
+    if (!subscription) return action === 'sync' ? json({ ok:true, pending:false, has_subscription:false }) : json({ ok:false, error:'no_stripe_subscription' });
     if (action === 'portal') {
       const portal = await stripeRequest('/billing_portal/sessions',new URLSearchParams({ customer: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id, return_url:'https://cutzioo.com/settings' }));
       return json({ ok:true, url:portal.url });
     }
     if (action === 'cancel' || action === 'resume') {
-      if (!['active','trialing','past_due'].includes(subscription.status)) return json({ error:'no_stripe_subscription' },404);
+      if (!['active','trialing','past_due'].includes(subscription.status)) return json({ ok:false, error:'no_stripe_subscription' });
       subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
     }
     const fields = await syncSubscription(admin,user.id,user.email,subscription);
