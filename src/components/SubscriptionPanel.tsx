@@ -206,6 +206,14 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         window.location.assign(portal.url);
         return;
       }
+      let code = portal?.error as string | undefined;
+      if (portalError && "context" in portalError) {
+        try { code = (await (portalError as { context: Response }).context.json())?.error ?? code; } catch { /* ignore */ }
+      }
+      if (code === "no_stripe_subscription" || code === "no_customer") {
+        toast.info("Your Pro plan isn't linked to a card subscription, so there are no payment methods to manage.");
+        return;
+      }
       if (STRIPE_PORTAL_LINK) window.location.assign(STRIPE_PORTAL_LINK);
       else toast.error("Stripe billing management is not available yet. Please try again later.");
     } finally {
