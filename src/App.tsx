@@ -424,10 +424,6 @@ function App() {
               <OnboardingProvider>
                 <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                   <GlimmIntercept />
-                  <GlobalBanner />
-                  <FreeUpgradeBanner />
-                  <UpdatePopup />
-                  <GuestSignupDrawer />
                   <ScrollToTop />
                   <NativeShell />
                   <NativeScrollGuard />

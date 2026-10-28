@@ -33,6 +33,7 @@ import {
   Rocket,
   Users,
   Play,
+  BellRing,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -59,6 +60,8 @@ import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
 import { useOrganization } from "@/hooks/use-organization";
 import { MEMBER_PAGES } from "@/lib/pageAccess";
+import { usePremium } from "@/hooks/use-premium";
+import { CancellationListExplainer } from "@/components/premium/CancellationListExplainer";
 
 const weekDays = [
   { value: 1, label: "Mon", full: "Monday" },
@@ -127,6 +130,8 @@ export function MobileSettings(props: any) {
   const [panel, setPanel] = useState<Panel>(null);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [agreed, setAgreed] = useState(true);
+  const [explainerOpen, setExplainerOpen] = useState(false);
+  const { isPremium } = usePremium();
   const currentRole = user?.user_metadata?.role ?? "client";
 
   const handleAgreeToggle = () => {
@@ -741,6 +746,23 @@ export function MobileSettings(props: any) {
                   </p>
                 </Field>
 
+                {/* Cancellation list button */}
+                <ListCard>
+                  <ToggleRow
+                    icon={BellRing}
+                    label="Cancellation list button"
+                    desc="Show “Join cancellation list” on your booking form and barber page."
+                    checked={!!brandForm.accepts_waitlist}
+                    onChange={(v) => {
+                      if (v && !isPremium) {
+                        setExplainerOpen(true);
+                        return;
+                      }
+                      setBrandForm((p: any) => ({ ...p, accepts_waitlist: v }));
+                    }}
+                  />
+                </ListCard>
+
                 {/* Gradient save button */}
                 <motion.button
                   whileTap={{ scale: 0.98 }}
@@ -938,17 +960,6 @@ export function MobileSettings(props: any) {
                     className="w-full rounded-2xl bg-white/[0.06] border border-white/10 text-white p-3 text-[14px] resize-none focus:outline-none focus:ring-2 focus:ring-[#FF2D46]/40"
                   />
                 </Field>
-                <ListCard>
-                  <ToggleRow
-                    icon={Sparkles}
-                    label="Accept cancellation waitlist"
-                    desc="Clients can join a 7-day waitlist."
-                    checked={!!brandForm.accepts_waitlist}
-                    onChange={(v) =>
-                      setBrandForm((p: any) => ({ ...p, accepts_waitlist: v }))
-                    }
-                  />
-                </ListCard>
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={() => saveMutation.mutate()}
@@ -1048,6 +1059,7 @@ export function MobileSettings(props: any) {
           </Sheet>
         )}
       </AnimatePresence>
+      <CancellationListExplainer open={explainerOpen} onClose={() => setExplainerOpen(false)} />
     </div>
   );
 }

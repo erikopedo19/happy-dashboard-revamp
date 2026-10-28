@@ -413,7 +413,7 @@ const Agenda = () => {
         <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C]">
           <AppSidebar />
           <main className="flex-1 flex flex-col overflow-hidden relative">
-            <AgendaUpgradeDrawer suppress={isAppointmentFormOpen || eventDialogOpen} />
+            
             {!agendaSettingsLoading && !showHoursOnboarding && (
               <div className="shrink-0 px-3 pt-3">
                 <BookingLimitBanner />

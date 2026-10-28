@@ -110,13 +110,11 @@ const Dashboard = () => {
                 <FirstLoginOnboarding onComplete={() => {}} />
               </Suspense>
             ) : isMobile ? (
-              <><LocationPrompt /><MobileDashboardIOS /></>
+              <MobileDashboardIOS />
             ) : (
-              <><LocationPrompt /><DashboardContent /></>
+              <DashboardContent />
             )}
           </div>
-          <UpgradeDrawer />
-          <SubscriptionReminderDrawer />
         </main>
       </div>
     </SidebarProvider>

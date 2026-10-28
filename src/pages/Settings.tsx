@@ -52,6 +52,7 @@ import { Button } from "@heroui/react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { usePremium } from "@/hooks/use-premium";
+import { CancellationListExplainer } from "@/components/premium/CancellationListExplainer";
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
@@ -232,6 +233,7 @@ const Settings = () => {
   };
 
   const { isPremium } = usePremium();
+  const [waitlistExplainerOpen, setWaitlistExplainerOpen] = useState(false);
   const bannerMaxMB = isPremium ? 8 : 2;
   const avatarMaxMB = isPremium ? 5 : 2;
   const queryClient = useQueryClient();
@@ -1288,7 +1290,7 @@ const Settings = () => {
                           <div className="rounded-2xl border border-primary/20 bg-muted p-4 flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                               <Label className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] block">
-                                Accept cancellation waitlist
+                                Cancellation list button
                               </Label>
                               <p className="text-xs text-[#8E8E93] mt-1">
                                 Clients can join a 7-day waitlist on your profile. When you cancel an appointment, the first person in line gets emailed and has 5 minutes to claim it.
@@ -1296,9 +1298,13 @@ const Settings = () => {
                             </div>
                             <Switch
                               checked={!!brandForm.accepts_waitlist}
-                              onCheckedChange={(v) =>
-                                setBrandForm((prev) => ({ ...prev, accepts_waitlist: v }))
-                              }
+                              onCheckedChange={(v) => {
+                                if (v && !isPremium) {
+                                  setWaitlistExplainerOpen(true);
+                                  return;
+                                }
+                                setBrandForm((prev) => ({ ...prev, accepts_waitlist: v }));
+                              }}
                             />
                           </div>
 
@@ -1541,6 +1547,7 @@ const Settings = () => {
           </div>
         </main>
       </div>
+      <CancellationListExplainer open={waitlistExplainerOpen} onClose={() => setWaitlistExplainerOpen(false)} />
     </SidebarProvider>
   );
 };

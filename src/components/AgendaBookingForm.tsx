@@ -27,6 +27,8 @@ interface Service {
   border_color?: string;
 }
 
+import { CancellationListButton } from "@/components/CancellationListButton";
+
 interface AgendaBookingFormProps {
   form: UseFormReturn<any>;
   services: Service[];
@@ -1023,6 +1025,7 @@ const AgendaBookingForm = ({
                             {copy.selectDateForTimes}
                           </div>
                         )}
+                        <CancellationListButton barberId={(businessProfile as { id?: string } | null)?.id} />
                         {selectedDate && selectedTime && totalDuration > 30 && (
                           <p className="mt-2 text-[12px] text-[#8E8E93] tabular-nums">
                             {formatTime(selectedTime)} → {formatTime(getEndTime(selectedTime, totalDuration))}
