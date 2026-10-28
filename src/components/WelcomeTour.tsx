@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { ArrowRight, Bookmark, CalendarDays, Heart, Home, MapPin, Scissors, Sparkles, X } from "lucide-react";
@@ -128,20 +129,33 @@ export function WelcomeTour() {
   const key = user ? `${KEY_PREFIX}${user.id}` : null;
   const onAppPage = pathname === "/" || APP_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
+  const seenOnAccount = user?.user_metadata?.welcome_tour_seen === true;
+
   useEffect(() => {
     if (!key || !onAppPage) return;
     try {
-      if (localStorage.getItem(key) !== "1") setOpen(true);
+      if (seenOnAccount) {
+        localStorage.setItem(key, "1");
+        return;
+      }
+      if (localStorage.getItem(key) === "1") return;
+      // Mark as seen the moment it opens so it never comes back, even if the
+      // app is closed mid-tour or the user signs in on another device.
+      localStorage.setItem(key, "1");
     } catch {
       /* ignore */
     }
+    setOpen(true);
+    supabase.auth.updateUser({ data: { welcome_tour_seen: true } }).catch(() => {});
+    // Only evaluate once per signed-in user.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, onAppPage]);
 
   if (!user) return null;
 
   const role = user.user_metadata?.role === "client" ? "client" : "barber";
   const copy = role === "client" ? CLIENT_COPY : BARBER_COPY;
-  const total = 3;
+  const total = 2;
 
   const go = (next: number) => {
     const bounded = Math.min(Math.max(next, 0), total - 1);
@@ -170,8 +184,6 @@ export function WelcomeTour() {
     }
   };
 
-  const initial = (user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase();
-  const avatar = user.user_metadata?.avatar_url as string | undefined;
 
   return createPortal(
     <AnimatePresence>
@@ -200,10 +212,7 @@ export function WelcomeTour() {
               className="absolute inset-0"
             >
               {index === 0 && <WelcomeSlide copy={copy} onNext={() => go(1)} />}
-              {index === 1 && (
-                <PickSlide copy={copy} avatar={avatar} initial={initial} onNext={() => go(2)} />
-              )}
-              {index === 2 && <FinalSlide copy={copy} onDone={finish} />}
+              {index === 1 && <FinalSlide copy={copy} onDone={finish} />}
             </motion.div>
           </AnimatePresence>
 
@@ -264,122 +273,6 @@ function WelcomeSlide({ copy, onNext }: { copy: Copy; onNext: () => void }) {
             Terms and Conditions
           </Link>
           .
-        </Fade>
-      </div>
-    </div>
-  );
-}
-
-function PickSlide({
-  copy,
-  avatar,
-  initial,
-  onNext,
-}: {
-  copy: Copy;
-  avatar?: string;
-  initial: string;
-  onNext: () => void;
-}) {
-  const [front, ...rest] = [...copy.cards].reverse();
-  const behind = rest.reverse();
-  return (
-    <div className="relative h-full w-full overflow-hidden bg-[#0A0A0C]">
-      <motion.div
-        aria-hidden
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, ease }}
-        style={{
-          background:
-            "radial-gradient(120% 70% at 50% 0%, #5b2230 0%, #2a1218 38%, #0A0A0C 78%), linear-gradient(180deg, #2a1218, #0A0A0C)",
-        }}
-      />
-
-      <div className="relative z-10 flex h-full flex-col px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,calc(env(safe-area-inset-top)+1.75rem))]">
-        <div className="flex items-start justify-between">
-          <Fade delay={0.1} y={8}>
-            <div className="h-11 w-11 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/20">
-              {avatar ? (
-                <img src={avatar} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-[15px] font-semibold">{initial}</div>
-              )}
-            </div>
-          </Fade>
-          <h2 className="pt-0.5 text-center text-[19px] font-medium leading-[1.1] tracking-[-0.02em] text-white/85">
-            <RiseText text={copy.pickTitle} delay={0.15} />
-          </h2>
-          <div className="h-11 w-11" aria-hidden />
-        </div>
-
-        <div className="relative mx-auto mt-8 flex w-full max-w-[340px] flex-1 flex-col">
-          {behind.map((c, i) => (
-            <motion.div
-              key={c.label}
-              initial={{ opacity: 0, y: 40, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 0.88 + i * 0.05 }}
-              transition={{ ...spring, delay: 0.2 + i * 0.08 }}
-              className="absolute inset-x-0 h-24 rounded-[26px] bg-gradient-to-b from-[#3a1c24] to-[#1b0f13] ring-1 ring-white/10"
-              style={{ top: i * 14, transformOrigin: "50% 0%" }}
-            >
-              <Sparkles className="ml-4 mt-3 h-4 w-4 text-white/40" />
-            </motion.div>
-          ))}
-
-          <motion.div
-            initial={{ opacity: 0, y: 70, scale: 0.94 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ ...spring, delay: 0.35 }}
-            className="relative mt-8 flex flex-1 flex-col overflow-hidden rounded-[30px] bg-gradient-to-b from-[#24151a] via-[#141012] to-[#0d0b0c] p-3 ring-1 ring-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex items-center justify-between px-2 pt-1">
-              <Scissors className="h-4 w-4 text-white/70" />
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF5A6E]/25 ring-1 ring-[#FF8FA3]/40">
-                <ArrowRight className="h-4 w-4 -rotate-45 text-[#FFC2CC]" />
-              </span>
-            </div>
-            <h3 className="mt-1 text-center text-[30px] font-medium leading-[1.02] tracking-[-0.01em]">
-              <RiseText text={front.title} delay={0.55} />
-            </h3>
-            <motion.div
-              initial={{ opacity: 0, scale: 1.08 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.1, delay: 0.5, ease }}
-              className="relative mt-4 min-h-[180px] flex-1 overflow-hidden rounded-[22px]"
-            >
-              <img src={front.img} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/45 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/15 backdrop-blur-xl">
-                <span className="mr-1.5 inline-block h-1.5 w-1.5 -translate-y-px rounded-full bg-emerald-400" />
-                {front.chip}
-              </span>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        <Fade delay={0.7} y={20} className="mx-auto mt-5 w-full max-w-[300px]">
-          <div className="flex h-[64px] items-center justify-between rounded-full bg-white/[0.08] px-2 ring-1 ring-white/15 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
-            {[CalendarDays, Home, Heart, MapPin].map((Icon, i) =>
-              i === 1 ? (
-                <motion.button
-                  key={i}
-                  type="button"
-                  whileTap={{ scale: 0.9 }}
-                  onClick={onNext}
-                  aria-label="Next"
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-[0_6px_20px_rgba(255,255,255,0.25)]"
-                >
-                  <ArrowRight className="h-5 w-5" />
-                </motion.button>
-              ) : (
-                <span key={i} className="flex h-12 w-12 items-center justify-center text-white/55">
-                  <Icon className="h-5 w-5" />
-                </span>
-              )
-            )}
-          </div>
         </Fade>
       </div>
     </div>
