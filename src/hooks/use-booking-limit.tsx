@@ -20,6 +20,7 @@ export function useBookingLimit(): BookingLimitState {
   const { user } = useAuth();
   const { loading: premiumLoading, isPremium } = usePremium();
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const nextMonthStart = format(startOfMonth(addMonths(new Date(), 1)), "yyyy-MM-dd");
 
   const { data: used = 0, isLoading } = useQuery({
     queryKey: ["bookings-this-month", user?.id, monthStart],
