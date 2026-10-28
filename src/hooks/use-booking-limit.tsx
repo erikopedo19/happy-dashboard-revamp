@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { format, startOfMonth } from "date-fns";
+import { addMonths, format, startOfMonth } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium, PREMIUM_LIMITS } from "@/hooks/use-premium";
