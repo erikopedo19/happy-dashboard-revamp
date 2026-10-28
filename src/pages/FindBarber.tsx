@@ -53,6 +53,7 @@ import { prefetchRoute } from "@/lib/routePrefetch";
 interface BarberProfile {
   id: string;
   monthly_capped?: boolean;
+  today_count?: number;
   latitude?: number | null;
   longitude?: number | null;
   home_service?: boolean;
@@ -288,6 +289,7 @@ const FindBarber = () => {
       monthly_capped: monthlyCappedIds?.has(barber.id) ?? false,
     }));
     const counts = todayCounts ?? new Map<string, number>();
+    for (const b of list) b.today_count = counts.get(b.id) ?? 0;
     return [...list].sort(
       (a, b) =>
         (boostRank(b.id) - boostRank(a.id)) ||
@@ -747,6 +749,12 @@ function BarberCard({
               </span>
               <span className="text-[10px] text-[#8E8E93]">· {reviews}</span>
             </div>
+            {(barber.today_count ?? 0) > 0 && (
+              <div className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-[#FF2D46]/10 px-2 py-0.5 mb-1">
+                <span className="text-[11px] font-semibold tabular-nums text-[#FF2D46]">{barber.today_count}</span>
+                <span className="text-[10px] font-medium text-[#FF2D46]/80">booked today</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1466,6 +1474,12 @@ function MapBarberCard({
             <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
             <span className="font-semibold text-white/85 tabular-nums">{Number(barber.rating ?? 5).toFixed(1)}</span>
             <span>({barber.rating_count ?? 0})</span>
+            {(barber.today_count ?? 0) > 0 && (
+              <>
+                <span>·</span>
+                <span className="font-semibold text-[#FF5A6E] tabular-nums">{barber.today_count} today</span>
+              </>
+            )}
             {distance != null && (
               <>
                 <span>·</span>
