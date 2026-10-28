@@ -76,7 +76,7 @@ export function StreakCelebrationView({ streak, week, month, onClose }: StreakCe
       className="fixed inset-0 z-[500] overflow-hidden bg-[#0A0A0C] text-white"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: "blur(10px)", transition: { duration: 0.45 } }}
+      exit={{ opacity: 0, transition: { duration: 0.45 } }}
       style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, system-ui, sans-serif" }}
     >
       {/* Spark */}
@@ -85,7 +85,7 @@ export function StreakCelebrationView({ streak, week, month, onClose }: StreakCe
           <motion.div
             key="spark"
             className="absolute inset-0 flex items-center justify-center"
-            exit={{ opacity: 0, scale: 0.4, filter: "blur(10px)", transition: { duration: 0.3 } }}
+            exit={{ opacity: 0, scale: 0.4, transition: { duration: 0.3 } }}
           >
             <motion.div
               initial={{ scale: 0, rotate: -25 }}
@@ -215,16 +215,16 @@ export function StreakCelebrationView({ streak, week, month, onClose }: StreakCe
               <motion.div
                 key="streak"
                 className="flex w-full flex-col items-center"
-                exit={{ opacity: 0, y: -12, filter: "blur(8px)", transition: { duration: 0.3 } }}
+                exit={{ opacity: 0, y: -12, transition: { duration: 0.3 } }}
               >
                 <div className="flex h-[78px] items-end">
                   <AnimatePresence mode="popLayout">
                     {shown > 0 && (
                       <motion.span
                         key={shown}
-                        initial={{ scale: 1.45, opacity: 0, filter: "blur(6px)" }}
-                        animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-                        exit={{ scale: 0.7, opacity: 0, filter: "blur(4px)" }}
+                        initial={{ scale: 1.45, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.7, opacity: 0 }}
                         transition={pop}
                         className="text-[76px] font-black leading-none tracking-[-0.04em] tabular-nums [text-shadow:0_6px_24px_rgba(120,0,15,0.35)]"
                       >
@@ -386,8 +386,8 @@ export function StreakCelebrationView({ streak, week, month, onClose }: StreakCe
 function BlurIn({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
     <motion.p
-      initial={{ opacity: 0, y: 14, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease, delay }}
       className={className}
     >

@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, subDays } from "date-fns";
-import { Flame } from "lucide-react";
+import { Flame, Play } from "lucide-react";
+import { StreakPlayer } from "@/components/streak/StreakCelebration";
 
 const db = supabase as any;
 
 export function BookingStreakCard() {
   const { user } = useAuth();
+  const [playing, setPlaying] = useState(false);
 
   const { data: dates } = useQuery({
     queryKey: ["booking-streak-days", user?.id],
@@ -47,7 +49,11 @@ export function BookingStreakCard() {
   }, [dates]);
 
   return (
-    <div className="rounded-2xl border border-black/[0.04] dark:border-white/[0.06] bg-white dark:bg-[#15151A] p-4 shadow-sm">
+    <>
+    <button
+      type="button"
+      onClick={() => setPlaying(true)}
+      className="block w-full text-left rounded-2xl border transition-transform active:scale-[0.98] border-black/[0.04] dark:border-white/[0.06] bg-white dark:bg-[#15151A] p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF2D46]">
@@ -65,19 +71,24 @@ export function BookingStreakCard() {
           <p className="text-[#8E8E93] dark:text-white/40 text-[10px] uppercase tracking-wider">Best</p>
           <p className="text-[#1C1C1E] dark:text-white/80 text-sm font-medium tabular-nums">{best}</p>
         </div>
+        <span className="ml-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FF2D46]/10 text-[#FF2D46]" aria-label="Play streak animation">
+          <Play className="h-3.5 w-3.5 fill-current" />
+        </span>
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-1">
         {last7.map((d) => (
           <div key={d.key} className="flex-1 flex flex-col items-center gap-1.5">
             <div
-              className={`h-1.5 w-full rounded-full ${d.active ? "bg-[#8B6FE8]" : "bg-[#E5E5EA] dark:bg-white/[0.06]"}`}
+              className={`h-1.5 w-full rounded-full ${d.active ? "bg-[#FF2D46]" : "bg-[#E5E5EA] dark:bg-white/[0.06]"}`}
             />
             <span className="text-[9px] text-[#8E8E93] font-medium tabular-nums">{d.label}</span>
           </div>
         ))}
       </div>
-    </div>
+    </button>
+    <StreakPlayer open={playing} onClose={() => setPlaying(false)} />
+    </>
   );
 }
 

@@ -1806,23 +1806,21 @@ export const LiquidGlassAgenda = ({
                             const status = isCancelled ? "Cancelled" : isCompleted ? "Completed"
                               : nowTick >= startAt && nowTick < endAt ? "In progress"
                               : nowTick >= endAt ? "Finished" : "Upcoming";
-                            const initials = (apt.customer.name || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+                            const firstName = (apt.customer.name || "Client").trim().split(/\s+/)[0];
                             return (
                               <div className={cn("relative z-10 flex h-full w-full min-h-0 gap-3", !isCancelled && "pr-8")}>
-                                <span className="w-[3px] shrink-0 rounded-full" style={{ backgroundColor: isDark ? "#F2F2F7" : "#1C1C1E", opacity: isCancelled ? 0.3 : 0.85 }} />
+                                <span className="w-[4px] shrink-0 rounded-full" style={{ backgroundColor: serviceColor, opacity: isCancelled ? 0.35 : 1 }} />
                                 <div className="flex min-w-0 flex-1 flex-col">
-                                  <h3 className={cn("truncate text-[15px] font-semibold leading-tight tracking-[-0.01em]", isCancelled && "line-through", isDark ? "text-white" : "text-[#1C1C1E]")}>
-                                    {apt.service.name}
+                                  <h3 className={cn("truncate text-[17px] font-bold leading-tight tracking-[-0.02em]", isCancelled && "line-through", isDark ? "text-white" : "text-[#1C1C1E]")}>
+                                    {firstName}
                                   </h3>
-                                  <p className={cn("text-[12px] font-medium leading-4", status === "In progress" ? "text-[#30D158]" : isDark ? "text-white/40" : "text-gray-400")}>
-                                    {status}
+                                  <p className={cn("mt-0.5 flex min-w-0 items-center gap-1.5 truncate text-[12.5px] font-medium leading-4", isDark ? "text-white/60" : "text-gray-500")}>
+                                    <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: serviceColor }} />
+                                    <span className="truncate">{apt.service.name}</span>
                                   </p>
                                   <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-                                    <span className="flex min-w-0 items-center gap-2">
-                                      <span className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2", isDark ? "ring-[#1C1C1E]" : "ring-white")} style={{ backgroundColor: serviceColor }}>
-                                        {initials}
-                                      </span>
-                                      <span className={cn("truncate text-[12.5px] font-medium", isDark ? "text-white/70" : "text-gray-600")}>{apt.customer.name}</span>
+                                    <span className={cn("truncate text-[11.5px] font-semibold", status === "In progress" ? "text-[#30D158]" : isDark ? "text-white/40" : "text-gray-400")}>
+                                      {status}
                                     </span>
                                     <span className={cn("flex shrink-0 items-center gap-1 text-[11.5px] font-medium tabular-nums", isDark ? "text-white/55" : "text-gray-500")}>
                                       <Clock className="h-3.5 w-3.5" />
@@ -1992,7 +1990,9 @@ export const LiquidGlassAgenda = ({
                   {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
                       <button
+                        disabled={isPastSlot}
                         onClick={() => {
+                          if (isPastSlot) return;
                           const blockedSlot = (blockedSlots || []).find((b: any) => {
                             const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
                             const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
@@ -2009,7 +2009,8 @@ export const LiquidGlassAgenda = ({
                           }
                         }}
                         className={cn(
-                          "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
+                          "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all",
+                          isPastSlot ? "cursor-not-allowed" : "hover:scale-[1.02]",
                           selectedDayIsOff
                             ? (isDark
                                 ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
@@ -2053,7 +2054,7 @@ export const LiquidGlassAgenda = ({
               const closeMin = lh * 60 + lm + interval;
               const close = `${String(Math.floor(closeMin / 60) % 24).padStart(2, '0')}:${String(closeMin % 60).padStart(2, '0')}`;
               return (
-                <div className="flex h-7 items-center gap-3">
+                <div className="-mt-2.5 flex h-5 items-center gap-3">
                   <span className="w-12 shrink-0 text-[11px] font-medium text-gray-400 dark:text-gray-500">
                     {close.endsWith(':00') ? formatTimeLabel(close) : close}
                   </span>
