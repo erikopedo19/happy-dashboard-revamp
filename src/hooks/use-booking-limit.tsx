@@ -31,6 +31,7 @@ export function useBookingLimit(): BookingLimitState {
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("appointment_date", monthStart)
+        .lt("appointment_date", nextMonthStart)
         .neq("status", "cancelled");
       if (error) throw error;
       return count ?? 0;
