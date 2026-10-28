@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical, ArrowLeftRight, ArrowDown } from "lucide-react";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { HoldButton } from "@/components/ui/hold-button";
 
@@ -230,6 +230,7 @@ export const LiquidGlassAgenda = ({
   const [drag, setDrag] = useState<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const [dropHover, setDropHover] = useState<string | null>(null);
   const [movingIds, setMovingIds] = useState<string[]>([]);
+  const [pendingSwap, setPendingSwap] = useState<{ from: Appointment; to: Appointment } | null>(null);
   const dragRef = useRef<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const dropHoverRef = useRef<string | null>(null);
   const autoScrollFrameRef = useRef<number | null>(null);
@@ -245,7 +246,8 @@ export const LiquidGlassAgenda = ({
 
   const performDrop = async (
     current: { id: string; dx: number; dy: number },
-    t: { aptId: string | null; time: string | null } | null
+    t: { aptId: string | null; time: string | null } | null,
+    confirmed = false
   ) => {
     if (!t || Math.hypot(current.dx, current.dy) < 12) return;
     const targetId = t.aptId && t.aptId !== current.id ? t.aptId : null;
@@ -254,6 +256,14 @@ export const LiquidGlassAgenda = ({
     // clients don't get a pointless "rescheduled" email.
     const draggedApt = dayAppointments.find((a) => a.id === current.id);
     if (!targetId && draggedApt && t.time === draggedApt.appointment_time.slice(0, 5)) return;
+    if (targetId && !confirmed) {
+      const targetApt = dayAppointments.find((a) => a.id === targetId);
+      if (draggedApt && targetApt) {
+        haptic("medium");
+        setPendingSwap({ from: draggedApt, to: targetApt });
+        return;
+      }
+    }
     const dateStr = format(selectedDay, "yyyy-MM-dd");
     setMovingIds([current.id, ...(targetId ? [targetId] : [])]);
     const { data, error } = await (supabase as any).rpc("swap_or_move_appointment", {
@@ -1713,8 +1723,28 @@ export const LiquidGlassAgenda = ({
                           : { x: 0, y: 0, scale: dropHover === `a:${apt.id}` ? 0.96 : 1, rotate: 0, opacity: movingIds.includes(apt.id) ? 0.5 : 1 }}
                         transition={drag?.id === apt.id ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                         style={{ zIndex: drag?.id === apt.id ? 50 : undefined, pointerEvents: drag?.id === apt.id ? "none" : undefined }}
-                        className={cn("flex-1 min-h-0 relative rounded-2xl", dropHover === `a:${apt.id}` && "ring-2 ring-[#FF2D46] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
+                        className={cn("flex-1 min-h-0 relative rounded-2xl", (dropHover === `a:${apt.id}` || pendingSwap?.from.id === apt.id || pendingSwap?.to.id === apt.id) && "ring-2 ring-[#FF2D46] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
                       >
+                        <AnimatePresence>
+                          {(dropHover === `a:${apt.id}` || pendingSwap?.from.id === apt.id || pendingSwap?.to.id === apt.id) && (
+                            <motion.div
+                              key="swap-badge"
+                              initial={{ opacity: 0, scale: 0.4 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.4 }}
+                              transition={{ type: "spring", stiffness: 520, damping: 26 }}
+                              className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-[#FF2D46]/[0.06]"
+                            >
+                              <motion.span
+                                animate={{ rotate: [0, 180, 180, 360], scale: [1, 1.12, 1, 1] }}
+                                transition={{ duration: 1.6, repeat: Infinity, ease: [0.65, 0, 0.35, 1], times: [0, 0.35, 0.5, 0.85] }}
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]"
+                              >
+                                <ArrowLeftRight className="h-4 w-4" strokeWidth={2.5} />
+                              </motion.span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                         {!isCancelled && (
                           <span
                             role="button"
@@ -2261,6 +2291,86 @@ export const LiquidGlassAgenda = ({
                 className="h-12 rounded-2xl bg-black/[0.05] text-[15px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
               >
                 Keep it open
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer open={!!pendingSwap} onOpenChange={(open) => { if (!open) setPendingSwap(null); }}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-sm px-6 pb-8 pt-2">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#FF2D46]/10">
+              <motion.span
+                animate={{ rotate: [0, 180, 180, 360] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: [0.65, 0, 0.35, 1], times: [0, 0.35, 0.5, 0.85] }}
+                className="flex"
+              >
+                <ArrowLeftRight className="h-6 w-6 text-[#FF2D46]" strokeWidth={2.4} />
+              </motion.span>
+            </div>
+            <DrawerTitle className="text-center">Swap these appointments?</DrawerTitle>
+            <DrawerDescription className="mt-1.5 text-center">Both clients will be emailed their new time.</DrawerDescription>
+            {pendingSwap && (
+              <div className="mt-5 flex flex-col items-stretch">
+                {([
+                  [pendingSwap.from, pendingSwap.to],
+                  [pendingSwap.to, pendingSwap.from],
+                ] as const).map(([a, b], i) => (
+                  <div key={a.id} className="flex flex-col items-stretch">
+                    {i === 1 && (
+                      <div className="relative z-10 -my-2.5 flex justify-center">
+                        <motion.span
+                          initial={{ rotate: 0 }}
+                          animate={{ rotate: 180 }}
+                          transition={{ type: "spring", stiffness: 160, damping: 14, delay: 0.25 }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border-4 border-white bg-[#FF2D46] text-white dark:border-[#1C1C1E]"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" strokeWidth={2.75} />
+                        </motion.span>
+                      </div>
+                    )}
+                    <motion.div
+                      initial={{ opacity: 0, y: i === 0 ? -8 : 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: 0.05 + i * 0.08 }}
+                      className="flex items-center gap-3 rounded-[18px] bg-black/[0.04] px-4 py-3 dark:bg-white/[0.06]"
+                    >
+                      <span className="h-9 w-[4px] shrink-0 rounded-full" style={{ backgroundColor: a.service.color || "#22c55e" }} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[16px] font-bold leading-tight tracking-[-0.02em] text-[#1C1C1E] dark:text-white">
+                          {(a.customer.name || "Client").trim().split(/\s+/)[0]}
+                        </p>
+                        <p className="truncate text-[12.5px] font-medium text-gray-500 dark:text-white/60">{a.service.name}</p>
+                      </div>
+                      <div className="shrink-0 text-right tabular-nums">
+                        <p className="text-[11px] font-medium text-gray-400 line-through dark:text-white/40">{a.appointment_time.slice(0, 5)}</p>
+                        <p className="text-[15px] font-bold text-[#FF2D46]">{b.appointment_time.slice(0, 5)}</p>
+                      </div>
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const swap = pendingSwap;
+                  setPendingSwap(null);
+                  if (swap) performDrop({ id: swap.from.id, dx: 100, dy: 0 }, { aptId: swap.to.id, time: null }, true);
+                }}
+                className="flex min-h-[54px] items-center justify-center gap-2 rounded-[18px] bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-[16px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] transition-transform active:scale-[0.98]"
+              >
+                <ArrowLeftRight className="h-4 w-4" strokeWidth={2.5} />
+                Swap appointments
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingSwap(null)}
+                className="min-h-[54px] rounded-[18px] bg-black/[0.05] text-[16px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
+              >
+                Cancel
               </button>
             </div>
           </div>
