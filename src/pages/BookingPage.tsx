@@ -1,4 +1,4 @@
-import { useRef, type TouchEvent } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
@@ -21,7 +21,11 @@ import {
   Pencil,
   CalendarCheck,
   Printer,
+  Copy,
+  Check,
+  Loader2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
@@ -49,7 +53,51 @@ const STEPS = [
 
 const MicrositePanel = ({ slug }: { slug: string }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const siteUrl = slug ? `${window.location.origin}/site/${slug}` : "";
+  const [about, setAbout] = useState("");
+  const [savedAbout, setSavedAbout] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const { data: site } = useQuery({
+    queryKey: ["microsite-about", user?.id],
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("microsites").select("about").eq("user_id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+  useEffect(() => {
+    const value = site?.about || "";
+    setAbout(value);
+    setSavedAbout(value);
+  }, [site]);
+
+  const saveAbout = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase.from("microsites").upsert({ user_id: user.id, about: about.trim() }, { onConflict: "user_id" });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Couldn't save", description: error.message, variant: "destructive" });
+      return;
+    }
+    haptic("success");
+    setSavedAbout(about.trim());
+    if (slug) localStorage.removeItem(`cutzio:site:${slug}`);
+    toast({ title: "About saved", description: "It's live on your website." });
+  };
+
+  const copyLink = async () => {
+    if (!siteUrl) return;
+    await navigator.clipboard?.writeText(siteUrl).catch(() => {});
+    haptic("light");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3.5">
@@ -62,10 +110,43 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
         </div>
       </div>
       {siteUrl && (
-        <div className="rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[13px] text-[#8E8E93] truncate font-mono">
-          {siteUrl}
-        </div>
+        <button
+          type="button"
+          onClick={copyLink}
+          className="flex w-full items-center gap-3 rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-left active:scale-[0.99] transition"
+        >
+          <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-[#8E8E93]">
+            {window.location.host}/site/<span className="text-white">{slug}</span>
+          </span>
+          {copied ? <Check className="h-4 w-4 shrink-0 text-emerald-400" /> : <Copy className="h-4 w-4 shrink-0 text-[#8E8E93]" />}
+        </button>
       )}
+      <div className="rounded-[18px] bg-white/[0.04] border border-white/[0.08] p-4">
+        <div className="flex items-center justify-between">
+          <label htmlFor="site-about" className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">About</label>
+          <span className="text-[11px] text-[#636366] tabular-nums">{about.length}/600</span>
+        </div>
+        <textarea
+          id="site-about"
+          value={about}
+          maxLength={600}
+          rows={4}
+          onChange={(e) => setAbout(e.target.value)}
+          placeholder="Tell clients about you, your shop and your style…"
+          className="mt-2 w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-[#636366] outline-none"
+        />
+        {about.trim() !== savedAbout && (
+          <button
+            type="button"
+            onClick={saveAbout}
+            disabled={saving}
+            className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-[14px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.98] transition disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Save about
+          </button>
+        )}
+      </div>
       <div className="flex flex-col sm:flex-row gap-2.5">
         <button
           onClick={() => navigate("/microsite")}
