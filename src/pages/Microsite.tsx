@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Globe, Music2, MessageCircle, Scissors } from "lucide-react";
+import { ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Globe, Music2, MessageCircle, Scissors, Check, Bell, Sparkles, Users } from "lucide-react";
 
 type Review = {
   id: string;
@@ -27,6 +27,8 @@ const STOCK = {
   hero: IMG("1503951914875-452162b0f3f1", 1600),
   cta: IMG("1585747860715-2ba37e788b70", 1400),
   footer: IMG("1517832606299-7ae9b720a186", 1600),
+  how: IMG("1622286342621-4bd786c2447c", 1200),
+  reviews: IMG("1621605815971-fbc98d665033", 1200),
   gallery: [
     IMG("1622286342621-4bd786c2447c", 800),
     IMG("1622288432450-277d0fef5ed6", 800),
@@ -62,6 +64,14 @@ const rise = (delay = 0) => ({
   viewport: { once: true, margin: "-40px" },
   transition: { duration: 0.7, delay, ease },
 });
+
+const STEPS = [
+  { title: "Pick your service", body: "Fades, beard work, kids cuts — clear prices up front.", tint: "#FF2D46" },
+  { title: "Choose a time", body: "See live availability and grab the slot that suits you.", tint: "#38BDF8" },
+  { title: "Get a reminder", body: "We'll nudge you before your appointment, no app needed.", tint: "#A78BFA" },
+  { title: "Walk in fresh", body: "Sit down, relax and leave looking sharper than you came.", tint: "#34D399" },
+];
+const TINTS = ["#38BDF8", "#FF2D46", "#A78BFA"];
 
 const Microsite = () => {
   const params = useParams();
@@ -157,13 +167,22 @@ const Microsite = () => {
     },
     m.website_url && { href: m.website_url, label: "Website", icon: Globe },
   ].filter(Boolean) as { href: string; label: string; icon: typeof Globe }[];
+  const accent: string = /^#[0-9a-f]{6}$/i.test(p.brand_color || "") && p.brand_color.toUpperCase() !== "#0A84FF" ? p.brand_color : "#FF2D46";
+  const stats = [
+    { icon: Star, value: rating.toFixed(1), label: "Average rating", tint: "#FBBF24" },
+    { icon: Users, value: reviewCount ? `${reviewCount}+` : "New", label: "Happy clients", tint: accent },
+    { icon: Scissors, value: String(services.length || "—"), label: "Services", tint: "#38BDF8" },
+    { icon: Calendar, value: "24/7", label: "Online booking", tint: "#34D399" },
+  ];
+  const [topReview, ...moreReviews] = reviews;
+  const sampleService = services[0];
   const featured = services.slice(0, 3);
   const rest = services.slice(3);
   const price = (v: number | null) => `$${Number(v || 0).toFixed(0)}`;
 
   return (
     <div
-      className="min-h-screen bg-[#0B0B0C] text-white antialiased"
+      className="min-h-screen overflow-x-clip bg-[#0B0B0C] text-white antialiased"
       style={{ fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif", letterSpacing: "-0.011em" }}
     >
       {/* HERO */}
@@ -238,12 +257,29 @@ const Microsite = () => {
         </div>
       </section>
 
+      {/* STATS */}
+      <section className="mx-auto max-w-6xl px-5 pt-6 md:px-8 md:pt-10">
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
+          {stats.map(({ icon: Icon, value, label, tint }, i) => (
+            <motion.div key={label} {...rise(i * 0.05)} className="flex items-center gap-3 rounded-[20px] border border-white/[0.07] bg-white/[0.03] p-3.5 md:p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px]" style={{ background: `${tint}1f`, color: tint }}>
+                <Icon className="h-[18px] w-[18px]" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[17px] font-semibold tabular-nums leading-tight">{value}</div>
+                <div className="truncate text-[11px] text-white/45">{label}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* ABOUT */}
       {about && (
         <section id="about" className="mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
           <div className="grid gap-6 md:grid-cols-12 md:gap-12">
             <motion.div {...rise()} className="md:col-span-4">
-              <Pill>About</Pill>
+              <Pill dot={accent}>About</Pill>
               <h2 className="mt-4 text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-4xl">The story behind the chair</h2>
             </motion.div>
             <motion.div {...rise(0.08)} className="md:col-span-8">
@@ -257,23 +293,84 @@ const Microsite = () => {
         </section>
       )}
 
+      {/* HOW IT WORKS */}
+      <section id="how" className="mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
+        <motion.div {...rise()} className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <Pill dot={accent}>How it works</Pill>
+            <h2 className="mt-4 max-w-md text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-4xl">Booked in four simple steps</h2>
+          </div>
+          <p className="max-w-sm text-[13px] leading-relaxed text-white/45">No calls, no waiting. Choose, book and get reminded — all from your phone.</p>
+        </motion.div>
+        <div className="mt-8 grid gap-8 md:mt-10 md:grid-cols-2 md:items-center md:gap-12">
+          <ol>
+            {STEPS.map((st, i) => (
+              <motion.li key={st.title} {...rise(i * 0.06)} className="flex gap-4 border-b border-dashed border-white/10 py-4 last:border-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] text-[12px] font-bold tabular-nums" style={{ background: `${st.tint}1f`, color: st.tint }}>
+                  0{i + 1}
+                </div>
+                <div>
+                  <div className="text-[15px] font-semibold">{st.title}</div>
+                  <div className="mt-0.5 text-[13px] leading-relaxed text-white/50">{st.body}</div>
+                </div>
+              </motion.li>
+            ))}
+          </ol>
+          <motion.div {...rise(0.1)} className="relative aspect-[4/5] overflow-hidden rounded-[26px] md:aspect-[4/3]">
+            <img src={STOCK.how} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${accent}40 0%, transparent 45%, rgba(0,0,0,0.65) 100%)` }} />
+            <div className="absolute inset-x-3 bottom-3 rounded-[20px] border border-white/15 bg-[#141416]/85 p-4 backdrop-blur-xl md:inset-x-auto md:right-4 md:bottom-4 md:w-[290px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-white/60">Booking details</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                  <Check className="h-3 w-3" /> Confirmed
+                </span>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-[14px] font-bold text-white" style={{ background: accent }}>A</div>
+                <div className="min-w-0">
+                  <div className="truncate text-[15px] font-semibold">Alex M.</div>
+                  <div className="truncate text-[12px] text-white/50">{sampleService?.name || "Classic cut"}</div>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
+                {[
+                  ["Day", "Tomorrow"],
+                  ["Time", "10:30"],
+                  ["Price", sampleService ? price(sampleService.price) : "$20"],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-[12px] bg-white/[0.06] px-2 py-2">
+                    <div className="text-[10px] uppercase tracking-wider text-white/40">{k}</div>
+                    <div className="mt-0.5 text-[13px] font-semibold">{v}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 flex items-center gap-2 rounded-[12px] bg-white/[0.04] px-3 py-2 text-[12px] text-white/60">
+                <Bell className="h-3.5 w-3.5" style={{ color: accent }} /> Reminder set for 9:30
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* SERVICES */}
       {services.length > 0 && (
-        <section id="services" className="mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
+        <section id="services" className="relative mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
+          <div aria-hidden className="pointer-events-none absolute -inset-x-20 top-24 -z-0 h-[420px]" style={{ background: `radial-gradient(50% 50% at 30% 50%, ${accent}26, transparent 70%), radial-gradient(40% 50% at 80% 60%, #38BDF81a, transparent 70%)` }} />
           <motion.div {...rise()} className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <Pill>Services</Pill>
+              <Pill dot={accent}>Services</Pill>
               <h2 className="mt-4 text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-4xl">Pick your cut</h2>
             </div>
             <p className="max-w-sm text-[13px] leading-relaxed text-white/45">Clear prices, no surprises. Book online in under a minute.</p>
           </motion.div>
-          <div className="mt-8 grid gap-3 md:grid-cols-3">
+          <div className="relative mt-8 grid gap-3 md:grid-cols-3">
             {featured.map((s, i) => {
               const hot = i === 1 || featured.length === 1;
               return (
                 <motion.div key={s.id} {...rise(i * 0.07)} className="relative">
                   {hot && (
-                    <div className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-[#FF2D46] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">
+                    <div className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white" style={{ background: accent }}>
                       Most booked
                     </div>
                   )}
@@ -281,10 +378,12 @@ const Microsite = () => {
                     to={bookingUrl}
                     className={
                       "flex h-full flex-col rounded-[24px] p-5 transition active:scale-[0.98] " +
-                      (hot ? "bg-white text-black" : "border border-white/[0.08] bg-white/[0.03] text-white")
+                      (hot ? "bg-white text-black" : "border border-white/[0.08] bg-[#121214] text-white")
                     }
                   >
-                    <Scissors className={"h-5 w-5 " + (hot ? "text-[#FF2D46]" : "text-white/60")} />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-[13px]" style={{ background: `${hot ? accent : TINTS[i % 3]}1f`, color: hot ? accent : TINTS[i % 3] }}>
+                      {hot ? <Sparkles className="h-[18px] w-[18px]" /> : <Scissors className="h-[18px] w-[18px]" />}
+                    </div>
                     <div className="mt-6 text-[16px] font-semibold">{s.name}</div>
                     <div className={"mt-0.5 text-[12px] " + (hot ? "text-black/50" : "text-white/45")}>{s.duration ? `${s.duration} min` : "Custom length"}</div>
                     <div className="mt-6 text-[34px] font-medium tracking-[-0.04em] tabular-nums">{price(s.price)}</div>
@@ -322,7 +421,7 @@ const Microsite = () => {
       {/* WORK */}
       <section id="work" className="mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
         <motion.div {...rise()}>
-          <Pill>Work</Pill>
+          <Pill dot={accent}>Work</Pill>
           <h2 className="mt-4 text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-4xl">{ownGallery.length ? "Fresh from the chair" : "The vibe"}</h2>
         </motion.div>
         <div className="mt-8 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
@@ -343,7 +442,7 @@ const Microsite = () => {
         <section className="mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
           <motion.div {...rise()} className="flex items-end justify-between gap-4">
             <div>
-              <Pill>Reviews</Pill>
+              <Pill dot={accent}>Reviews</Pill>
               <h2 className="mt-4 text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-4xl">Trusted by regulars</h2>
             </div>
             <div className="flex items-center gap-1.5 text-[15px] font-semibold">
@@ -352,18 +451,42 @@ const Microsite = () => {
               <span className="font-normal text-white/45">({reviewCount})</span>
             </div>
           </motion.div>
-          <div className="mt-8 grid gap-3 md:grid-cols-3">
-            {reviews.map((r, i) => (
-              <motion.figure key={r.id} {...rise((i % 3) * 0.06)} className="rounded-[22px] bg-white p-5 text-black">
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className="h-3.5 w-3.5 text-amber-500" style={{ fill: s <= r.rating ? "currentColor" : "transparent" }} />
+          <div className="mt-8 grid gap-3 md:grid-cols-12">
+            {topReview && (
+              <motion.figure {...rise()} className={"flex flex-col justify-between rounded-[26px] border border-white/[0.08] bg-[#121214] p-6 " + (moreReviews.length ? "md:col-span-5" : "md:col-span-12")}>
+                <div>
+                  <Stars n={topReview.rating} />
+                  {topReview.comment && <blockquote className="mt-4 text-[21px] font-medium leading-[1.35] tracking-[-0.02em] text-white md:text-[24px]">“{topReview.comment}”</blockquote>}
+                </div>
+                <figcaption className="mt-8 flex items-center gap-3">
+                  <Avatar name={topReview.reviewer_name} color={accent} />
+                  <div>
+                    <div className="text-[13px] font-semibold">{topReview.reviewer_name || "Verified client"}</div>
+                    <div className="text-[11px] text-white/45">Verified client</div>
+                  </div>
+                </figcaption>
+              </motion.figure>
+            )}
+            {moreReviews.length > 0 && (
+              <motion.div {...rise(0.08)} className="relative overflow-hidden rounded-[26px] p-3 md:col-span-7 md:p-4">
+                <img src={STOCK.reviews} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="relative grid gap-2.5 sm:grid-cols-2">
+                  {moreReviews.map((r, i) => (
+                    <figure key={r.id} className="rounded-[18px] bg-white p-4 text-black">
+                      <figcaption className="flex items-center gap-2.5">
+                        <Avatar name={r.reviewer_name} color={TINTS[i % 3]} small />
+                        <div className="min-w-0">
+                          <div className="truncate text-[12px] font-semibold">{r.reviewer_name || "Verified client"}</div>
+                          <Stars n={r.rating} small />
+                        </div>
+                      </figcaption>
+                      {r.comment && <blockquote className="mt-2.5 text-[13px] leading-relaxed text-black/70">{r.comment}</blockquote>}
+                    </figure>
                   ))}
                 </div>
-                {r.comment && <blockquote className="mt-3 text-[14px] leading-relaxed text-black/80">“{r.comment}”</blockquote>}
-                <figcaption className="mt-4 text-[12px] font-semibold text-black/50">{r.reviewer_name || "Verified client"}</figcaption>
-              </motion.figure>
-            ))}
+              </motion.div>
+            )}
           </div>
         </section>
       )}
@@ -372,7 +495,7 @@ const Microsite = () => {
       <section className="mx-auto max-w-6xl px-3 pt-20 md:px-5 md:pt-28">
         <motion.div {...rise()} className="relative overflow-hidden rounded-[28px] md:rounded-[36px]">
           <img src={STOCK.cta} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${accent}66 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.7) 100%)` }} />
           <div className="relative flex flex-col items-center px-6 py-16 text-center md:py-24">
             <h2 className="max-w-md text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-5xl">Your next cut is one tap away</h2>
             <p className="mt-3 max-w-sm text-[14px] text-white/70">Pick a time that suits you. You'll get a reminder before your appointment.</p>
@@ -387,7 +510,7 @@ const Microsite = () => {
       <section id="visit" className="mx-auto max-w-6xl px-5 pt-20 md:px-8 md:pt-28">
         <div className="grid gap-8 md:grid-cols-12">
           <motion.div {...rise()} className="md:col-span-5">
-            <Pill>Visit</Pill>
+            <Pill dot={accent}>Visit</Pill>
             <h2 className="mt-4 text-[30px] font-medium leading-[1.1] tracking-[-0.035em] md:text-4xl">Come say hi</h2>
           </motion.div>
           <motion.div {...rise(0.08)} className="space-y-5 md:col-span-7">
@@ -460,8 +583,28 @@ const Microsite = () => {
   );
 };
 
-const Pill = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-black">{children}</span>
+const Pill = ({ children, dot }: { children: React.ReactNode; dot?: string }) => (
+  <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-black">
+    {dot && <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />}
+    {children}
+  </span>
+);
+
+const Stars = ({ n, small }: { n: number; small?: boolean }) => (
+  <div className="flex gap-0.5">
+    {[1, 2, 3, 4, 5].map((s) => (
+      <Star key={s} className={(small ? "h-3 w-3" : "h-4 w-4") + " text-amber-400"} style={{ fill: s <= n ? "currentColor" : "transparent" }} />
+    ))}
+  </div>
+);
+
+const Avatar = ({ name, color, small }: { name: string | null; color: string; small?: boolean }) => (
+  <div
+    className={"flex shrink-0 items-center justify-center rounded-full font-bold text-white " + (small ? "h-8 w-8 text-[12px]" : "h-10 w-10 text-[14px]")}
+    style={{ background: color }}
+  >
+    {(name || "V").trim().slice(0, 1).toUpperCase()}
+  </div>
 );
 
 const InfoRow = ({ icon: Icon, label, children }: { icon: typeof MapPin; label: string; children: React.ReactNode }) => (
