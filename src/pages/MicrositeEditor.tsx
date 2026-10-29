@@ -51,7 +51,7 @@ export const MicrositeEditorPanel = () => {
     website_url: "",
     hours: "",
     address: "",
-    theme: "editorial",
+    theme: "noir",
   });
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export const MicrositeEditorPanel = () => {
           website_url: site.website_url || "",
           hours: site.hours || "",
           address: site.address || prof?.address || "",
-          theme: site.theme || "editorial",
+          theme: site.theme || "noir",
         });
       } else {
         setState((s) => ({
@@ -100,7 +100,10 @@ export const MicrositeEditorPanel = () => {
     const { error } = await supabase.from("microsites").upsert(payload, { onConflict: "user_id" });
     setSaving(false);
     if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
-    else toast({ title: "Saved", description: "Your site is live." });
+    else {
+      if (bookingLink) localStorage.removeItem(`cutzio:site:${bookingLink}`);
+      toast({ title: "Saved", description: "Your site is live." });
+    }
   };
 
   const handleFile = async (e: ChangeEvent<HTMLInputElement>, field: "hero_url" | "logo_url") => {
@@ -236,9 +239,10 @@ export const MicrositeEditorPanel = () => {
         <Tabs value={state.theme} onValueChange={(v) => setState((s) => ({ ...s, theme: v }))} variant="segment">
           <TabsList className="w-full">
             {[
-              { id: "editorial", name: "Editorial", sw: ["#faf7f2", "#1c1917", "#c9a84c"] },
-              { id: "noir", name: "Noir", sw: ["#0a0a0a", "#fafafa", "#c9a84c"] },
-              { id: "mono", name: "Mono", sw: ["#ffffff", "#000000", "#737373"] },
+              { id: "noir", name: "Cinema", sw: ["#0B0B0C", "#FFFFFF", "#FF2D46"] },
+              { id: "editorial", name: "Editorial", sw: ["#F3EEE6", "#17140F", "#B4532A"] },
+              { id: "mono", name: "Bold", sw: ["#0A0A0A", "#F5F5F0", "#D7FF3A"] },
+              { id: "fresh", name: "Fresh", sw: ["#FFFFFF", "#0B0B0C", "#38BDF8"] },
             ].map((t) => (
               <TabsTrigger key={t.id} value={t.id} className="flex-1">
                 <div className="flex items-center justify-center gap-2">
