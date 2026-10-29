@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { InviteMemberDialog } from "@/components/InviteMemberDialog";
 import { CreateTeamDialog } from "@/components/CreateTeamDialog";
+import { SentInvitations } from "@/components/SentInvitations";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -380,6 +381,8 @@ const Teams = () => {
               <span className="tabular-nums">{allTeamMembers.length} members · {stylists.length} stylists</span>
             </div>
 
+            <SentInvitations className="mb-4 lg:max-w-3xl" />
+
             {isLoading ? (
               <div className="py-16 text-center text-sm text-[#8E8E93]">Loading teams…</div>
             ) : teams.length === 0 ? (
@@ -545,7 +548,11 @@ const Teams = () => {
       </Dialog>
 
       {/* Invite Dialog (email) */}
-      <InviteMemberDialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen} />
+      <InviteMemberDialog
+        open={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
+        onInvited={() => queryClient.invalidateQueries({ queryKey: ["sent-invitations"] })}
+      />
 
       <CreateTeamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onCreate={(data) => createTeamMutation.mutateAsync(data)} />
 
