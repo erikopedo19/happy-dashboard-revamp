@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Globe, Music2, MessageCircle, Scissors, Check, Bell, Sparkles, Users } from "lucide-react";
 
@@ -114,7 +114,6 @@ const THEMES: Record<string, Theme> = {
   fresh: {
     hero: "stack",
     accent: "#FF2D46",
-    art: "radial-gradient(60% 40% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), radial-gradient(50% 35% at 0% 30%, rgba(56,189,248,0.10), transparent 70%)",
     vars: {
       "--bg": "#FFFFFF", "--fg": "#0B0B0C", "--fg2": "rgba(11,11,12,0.8)", "--muted": "rgba(11,11,12,0.5)",
       "--surface": "#F4F4F6", "--card": "#F7F7F9", "--line": "rgba(11,11,12,0.08)",
@@ -171,9 +170,6 @@ const Microsite = () => {
     };
   }, [slug]);
 
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 700], [0, 120]);
-  const heroScale = useTransform(scrollY, [0, 700], [1.04, 1.14]);
 
   if (loading) {
     return (
@@ -239,148 +235,143 @@ const Microsite = () => {
   const rest = services.slice(3);
   const price = (v: number | null) => `$${Number(v || 0).toFixed(0)}`;
 
-  const altHeader = (
-    <header className="flex items-center justify-between gap-3">
+  const navLinks = [
+    about && { href: "#about", label: "About" },
+    services.length > 0 && { href: "#services", label: "Services" },
+    { href: "#work", label: "Work" },
+    { href: "#visit", label: "Visit" },
+  ].filter(Boolean) as { href: string; label: string }[];
+  const place = address ? address.split(",").slice(-1)[0].trim() : null;
+  const fadeUp = (delay = 0) => ({
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.7, delay, ease },
+  });
+
+  const siteHeader = (
+    <header className="flex h-14 items-center justify-between gap-4">
       <div className="flex min-w-0 items-center gap-2.5">
-        {logo ? (
-          <img src={logo} alt="" className="h-9 w-9 rounded-full object-cover" />
-        ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold" style={{ background: accent, color: accentFg }}>
-            {businessName.slice(0, 1)}
-          </div>
-        )}
+        {logo && <img src={logo} alt="" className="h-8 w-8 rounded-full object-cover" />}
         <span className="truncate text-[15px] font-semibold tracking-tight">{businessName}</span>
       </div>
-      <nav className="hidden items-center gap-6 text-[13px] font-medium text-[color:var(--muted)] md:flex">
-        {about && <a href="#about">About</a>}
-        {services.length > 0 && <a href="#services">Services</a>}
-        <a href="#work">Work</a>
-        <a href="#visit">Visit</a>
+      <nav className="hidden items-center gap-7 text-[13px] opacity-70 md:flex">
+        {navLinks.map((l) => (
+          <a key={l.href} href={l.href} className="transition-opacity hover:opacity-100">
+            {l.label}
+          </a>
+        ))}
       </nav>
-      <Link to={bookingUrl} className="inline-flex h-9 items-center gap-1 rounded-full bg-[color:var(--fg)] px-4 text-[13px] font-semibold text-[color:var(--bg)] transition active:scale-95">
-        Book <ArrowUpRight className="h-3.5 w-3.5" />
+      <Link to={bookingUrl} className="text-[14px] font-semibold underline-offset-4 hover:underline">
+        Book
       </Link>
     </header>
   );
-  const accentCta = (label: string) => (
-    <Link to={bookingUrl} className="inline-flex h-12 items-center gap-2 rounded-full px-6 text-[15px] font-semibold transition active:scale-95" style={{ background: accent, color: accentFg }}>
-      <Calendar className="h-4 w-4" /> {label}
+  const bookBtn = (
+    <Link
+      to={bookingUrl}
+      className="inline-flex h-12 items-center justify-center rounded-[var(--r-sm)] px-6 text-[15px] font-semibold transition-transform active:scale-[0.98]"
+      style={{ background: accent, color: accentFg }}
+    >
+      Book an appointment
     </Link>
   );
-
-  const splitHero = (
-    <section className="px-5 pt-4 md:px-8 md:pt-6">
-      <div className="mx-auto max-w-6xl">
-        {altHeader}
-        <div className="mt-8 grid items-center gap-10 md:mt-14 md:grid-cols-2 md:gap-14">
-          <div>
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] px-3 py-1 text-[12px] text-[color:var(--muted)]">
-              <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {rating.toFixed(1)} · {reviewCount} reviews
-            </motion.div>
-            <motion.h1 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.08, ease }} className="site-h mt-5 text-[52px] leading-[0.98] sm:text-7xl md:text-[86px]">
-              {headline}
-            </motion.h1>
-            <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2, ease }} className="mt-5 max-w-md text-[16px] leading-relaxed text-[color:var(--muted)]">
-              {tagline}
-            </motion.p>
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease }} className="mt-8 flex flex-wrap items-center gap-5">
-              {accentCta("Book a chair")}
-              {services.length > 0 && (
-                <a href="#services" className="text-[14px] font-semibold underline decoration-[color:var(--line)] underline-offset-4">
-                  See prices
-                </a>
-              )}
-            </motion.div>
-          </div>
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, ease }} className="relative pb-8 pl-8 md:pb-10 md:pl-10">
-            <div className="aspect-[4/5] overflow-hidden rounded-[var(--r)]">
-              <motion.img src={hero} alt={businessName} fetchPriority="high" decoding="async" style={{ scale: heroScale }} className="h-full w-full object-cover" />
-            </div>
-            <div className="absolute bottom-0 left-0 w-[42%] overflow-hidden rounded-[var(--r)] border-[6px] border-[color:var(--bg)]">
-              <img src={gallery[0]} alt="" loading="lazy" decoding="async" className="aspect-square w-full object-cover" />
-            </div>
-            <div className="absolute right-4 top-4 flex h-20 w-20 rotate-[-8deg] flex-col items-center justify-center rounded-full text-center shadow-lg" style={{ background: accent, color: accentFg }}>
-              <span className="text-[20px] font-bold leading-none">{rating.toFixed(1)}</span>
-              <span className="mt-1 text-[9px] font-semibold uppercase tracking-wider">rated</span>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
+  const ratingLine = (cls: string) => (
+    <span className={"inline-flex items-center gap-1.5 text-[13px] " + cls}>
+      <Star className="h-3.5 w-3.5 fill-current" />
+      {rating.toFixed(1)} · {reviewCount} reviews{place ? ` · ${place}` : ""}
+    </span>
+  );
+  const heroImg = (cls: string) => (
+    <img src={hero} alt={businessName} fetchPriority="high" decoding="async" className={"w-full object-cover " + cls} />
   );
 
-  const stackHero = (
-    <section className="px-4 pt-4 md:px-6 md:pt-6">
-      <div className="mx-auto max-w-6xl">
-        {altHeader}
-        <div className="mx-auto mt-10 max-w-3xl text-center md:mt-16">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="inline-flex items-center gap-2 rounded-full bg-[color:var(--surface)] px-3 py-1.5 text-[12px] font-medium">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Booking open today
-          </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.06, ease }} className="site-h mt-5 text-[46px] leading-[1.02] md:text-[80px]">
-            {headline.split(" ").slice(0, -1).join(" ")}{" "}
-            <span style={{ color: accent }}>{headline.split(" ").slice(-1)}</span>
-          </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.18, ease }} className="mx-auto mt-4 max-w-md text-[16px] leading-relaxed text-[color:var(--muted)]">
-            {tagline}
-          </motion.p>
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.28, ease }} className="mt-7 flex justify-center">
-            {accentCta("Book a chair")}
-          </motion.div>
-        </div>
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease }} className="relative mt-10 md:mt-14">
-          <div className="aspect-[4/3] overflow-hidden rounded-[var(--r)] md:aspect-[21/9]">
-            <motion.img src={hero} alt={businessName} fetchPriority="high" decoding="async" style={{ scale: heroScale }} className="h-full w-full object-cover" />
-          </div>
-          <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-4 left-3 flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-[12px] font-semibold text-black shadow-[0_12px_30px_-10px_rgba(0,0,0,0.3)]">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {rating.toFixed(1)} · {reviewCount} reviews
-          </motion.div>
-          {services[0] && (
-            <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-4 right-3 flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2 text-black shadow-[0_12px_30px_-10px_rgba(0,0,0,0.3)]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: `${accent}1f`, color: accent }}>
-                <Scissors className="h-4 w-4" />
-              </div>
-              <div className="text-left">
-                <div className="text-[12px] font-semibold">{services[0].name}</div>
-                <div className="text-[11px] text-black/50">{price(services[0].price)}</div>
-              </div>
-            </motion.div>
-          )}
+  const cinemaHero = (
+    <section className="relative flex min-h-[88svh] flex-col overflow-hidden text-white md:min-h-[720px]">
+      {heroImg("absolute inset-0 h-full")}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.4)_0%,rgba(0,0,0,0)_28%,rgba(0,0,0,0.78)_100%)]" />
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-5 md:px-8">{siteHeader}</div>
+      <div className="relative z-10 mx-auto mt-auto w-full max-w-6xl px-5 pb-10 md:px-8 md:pb-16">
+        <motion.h1 {...fadeUp(0)} className="site-h max-w-2xl text-[44px] leading-[1.02] md:text-7xl">
+          {headline}
+        </motion.h1>
+        <motion.p {...fadeUp(0.1)} className="mt-4 max-w-md text-[16px] leading-relaxed text-white/75">
+          {tagline}
+        </motion.p>
+        <motion.div {...fadeUp(0.2)} className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+          {bookBtn}
+          {ratingLine("text-white/70")}
         </motion.div>
       </div>
     </section>
   );
 
-  const ticker = (services.length ? services.map((s) => String(s.name)) : ["Fades", "Beard work", "Classic cuts", "Hot towel"]).concat("Book online");
-  const posterHero = (
-    <section className="px-4 pt-4 md:px-6 md:pt-6">
+  const splitHero = (
+    <section className="px-5 md:px-8">
       <div className="mx-auto max-w-6xl">
-        {altHeader}
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease }}
-          className="site-h mt-10 break-words text-[16vw] leading-[0.86] md:mt-14 md:text-[150px]"
-        >
+        {siteHeader}
+        <div className="grid gap-8 pt-8 md:grid-cols-[1.1fr_1fr] md:items-end md:gap-16 md:pt-16">
+          <div className="md:pb-6">
+            <motion.p {...fadeUp(0)} className="text-[13px] text-[color:var(--muted)]">
+              Barbershop{place ? ` in ${place}` : ""}
+            </motion.p>
+            <motion.h1 {...fadeUp(0.05)} className="site-h mt-3 text-[48px] leading-[1.0] md:text-[80px]">
+              {headline}
+            </motion.h1>
+            <motion.p {...fadeUp(0.12)} className="mt-5 max-w-md text-[16px] leading-relaxed text-[color:var(--fg2)]">
+              {tagline}
+            </motion.p>
+            <motion.div {...fadeUp(0.2)} className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+              {bookBtn}
+              {ratingLine("text-[color:var(--muted)]")}
+            </motion.div>
+          </div>
+          <motion.div {...fadeUp(0.1)} className="overflow-hidden rounded-[var(--r)]">
+            {heroImg("aspect-[4/5]")}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const posterHero = (
+    <section className="px-5 md:px-8">
+      <div className="mx-auto max-w-6xl">
+        {siteHeader}
+        <motion.h1 {...fadeUp(0)} className="site-h mt-8 break-words text-[15vw] leading-[0.88] md:mt-12 md:text-[140px]">
           {businessName}
         </motion.h1>
-        <div className="mt-6 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <motion.div {...fadeUp(0.1)} className="mt-6 flex flex-col gap-5 border-t border-[color:var(--line)] pt-5 md:flex-row md:items-center md:justify-between">
           <p className="max-w-md text-[15px] leading-relaxed text-[color:var(--muted)]">{tagline}</p>
-          {accentCta("Book now")}
-        </div>
-        <div className="relative mt-6 overflow-hidden rounded-[var(--r)]">
-          <motion.img src={hero} alt={businessName} fetchPriority="high" decoding="async" style={{ y: heroY }} className="aspect-[4/3] w-full scale-110 object-cover md:aspect-[21/9]" />
-          <div className="absolute inset-x-0 bottom-0 overflow-hidden py-2.5" style={{ background: accent, color: accentFg }}>
-            <motion.div animate={{ x: ["0%", "-50%"] }} transition={{ duration: 22, repeat: Infinity, ease: "linear" }} className="flex w-max gap-6 whitespace-nowrap text-[13px] font-extrabold uppercase tracking-[0.08em]">
-              {[...ticker, ...ticker, ...ticker, ...ticker].map((t, i) => (
-                <span key={i} className="flex items-center gap-6">
-                  {t}
-                  <span aria-hidden>✦</span>
-                </span>
-              ))}
+          {bookBtn}
+        </motion.div>
+        <motion.div {...fadeUp(0.18)} className="mt-6 overflow-hidden rounded-[var(--r)]">
+          {heroImg("aspect-[4/3] md:aspect-[21/9]")}
+        </motion.div>
+      </div>
+    </section>
+  );
+
+  const stackHero = (
+    <section className="px-5 md:px-8">
+      <div className="mx-auto max-w-6xl">
+        {siteHeader}
+        <div className="pt-10 md:pt-16">
+          <motion.h1 {...fadeUp(0)} className="site-h max-w-3xl text-[44px] leading-[1.04] md:text-[72px]">
+            {headline}
+          </motion.h1>
+          <div className="mt-5 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <motion.p {...fadeUp(0.1)} className="max-w-md text-[16px] leading-relaxed text-[color:var(--muted)]">
+              {tagline}
+            </motion.p>
+            <motion.div {...fadeUp(0.18)} className="flex flex-wrap items-center gap-x-5 gap-y-3">
+              {bookBtn}
+              {ratingLine("text-[color:var(--muted)]")}
             </motion.div>
           </div>
         </div>
+        <motion.div {...fadeUp(0.15)} className="mt-8 overflow-hidden rounded-[var(--r)] md:mt-12">
+          {heroImg("aspect-[4/3] md:aspect-[16/7]")}
+        </motion.div>
       </div>
     </section>
   );
@@ -391,78 +382,7 @@ const Microsite = () => {
       style={{ ...T.vars, "--accent": accent, "--accent-fg": accentFg, fontFamily: INTER, letterSpacing: "-0.011em", backgroundImage: T.art } as React.CSSProperties}
     >
       {/* HERO */}
-      {T.hero === "split" ? splitHero : T.hero === "poster" ? posterHero : T.hero === "stack" ? stackHero : (
-      <section className="relative px-3 pt-3 text-white md:px-5 md:pt-5">
-        <div className="relative mx-auto flex max-w-6xl flex-col overflow-hidden rounded-[var(--r)] md:rounded-[var(--r)]" style={{ minHeight: "min(84vh, 740px)" }}>
-          <motion.img
-            src={hero}
-            alt={businessName}
-            fetchPriority="high"
-            decoding="async"
-            style={{ y: heroY, scale: heroScale }}
-            className="absolute inset-0 h-full w-full object-cover will-change-transform"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.05)_35%,rgba(0,0,0,0.35)_70%,#0B0B0C_100%)]" />
-
-          <header className="relative z-10 flex items-center justify-between gap-3 px-4 pt-4 md:px-7 md:pt-6">
-            <div className="flex min-w-0 items-center gap-2.5">
-              {logo ? (
-                <img src={logo} alt="" className="h-9 w-9 rounded-full object-cover ring-1 ring-white/30" />
-              ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[13px] font-bold text-black">{businessName.slice(0, 1)}</div>
-              )}
-              <span className="truncate text-[15px] font-semibold tracking-tight">{businessName}</span>
-            </div>
-            <nav className="hidden items-center gap-6 text-[13px] font-medium text-white/75 md:flex">
-              {about && <a href="#about" className="hover:text-white">About</a>}
-              {services.length > 0 && <a href="#services" className="hover:text-white">Services</a>}
-              <a href="#work" className="hover:text-white">Work</a>
-              <a href="#visit" className="hover:text-white">Visit</a>
-            </nav>
-            <Link to={bookingUrl} className="inline-flex h-9 items-center gap-1 rounded-full bg-white px-4 text-[13px] font-semibold text-black transition active:scale-95">
-              Book <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </header>
-
-          <div className="relative z-10 mt-auto flex flex-col items-center px-6 pb-12 pt-24 text-center md:pb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-white/80 backdrop-blur-md"
-            >
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              {rating.toFixed(1)} · {reviewCount} reviews
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.1, ease }}
-              className="site-h mt-5 max-w-3xl text-[42px] font-medium leading-[1.02] tracking-[-0.045em] sm:text-6xl md:text-7xl"
-            >
-              {headline}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.22, ease }}
-              className="mt-4 max-w-md text-[15px] leading-relaxed text-white/70"
-            >
-              {tagline}
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.32, ease }}
-            >
-              <Link to={bookingUrl} className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[15px] font-semibold text-black transition active:scale-95">
-                <Calendar className="h-4 w-4" /> Book a chair
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-      )}
+      {T.hero === "split" ? splitHero : T.hero === "poster" ? posterHero : T.hero === "stack" ? stackHero : cinemaHero}
 
       {/* STATS */}
       <section className="mx-auto max-w-6xl px-5 pt-6 md:px-8 md:pt-10">
