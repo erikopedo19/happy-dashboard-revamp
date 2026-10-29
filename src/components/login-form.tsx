@@ -10,9 +10,6 @@ import { TermsAcceptCard } from "@/components/TermsAcceptCard";
 import { haptic } from "@/lib/haptics";
 import { FlipWords } from "@/components/aceternity/flip-words";
 
-const AUTH_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1400&auto=format&fit=crop";
-
 export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -164,21 +161,21 @@ export function LoginForm() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
-      {/* Photo hero fading into the dark app background */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[72vh]">
-        <motion.img
-          src={AUTH_HERO_IMAGE}
-          alt=""
-          initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 h-full w-full object-cover object-[50%_30%]"
-          draggable={false}
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0D0D0F] text-white">
+      {/* Deep red sheen fading into near-black, with film grain */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#8E2B33_0%,#6A1D24_22%,#3A1216_42%,#0D0D0F_68%)]" />
+        <motion.div
+          initial={{ opacity: 0, x: "-6%" }}
+          animate={{ opacity: 1, x: "0%" }}
+          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-x-0 top-0 h-[60vh] bg-[linear-gradient(118deg,transparent_18%,rgba(255,170,170,0.16)_30%,transparent_40%,transparent_52%,rgba(255,150,150,0.10)_62%,transparent_72%)]"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_-10%,rgba(255,45,70,0.55)_0%,rgba(143,11,31,0.35)_45%,transparent_80%)] mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black" />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/90 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-[60vh] bg-[radial-gradient(80%_60%_at_20%_0%,rgba(255,90,110,0.28),transparent_70%)]" />
+        <div
+          className="absolute inset-0 opacity-[0.14] mix-blend-overlay"
+          style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")" }}
+        />
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[460px] flex-col px-6 pb-8 pt-10">
@@ -201,7 +198,7 @@ export function LoginForm() {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-1 flex-col"
             >
-              <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <div className="flex flex-1 flex-col justify-end pb-9">
                 <img
                   src={checkLogo}
                   alt="Cutzioo"
@@ -209,17 +206,19 @@ export function LoginForm() {
                     const img = e.currentTarget;
                     if (!img.src.endsWith("/icons/icon-180x180.png")) img.src = "/icons/icon-180x180.png";
                   }}
-                  className="mb-8 h-20 w-20 rounded-[22px] object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                  className="mb-6 h-12 w-12 rounded-[14px] object-contain"
                 />
-                <h1 className="text-[54px] font-extrabold leading-[0.95] tracking-tight">
-                  Book
+                <h1 className="text-[40px] font-bold leading-[1.05] tracking-[-0.03em]">
+                  Your chair,
                   <br />
-                  Your
-                  <br />
-                  <span className="block text-[#FF5A6E]">
-                    <FlipWords words={["Cut", "Fade", "Style", "Look"]} duration={2400} className="pl-4 pr-0" />
+                  booked{" "}
+                  <span className="text-[#FF5A6E]">
+                    <FlipWords words={["sharp.", "fresh.", "easy.", "fast."]} duration={2400} className="px-0" />
                   </span>
                 </h1>
+                <p className="mt-3 max-w-[300px] text-[15px] leading-relaxed text-white/45">
+                  Find your barber, pick a time and keep every cut in one place.
+                </p>
               </div>
 
               <div className="space-y-3 pb-2">
@@ -227,7 +226,7 @@ export function LoginForm() {
                   type="button"
                   onClick={googleSignIn}
                   disabled={googleBusy}
-                  className="inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-full bg-[#EDEDED] text-[16px] font-semibold text-black transition active:scale-[0.98] disabled:opacity-60"
+                  className="inline-flex h-[56px] w-full items-center justify-center gap-3 rounded-[16px] bg-[#1C1C1F] text-[16px] font-medium text-white ring-1 ring-inset ring-white/[0.14] transition active:scale-[0.98] disabled:opacity-60"
                 >
                   {googleBusy ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -247,13 +246,26 @@ export function LoginForm() {
                 <button
                   type="button"
                   onClick={() => { haptic("light"); setShowEmail(true); }}
-                  className="inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-full bg-[#1A1A1D] text-[16px] font-semibold text-white ring-1 ring-white/10 transition active:scale-[0.98]"
+                  className="inline-flex h-[56px] w-full items-center justify-center gap-3 rounded-[16px] bg-[#1C1C1F] text-[16px] font-medium text-white ring-1 ring-inset ring-white/[0.06] transition active:scale-[0.98]"
                 >
                   <Mail className="h-5 w-5" />
                   Continue with Email
                 </button>
 
-                <p className="pt-2 text-center text-[11px] leading-relaxed text-white/40">
+                <div className="flex items-center gap-3 pt-2 text-[12px] text-white/35">
+                  <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
+                </div>
+                <p className="text-center text-[14px] text-white/55">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => { haptic("light"); setMode("signin"); setShowEmail(true); }}
+                    className="font-semibold text-[#FF5A6E]"
+                  >
+                    Sign In
+                  </button>
+                </p>
+                <p className="pt-1 text-center text-[11px] leading-relaxed text-white/35">
                   By continuing you agree to our{" "}
                   <a className="underline underline-offset-2 text-white/60" href="/terms" data-glimm-skip>Terms</a> and{" "}
                   <a className="underline underline-offset-2 text-white/60" href="/privacy" data-glimm-skip>Privacy Policy</a>.
