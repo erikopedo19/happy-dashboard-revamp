@@ -13,6 +13,7 @@ export interface SubscriptionRow {
   cancel_at_period_end: boolean;
   renewal_amount: number | null;
   renewal_currency: string;
+  stripe_subscription_id: string | null;
 }
 
 export interface SubscriptionState {
@@ -42,7 +43,7 @@ export function useSubscription(): SubscriptionState {
     const { data: row, error: err } = await supabase
       .from("subscribers")
       .select(
-        "subscribed, subscription_tier, subscription_end, subscription_start, auto_renew, cancel_at_period_end, renewal_amount, renewal_currency"
+        "subscribed, subscription_tier, subscription_end, subscription_start, auto_renew, cancel_at_period_end, renewal_amount, renewal_currency, stripe_subscription_id"
       )
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false })

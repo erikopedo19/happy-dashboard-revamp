@@ -118,6 +118,9 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   }
 
   const isPro = status === "active" || status === "canceling";
+  // Pro granted by Cutzioo (gift, promo or admin) has no Stripe subscription,
+  // so there is nothing to renew, cancel or pay for.
+  const isComplimentary = isPro && !data?.stripe_subscription_id;
   const s = STATUS_LABEL[status];
 
   const summary = (
@@ -130,8 +133,8 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             ["Status", s.label],
             ["Started", fmt(data?.subscription_start)],
             [status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
-            ["Amount", isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
-            ["Auto-renew", isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
+            ["Amount", isComplimentary ? "Free (gifted)" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
+            ["Auto-renew", isComplimentary ? "No charge" : isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
           ].map(([label, value]) => (
             <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3 last:border-b-0">
               <span className="text-[15px]">{label}</span>
@@ -253,13 +256,35 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
           <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
             <span className="text-[16px]">{isPro ? "Renewal amount" : "Bookings included"}</span>
             <span className="text-right text-[16px] tabular-nums text-muted-foreground">
-              {isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
+              {isComplimentary ? "Free (gifted)" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
             </span>
           </div>
         </div>
       </div>
 
-      {isPro ? (
+      {isComplimentary ? (
+        <div>
+          <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
+            <div className="flex min-h-16 items-center gap-3 border-b border-border px-4 py-3">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary"><ShieldCheck className="h-4 w-4" /></span>
+              <div className="min-w-0">
+                <p className="text-[16px]">Pro gifted by Cutzioo</p>
+                <p className="text-[12px] text-muted-foreground">No card on file and nothing will be charged.</p>
+              </div>
+            </div>
+            <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
+              <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />Pro access until</span>
+              <span className="text-right text-[16px] text-muted-foreground">{data?.subscription_end ? fmt(data.subscription_end) : "No end date"}</span>
+            </div>
+            <Button onClick={() => navigate("/pricing")} variant="ghost" className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
+              <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Subscribe to keep Pro</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </div>
+          <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>When the gifted period ends you move to the free plan. Your data is kept.</p>
+        </div>
+      ) : isPro ? (
         <>
           <div>
             <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
