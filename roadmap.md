@@ -1,5 +1,9 @@
 # Current work
 
+- [ ] Repair subscription controls when no manageable recurring plan exists.
+- [ ] Repair team invitations and preserve selected pages when accepting.
+- [ ] Verify regression checks; signed-in checks require an external Supabase session.
+
 - [x] Repair logged Agenda organization-permission errors and the empty-state Create booking button; pass five permission regression checks and preview compilation.
 - [ ] Verify Agenda booking creation end-to-end; blocked by unavailable signed-in session on external Supabase.
 
