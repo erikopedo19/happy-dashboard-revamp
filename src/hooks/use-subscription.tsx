@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { subscriptionStatus } from "@/lib/subscription-status";
 
 export type SubStatus = "active" | "canceling" | "expired" | "none";
 
@@ -76,14 +77,7 @@ export function useSubscription(): SubscriptionState {
     };
   }, [load]);
 
-  const end = data?.subscription_end ? new Date(data.subscription_end) : null;
-  const notExpired = !end || end > new Date();
-
-  let status: SubStatus = "none";
-  if (data) {
-    if (data.subscribed && notExpired) status = data.has_recurring_subscription === false || !data.stripe_subscription_id ? "active" : data.cancel_at_period_end || !data.auto_renew ? "canceling" : "active";
-    else status = "expired";
-  }
+  const status = subscriptionStatus(data);
 
   return {
     loading,

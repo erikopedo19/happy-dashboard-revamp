@@ -122,7 +122,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   // Pro granted by Cutzioo (gift, promo or admin) has no Stripe subscription,
   // so there is nothing to renew, cancel or pay for.
   const isComplimentary = isPro && (noRecurringPlan || data?.has_recurring_subscription === false || !data?.stripe_subscription_id);
-  const s = STATUS_LABEL[status];
+  const s = STATUS_LABEL[isComplimentary ? "active" : status];
 
   const summary = (
     <div className="space-y-6">
@@ -133,9 +133,9 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             ["Plan", isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"],
             ["Status", s.label],
             ["Started", fmt(data?.subscription_start)],
-            [status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
-            ["Amount", isComplimentary ? "Free (gifted)" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
-            ["Auto-renew", isComplimentary ? "No charge" : isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
+            [isComplimentary || status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
+            ["Amount", isComplimentary ? "No recurring payment" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
+            ["Auto-renew", isComplimentary ? "Not applicable" : isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
           ].map(([label, value]) => (
             <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3 last:border-b-0">
               <span className="text-[15px]">{label}</span>
@@ -259,7 +259,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
           <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
             <span className="text-[16px]">{isPro ? "Renewal amount" : "Bookings included"}</span>
             <span className="text-right text-[16px] tabular-nums text-muted-foreground">
-              {isComplimentary ? "Free (gifted)" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
+              {isComplimentary ? "—" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
             </span>
           </div>
         </div>
@@ -285,7 +285,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </Button>
           </div>
-          <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>When the gifted period ends you move to the free plan. Your data is kept.</p>
+          <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Your current Pro access is kept until its end date. Your data is kept when you move to the free plan.</p>
         </div>
       ) : isPro ? (
         <>
