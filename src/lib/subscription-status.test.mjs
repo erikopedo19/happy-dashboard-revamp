@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { subscriptionStatus } from "./subscription-status";
+import { subscriptionStatus } from "./subscription-status.ts";
 const row = { subscribed: true, subscription_end: "2026-12-23T00:00:00Z", stripe_subscription_id: null, auto_renew: false, cancel_at_period_end: true };
 const now = Date.parse("2026-10-30T00:00:00Z");
 test("non-recurring Pro is active, not a canceled recurring membership", () => {
