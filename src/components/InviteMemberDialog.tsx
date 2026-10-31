@@ -44,15 +44,14 @@ export function InviteMemberDialog({ open, onOpenChange, inline = false, onInvit
       const allowedPages = role === "member" ? pages : null;
 
       // Persist the invitation so accept_invitation can create the membership
-      // with the chosen page access. invitations.org_id is the owner's profile
-      // id (the RLS policy requires org_id = auth.uid()).
+      // with the chosen page access and the actual organization id.
       const row = {
-        org_id: user.id,
+        org_id: organization.id,
         email: email.trim().toLowerCase(),
         role,
         token: invitationToken,
         allowed_pages: allowedPages,
-        status: "pending",
+        invited_by: user.id,
       };
       let inviteError: { message?: string } | null = null;
       const invitations = (supabase as unknown as {
@@ -60,10 +59,6 @@ export function InviteMemberDialog({ open, onOpenChange, inline = false, onInvit
       }).from("invitations");
       if (!savedToken) {
         ({ error: inviteError } = await invitations.insert(row));
-        if (inviteError && /allowed_pages|PGRST204|schema cache/i.test(inviteError.message || "")) {
-          const { allowed_pages: _omit, ...withoutPages } = row;
-          ({ error: inviteError } = await invitations.insert(withoutPages));
-        }
       }
       if (inviteError) throw inviteError;
       setSavedToken(invitationToken);
