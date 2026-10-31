@@ -5,6 +5,7 @@ npm installs require `--legacy-peer-deps` (`devignerui` wants tailwind >=4 while
 Expo dev shell lives in `expo/`; if Expo Go shows "couldn't connect to server" on Windows LAN (virtual adapters pick the wrong IP), use `npm run tunnel` — `@expo/ngrok` is installed for that.
 Expo marks the document as native before first paint and relays theme changes to native chrome so safe areas and status bars match the web app.
 Team setup uses a dedicated guided dialog; email invitations grant organization membership through the existing invitation RPC, not squad membership, because squads contain stylist records.
+Invitations use organizations.id and accepted_at; acceptance copies selected page access and verifies the recipient and expiry to prevent lost permissions or unauthorized membership.
 Membership checkout and management use authenticated Edge Functions and the shared billing service; Stripe is authoritative, so local-only cancellation RPCs must never change renewal settings.
 Billing emails use a service-only delivery ledger and stable invoice/cancellation keys; this prevents duplicate confirmation emails across webhook retries and app synchronization.
 Organization checks used by RLS keep signed-in execute access through public invoker wrappers over private definer functions; revoking those wrappers breaks Agenda-related reads.

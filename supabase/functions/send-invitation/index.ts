@@ -20,10 +20,13 @@ Deno.serve(async (request) => {
     if (authError || !user) return json({ error: "Please sign in again." }, 401);
     const parsed = Body.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return json({ error: "Invalid invitation token." }, 400);
-    const { data: invite, error } = await client.from("invitations").select("org_id,email,role,status,expires_at").eq("token", parsed.data.token).maybeSingle();
-    if (error || !invite || !canSendInvitation(invite, user.id)) return json({ error: "This invitation is unavailable or has expired." }, 403);
+    const { data: invite, error } = await client.from("invitations").select("org_id,email,role,accepted_at,expires_at").eq("token", parsed.data.token).maybeSingle();
+    if (error || !invite) return json({ error: "This invitation is unavailable or has expired." }, 403);
+    const { data: membership } = await client.from("memberships").select("role").eq("org_id", invite.org_id).eq("user_id", user.id).maybeSingle();
+    const canManage = membership?.role === "owner" || membership?.role === "admin";
+    if (!canSendInvitation(invite, canManage)) return json({ error: "This invitation is unavailable or has expired." }, 403);
     if (!z.string().email().safeParse(invite.email).success) return json({ error: "Invalid recipient email." }, 400);
-    const { data: org } = await client.from("organizations").select("name").eq("created_by", user.id).limit(1).maybeSingle();
+    const { data: org } = await client.from("organizations").select("name").eq("id", invite.org_id).maybeSingle();
     const name = escapeHtml(org?.name || "your salon");
     const link = `https://cutzioo.com/onboarding?invite=${encodeURIComponent(parsed.data.token)}`;
     const lovable = Deno.env.get("LOVABLE_API_KEY"), brevo = Deno.env.get("BREVO_API_KEY");

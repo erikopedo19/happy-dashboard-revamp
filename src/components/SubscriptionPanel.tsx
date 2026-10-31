@@ -83,6 +83,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   const { loading, error, data, status, refresh } = useSubscription();
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [noRecurringPlan, setNoRecurringPlan] = useState(false);
 
   const shell = "rounded-2xl border border-border bg-card p-5";
 
@@ -120,7 +121,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   const isPro = status === "active" || status === "canceling";
   // Pro granted by Cutzioo (gift, promo or admin) has no Stripe subscription,
   // so there is nothing to renew, cancel or pay for.
-  const isComplimentary = isPro && !data?.stripe_subscription_id;
+  const isComplimentary = isPro && (noRecurringPlan || data?.has_recurring_subscription === false || !data?.stripe_subscription_id);
   const s = STATUS_LABEL[status];
 
   const summary = (
@@ -159,7 +160,8 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         return;
       }
       if (result.kind === "fallback") {
-        toast.info("This plan has no recurring Stripe subscription to change.");
+        setNoRecurringPlan(true);
+        setConfirmOpen(false);
         return;
       }
       toast.success(enabled ? "Auto-renewal turned on" : "Auto-renewal turned off");
@@ -182,7 +184,8 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         return;
       }
       if (result.kind === "fallback") {
-        toast.info("This plan has no recurring Stripe subscription to cancel.");
+        setNoRecurringPlan(true);
+        setConfirmOpen(false);
         return;
       }
       setConfirmOpen(false);
@@ -214,7 +217,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         try { code = (await (portalError as { context: Response }).context.json())?.error ?? code; } catch { /* ignore */ }
       }
       if (code === "no_stripe_subscription" || code === "no_customer") {
-        toast.info("Your Pro plan isn't linked to a card subscription, so there are no payment methods to manage.");
+        setNoRecurringPlan(true);
         return;
       }
       if (STRIPE_PORTAL_LINK) window.location.assign(STRIPE_PORTAL_LINK);
@@ -269,8 +272,8 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             <div className="flex min-h-16 items-center gap-3 border-b border-border px-4 py-3">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary"><ShieldCheck className="h-4 w-4" /></span>
               <div className="min-w-0">
-                <p className="text-[16px]">Pro gifted by Cutzioo</p>
-                <p className="text-[12px] text-muted-foreground">No card on file and nothing will be charged.</p>
+                <p className="text-[16px]">Pro access</p>
+                <p className="text-[12px] text-muted-foreground">No recurring payment is linked to this membership.</p>
               </div>
             </div>
             <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">

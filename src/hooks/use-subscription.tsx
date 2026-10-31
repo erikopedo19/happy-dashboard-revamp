@@ -14,6 +14,7 @@ export interface SubscriptionRow {
   renewal_amount: number | null;
   renewal_currency: string;
   stripe_subscription_id: string | null;
+  has_recurring_subscription?: boolean;
 }
 
 export interface SubscriptionState {
@@ -31,7 +32,7 @@ export function useSubscription(): SubscriptionState {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<SubscriptionRow | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (hasRecurring?: boolean) => {
     if (!user) {
       setData(null);
       setError(null);
@@ -54,15 +55,16 @@ export function useSubscription(): SubscriptionState {
       setError("We couldn't load your subscription right now.");
       setData(null);
     } else {
-      setData((row as unknown as SubscriptionRow) ?? null);
+      setData(row ? { ...(row as unknown as SubscriptionRow), has_recurring_subscription: hasRecurring } : null);
     }
     setLoading(false);
   }, [user?.id]);
 
   useEffect(() => {
     const sync = async () => {
-      if (user) await supabase.functions.invoke("manage-subscription", { body: { action: "sync" } });
-      await load();
+      const result = user ? await supabase.functions.invoke("manage-subscription", { body: { action: "sync" } }) : null;
+      const hasRecurring = result && !result.error && result.data?.ok === true ? result.data.has_subscription !== false : undefined;
+      await load(hasRecurring);
     };
     sync();
     const onRefresh = () => load();
@@ -79,7 +81,7 @@ export function useSubscription(): SubscriptionState {
 
   let status: SubStatus = "none";
   if (data) {
-    if (data.subscribed && notExpired) status = data.cancel_at_period_end || !data.auto_renew ? "canceling" : "active";
+    if (data.subscribed && notExpired) status = data.has_recurring_subscription === false || !data.stripe_subscription_id ? "active" : data.cancel_at_period_end || !data.auto_renew ? "canceling" : "active";
     else status = "expired";
   }
 
