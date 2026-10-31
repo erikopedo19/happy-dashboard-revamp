@@ -66,3 +66,51 @@ export function playBookingConfirmed() {
     /* never block the booking flow on audio */
   }
 }
+
+/**
+ * Three-note "ding-ding-dong" for a newly arrived booking — brighter and a
+ * touch louder than the confirm chime so it's noticeable across the shop.
+ */
+export function playNewBookingAlert() {
+  try {
+    const ac = audio();
+    if (!ac) return;
+    const t0 = ac.currentTime + 0.02;
+    const master = ac.createGain();
+    master.gain.value = 1;
+    master.connect(ac.destination);
+    pluck(ac, master, 880, t0, 0.24, 0.45); // A5
+    pluck(ac, master, 1174.66, t0 + 0.14, 0.24, 0.45); // D6
+    pluck(ac, master, 1760, t0 + 0.28, 0.2, 0.9); // A6 ring
+    pluck(ac, master, 880, t0 + 0.28, 0.08, 0.9); // body under the ring
+  } catch {
+    /* audio is best-effort */
+  }
+}
+
+let primed = false;
+/**
+ * iOS/WebViews only start an AudioContext from a user gesture. Call once at
+ * app start: the first tap unlocks audio so realtime alerts can play later.
+ */
+export function primeAudioOnFirstGesture() {
+  if (primed || typeof window === "undefined") return;
+  primed = true;
+  const unlock = () => {
+    const ac = audio();
+    if (ac) {
+      // A silent one-sample buffer fully unlocks output on older iOS.
+      const buf = ac.createBuffer(1, 1, 22050);
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      src.connect(ac.destination);
+      src.start(0);
+    }
+    window.removeEventListener("pointerdown", unlock, true);
+    window.removeEventListener("touchend", unlock, true);
+    window.removeEventListener("keydown", unlock, true);
+  };
+  window.addEventListener("pointerdown", unlock, true);
+  window.addEventListener("touchend", unlock, true);
+  window.addEventListener("keydown", unlock, true);
+}

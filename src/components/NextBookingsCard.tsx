@@ -4,7 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
-import { CalendarDays, Check, ChevronDown, ChevronRight, Clock, Loader2, MessageCircle, Phone, Scissors } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronRight, Clock, Loader2, MessageCircle, Phone, Scissors, Timer } from "lucide-react";
+import { RollingText } from "@/components/RollingText";
+import { TraceBorder } from "@/components/ui/trace-border";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +37,32 @@ const endTime = (time: string, duration: number) => {
   const [h, m] = time.split(":").map(Number);
   const total = h * 60 + m + duration;
   return to12h(`${Math.floor(total / 60) % 24}:${total % 60}`);
+};
+
+const startsAtOf = (b: NextBooking) => {
+  const [y, mo, d] = b.appointment_date.split("-").map(Number);
+  const [h, m] = b.appointment_time.split(":").map(Number);
+  return new Date(y, (mo || 1) - 1, d || 1, h || 0, m || 0, 0, 0);
+};
+
+/** "26 min", "2h 14m", "3d 4h" — time left until the booking starts. */
+export const formatCountdown = (ms: number) => {
+  const mins = Math.max(0, Math.ceil(ms / 60_000));
+  if (mins < 1) return "Now";
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  if (h < 24) return mins % 60 ? `${h}h ${mins % 60}m` : `${h}h`;
+  const days = Math.floor(h / 24);
+  return h % 24 ? `${days}d ${h % 24}h` : `${days}d`;
+};
+
+const useNow = (everyMs = 15_000) => {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), everyMs);
+    return () => window.clearInterval(id);
+  }, [everyMs]);
+  return now;
 };
 
 export function NextBookingsCard({ currency = "EUR" }: { currency?: string | null }) {
@@ -70,6 +98,11 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
   });
 
   const [next, ...rest] = bookings;
+  const now = useNow();
+  const msLeft = next ? startsAtOf(next).getTime() - now : 0;
+  const countdown = formatCountdown(msLeft);
+  // Fill the bar over the last 2 hours before the booking.
+  const soonProgress = Math.min(1, Math.max(0, 1 - msLeft / (2 * 60 * 60_000)));
 
   useEffect(() => {
     if (!next) setOpen(false);
@@ -144,9 +177,11 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
           animate={{ opacity: 1, y: 0 }}
           transition={{ opacity: { duration: 0.6, ease }, y: { duration: 0.6, ease }, layout: spring }}
           whileTap={{ scale: 0.98 }}
-          className="relative flex w-full items-center gap-4 overflow-hidden p-5 text-left text-white ring-1 ring-white/10 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)]"
+          className="relative flex w-full flex-col overflow-hidden p-5 text-left text-white shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)]"
           style={{ background: CARD_BG, borderRadius: 30 }}
         >
+          <TraceBorder radius={30} />
+          <div className="relative flex w-full items-center gap-4">
           <div aria-hidden className="pointer-events-none absolute -left-10 -top-16 h-44 w-44 rounded-full bg-[#7B3FA0]/30 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -bottom-16 right-0 h-40 w-40 rounded-full bg-[#8A6A3A]/25 blur-3xl" />
           <motion.div
@@ -173,6 +208,24 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
               <span className="h-1.5 w-1.5 rounded-full bg-[#30D158]" />
               {next.status === "pending" ? "Awaiting confirmation" : "You are hosting"}
             </span>
+          </div>
+          </div>
+          <div className="relative mt-4 w-full border-t border-white/10 pt-3.5">
+            <div className="flex items-end justify-between gap-3">
+              <span className="flex items-center gap-1.5 pb-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/55">
+                <Timer className="h-3.5 w-3.5" />
+                {countdown === "Now" ? "Starting" : "Starts in"}
+              </span>
+              <RollingText text={countdown} className="text-[30px] font-bold leading-none tracking-[-0.04em] tabular-nums" />
+            </div>
+            <div className="mt-3 h-[3px] w-full overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                className="h-full origin-left rounded-full bg-white"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: soonProgress }}
+                transition={{ duration: 0.9, ease }}
+              />
+            </div>
           </div>
         </motion.button>
       ) : (

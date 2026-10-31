@@ -1,7 +1,7 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical, ArrowLeftRight, ArrowDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical, ArrowLeftRight, ArrowDown, Moon } from "lucide-react";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { HoldButton } from "@/components/ui/hold-button";
 
@@ -762,49 +762,92 @@ export const LiquidGlassAgenda = ({
     return result;
   }, [agendaSettings, timeRange]);
 
+  // Day timeline rows: every open slot, every booking/event start time (so
+  // off-grid bookings sit exactly at their time), plus closed hours around
+  // the opening window.
+  const slotInterval = Math.max(agendaSettings?.service_duration || 60, 1);
+  const rowPx = isMobile ? 96 : 76;
+  const timelineRows = useMemo(() => {
+    if (!hours.length) return [] as { time: string; min: number; end: number; closed: boolean; edge: "before" | "after" | null }[];
+    const toMin = (t: string) => {
+      const [h, m] = t.slice(0, 5).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+    const openStart = toMin(hours[0]);
+    const openEnd = toMin(hours[hours.length - 1]) + slotInterval;
+    const kinds = new Map<number, boolean>();
+    hours.forEach((h) => kinds.set(toMin(h), false));
+    const addStart = (m: number) => {
+      if (!kinds.has(m)) kinds.set(m, m < openStart || m >= openEnd);
+    };
+    dayAppointments.forEach((apt) => addStart(toMin(apt.appointment_time)));
+    (dayEvents || []).forEach((ev) => ev.start_time && addStart(toMin(ev.start_time)));
+    for (let m = Math.max(0, Math.floor(openStart / 60) * 60 - 120); m < openStart; m += 60) addStart(m);
+    for (let m = openEnd; m < Math.min(24 * 60, openEnd + 120); m += 60) addStart(m);
+    const mins = [...kinds.keys()].sort((a, b) => a - b);
+    let firstAfter = true;
+    return mins.map((min, i) => {
+      const closed = kinds.get(min)!;
+      const end = mins[i + 1] ?? min + (closed ? 60 : slotInterval);
+      let edge: "before" | "after" | null = null;
+      if (closed && min < openStart && end >= openStart) edge = "before";
+      if (closed && min >= openEnd && firstAfter) {
+        edge = "after";
+        firstAfter = false;
+      }
+      return { time: fmt(min), min, end, closed, edge };
+    });
+  }, [hours, slotInterval, dayAppointments, dayEvents]);
+
+  // Minute of day → px offset in the timeline (rows are fixed-height, so the
+  // scale is piecewise between row start times).
+  const timelineY = useCallback(
+    (minute: number) => {
+      if (!timelineRows.length) return 0;
+      if (minute <= timelineRows[0].min) return 0;
+      for (let i = 0; i < timelineRows.length; i++) {
+        const r = timelineRows[i];
+        if (minute < r.end) return i * rowPx + ((minute - r.min) / Math.max(r.end - r.min, 1)) * rowPx;
+      }
+      return timelineRows.length * rowPx;
+    },
+    [timelineRows, rowPx],
+  );
+
   // Map every appointment of the day onto the slot row it belongs to, so
   // bookings made off the slot grid (or outside working hours) still render.
   const appointmentsBySlot = useMemo(() => {
     const map: Record<string, typeof dayAppointments> = {};
-    if (!hours.length) return map;
-    const slotMins = hours.map((h) => {
-      const [hh, mm] = h.split(":").map(Number);
-      return hh * 60 + mm;
-    });
+    if (!timelineRows.length) return map;
     for (const apt of dayAppointments) {
       const [ah, am] = apt.appointment_time.split(":").map(Number);
       const aptMin = ah * 60 + am;
       let idx = 0;
-      for (let i = 0; i < slotMins.length; i++) {
-        if (slotMins[i] <= aptMin) idx = i;
+      for (let i = 0; i < timelineRows.length; i++) {
+        if (timelineRows[i].min <= aptMin) idx = i;
       }
-      if (aptMin > slotMins[slotMins.length - 1] + 59) idx = slotMins.length - 1;
-      const key = hours[idx];
-      (map[key] ||= []).push(apt);
+      (map[timelineRows[idx].time] ||= []).push(apt);
     }
     return map;
-  }, [dayAppointments, hours]);
+  }, [dayAppointments, timelineRows]);
 
 
   // Bucket events onto the slot row they start in (same rule as appointments).
   const eventsBySlot = useMemo(() => {
     const map: Record<string, NonNullable<typeof dayEvents>> = {};
-    if (!hours.length) return map;
-    const slotMins = hours.map((h) => {
-      const [hh, mm] = h.split(":").map(Number);
-      return hh * 60 + mm;
-    });
+    if (!timelineRows.length) return map;
     for (const ev of dayEvents || []) {
       const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
       const evMin = eh * 60 + em;
       let idx = 0;
-      for (let i = 0; i < slotMins.length; i++) {
-        if (slotMins[i] <= evMin) idx = i;
+      for (let i = 0; i < timelineRows.length; i++) {
+        if (timelineRows[i].min <= evMin) idx = i;
       }
-      (map[hours[idx]] ||= []).push(ev);
+      (map[timelineRows[idx].time] ||= []).push(ev);
     }
     return map;
-  }, [dayEvents, hours]);
+  }, [dayEvents, timelineRows]);
 
   const eventDuration = (ev: { start_time: string | null; end_time: string | null }) => {
     const [sh, sm] = (ev.start_time || "00:00").split(":").map(Number);
@@ -818,16 +861,13 @@ export const LiquidGlassAgenda = ({
     const el = scrollRef.current;
     if (!el) return;
     const now = new Date();
-    const minutesFromStart = (now.getHours() - timeRange.startHour) * 60 + now.getMinutes();
-    if (minutesFromStart < 0) return;
-    const pixelsPerMinute = (isMobile ? 96 : 76) / Math.max(agendaSettings?.service_duration || 60, 1);
-    const target = Math.max(0, minutesFromStart * pixelsPerMinute - 80);
+    const target = Math.max(0, timelineY(now.getHours() * 60 + now.getMinutes()) - 80);
     // Defer until layout is painted
     const id = window.setTimeout(() => {
       el.scrollTo({ top: target, behavior: 'smooth' });
     }, 150);
     return () => window.clearTimeout(id);
-  }, [selectedDay, timeRange.startHour, hours.length, isMobile, agendaSettings?.service_duration]);
+  }, [selectedDay, timelineY]);
 
   // Format time display (e.g., "3 PM")
   const formatTimeLabel = (time: string) => {
@@ -1001,6 +1041,12 @@ export const LiquidGlassAgenda = ({
   const totalCount = dayAppointments.length;
   const completionPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const shouldShowViewToggle = showViewModeToggle && appointments.length > 0;
+  const nowLineY = (() => {
+    if (!timelineRows.length || !isSameDay(selectedDay, nowTick)) return null;
+    const nowMin = nowTick.getHours() * 60 + nowTick.getMinutes();
+    if (nowMin < timelineRows[0].min || nowMin > timelineRows[timelineRows.length - 1].end) return null;
+    return timelineY(nowMin);
+  })();
 
   const weekSummary = useMemo(() => {
     return weekDays.map((day) => {
@@ -1577,14 +1623,8 @@ export const LiquidGlassAgenda = ({
             variants={slotListVariants}
           >
             {(() => {
-              if (!hours.length || !isSameDay(selectedDay, nowTick)) return null;
-              const interval = Math.max(agendaSettings?.service_duration || 60, 1);
-              const [fh, fm] = hours[0].split(':').map(Number);
-              const startMin = fh * 60 + fm;
-              const endMin = startMin + hours.length * interval;
-              const nowMin = nowTick.getHours() * 60 + nowTick.getMinutes();
-              if (nowMin < startMin || nowMin > endMin) return null;
-              const top = 16 + ((nowMin - startMin) / interval) * (isMobile ? 96 : 76);
+              if (nowLineY === null) return null;
+              const top = 16 + nowLineY;
               return (
                 <div
                   aria-hidden
@@ -1603,10 +1643,12 @@ export const LiquidGlassAgenda = ({
             })()}
 
             {/* Time markers and appointment cards */}
-            {hours.map((hour) => {
+            {timelineRows.map((row, rowIndex) => {
+              const hour = row.time;
               const [slotHour, slotMinute] = hour.split(':').map(Number);
-              const slotStartMin = slotHour * 60 + slotMinute;
-              const slotInterval = Math.max(agendaSettings?.service_duration || 60, 1);
+              const slotStartMin = row.min;
+              const rowTopY = rowIndex * rowPx;
+              const labelHidden = nowLineY !== null && Math.abs(nowLineY - rowTopY - 6) < 20;
 
               // Bucket appointments into the slot they fall inside (handles
               // off-grid times like 10:30 with a 60-min grid, plus anything
@@ -1640,7 +1682,7 @@ export const LiquidGlassAgenda = ({
               slotDate.setHours(slotHour, slotMinute, 0, 0);
               const isPastSlot = isPastDay || (isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime());
 
-              const slotEndMin = slotStartMin + slotInterval;
+              const slotEndMin = row.end;
               // Overlap, not containment: an off-grid block (e.g. 13:15–14:00 on
               // an hourly grid) still covers the slots it touches.
               const inBlockedRange = (blockedSlots || []).some((b: any) => {
@@ -1653,12 +1695,9 @@ export const LiquidGlassAgenda = ({
               const isBlocked = selectedDayIsOff || inBlockedRange;
 
 
-              const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
-              const rowHeight = isMobile ? 96 : ROW_H;
-              // Cover every hour an appointment/event occupies: measure from its
-              // real start offset inside this slot to its real end, so a service
-              // that needs N hours always spans N rows even off the grid.
-              const spanToEnd = (startMin: number, dur: number) => startMin - slotStartMin + dur;
+              const rowHeight = rowPx;
+              // Cover every row an appointment/event occupies, up to its real end.
+              const spanToEnd = (startMin: number, dur: number) => timelineY(startMin + dur) - rowTopY;
               const maxSpanEnd = Math.max(
                 ...hourAppointments.map((apt) => {
                   const [ah, am] = apt.appointment_time.split(':').map(Number);
@@ -1670,27 +1709,28 @@ export const LiquidGlassAgenda = ({
                 }),
                 0
               );
-              const cardGap = isMobile ? 4 : 12;
-              const minCardHeight = isMobile ? 88 : 64;
-              const cardStackHeight = Math.max((maxSpanEnd / slotInterval) * rowHeight - cardGap, minCardHeight);
+              const cardGap = 12;
+              const minCardHeight = rowHeight - cardGap;
+              const cardStackHeight = Math.max(maxSpanEnd - cardGap, minCardHeight);
 
               return (
                 <div
                   key={hour}
-                  data-slot-time={hour}
-                  className={cn("relative rounded-2xl transition-colors duration-200", isPastSlot && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
+                  data-slot-time={row.closed ? undefined : hour}
+                  className={cn("relative rounded-2xl transition-colors duration-200", isPastSlot && !row.closed && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
                   style={{ height: rowHeight }}
                 >
                   {/* Time label */}
                   <div className="absolute left-0 top-0 flex items-start gap-3 w-full pointer-events-none">
-                    <div className="w-12 flex-shrink-0 pt-0.5">
+                    <div className={cn("w-12 flex-shrink-0 pt-0.5 leading-none transition-opacity", labelHidden && "opacity-0")}>
                       <span className={cn(
-                        "text-[11px] font-medium",
-                        isMobile && isSameDay(selectedDay, new Date()) && new Date().getHours() === parseInt(hour.slice(0, 2), 10)
-                          ? "inline-flex items-center rounded-full bg-white px-2 py-0.5 text-gray-900 shadow-sm dark:bg-[#1C1C1E] dark:text-white"
-                          : "text-gray-400 dark:text-gray-500"
+                        "block text-[12px] font-semibold tabular-nums tracking-[-0.01em]",
+                        row.closed ? "text-gray-300 dark:text-white/25" : "text-gray-500 dark:text-white/55"
                       )}>
-                        {hour.endsWith(':00') ? formatTimeLabel(hour) : hour}
+                        {`${slotHour % 12 || 12}:${String(slotMinute).padStart(2, '0')}`}
+                      </span>
+                      <span className={cn("mt-0.5 block text-[9.5px] font-semibold uppercase tracking-[0.08em]", row.closed ? "text-gray-300 dark:text-white/20" : "text-gray-400 dark:text-white/35")}>
+                        {slotHour < 12 ? 'AM' : 'PM'}
                       </span>
                     </div>
 
@@ -1975,7 +2015,26 @@ export const LiquidGlassAgenda = ({
                   )}
 
                   {/* Empty slot - visible quick-add (disabled if past) */}
-                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && !isBlocked && (
+                  {row.closed && hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && (
+                    <div
+                      className={cn(
+                        "absolute left-[60px] right-0 top-0 bottom-3 flex items-center justify-center gap-2 rounded-2xl border select-none",
+                        isDark ? "border-white/[0.05] text-white/30" : "border-black/[0.05] text-gray-400"
+                      )}
+                      style={{
+                        backgroundImage: isDark
+                          ? "repeating-linear-gradient(135deg, transparent, transparent 7px, rgba(255,255,255,0.035) 7px, rgba(255,255,255,0.035) 8px)"
+                          : "repeating-linear-gradient(135deg, transparent, transparent 7px, rgba(0,0,0,0.04) 7px, rgba(0,0,0,0.04) 8px)",
+                      }}
+                    >
+                      <Moon className="h-3.5 w-3.5" />
+                      <span className="text-[12px] font-medium">
+                        {row.edge === "before" ? `Closed · opens ${hours[0]}` : row.edge === "after" ? `Closed from ${timelineRows.find((r) => r.edge === "after")?.time}` : "Closed"}
+                      </span>
+                    </div>
+                  )}
+
+                  {!row.closed && hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && !isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
 
                       <button
@@ -2017,7 +2076,7 @@ export const LiquidGlassAgenda = ({
                   )}
 
                   {/* Blocked slot */}
-                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
+                  {!row.closed && hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
                       <button
                         disabled={isPastSlot}
@@ -2078,21 +2137,6 @@ export const LiquidGlassAgenda = ({
                 </div>
               );
             })}
-            {hours.length > 0 && (() => {
-              const interval = Math.max(agendaSettings?.service_duration || 60, 1);
-              const [lh, lm] = hours[hours.length - 1].split(':').map(Number);
-              const closeMin = lh * 60 + lm + interval;
-              const close = `${String(Math.floor(closeMin / 60) % 24).padStart(2, '0')}:${String(closeMin % 60).padStart(2, '0')}`;
-              return (
-                <div className="-mt-2.5 flex h-5 items-center gap-3">
-                  <span className="w-12 shrink-0 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                    {close.endsWith(':00') ? formatTimeLabel(close) : close}
-                  </span>
-                  <span className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">Closing</span>
-                </div>
-              );
-            })()}
           </motion.div>
         )}
       </div>

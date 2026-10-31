@@ -14,6 +14,7 @@ import {
   type LiveActivityProps,
 } from "@/lib/liveActivity";
 import { dateStrInTz, getBrowserTimezone } from "@/lib/tz";
+import { playNewBookingAlert, primeAudioOnFirstGesture } from "@/lib/sounds";
 
 export {
   bookingActivityPropsFromPayload,
@@ -123,6 +124,7 @@ export function BookingLiveToasts() {
     }
 
     let active = true;
+    primeAudioOnFirstGesture();
     const browserTimezone = getBrowserTimezone();
     const timezonePromise = supabase
       .from("profiles")
@@ -228,6 +230,8 @@ export function BookingLiveToasts() {
             void refreshNextActivity();
             return;
           }
+
+          if (change.eventType === "INSERT") playNewBookingAlert();
 
           void (async () => {
             const labels = change.new.id
