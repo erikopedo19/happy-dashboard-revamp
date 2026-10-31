@@ -647,6 +647,7 @@ export type Database = {
       invitations: {
         Row: {
           accepted_at: string | null
+          allowed_pages: string[] | null
           created_at: string | null
           email: string
           expires_at: string | null
@@ -658,6 +659,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          allowed_pages?: string[] | null
           created_at?: string | null
           email: string
           expires_at?: string | null
@@ -669,6 +671,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          allowed_pages?: string[] | null
           created_at?: string | null
           email?: string
           expires_at?: string | null
@@ -845,6 +848,7 @@ export type Database = {
       }
       memberships: {
         Row: {
+          allowed_pages: string[] | null
           created_at: string | null
           id: string
           org_id: string
@@ -853,6 +857,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allowed_pages?: string[] | null
           created_at?: string | null
           id?: string
           org_id: string
@@ -861,6 +866,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allowed_pages?: string[] | null
           created_at?: string | null
           id?: string
           org_id?: string
