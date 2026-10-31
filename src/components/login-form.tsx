@@ -10,9 +10,6 @@ import { TermsAcceptCard } from "@/components/TermsAcceptCard";
 import { haptic } from "@/lib/haptics";
 import { FlipWords } from "@/components/aceternity/flip-words";
 
-const AUTH_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1400&auto=format&fit=crop";
-
 export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -164,21 +161,29 @@ export function LoginForm() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
-      {/* Photo hero fading into the dark app background */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[72vh]">
-        <motion.img
-          src={AUTH_HERO_IMAGE}
-          alt=""
-          initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 h-full w-full object-cover object-[50%_30%]"
-          draggable={false}
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#050507] text-white">
+      {/* Dark app-gradient backdrop */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1, x: [0, 40, -20, 0], y: [0, 30, 10, 0] }}
+          transition={{ opacity: { duration: 1.2 }, scale: { duration: 1.2 }, x: { duration: 18, repeat: Infinity, ease: "easeInOut" }, y: { duration: 18, repeat: Infinity, ease: "easeInOut" } }}
+          className="absolute -top-[18%] left-[calc(50%-30vh)] h-[60vh] w-[60vh] rounded-full bg-[radial-gradient(circle,rgba(255,45,70,0.55)_0%,rgba(255,45,70,0)_70%)] blur-3xl"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_-10%,rgba(255,45,70,0.55)_0%,rgba(143,11,31,0.35)_45%,transparent_80%)] mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black" />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/90 to-transparent" />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, x: [0, -30, 20, 0], y: [0, -20, 30, 0] }}
+          transition={{ opacity: { duration: 1.4, delay: 0.2 }, x: { duration: 22, repeat: Infinity, ease: "easeInOut" }, y: { duration: 22, repeat: Infinity, ease: "easeInOut" } }}
+          className="absolute top-[30%] -left-[20%] h-[50vh] w-[50vh] rounded-full bg-[radial-gradient(circle,rgba(143,11,31,0.6)_0%,rgba(143,11,31,0)_70%)] blur-3xl"
+        />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, x: [0, 25, -15, 0], y: [0, 20, -25, 0] }}
+          transition={{ opacity: { duration: 1.4, delay: 0.35 }, x: { duration: 26, repeat: Infinity, ease: "easeInOut" }, y: { duration: 26, repeat: Infinity, ease: "easeInOut" } }}
+          className="absolute top-[45%] -right-[25%] h-[55vh] w-[55vh] rounded-full bg-[radial-gradient(circle,rgba(255,90,110,0.35)_0%,rgba(255,90,110,0)_70%)] blur-3xl"
+        />
+        <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_30%,black,transparent)]" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#050507] via-[#050507]/85 to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[460px] flex-col px-6 pb-8 pt-10">
@@ -202,6 +207,8 @@ export function LoginForm() {
               className="flex flex-1 flex-col"
             >
               <div className="flex flex-1 flex-col items-center justify-center text-center">
+                <div className="relative mb-8">
+                <div aria-hidden className="absolute -inset-6 rounded-full bg-[radial-gradient(circle,rgba(255,45,70,0.45),transparent_70%)] blur-xl" />
                 <img
                   src={checkLogo}
                   alt="Cutzioo"
@@ -209,14 +216,15 @@ export function LoginForm() {
                     const img = e.currentTarget;
                     if (!img.src.endsWith("/icons/icon-180x180.png")) img.src = "/icons/icon-180x180.png";
                   }}
-                  className="mb-8 h-20 w-20 rounded-[22px] object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                  className="relative h-20 w-20 rounded-[22px] object-contain ring-1 ring-white/10 drop-shadow-[0_10px_30px_rgba(255,45,70,0.35)]"
                 />
+                </div>
                 <h1 className="text-[54px] font-extrabold leading-[0.95] tracking-tight">
                   Book
                   <br />
                   Your
                   <br />
-                  <span className="block text-[#FF5A6E]">
+                  <span className="block text-[#FF5A6E] [text-shadow:0_0_40px_rgba(255,45,70,0.45)]">
                     <FlipWords words={["Cut", "Fade", "Style", "Look"]} duration={2400} className="pl-4 pr-0" />
                   </span>
                 </h1>

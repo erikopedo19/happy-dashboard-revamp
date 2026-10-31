@@ -51,25 +51,58 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
   const navigate = useNavigate();
   const siteUrl = slug ? `${window.location.origin}/site/${slug}` : "";
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="flex items-center gap-3.5">
-        <div className="h-11 w-11 rounded-[14px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
-          <Globe className="h-5 w-5 text-[#FF6B95]" strokeWidth={2.2} />
+        <div className="h-11 w-11 rounded-[14px] bg-gradient-to-br from-[#FF5A6E] to-[#C8102E] shadow-[0_8px_24px_-6px_rgba(255,45,70,0.6),inset_0_1px_0_rgba(255,255,255,0.35)] flex items-center justify-center shrink-0">
+          <Globe className="h-5 w-5 text-white" strokeWidth={2.2} />
         </div>
         <div className="min-w-0">
           <h3 className="text-[17px] font-bold text-white tracking-tight">Your website</h3>
           <p className="text-[12px] text-[#8E8E93] mt-0.5">A one-page microsite generated from your profile.</p>
         </div>
       </div>
-      {siteUrl && (
-        <div className="rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[13px] text-[#8E8E93] truncate font-mono">
-          {siteUrl}
+
+      {/* Browser mockup */}
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={springSoft}
+        className="overflow-hidden rounded-[22px] border border-white/[0.08] bg-[#0E0E11] shadow-[0_24px_60px_-24px_rgba(255,45,70,0.35)]"
+      >
+        <div className="flex items-center gap-2 px-3.5 h-10 border-b border-white/[0.06] bg-white/[0.03]">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+          <div className="ml-2 flex-1 min-w-0 h-6 rounded-full bg-black/40 border border-white/[0.06] px-3 flex items-center gap-1.5">
+            <Globe className="h-3 w-3 shrink-0 text-[#FF5A6E]" />
+            <span className="truncate text-[11px] font-mono text-white/60">
+              {siteUrl ? siteUrl.replace(/^https?:\/\//, "") : "set your booking link first"}
+            </span>
+          </div>
         </div>
-      )}
+        <div className="relative h-40 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_20%_0%,rgba(255,45,70,0.55),transparent_60%),radial-gradient(90%_80%_at_100%_100%,rgba(143,11,31,0.6),transparent_60%)]" />
+          <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:22px_22px]" />
+          <div className="relative h-full p-5 flex flex-col justify-end gap-2">
+            <div className="h-3 w-24 rounded-full bg-white/70" />
+            <div className="h-2 w-40 rounded-full bg-white/30" />
+            <div className="mt-2 flex gap-2">
+              <div className="h-7 w-20 rounded-full bg-white" />
+              <div className="h-7 w-16 rounded-full bg-white/15 border border-white/20" />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 p-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="aspect-[4/3] rounded-[10px] bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/[0.05]" />
+          ))}
+        </div>
+      </motion.div>
+
       <div className="flex flex-col sm:flex-row gap-2.5">
         <button
           onClick={() => navigate("/microsite")}
-          className="flex-1 h-11 rounded-[12px] bg-[#FF2D46] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-[#ff4784] active:scale-[0.98] transition"
+          className="flex-1 h-12 rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 shadow-[0_12px_30px_-12px_rgba(255,45,70,0.8),inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.98] transition"
         >
           <Pencil className="h-4 w-4" strokeWidth={2.3} />
           Customise website
@@ -79,7 +112,7 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
             href={siteUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 h-11 rounded-[12px] bg-white/[0.06] border border-white/[0.08] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] active:scale-[0.98] transition"
+            className="flex-1 h-12 rounded-full bg-white/[0.06] border border-white/[0.1] text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] active:scale-[0.98] transition"
           >
             <ExternalLink className="h-4 w-4" strokeWidth={2.3} />
             View live
@@ -190,7 +223,10 @@ const BookingPage = () => {
 
         <main className="relative z-10 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
           {/* iOS large-title header */}
-          <div className="sticky top-0 z-30 bg-[#0A0A0C]/90 backdrop-blur-2xl border-b border-white/[0.08]">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-72 overflow-hidden">
+            <div className="absolute -top-32 left-1/2 h-64 w-[36rem] max-w-full -translate-x-1/2 rounded-full bg-[#FF2D46]/[0.18] blur-[100px]" />
+          </div>
+          <div className="sticky top-0 z-30 bg-[#0A0A0C]/75 backdrop-blur-2xl border-b border-white/[0.06]">
             <div className="max-w-6xl mx-auto px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <SidebarTrigger className="lg:hidden text-white" />
@@ -212,7 +248,7 @@ const BookingPage = () => {
 
             {/* iOS segmented control */}
             <div className="max-w-2xl mx-auto px-4 md:px-8 pb-4">
-              <div className="inline-flex w-full sm:w-auto p-1 rounded-[14px] bg-white/[0.06] gap-0.5">
+              <div className="inline-flex w-full sm:w-auto p-1 rounded-full bg-white/[0.05] border border-white/[0.07] gap-0.5">
                 {visibleTabs.map((t) => {
                   const active = tab === t.value;
                   return (
@@ -220,15 +256,15 @@ const BookingPage = () => {
                       key={t.value}
                       onClick={() => setTab(t.value)}
                       className={cn(
-                        "relative flex-1 sm:flex-none h-9 px-5 rounded-[11px] text-[13px] font-medium transition-colors inline-flex items-center justify-center gap-2",
+                        "relative flex-1 sm:flex-none h-10 px-5 rounded-full text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-2",
                         active ? "text-white" : "text-[#8E8E93] hover:text-white/80"
                       )}
                     >
                       {active && (
                         <motion.span
                           layoutId="bookingTabPill"
-                          className="absolute inset-0 rounded-[10px] bg-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
-                          transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                          className="absolute inset-0 rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[0_8px_20px_-8px_rgba(255,45,70,0.8),inset_0_1px_0_rgba(255,255,255,0.3)]"
+                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
                         />
                       )}
                       <t.icon className="relative w-4 h-4" strokeWidth={2.3} />
@@ -241,20 +277,20 @@ const BookingPage = () => {
             </div>
           </div>
 
-          <div className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-[calc(env(safe-area-inset-bottom)+6rem)] md:pb-10 space-y-5">
+          <div className="relative max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-[calc(env(safe-area-inset-bottom)+6rem)] md:pb-10 space-y-5">
             {/* Main content */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+                exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
                 transition={springSoft}
                 onTouchStart={onPanelTouchStart}
                 onTouchMove={onPanelTouchMove}
                 onTouchEnd={onPanelTouchEnd}
                 onTouchCancel={() => { panelGesture.current = null; }}
-                className="touch-pan-y overscroll-y-contain md:rounded-[28px] md:bg-[#15151A] md:border md:border-white/[0.08] md:overflow-hidden"
+                className="touch-pan-y overscroll-y-contain md:rounded-[28px] md:bg-gradient-to-b md:from-[#16161A] md:to-[#111114] md:border md:border-white/[0.07] md:overflow-hidden md:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.8)]"
                 style={{ touchAction: "pan-y", WebkitTapHighlightColor: "transparent" }}
               >
                 <div className="p-0 md:p-8">
@@ -298,8 +334,9 @@ const BookingPage = () => {
                     transition={{ delay: i * 0.08, ...springSoft }}
                     className="snap-start shrink-0 w-[72%] max-w-[calc(100vw-40px)] rounded-2xl bg-[#15151A] border border-white/[0.08] p-4 flex items-start gap-3.5 sm:w-auto sm:max-w-none sm:shrink sm:rounded-none sm:bg-transparent sm:border-0 sm:p-5"
                   >
-                    <div className="h-10 w-10 rounded-[12px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
+                    <div className="relative h-10 w-10 rounded-[12px] bg-[#FF2D46]/15 border border-[#FF2D46]/20 flex items-center justify-center shrink-0">
                       <s.icon className="h-4.5 w-4.5 text-[#FF6B95]" strokeWidth={2.3} />
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF2D46] text-[9px] font-bold text-white">{i + 1}</span>
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-[14px] text-white">{s.title}</p>

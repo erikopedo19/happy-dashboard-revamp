@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -304,33 +304,49 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
     >
-      {/* Header */}
-      <div className="flex items-center gap-3 px-1">
-        <span className="h-10 w-10 rounded-2xl bg-[#FF2D46]/10 border border-white/[0.08] flex items-center justify-center text-[#FF2D46]">
-          <LinkIcon className="h-4 w-4" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-[15px] font-semibold text-white leading-tight">
-            Booking link
-          </p>
-          <p className="text-[12px] text-white/45 mt-0.5">
-            Share so clients can book online.
-          </p>
-        </div>
-      </div>
-
-      {/* Your link */}
-      <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            Your link
+      {/* Your link — hero card */}
+      <div className="relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#121215] p-5">
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-[#FF2D46]/30 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-28 -left-10 h-48 w-48 rounded-full bg-[#8F0B1F]/40 blur-3xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="h-11 w-11 shrink-0 rounded-[14px] bg-gradient-to-br from-[#FF5A6E] to-[#C8102E] shadow-[0_8px_24px_-6px_rgba(255,45,70,0.6),inset_0_1px_0_rgba(255,255,255,0.35)] flex items-center justify-center text-white">
+              <LinkIcon className="h-[18px] w-[18px]" strokeWidth={2.4} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[16px] font-semibold text-white leading-tight tracking-tight">Booking link</p>
+              <p className="text-[12px] text-white/50 mt-0.5">Share so clients can book online.</p>
+            </div>
+          </div>
+          <span
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1.5 rounded-full px-2.5 h-7 text-[11px] font-semibold border",
+              profile?.booking_link ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" : "bg-white/[0.06] border-white/10 text-white/50"
+            )}
+          >
+            <span className={cn("relative h-1.5 w-1.5 rounded-full", profile?.booking_link ? "bg-emerald-400" : "bg-white/40")}>
+              {profile?.booking_link && <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping" />}
+            </span>
+            {profile?.booking_link ? "Live" : "Not saved"}
           </span>
         </div>
-        <p className="text-[17px] font-semibold text-white break-all leading-snug select-all max-w-full">
-          {displayUrl || <span className="text-white/30">set a name below</span>}
-        </p>
-        <div className="grid grid-cols-3 gap-2 pt-1">
-          <div className="arc-copy-scope h-16 rounded-2xl bg-white/[0.06] flex items-center justify-center">
+
+        <div className="relative mt-5 rounded-[16px] bg-black/40 border border-white/[0.08] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center gap-1.5 px-3 h-8 border-b border-white/[0.06]">
+            <span className="h-2 w-2 rounded-full bg-[#FF5F57]" />
+            <span className="h-2 w-2 rounded-full bg-[#FEBC2E]" />
+            <span className="h-2 w-2 rounded-full bg-[#28C840]" />
+          </div>
+          <div className="flex items-center gap-2 px-3.5 py-3">
+            <Globe className="h-4 w-4 shrink-0 text-[#FF5A6E]" />
+            <p className="min-w-0 text-[15px] font-semibold text-white break-all leading-snug select-all">
+              {displayUrl || <span className="text-white/30">set a name below</span>}
+            </p>
+          </div>
+        </div>
+
+        <div className="relative grid grid-cols-3 gap-2 mt-3">
+          <div className="arc-copy-scope h-[60px] rounded-[16px] bg-white/[0.06] border border-white/[0.06] flex items-center justify-center transition hover:bg-white/[0.09]">
             <ArcCopyButton
               value={bookingUrl || ""}
               label="Copy"
@@ -344,7 +360,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
             type="button"
             onClick={shareLink}
             disabled={!bookingUrl}
-            className="h-16 rounded-2xl bg-white/[0.06] flex flex-col items-center justify-center gap-1 text-[12px] font-semibold text-white active:scale-[0.98] transition disabled:opacity-40"
+            className="h-[60px] rounded-[16px] bg-white/[0.06] border border-white/[0.06] flex flex-col items-center justify-center gap-1 text-[12px] font-semibold text-white hover:bg-white/[0.09] active:scale-[0.97] transition disabled:opacity-40"
           >
             <Share2 className="h-4 w-4" />
             <span>Share</span>
@@ -353,7 +369,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
             type="button"
             onClick={openBookingPage}
             disabled={!bookingUrl}
-            className="h-16 rounded-2xl bg-[#FF2D46] text-white flex flex-col items-center justify-center gap-1 text-[12px] font-semibold active:scale-[0.98] transition disabled:opacity-40"
+            className="h-[60px] rounded-[16px] bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white flex flex-col items-center justify-center gap-1 text-[12px] font-semibold shadow-[0_10px_24px_-10px_rgba(255,45,70,0.8),inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.97] transition disabled:opacity-40"
           >
             <ExternalLink className="h-4 w-4" />
             <span>Open</span>
@@ -363,7 +379,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
 
       {/* Live booking page preview */}
       {isMobile ? (
-        <div className="rounded-[24px] bg-[#1C1C1E] border border-white/[0.08] p-4">
+        <div className={SECTION_CARD}>
           <button
             type="button"
             aria-expanded={previewOpen}
@@ -395,21 +411,19 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
 
 
       {/* Slug editor */}
-      <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-4 space-y-3">
+      <div className={cn(SECTION_CARD, "space-y-3")}>
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            Custom name
-          </Label>
+          <SectionTitle icon={<LinkIcon className="h-3.5 w-3.5" />} title="Custom name" />
           <button
             type="button"
             onClick={resetToSuggested}
-            className="text-[11px] font-semibold text-white/50 hover:text-white flex items-center gap-1"
+            className="h-7 rounded-full bg-white/[0.06] px-2.5 text-[11px] font-semibold text-white/60 hover:text-white flex items-center gap-1 transition"
           >
             <RefreshCw className="h-3 w-3" /> Reset
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-[18px] bg-[#2C2C2E] border border-white/[0.08] px-3 h-12 focus-within:border-[#FF2D46]/50 transition">
-          <span className="text-[13px] text-white/40 shrink-0">/book/</span>
+        <div className="flex items-center gap-2 rounded-[16px] bg-black/30 border border-white/[0.08] pl-1.5 pr-1.5 h-12 focus-within:border-[#FF2D46]/60 focus-within:shadow-[0_0_0_4px_rgba(255,45,70,0.12)] transition">
+          <span className="text-[12px] font-medium text-white/45 shrink-0 rounded-[10px] bg-white/[0.06] px-2 h-8 inline-flex items-center">/book/</span>
           <input
             value={customSlug}
             onChange={(e) => setCustomSlug(e.target.value)}
@@ -426,7 +440,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
             type="button"
             onClick={updateSlug}
             disabled={isGenerating || customSlug.trim().length === 0}
-            className="text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 transition text-white"
+            className="text-[12px] font-semibold px-3.5 h-9 rounded-[12px] bg-white text-black hover:bg-white/90 disabled:opacity-40 transition"
           >
             Save
           </button>
@@ -446,13 +460,12 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
 
 
       {/* Language */}
-      <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-4 space-y-3">
-        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-          Booking language
-        </Label>
-        <p className="text-[11px] text-white/40 -mt-1">
-          Used on your booking link and confirmation emails.
-        </p>
+      <div className={cn(SECTION_CARD, "space-y-3")}>
+        <SectionTitle
+          icon={<Globe className="h-3.5 w-3.5" />}
+          title="Booking language"
+          subtitle="Used on your booking link and confirmation emails."
+        />
         <div className="grid grid-cols-2 gap-2">
           {BOOKING_LANGUAGES.map((l) => {
             const active = bookingLocale === l.value;
@@ -462,14 +475,18 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
                 type="button"
                 onClick={() => saveLocale(l.value)}
                 className={cn(
-                  "h-12 rounded-[18px] border px-3 flex items-center gap-2 text-[13px] font-medium transition",
+                  "h-12 rounded-[16px] border px-3.5 flex items-center gap-2 text-[13px] font-medium transition",
                   active
-                    ? "bg-white/10 border-[#FF2D46]/50 text-white"
-                    : "bg-[#2C2C2E] border-white/5 text-white/60 hover:text-white"
+                    ? "bg-[#FF2D46]/[0.12] border-[#FF2D46]/50 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                    : "bg-black/25 border-white/[0.06] text-white/60 hover:text-white hover:border-white/15"
                 )}
               >
                 <span className="truncate">{l.label}</span>
-                {active && <Check className="ml-auto h-4 w-4 text-[#FF2D46]" />}
+                {active && (
+                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#FF2D46]">
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -477,14 +494,9 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
       </div>
 
       {/* Theme */}
-      <div className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-4 space-y-4 overflow-hidden">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <Crown className="w-3.5 h-3.5 text-[#FF2D46]" />
-            <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-              Premium button theme
-            </Label>
-          </div>
+      <div className={cn(SECTION_CARD, "space-y-4 overflow-hidden")}>
+        <div className="flex items-center justify-between">
+          <SectionTitle icon={<Crown className="h-3.5 w-3.5" />} title="Premium button theme" />
           {!isPremium && (
             <span className="text-[11px] flex items-center gap-1 text-[#FF2D46] font-medium">
               <Crown className="w-3 h-3" /> Pro
@@ -564,11 +576,12 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="rounded-[28px] bg-[#1C1C1E] border border-white/[0.08] p-4 space-y-3"
+        className="relative overflow-hidden rounded-[24px] border border-white/[0.08] bg-gradient-to-br from-[#1A0B0F] via-[#141417] to-[#121215] p-4 space-y-3"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="h-10 w-10 rounded-2xl bg-[#FF2D46]/10 border border-white/[0.08] flex items-center justify-center text-[#FF2D46]">
+        <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#FF2D46]/20 blur-3xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="h-10 w-10 shrink-0 rounded-[14px] bg-gradient-to-br from-[#FF5A6E] to-[#C8102E] shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] flex items-center justify-center text-white">
               <Globe className="h-5 w-5" />
             </span>
             <div>
@@ -579,7 +592,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
           <button
             type="button"
             onClick={requestWebsiteDesign}
-            className="h-9 px-4 rounded-full bg-[#FF2D46] text-white text-[13px] font-semibold active:scale-[0.98] transition"
+            className="h-9 shrink-0 px-4 rounded-full bg-white text-black text-[13px] font-semibold active:scale-[0.98] transition"
           >
             {showWebsiteInfo ? "Hide" : "Request"}
           </button>
@@ -592,7 +605,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="pt-3 border-t border-white/10">
+              <div className="relative pt-3 border-t border-white/10">
                 <p className="text-[13px] text-white/70">Send your details to</p>
                 <a
                   href="mailto:hello@cutzioo.com?subject=Website%20design%20request"
@@ -617,7 +630,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
           whileTap={{ scale: 0.98 }}
           onClick={updateSlug}
           disabled={isGenerating || customSlug.trim().length === 0}
-          className="w-full h-12 rounded-full bg-[#FF2D46] text-white text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full h-12 rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white text-[15px] font-semibold flex items-center justify-center gap-2 shadow-[0_12px_30px_-12px_rgba(255,45,70,0.8),inset_0_1px_0_rgba(255,255,255,0.3)] disabled:opacity-50"
         >
           {isGenerating ? (
             <>
@@ -633,6 +646,23 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
     </motion.div>
   );
 };
+
+const SECTION_CARD =
+  "rounded-[24px] bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";
+
+function SectionTitle({ icon, title, subtitle }: { icon: ReactNode; title: string; subtitle?: string }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] bg-[#FF2D46]/[0.12] text-[#FF5A6E] ring-1 ring-[#FF2D46]/20">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[14px] font-semibold text-white leading-tight">{title}</p>
+        {subtitle && <p className="text-[11px] text-white/45 mt-0.5">{subtitle}</p>}
+      </div>
+    </div>
+  );
+}
 
 function OptionRow({
   label,

@@ -146,33 +146,43 @@ export const MicrositeEditorPanel = () => {
     <div className="space-y-4">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="rounded-[28px] bg-card border border-white/5 p-5 md:p-7"
+        initial={{ opacity: 0, y: 12, scale: 0.99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#111114] p-5 md:p-7"
       >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-[10px] font-bold uppercase tracking-wider text-primary">
-              Microsite
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-28 -left-16 h-64 w-64 rounded-full bg-[#FF2D46]/30 blur-[90px]" />
+          <div className="absolute -bottom-32 right-0 h-64 w-72 rounded-full bg-[#8F0B1F]/40 blur-[90px]" />
+          <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_70%)]" />
+        </div>
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="min-w-0 flex items-start gap-4">
+            <span className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#FF5A6E] to-[#C8102E] shadow-[0_12px_30px_-8px_rgba(255,45,70,0.6),inset_0_1px_0_rgba(255,255,255,0.35)]">
+              <Globe className="h-6 w-6 text-white" />
+            </span>
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FF2D46]/[0.12] border border-[#FF2D46]/25 text-[10px] font-bold uppercase tracking-[0.14em] text-[#FF8FA3]">
+                <Sparkles className="h-3 w-3" /> Microsite
+              </div>
+              <h2 className="mt-2 text-2xl md:text-[34px] font-bold tracking-[-0.03em] leading-tight text-white">
+                Your booking website
+              </h2>
+              <p className="text-[13px] text-white/50 mt-1">
+                Design a beautiful page that lives on your booking link.
+              </p>
             </div>
-            <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-              Your booking website
-            </h2>
-            <p className="text-[13px] text-muted-foreground mt-1">
-              Design a beautiful page that lives on your booking link.
-            </p>
           </div>
 
           <div className="flex items-center gap-2.5 self-start md:self-center">
-            <div className="flex items-center gap-2 rounded-2xl bg-card border border-white/5 px-3.5 h-11">
+            <div className={`flex items-center gap-2 rounded-full border px-3.5 h-11 transition-colors ${state.published ? "bg-emerald-500/10 border-emerald-500/25" : "bg-white/[0.05] border-white/[0.08]"}`}>
               <Switch checked={state.published} onCheckedChange={(v) => setState((s) => ({ ...s, published: v }))} />
-              <span className="text-[12px] font-semibold text-foreground">{state.published ? "Live" : "Draft"}</span>
+              <span className={`text-[12px] font-semibold ${state.published ? "text-emerald-300" : "text-white/60"}`}>{state.published ? "Live" : "Draft"}</span>
             </div>
             <Button
               onPress={save}
               isDisabled={saving}
-              className="h-11 rounded-2xl bg-primary hover:bg-primary/90 active:scale-[0.97] transition-transform text-white font-semibold px-5"
+              className="h-11 rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[0_12px_30px_-12px_rgba(255,45,70,0.8),inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.97] transition-transform text-white font-semibold px-5"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-1.5" /> Save</>}
             </Button>
@@ -181,15 +191,19 @@ export const MicrositeEditorPanel = () => {
 
         {/* Link pill */}
         {bookingLink ? (
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 rounded-2xl bg-card border border-white/5 pl-3 pr-1 h-11 min-w-0">
-              <Globe className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span className="text-[13px] font-mono text-foreground truncate max-w-[260px]">
+          <div className="relative mt-5 flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.08] pl-2 pr-1 h-11 min-w-0">
+              <span className="flex items-center gap-1 pl-1.5 pr-1">
+                <span className="h-2 w-2 rounded-full bg-[#FF5F57]" />
+                <span className="h-2 w-2 rounded-full bg-[#FEBC2E]" />
+                <span className="h-2 w-2 rounded-full bg-[#28C840]" />
+              </span>
+              <span className="text-[13px] font-mono text-white/85 truncate max-w-[220px] sm:max-w-[300px]">
                 {publicUrl.replace(/^https?:\/\//, "")}
               </span>
               <button
                 onClick={() => copy(publicUrl)}
-                className="h-9 w-9 inline-flex items-center justify-center rounded-xl hover:bg-white/5 text-muted-foreground transition"
+                className="h-9 w-9 inline-flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 transition"
                 title="Copy"
               >
                 <AnimatePresence mode="wait" initial={false}>
@@ -208,7 +222,7 @@ export const MicrositeEditorPanel = () => {
             <Link
               to={previewUrl}
               target="_blank"
-              className="inline-flex items-center gap-1.5 h-11 rounded-2xl bg-foreground text-background px-4 text-[13px] font-semibold active:scale-[0.97] transition-transform"
+              className="inline-flex items-center gap-1.5 h-11 rounded-full bg-white text-black px-4 text-[13px] font-semibold active:scale-[0.97] transition-transform"
             >
               Open site <ExternalLink className="h-3.5 w-3.5" />
             </Link>
@@ -217,7 +231,7 @@ export const MicrositeEditorPanel = () => {
                 href={subdomainUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="hidden md:inline-flex items-center gap-1.5 h-11 rounded-2xl bg-card border border-white/5 px-3.5 text-[12px] font-medium text-muted-foreground hover:text-foreground transition"
+                className="hidden md:inline-flex items-center gap-1.5 h-11 rounded-full bg-white/[0.05] border border-white/[0.08] px-3.5 text-[12px] font-medium text-white/60 hover:text-white transition"
                 title="Subdomain (requires DNS)"
               >
                 Subdomain <ExternalLink className="h-3 w-3" />
@@ -225,7 +239,7 @@ export const MicrositeEditorPanel = () => {
             )}
           </div>
         ) : (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 px-3.5 h-11">
+          <div className="relative mt-5 inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 h-11">
             <span className="text-[12px] font-medium text-amber-300">Set your booking link slug above first.</span>
           </div>
         )}
@@ -278,7 +292,7 @@ export const MicrositeEditorPanel = () => {
           onChange={(e) => setState((s) => ({ ...s, about: e.target.value }))}
           rows={4}
           placeholder="A short story about your craft, your space, your team…"
-          className="rounded-2xl border-0 bg-secondary/50 focus-visible:ring-2 focus-visible:ring-primary/40 resize-none text-[14px]"
+          className="rounded-[14px] border border-white/[0.07] bg-black/30 text-white placeholder:text-white/25 focus-visible:ring-2 focus-visible:ring-[#FF2D46]/40 focus-visible:border-[#FF2D46]/50 resize-none text-[14px]"
         />
       </IOSCard>
 
@@ -294,7 +308,7 @@ export const MicrositeEditorPanel = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-muted/50 group"
+                className="relative aspect-square rounded-2xl overflow-hidden bg-black/30 ring-1 ring-white/[0.06] group"
               >
                 <img src={url} alt="" className="h-full w-full object-cover" />
                 <button onClick={() => removeGallery(i)} className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -303,7 +317,7 @@ export const MicrositeEditorPanel = () => {
               </motion.div>
             ))}
           </AnimatePresence>
-          <label className="aspect-square rounded-2xl bg-muted/50 hover:bg-primary/10 transition flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:text-primary text-[11px] font-medium border border-dashed border-white/10 hover:border-primary/40">
+          <label className="aspect-square rounded-2xl bg-black/30 hover:bg-[#FF2D46]/10 transition flex flex-col items-center justify-center gap-1 cursor-pointer text-white/40 hover:text-[#FF5A6E] text-[11px] font-medium border border-dashed border-white/10 hover:border-[#FF2D46]/40">
             <ImagePlus className="h-5 w-5" />
             Add
             <input type="file" accept="image/*" multiple className="hidden" onChange={addGallery} />
@@ -317,13 +331,13 @@ export const MicrositeEditorPanel = () => {
           <div className="space-y-2.5">
             <IOSField label="Address" value={state.address} onChange={(v) => setState((s) => ({ ...s, address: v }))} />
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1">Hours</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40 mb-1.5 px-1">Hours</div>
               <Textarea
                 rows={4}
                 value={state.hours}
                 onChange={(e) => setState((s) => ({ ...s, hours: e.target.value }))}
                 placeholder={"Mon–Fri 9–7\nSat 10–5\nSun closed"}
-                className="rounded-2xl border-0 bg-secondary/50 focus-visible:ring-2 focus-visible:ring-primary/40 resize-none text-[14px]"
+                className="rounded-[14px] border border-white/[0.07] bg-black/30 text-white placeholder:text-white/25 focus-visible:ring-2 focus-visible:ring-[#FF2D46]/40 focus-visible:border-[#FF2D46]/50 resize-none text-[14px]"
               />
             </div>
           </div>
@@ -343,17 +357,22 @@ export const MicrositeEditorPanel = () => {
 
 const IOSCard = ({ icon, label, hint, children, className = "" }: any) => (
   <motion.div
-    initial={{ opacity: 0, y: 6 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-    className={`rounded-[24px] bg-card border border-white/5 p-4 md:p-5 ${className}`}
+    initial={{ opacity: 0, y: 14 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-40px" }}
+    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    className={`rounded-[24px] bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.07] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4 md:p-5 transition-colors hover:border-white/[0.12] ${className}`}
   >
-    <div className="flex items-center justify-between mb-3 gap-2">
-      <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground">
-        {icon && <span className="text-primary">{icon}</span>}
+    <div className="flex items-center justify-between mb-4 gap-2">
+      <div className="inline-flex items-center gap-2.5 text-[14px] font-semibold text-white">
+        {icon && (
+          <span className="flex h-7 w-7 items-center justify-center rounded-[10px] bg-[#FF2D46]/[0.12] text-[#FF5A6E] ring-1 ring-[#FF2D46]/20">
+            {icon}
+          </span>
+        )}
         {label}
       </div>
-      {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
+      {hint && <div className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-medium text-white/45">{hint}</div>}
     </div>
     {children}
   </motion.div>
@@ -361,20 +380,20 @@ const IOSCard = ({ icon, label, hint, children, className = "" }: any) => (
 
 const IOSField = ({ label, value, onChange, placeholder }: any) => (
   <div>
-    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1">{label}</div>
+    <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40 mb-1.5 px-1">{label}</div>
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-11 rounded-2xl border-0 bg-secondary/50 focus-visible:ring-2 focus-visible:ring-primary/40 text-[14px] px-3.5"
+      className="h-11 rounded-[14px] border border-white/[0.07] bg-black/30 text-white placeholder:text-white/25 focus-visible:ring-2 focus-visible:ring-[#FF2D46]/40 focus-visible:border-[#FF2D46]/50 text-[14px] px-3.5"
     />
   </div>
 );
 
 const ImageField = ({ url, onPick, onClear, aspect, rounded = "rounded-2xl" }: any) => (
-  <div className={`relative ${aspect} ${rounded} overflow-hidden bg-muted/50 group`}>
-    {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : (
-      <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground text-xs gap-1">
+  <div className={`relative ${aspect} ${rounded} overflow-hidden bg-black/30 border border-dashed border-white/[0.1] group`}>
+    {url ? <img src={url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" /> : (
+      <div className="h-full w-full flex flex-col items-center justify-center text-white/40 text-xs gap-1">
         <ImageIcon className="h-5 w-5" />
         No image
       </div>
@@ -400,9 +419,9 @@ const MicrositeEditor = () => {
       description="Microsites are part of Cutzioo Pro. Upgrade to publish your own booking website."
     >
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#0A0A0C] text-white">
+      <div className="h-[100dvh] flex w-full bg-[#0A0A0C] text-white overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 pb-24 overflow-y-auto">
+        <main className="flex-1 min-w-0 pb-24 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-4 pt-8 md:px-8 md:pt-12">
             <MicrositeEditorPanel />
           </div>

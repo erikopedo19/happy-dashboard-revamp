@@ -1714,7 +1714,7 @@ export const LiquidGlassAgenda = ({
                           onPointerMove={handleAppointmentPointerMove}
                           className={cn(
                             "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "px-3.5 py-2" : "p-4",
+                            isMobile ? "pl-5 pr-3.5 py-2" : "pl-6 pr-4 py-4",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1733,13 +1733,22 @@ export const LiquidGlassAgenda = ({
                             background: isCancelled
                               ? (isDark ? "rgba(120,120,128,0.08)" : "rgba(120,120,128,0.05)")
                               : isMobile
-                                ? (isDark ? "#161618" : "#FFFFFF")
+                                ? `linear-gradient(90deg, ${colorToRgba(serviceColor, isDark ? 0.16 : 0.1)} 0%, ${colorToRgba(serviceColor, 0)} 55%), ${isDark ? "#161618" : "#FFFFFF"}`
                                 : getGlassGradient(serviceColor, isDark),
                             backdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
                             WebkitBackdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
-                            borderLeft: isCancelled ? undefined : `4px solid ${colorToRgba(serviceColor, isMobile ? 1 : 0.9)}`,
                           }}
                         >
+                          {!isCancelled && (
+                            <span
+                              aria-hidden
+                              className="absolute left-1.5 top-2 bottom-2 z-10 w-[4px] rounded-full"
+                              style={{
+                                background: `linear-gradient(180deg, ${colorToRgba(serviceColor, 1)} 0%, ${colorToRgba(serviceColor, 0.7)} 100%)`,
+                                boxShadow: `0 0 12px ${colorToRgba(serviceColor, 0.55)}`,
+                              }}
+                            />
+                          )}
                           {!isMobile && (
                             <>
                               {/* Glass shine effect */}
@@ -1841,14 +1850,18 @@ export const LiquidGlassAgenda = ({
                       <motion.div variants={slotItemVariants} key={ev.id} className="flex-1 min-h-0">
                         <div
                           className={cn(
-                            "w-full h-full text-left rounded-2xl p-3.5 relative overflow-hidden border flex flex-col justify-between",
+                            "w-full h-full text-left rounded-2xl py-3.5 pl-5 pr-3.5 relative overflow-hidden border flex flex-col justify-between",
                             isDark ? "border-white/[0.07]" : "border-black/[0.05]"
                           )}
                           style={{
-                            background: isDark ? "#161618" : "#FFFFFF",
-                            borderLeft: `4px solid ${evColor}`,
+                            background: `linear-gradient(90deg, ${colorToRgba(evColor, isDark ? 0.16 : 0.1)} 0%, ${colorToRgba(evColor, 0)} 55%), ${isDark ? "#161618" : "#FFFFFF"}`,
                           }}
                         >
+                          <span
+                            aria-hidden
+                            className="absolute left-1.5 top-2 bottom-2 w-[4px] rounded-full"
+                            style={{ backgroundColor: evColor, boxShadow: `0 0 12px ${colorToRgba(evColor, 0.55)}` }}
+                          />
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <h3 className={cn("text-[15px] font-semibold leading-tight truncate", isDark ? "text-white" : "text-gray-900")}>
@@ -1894,16 +1907,23 @@ export const LiquidGlassAgenda = ({
                         onPointerLeave={cancelBlockLongPress}
                         disabled={isPastSlot}
                         className={cn(
-                          "relative w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all select-none overflow-hidden",
+                          "group/slot relative w-full h-full rounded-2xl border border-dashed flex items-center justify-start gap-2 pl-5 pr-3 transition-all select-none overflow-hidden",
                           isPastSlot
                             ? "border-gray-200 dark:border-white/5 bg-transparent text-gray-300 dark:text-white/20 cursor-not-allowed"
                             : pressingSlot === hour
                             ? "border-black/30 dark:border-white/40 bg-black/[0.05] dark:bg-white/10 text-gray-800 dark:text-white ring-2 ring-black/10 dark:ring-white/25"
                             : isDark
-                            ? "border-white/15 bg-white/[0.03] hover:bg-white/[0.07] text-white/60 active:scale-[0.98]"
-                            : "border-gray-300/70 bg-gray-50/60 hover:bg-blue-50 hover:border-blue-300 text-gray-500 active:scale-[0.98]"
+                            ? "border-white/[0.1] bg-white/[0.025] hover:bg-white/[0.06] hover:border-white/20 text-white/55 active:scale-[0.98]"
+                            : "border-gray-300/70 bg-gray-50/60 hover:bg-[#FF2D46]/[0.04] hover:border-[#FF2D46]/30 text-gray-500 active:scale-[0.98]"
                         )}
                       >
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "absolute left-1.5 top-2 bottom-2 z-10 w-[4px] rounded-full transition-colors",
+                            isPastSlot ? "bg-black/[0.06] dark:bg-white/[0.05]" : "bg-black/10 dark:bg-white/15 group-hover/slot:bg-[#FF2D46]"
+                          )}
+                        />
                         <motion.div
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: pressingSlot === hour ? 1 : 0 }}
@@ -1911,7 +1931,12 @@ export const LiquidGlassAgenda = ({
                           style={{ originX: 0 }}
                           className="absolute inset-0 z-0 bg-black/[0.07] dark:bg-white/15"
                         />
-                        <Plus className="w-3.5 h-3.5 relative z-10" />
+                        <span className={cn(
+                          "relative z-10 flex h-6 w-6 items-center justify-center rounded-full",
+                          isPastSlot ? "bg-transparent" : "bg-black/[0.05] dark:bg-white/[0.08]"
+                        )}>
+                          <Plus className="w-3.5 h-3.5" />
+                        </span>
                         <span className="relative z-10 text-[12px] font-medium">
                           {pressingSlot === hour ? "Hold to block…" : isPastSlot ? `Past: ${hour}` : `Tap to book at ${hour}`}
                         </span>

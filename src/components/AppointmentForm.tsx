@@ -556,570 +556,590 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   // Mobile: bottom sheet Drawer, PC: side Drawer
   if (isMobile) {
+    const stepIndex = ["datetime", "details", "success"].indexOf(step);
+    const stepTitle = step === "datetime" ? "Pick a slot" : step === "details" ? "Client details" : "Confirmed";
+    const slotPeriods = [
+      { key: "morning", label: "Morning", color: "#FFB020", slots: availableTimeSlots.filter((t) => Number(t.slice(0, 2)) < 12) },
+      { key: "afternoon", label: "Afternoon", color: "#FF5A6E", slots: availableTimeSlots.filter((t) => { const h = Number(t.slice(0, 2)); return h >= 12 && h < 17; }) },
+      { key: "evening", label: "Evening", color: "#8B5CF6", slots: availableTimeSlots.filter((t) => Number(t.slice(0, 2)) >= 17) },
+    ].filter((p) => p.slots.length > 0);
+    const selectedPeriodColor = selectedTimeSlot
+      ? (Number(selectedTimeSlot.slice(0, 2)) < 12 ? "#FFB020" : Number(selectedTimeSlot.slice(0, 2)) < 17 ? "#FF5A6E" : "#8B5CF6")
+      : "#FF2D46";
+    const inputCls = "w-full h-[54px] px-4 bg-white/[0.04] border border-white/[0.08] rounded-[16px] focus:border-[#FF2D46]/60 focus:bg-white/[0.06] focus:shadow-[0_0_0_4px_rgba(255,45,70,0.12)] focus:outline-none transition text-[15px] text-white placeholder:text-white/30";
+    const sectionLabel = "text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40";
+    const primaryBtn = "w-full min-h-[56px] px-6 rounded-full font-semibold text-[15px] text-white transition-all flex items-center justify-center gap-2 active:scale-[0.98]";
+    const primaryOn = "bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[0_14px_34px_-14px_rgba(255,45,70,0.9),inset_0_1px_0_rgba(255,255,255,0.3)]";
+    const primaryOff = "bg-white/[0.08] text-white/40 cursor-not-allowed";
+    const stickyFooter = "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/[0.06] bg-[#0B0B0D]/85 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-2xl";
+
     return (
       <BottomDrawer open={isOpen} onOpenChange={(v) => (!v ? handleClose() : null)}>
-        <BottomDrawerContent className="h-[94dvh] bg-[#0e0e10] dark:bg-[#0e0e10] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
+        <BottomDrawerContent className="h-[94dvh] bg-[#0B0B0D] dark:bg-[#0B0B0D] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
           <BottomDrawerTitle className="sr-only">Book Appointment</BottomDrawerTitle>
           <BottomDrawerDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</BottomDrawerDescription>
 
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-64 overflow-hidden">
+            <div className="absolute -top-32 left-1/2 h-64 w-[30rem] -translate-x-1/2 rounded-full bg-[#FF2D46]/25 blur-[90px]" />
+          </div>
+
           <div
-          ref={contentRef}
-          className={cn(
-            "bg-[#0e0e10]",
-            isMobile ? "h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "flex sm:max-h-[86vh] min-h-[560px] overflow-hidden"
-          )}
-        >
-          {/* Mobile sticky top bar with drag-handle + close */}
-          {isMobile && (
-            <div className="sticky top-0 z-30 bg-[#0e0e10] border-b border-white/[0.06]">
-              <div className="px-4 py-2 flex items-center justify-between">
+            ref={contentRef}
+            className="relative h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+          >
+            {/* Sticky header with step progress */}
+            <div className="sticky top-0 z-30 bg-[#0B0B0D]/75 backdrop-blur-2xl border-b border-white/[0.06]">
+              <div className="px-4 pt-2 pb-2.5 flex items-center justify-between gap-3">
+                <button
+                  onClick={step === "details" ? () => setStep("datetime") : handleClose}
+                  className="h-9 w-9 rounded-full bg-white/[0.07] border border-white/[0.08] text-white/80 flex items-center justify-center active:scale-90 transition"
+                  aria-label={step === "details" ? "Back" : "Close"}
+                >
+                  {step === "details" ? <ChevronLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                </button>
+                <div className="min-w-0 text-center">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                    Step {Math.min(stepIndex + 1, 3)} of 3
+                  </p>
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.p
+                      key={stepTitle}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[15px] font-semibold text-white tracking-tight"
+                    >
+                      {stepTitle}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
                 <button
                   onClick={handleClose}
-                  className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.06] text-white/70 flex items-center justify-center active:scale-95 transition"
+                  className={cn(
+                    "h-9 w-9 rounded-full bg-white/[0.07] border border-white/[0.08] text-white/80 flex items-center justify-center active:scale-90 transition",
+                    step !== "details" && "invisible"
+                  )}
+                  aria-label="Close"
                 >
                   <X className="h-4 w-4" />
                 </button>
-                <p className="text-[13px] font-semibold text-white tracking-tight">
-                  {step === "datetime" ? "Pick a slot" : step === "details" ? "Your details" : "Confirmed"}
-                </p>
-                <div className="w-9" />
+              </div>
+              <div className="px-4 pb-3 flex items-center gap-1.5">
+                {[0, 1, 2].map((idx) => (
+                  <div key={idx} className="h-1 flex-1 rounded-full bg-white/[0.07] overflow-hidden">
+                    <motion.div
+                      initial={false}
+                      animate={{ width: stepIndex >= idx ? "100%" : "0%" }}
+                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                      className="h-full rounded-full bg-gradient-to-r from-[#FF8FA3] via-[#FF5A6E] to-[#E0152F]"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-          )}
 
-          {/* Left Panel - Service Info */}
-          <div className={cn(
-            "bg-[#0e0e10] flex flex-col",
-            isMobile ? "p-4 border-b border-white/[0.06] shrink-0" : "w-[280px] shrink-0 p-6 border-r border-white/[0.06]"
-          )}>
-            {/* Desktop close */}
-            {!isMobile && (
-              <button
-                onClick={handleClose}
-                className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.06] text-gray-400 hover:text-white transition-colors z-10"
+            {/* Booking summary hero */}
+            <div className="px-4 pt-4">
+              <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                className="relative overflow-hidden rounded-[24px] border border-white/[0.08] bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent p-4"
               >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-
-            {/* Profile */}
-            <div className={cn(isMobile ? "mt-0 mb-4 flex items-center gap-3" : "mt-8 mb-6")}>
-              <div className={cn("rounded-full overflow-hidden ring-1 ring-white/10", isMobile ? "w-11 h-11" : "w-12 h-12")}>
-                <img
-                  src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
-                  alt={profile?.full_name || 'User'}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <p className={cn("text-sm text-gray-400", isMobile ? "" : "mt-3")}>{profile?.full_name || profile?.business_name || 'Your Business'}</p>
-            </div>
-
-            {/* Service Title */}
-            <h2 className="text-xl font-semibold text-white mb-2">
-              {selectedService ? `[${selectedService.duration}-min] ${selectedService.name}` : 'Select a Service'}
-            </h2>
-
-            {/* Service Description */}
-            {selectedService?.description && (
-              <p className="text-sm text-gray-400 mb-6">{selectedService.description}</p>
-            )}
-
-            {/* Service Details */}
-            {selectedService && (
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span>{selectedService.duration} min</span>
-                </div>
-              </div>
-            )}
-
-            {/* Price */}
-            {selectedService && (
-              <div className={cn(isMobile ? "pt-4" : "mt-auto pt-6")}>
-                <p className="text-2xl font-bold text-white">${selectedService.price}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Center Panel - Calendar */}
-          <div className={cn(
-            "bg-[#0e0e10]",
-            isMobile ? "p-4 border-b border-white/[0.06]" : "flex-1 p-6 overflow-y-auto"
-          )}>
-            {isMobile && (
-              <div className="flex items-center gap-2 mb-5">
-                {(["datetime", "details", "success"] as const).map((s, idx) => {
-                  const reached = ["datetime", "details", "success"].indexOf(step) >= idx;
-                  return (
-                    <div
-                      key={s}
-                      className={cn(
-                        "h-1.5 flex-1 rounded-full transition-all duration-500",
-                        reached ? "bg-[#0A84FF]" : "bg-white/[0.06]"
-                      )}
+                <div aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-[#FF2D46]/20 blur-3xl" />
+                <div className="relative flex items-center gap-3">
+                  <div className="h-12 w-12 shrink-0 rounded-[16px] overflow-hidden ring-1 ring-white/10 bg-white/[0.06]">
+                    <img
+                      src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || 'user'}`}
+                      alt={profile?.full_name || 'User'}
+                      className="w-full h-full object-cover"
                     />
-                  );
-                })}
-              </div>
-            )}
-            <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            >
-            {step === "datetime" ? (
-              <div className="h-full flex flex-col">
-                {/* Month Navigation */}
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className={cn("font-bold text-white tracking-tight", isMobile ? "text-xl" : "text-2xl")}>
-                    {format(currentMonth, 'MMMM yyyy')}
-                  </h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-gray-300"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
                   </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] text-white/50 truncate">{profile?.full_name || profile?.business_name || 'Your Business'}</p>
+                    <h2 className="text-[17px] font-semibold text-white tracking-tight truncate">
+                      {selectedService ? selectedService.name : 'Select a service'}
+                    </h2>
+                  </div>
+                  {selectedService && (
+                    <p className="shrink-0 text-[22px] font-bold text-white tabular-nums tracking-tight">${selectedService.price}</p>
+                  )}
                 </div>
-
-                {/* Service Selection */}
-                {showServiceSelection && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-400 mb-3">Select Service</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {services.map((service: Service) => (
-                        <button
-                          key={service.id}
-                          onClick={() => {
-                            setServiceId(service.id);
-                            if (isMobile) {
-                              setSelectedTimeSlot("");
-                            }
-                          }}
-                          className={cn(
-                            "flex items-center justify-between p-4 rounded-xl border transition-all text-left",
-                            serviceId === service.id
-                              ? "border-[#0A84FF] bg-white/[0.06]"
-                              : "border-white/[0.06] hover:border-gray-600"
-                          )}
-                        >
-                          <div>
-                            <p className="font-medium text-white">{service.name}</p>
-                            <p className="text-sm text-gray-500">{service.duration} mins</p>
-                          </div>
-                          <p className="font-bold text-white">${service.price}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Stylist Selection — optional, with quick-add / invite / skip */}
                 {selectedService && (
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="block text-sm font-medium text-gray-400">
-                        Stylist <span className="text-gray-600">(optional)</span>
-                      </label>
-                      {stylists.length > 0 && stylistId && (
-                        <button
-                          type="button"
-                          onClick={() => setStylistId("")}
-                          className="text-xs text-gray-500 hover:text-white"
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2">
-                      {stylists.length === 0 ? (
-                        <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] text-center space-y-3">
-                          <p className="text-sm text-gray-400">
-                            No stylists yet. Book without one, or add your team.
-                          </p>
-                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                            <button
-                              type="button"
-                              onClick={() => { onClose(); navigate("/stylists"); }}
-                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
-                            >
-                              + Add stylist
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { onClose(); navigate("/teams"); }}
-                              className="h-9 px-4 rounded-full text-sm font-medium bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]"
-                            >
-                              Invite worker
-                            </button>
-                          </div>
-                          <p className="text-xs text-gray-600">You can continue without a stylist.</p>
-                        </div>
-                      ) : (
-                        <>
-                          {stylists.map((stylist: any) => (
-                            <button
-                              key={stylist.id}
-                              type="button"
-                              onClick={() => setStylistId(stylist.id)}
-                              className={cn(
-                                "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
-                                stylistId === stylist.id
-                                  ? "border-[#0A84FF] bg-white/[0.06]"
-                                  : "border-white/[0.06] hover:border-gray-600"
-                              )}
-                            >
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-[#2C2C2E] dark:to-[#1C1C1E] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold text-sm overflow-hidden">
-                                {stylist.avatar_url ? (
-                                  <img src={stylist.avatar_url} alt={stylist.name} className="w-full h-full object-cover" />
-                                ) : (
-                                  stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-medium text-white">{stylist.name}</p>
-                                <p className="text-sm text-gray-500">{stylist.title || 'Stylist'}</p>
-                              </div>
-                              {stylistId === stylist.id && (
-                                <Check className="w-5 h-5 text-[#0A84FF]" />
-                              )}
-                            </button>
-                          ))}
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => setStylistId("")}
-                              className={cn(
-                                "h-8 px-3 rounded-full text-xs font-medium border transition-all",
-                                !stylistId
-                                  ? "bg-white/[0.08] border-white/20 text-white"
-                                  : "bg-transparent border-white/[0.08] text-gray-400 hover:text-white"
-                              )}
-                            >
-                              Skip / any stylist
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { onClose(); navigate("/stylists"); }}
-                              className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
-                            >
-                              + Add stylist
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { onClose(); navigate("/teams"); }}
-                              className="h-8 px-3 rounded-full text-xs font-medium border border-white/[0.08] text-gray-400 hover:text-white"
-                            >
-                              Invite worker
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-
-                {showCalendarSelection && (
-                  <>
-                    {/* Week days header */}
-                    <div className={cn("grid grid-cols-7 mb-1", isMobile ? "gap-1.5" : "gap-2")}>
-                      {weekDays.map(day => (
-                        <div key={day} className="text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500 py-2">
-                          {day}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Calendar grid */}
-                    <div className={cn("grid grid-cols-7", isMobile ? "gap-1.5" : "gap-2")}>
-                      {calendarDays.map((day) => {
-                        const isSelected = isSameDay(day, selectedDateObj);
-                        const isCurrentMonth = isSameMonth(day, currentMonth);
-                        const tz = tzProfile?.timezone || getBrowserTimezone();
-                        const todayStr = dateStrInTz(new Date(), tz);
-                        const dayStr = format(day, 'yyyy-MM-dd');
-                        const isPast = dayStr < todayStr;
-                        const isToday = dayStr === todayStr;
-                        const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
-                        const isDayOff = timeOffSet.has(dayStr);
-                        const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
-                        const showDot = !isDisabled && !isSelected;
-
-                        return (
-                          <button
-                            key={day.toISOString()}
-                            onClick={() => handleDateSelect(day)}
-                            disabled={isDisabled}
-                            className={cn(
-                              "relative aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all",
-                              isSelected
-                                ? "bg-white text-[#0e0e10] shadow-[0_4px_14px_rgba(255,255,255,0.18)]"
-                                : isDisabled
-                                ? "text-gray-700"
-                                : isToday
-                                ? "bg-white/[0.10] text-white hover:bg-white/[0.16]"
-                                : "text-white hover:bg-white/[0.06]"
-                            )}
-                          >
-                            {format(day, 'd')}
-                            {showDot && (
-                              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#0A84FF]" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : step === "details" ? (
-              <div className="h-full flex flex-col">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Enter Your Details
-                </h3>
-
-                <form onSubmit={handleSubmit} className="space-y-4 flex-1">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Full Name *
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                      <input
-                        type="text"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="John Doe"
-                        required
-                        className="w-full pl-12 pr-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      placeholder="john@example.com"
-                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      We'll send a confirmation email to this address.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="+1 555 123 4567"
-                      className="w-full px-4 py-4 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Optional. We'll send an SMS confirmation if provided.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Notes
-                    </label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Add any appointment notes"
-                      rows={3}
-                      className="w-full px-4 py-3 bg-white/[0.06] border border-white/[0.08] rounded-xl focus:border-[#0A84FF] focus:outline-none transition-colors text-white placeholder-gray-500 resize-none"
-                    />
-                  </div>
-
-                  <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-auto pt-6")}>
-                    <button
-                      type="submit"
-                      disabled={isLoading || !customerName}
-                      className={cn(
-                        "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all flex items-center justify-center gap-2",
-                        customerName && !isLoading
-                          ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                          : "bg-gray-600 cursor-not-allowed"
-                      )}
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Booking...
-                        </>
-                      ) : (
-                        <>
-                          Book Appointment
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-full bg-[#0A84FF] flex items-center justify-center mb-6">
-                  <Check className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">You're Booked!</h3>
-                <p className="text-gray-400 mb-6">
-                  Your appointment for {format(selectedDateObj, 'MMMM d')} at {selectedTimeSlot} is confirmed.
-                </p>
-                <button
-                  onClick={handleClose}
-                  className="px-8 py-3 bg-[#0A84FF] hover:bg-[#0066d6] text-white rounded-xl font-medium transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            )}
-            </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Right Panel - Time Slots / Booking Summary */}
-          {((step === "datetime" && showTimeSelection && selectedService) || (!isMobile && step === "details" && selectedService)) && (
-            <div className={cn(
-              "bg-[#0e0e10]",
-              isMobile ? "p-4 pb-6" : "w-[300px] shrink-0 p-5 overflow-y-auto border-l border-white/[0.06]"
-            )}>
-            {!isMobile && step === "details" && (
-              <div className="space-y-4">
-                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Booking summary</p>
-                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.06]/50 p-4 space-y-3">
-                  <div>
-                    <p className="text-xs text-gray-500">Service</p>
-                    <p className="text-white font-semibold text-sm mt-0.5">{selectedService.name}</p>
-                    <p className="text-gray-400 text-xs mt-0.5">{selectedService.duration} min · ${selectedService.price}</p>
-                  </div>
-                  <div className="border-t border-white/[0.08]" />
-                  <div>
-                    <p className="text-xs text-gray-500">Date & time</p>
-                    <p className="text-white font-semibold text-sm mt-0.5">{format(selectedDateObj, "EEE, MMM d")}</p>
-                    <p className="text-gray-400 text-xs mt-0.5">{selectedTimeSlot}</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setStep("datetime")}
-                  className="w-full py-2.5 rounded-xl border border-white/[0.06] text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-sm flex items-center justify-center gap-2"
-                >
-                  <ChevronLeft className="w-4 h-4" /> Change slot
-                </button>
-              </div>
-            )}
-              {!showSelectedTimeSummary && (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-[15px] font-semibold text-white tracking-tight">
-                      {format(selectedDateObj, 'EEE, MMM d')}
-                    </h4>
-                    <div className="inline-flex p-0.5 rounded-full bg-white/[0.06]">
-                      {(["12h", "24h"] as const).map((tf) => (
-                        <button
-                          key={tf}
-                          onClick={() => setTimeFormat(tf)}
-                          className={cn(
-                            "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors",
-                            timeFormat === tf ? "bg-white text-[#0e0e10]" : "text-gray-400 hover:text-white"
-                          )}
-                        >
-                          {tf}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className={cn("overflow-y-auto", isMobile ? "max-h-none grid grid-cols-2 gap-2" : "max-h-[360px] flex flex-col gap-1.5 pr-1")}>
-                    {availableTimeSlots.map((time) => {
-                      return (
-                        <button
-                          key={time}
-                          onClick={() => {
-                            handleTimeSelect(time);
-                          }}
-                          className={cn(
-                            "py-3 px-3 rounded-xl border text-sm font-semibold transition-all text-center",
-                            selectedTimeSlot === time
-                                ? "border-[#0A84FF] bg-[#0A84FF] text-white"
-                                : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.07] text-white"
-                          )}
-                        >
-                          {formatTime(time)}
-                        </button>
-                      );
-                    })}
-                    {availableTimeSlots.length === 0 && (
-                      <div className="col-span-2 rounded-xl border border-white/[0.06] p-4 text-center text-sm text-gray-500">
-                        No available times for this service.
-                      </div>
+                  <div className="relative mt-3.5 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/[0.07] border border-white/[0.06] px-2.5 text-[12px] font-medium text-white/80">
+                      <Clock className="h-3.5 w-3.5 text-white/50" /> {selectedService.duration} min
+                    </span>
+                    <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/[0.07] border border-white/[0.06] px-2.5 text-[12px] font-medium text-white/80">
+                      <CalendarIcon className="h-3.5 w-3.5 text-white/50" /> {format(selectedDateObj, 'EEE, MMM d')}
+                    </span>
+                    {selectedTimeSlot && (
+                      <span
+                        className="inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold text-white border"
+                        style={{ backgroundColor: `${selectedPeriodColor}26`, borderColor: `${selectedPeriodColor}55` }}
+                      >
+                        <span className="h-3 w-[3px] rounded-full" style={{ backgroundColor: selectedPeriodColor }} />
+                        {formatTime(selectedTimeSlot)}
+                      </span>
+                    )}
+                    {step === "datetime" && (
+                      <button
+                        type="button"
+                        onClick={() => { setServiceId(""); setSelectedTimeSlot(""); }}
+                        className="ml-auto h-7 rounded-full px-2.5 text-[12px] font-semibold text-[#FF8FA3] hover:text-white transition"
+                      >
+                        Change
+                      </button>
                     )}
                   </div>
-                </>
-              )}
-
-              {showSelectedTimeSummary && (
-                <div className="rounded-2xl border border-[#0A84FF]/40 bg-[#0A84FF]/10 p-4 mb-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-gray-400">Selected slot</p>
-                      <p className="text-white font-semibold mt-1">{format(selectedDateObj, 'EEE, MMM d')} · {formatTime(selectedTimeSlot)}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTimeSlot("")}
-                      className="text-sm text-[#5ac8fa] hover:text-white transition-colors"
-                    >
-                      Change
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className={cn(isMobile ? "sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-[#0e0e10]/95 px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] backdrop-blur-xl shadow-[0_-18px_50px_rgba(0,0,0,0.45)]" : "mt-6")}>
-                <button
-                  onClick={handleContinue}
-                  disabled={!selectedTimeSlot}
-                  className={cn(
-                    "w-full min-h-[56px] py-4 px-6 rounded-2xl font-semibold text-white transition-all",
-                    selectedTimeSlot
-                      ? "bg-[#0A84FF] hover:bg-[#0066d6]"
-                      : "bg-gray-600 cursor-not-allowed"
-                  )}
-                >
-                  Continue
-                </button>
-              </div>
+                )}
+                {selectedService?.description && (
+                  <p className="relative mt-3 text-[13px] leading-relaxed text-white/50 line-clamp-2">{selectedService.description}</p>
+                )}
+              </motion.div>
             </div>
-          )}
-        </div>
-      </BottomDrawerContent>
-    </BottomDrawer>
+
+            <div className="px-4 pt-5">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+                  exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {step === "datetime" ? (
+                    <div className="space-y-6">
+                      {/* Service Selection */}
+                      {showServiceSelection && (
+                        <div>
+                          <p className={cn(sectionLabel, "mb-3 px-1")}>Choose a service</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {services.map((service: Service, i: number) => {
+                              const color = (service as any).color?.startsWith?.("#") ? (service as any).color : "#FF2D46";
+                              return (
+                                <motion.button
+                                  key={service.id}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: Math.min(i, 8) * 0.04, type: "spring", stiffness: 380, damping: 30 }}
+                                  onClick={() => {
+                                    setServiceId(service.id);
+                                    setSelectedTimeSlot("");
+                                  }}
+                                  className="relative flex items-center justify-between gap-3 overflow-hidden rounded-[18px] border border-white/[0.07] bg-white/[0.03] py-3.5 pl-5 pr-3.5 text-left transition-all active:scale-[0.98] hover:bg-white/[0.06]"
+                                >
+                                  <span
+                                    aria-hidden
+                                    className="absolute left-1.5 top-2.5 bottom-2.5 w-1 rounded-full"
+                                    style={{ backgroundColor: color, boxShadow: `0 0 10px color-mix(in srgb, ${color} 55%, transparent)` }}
+                                  />
+                                  <div className="min-w-0">
+                                    <p className="text-[15px] font-semibold text-white truncate">{service.name}</p>
+                                    <p className="mt-0.5 flex items-center gap-1 text-[12px] text-white/45">
+                                      <Clock className="h-3 w-3" /> {service.duration} min
+                                    </p>
+                                  </div>
+                                  <span className="shrink-0 rounded-full bg-white/[0.07] px-3 py-1.5 text-[14px] font-bold text-white tabular-nums">
+                                    ${service.price}
+                                  </span>
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Stylist Selection — optional, with quick-add / invite / skip */}
+                      {selectedService && (
+                        <div>
+                          <div className="flex items-center justify-between mb-3 px-1">
+                            <p className={sectionLabel}>
+                              Stylist <span className="normal-case tracking-normal text-white/25">· optional</span>
+                            </p>
+                            {stylists.length > 0 && stylistId && (
+                              <button type="button" onClick={() => setStylistId("")} className="text-[12px] font-semibold text-white/50 hover:text-white">
+                                Clear
+                              </button>
+                            )}
+                          </div>
+
+                          {stylists.length === 0 ? (
+                            <div className="rounded-[20px] border border-dashed border-white/[0.1] bg-white/[0.02] p-4 text-center space-y-3">
+                              <p className="text-[13px] text-white/55">No stylists yet. Book without one, or add your team.</p>
+                              <div className="flex gap-2 justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => { onClose(); navigate("/stylists"); }}
+                                  className="h-9 px-4 rounded-full text-[13px] font-semibold bg-white/[0.07] text-white border border-white/[0.08] active:scale-95 transition"
+                                >
+                                  + Add stylist
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { onClose(); navigate("/teams"); }}
+                                  className="h-9 px-4 rounded-full text-[13px] font-semibold bg-white/[0.07] text-white border border-white/[0.08] active:scale-95 transition"
+                                >
+                                  Invite worker
+                                </button>
+                              </div>
+                              <p className="text-[11px] text-white/30">You can continue without a stylist.</p>
+                            </div>
+                          ) : (
+                            <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                              <button
+                                type="button"
+                                onClick={() => setStylistId("")}
+                                className={cn(
+                                  "flex w-[76px] shrink-0 flex-col items-center gap-1.5 rounded-[18px] border px-2 py-3 transition-all active:scale-95",
+                                  !stylistId ? "border-[#FF2D46]/60 bg-[#FF2D46]/[0.1]" : "border-white/[0.07] bg-white/[0.03]"
+                                )}
+                              >
+                                <div className={cn("flex h-11 w-11 items-center justify-center rounded-full", !stylistId ? "bg-gradient-to-br from-[#FF5A6E] to-[#C8102E] text-white" : "bg-white/[0.07] text-white/60")}>
+                                  <User className="h-5 w-5" />
+                                </div>
+                                <span className="text-[11px] font-semibold text-white/80">Any</span>
+                              </button>
+                              {stylists.map((stylist: any) => {
+                                const active = stylistId === stylist.id;
+                                return (
+                                  <button
+                                    key={stylist.id}
+                                    type="button"
+                                    onClick={() => setStylistId(stylist.id)}
+                                    className={cn(
+                                      "relative flex w-[76px] shrink-0 flex-col items-center gap-1.5 rounded-[18px] border px-2 py-3 transition-all active:scale-95",
+                                      active ? "border-[#FF2D46]/60 bg-[#FF2D46]/[0.1]" : "border-white/[0.07] bg-white/[0.03]"
+                                    )}
+                                  >
+                                    <div className={cn("relative h-11 w-11 rounded-full overflow-hidden bg-[#2C2C2E] flex items-center justify-center text-[13px] font-semibold text-white", active && "ring-2 ring-[#FF2D46] ring-offset-2 ring-offset-[#0B0B0D]")}>
+                                      {stylist.avatar_url ? (
+                                        <img src={stylist.avatar_url} alt={stylist.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        stylist.name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                                      )}
+                                    </div>
+                                    <span className="w-full truncate text-center text-[11px] font-semibold text-white/80">{stylist.name.split(/\s+/)[0]}</span>
+                                    {active && (
+                                      <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF2D46]">
+                                        <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                              <button
+                                type="button"
+                                onClick={() => { onClose(); navigate("/stylists"); }}
+                                className="flex w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-[18px] border border-dashed border-white/[0.1] px-2 py-3 text-white/50 active:scale-95 transition"
+                              >
+                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.04] text-[20px] leading-none">+</div>
+                                <span className="text-[11px] font-semibold">Add</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {showCalendarSelection && (
+                        <div>
+                          <div className="flex items-center justify-between mb-3 px-1">
+                            <h3 className="text-[19px] font-bold text-white tracking-tight">
+                              {format(currentMonth, 'MMMM yyyy')}
+                            </h3>
+                            <div className="flex gap-1.5">
+                              <button
+                                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.07] active:scale-90 transition text-white/80"
+                                aria-label="Previous month"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.07] active:scale-90 transition text-white/80"
+                                aria-label="Next month"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="rounded-[22px] border border-white/[0.07] bg-white/[0.025] p-2.5">
+                            <div className="grid grid-cols-7 gap-1 mb-1">
+                              {weekDays.map(day => (
+                                <div key={day} className="text-center text-[10px] font-semibold uppercase tracking-wide text-white/35 py-1.5">
+                                  {day.slice(0, 2)}
+                                </div>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-7 gap-1">
+                              {calendarDays.map((day) => {
+                                const isSelected = isSameDay(day, selectedDateObj);
+                                const isCurrentMonth = isSameMonth(day, currentMonth);
+                                const tz = tzProfile?.timezone || getBrowserTimezone();
+                                const todayStr = dateStrInTz(new Date(), tz);
+                                const dayStr = format(day, 'yyyy-MM-dd');
+                                const isPast = dayStr < todayStr;
+                                const isToday = dayStr === todayStr;
+                                const isWorkingDay = (agendaSettings?.working_days ?? [0, 1, 2, 3, 4, 5, 6]).includes(day.getDay());
+                                const isDayOff = timeOffSet.has(dayStr);
+                                const isDisabled = !isCurrentMonth || isPast || !isWorkingDay || isDayOff;
+                                const showDot = !isDisabled && !isSelected;
+
+                                return (
+                                  <button
+                                    key={day.toISOString()}
+                                    onClick={() => handleDateSelect(day)}
+                                    disabled={isDisabled}
+                                    className={cn(
+                                      "relative aspect-square flex items-center justify-center text-[14px] font-semibold rounded-[14px] transition-all active:scale-90",
+                                      isSelected
+                                        ? "text-white"
+                                        : isDisabled
+                                        ? "text-white/15"
+                                        : isToday
+                                        ? "bg-white/[0.08] text-white ring-1 ring-white/15"
+                                        : "text-white/90 hover:bg-white/[0.06]"
+                                    )}
+                                  >
+                                    {isSelected && (
+                                      <motion.span
+                                        layoutId="apptform-day"
+                                        transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                                        className="absolute inset-0 rounded-[14px] bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[0_8px_20px_-8px_rgba(255,45,70,0.9)]"
+                                      />
+                                    )}
+                                    <span className="relative">{format(day, 'd')}</span>
+                                    {showDot && (
+                                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[#FF5A6E]/80" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : step === "details" ? (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <label className={cn(sectionLabel, "block mb-2 px-1")}>Full name *</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-white/35" />
+                          <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder="John Doe"
+                            required
+                            className={cn(inputCls, "pl-11")}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={cn(sectionLabel, "block mb-2 px-1")}>Email address</label>
+                        <input
+                          type="email"
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
+                          placeholder="john@example.com"
+                          className={inputCls}
+                        />
+                        <p className="text-[11px] text-white/35 mt-1.5 px-1">We'll send a confirmation email to this address.</p>
+                      </div>
+
+                      <div>
+                        <label className={cn(sectionLabel, "block mb-2 px-1")}>Phone number</label>
+                        <input
+                          type="tel"
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value)}
+                          placeholder="+1 555 123 4567"
+                          className={inputCls}
+                        />
+                        <p className="text-[11px] text-white/35 mt-1.5 px-1">Optional. We'll send an SMS confirmation if provided.</p>
+                      </div>
+
+                      <div>
+                        <label className={cn(sectionLabel, "block mb-2 px-1")}>Notes</label>
+                        <textarea
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Add any appointment notes"
+                          rows={3}
+                          className={cn(inputCls, "h-auto py-3.5 resize-none")}
+                        />
+                      </div>
+
+                      <div className={stickyFooter}>
+                        <button
+                          type="submit"
+                          disabled={isLoading || !customerName}
+                          className={cn(primaryBtn, customerName && !isLoading ? primaryOn : primaryOff)}
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Booking...
+                            </>
+                          ) : (
+                            <>
+                              Book appointment
+                              <ArrowRight className="w-5 h-5" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center py-10">
+                      <div className="relative mb-6">
+                        <motion.span
+                          aria-hidden
+                          initial={{ scale: 0.6, opacity: 0.8 }}
+                          animate={{ scale: 1.9, opacity: 0 }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
+                          className="absolute inset-0 rounded-full bg-[#FF2D46]/40"
+                        />
+                        <motion.div
+                          initial={{ scale: 0, rotate: -30 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 320, damping: 16 }}
+                          className="relative w-20 h-20 rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] flex items-center justify-center shadow-[0_18px_40px_-12px_rgba(255,45,70,0.9),inset_0_1px_0_rgba(255,255,255,0.35)]"
+                        >
+                          <Check className="w-9 h-9 text-white" strokeWidth={3} />
+                        </motion.div>
+                      </div>
+                      <h3 className="text-[26px] font-bold text-white tracking-tight mb-2">You're booked!</h3>
+                      <p className="text-[14px] text-white/55 mb-8 max-w-[280px]">
+                        Appointment for {format(selectedDateObj, 'MMMM d')} at {selectedTimeSlot} is confirmed.
+                      </p>
+                      <button onClick={handleClose} className={cn(primaryBtn, primaryOn, "max-w-[260px]")}>
+                        Done
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Time slots */}
+            {step === "datetime" && showTimeSelection && selectedService && (
+              <div className="px-4 pt-6 pb-6">
+                {!showSelectedTimeSummary && (
+                  <>
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <div>
+                        <p className={sectionLabel}>Available times</p>
+                        <h4 className="text-[15px] font-semibold text-white tracking-tight mt-0.5">
+                          {format(selectedDateObj, 'EEEE, MMM d')}
+                        </h4>
+                      </div>
+                      <div className="relative inline-flex p-0.5 rounded-full bg-white/[0.06] border border-white/[0.06]">
+                        {(["12h", "24h"] as const).map((tf) => (
+                          <button
+                            key={tf}
+                            onClick={() => setTimeFormat(tf)}
+                            className={cn(
+                              "relative px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors",
+                              timeFormat === tf ? "text-[#0B0B0D]" : "text-white/50 hover:text-white"
+                            )}
+                          >
+                            {timeFormat === tf && (
+                              <motion.span layoutId="apptform-tf" className="absolute inset-0 rounded-full bg-white" transition={{ type: "spring", stiffness: 500, damping: 34 }} />
+                            )}
+                            <span className="relative">{tf}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {availableTimeSlots.length === 0 ? (
+                      <div className="rounded-[18px] border border-dashed border-white/[0.1] p-6 text-center text-[13px] text-white/45">
+                        No available times for this service.
+                      </div>
+                    ) : (
+                      <div className="space-y-5">
+                        {slotPeriods.map((period) => (
+                          <div key={period.key}>
+                            <div className="mb-2 flex items-center gap-2 px-1">
+                              <span className="h-3 w-[3px] rounded-full" style={{ backgroundColor: period.color }} />
+                              <span className="text-[12px] font-semibold text-white/70">{period.label}</span>
+                              <span className="text-[11px] text-white/30">{period.slots.length}</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              {period.slots.map((time, i) => (
+                                <motion.button
+                                  key={time}
+                                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  transition={{ delay: Math.min(i, 15) * 0.018, type: "spring", stiffness: 420, damping: 30 }}
+                                  onClick={() => handleTimeSelect(time)}
+                                  className="group relative h-12 overflow-hidden rounded-[14px] border border-white/[0.07] bg-white/[0.035] pl-4 pr-2 text-left text-[14px] font-semibold tabular-nums text-white/90 transition-colors hover:bg-white/[0.07] active:scale-[0.96]"
+                                >
+                                  <span
+                                    aria-hidden
+                                    className="absolute left-1.5 top-2 bottom-2 w-1 rounded-full opacity-70 transition-opacity group-hover:opacity-100"
+                                    style={{ backgroundColor: period.color }}
+                                  />
+                                  {formatTime(time)}
+                                </motion.button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {showSelectedTimeSummary && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    className="relative overflow-hidden rounded-[20px] border py-4 pl-6 pr-4"
+                    style={{ borderColor: `${selectedPeriodColor}55`, background: `linear-gradient(90deg, ${selectedPeriodColor}2b 0%, ${selectedPeriodColor}08 70%)` }}
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute left-2 top-3 bottom-3 w-1.5 rounded-full"
+                      style={{ backgroundColor: selectedPeriodColor, boxShadow: `0 0 14px ${selectedPeriodColor}` }}
+                    />
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className={sectionLabel}>Selected slot</p>
+                        <p className="text-[18px] font-bold text-white tracking-tight mt-1 tabular-nums">{formatTime(selectedTimeSlot)}</p>
+                        <p className="text-[12px] text-white/55">{format(selectedDateObj, 'EEEE, MMM d')} · {selectedService.duration} min</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTimeSlot("")}
+                        className="shrink-0 h-9 rounded-full bg-white/[0.08] border border-white/[0.1] px-4 text-[13px] font-semibold text-white active:scale-95 transition"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                <div className={stickyFooter}>
+                  <button
+                    onClick={handleContinue}
+                    disabled={!selectedTimeSlot}
+                    className={cn(primaryBtn, selectedTimeSlot ? primaryOn : primaryOff)}
+                  >
+                    Continue
+                    {selectedTimeSlot && <ArrowRight className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </BottomDrawerContent>
+      </BottomDrawer>
     );
   }
 

@@ -497,36 +497,72 @@ const FindBarber = () => {
 
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
         <div className="-mx-5 mb-5 flex items-center gap-2.5 overflow-x-auto px-5 pb-1 scrollbar-hide">
-          {FILTER_OPTIONS.map((f) => {
+          {FILTER_OPTIONS.map((f, i) => {
             const active = sortFilter === f.key || (f.key === "default" && sortFilter === undefined);
             const Icon = f.icon;
             return (
               <motion.button
                 key={f.key}
                 type="button"
+                layout
+                custom={i}
+                variants={chipItem}
+                initial="hidden"
+                animate="show"
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setSortFilter(f.key)}
+                onClick={() => { if (!active) haptic("selection"); setSortFilter(f.key); }}
                 className={cn(
-                  "flex h-14 shrink-0 items-center gap-2.5 rounded-[22px] border pl-1.5 text-[15px] font-medium whitespace-nowrap transition-colors",
-                  active
-                    ? "border-[#FF8FA3]/40 bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white shadow-[inset_0_1.5px_0_rgba(255,255,255,0.4),inset_0_-2px_6px_rgba(0,0,0,0.15)] pr-2"
-                    : "border-white/[0.08] bg-[#1C1C1E] text-white/80 pr-5"
+                  "relative isolate flex h-14 shrink-0 items-center gap-2.5 overflow-hidden rounded-[22px] border pl-1.5 text-[15px] font-medium whitespace-nowrap transition-colors duration-300",
+                  active ? "border-[#FF8FA3]/40 text-white pr-2" : "border-white/[0.08] bg-[#1C1C1E] text-white/80 pr-5"
                 )}
               >
-                <span className={cn("flex h-11 w-11 items-center justify-center rounded-[16px]", active ? "bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]" : "bg-white/[0.06]")}>
-                  <Icon className="h-[18px] w-[18px]" />
-                </span>
-                {f.label}
                 {active && (
-                  <span className="ml-1 flex h-9 w-9 items-center justify-center rounded-[14px] bg-white/15">
-                    <ChevronDown className="h-4 w-4" />
-                  </span>
+                  <motion.span
+                    layoutId="fb-filter-active"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                    className="absolute inset-0 -z-10 rounded-[22px] bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[inset_0_1.5px_0_rgba(255,255,255,0.4),inset_0_-2px_6px_rgba(0,0,0,0.15)]"
+                  >
+                    <motion.span
+                      aria-hidden
+                      initial={{ x: "-120%" }}
+                      animate={{ x: "220%" }}
+                      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                      className="absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent"
+                    />
+                  </motion.span>
                 )}
+                <motion.span
+                  layout="position"
+                  animate={active ? { rotate: [0, -12, 8, 0], scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
+                  className={cn("flex h-11 w-11 items-center justify-center rounded-[16px] transition-colors", active ? "bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]" : "bg-white/[0.06]")}
+                >
+                  <Icon className="h-[18px] w-[18px]" />
+                </motion.span>
+                <motion.span layout="position">{f.label}</motion.span>
+                <AnimatePresence initial={false}>
+                  {active && (
+                    <motion.span
+                      key="chev"
+                      initial={{ opacity: 0, scale: 0.4, width: 0 }}
+                      animate={{ opacity: 1, scale: 1, width: 36 }}
+                      exit={{ opacity: 0, scale: 0.4, width: 0 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 30 }}
+                      className="ml-1 flex h-9 items-center justify-center rounded-[14px] bg-white/15"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </motion.button>
             );
           })}
           <motion.button
             type="button"
+            custom={FILTER_OPTIONS.length}
+            variants={chipItem}
+            initial="hidden"
+            animate="show"
             whileTap={{ scale: 0.95 }}
             onClick={() => setSwipeOpen(true)}
             className="flex h-14 shrink-0 items-center gap-2.5 rounded-[22px] border border-white/[0.08] bg-[#1C1C1E] pl-1.5 pr-5 text-[15px] font-medium text-white/80"
@@ -541,10 +577,11 @@ const FindBarber = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 22, scale: 0.98, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+            exit={{ opacity: 0, y: -10, scale: 0.99, filter: "blur(6px)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+            style={{ transformOrigin: "50% 0%" }}
           >
             {activeTab === "today" && (
               <ExploreList
@@ -590,12 +627,33 @@ function PageHeader({ children }: { children: React.ReactNode }) {
 
 
 const cardItem: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.98 },
+  hidden: { opacity: 0, y: 28, scale: 0.94, rotateX: 8, filter: "blur(8px)" },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: Math.min(i, 10) * 0.04, type: "spring" as const, stiffness: 380, damping: 30 },
+    rotateX: 0,
+    filter: "blur(0px)",
+    transitionEnd: { filter: "none" },
+    transition: {
+      delay: 0.08 + Math.min(i, 10) * 0.06,
+      type: "spring" as const,
+      stiffness: 260,
+      damping: 24,
+      filter: { duration: 0.35, delay: 0.08 + Math.min(i, 10) * 0.06 },
+    },
+  }),
+};
+
+const chipItem: Variants = {
+  hidden: { opacity: 0, x: 28, scale: 0.85, filter: "blur(6px)" },
+  show: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transitionEnd: { filter: "none" },
+    transition: { delay: 0.12 + i * 0.06, type: "spring" as const, stiffness: 380, damping: 26 },
   }),
 };
 

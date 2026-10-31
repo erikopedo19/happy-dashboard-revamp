@@ -1009,16 +1009,17 @@ export const ModernAppointmentsCalendar = ({
                         // Appointment slot - dark card with colored service dot
                         <div
                           className={cn(
-                            "w-full h-full rounded-xl bg-[#1C1C1E] border border-white/[0.08] cursor-pointer hover:bg-[#22222A] relative overflow-hidden p-2",
+                            "w-full h-full rounded-xl bg-[#1C1C1E] border border-white/[0.08] cursor-pointer hover:border-white/[0.16] transition-colors relative overflow-hidden p-2",
                             isLongPressing && longPressedId === dayAppointments[0].id && "animate-pulse"
                           )}
+                          style={{ backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${serviceColor} 18%, transparent) 0%, transparent 60%)` }}
                           onClick={() => {
                             setSelectedAppointment(dayAppointments[0]);
                             setShowAppointmentDetails(true);
                           }}
                         >
-                          <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full" style={{ backgroundColor: serviceColor }} />
-                          <div className="relative z-10 flex flex-col justify-center h-full pl-2">
+                          <div className="absolute left-1 top-1.5 bottom-1.5 w-[4px] rounded-full" style={{ backgroundColor: serviceColor, boxShadow: `0 0 10px color-mix(in srgb, ${serviceColor} 50%, transparent)` }} />
+                          <div className="relative z-10 flex flex-col justify-center h-full pl-2.5">
                             <div className="text-[11px] font-semibold text-white leading-tight mb-0.5 truncate">
                               {dayAppointments[0].service.name}
                             </div>
