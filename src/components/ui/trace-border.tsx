@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 
 /**
@@ -31,7 +31,6 @@ export function TraceBorder({
   const [running, setRunning] = useState(false);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const reduce = useReducedMotion();
-  const blurId = `tb-blur-${useId().replace(/:/g, "")}`;
 
   useLayoutEffect(() => {
     const el = ref.current?.parentElement;
@@ -100,19 +99,13 @@ export function TraceBorder({
         className="pointer-events-none absolute inset-0 z-20"
         style={{
           borderRadius: radius,
-          boxShadow: "0 0 0 0.75px rgba(255,255,255,0.16), 0 0 14px rgba(255,255,255,0.10), 0 0 32px rgba(255,255,255,0.05), inset 0 0 14px rgba(255,255,255,0.07)",
+          boxShadow: "0 0 0 0.75px rgba(255,255,255,0.16)",
         }}
       />
       <svg ref={ref} aria-hidden className="pointer-events-none absolute inset-0 z-20 h-full w-full overflow-visible" width={size.w} height={size.h}>
         {d && running && (
           <g ref={cometRef} key={d} opacity={0}>
-            <defs>
-              <filter id={blurId} filterUnits="userSpaceOnUse" x={-40} y={-40} width={size.w + 80} height={size.h + 80}>
-                <feGaussianBlur stdDeviation={5} />
-              </filter>
-            </defs>
-            <g filter={`url(#${blurId})`}>{comet(6, 0.07, "g")}</g>
-            {comet(1.1, 0.085, "c")}
+            {comet(1.25, 0.1, "c")}
           </g>
         )}
       </svg>

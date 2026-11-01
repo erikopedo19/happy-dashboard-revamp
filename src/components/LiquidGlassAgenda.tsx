@@ -191,6 +191,17 @@ function colorToRgba(color: string, opacity: number): string {
   return `rgba(100, 200, 150, ${opacity})`;
 }
 
+// Service colors may be hex, legacy Tailwind classes ("bg-blue-500") or CSS names; resolve to a usable CSS color.
+function cssColor(color: string | null | undefined, fallback = '#22c55e'): string {
+  const raw = (color || '').trim();
+  if (!raw) return fallback;
+  if (/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(raw)) return raw;
+  if (/^(rgb|hsl)a?\(/i.test(raw)) return raw;
+  if (/blue|green|red|rose|purple|orange|amber|pink|cyan|teal|yellow|indigo|black/i.test(raw)) return colorToRgba(raw, 1);
+  if (typeof CSS !== 'undefined' && CSS.supports?.('color', raw)) return raw;
+  return fallback;
+}
+
 function getGlassGradient(color: string, isDark: boolean): string {
   if (isDark) {
     return `linear-gradient(135deg, ${colorToRgba(color, 0.32)} 0%, ${colorToRgba(color, 0.14)} 100%)`;
@@ -1406,7 +1417,7 @@ export const LiquidGlassAgenda = ({
                     <div key={apt.id} className="flex items-center gap-2">
                       <div
                         className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: apt.service.color || '#22c55e' }}
+                        style={{ backgroundColor: cssColor(apt.service?.color) }}
                       />
                       <span className={cn("text-xs truncate flex-1", isDark ? "text-white/80" : "text-gray-700")}>
                         {apt.service.name} · {apt.customer.name}
@@ -1750,7 +1761,7 @@ export const LiquidGlassAgenda = ({
                     const endTime = getEndTime(apt.appointment_time, duration);
                     const isCompleted = apt.status === 'completed';
                     const isCancelled = apt.status === 'cancelled';
-                    const serviceColor = isCancelled ? '#6b7280' : (apt.service.color || '#22c55e');
+                    const serviceColor = isCancelled ? '#6b7280' : cssColor(apt.service?.color);
 
                     return (
                       <motion.div
@@ -2380,7 +2391,7 @@ export const LiquidGlassAgenda = ({
                       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: 0.05 + i * 0.08 }}
                       className="flex items-center gap-3 rounded-[18px] bg-black/[0.04] px-4 py-3 dark:bg-white/[0.06]"
                     >
-                      <span className="h-9 w-[4px] shrink-0 rounded-full" style={{ backgroundColor: a.service.color || "#22c55e" }} />
+                      <span className="h-9 w-[4px] shrink-0 rounded-full" style={{ backgroundColor: cssColor(a.service?.color) }} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[16px] font-bold leading-tight tracking-[-0.02em] text-[#1C1C1E] dark:text-white">
                           {(a.customer.name || "Client").trim().split(/\s+/)[0]}

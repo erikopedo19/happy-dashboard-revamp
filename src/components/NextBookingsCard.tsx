@@ -235,15 +235,15 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
             </span>
           </div>
           </div>
-          <div className="relative mt-4 w-full border-t border-white/10 pt-3.5">
-            <div className="flex items-end justify-between gap-3">
+          <div className="relative mt-5 w-full border-t border-white/10 pt-4">
+            <div className="flex items-end justify-between gap-4">
               <span className="flex items-center gap-1.5 pb-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/55">
                 <Timer className="h-3.5 w-3.5" />
                 {countdown === "Now" ? "Starting" : "Starts in"}
               </span>
               <RollingText text={countdown} className="text-[30px] font-bold leading-none tracking-[-0.04em] tabular-nums" />
             </div>
-            <div className="mt-3 h-[3px] w-full overflow-hidden rounded-full bg-white/10">
+            <div className="mt-4 h-[3px] w-full overflow-hidden rounded-full bg-white/10">
               <motion.div
                 className="h-full origin-left rounded-full bg-white"
                 initial={{ scaleX: 0 }}
