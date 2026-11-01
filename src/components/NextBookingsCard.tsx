@@ -169,6 +169,12 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
       </div>
 
       {next ? (
+        <div className="relative">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-4 -bottom-2 top-4 rounded-[30px] opacity-70 blur-2xl"
+          style={{ background: "linear-gradient(115deg, #7B3FA0 0%, #A0527A 45%, #8A6A3A 100%)" }}
+        />
         <motion.button
           type="button"
           layoutId={`next-booking-${next.id}`}
@@ -177,13 +183,15 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
           animate={{ opacity: 1, y: 0 }}
           transition={{ opacity: { duration: 0.6, ease }, y: { duration: 0.6, ease }, layout: spring }}
           whileTap={{ scale: 0.98 }}
-          className="relative flex w-full flex-col overflow-hidden p-5 text-left text-white shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)]"
+          className="relative flex w-full flex-col p-5 text-left text-white shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)]"
           style={{ background: CARD_BG, borderRadius: 30 }}
         >
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px]">
+            <div className="absolute -left-5 -top-11 h-44 w-44 rounded-full bg-[#7B3FA0]/30 blur-3xl" />
+            <div className="absolute right-5 top-5 h-40 w-40 rounded-full bg-[#8A6A3A]/25 blur-3xl" />
+          </div>
           <TraceBorder radius={30} />
           <div className="relative flex w-full items-center gap-4">
-          <div aria-hidden className="pointer-events-none absolute -left-10 -top-16 h-44 w-44 rounded-full bg-[#7B3FA0]/30 blur-3xl" />
-          <div aria-hidden className="pointer-events-none absolute -bottom-16 right-0 h-40 w-40 rounded-full bg-[#8A6A3A]/25 blur-3xl" />
           <motion.div
             layoutId={`next-booking-date-${next.id}`}
             transition={spring}
@@ -228,6 +236,7 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
             </div>
           </div>
         </motion.button>
+        </div>
       ) : (
         <div className="flex items-center gap-4 rounded-[30px] bg-white p-5 ring-1 ring-black/[0.06] dark:bg-[#1C1C1E] dark:ring-white/[0.08]">
           <div className="flex h-[64px] w-[58px] shrink-0 flex-col items-center justify-center rounded-[18px] bg-[#F2F2F7] dark:bg-[#2C2C2E]">
