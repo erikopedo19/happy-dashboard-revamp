@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import {
-  Calendar, Heart, Scissors, ChevronRight, ArrowRight, Loader2, CalendarDays, Users, BarChart3, Search,
+  Calendar, Heart, ChevronRight, Loader2, Search,
   LogOut, Shield, Settings, BellRing, Flame, Award, Zap,
 } from "lucide-react";
 import { haptic } from "@/lib/haptics";
@@ -123,59 +123,24 @@ const Me = () => {
           Settings
         </motion.h1>
 
-        {/* Barber mode hero */}
-        <motion.button
-          type="button"
-          initial={{ opacity: 0, y: 18, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.04, ...riseSpring }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => { haptic("medium"); setRole("barber"); }}
-          disabled={switching}
-          className="group relative block w-full overflow-hidden rounded-[32px] bg-[#0B0B0F] p-6 text-left text-white disabled:opacity-80"
-        >
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_100%_0%,rgba(255,45,70,0.55)_0%,rgba(255,45,70,0.12)_40%,transparent_70%)]" />
-          <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#FF9500]/20 blur-3xl" />
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute -right-6 -top-6 opacity-[0.12]"
-            animate={{ rotate: [0, -8, 0] }}
-            transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
-          >
-            <Scissors className="h-44 w-44" strokeWidth={1.2} />
-          </motion.div>
-          <div className="relative">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_10px_30px_-8px_rgba(255,45,70,0.7)]">
-              <Scissors className="h-7 w-7" />
-            </div>
-            <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#FF8A98]">Barber mode</p>
-            <p className="mt-1 text-[28px] font-semibold leading-[1.1] tracking-[-0.03em]">Run your chair.</p>
-            <p className="mt-1.5 text-[15px] text-white/60">Agenda, bookings and clients in one place.</p>
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {[{ I: CalendarDays, l: "Agenda" }, { I: Users, l: "Clients" }, { I: BarChart3, l: "Reports" }].map(({ I, l }) => (
-                <span key={l} className="flex items-center gap-1.5 rounded-full bg-white/[0.08] px-3 py-1.5 text-[12.5px] font-medium text-white/80 backdrop-blur-md">
-                  <I className="h-3.5 w-3.5" />{l}
-                </span>
-              ))}
-            </div>
-            <div className="mt-6 flex h-[52px] items-center justify-center gap-2 rounded-[18px] bg-white text-[16px] font-semibold text-[#0B0B0F]">
-              {switching ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Switch to barber mode <ArrowRight className="h-4 w-4 transition-transform group-active:translate-x-0.5" /></>}
-            </div>
-          </div>
-        </motion.button>
-
         {/* Profile */}
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, ...riseSpring }}>
-          <Link to="/settings" className="flex items-center gap-4 rounded-[24px] bg-white p-4 active:bg-black/[0.03] dark:bg-[#1C1C1E] dark:active:bg-white/[0.04]">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#8E8E93] to-[#636366] text-[20px] font-semibold text-white">
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04, ...riseSpring }}>
+          <div className="rounded-[28px] bg-white px-5 pb-5 pt-6 text-center dark:bg-[#1C1C1E]">
+            <Link to="/settings" className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-b from-[#8E8E93] to-[#636366] text-[28px] font-semibold text-white active:opacity-80">
               {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[19px] font-semibold tracking-[-0.02em]">{name}</p>
-              <p className="truncate text-[13px] text-[#8E8E93]">{user.email}</p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-[#C7C7CC] dark:text-[#48484A]" />
-          </Link>
+            </Link>
+            <p className="mt-3 truncate text-[22px] font-semibold tracking-[-0.02em]">{name}</p>
+            <p className="truncate text-[14px] text-[#8E8E93]">{user.email}</p>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
+              onClick={() => { haptic("medium"); setRole("barber"); }}
+              disabled={switching}
+              className="mt-4 flex h-12 w-full items-center justify-center rounded-[16px] bg-[#1C1C1E] text-[15px] font-semibold text-white disabled:opacity-60 dark:bg-white dark:text-[#0B0B0F]"
+            >
+              {switching ? <Loader2 className="h-5 w-5 animate-spin" /> : "Switch to barber mode"}
+            </motion.button>
+          </div>
           <div className="mt-2.5 grid grid-cols-3 gap-2.5">
             <StatCard label="Bookings" value={isLoading ? "—" : stats.total} />
             <StatCard label="Upcoming" value={isLoading ? "—" : stats.upcoming} />

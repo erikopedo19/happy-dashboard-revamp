@@ -63,7 +63,8 @@ export function QuickBookSheet({
   const { toast } = useToast();
   const qc = useQueryClient();
   const [step, setStep] = useState<Step>("pick");
-  const [serviceId, setServiceId] = useState<string>("");
+  const [serviceIds, setServiceIds] = useState<string[]>([]);
+  const serviceId = serviceIds[0] ?? "";
   const [date, setDate] = useState<Date>(new Date());
   const [time, setTime] = useState<string>("");
   const [name, setName] = useState("");
@@ -91,7 +92,7 @@ export function QuickBookSheet({
       setStep("pick");
       setTime(initialTime || "");
       setDate(initialDate || new Date());
-      if (initialServiceId) setServiceId(initialServiceId);
+      if (initialServiceId) setServiceIds([initialServiceId]);
       setConfirmedTime(null);
       submitLockRef.current = false;
     }
@@ -113,7 +114,7 @@ export function QuickBookSheet({
   });
 
   useEffect(() => {
-    if (services.length && !serviceId) setServiceId(services[0].id);
+    if (services.length && !serviceId) setServiceIds([services[0].id]);
   }, [services, serviceId]);
 
   const { data: settings } = useQuery<AgendaSettings>({
@@ -190,7 +191,11 @@ export function QuickBookSheet({
     return generateBookingTimeSlots(settings.start_hour, settings.end_hour, settings.service_duration);
   }, [settings]);
 
-const selectedService = services.find((s) => s.id === serviceId);
+const selectedServices = services.filter((s) => serviceIds.includes(s.id));
+const selectedService = selectedServices[0];
+const totalDuration = selectedServices.reduce((sum, s) => sum + Number(s.duration || 0), 0);
+const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price || 0), 0);
+const servicesLabel = selectedServices.map((s) => s.name).join(" + ");
 const workingDays = settings?.working_days ?? [0, 1, 2, 3, 4, 5, 6];
 const businessTz = settings?.timezone || getBrowserTimezone();
 
@@ -225,13 +230,13 @@ const businessTz = settings?.timezone || getBrowserTimezone();
       startHour: settings.start_hour,
       endHour: settings.end_hour,
       interval: settings.service_duration,
-      serviceDuration: selectedService.duration,
+      serviceDuration: totalDuration || selectedService.duration,
       bookedSlots: booked,
       workingDays,
       timezone: settings.timezone,
       timeOffDates: timeOffSet,
     });
-  }, [allSlots, booked, selectedService, settings, date, workingDays, timeOffSet]);
+  }, [allSlots, booked, selectedService, totalDuration, settings, date, workingDays, timeOffSet]);
 
   const slotStates = useMemo(() => {
     const available = new Set(availableSlots);
@@ -261,7 +266,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
         p_service_id: selectedService.id,
         p_appointment_date: format(date, "yyyy-MM-dd"),
         p_appointment_time: time,
-        p_notes: null,
+        p_notes: selectedServices.length > 1 ? `Services: ${servicesLabel} (${totalDuration} min)` : null,
       });
       if (error || !data?.success) {
         throw new Error(data?.error || error?.message || "Could not create booking");
@@ -355,7 +360,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
               >
                 {/* Service */}
                 <section>
-                  <SectionTitle icon={<Scissors className="w-3.5 h-3.5" />} label="Service" />
+                  <SectionTitle icon={<Scissors className="w-3.5 h-3.5" />} label={selectedServices.length > 1 ? `${selectedServices.length} services · ${totalDuration} min` : "Services · pick one or more"} />
                   {servicesLoading ? (
                     <div className="h-14 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] animate-pulse" />
                   ) : services.length === 0 ? (
@@ -363,13 +368,17 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   ) : (
                     <div className="space-y-2">
                       {services.map((s) => {
-                        const active = s.id === serviceId;
+                        const active = serviceIds.includes(s.id);
                         return (
                           <button
                             key={s.id}
                             onClick={() => {
                               haptic("selection");
-                              setServiceId(s.id);
+                              setServiceIds((ids) =>
+                                ids.includes(s.id)
+                                  ? ids.length > 1 ? ids.filter((id) => id !== s.id) : ids
+                                  : [...ids, s.id]
+                              );
                               setTime("");
                             }}
                             className={cn(
@@ -503,10 +512,10 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-[13px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                      {selectedService?.name} · {time}
+                      {servicesLabel} · {time}
                     </div>
                     <div className="text-[11px] text-[#8E8E93]">
-                      {format(date, "EEEE, MMM d")} · {selectedService?.duration} min · ${Number(selectedService?.price ?? 0).toFixed(0)}
+                      {format(date, "EEEE, MMM d")} · {totalDuration} min · ${totalPrice.toFixed(0)}
                     </div>
                   </div>
                 </div>
@@ -603,7 +612,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5 text-center">
-                      <div className="text-[12px] text-[#8E8E93]">{selectedService?.name} · {barberName}</div>
+                      <div className="text-[12px] text-[#8E8E93]">{servicesLabel} · {barberName}</div>
                     </div>
                   </motion.div>
                 )}

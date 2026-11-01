@@ -10,8 +10,9 @@ export function newYearYear(now = new Date()) {
 /**
  * Which seasonal event (if any) is live for a date.
  *  - New Year:   Dec 27 → Jan 5
- *  - Christmas:  Nov 10 → Dec 26
- *  - Halloween:  Oct 15 → Nov 2
+ *  - Christmas:  40 days before → Dec 25
+ *  - Halloween:  40 days before → Oct 31
+ * Once an event has passed the invite page falls back to the simple theme.
  */
 export function pickSeasonalTheme(now = new Date()): SeasonalTheme {
   if (typeof window !== "undefined") {
@@ -21,9 +22,19 @@ export function pickSeasonalTheme(now = new Date()): SeasonalTheme {
   const m = now.getMonth() + 1;
   const d = now.getDate();
   if ((m === 12 && d >= 27) || (m === 1 && d <= 5)) return "newyear";
-  if ((m === 11 && d >= 10) || (m === 12 && d <= 26)) return "christmas";
-  if ((m === 10 && d >= 15) || (m === 11 && d <= 2)) return "halloween";
+  if (inLeadUp(now, 11, 25)) return "christmas";
+  if (inLeadUp(now, 9, 31)) return "halloween";
   return "minimal";
+}
+
+const LEAD_DAYS = 40;
+
+/** True from LEAD_DAYS before the event (month is 0-based) through the event day. */
+function inLeadUp(now: Date, month: number, day: number) {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const event = new Date(now.getFullYear(), month, day);
+  const diff = Math.round((event.getTime() - today.getTime()) / 86_400_000);
+  return diff >= 0 && diff <= LEAD_DAYS;
 }
 
 export interface SeasonalCopy {

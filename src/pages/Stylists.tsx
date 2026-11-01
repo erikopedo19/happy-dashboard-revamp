@@ -281,8 +281,16 @@ const Stylists = () => {
           <div className="relative z-10 shrink-0 bg-white/85 dark:bg-[#1C1C1E]/85 backdrop-blur-xl border-b border-black/5 dark:border-white/5 p-4 lg:hidden">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="text-[#1C1C1E] dark:text-[#F2F2F7]" />
-              <h1 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-              <div className="w-9" />
+              <h1 className="text-[17px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
+              <motion.button
+                type="button"
+                aria-label="Add stylist"
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white"
+              >
+                <Plus className="h-[18px] w-[18px]" />
+              </motion.button>
             </div>
           </div>
 
@@ -296,13 +304,6 @@ const Stylists = () => {
                   <p className="text-[#8E8E93] mt-1.5">Manage your team, schedules, and specialties.</p>
                 </div>
                 <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-5 h-10 bg-[#FF2D46] hover:bg-[#e0205e] text-white">
-                  <Plus className="h-4 w-4 mr-1.5" /> Add stylist
-                </Button>
-              </div>
-
-              <div className="flex lg:hidden items-center justify-between gap-4 mb-4">
-                <h1 className="text-2xl font-semibold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Stylists</h1>
-                <Button onPress={() => setIsCreateDialogOpen(true)} className="rounded-full px-4 h-9 bg-[#FF2D46] hover:bg-[#e0205e] text-white text-sm">
                   <Plus className="h-4 w-4 mr-1.5" /> Add stylist
                 </Button>
               </div>
@@ -367,14 +368,14 @@ const Stylists = () => {
                         layout
                         initial={{ opacity: 0, y: 16, scale: 0.96 }}
                         animate={isBeingDeleted
-                          ? { opacity: 0.4, scale: 0.93, filter: "blur(2px)" }
-                          : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+                          ? { opacity: 0.4, scale: 0.96 }
+                          : { opacity: 1, y: 0, scale: 1 }
                         }
-                        exit={{ opacity: 0, scale: 0.88, y: -8, filter: "blur(4px)", transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }}
-                        transition={{ delay: isBeingDeleted ? 0 : index * 0.05, type: "spring", stiffness: 380, damping: 30 }}
+                        exit={{ opacity: 0, scale: 0.94, y: -6, transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } }}
+                        transition={{ delay: isBeingDeleted ? 0 : Math.min(index, 8) * 0.04, type: "spring", stiffness: 380, damping: 32 }}
                         whileTap={{ scale: isBeingDeleted ? 1 : 0.98 }}
                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, stylist }); }}
-                        className="group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-shadow p-5"
+                        className="group relative rounded-[26px] bg-white dark:bg-[#1C1C1E] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] dark:shadow-none"
                       >
                         {/* Deleting overlay */}
                         {isBeingDeleted && (
@@ -388,27 +389,33 @@ const Stylists = () => {
                             <Avatar
                               src={stylist.avatar_url || undefined}
                               name={initials}
-                              className="h-14 w-14"
-                              isBordered
+                              className="h-16 w-16 text-[18px]"
                             />
                             <span className={cn("absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-[#1C1C1E]", statusDot(stylist.status))} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="text-[15px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
+                              <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{stylist.name}</h3>
                               {leaving && (
                                 <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Leaving</span>
                               )}
                             </div>
-                            <p className="text-xs text-[#8E8E93] truncate">{leaving ? "Removed · finishing booked appointments" : (stylist.title || "Stylist")}</p>
-                            <div className="flex items-center gap-1 mt-1.5">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              <span className="text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7]">{stylist.satisfaction?.toFixed(1) || "5.0"}</span>
-                              <span className="text-xs text-[#8E8E93] ml-2">· {stylist.bookings_today || 0} today</span>
+                            <p className="text-[13px] text-[#8E8E93] truncate">{leaving ? "Removed · finishing booked appointments" : (stylist.title || "Stylist")}</p>
+                            <div className="mt-2 flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-black/[0.04] px-2 py-0.5 text-[12px] font-medium text-[#1C1C1E] dark:bg-white/[0.07] dark:text-[#F2F2F7]">
+                                <Star className="h-3 w-3 fill-[#FFD60A] text-[#FFD60A]" />
+                                {stylist.satisfaction?.toFixed(1) || "5.0"}
+                              </span>
+                              <span className="inline-flex items-center rounded-full bg-black/[0.04] px-2 py-0.5 text-[12px] font-medium text-[#1C1C1E] dark:bg-white/[0.07] dark:text-[#F2F2F7]">
+                                {stylist.bookings_today || 0} today
+                              </span>
+                              <span className="inline-flex items-center rounded-full bg-black/[0.04] px-2 py-0.5 text-[12px] font-medium capitalize text-[#8E8E93] dark:bg-white/[0.07]">
+                                {(stylist.status || "available").toLowerCase()}
+                              </span>
                             </div>
                           </div>
                           {!leaving && (
-                            <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                               <motion.button
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => handleEditClick(stylist)}
@@ -428,7 +435,7 @@ const Stylists = () => {
                         </div>
 
                         {stylist.specialties && stylist.specialties.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-4">
+                          <div className="mt-3.5 flex flex-wrap gap-1.5 border-t border-black/[0.05] pt-3 dark:border-white/[0.06]">
                             {stylist.specialties.slice(0, 4).map((s, i) => (
                               <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7]/80">
                                 {s}
@@ -775,9 +782,9 @@ function StatPill({ label, value, accent }: { label: string; value: number; acce
     ? "text-amber-600 dark:text-amber-400"
     : "text-[#1C1C1E] dark:text-[#F2F2F7]";
   return (
-    <div className="rounded-[18px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] px-4 py-3">
-      <p className="text-[10px] uppercase tracking-wider text-[#8E8E93]">{label}</p>
-      <p className={cn("text-[19px] font-semibold mt-0.5", color)}>{value}</p>
+    <div className="rounded-[20px] bg-white px-4 py-3.5 dark:bg-[#1C1C1E]">
+      <p className={cn("text-[26px] font-semibold leading-none tracking-[-0.02em] tabular-nums", color)}>{value}</p>
+      <p className="mt-1.5 text-[12px] font-medium text-[#8E8E93]">{label}</p>
     </div>
   );
 }

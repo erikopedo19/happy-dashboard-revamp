@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -83,6 +83,11 @@ export function SuggestBarberSheet({
   const [searching, setSearching] = useState(true);
   const [picks, setPicks] = useState<ReturnType<typeof rank>>([]);
   const [run, setRun] = useState(0);
+  const seenRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    if (!open) seenRef.current.clear();
+  }, [open]);
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
@@ -96,7 +101,13 @@ export function SuggestBarberSheet({
     if (!open) return;
     setSearching(true);
     const t = window.setTimeout(() => {
-      setPicks(rank(barbers, userLocation));
+      // "Search again" skips barbers already suggested until the pool runs out.
+      const fresh = barbers.filter((b) => !seenRef.current.has(b.id));
+      const pool = fresh.filter((b) => b.booking_link).length ? fresh : barbers;
+      if (pool === barbers) seenRef.current.clear();
+      const next = rank(pool, userLocation);
+      next.forEach((p) => seenRef.current.add(p.b.id));
+      setPicks(next);
       setSearching(false);
       haptic("success");
     }, SEARCH_MS);
@@ -132,12 +143,21 @@ export function SuggestBarberSheet({
           role="dialog"
           aria-modal
           aria-label="Suggested barbers"
-          className="fixed inset-0 z-[80] flex flex-col overflow-hidden bg-black/90 text-white backdrop-blur-2xl"
+          className="fixed inset-0 z-[80] flex flex-col overflow-hidden bg-[#050507] text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            <motion.div
+              className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,45,70,0.28)_0%,rgba(255,45,70,0.08)_45%,transparent_70%)]"
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
+            />
+            <div className="absolute -bottom-48 -left-32 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(88,86,214,0.22)_0%,transparent_70%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgba(0,0,0,0.35)_100%)]" />
+          </div>
           <div className="relative z-20 flex items-center justify-end px-5 pt-[max(env(safe-area-inset-top),16px)]">
             <motion.button
               type="button"
@@ -161,14 +181,6 @@ export function SuggestBarberSheet({
                 transition={{ duration: 0.45, ease }}
               >
                 <Ripple mainCircleSize={230} />
-                {/* Radar sweep inside the first circle */}
-                <motion.div
-                  aria-hidden
-                  className="absolute left-1/2 top-1/2 h-[230px] w-[230px] overflow-hidden rounded-full [mask-image:radial-gradient(closest-side,white_80%,transparent)]"
-                  style={{ x: "-50%", y: "-50%", background: "conic-gradient(from 0deg, transparent 0deg, rgba(255,45,70,0) 250deg, rgba(255,45,70,0.35) 360deg)" }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
-                />
                 <div className="absolute left-1/2 top-1/2 flex w-[200px] -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center">
                   <motion.div
                     animate={{ scale: [1, 1.06, 1] }}
