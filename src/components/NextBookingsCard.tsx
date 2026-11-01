@@ -98,6 +98,23 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
   });
 
   const [next, ...rest] = bookings;
+
+  // Run the border trace on the first view after each login and whenever the upcoming bookings change.
+  const [tracePlay, setTracePlay] = useState(0);
+  const traceSig = bookings.map((b) => `${b.id}@${b.appointment_date}T${b.appointment_time}:${b.status ?? ""}`).join("|");
+  const loginStamp = user?.last_sign_in_at ?? "";
+  useEffect(() => {
+    if (!user?.id || !traceSig) return;
+    const key = `next-booking-trace:${user.id}`;
+    const stamp = `${loginStamp}#${traceSig}`;
+    try {
+      if (localStorage.getItem(key) === stamp) return;
+      localStorage.setItem(key, stamp);
+    } catch {
+      /* storage unavailable: still play */
+    }
+    setTracePlay((n) => n + 1);
+  }, [user?.id, loginStamp, traceSig]);
   const now = useNow();
   const msLeft = next ? startsAtOf(next).getTime() - now : 0;
   const countdown = formatCountdown(msLeft);
@@ -190,7 +207,7 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
             <div className="absolute -left-5 -top-11 h-44 w-44 rounded-full bg-[#7B3FA0]/30 blur-3xl" />
             <div className="absolute right-5 top-5 h-40 w-40 rounded-full bg-[#8A6A3A]/25 blur-3xl" />
           </div>
-          <TraceBorder radius={30} />
+          <TraceBorder radius={30} play={tracePlay} />
           <div className="relative flex w-full items-center gap-4">
           <motion.div
             layoutId={`next-booking-date-${next.id}`}
