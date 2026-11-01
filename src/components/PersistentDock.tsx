@@ -6,7 +6,7 @@ import { MobileDockInner } from "@/components/MobileDock";
 import { ClientMobileDockInner } from "@/components/ClientMobileDock";
 
 const HIDE_ON = ["/auth", "/login", "/superadmin", "/choose-role", "/choose-mode", "/complete-profile", "/onboarding", "/pricing"];
-const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing", "/b/"];
+const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing", "/b/", "/site/"];
 
 
 const CLIENT_ROUTES = [

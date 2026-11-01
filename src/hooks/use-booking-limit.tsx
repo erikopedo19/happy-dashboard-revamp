@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { format, startOfMonth } from "date-fns";
+import { addMonths, format, startOfMonth } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium, PREMIUM_LIMITS } from "@/hooks/use-premium";
@@ -20,6 +20,7 @@ export function useBookingLimit(): BookingLimitState {
   const { user } = useAuth();
   const { loading: premiumLoading, isPremium } = usePremium();
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const nextMonthStart = format(startOfMonth(addMonths(new Date(), 1)), "yyyy-MM-dd");
 
   const { data: used = 0, isLoading } = useQuery({
     queryKey: ["bookings-this-month", user?.id, monthStart],
@@ -30,6 +31,7 @@ export function useBookingLimit(): BookingLimitState {
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("appointment_date", monthStart)
+        .lt("appointment_date", nextMonthStart)
         .neq("status", "cancelled");
       if (error) throw error;
       return count ?? 0;

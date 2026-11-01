@@ -44,7 +44,7 @@ type ManageAction = "cancel" | "resume";
 type ManageResult =
   | { kind: "fallback" }
   | { kind: "error" }
-  | { kind: "success"; subscriptionEnd: string | null };
+  | { kind: "success"; subscriptionEnd: string | null; emailPending: boolean };
 
 async function manageSubscription(action: ManageAction): Promise<ManageResult> {
   const { data, error } = await supabase.functions.invoke("manage-subscription", {
@@ -69,7 +69,7 @@ async function manageSubscription(action: ManageAction): Promise<ManageResult> {
 
   if (errorCode === "no_stripe_subscription") return { kind: "fallback" };
   if (error || errorCode || data?.ok !== true) return { kind: "error" };
-  return { kind: "success", subscriptionEnd: data.subscription_end ?? null };
+  return { kind: "success", subscriptionEnd: data.subscription_end ?? null, emailPending: data.email_pending === true };
 }
 
 export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop" | "mobile" }) {
@@ -83,6 +83,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   const { loading, error, data, status, refresh } = useSubscription();
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [noRecurringPlan, setNoRecurringPlan] = useState(false);
 
   const shell = "rounded-2xl border border-border bg-card p-5";
 
@@ -118,7 +119,10 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   }
 
   const isPro = status === "active" || status === "canceling";
-  const s = STATUS_LABEL[status];
+  // Pro granted by Cutzioo (gift, promo or admin) has no Stripe subscription,
+  // so there is nothing to renew, cancel or pay for.
+  const isComplimentary = isPro && (noRecurringPlan || data?.has_recurring_subscription === false || !data?.stripe_subscription_id);
+  const s = STATUS_LABEL[isComplimentary ? "active" : status];
 
   const summary = (
     <div className="space-y-6">
@@ -129,9 +133,9 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             ["Plan", isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"],
             ["Status", s.label],
             ["Started", fmt(data?.subscription_start)],
-            [status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
-            ["Amount", isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
-            ["Auto-renew", isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
+            [isComplimentary || status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
+            ["Amount", isComplimentary ? "No recurring payment" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
+            ["Auto-renew", isComplimentary ? "Not applicable" : isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
           ].map(([label, value]) => (
             <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3 last:border-b-0">
               <span className="text-[15px]">{label}</span>
@@ -156,14 +160,14 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         return;
       }
       if (result.kind === "fallback") {
-        const { error: rpcError } = await supabase.rpc("set_subscription_auto_renew", { _enabled: enabled });
-        if (rpcError) {
-          toast.error("Couldn't update auto-renewal. Please try again.");
-          return;
-        }
+        setNoRecurringPlan(true);
+        setConfirmOpen(false);
+        return;
       }
       toast.success(enabled ? "Auto-renewal turned on" : "Auto-renewal turned off");
+      if (result.emailPending) toast.info("Your membership was updated; the confirmation email is pending.");
       await refresh();
+      window.dispatchEvent(new Event("premium:refresh"));
     } catch {
       toast.error("Couldn't update auto-renewal. Please try again.");
     } finally {
@@ -180,18 +184,18 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         return;
       }
       if (result.kind === "fallback") {
-        const { error: rpcError } = await supabase.rpc("cancel_subscription_at_period_end");
-        if (rpcError) {
-          toast.error("Couldn't cancel your subscription. Please try again.");
-          return;
-        }
+        setNoRecurringPlan(true);
+        setConfirmOpen(false);
+        return;
       }
       setConfirmOpen(false);
       const subscriptionEnd = result.kind === "success"
         ? result.subscriptionEnd ?? data?.subscription_end
         : data?.subscription_end;
       toast.success(`Pro cancelled. You keep it until ${fmt(subscriptionEnd)}.`);
+      if (result.emailPending) toast.info("Cancellation is confirmed; the confirmation email is pending.");
       await refresh();
+      window.dispatchEvent(new Event("premium:refresh"));
     } catch {
       toast.error("Couldn't cancel your subscription. Please try again.");
     } finally {
@@ -199,13 +203,28 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
     }
   }
 
-  const openBilling = () => {
+  const openBilling = async () => {
     haptic("light");
-    if (STRIPE_PORTAL_LINK) {
-      window.open(STRIPE_PORTAL_LINK, "_blank", "noopener,noreferrer");
-      return;
+    setBusy(true);
+    try {
+      const { data: portal, error: portalError } = await supabase.functions.invoke("manage-subscription", { body: { action: "portal" } });
+      if (!portalError && portal?.url) {
+        window.location.assign(portal.url);
+        return;
+      }
+      let code = portal?.error as string | undefined;
+      if (portalError && "context" in portalError) {
+        try { code = (await (portalError as { context: Response }).context.json())?.error ?? code; } catch { /* ignore */ }
+      }
+      if (code === "no_stripe_subscription" || code === "no_customer") {
+        setNoRecurringPlan(true);
+        return;
+      }
+      if (STRIPE_PORTAL_LINK) window.location.assign(STRIPE_PORTAL_LINK);
+      else toast.error("Stripe billing management is not available yet. Please try again later.");
+    } finally {
+      setBusy(false);
     }
-    navigate("/pricing");
   };
 
   return (
@@ -240,13 +259,35 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
           <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
             <span className="text-[16px]">{isPro ? "Renewal amount" : "Bookings included"}</span>
             <span className="text-right text-[16px] tabular-nums text-muted-foreground">
-              {isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
+              {isComplimentary ? "—" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
             </span>
           </div>
         </div>
       </div>
 
-      {isPro ? (
+      {isComplimentary ? (
+        <div>
+          <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
+            <div className="flex min-h-16 items-center gap-3 border-b border-border px-4 py-3">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary"><ShieldCheck className="h-4 w-4" /></span>
+              <div className="min-w-0">
+                <p className="text-[16px]">Pro access</p>
+                <p className="text-[12px] text-muted-foreground">No recurring payment is linked to this membership.</p>
+              </div>
+            </div>
+            <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
+              <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />Pro access until</span>
+              <span className="text-right text-[16px] text-muted-foreground">{data?.subscription_end ? fmt(data.subscription_end) : "No end date"}</span>
+            </div>
+            <Button onClick={() => navigate("/pricing")} variant="ghost" className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
+              <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Subscribe to keep Pro</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </div>
+          <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Your current Pro access is kept until its end date. Your data is kept when you move to the free plan.</p>
+        </div>
+      ) : isPro ? (
         <>
           <div>
             <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
@@ -270,7 +311,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
                 <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />{status === "canceling" ? "Access ends" : "Renewal date"}</span>
                 <span className="text-right text-[16px] text-muted-foreground">{fmt(data?.subscription_end)}</span>
               </div>
-              <Button variant="ghost" onClick={openBilling} className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
+              <Button variant="ghost" disabled={busy} onClick={openBilling} className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
                 <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Manage payment methods</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Button>

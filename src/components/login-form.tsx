@@ -228,6 +228,9 @@ export function LoginForm() {
                     <FlipWords words={["Cut", "Fade", "Style", "Look"]} duration={2400} className="pl-4 pr-0" />
                   </span>
                 </h1>
+                <p className="mt-3 max-w-[300px] text-[15px] leading-relaxed text-white/45">
+                  Find your barber, pick a time and keep every cut in one place.
+                </p>
               </div>
 
               <div className="space-y-3 pb-2">
@@ -235,7 +238,7 @@ export function LoginForm() {
                   type="button"
                   onClick={googleSignIn}
                   disabled={googleBusy}
-                  className="inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-full bg-[#EDEDED] text-[16px] font-semibold text-black transition active:scale-[0.98] disabled:opacity-60"
+                  className="inline-flex h-[56px] w-full items-center justify-center gap-3 rounded-[16px] bg-[#1C1C1F] text-[16px] font-medium text-white ring-1 ring-inset ring-white/[0.14] transition active:scale-[0.98] disabled:opacity-60"
                 >
                   {googleBusy ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -255,13 +258,26 @@ export function LoginForm() {
                 <button
                   type="button"
                   onClick={() => { haptic("light"); setShowEmail(true); }}
-                  className="inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-full bg-[#1A1A1D] text-[16px] font-semibold text-white ring-1 ring-white/10 transition active:scale-[0.98]"
+                  className="inline-flex h-[56px] w-full items-center justify-center gap-3 rounded-[16px] bg-[#1C1C1F] text-[16px] font-medium text-white ring-1 ring-inset ring-white/[0.06] transition active:scale-[0.98]"
                 >
                   <Mail className="h-5 w-5" />
                   Continue with Email
                 </button>
 
-                <p className="pt-2 text-center text-[11px] leading-relaxed text-white/40">
+                <div className="flex items-center gap-3 pt-2 text-[12px] text-white/35">
+                  <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
+                </div>
+                <p className="text-center text-[14px] text-white/55">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => { haptic("light"); setMode("signin"); setShowEmail(true); }}
+                    className="font-semibold text-[#FF5A6E]"
+                  >
+                    Sign In
+                  </button>
+                </p>
+                <p className="pt-1 text-center text-[11px] leading-relaxed text-white/35">
                   By continuing you agree to our{" "}
                   <a className="underline underline-offset-2 text-white/60" href="/terms" data-glimm-skip>Terms</a> and{" "}
                   <a className="underline underline-offset-2 text-white/60" href="/privacy" data-glimm-skip>Privacy Policy</a>.

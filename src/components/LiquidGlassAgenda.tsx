@@ -1,7 +1,7 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay, addMinutes, parseISO } from "date-fns";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, CheckCircle2, Clock, User, X, Calendar, Mail, Phone, FileText, Ban, Loader2, MoreHorizontal, Palmtree, GripVertical, ArrowLeftRight, ArrowDown, Moon } from "lucide-react";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { HoldButton } from "@/components/ui/hold-button";
 
@@ -211,6 +211,11 @@ export const LiquidGlassAgenda = ({
 }: LiquidGlassAgendaProps) => {
   const [selectedDay, setSelectedDay] = useState(new Date());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [nowTick, setNowTick] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; appointment: Appointment } | null>(null);
   const [slotSheetAppointment, setSlotSheetAppointment] = useState<Appointment | null>(null);
@@ -225,6 +230,7 @@ export const LiquidGlassAgenda = ({
   const [drag, setDrag] = useState<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const [dropHover, setDropHover] = useState<string | null>(null);
   const [movingIds, setMovingIds] = useState<string[]>([]);
+  const [pendingSwap, setPendingSwap] = useState<{ from: Appointment; to: Appointment } | null>(null);
   const dragRef = useRef<{ id: string; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const dropHoverRef = useRef<string | null>(null);
   const autoScrollFrameRef = useRef<number | null>(null);
@@ -240,7 +246,8 @@ export const LiquidGlassAgenda = ({
 
   const performDrop = async (
     current: { id: string; dx: number; dy: number },
-    t: { aptId: string | null; time: string | null } | null
+    t: { aptId: string | null; time: string | null } | null,
+    confirmed = false
   ) => {
     if (!t || Math.hypot(current.dx, current.dy) < 12) return;
     const targetId = t.aptId && t.aptId !== current.id ? t.aptId : null;
@@ -249,6 +256,14 @@ export const LiquidGlassAgenda = ({
     // clients don't get a pointless "rescheduled" email.
     const draggedApt = dayAppointments.find((a) => a.id === current.id);
     if (!targetId && draggedApt && t.time === draggedApt.appointment_time.slice(0, 5)) return;
+    if (targetId && !confirmed) {
+      const targetApt = dayAppointments.find((a) => a.id === targetId);
+      if (draggedApt && targetApt) {
+        haptic("medium");
+        setPendingSwap({ from: draggedApt, to: targetApt });
+        return;
+      }
+    }
     const dateStr = format(selectedDay, "yyyy-MM-dd");
     setMovingIds([current.id, ...(targetId ? [targetId] : [])]);
     const { data, error } = await (supabase as any).rpc("swap_or_move_appointment", {
@@ -747,49 +762,92 @@ export const LiquidGlassAgenda = ({
     return result;
   }, [agendaSettings, timeRange]);
 
+  // Day timeline rows: every open slot, every booking/event start time (so
+  // off-grid bookings sit exactly at their time), plus closed hours around
+  // the opening window.
+  const slotInterval = Math.max(agendaSettings?.service_duration || 60, 1);
+  const rowPx = isMobile ? 96 : 76;
+  const timelineRows = useMemo(() => {
+    if (!hours.length) return [] as { time: string; min: number; end: number; closed: boolean; edge: "before" | "after" | null }[];
+    const toMin = (t: string) => {
+      const [h, m] = t.slice(0, 5).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+    const openStart = toMin(hours[0]);
+    const openEnd = toMin(hours[hours.length - 1]) + slotInterval;
+    const kinds = new Map<number, boolean>();
+    hours.forEach((h) => kinds.set(toMin(h), false));
+    const addStart = (m: number) => {
+      if (!kinds.has(m)) kinds.set(m, m < openStart || m >= openEnd);
+    };
+    dayAppointments.forEach((apt) => addStart(toMin(apt.appointment_time)));
+    (dayEvents || []).forEach((ev) => ev.start_time && addStart(toMin(ev.start_time)));
+    for (let m = Math.max(0, Math.floor(openStart / 60) * 60 - 120); m < openStart; m += 60) addStart(m);
+    for (let m = openEnd; m < Math.min(24 * 60, openEnd + 120); m += 60) addStart(m);
+    const mins = [...kinds.keys()].sort((a, b) => a - b);
+    let firstAfter = true;
+    return mins.map((min, i) => {
+      const closed = kinds.get(min)!;
+      const end = mins[i + 1] ?? min + (closed ? 60 : slotInterval);
+      let edge: "before" | "after" | null = null;
+      if (closed && min < openStart && end >= openStart) edge = "before";
+      if (closed && min >= openEnd && firstAfter) {
+        edge = "after";
+        firstAfter = false;
+      }
+      return { time: fmt(min), min, end, closed, edge };
+    });
+  }, [hours, slotInterval, dayAppointments, dayEvents]);
+
+  // Minute of day → px offset in the timeline (rows are fixed-height, so the
+  // scale is piecewise between row start times).
+  const timelineY = useCallback(
+    (minute: number) => {
+      if (!timelineRows.length) return 0;
+      if (minute <= timelineRows[0].min) return 0;
+      for (let i = 0; i < timelineRows.length; i++) {
+        const r = timelineRows[i];
+        if (minute < r.end) return i * rowPx + ((minute - r.min) / Math.max(r.end - r.min, 1)) * rowPx;
+      }
+      return timelineRows.length * rowPx;
+    },
+    [timelineRows, rowPx],
+  );
+
   // Map every appointment of the day onto the slot row it belongs to, so
   // bookings made off the slot grid (or outside working hours) still render.
   const appointmentsBySlot = useMemo(() => {
     const map: Record<string, typeof dayAppointments> = {};
-    if (!hours.length) return map;
-    const slotMins = hours.map((h) => {
-      const [hh, mm] = h.split(":").map(Number);
-      return hh * 60 + mm;
-    });
+    if (!timelineRows.length) return map;
     for (const apt of dayAppointments) {
       const [ah, am] = apt.appointment_time.split(":").map(Number);
       const aptMin = ah * 60 + am;
       let idx = 0;
-      for (let i = 0; i < slotMins.length; i++) {
-        if (slotMins[i] <= aptMin) idx = i;
+      for (let i = 0; i < timelineRows.length; i++) {
+        if (timelineRows[i].min <= aptMin) idx = i;
       }
-      if (aptMin > slotMins[slotMins.length - 1] + 59) idx = slotMins.length - 1;
-      const key = hours[idx];
-      (map[key] ||= []).push(apt);
+      (map[timelineRows[idx].time] ||= []).push(apt);
     }
     return map;
-  }, [dayAppointments, hours]);
+  }, [dayAppointments, timelineRows]);
 
 
   // Bucket events onto the slot row they start in (same rule as appointments).
   const eventsBySlot = useMemo(() => {
     const map: Record<string, NonNullable<typeof dayEvents>> = {};
-    if (!hours.length) return map;
-    const slotMins = hours.map((h) => {
-      const [hh, mm] = h.split(":").map(Number);
-      return hh * 60 + mm;
-    });
+    if (!timelineRows.length) return map;
     for (const ev of dayEvents || []) {
       const [eh, em] = (ev.start_time || "00:00").split(":").map(Number);
       const evMin = eh * 60 + em;
       let idx = 0;
-      for (let i = 0; i < slotMins.length; i++) {
-        if (slotMins[i] <= evMin) idx = i;
+      for (let i = 0; i < timelineRows.length; i++) {
+        if (timelineRows[i].min <= evMin) idx = i;
       }
-      (map[hours[idx]] ||= []).push(ev);
+      (map[timelineRows[idx].time] ||= []).push(ev);
     }
     return map;
-  }, [dayEvents, hours]);
+  }, [dayEvents, timelineRows]);
 
   const eventDuration = (ev: { start_time: string | null; end_time: string | null }) => {
     const [sh, sm] = (ev.start_time || "00:00").split(":").map(Number);
@@ -803,16 +861,13 @@ export const LiquidGlassAgenda = ({
     const el = scrollRef.current;
     if (!el) return;
     const now = new Date();
-    const minutesFromStart = (now.getHours() - timeRange.startHour) * 60 + now.getMinutes();
-    if (minutesFromStart < 0) return;
-    const pixelsPerMinute = 80 / 60;
-    const target = Math.max(0, minutesFromStart * pixelsPerMinute - 80);
+    const target = Math.max(0, timelineY(now.getHours() * 60 + now.getMinutes()) - 80);
     // Defer until layout is painted
     const id = window.setTimeout(() => {
       el.scrollTo({ top: target, behavior: 'smooth' });
     }, 150);
     return () => window.clearTimeout(id);
-  }, [selectedDay, timeRange.startHour, hours.length]);
+  }, [selectedDay, timelineY]);
 
   // Format time display (e.g., "3 PM")
   const formatTimeLabel = (time: string) => {
@@ -986,6 +1041,12 @@ export const LiquidGlassAgenda = ({
   const totalCount = dayAppointments.length;
   const completionPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const shouldShowViewToggle = showViewModeToggle && appointments.length > 0;
+  const nowLineY = (() => {
+    if (!timelineRows.length || !isSameDay(selectedDay, nowTick)) return null;
+    const nowMin = nowTick.getHours() * 60 + nowTick.getMinutes();
+    if (nowMin < timelineRows[0].min || nowMin > timelineRows[timelineRows.length - 1].end) return null;
+    return timelineY(nowMin);
+  })();
 
   const weekSummary = useMemo(() => {
     return weekDays.map((day) => {
@@ -1561,11 +1622,33 @@ export const LiquidGlassAgenda = ({
             animate="visible"
             variants={slotListVariants}
           >
+            {(() => {
+              if (nowLineY === null) return null;
+              const top = 16 + nowLineY;
+              return (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute left-0 right-0 z-30 flex -translate-y-1/2 items-center"
+                  style={{ top }}
+                >
+                  <span className="w-12 shrink-0">
+                    <span className="rounded-full bg-[#FF3B30] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-[0_2px_8px_rgba(255,59,48,0.45)]">
+                      {format(nowTick, 'HH:mm')}
+                    </span>
+                  </span>
+                  <span className="ml-1 h-2 w-2 shrink-0 rounded-full bg-[#FF3B30]" />
+                  <span className="h-[1.5px] flex-1 bg-[#FF3B30] shadow-[0_0_8px_rgba(255,59,48,0.55)]" />
+                </div>
+              );
+            })()}
+
             {/* Time markers and appointment cards */}
-            {hours.map((hour) => {
+            {timelineRows.map((row, rowIndex) => {
+              const hour = row.time;
               const [slotHour, slotMinute] = hour.split(':').map(Number);
-              const slotStartMin = slotHour * 60 + slotMinute;
-              const slotInterval = Math.max(agendaSettings?.service_duration || 60, 1);
+              const slotStartMin = row.min;
+              const rowTopY = rowIndex * rowPx;
+              const labelHidden = nowLineY !== null && Math.abs(nowLineY - rowTopY - 6) < 20;
 
               // Bucket appointments into the slot they fall inside (handles
               // off-grid times like 10:30 with a 60-min grid, plus anything
@@ -1599,7 +1682,7 @@ export const LiquidGlassAgenda = ({
               slotDate.setHours(slotHour, slotMinute, 0, 0);
               const isPastSlot = isPastDay || (isSameDay(selectedDay, now) && slotDate.getTime() < now.getTime());
 
-              const slotEndMin = slotStartMin + slotInterval;
+              const slotEndMin = row.end;
               // Overlap, not containment: an off-grid block (e.g. 13:15–14:00 on
               // an hourly grid) still covers the slots it touches.
               const inBlockedRange = (blockedSlots || []).some((b: any) => {
@@ -1612,12 +1695,9 @@ export const LiquidGlassAgenda = ({
               const isBlocked = selectedDayIsOff || inBlockedRange;
 
 
-              const ROW_H = 76; // fixed grid row height (card 64 + 12 gap)
-              const rowHeight = isMobile ? 76 : ROW_H;
-              // Cover every hour an appointment/event occupies: measure from its
-              // real start offset inside this slot to its real end, so a service
-              // that needs N hours always spans N rows even off the grid.
-              const spanToEnd = (startMin: number, dur: number) => startMin - slotStartMin + dur;
+              const rowHeight = rowPx;
+              // Cover every row an appointment/event occupies, up to its real end.
+              const spanToEnd = (startMin: number, dur: number) => timelineY(startMin + dur) - rowTopY;
               const maxSpanEnd = Math.max(
                 ...hourAppointments.map((apt) => {
                   const [ah, am] = apt.appointment_time.split(':').map(Number);
@@ -1629,27 +1709,28 @@ export const LiquidGlassAgenda = ({
                 }),
                 0
               );
-              const cardGap = isMobile ? 4 : 12;
-              const minCardHeight = isMobile ? 72 : 64;
-              const cardStackHeight = Math.max((maxSpanEnd / slotInterval) * rowHeight - cardGap, minCardHeight);
+              const cardGap = 12;
+              const minCardHeight = rowHeight - cardGap;
+              const cardStackHeight = Math.max(maxSpanEnd - cardGap, minCardHeight);
 
               return (
                 <div
                   key={hour}
-                  data-slot-time={hour}
-                  className={cn("relative rounded-2xl transition-colors duration-200", isPastSlot && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
+                  data-slot-time={row.closed ? undefined : hour}
+                  className={cn("relative rounded-2xl transition-colors duration-200", isPastSlot && !row.closed && "opacity-50", dropHover === `t:${hour}` && "bg-[#FF2D46]/10 ring-2 ring-[#FF2D46]/40")}
                   style={{ height: rowHeight }}
                 >
                   {/* Time label */}
                   <div className="absolute left-0 top-0 flex items-start gap-3 w-full pointer-events-none">
-                    <div className="w-12 flex-shrink-0 pt-0.5">
+                    <div className={cn("w-12 flex-shrink-0 pt-0.5 leading-none transition-opacity", labelHidden && "opacity-0")}>
                       <span className={cn(
-                        "text-[11px] font-medium",
-                        isMobile && isSameDay(selectedDay, new Date()) && new Date().getHours() === parseInt(hour.slice(0, 2), 10)
-                          ? "inline-flex items-center rounded-full bg-white px-2 py-0.5 text-gray-900 shadow-sm dark:bg-[#1C1C1E] dark:text-white"
-                          : "text-gray-400 dark:text-gray-500"
+                        "block text-[12px] font-semibold tabular-nums tracking-[-0.01em]",
+                        row.closed ? "text-gray-300 dark:text-white/25" : "text-gray-500 dark:text-white/55"
                       )}>
-                        {hour.endsWith(':00') ? formatTimeLabel(hour) : hour}
+                        {`${slotHour % 12 || 12}:${String(slotMinute).padStart(2, '0')}`}
+                      </span>
+                      <span className={cn("mt-0.5 block text-[9.5px] font-semibold uppercase tracking-[0.08em]", row.closed ? "text-gray-300 dark:text-white/20" : "text-gray-400 dark:text-white/35")}>
+                        {slotHour < 12 ? 'AM' : 'PM'}
                       </span>
                     </div>
 
@@ -1682,18 +1763,41 @@ export const LiquidGlassAgenda = ({
                           : { x: 0, y: 0, scale: dropHover === `a:${apt.id}` ? 0.96 : 1, rotate: 0, opacity: movingIds.includes(apt.id) ? 0.5 : 1 }}
                         transition={drag?.id === apt.id ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                         style={{ zIndex: drag?.id === apt.id ? 50 : undefined, pointerEvents: drag?.id === apt.id ? "none" : undefined }}
-                        className={cn("flex-1 min-h-0 relative rounded-2xl", dropHover === `a:${apt.id}` && "ring-2 ring-[#FF2D46] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
+                        className={cn("flex-1 min-h-0 relative rounded-2xl", (dropHover === `a:${apt.id}` || pendingSwap?.from.id === apt.id || pendingSwap?.to.id === apt.id) && "ring-2 ring-[#FF2D46] ring-offset-2 ring-offset-transparent", drag?.id === apt.id && "shadow-2xl")}
                       >
+                        <AnimatePresence>
+                          {(dropHover === `a:${apt.id}` || pendingSwap?.from.id === apt.id || pendingSwap?.to.id === apt.id) && (
+                            <motion.div
+                              key="swap-badge"
+                              initial={{ opacity: 0, scale: 0.4 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.4 }}
+                              transition={{ type: "spring", stiffness: 520, damping: 26 }}
+                              className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-[#FF2D46]/[0.06]"
+                            >
+                              <motion.span
+                                animate={{ rotate: [0, 180, 180, 360], scale: [1, 1.12, 1, 1] }}
+                                transition={{ duration: 1.6, repeat: Infinity, ease: [0.65, 0, 0.35, 1], times: [0, 0.35, 0.5, 0.85] }}
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]"
+                              >
+                                <ArrowLeftRight className="h-4 w-4" strokeWidth={2.5} />
+                              </motion.span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                         {!isCancelled && (
                           <span
                             role="button"
                             aria-label="Drag to move"
                             onPointerDown={(e) => startDrag(e, apt)}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 dark:bg-white/[0.08] dark:text-gray-300 cursor-grab active:cursor-grabbing"
+                            className={cn(
+                              "absolute right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full cursor-grab active:cursor-grabbing",
+                              isMobile ? "top-2 text-gray-400 dark:text-white/45" : "top-1/2 -translate-y-1/2 bg-black/5 text-gray-500 dark:bg-white/[0.08] dark:text-gray-300"
+                            )}
                             style={{ touchAction: "none", pointerEvents: drag?.id === apt.id ? "none" : "auto" }}
                           >
-                            <GripVertical className="h-4 w-4" />
+                            {isMobile ? <MoreHorizontal className="h-4 w-4" /> : <GripVertical className="h-4 w-4" />}
                           </span>
                         )}
 
@@ -1713,8 +1817,8 @@ export const LiquidGlassAgenda = ({
                           onPointerLeave={clearLongPressTimer}
                           onPointerMove={handleAppointmentPointerMove}
                           className={cn(
-                            "w-full h-full text-left rounded-2xl relative overflow-hidden transition-all active:scale-[0.98]",
-                            isMobile ? "pl-5 pr-3.5 py-2" : "pl-6 pr-4 py-4",
+                            "w-full h-full text-left relative overflow-hidden transition-all active:scale-[0.98]",
+                            isMobile ? "flex flex-col justify-start rounded-[22px] pl-5 pr-3.5 py-2.5" : "rounded-2xl pl-6 pr-4 py-4",
                             "border",
                             isCancelled
                               ? (isDark
@@ -1733,7 +1837,7 @@ export const LiquidGlassAgenda = ({
                             background: isCancelled
                               ? (isDark ? "rgba(120,120,128,0.08)" : "rgba(120,120,128,0.05)")
                               : isMobile
-                                ? `linear-gradient(90deg, ${colorToRgba(serviceColor, isDark ? 0.16 : 0.1)} 0%, ${colorToRgba(serviceColor, 0)} 55%), ${isDark ? "#161618" : "#FFFFFF"}`
+                                ? `linear-gradient(90deg, ${colorToRgba(serviceColor, isDark ? 0.16 : 0.1)} 0%, ${colorToRgba(serviceColor, 0)} 55%), ${isDark ? "#1C1C1E" : "#FFFFFF"}`
                                 : getGlassGradient(serviceColor, isDark),
                             backdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
                             WebkitBackdropFilter: isCancelled || isMobile ? "none" : "blur(40px) saturate(180%)",
@@ -1774,7 +1878,39 @@ export const LiquidGlassAgenda = ({
                             </>
                           )}
 
-                          {/* Content */}
+                          {isMobile ? (() => {
+                            const [sh, sm] = apt.appointment_time.split(':').map(Number);
+                            const startAt = new Date(selectedDay); startAt.setHours(sh, sm, 0, 0);
+                            const endAt = addMinutes(startAt, duration);
+                            const status = isCancelled ? "Cancelled" : isCompleted ? "Completed"
+                              : nowTick >= startAt && nowTick < endAt ? "In progress"
+                              : nowTick >= endAt ? "Finished" : "Upcoming";
+                            const firstName = (apt.customer.name || "Client").trim().split(/\s+/)[0];
+                            return (
+                              <div className={cn("relative z-10 flex h-full w-full min-h-0 gap-3", !isCancelled && "pr-8")}>
+                                <span className="w-[4px] shrink-0 rounded-full" style={{ backgroundColor: serviceColor, opacity: isCancelled ? 0.35 : 1 }} />
+                                <div className="flex min-w-0 flex-1 flex-col">
+                                  <h3 className={cn("truncate text-[17px] font-bold leading-tight tracking-[-0.02em]", isCancelled && "line-through", isDark ? "text-white" : "text-[#1C1C1E]")}>
+                                    {firstName}
+                                  </h3>
+                                  <p className={cn("mt-0.5 flex min-w-0 items-center gap-1.5 truncate text-[12.5px] font-medium leading-4", isDark ? "text-white/60" : "text-gray-500")}>
+                                    <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: serviceColor }} />
+                                    <span className="truncate">{apt.service.name}</span>
+                                  </p>
+                                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                                    <span className={cn("truncate text-[11.5px] font-semibold", status === "In progress" ? "text-[#30D158]" : isDark ? "text-white/40" : "text-gray-400")}>
+                                      {status}
+                                    </span>
+                                    <span className={cn("flex shrink-0 items-center gap-1 text-[11.5px] font-medium tabular-nums", isDark ? "text-white/55" : "text-gray-500")}>
+                                      <Clock className="h-3.5 w-3.5" />
+                                      {format(startAt, 'h:mm a')} - {format(endAt, 'h:mm a')}
+                                    </span>
+                                  </div>
+                                </div>
+                                {isCompleted && <CheckCircle2 className={cn("absolute right-0 bottom-0 h-4 w-4", isDark ? "text-green-400" : "text-green-600")} />}
+                              </div>
+                            );
+                          })() : (
                           <div className={cn("relative z-10 flex flex-col justify-between h-full", !isCancelled && "pr-10")}>
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
@@ -1839,6 +1975,7 @@ export const LiquidGlassAgenda = ({
                             </div>
 
                           </div>
+                          )}
                         </button>
                       </motion.div>
                     );
@@ -1891,7 +2028,26 @@ export const LiquidGlassAgenda = ({
                   )}
 
                   {/* Empty slot - visible quick-add (disabled if past) */}
-                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && !isBlocked && (
+                  {row.closed && hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && (
+                    <div
+                      className={cn(
+                        "absolute left-[60px] right-0 top-0 bottom-3 flex items-center justify-center gap-2 rounded-2xl border select-none",
+                        isDark ? "border-white/[0.05] text-white/30" : "border-black/[0.05] text-gray-400"
+                      )}
+                      style={{
+                        backgroundImage: isDark
+                          ? "repeating-linear-gradient(135deg, transparent, transparent 7px, rgba(255,255,255,0.035) 7px, rgba(255,255,255,0.035) 8px)"
+                          : "repeating-linear-gradient(135deg, transparent, transparent 7px, rgba(0,0,0,0.04) 7px, rgba(0,0,0,0.04) 8px)",
+                      }}
+                    >
+                      <Moon className="h-3.5 w-3.5" />
+                      <span className="text-[12px] font-medium">
+                        {row.edge === "before" ? `Closed · opens ${hours[0]}` : row.edge === "after" ? `Closed from ${timelineRows.find((r) => r.edge === "after")?.time}` : "Closed"}
+                      </span>
+                    </div>
+                  )}
+
+                  {!row.closed && hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && !isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
 
                       <button
@@ -1945,10 +2101,12 @@ export const LiquidGlassAgenda = ({
                   )}
 
                   {/* Blocked slot */}
-                  {hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
+                  {!row.closed && hourAppointments.length === 0 && hourEvents.length === 0 && !isOccupied && isBlocked && (
                     <div className="absolute left-[60px] right-0 top-0 bottom-3">
                       <button
+                        disabled={isPastSlot}
                         onClick={() => {
+                          if (isPastSlot) return;
                           const blockedSlot = (blockedSlots || []).find((b: any) => {
                             const [sh, sm] = (b.start_time || "00:00").split(":").map(Number);
                             const [eh, em] = (b.end_time || "00:00").split(":").map(Number);
@@ -1965,7 +2123,8 @@ export const LiquidGlassAgenda = ({
                           }
                         }}
                         className={cn(
-                          "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all hover:scale-[1.02]",
+                          "w-full h-full rounded-2xl border border-dashed flex items-center justify-center gap-2 transition-all",
+                          isPastSlot ? "cursor-not-allowed" : "hover:scale-[1.02]",
                           selectedDayIsOff
                             ? (isDark
                                 ? "border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
@@ -2201,6 +2360,86 @@ export const LiquidGlassAgenda = ({
                 className="h-12 rounded-2xl bg-black/[0.05] text-[15px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
               >
                 Keep it open
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer open={!!pendingSwap} onOpenChange={(open) => { if (!open) setPendingSwap(null); }}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-sm px-6 pb-8 pt-2">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#FF2D46]/10">
+              <motion.span
+                animate={{ rotate: [0, 180, 180, 360] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: [0.65, 0, 0.35, 1], times: [0, 0.35, 0.5, 0.85] }}
+                className="flex"
+              >
+                <ArrowLeftRight className="h-6 w-6 text-[#FF2D46]" strokeWidth={2.4} />
+              </motion.span>
+            </div>
+            <DrawerTitle className="text-center">Swap these appointments?</DrawerTitle>
+            <DrawerDescription className="mt-1.5 text-center">Both clients will be emailed their new time.</DrawerDescription>
+            {pendingSwap && (
+              <div className="mt-5 flex flex-col items-stretch">
+                {([
+                  [pendingSwap.from, pendingSwap.to],
+                  [pendingSwap.to, pendingSwap.from],
+                ] as const).map(([a, b], i) => (
+                  <div key={a.id} className="flex flex-col items-stretch">
+                    {i === 1 && (
+                      <div className="relative z-10 -my-2.5 flex justify-center">
+                        <motion.span
+                          initial={{ rotate: 0 }}
+                          animate={{ rotate: 180 }}
+                          transition={{ type: "spring", stiffness: 160, damping: 14, delay: 0.25 }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border-4 border-white bg-[#FF2D46] text-white dark:border-[#1C1C1E]"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" strokeWidth={2.75} />
+                        </motion.span>
+                      </div>
+                    )}
+                    <motion.div
+                      initial={{ opacity: 0, y: i === 0 ? -8 : 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: 0.05 + i * 0.08 }}
+                      className="flex items-center gap-3 rounded-[18px] bg-black/[0.04] px-4 py-3 dark:bg-white/[0.06]"
+                    >
+                      <span className="h-9 w-[4px] shrink-0 rounded-full" style={{ backgroundColor: a.service.color || "#22c55e" }} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[16px] font-bold leading-tight tracking-[-0.02em] text-[#1C1C1E] dark:text-white">
+                          {(a.customer.name || "Client").trim().split(/\s+/)[0]}
+                        </p>
+                        <p className="truncate text-[12.5px] font-medium text-gray-500 dark:text-white/60">{a.service.name}</p>
+                      </div>
+                      <div className="shrink-0 text-right tabular-nums">
+                        <p className="text-[11px] font-medium text-gray-400 line-through dark:text-white/40">{a.appointment_time.slice(0, 5)}</p>
+                        <p className="text-[15px] font-bold text-[#FF2D46]">{b.appointment_time.slice(0, 5)}</p>
+                      </div>
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const swap = pendingSwap;
+                  setPendingSwap(null);
+                  if (swap) performDrop({ id: swap.from.id, dx: 100, dy: 0 }, { aptId: swap.to.id, time: null }, true);
+                }}
+                className="flex min-h-[54px] items-center justify-center gap-2 rounded-[18px] bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-[16px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] transition-transform active:scale-[0.98]"
+              >
+                <ArrowLeftRight className="h-4 w-4" strokeWidth={2.5} />
+                Swap appointments
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingSwap(null)}
+                className="min-h-[54px] rounded-[18px] bg-black/[0.05] text-[16px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] active:scale-[0.98] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
+              >
+                Cancel
               </button>
             </div>
           </div>

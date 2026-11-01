@@ -53,6 +53,7 @@ import { prefetchRoute } from "@/lib/routePrefetch";
 interface BarberProfile {
   id: string;
   monthly_capped?: boolean;
+  today_count?: number;
   latitude?: number | null;
   longitude?: number | null;
   home_service?: boolean;
@@ -288,6 +289,7 @@ const FindBarber = () => {
       monthly_capped: monthlyCappedIds?.has(barber.id) ?? false,
     }));
     const counts = todayCounts ?? new Map<string, number>();
+    for (const b of list) b.today_count = counts.get(b.id) ?? 0;
     return [...list].sort(
       (a, b) =>
         (boostRank(b.id) - boostRank(a.id)) ||
@@ -373,6 +375,7 @@ const FindBarber = () => {
         minRating={minRating}
         setMinRating={setMinRating}
         onBack={() => changeTab("today")}
+        onTab={changeTab}
       />
     );
   }
@@ -585,6 +588,7 @@ const FindBarber = () => {
           >
             {activeTab === "today" && (
               <ExploreList
+                key={sortFilter ?? "default"}
                 loading={barbersLoading}
                 items={filtered}
                 favorites={favorites}
@@ -698,12 +702,10 @@ function BarberCard({
 
   return (
     <motion.div
-      layout
       custom={index}
       variants={cardItem}
       initial="hidden"
       animate="show"
-      transition={spring}
       onPointerDown={warmDetail}
       className={cn(
         "group relative rounded-[24px] bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.06] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
@@ -800,6 +802,12 @@ function BarberCard({
               </span>
               <span className="text-[10px] text-[#8E8E93]">· {reviews}</span>
             </div>
+            {(barber.today_count ?? 0) > 0 && (
+              <div className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-[#FF2D46]/10 px-2 py-0.5 mb-1">
+                <span className="text-[11px] font-semibold tabular-nums text-[#FF2D46]">{barber.today_count}</span>
+                <span className="text-[10px] font-medium text-[#FF2D46]/80">booked today</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -933,7 +941,7 @@ function ExploreList({
     );
   }
   return (
-    <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
         <React.Fragment key={b.id}>
           <BarberCard
@@ -947,7 +955,7 @@ function ExploreList({
           />
         </React.Fragment>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
@@ -981,7 +989,7 @@ function FavoritesList({
     );
   }
   return (
-    <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {items.map((b, i) => (
         <React.Fragment key={b.id}>
           <BarberCard
@@ -995,7 +1003,7 @@ function FavoritesList({
           />
         </React.Fragment>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
@@ -1066,6 +1074,7 @@ function FullScreenMap({
   minRating,
   setMinRating,
   onBack,
+  onTab,
 }: {
   barbers: BarberProfile[];
   userLocation: { lat: number; lng: number } | null;
@@ -1078,6 +1087,7 @@ function FullScreenMap({
   minRating: "any" | "3" | "4" | "4.5";
   setMinRating: (v: "any" | "3" | "4" | "4.5") => void;
   onBack: () => void;
+  onTab: (key: TabKey) => void;
 }) {
   const [vipOnly, setVipOnly] = useState(false);
   const activeFilters =
@@ -1303,6 +1313,27 @@ function FullScreenMap({
             </SheetContent>
           </Sheet>
         </div>
+        <motion.div
+          initial={{ opacity: 0, y: -18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 28, delay: 0.08 }}
+          className="mx-3 mt-2 flex rounded-full border border-black/5 bg-white/90 p-1 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90"
+        >
+          {([["today", "Barbers"], ["map", "Map"], ["favorites", "Saved"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => key !== "map" && onTab(key)}
+              className={cn(
+                "relative h-9 flex-1 rounded-full text-[13px] font-semibold transition-colors",
+                key === "map" ? "text-white" : "text-[#1C1C1E]/70 active:bg-black/5 dark:text-white/70 dark:active:bg-white/10"
+              )}
+            >
+              {key === "map" && <span className="absolute inset-0 rounded-full bg-[#FF2D46] shadow-[0_4px_12px_rgba(255,45,70,0.35)]" />}
+              <span className="relative">{label}</span>
+            </button>
+          ))}
+        </motion.div>
 
         <div className="mx-3 mt-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-[#FF2D46] shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1C1C1E]/90 dark:text-[#FDA4AF]">
@@ -1496,6 +1527,12 @@ function MapBarberCard({
             <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
             <span className="font-semibold text-white/85 tabular-nums">{Number(barber.rating ?? 5).toFixed(1)}</span>
             <span>({barber.rating_count ?? 0})</span>
+            {(barber.today_count ?? 0) > 0 && (
+              <>
+                <span>·</span>
+                <span className="font-semibold text-[#FF5A6E] tabular-nums">{barber.today_count} today</span>
+              </>
+            )}
             {distance != null && (
               <>
                 <span>·</span>

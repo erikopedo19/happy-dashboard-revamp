@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileDock } from "@/components/MobileDock";
@@ -13,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { InviteMemberDialog } from "@/components/InviteMemberDialog";
 import { CreateTeamDialog } from "@/components/CreateTeamDialog";
+import { SentInvitations } from "@/components/SentInvitations";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -374,110 +376,90 @@ const Teams = () => {
               </Button>
             </div>
 
-            {isLoading ? (
-              <div className="text-center py-16 text-sm text-[#8E8E93]">Loading teams…</div>
-            ) : teams.length === 0 ? (
-              <div className="rounded-3xl bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] p-12 text-center">
-                <div className="h-12 w-12 mx-auto rounded-2xl bg-[#F5F5F7] dark:bg-[#2C2C2E] flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-[#1C1C1E] dark:text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">
-                  No teams yet
-                </h3>
-                <p className="text-sm text-[#8E8E93] mt-1 max-w-sm mx-auto">
-                  Create a team to group stylists, share schedules, and track performance together.
-                </p>
-                <Button
-                  onPress={() => setIsCreateDialogOpen(true)}
-                  className="mt-6 h-10 rounded-full bg-[#E0152F] hover:bg-[#E0152F]/90 text-white px-5"
-                >
-                  <Plus className="w-4 h-4 mr-1.5" strokeWidth={2.5} />
-                  Create your first team
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {teams.map((team) => {
-                  const colorScheme = team.color ? colorOptions.find((c) => c.value === team.color) || colorOptions[0] : colorOptions[0];
-                  const memberCount = allTeamMembers.filter(member => member.team_id === team.id).length;
-                  const teamMembers = allTeamMembers.filter(m => m.team_id === team.id).slice(0, 4);
-                  return (
-                    <Card
-                      key={team.id}
-                      className="group bg-white dark:bg-[#1C1C1E] border-0 rounded-3xl shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all overflow-hidden"
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-5">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0"
-                              style={{ backgroundColor: `${colorScheme.dot}1A` }}
-                            >
-                              <span
-                                className="h-3 w-3 rounded-full"
-                                style={{ backgroundColor: colorScheme.dot }}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="text-base font-semibold text-[#1C1C1E] dark:text-white truncate">
-                                {team.name}
-                              </h3>
-                              <p className="text-xs text-[#8E8E93] truncate">
-                                {team.description || "No description"}
-                              </p>
-                            </div>
-                          </div>
-                          <DeleteButton
-                            label="Delete team"
-                            confirmLabel="Delete"
-                            pendingLabel="Deleting"
-                            doneLabel="Deleted"
-                            onConfirm={() => deleteTeamMutation.mutateAsync(team.id)}
-                            onError={() => toast({ title: "Couldn't delete team", variant: "destructive" })}
-                            className="bg-transparent shadow-none opacity-0 group-hover:opacity-100 transition-opacity"
-                            classNames={{ tile: "size-9", confirmation: "h-9 px-2" }}
-                          />
-                        </div>
+            <div className="mb-3 flex items-center justify-between px-1 text-[13px] text-[#8E8E93]">
+              <span className="tabular-nums">{teams.length} of {maxTeams} teams</span>
+              <span className="tabular-nums">{allTeamMembers.length} members · {stylists.length} stylists</span>
+            </div>
 
-                        {/* Members preview */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            {teamMembers.length > 0 ? (
-                              <div className="flex -space-x-2">
-                                {teamMembers.map((m) => (
-                                  <Avatar
-                                    key={m.id}
-                                    src={m.stylist?.avatar_url || undefined}
-                                    name={m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
-                                    className="h-7 w-7"
-                                    isBordered
-                                  />
-                                ))}
-                                {memberCount > teamMembers.length && (
-                                  <div className="h-7 w-7 rounded-full bg-[#F5F5F7] dark:bg-[#2C2C2E] border-2 border-white dark:border-[#1C1C1E] flex items-center justify-center text-[10px] font-semibold text-[#8E8E93]">
-                                    +{memberCount - teamMembers.length}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-[#8E8E93]">No members yet</span>
-                            )}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="light"
-                            className="h-8 rounded-full text-xs font-medium text-[#1C1C1E] dark:text-white hover:bg-[#F5F5F7] dark:hover:bg-[#2C2C2E]"
-                            onPress={() => {
-                              setSelectedTeam(team);
-                              setIsAddMemberDialogOpen(true);
-                            }}
-                          >
-                            <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-                            Add
-                          </Button>
+            <SentInvitations className="mb-4 lg:max-w-3xl" />
+
+            {isLoading ? (
+              <div className="py-16 text-center text-sm text-[#8E8E93]">Loading teams…</div>
+            ) : teams.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="rounded-[20px] bg-white px-6 py-12 text-center dark:bg-[#1C1C1E]"
+              >
+                <Users className="mx-auto h-7 w-7 text-[#8E8E93]" strokeWidth={1.5} />
+                <h3 className="mt-3 text-[17px] font-semibold text-[#1C1C1E] dark:text-white">No teams yet</h3>
+                <p className="mx-auto mt-1 max-w-xs text-[13px] text-[#8E8E93]">Group your stylists to share schedules.</p>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="mt-5 text-[15px] font-semibold text-[#0A84FF] active:opacity-50"
+                >
+                  Create a team
+                </button>
+              </motion.div>
+            ) : (
+              <div className="overflow-hidden rounded-[20px] bg-white dark:bg-[#1C1C1E] lg:max-w-3xl">
+                {teams.map((team, teamIndex) => {
+                  const colorScheme = team.color ? colorOptions.find((c) => c.value === team.color) || colorOptions[0] : colorOptions[0];
+                  const memberCount = allTeamMembers.filter((member) => member.team_id === team.id).length;
+                  const teamMembers = allTeamMembers.filter((m) => m.team_id === team.id).slice(0, 3);
+                  return (
+                    <motion.div
+                      key={team.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: teamIndex * 0.05 }}
+                      className="group relative flex items-center gap-3 px-4 py-3.5"
+                    >
+                      {teamIndex > 0 && <span aria-hidden className="absolute left-10 right-0 top-0 h-px bg-black/[0.06] dark:bg-white/[0.07]" />}
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorScheme.dot }} />
+                      <button type="button" onClick={() => handleEditClick(team)} className="min-w-0 flex-1 text-left">
+                        <p className="truncate text-[16px] font-medium text-[#1C1C1E] dark:text-white">{team.name}</p>
+                        <p className="truncate text-[13px] text-[#8E8E93]">
+                          {memberCount === 0 ? "No members" : `${memberCount} member${memberCount === 1 ? "" : "s"}`}
+                          {team.description ? ` · ${team.description}` : ""}
+                        </p>
+                      </button>
+                      {teamMembers.length > 0 && (
+                        <div className="hidden shrink-0 -space-x-1.5 sm:flex">
+                          {teamMembers.map((m) => (
+                            <Avatar
+                              key={m.id}
+                              src={m.stylist?.avatar_url || undefined}
+                              name={m.stylist?.name?.slice(0, 2).toUpperCase() || "?"}
+                              className="h-6 w-6 text-[9px]"
+                            />
+                          ))}
                         </div>
-                      </CardContent>
-                    </Card>
+                      )}
+                      <button
+                        type="button"
+                        aria-label={`Add members to ${team.name}`}
+                        onClick={() => {
+                          setSelectedTeam(team);
+                          setIsAddMemberDialogOpen(true);
+                        }}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#0A84FF] active:bg-[#0A84FF]/10"
+                      >
+                        <UserPlus className="h-[18px] w-[18px]" />
+                      </button>
+                      <DeleteButton
+                        label="Delete team"
+                        confirmLabel="Delete"
+                        pendingLabel="Deleting"
+                        doneLabel="Deleted"
+                        onConfirm={() => deleteTeamMutation.mutateAsync(team.id)}
+                        onError={() => toast({ title: "Couldn't delete team", variant: "destructive" })}
+                        className="bg-transparent shadow-none lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
+                        classNames={{ tile: "size-8", confirmation: "h-8 px-2" }}
+                      />
+                    </motion.div>
                   );
                 })}
               </div>
@@ -494,7 +476,7 @@ const Teams = () => {
           if (!open) setSelectedStylistIds([]);
         }}
       >
-        <DialogContent>
+        <DialogContent className="rounded-[28px] sm:rounded-[28px] bg-[#F2F2F7] dark:bg-[#121214] border-black/[0.05] dark:border-white/[0.08]">
           <DialogHeader>
             <DialogTitle>Add members to team</DialogTitle>
             <DialogDescription>Select existing stylists or invite by email.</DialogDescription>
@@ -523,7 +505,7 @@ const Teams = () => {
                   return (
                     <div
                       key={stylist.id}
-                      className={`flex items-center gap-3 p-2 rounded-md border ${alreadyMember ? "opacity-60" : ""}`}
+                      className={`flex items-center gap-3 px-3.5 py-3 rounded-[14px] bg-white dark:bg-[#1C1C1E] ${alreadyMember ? "opacity-60" : ""}`}
                     >
                       <Checkbox
                         checked={checked}
@@ -566,38 +548,44 @@ const Teams = () => {
       </Dialog>
 
       {/* Invite Dialog (email) */}
-      <InviteMemberDialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen} />
+      <InviteMemberDialog
+        open={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
+        onInvited={() => queryClient.invalidateQueries({ queryKey: ["sent-invitations"] })}
+      />
 
       <CreateTeamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onCreate={(data) => createTeamMutation.mutateAsync(data)} />
 
       {/* Edit Team Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-[28px] sm:rounded-[28px] bg-[#F2F2F7] dark:bg-[#121214] border-black/[0.05] dark:border-white/[0.08]">
           <DialogHeader>
             <DialogTitle>Edit Team</DialogTitle>
             <DialogDescription>Update team information</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-name">Team Name</Label>
+              <Label className="px-1 text-[13px] font-normal uppercase tracking-[0.04em] text-[#8E8E93]" htmlFor="edit-name">Team Name</Label>
               <Input
+                className="mt-1.5 h-12 rounded-[12px] border-0 bg-white dark:bg-[#1C1C1E] text-[17px]"
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">Description</Label>
+              <Label className="px-1 text-[13px] font-normal uppercase tracking-[0.04em] text-[#8E8E93]" htmlFor="edit-description">Description</Label>
               <Textarea
+                className="mt-1.5 rounded-[12px] border-0 bg-white dark:bg-[#1C1C1E] text-[17px]"
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="edit-color">Color Theme</Label>
+              <Label className="px-1 text-[13px] font-normal uppercase tracking-[0.04em] text-[#8E8E93]" htmlFor="edit-color">Color Theme</Label>
               <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5 h-12 rounded-[12px] border-0 bg-white dark:bg-[#1C1C1E]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

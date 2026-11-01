@@ -38,6 +38,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import { GlobalBanner } from "./components/GlobalBanner";
 import { FreeUpgradeBanner } from "./components/FreeUpgradeBanner";
 import { UpdatePopup } from "./components/UpdatePopup";
+import { WelcomeTour } from "./components/WelcomeTour";
 import { GuestSignupDrawer } from "./components/GuestSignupDrawer";
 import { PageTransition } from "./components/PageTransition";
 import { PullToRefresh } from "./components/PullToRefresh";
@@ -423,10 +424,6 @@ function App() {
               <OnboardingProvider>
                 <GlimmProvider palette={SWEEP_PALETTE} sweepMs={700} outroMs={380} brightness={1} swellAmount={0.9}>
                   <GlimmIntercept />
-                  <GlobalBanner />
-                  <FreeUpgradeBanner />
-                  <UpdatePopup />
-                  <GuestSignupDrawer />
                   <ScrollToTop />
                   <NativeShell />
                   <NativeScrollGuard />
@@ -436,6 +433,7 @@ function App() {
                   <HeaderActions />
 
                   <PersistentDock />
+                  <WelcomeTour />
                   <Toaster />
                   <Sonner />
                   <BookingLiveToasts />

@@ -108,7 +108,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
   // Fetch services
   const { data: fetchedServices = [] } = useQuery<Service[]>({
-    queryKey: ['services'],
+    queryKey: ['services', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await (supabase as any)
@@ -213,7 +213,8 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     queryKey: ['time-off-dates', user?.id],
     enabled: !!user && isOpen,
     queryFn: async () => {
-      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user!.id });
+      if (!user) return [];
+      const { data } = await (supabase as any).rpc('get_time_off_dates', { _user_id: user.id });
       return (data || []).map((r: any) => r.off_date as string);
     },
   });
@@ -525,7 +526,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
         title: isDuplicateSlot ? "Time unavailable" : "Error",
         description: isDuplicateSlot
           ? "That time slot is already taken. Please choose another one."
-          : "Failed to book appointment. Please try again.",
+          : error?.code === '42501'
+            ? "Your account couldn't access this booking. Please refresh and try again."
+            : "Failed to book appointment. Please try again.",
         variant: "destructive",
       });
 
@@ -543,6 +546,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
     setSelectedTimeSlot(selectedTime);
     setCustomerName("");
     setCustomerEmail("");
+    setCustomerPhone("");
     setNotes("");
     setServiceId("");
     setStylistId("");
@@ -575,7 +579,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
     return (
       <BottomDrawer open={isOpen} onOpenChange={(v) => (!v ? handleClose() : null)}>
-        <BottomDrawerContent className="h-[94dvh] bg-[#0B0B0D] dark:bg-[#0B0B0D] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
+        <BottomDrawerContent className="h-[94dvh] max-h-[94dvh] bg-[#0B0B0D] dark:bg-[#0B0B0D] border-white/[0.08] rounded-t-[32px] p-0 overflow-hidden shadow-[0_-24px_80px_-16px_rgba(0,0,0,0.7)]">
           <BottomDrawerTitle className="sr-only">Book Appointment</BottomDrawerTitle>
           <BottomDrawerDescription className="sr-only">Select a service, stylist, date and time to book an appointment.</BottomDrawerDescription>
 
@@ -585,7 +589,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
 
           <div
             ref={contentRef}
-            className="relative h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+            className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-6"
           >
             {/* Sticky header with step progress */}
             <div className="sticky top-0 z-30 bg-[#0B0B0D]/75 backdrop-blur-2xl border-b border-white/[0.06]">
@@ -622,7 +626,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   )}
                   aria-label="Close"
                 >
-                  <X className="h-4 w-4" />
+                  {step === "details" ? "Back" : "Cancel"}
                 </button>
               </div>
               <div className="px-4 pb-3 flex items-center gap-1.5">
@@ -1124,20 +1128,22 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     </div>
                   </motion.div>
                 )}
-
-                <div className={stickyFooter}>
-                  <button
-                    onClick={handleContinue}
-                    disabled={!selectedTimeSlot}
-                    className={cn(primaryBtn, selectedTimeSlot ? primaryOn : primaryOff)}
-                  >
-                    Continue
-                    {selectedTimeSlot && <ArrowRight className="w-5 h-5" />}
-                  </button>
-                </div>
               </div>
             )}
           </div>
+          {step === "datetime" && showTimeSelection && selectedService && (
+            <div className="relative z-30 shrink-0 border-t border-white/[0.06] bg-[#0B0B0D]/90 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-2xl">
+              <button
+                type="button"
+                onClick={handleContinue}
+                disabled={!selectedTimeSlot}
+                className={cn(primaryBtn, selectedTimeSlot ? primaryOn : primaryOff)}
+              >
+                Continue
+                {selectedTimeSlot && <ArrowRight className="w-5 h-5" />}
+              </button>
+            </div>
+          )}
         </BottomDrawerContent>
       </BottomDrawer>
     );
@@ -1383,7 +1389,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                             className={cn(
                               "relative aspect-square flex items-center justify-center text-[13px] font-semibold rounded-full transition-all duration-200",
                               isSelected
-                                ? "bg-white text-[#0b0b0d] shadow-[0_6px_18px_rgba(255,255,255,0.22)] scale-[1.04]"
+                                ? "bg-white text-[#0b0b0d] scale-[1.04]"
                                 : isDisabled
                                 ? "text-white/20"
                                 : isToday
@@ -1476,9 +1482,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                       type="submit"
                       disabled={isLoading || !customerName}
                       className={cn(
-                        "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2",
+                        "w-full min-h-[54px] py-3.5 px-6 rounded-[18px] text-[17px] font-semibold transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2",
                         customerName && !isLoading
-                          ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                          ? "bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-white"
                           : "bg-white/[0.08] text-white/40 cursor-not-allowed"
                       )}
                     >
@@ -1499,7 +1505,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-full bg-[#0A84FF] flex items-center justify-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-[#FF2D46] flex items-center justify-center mb-6">
                   <Check className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">You're Booked!</h3>
@@ -1508,7 +1514,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                 </p>
                 <button
                   onClick={handleClose}
-                  className="px-8 py-3 bg-[#0A84FF] hover:bg-[#0066d6] text-white rounded-xl font-medium transition-colors"
+                  className="w-full max-w-xs min-h-[54px] px-8 rounded-[18px] text-[17px] font-semibold transition-transform active:scale-[0.98] bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-white"
                 >
                   Done
                 </button>
@@ -1549,7 +1555,7 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                     className={cn(
                       "py-2.5 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all duration-200 active:scale-[0.97]",
                       selectedTimeSlot === time
-                        ? "border-white bg-white text-[#0b0b0d] shadow-[0_6px_18px_-6px_rgba(255,255,255,0.5)]"
+                        ? "border-[#FF2D46] bg-[#FF2D46] text-white"
                         : "border-white/[0.08] bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.08] text-white/90"
                     )}
                   >
@@ -1568,9 +1574,9 @@ export function AppointmentForm({ isOpen, onClose, selectedDate, selectedTime, s
                   onClick={handleContinue}
                   disabled={!selectedTimeSlot}
                   className={cn(
-                    "w-full min-h-[52px] py-3.5 px-6 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.99]",
+                    "w-full min-h-[54px] py-3.5 px-6 rounded-[18px] text-[17px] font-semibold transition-all duration-200 active:scale-[0.99]",
                     selectedTimeSlot
-                      ? "bg-white text-[#0b0b0d] hover:bg-white/90 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.5)]"
+                      ? "bg-[linear-gradient(180deg,#FF5A6E_0%,#FF2D46_55%,#E0152F_100%)] text-white"
                       : "bg-white/[0.08] text-white/40 cursor-not-allowed"
                   )}
                 >

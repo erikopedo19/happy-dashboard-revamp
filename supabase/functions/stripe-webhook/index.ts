@@ -2,26 +2,10 @@
 // Updates `subscribers` table on subscription lifecycle events.
 // No STRIPE_SECRET_KEY required.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const encoder = new TextEncoder();
-
-async function verifyStripeSignature(payload: string, header: string, secret: string): Promise<boolean> {
-  const parts = Object.fromEntries(header.split(",").map((p) => p.split("=")));
-  const t = parts.t;
-  const v1 = parts.v1;
-  if (!t || !v1) return false;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(`${t}.${payload}`));
-  const expected = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  return expected === v1;
-}
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { stripeRequest, syncSubscription, cancellationEmail, sendBillingEmail, newestSubscription, findSubscriptions } from "../_shared/billing/service.ts";
+import { isSubscriptionCheckout } from "../_shared/billing/logic.ts";
+import { verifyStripeSignature } from "./signature.ts";
 
 serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
@@ -34,48 +18,52 @@ serve(async (req) => {
   const ok = await verifyStripeSignature(body, sig, secret);
   if (!ok) return new Response("Invalid signature", { status: 401 });
 
-  const event = JSON.parse(body);
+  let event;
+  try { event = JSON.parse(body); } catch { return new Response("Invalid JSON", { status: 400 }); }
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     { auth: { persistSession: false } },
   );
 
-  const upsert = async (email: string, fields: Record<string, unknown>) => {
-    const { data: existing } = await supabase
-      .from("subscribers")
-      .select("user_id")
-      .eq("email", email)
-      .maybeSingle();
-    if (!existing) {
-      // Look up user_id from auth.users via admin API
-      const { data: list } = await supabase.auth.admin.listUsers();
-      const u = list?.users?.find((x) => x.email?.toLowerCase() === email.toLowerCase());
-      if (!u) return;
-      await supabase.from("subscribers").insert({ email, user_id: u.id, ...fields });
-    } else {
-      await supabase.from("subscribers").update(fields).eq("email", email);
+  const resolveSubscriber = async (object: any, sub: any) => {
+    const cid = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+    const { data: existing, error } = await supabase.from("subscribers").select("user_id,email").eq("stripe_customer_id", cid).maybeSingle();
+    if (error) throw error;
+    if (existing) return existing;
+    const uid = object.client_reference_id || sub.metadata?.user_id;
+    if (uid) {
+      const { data, error } = await supabase.auth.admin.getUserById(uid);
+      if (error || !data.user?.email) throw new Error("subscriber_not_found");
+      return { user_id: uid, email: data.user.email };
     }
+    const customer = await stripeRequest(`/customers/${encodeURIComponent(cid)}`);
+    const email = object.customer_email || customer.email;
+    if (!email) throw new Error("subscriber_not_found");
+    // Legacy Payment Links may not have user metadata; page through all auth users.
+    for (let page = 1; ; page++) {
+      const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error) throw error;
+      const user = data.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      if (user?.email) return { user_id: user.id, email: user.email };
+      if (data.users.length < 1000) break;
+    }
+    throw new Error("subscriber_not_found");
   };
 
   try {
-    // Helper to find email from a customer id by checking existing subscribers row
-    const emailFromCustomer = async (cid: string | null | undefined) => {
-      if (!cid) return null;
-      const { data } = await supabase.from("subscribers").select("email").eq("stripe_customer_id", cid).maybeSingle();
-      return data?.email ?? null;
-    };
-
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded":
+      case "checkout.session.async_payment_failed": {
         const s = event.data.object;
         // Marketplace (Connect) checkout — booking / product sale, not a subscription.
         if (s.metadata?.lovable_kind === "marketplace") {
           const paid = s.payment_status === "paid";
-          const { data: paymentRows } = await supabase
+          const { data: paymentRows, error: paymentError } = await supabase
             .from("payments")
             .update({
-              status: paid ? "paid" : "pending",
+              status: event.type === "checkout.session.async_payment_failed" ? "failed" : paid ? "paid" : "pending",
               amount_subtotal: s.amount_subtotal ?? 0,
               amount_tax: s.total_details?.amount_tax ?? 0,
               amount_total: s.amount_total ?? 0,
@@ -87,10 +75,12 @@ serve(async (req) => {
             .eq("stripe_session_id", s.id)
             .select("appointment_id, amount_total");
 
+          if (paymentError) throw paymentError;
+
           // Mark the linked appointment as paid so it shows as paid on the agenda.
           const appointmentId = paymentRows?.[0]?.appointment_id ?? s.metadata?.appointment_id ?? null;
           if (paid && appointmentId) {
-            await supabase
+            const { error: appointmentError } = await supabase
               .from("appointments")
               .update({
                 payment_status: "paid",
@@ -99,19 +89,15 @@ serve(async (req) => {
                 updated_at: new Date().toISOString(),
               })
               .eq("id", appointmentId);
+            if (appointmentError) throw appointmentError;
           }
           break;
         }
 
-        const email = s.customer_email || s.customer_details?.email;
-        if (email) {
-          await upsert(email, {
-            subscribed: true,
-            subscription_tier: "Pro",
-            stripe_customer_id: s.customer,
-            // We'll get the accurate period end from invoice.payment_succeeded; leave null here.
-            updated_at: new Date().toISOString(),
-          });
+        if (isSubscriptionCheckout({ ...s, status: s.status ?? "complete" }) && s.subscription) {
+          const sub = await stripeRequest(`/subscriptions/${encodeURIComponent(s.subscription)}`);
+          const owner = await resolveSubscriber(s, sub);
+          await syncSubscription(supabase, owner.user_id, owner.email, sub);
         }
         break;
       }
@@ -195,45 +181,28 @@ serve(async (req) => {
         break;
       }
 
-      case "invoice.payment_succeeded": {
-        const inv = event.data.object;
-        const email = inv.customer_email || (await emailFromCustomer(inv.customer));
-        const periodEnd = inv.lines?.data?.[0]?.period?.end;
-        if (email) {
-          await upsert(email, {
-            subscribed: true,
-            subscription_tier: "Pro",
-            stripe_customer_id: inv.customer,
-            subscription_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
-            updated_at: new Date().toISOString(),
-          });
+      case "invoice.paid":
+      case "invoice.payment_succeeded":
+      case "invoice.payment_failed":
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const object = event.data.object;
+        const subscriptionEvent = event.type.startsWith("customer.subscription.");
+        const sid = subscriptionEvent ? object.id : object.subscription ?? object.parent?.subscription_details?.subscription;
+        // Ignore one-time invoices and marketplace sales.
+        if (!sid) break;
+        const sub = await stripeRequest(`/subscriptions/${encodeURIComponent(typeof sid === "string" ? sid : sid.id)}`);
+        const owner = await resolveSubscriber(object, sub);
+        const fields = await syncSubscription(supabase, owner.user_id, owner.email, sub);
+        if (event.type === "invoice.payment_failed") {
+          const { error } = await supabase.from("subscribers").update({ payment_failed_at: new Date().toISOString() }).eq("user_id", owner.user_id);
+          if (error) throw error;
         }
-        break;
-      }
-      case "customer.subscription.updated": {
-        const sub = event.data.object;
-        const email = await emailFromCustomer(sub.customer);
-        if (email) {
-          const active = sub.status === "active" || sub.status === "trialing";
-          await upsert(email, {
-            subscribed: active,
-            subscription_tier: active ? "Pro" : null,
-            stripe_customer_id: sub.customer,
-            cancel_at_period_end: !!sub.cancel_at_period_end,
-            auto_renew: !sub.cancel_at_period_end,
-            subscription_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
-            updated_at: new Date().toISOString(),
-          });
+        if ((event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") && object.paid && ['subscription_create', 'subscription_cycle'].includes(object.billing_reason)) {
+          await sendBillingEmail(supabase, owner.user_id, owner.email, `invoice:${object.id}`, "renewal", fields.subscription_end, (object.amount_paid ?? 0) / 100, (object.currency ?? "eur").toUpperCase());
         }
-        break;
-      }
-      case "customer.subscription.deleted":
-      case "invoice.payment_failed": {
-        const o = event.data.object;
-        const email = o.customer_email || (await emailFromCustomer(o.customer));
-        if (email) {
-          await upsert(email, { subscribed: false, updated_at: new Date().toISOString() });
-        }
+        if (subscriptionEvent) await cancellationEmail(supabase, owner.user_id, owner.email, sub, fields.subscription_end);
         break;
       }
     }

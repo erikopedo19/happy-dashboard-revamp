@@ -1,5 +1,19 @@
 # Current work
 
+- [x] Repair subscription controls when no manageable recurring plan exists; three regression tests pass.
+- [x] Repair team invitations and preserve selected pages when accepting; schema verified, two validation tests pass, email function deployed.
+- [x] Verify regression checks and compilation.
+- [ ] Verify these two fixes signed-in and confirm invitation email receipt; blocked by unavailable external Supabase session.
+
+- [x] Repair logged Agenda organization-permission errors and the empty-state Create booking button; pass five permission regression checks and preview compilation.
+- [ ] Verify Agenda booking creation end-to-end; blocked by unavailable signed-in session on external Supabase.
+
+- [x] Repair subscription payment, renewal, cancellation, and return-to-app synchronization.
+- [x] Implement renewal/cancellation emails, retry tracking, and duplicate protection; deploy payment functions.
+- [x] Pass nine lifecycle tests, verify unauthenticated rejection, confirm €8.99 pricing, enable billing portal, and check public checkout behavior.
+- [x] Save Stripe notification signing secret and verify deployed signature acceptance with a harmless event (200 acknowledged).
+- [ ] Verify signed-in payment, renewal, cancellation, and received emails end-to-end; external Supabase session and safe payment test account unavailable.
+
 - [x] Remove the decorative gradient from Reports.
 - [x] Redesign Manage Subscription as a functional Apple-style Settings list.
 - [x] Verify the updated screens and build status.
