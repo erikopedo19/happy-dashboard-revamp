@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import {
   ArrowLeft, Share2, Heart, Star, MapPin, Phone, Instagram, Globe, Clock,
-  Calendar as CalendarIcon, MessageCircle, Scissors, ChevronRight, Images,
+  Calendar as CalendarIcon, MessageCircle, Scissors, ChevronRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,6 @@ import { Seo } from "@/components/Seo";
 
 const ACCENT = "#FF2D46";
 const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
-
-type Tab = "about" | "reviews";
 
 interface Service { id: string; name: string; price: number; duration: number }
 interface Review { id: string; rating: number; comment: string | null; reviewer_name: string | null; created_at: string }
@@ -52,11 +50,6 @@ const fmtTime = (t: string) => {
   const [h, m] = t.split(":").map(Number);
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
-const endOf = (t: string, mins: number) => {
-  const [h, m] = t.split(":").map(Number);
-  const total = h * 60 + m + mins;
-  return fmtTime(`${Math.floor(total / 60)}:${total % 60}`);
-};
 
 export default function BarberDetail() {
   const { slug = "" } = useParams();
@@ -64,7 +57,6 @@ export default function BarberDetail() {
   const location = useLocation();
   const seed = (location.state || {}) as { name?: string; avatar_url?: string | null; banner_url?: string | null; rating?: number | null; rating_count?: number | null };
 
-  const [tab, setTab] = useState<Tab>("about");
   const [favs, setFavs] = useState<string[]>(readFavs);
   const [serviceId, setServiceId] = useState("");
   const [date] = useState<Date>(new Date());
@@ -199,30 +191,46 @@ export default function BarberDetail() {
           </motion.button>
         </div>
 
-        {/* Tabs */}
-        <div className="mt-5 flex rounded-full bg-white/[0.05] p-1">
-          {(["about", "reviews"] as Tab[]).map((t) => (
-            <button key={t} onClick={() => { if (t !== tab) { haptic("selection"); setTab(t); } }} className={cn("relative flex-1 rounded-full py-2.5 text-[13px] font-semibold capitalize transition-colors", tab === t ? "text-white" : "text-white/45")}>
-              {tab === t && <motion.span layoutId="detail-tab" transition={spring} className="absolute inset-0 rounded-full" style={{ backgroundColor: ACCENT }} />}
-              <span className="relative">{t}</span>
-            </button>
-          ))}
-        </div>
+        {services.length > 0 && (
+          <Section title="Services" icon={Scissors} delay={0.05}>
+            <div className="overflow-hidden rounded-[22px] bg-white/[0.04]">
+              {services.map((sv, i) => {
+                const active = sv.id === serviceId;
+                return (
+                  <motion.button
+                    key={sv.id}
+                    type="button"
+                    whileTap={{ scale: 0.985 }}
+                    onClick={() => { haptic("selection"); setServiceId(sv.id); }}
+                    className={cn("relative flex w-full items-center gap-3 px-4 py-3.5 text-left", i > 0 && "border-t border-white/[0.05]")}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold">{sv.name}</span>
+                      <span className="mt-0.5 flex items-center gap-1 text-[12.5px] text-white/45"><Clock className="h-3 w-3" />{sv.duration} min</span>
+                    </span>
+                    <span className="text-[15px] font-semibold tabular-nums">€{Number(sv.price).toFixed(0)}</span>
+                    <span className={cn("flex h-6 w-6 items-center justify-center rounded-full border transition-colors", active ? "border-transparent" : "border-white/20")} style={active ? { backgroundColor: ACCENT } : undefined}>
+                      <AnimatePresence>{active && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ type: "spring", stiffness: 600, damping: 24 }} className="h-2 w-2 rounded-full bg-white" />}</AnimatePresence>
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </Section>
+        )}
 
-        <AnimatePresence mode="wait">
-          <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-5">
-            {tab === "about" && (
-              <div className="space-y-7">
+        <div className="mt-7">
+              <div className="space-y-8">
                 {(site?.about || profile?.description) && (
                   <section>
-                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Scissors className="h-3.5 w-3.5" />About</p>
+                    <p className="mb-3 flex items-center gap-2 text-[20px] font-semibold tracking-[-0.02em] text-white">About</p>
                     <p className="text-[14px] leading-relaxed text-white/70">{site?.about || profile?.description}</p>
                   </section>
                 )}
 
                 {gallery.length > 0 && (
                   <div>
-                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Images className="h-3.5 w-3.5" />Photos</p>
+                    <p className="mb-3 flex items-center gap-2 text-[20px] font-semibold tracking-[-0.02em] text-white">Photos</p>
                     <div className="grid grid-cols-3 gap-1.5">
                       {gallery.slice(0, 9).map((g, i) => (
                         <motion.button key={g} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }} onClick={() => { haptic("light"); setLightbox(g); }} className={cn("overflow-hidden rounded-xl bg-white/[0.05]", i === 0 && "col-span-2 row-span-2")}>
@@ -235,7 +243,7 @@ export default function BarberDetail() {
 
                 {links.length > 0 && (
                   <section>
-                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Globe className="h-3.5 w-3.5" />Details</p>
+                    <p className="mb-3 flex items-center gap-2 text-[20px] font-semibold tracking-[-0.02em] text-white">Details</p>
                     <div className="overflow-hidden rounded-[20px] bg-white/[0.04]">
                     {links.map(({ icon: Icon, label, value, href, internal }, i) => (
                       <a key={label} href={href} onClick={(e) => { haptic("light"); if (internal) { e.preventDefault(); navigate(href); } }} target={internal ? undefined : "_blank"} rel="noreferrer" className={cn("flex items-center gap-3 px-4 py-3.5 active:bg-white/[0.04]", i > 0 && "border-t border-white/[0.05]")}>
@@ -253,7 +261,7 @@ export default function BarberDetail() {
 
                 {(site?.hours || settings) && (
                   <section>
-                    <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40"><Clock className="h-3.5 w-3.5" />Hours</p>
+                    <p className="mb-3 flex items-center gap-2 text-[20px] font-semibold tracking-[-0.02em] text-white">Hours</p>
                     <div className="rounded-[20px] bg-white/[0.04] px-4 py-3.5">
                       {site?.hours ? (
                         <p className="text-[14px] font-medium whitespace-pre-line">{site.hours}</p>
@@ -280,12 +288,12 @@ export default function BarberDetail() {
                 )}
 
                 {!site?.about && !profile?.description && gallery.length === 0 && links.length === 0 && !site?.hours && !settings && (
-                  <p className="py-6 text-center text-[13px] text-white/40">No details added yet.</p>
+                  <p className="py-2 text-[13px] text-white/40">No details added yet.</p>
                 )}
               </div>
-            )}
+        </div>
 
-            {tab === "reviews" && (
+        <Section title="Reviews" icon={Star} delay={0.1}>
               <div className="space-y-3">
                 <div className="flex items-center gap-4 rounded-[20px] bg-white/[0.04] p-4">
                   <span className="text-[44px] font-semibold leading-none tabular-nums">{Number(rating).toFixed(1)}</span>
@@ -307,9 +315,7 @@ export default function BarberDetail() {
                   <p className="py-4 text-center text-[13px] text-white/40">{ratingCount > 0 ? "Written reviews are private for this shop." : "No reviews yet. Be the first."}</p>
                 )}
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+        </Section>
       </motion.div>
 
       {/* Sticky summary + Book Now */}
@@ -317,7 +323,7 @@ export default function BarberDetail() {
         <div className="pointer-events-auto mx-auto max-w-md rounded-[26px] bg-[#1C1C1E] p-3 ring-1 ring-white/[0.08]">
           <div className="flex items-center justify-between px-2 pb-2.5 text-[13px]">
             <span className="inline-flex items-center gap-2 text-white/80"><CalendarIcon className="h-4 w-4" style={{ color: ACCENT }} />{format(date, "EEEE, MMMM d")}</span>
-            <span className="tabular-nums text-white/50">{time && selectedService ? `${fmtTime(time)} – ${endOf(time, selectedService.duration)}` : "Pick a time"}</span>
+            <span className="tabular-nums text-white/50">{selectedService ? `${selectedService.name} · €${Number(selectedService.price).toFixed(0)}` : time ? fmtTime(time) : "Pick a time"}</span>
           </div>
           <motion.button
             whileTap={{ scale: 0.975 }}
@@ -353,5 +359,23 @@ export default function BarberDetail() {
         />
       )}
     </div>
+  );
+}
+
+function Section({ title, icon: Icon, delay = 0, children }: { title: string; icon: typeof Star; delay?: number; children: ReactNode }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
+      className="mt-7"
+    >
+      <h2 className="mb-3 flex items-center gap-2 text-[20px] font-semibold tracking-[-0.02em]">
+        <Icon className="h-[18px] w-[18px]" style={{ color: ACCENT }} />
+        {title}
+      </h2>
+      {children}
+    </motion.section>
   );
 }

@@ -1,7 +1,8 @@
 import { ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
-import { AlertCircle, Crown, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { AlertCircle, Loader2, Lock, RefreshCw } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/hooks/use-premium";
@@ -30,7 +31,7 @@ function formatRemainingTime(milliseconds: number) {
 export function PremiumGate({
   children,
   featureName,
-  description = "This feature is part of Cutzioo Pro.",
+  description = "Upgrade to unlock it.",
 }: PremiumGateProps) {
   const { user, loading: authLoading } = useAuth();
   const { loading, isPremium, error, refresh } = usePremium();
@@ -118,23 +119,37 @@ export function PremiumGate({
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[#0B0B0F]/55" aria-hidden="true" />
         <div className="relative z-10 flex h-full min-h-[100dvh] items-center justify-center px-5 pt-[calc(env(safe-area-inset-top,0px)+2rem)] pb-[calc(env(safe-area-inset-bottom,0px)+6.75rem)] sm:pt-8 sm:pb-8">
-          <div className="w-full max-w-[340px] rounded-[28px] bg-[#FF2D46] px-6 py-7 text-center text-white">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-              <Crown className="h-5 w-5 text-white" />
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="w-full max-w-[340px] rounded-[30px] border border-white/[0.08] bg-[#1C1C1E]/90 px-6 pb-6 pt-7 text-center text-white backdrop-blur-xl"
+          >
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[18px] bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+              <Lock className="h-6 w-6 text-white" strokeWidth={2.2} />
             </div>
-            <p className="text-[17px] font-bold tracking-tight">{featureName} is Pro</p>
-            <p className="mt-1 text-[13px] leading-snug text-white/85">{description}</p>
-            <Button
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#FF8A98]">Pro</p>
+            <p className="mt-1 text-[22px] font-semibold tracking-[-0.02em]">{featureName}</p>
+            <p className="mt-1.5 text-[14px] leading-snug text-white/55">{description}</p>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() => {
                 haptic("medium");
                 navigate("/pricing");
               }}
-              className="mt-5 h-11 w-full rounded-full bg-white text-[#FF2D46] shadow-none text-[14px] font-semibold hover:bg-white/90"
+              className="mt-6 flex h-[52px] w-full items-center justify-center rounded-[18px] bg-gradient-to-b from-[#FF5A6E] via-[#FF2D46] to-[#E0152F] text-[16px] font-semibold text-white"
             >
-              <Sparkles className="mr-1.5 h-4 w-4" />
               Upgrade to Pro
-            </Button>
-          </div>
+            </motion.button>
+            <button
+              type="button"
+              onClick={() => { haptic("light"); navigate(-1); }}
+              className="mt-2 h-11 w-full text-[15px] font-medium text-white/55 active:text-white"
+            >
+              Not now
+            </button>
+          </motion.div>
         </div>
       </div>,
       document.body
