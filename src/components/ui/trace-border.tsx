@@ -7,28 +7,17 @@ import { useReducedMotion } from "framer-motion";
  * outline. Parent must be `relative` and must not clip (`overflow-hidden`)
  * so the glow can spill outside. All SMIL so every layer stays in sync.
  */
-const TAIL = [
-  { len: 60, o: 0.1 },
-  { len: 46, o: 0.12 },
-  { len: 34, o: 0.14 },
-  { len: 24, o: 0.16 },
-  { len: 16, o: 0.18 },
-  { len: 10, o: 0.22 },
-  { len: 5, o: 0.6 },
-];
-// Wider, fainter copies of the tail stack into a soft glow along the whole comet.
-const GLOW = [
-  { w: 4, k: 0.3 },
-  { w: 8, k: 0.14 },
-  { w: 14, k: 0.07 },
-  { w: 22, k: 0.035 },
-];
+const TAIL_LEN = 55; // % of the outline
+const STEPS = 32;
+// Stacked butt-capped dashes that all end at the head: their opacities
+// compound into a smooth fade with no visible ends or beads.
+const TAIL = Array.from({ length: STEPS }, (_, i) => TAIL_LEN * (1 - i / STEPS));
 
 export function TraceBorder({ radius = 30, duration = 5.5 }: { radius?: number; duration?: number }) {
   const ref = useRef<SVGSVGElement | null>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const reduce = useReducedMotion();
-  const glowId = `tb-glow-${useId().replace(/:/g, "")}`;
+  const blurId = `tb-blur-${useId().replace(/:/g, "")}`;
 
   useLayoutEffect(() => {
     const el = ref.current?.parentElement;
@@ -48,6 +37,32 @@ export function TraceBorder({ radius = 30, duration = 5.5 }: { radius?: number; 
     ? `M${inset},${inset + r} A${r},${r} 0 0 1 ${inset + r},${inset} H${inset + w - r} A${r},${r} 0 0 1 ${inset + w},${inset + r} V${inset + h - r} A${r},${r} 0 0 1 ${inset + w - r},${inset + h} H${inset + r} A${r},${r} 0 0 1 ${inset},${inset + h - r} Z`
     : "";
 
+  const comet = (width: number, opacity: number, prefix: string) =>
+    TAIL.map((len) => (
+      <path
+        key={`${prefix}-${len}`}
+        d={d}
+        pathLength={100}
+        fill="none"
+        stroke="#fff"
+        strokeOpacity={opacity}
+        strokeWidth={width}
+        strokeLinecap="butt"
+        strokeLinejoin="round"
+        strokeDasharray={`${len} ${100 - len}`}
+        strokeDashoffset={len}
+      >
+        <animate
+          attributeName="stroke-dashoffset"
+          from={len}
+          to={len - 100}
+          dur={`${duration}s`}
+          begin={`${-duration}s`}
+          repeatCount="indefinite"
+        />
+      </path>
+    ));
+
   return (
     <>
       <span
@@ -62,38 +77,12 @@ export function TraceBorder({ radius = 30, duration = 5.5 }: { radius?: number; 
         {d && !reduce && (
           <g key={d}>
             <defs>
-              <radialGradient id={glowId}>
-                <stop offset="0%" stopColor="#fff" stopOpacity={0.5} />
-                <stop offset="35%" stopColor="#fff" stopOpacity={0.16} />
-                <stop offset="100%" stopColor="#fff" stopOpacity={0} />
-              </radialGradient>
+              <filter id={blurId} filterUnits="userSpaceOnUse" x={-40} y={-40} width={size.w + 80} height={size.h + 80}>
+                <feGaussianBlur stdDeviation={5} />
+              </filter>
             </defs>
-            <ellipse rx={30} ry={16} fill={`url(#${glowId})`}>
-              <animateMotion dur={`${duration}s`} begin={`${-duration}s`} repeatCount="indefinite" rotate="auto" path={d} />
-            </ellipse>
-            {TAIL.flatMap((s) => [...GLOW.map((g) => ({ ...s, w: g.w, o: s.o * g.k })), { ...s, w: s.len < 6 ? 1.25 : 1 }]).map((s) => (
-              <path
-                key={`${s.len}-${s.w}`}
-                d={d}
-                pathLength={100}
-                fill="none"
-                stroke="#fff"
-                strokeOpacity={s.o}
-                strokeWidth={s.w}
-                strokeLinecap="round"
-                strokeDasharray={`${s.len} ${100 - s.len}`}
-                strokeDashoffset={s.len}
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from={s.len}
-                  to={s.len - 100}
-                  dur={`${duration}s`}
-                  begin={`${-duration}s`}
-                  repeatCount="indefinite"
-                />
-              </path>
-            ))}
+            <g filter={`url(#${blurId})`}>{comet(6, 0.07, "g")}</g>
+            {comet(1.1, 0.085, "c")}
           </g>
         )}
       </svg>
