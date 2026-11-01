@@ -1,5 +1,9 @@
 # Current work
 
+- [ ] Simplify subscription tabs and state-specific renewal, cancellation, and payment controls.
+- [ ] Require purchase-terms consent and disclose renewal, cancellation, and statutory refund rights.
+- [ ] Audit subscription lifecycle and verify available flows; authenticated billing needs an external Supabase test session.
+
 - [x] Repair subscription controls when no manageable recurring plan exists; three regression tests pass.
 - [x] Repair team invitations and preserve selected pages when accepting; schema verified, two validation tests pass, email function deployed.
 - [x] Verify regression checks and compilation.
