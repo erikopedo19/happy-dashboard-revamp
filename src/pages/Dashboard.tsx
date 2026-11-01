@@ -234,7 +234,7 @@ function MobileDashboard() {
           <p className="text-white/40 text-[13px] font-medium">
             {format(new Date(), "EEEE, MMM d")}
           </p>
-          <h1 className="text-[26px] font-bold font-geist text-white tracking-tight leading-none">
+          <h1 className="text-[26px] font-bold text-white tracking-tight leading-none">
             Dashboard
           </h1>
         </div>

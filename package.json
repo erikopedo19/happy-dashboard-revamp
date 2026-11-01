@@ -34,6 +34,7 @@
     "@devigner-ui/icons": "^3.3.0",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
+    "@fontsource/cal-sans": "^5.3.0",
     "@gsap/react": "^2.1.2",
     "@heroui/react": "^2.8.9",
     "@heroui/theme": "^2.4.26",
