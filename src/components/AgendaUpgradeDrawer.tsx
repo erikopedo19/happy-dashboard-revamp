@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { usePremium } from "@/hooks/use-premium";
 import { haptic } from "@/lib/haptics";
 
+import { Wordmark } from "@/components/Wordmark";
 const KEY = "agenda_upgrade_drawer_last_shown";
 const FREE_BOOKINGS = 15;
 
@@ -69,7 +70,7 @@ export function AgendaUpgradeDrawer({ suppress = false }: { suppress?: boolean }
             </div>
           </motion.div>
 
-          <h2 className="text-[24px] font-bold tracking-tight text-white">Unlock Cutzioo Pro</h2>
+          <h2 className="text-[24px] font-bold tracking-tight text-white">Unlock <Wordmark /> Pro</h2>
           <p className="mx-auto mt-2 max-w-[300px] text-[15px] leading-6 text-white/50">
             You're on the free plan, with {FREE_BOOKINGS} bookings included. Upgrade for unlimited bookings
             and your own barbershop website.

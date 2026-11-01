@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
+import { Wordmark } from "@/components/Wordmark";
 const PERKS = [
   { icon: CalendarClock, label: "Unlimited bookings" },
   { icon: Users, label: "Team & map listing" },
@@ -93,7 +94,7 @@ export default function Pricing() {
       >
         <header className="pricing-header">
           <div className="pricing-wordmark">
-            Cutzioo <span className="pricing-badge">PRO</span>
+            <Wordmark /> <span className="pricing-badge">PRO</span>
           </div>
           <button
             type="button"

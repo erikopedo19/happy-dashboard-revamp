@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+import { Wordmark } from "@/components/Wordmark";
 const KEY = "cutzio:find-barber-prompt-dismissed";
 
 /**
@@ -87,7 +88,7 @@ export function FindBarberPrompt() {
                   <Scissors className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-cal text-xl tracking-tight">Welcome to Cutzioo</h2>
+                  <h2 className="font-cal text-xl tracking-tight">Welcome to <Wordmark /></h2>
                   <p className="text-xs text-white/60">Pick how you'll use the app</p>
                 </div>
               </div>

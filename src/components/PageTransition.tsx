@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { gsap } from "gsap";
 import { CutziooLoader } from "./CutziooLoader";
 
+import { Wordmark } from "@/components/Wordmark";
 const CLIENT_PREFIXES = [
   "/find-barber",
   "/find-barbershop",
@@ -153,7 +154,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
               <div className="cz-curtain-logo grid h-[92px] w-[92px] place-items-center rounded-[26px] bg-white shadow-[0_18px_40px_-12px_rgba(120,0,20,0.55)]">
                 <CutziooLoader variant="loop" size="62px" wordmark={false} />
               </div>
-              <span className="text-[22px] font-extrabold tracking-[-0.02em] text-white">Cutzioo</span>
+              <span className="text-[22px] font-extrabold tracking-[-0.02em] text-white"><Wordmark /></span>
             </div>
           </div>,
           document.body

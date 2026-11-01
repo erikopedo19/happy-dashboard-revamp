@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EASE, Em, Reveal, Tag } from "./ui";
 
+import { Wordmark } from "@/components/Wordmark";
 /* =============================== Audience ================================== */
 const AUDIENCE = [
   {
@@ -238,7 +239,7 @@ export function FooterCta() {
             </span>
           </p>
         </div>
-        <p className="pb-4 text-[11px] text-white/50">© {new Date().getFullYear()} Cutzioo</p>
+        <p className="pb-4 text-[11px] text-white/50">© {new Date().getFullYear()} <Wordmark /></p>
       </div>
     </footer>
   );
