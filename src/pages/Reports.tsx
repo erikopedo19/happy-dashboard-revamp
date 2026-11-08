@@ -58,10 +58,13 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
 import { MobileReports } from "@/components/reports/MobileReports";
+import {
+  HeatmapCard, MetricHero, Reveal, ServiceMixCard, SparkKpi, buildSeries, pctDelta, type SeriesRow, type Totals,
+} from "@/components/reports/ReportsVisuals";
 
 type RangeValue =
   | "today"
@@ -174,10 +177,17 @@ const getRangeDates = (range: RangeValue) => {
     case "thisYear":
       start.setMonth(0, 1); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
   }
+  const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86_400_000));
+  const prevStart = new Date(start);
+  prevStart.setDate(start.getDate() - days);
+  const prevEnd = new Date(start);
+  prevEnd.setDate(start.getDate() - 1);
   return {
-    start, end,
-    startDate: start.toISOString().slice(0, 10),
-    endDate: end.toISOString().slice(0, 10),
+    start, end, days, prevStart,
+    startDate: format(start, "yyyy-MM-dd"),
+    endDate: format(end, "yyyy-MM-dd"),
+    prevStartDate: format(prevStart, "yyyy-MM-dd"),
+    prevEndDate: format(prevEnd, "yyyy-MM-dd"),
   };
 };
 
@@ -203,7 +213,8 @@ const Reports = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
-  const { startDate, endDate } = useMemo(() => getRangeDates(dateRange), [dateRange]);
+  const range = useMemo(() => getRangeDates(dateRange), [dateRange]);
+  const { startDate, endDate } = range;
 
   const { data: reviewsData } = useQuery<ReviewRow[]>({
     queryKey: ["reports-reviews", user?.id],
@@ -252,6 +263,34 @@ const Reports = () => {
       };
     },
   });
+
+  const { data: prevRows = [] } = useQuery<SeriesRow[]>({
+    queryKey: ["reports-prev", user?.id, range.prevStartDate, range.prevEndDate],
+    enabled: !!user,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const { data: rows, error } = await db.from("appointments")
+        .select("appointment_date, appointment_time, price, customer_id")
+        .eq("user_id", user!.id).gte("appointment_date", range.prevStartDate).lte("appointment_date", range.prevEndDate);
+      if (error) return [];
+      return (rows || []) as SeriesRow[];
+    },
+  });
+
+  const trend = useMemo(() => {
+    const cur = (data?.appointments || []) as SeriesRow[];
+    const totalsOf = (rows: SeriesRow[]): Totals => ({
+      revenue: rows.reduce((s, r) => s + (r.price || 0), 0),
+      bookings: rows.length,
+      clients: new Set(rows.map((r) => r.customer_id).filter(Boolean)).size,
+    });
+    return {
+      series: buildSeries(cur, range.start, range.days),
+      prevSeries: buildSeries(prevRows, range.prevStart, range.days),
+      totals: totalsOf(cur),
+      prevTotals: totalsOf(prevRows),
+    };
+  }, [data, prevRows, range]);
 
   const analytics = useMemo(() => {
     const appointments = data?.appointments || [];
@@ -549,6 +588,7 @@ const Reports = () => {
             {isMobile && (
               <MobileReports
                 analytics={analytics}
+                trend={trend}
                 isLoading={isLoading}
                 topCustomers={topCustomers}
                 reviews={reviewsData || []}
@@ -559,103 +599,58 @@ const Reports = () => {
             )}
             <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
 
-              {/* Hero revenue card */}
+              {/* Hero — metric switcher with prior-period ghost line */}
               <motion.div
                 id="revenue"
                 ref={sectionRefs.revenue}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={springSoft}
+                initial={{ opacity: 0, transform: "translateY(16px)" }}
+                animate={{ opacity: 1, transform: "translateY(0px)" }}
+                transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
               >
-                <Card className="relative rounded-[24px] border border-white/[0.08] bg-[#121215] overflow-hidden">
-                  <CardContent className="relative p-6 md:p-8">
-                    <div className="flex items-start justify-between gap-5">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FF2D46]">
-                          Total revenue
-                        </p>
-                        <AnimatePresence mode="wait">
-                          <motion.p
-                            key={analytics.totalRevenue}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="text-[44px] md:text-[60px] font-bold text-white mt-2 tracking-[-0.035em] leading-none tabular-nums font-geist-mono"
-                            style={{}}
-                          >
-                            {isLoading ? "—" : currency.format(analytics.totalRevenue)}
-                          </motion.p>
-                        </AnimatePresence>
-                        <div className="mt-4 flex items-center gap-2.5">
-                          <div
-                            className={cn(
-                              "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-[11px] font-semibold border",
-                              analytics.revenueDelta >= 0
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : "bg-[#FF2D46]/10 text-[#FF2D46] border-[#FF2D46]/20"
-                            )}
-                          >
-                            {analytics.revenueDelta >= 0 ? (
-                              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.3} />
-                            ) : (
-                              <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={2.3} />
-                            )}
-                            {Math.abs(analytics.revenueDelta)}%
-                          </div>
-                          <span className="text-xs text-white/50">vs prior period</span>
-                        </div>
-                      </div>
-
-                      {/* iOS radial gauge — completion rate */}
-                      <CompletionGauge value={analytics.completionRate} />
-                    </div>
-
-                    <ChartContainer
-                      config={revenueChartConfig}
-                      className="h-[220px] md:h-[300px] w-full aspect-auto mt-6"
-                    >
-                      <AreaChart data={analytics.revenueTrend} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
-                        <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="label"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }}
-                          interval="preserveStartEnd"
-                          dy={6}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          width={42}
-                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }}
-                          tickFormatter={(v) => {
-                            const n = Number(v);
-                            if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
-                            return String(n);
-                          }}
-                        />
-                        <ChartTooltip
-                          cursor={{ stroke: "hsl(var(--muted-foreground))", strokeDasharray: "3 4" }}
-                          content={<ChartTooltipContent formatter={(value) => [currency.format(Number(value)), "Revenue"]} />}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="revenue"
-                          stroke={iOS.rose}
-                          strokeWidth={2.4}
-                          fill={iOS.rose}
-                          fillOpacity={0.08}
-                          dot={false}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))", fill: iOS.rose }}
-                          animationDuration={900}
-                        />
-                      </AreaChart>
-                    </ChartContainer>
-                  </CardContent>
-                </Card>
+                <MetricHero
+                  series={trend.series}
+                  prevSeries={trend.prevSeries}
+                  totals={trend.totals}
+                  prevTotals={trend.prevTotals}
+                  loading={isLoading}
+                  rangeLabel={RANGES.find((r) => r.value === dateRange)?.label}
+                  aside={<CompletionGauge value={analytics.completionRate} />}
+                />
               </motion.div>
+
+              {/* KPI grid — count-up values, period deltas, drawn sparklines */}
+              <div id="kpis" ref={sectionRefs.kpis} className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <SparkKpi index={0} loading={isLoading}
+                  icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
+                  label="Bookings" value={trend.totals.bookings} format={(n) => numberFormat.format(Math.round(n))}
+                  delta={pctDelta(trend.totals.bookings, trend.prevTotals.bookings)}
+                  spark={trend.series.map((p) => p.bookings)} tint={iOS.rose}
+                  hint={`${analytics.completionRate}% completed`}
+                />
+                <SparkKpi index={1} loading={isLoading}
+                  icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
+                  label="Clients" value={trend.totals.clients} format={(n) => numberFormat.format(Math.round(n))}
+                  delta={pctDelta(trend.totals.clients, trend.prevTotals.clients)}
+                  spark={trend.series.map((p) => p.clients)} tint={iOS.indigo}
+                  hint={`${analytics.returningRate}% returning`}
+                />
+                <SparkKpi index={2} loading={isLoading}
+                  icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
+                  label="Avg ticket" value={analytics.averageTicket || 0} format={(n) => currency.format(n)}
+                  delta={pctDelta(
+                    analytics.averageTicket || 0,
+                    trend.prevTotals.bookings ? trend.prevTotals.revenue / trend.prevTotals.bookings : 0,
+                  )}
+                  spark={trend.series.map((p) => (p.bookings ? p.revenue / p.bookings : 0))} tint={iOS.green}
+                  hint="Per booking"
+                />
+                <SparkKpi index={3} loading={isLoading}
+                  icon={<TrendingUp className="w-4 h-4" strokeWidth={2.3} />}
+                  label="Upcoming" value={analytics.upcomingRevenue || 0} format={(n) => currency.format(n)}
+                  spark={trend.series.map((p) => p.revenue)} tint={iOS.orange}
+                  hint={`${analytics.scheduledAppointments} still to come`}
+                />
+              </div>
 
               {/* Smart insights */}
               {analytics.totalAppointments > 0 && (
@@ -671,30 +666,32 @@ const Reports = () => {
                     index={1}
                     icon={<Clock className="w-4 h-4" strokeWidth={2.3} />}
                     tint="#FFFFFF"
-                    title="Peak hour"
-                    text={`Most clients book around ${analytics.peakHour?.hour ?? "—"}. Keep your best stylists on that slot.`}
+                    title="Fill your quiet hour"
+                    text={`${analytics.quietHour?.hour ?? "—"} is your slowest slot. A small discount there can turn dead time into revenue.`}
                   />
                   <InsightCard
                     index={2}
                     icon={<TrendingUp className="w-4 h-4" strokeWidth={2.3} />}
-                    tint={analytics.revenueDelta >= 0 ? iOS.green : iOS.pink}
-                    title={analytics.revenueDelta >= 0 ? "Trending up" : "Trending down"}
+                    tint={trend.totals.revenue >= trend.prevTotals.revenue ? iOS.green : iOS.pink}
+                    title={trend.totals.revenue >= trend.prevTotals.revenue ? "Trending up" : "Trending down"}
                     text={
-                      analytics.revenueDelta >= 0
-                        ? `Revenue is up ${analytics.revenueDelta}% vs the first half of this period. Keep it rolling.`
-                        : `Revenue dipped ${Math.abs(analytics.revenueDelta)}%. Try a reminder blast or promo on slow days.`
+                      trend.totals.revenue >= trend.prevTotals.revenue
+                        ? `Revenue is ${currency.format(trend.totals.revenue - trend.prevTotals.revenue)} ahead of the previous period. Keep it rolling.`
+                        : `Revenue is ${currency.format(trend.prevTotals.revenue - trend.totals.revenue)} behind the previous period. Share your booking link or run a promo.`
                     }
                   />
                 </div>
               )}
 
+              {/* Heatmap + revenue mix */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 md:gap-5">
+                <Reveal><HeatmapCard grid={analytics.heatmap} max={analytics.heatMax} className="h-full" /></Reveal>
+                <Reveal delay={0.06}><ServiceMixCard services={analytics.serviceBreakdown} className="h-full" /></Reveal>
+              </div>
+
               {/* Bookings by weekday — devignerui chart-card */}
               {analytics.totalAppointments > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={springSoft}
-                >
+                <Reveal>
                   <ChartCard
                     title="Bookings by weekday"
                     caption="Which days clients pick"
@@ -702,40 +699,9 @@ const Reports = () => {
                     data={weekdayBookings}
                     className="rounded-[24px] border border-white/[0.08] bg-[#121215] text-white"
                   />
-                </motion.div>
+                </Reveal>
               )}
 
-              {/* KPI grid */}
-              <div id="kpis" ref={sectionRefs.kpis} className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-                <KpiTile index={0} loading={isLoading}
-                  icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Bookings"
-                  value={numberFormat.format(analytics.totalAppointments)}
-                  hint={`${analytics.completionRate}% done`}
-                  tint={iOS.rose}
-                />
-                <KpiTile index={1} loading={isLoading}
-                  icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Clients"
-                  value={numberFormat.format(analytics.totalCustomers)}
-                  hint={`${analytics.activeStylists} stylists`}
-                  tint="#FFFFFF"
-                />
-                <KpiTile index={2} loading={isLoading}
-                  icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Avg ticket"
-                  value={currency.format(analytics.averageTicket || 0)}
-                  hint="Per booking"
-                  tint={iOS.green}
-                />
-                <KpiTile index={3} loading={isLoading}
-                  icon={<Scissors className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Services"
-                  value={numberFormat.format(analytics.activeServices)}
-                  hint={`${analytics.completedAppointments} done`}
-                  tint="#FFFFFF"
-                />
-              </div>
 
               <RevenuePipelineCard />
 
@@ -995,9 +961,10 @@ function SectionCard({
     <motion.div
       id={id}
       ref={forwardRef}
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: "spring", stiffness: 400, damping: 28 }}
+      initial={{ opacity: 0, transform: "translateY(16px)" }}
+      whileInView={{ opacity: 1, transform: "translateY(0px)" }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1], delay: Math.min(delay, 0.1) }}
       className="relative rounded-[28px] border border-white/[0.08] bg-[#121215]"
     >
       <div className="p-6 md:p-8">
@@ -1006,55 +973,6 @@ function SectionCard({
           {subtitle && <p className="text-sm text-white/50 mt-2">{subtitle}</p>}
         </div>
         {children}
-      </div>
-    </motion.div>
-  );
-}
-
-function KpiTile({ icon, label, value, hint, index = 0, tint, loading }: {
-  icon: ReactNode; label: string; value: string; hint: string;
-  index?: number; tint: string; loading?: boolean;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.08, type: "spring", stiffness: 420, damping: 30 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="relative rounded-[24px] border border-white/[0.08] bg-[#121215] h-full"
-    >
-      <div className="p-6 h-full">
-        <div className="flex items-start justify-between mb-4">
-          <div
-            className="w-12 h-12 rounded-[16px] flex items-center justify-center"
-            style={{
-              backgroundColor: `${tint}15`,
-              color: tint,
-            }}
-          >
-            {icon}
-          </div>
-        </div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50 mb-2">{label}</p>
-        {loading ? (
-          <div className="h-8 w-24 bg-white/10 rounded-[12px] animate-pulse" />
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={value}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
-            >
-              <p className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
-                {value}
-              </p>
-              <p className="text-xs text-white/50 mt-1">{hint}</p>
-            </motion.div>
-          </AnimatePresence>
-        )}
       </div>
     </motion.div>
   );

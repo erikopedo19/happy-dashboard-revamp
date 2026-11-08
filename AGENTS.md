@@ -9,3 +9,4 @@ Invitations use organizations.id and accepted_at; acceptance copies selected pag
 Membership checkout and management use authenticated Edge Functions and the shared billing service; Stripe is authoritative, so local-only cancellation RPCs must never change renewal settings.
 Billing emails use a service-only delivery ledger and stable invoice/cancellation keys; this prevents duplicate confirmation emails across webhook retries and app synchronization.
 Organization checks used by RLS keep signed-in execute access through public invoker wrappers over private definer functions; revoking those wrappers breaks Agenda-related reads.
+`npm run build` regenerates `public/sitemap.xml` first (`scripts/generate-sitemap.mjs`, one `/b/:slug` entry per `list_public_profiles` row); it never fails the build if Supabase is unreachable. Page SEO goes through `src/components/Seo.tsx` (title, description, og image, JSON-LD) — don't add duplicate canonical/robots tags to index.html.

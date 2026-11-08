@@ -2071,3 +2071,187 @@ html.cz-sheet-open::-webkit-scrollbar { display: none; }
   letter-spacing: var(--h-ls);
   font-stretch: var(--h-stretch, normal);
 }
+
+/* Reports heatmap — cells fade/settle in on a diagonal stagger once in view */
+@keyframes rp-heat-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.rp-heat-cell {
+  animation: rp-heat-in 380ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-heat-cell { animation: rp-heat-fade 200ms ease both; }
+  @keyframes rp-heat-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+
+/* Reports "Chair health" barber poles — spinning stripes + rolling liquid surface */
+@keyframes pole-stripes-spin { from { transform: translateY(0); } to { transform: translateY(28.284px); } }
+@keyframes pole-wave-roll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.pole-stripes { animation: pole-stripes-spin 1.6s linear infinite; will-change: transform; }
+.pole-wave { animation: pole-wave-roll 2.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .pole-stripes, .pole-wave { animation: none; }
+}
+
+/* ───────── Microsite: dark street / spray-paint ───────── */
+.street-site {
+  background-color: #0B0B0D;
+  background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1.4px);
+  background-size: 6px 6px;
+  color: #F2F2EF;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.st-mono { font-family: "Courier New", ui-monospace, Menlo, monospace; }
+.st-display {
+  font-family: "Arial Black", "Arial Narrow Bold", Impact, "Helvetica Neue", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.94;
+}
+.st-link { color: #fff; text-decoration: underline; text-decoration-color: var(--accent, #FF2D46); text-underline-offset: 3px; }
+.st-link:hover { color: var(--accent, #FF2D46); }
+
+/* film grain, stepped so it feels analog not smooth */
+.st-grain {
+  pointer-events: none; position: fixed; inset: -4px; z-index: 60; opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: repeating-conic-gradient(rgba(255,255,255,0.05) 0 0.00007turn, transparent 0.00007turn 0.00019turn, rgba(0,0,0,0.3) 0.00019turn 0.0003turn);
+  animation: st-grain 0.7s steps(4) infinite;
+}
+@keyframes st-grain { to { transform: translate(3px, -2px); } }
+
+/* caution-tape marquee */
+.st-marquee {
+  overflow: hidden; background: var(--accent, #FF2D46); color: var(--accent-fg, #fff);
+  font: 800 12.5px "Courier New", monospace; letter-spacing: 0.16em; text-transform: uppercase;
+  white-space: pre; padding: 7px 0; border-block: 2.5px solid #000;
+}
+.st-marquee-track { display: inline-flex; animation: st-scroll 24s linear infinite; }
+@keyframes st-scroll { to { transform: translateX(-50%); } }
+
+/* spray-on entrance — blurred overspray settling onto the wall */
+@keyframes st-spray-in {
+  0% { opacity: 0; transform: scale(1.16); filter: blur(14px); }
+  55% { opacity: 1; filter: blur(2.5px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+.st-spray-in { animation: st-spray-in 0.7s cubic-bezier(0.23, 1, 0.32, 1) both; }
+
+/* headline: part stencil-outline, part sprayed accent */
+.st-outline { -webkit-text-stroke: 2px rgba(255,255,255,0.85); color: transparent; }
+.st-word-accent {
+  color: var(--accent, #FF2D46);
+  text-shadow: 0 0 26px color-mix(in srgb, var(--accent, #FF2D46) 55%, transparent), 4px 4px 0 #000;
+}
+/* overspray mist behind the headline */
+.st-mist {
+  position: absolute; inset: -30% -10% auto; height: 160%; z-index: -1;
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--accent, #FF2D46) 30%, transparent), transparent 65%);
+  filter: blur(10px);
+}
+/* paint drips running off the headline */
+.st-drips {
+  height: 16px; opacity: 0.9;
+  background-image:
+    linear-gradient(var(--accent, #FF2D46), var(--accent, #FF2D46)),
+    linear-gradient(var(--accent, #FF2D46), var(--accent, #FF2D46)),
+    linear-gradient(var(--accent, #FF2D46), var(--accent, #FF2D46));
+  background-size: 3px 9px, 3px 16px, 3px 6px;
+  background-position: 18% 0, 54% 0, 83% 0;
+  background-repeat: no-repeat;
+}
+
+/* paste-up poster cards */
+.st-card {
+  position: relative;
+  background: #141417;
+  border: 1.5px solid rgba(255,255,255,0.16);
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.55);
+  padding: 20px 18px 18px;
+  scroll-margin-top: 16px;
+}
+.st-tag {
+  display: inline-block;
+  background: var(--accent, #FF2D46); color: var(--accent-fg, #fff);
+  font: 800 11px "Courier New", monospace; letter-spacing: 0.18em; text-transform: uppercase;
+  padding: 5px 10px; transform: rotate(-2deg);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+}
+.st-tape {
+  position: absolute; width: 74px; height: 20px; z-index: 2;
+  background: rgba(228,222,205,0.88); box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* hazard stripe divider */
+.st-stripe {
+  height: 9px; border-block: 1.5px solid rgba(255,255,255,0.14);
+  background: repeating-linear-gradient(-45deg, var(--accent, #FF2D46) 0 14px, #0B0B0D 14px 28px);
+}
+
+/* sticker button — lifts on hover, stamps down on press */
+.st-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: "Arial Black", "Arial Narrow Bold", Impact, sans-serif;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  background: var(--accent, #FF2D46); color: var(--accent-fg, #fff);
+  padding: 14px 24px; border: 2px solid #000; box-shadow: 4px 4px 0 #000;
+  transform: rotate(-1.2deg);
+  transition: transform 0.18s cubic-bezier(0.34, 1.35, 0.64, 1), box-shadow 0.18s ease;
+}
+.st-btn:active { transform: translate(3px, 3px) rotate(-1.2deg); box-shadow: 1px 1px 0 #000; }
+.st-btn-ghost { background: #1B1B1F; color: #fff; }
+@media (hover: hover) and (pointer: fine) {
+  .st-btn:hover { transform: rotate(0) translate(-2px, -2px); box-shadow: 6px 6px 0 #000; }
+}
+
+/* hero print, taped to the wall */
+.st-hero {
+  position: relative; transform: rotate(-0.7deg);
+  border: 2px solid rgba(255,255,255,0.2); background: #000;
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+}
+.st-hero .st-hero-img { display: block; aspect-ratio: 16/10; width: 100%; object-fit: cover; filter: contrast(1.15) saturate(0.75); }
+.st-hero-stencil {
+  position: absolute; left: 12px; bottom: 10px;
+  font-family: "Courier New", monospace; font-weight: 800; font-size: 11px; letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.9); text-shadow: 1px 1px 0 #000;
+}
+
+/* gallery prints — alternating tilts like shots pinned to a wall */
+.st-pic { border: 1.5px solid rgba(255,255,255,0.18); background: #000; padding: 4px; box-shadow: 4px 4px 0 rgba(0,0,0,0.5); transition: transform 0.2s ease; }
+.st-pic:nth-child(odd) { transform: rotate(-1.3deg); }
+.st-pic:nth-child(even) { transform: rotate(1.1deg); }
+.st-pic img { filter: contrast(1.12) saturate(0.85); }
+@media (hover: hover) and (pointer: fine) {
+  .st-pic:hover { transform: rotate(0) scale(1.03); }
+}
+
+/* price list with dotted leaders */
+.st-price-row { display: flex; align-items: baseline; gap: 10px; padding: 11px 0; border-bottom: 1.5px dashed rgba(255,255,255,0.16); }
+.st-price-row:last-child { border-bottom: 0; }
+.st-dots { flex: 1; min-width: 12px; border-bottom: 2px dotted rgba(255,255,255,0.25); transform: translateY(-4px); }
+.st-fresh {
+  margin-left: 8px; background: var(--accent, #FF2D46); color: var(--accent-fg, #fff);
+  font: 800 9.5px "Courier New", monospace; letter-spacing: 0.12em; padding: 2px 6px;
+  transform: rotate(-3deg); display: inline-block;
+}
+
+/* guestbook notes — dashed wall tags */
+.st-note { border: 1.5px dashed rgba(255,255,255,0.22); padding: 12px 14px; }
+.st-note:nth-child(odd) { transform: rotate(0.5deg); }
+.st-note:nth-child(even) { transform: rotate(-0.5deg); }
+
+/* stencil badges */
+.st-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+  border: 1.5px dashed rgba(255,255,255,0.3);
+  font: 700 10.5px "Courier New", monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
+}
+.st-badge-accent { border-color: var(--accent, #FF2D46); color: var(--accent, #FF2D46); }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-grain, .st-marquee-track { animation: none; }
+  .st-spray-in { animation: none; }
+  .st-btn, .st-pic { transition: none; }
+}

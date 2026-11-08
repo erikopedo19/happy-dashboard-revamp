@@ -99,7 +99,7 @@ export function Audience() {
 }
 
 /* ================================== FAQ ==================================== */
-const FAQS = [
+export const FAQS = [
   {
     q: "Is Cutzioo free to start?",
     a: "Yes. The free plan includes your booking link, agenda and up to 15 bookings a month. Upgrade to Pro whenever you're ready — cancel anytime.",
