@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { EASE, Em, PillButton, Reveal, Tag } from "./ui";
 import { AgendaScene, BookingScene, ExploreScene, PhoneFrame } from "./phones";
 
+import { Wordmark } from "@/components/Wordmark";
 /* ============================ Features band ================================ */
 const CHIP_ICONS = [
   { icon: Calendar, label: "Smart agenda" },
@@ -112,7 +113,7 @@ export function FeaturesBand() {
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/90 py-1.5 pl-1.5 pr-3.5 shadow-lg backdrop-blur-md dark:bg-black/60">
               <img src="/cutzioo-logo.webp" alt="" className="h-7 w-7 rounded-full" />
-              <span className="text-[13px] font-bold tracking-tight text-neutral-900 dark:text-white">cutzioo</span>
+              <span className="text-[13px] font-bold tracking-tight text-neutral-900 dark:text-white"><Wordmark text="cutzioo" /></span>
             </div>
           </div>
         </Reveal>

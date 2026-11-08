@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 
+import { Wordmark } from "@/components/Wordmark";
 /**
  * Cutzioo tick loader — a check that draws itself via a masked stroke.
  * "intro" plays the sequence once (app splash) with a rose glow blooming in
@@ -38,7 +39,7 @@ export function CutziooLoader({
           d="M105,223 L107,226 L153,253 L157,252 L135,222 L124,221Z M58,210 L68,227 L94,261 L147,259 L149,257 L148,255 L119,239 L100,231 L60,209Z M437,127 L360,127 L234,331 L227,337 L222,337 L217,333 L174,273 L166,266 L158,264 L99,267 L97,268 L96,273 L191,406 L197,409 L263,408 L269,403 L443,144 L443,133Z"
         />
       </svg>
-      {wordmark && <p className="cz-wm" style={{ fontSize: "calc(var(--cz-size, min(42vmin, 240px)) * 0.16)" }}>Cutzioo</p>}
+      {wordmark && <p className="cz-wm" style={{ fontSize: "calc(var(--cz-size, min(42vmin, 240px)) * 0.16)" }}><Wordmark /></p>}
     </div>
   );
 }

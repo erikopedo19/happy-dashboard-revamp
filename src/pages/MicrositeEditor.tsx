@@ -420,7 +420,7 @@ const MicrositeEditor = () => {
   return (
     <PremiumGate
       featureName="Your website"
-      description="Microsites are part of Cutzioo Pro. Upgrade to publish your own booking website."
+      description="Publish your own booking website."
     >
     <SidebarProvider>
       <div className="h-[100dvh] flex w-full bg-[#0A0A0C] text-white overflow-hidden">

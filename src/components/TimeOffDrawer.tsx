@@ -8,7 +8,8 @@ import {
 import { Loader2, Palmtree, Sunset } from "lucide-react";
 import { Button } from "@heroui/react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { DateRangePicker, type DateRange } from "@/components/ui/date-range-picker";
+import type { DateRange } from "@/components/ui/date-range-picker";
+import { OffDaysCalendar } from "@/components/ui/off-days-calendar";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,29 +117,31 @@ export function TimeOffDrawer({ open, onOpenChange, initialDate }: TimeOffDrawer
             </div>
             <div>
               <h2 className="text-[17px] font-semibold leading-tight text-[#1C1C1E] dark:text-white">Days off</h2>
-              <p className="text-[13px] text-[#8E8E93] dark:text-white/50">Pick a first and last day. They are hidden from booking.</p>
+              <p className="text-[13px] text-[#8E8E93] dark:text-white/50">Tap a first and last day. Tap a day off to see or remove it.</p>
             </div>
           </div>
 
-          <DateRangePicker
+          <OffDaysCalendar
             value={range}
             onValueChange={(r) => { haptic("selection"); setRange(r); }}
-            onClear={() => setRange(null)}
+            daysOff={daysOff}
+            onRemove={removeDay}
             minDate={today}
-            title="Days off"
-            startLabel="First day"
-            endLabel="Last day"
-            renderBadge={(r) =>
-              r ? `${differenceInCalendarDays(r.end, r.start) + 1} day${r.end > r.start ? "s" : ""}` : null
-            }
             className="mt-1"
-            classNames={{
-              // bg-accent is the brand red in this theme — swap the frame for a neutral surface.
-              root: "bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08]",
-              presets: "flex-wrap gap-y-2 px-3 pb-2.5",
-              presetButton: "h-8 px-3.5 text-[12px] dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/10",
-            }}
           />
+          {range && (
+            <div className="mt-3 flex items-center justify-between rounded-2xl bg-black/[0.04] px-4 py-2.5 dark:bg-white/[0.05]">
+              <span className="text-[13px] font-medium text-[#1C1C1E] dark:text-white">
+                {format(range.start, "MMM d")}{range.end > range.start ? ` – ${format(range.end, "MMM d")}` : ""}
+                <span className="ml-2 text-[#8E8E93] dark:text-white/45">
+                  {differenceInCalendarDays(range.end, range.start) + 1} day{range.end > range.start ? "s" : ""}
+                </span>
+              </span>
+              <button type="button" onClick={() => setRange(null)} className="text-[13px] font-semibold text-[#8E8E93] dark:text-white/50">
+                Clear
+              </button>
+            </div>
+          )}
 
           {/* Reasons */}
           <p className="text-[12px] uppercase tracking-wider text-[#8E8E93] dark:text-white/35 mt-6 mb-2">Reason</p>

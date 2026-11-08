@@ -8,6 +8,7 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { EASE, Em } from "./ui";
 import { AgendaScene, BookingScene, ExploreScene, PhoneFrame } from "./phones";
 
+import { Wordmark } from "@/components/Wordmark";
 export const LOGIN_HREF = "/auth?mode=signin";
 export const TRY_HREF = "/auth?mode=signup";
 
@@ -48,7 +49,7 @@ export function LandingNav() {
         <a href="#top" className="flex items-center gap-2">
           <img src="/cutzioo-logo.webp" alt="Cutzioo" className="h-7 w-7 rounded-lg" />
           <span className="text-[15px] font-bold tracking-tight text-neutral-900 dark:text-white">
-            cutzioo
+            <Wordmark text="cutzioo" />
           </span>
         </a>
         <div className="hidden items-center gap-6 md:flex">

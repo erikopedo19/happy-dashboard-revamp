@@ -3,11 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft,
   CalendarPlus,
-  CheckCircle2,
   Clock,
-  Loader2,
   MapPin,
   Navigation,
   Phone,
@@ -15,10 +12,12 @@ import {
   XCircle,
   CalendarClock,
 } from "lucide-react";
-import { format, addDays, startOfDay, isBefore, formatDistanceToNowStrict, addMinutes } from "date-fns";
+import { format, isBefore, formatDistanceToNowStrict, addMinutes } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { ScreenLoader } from "@/components/ScreenLoader";
 import { DeleteButton } from "@/components/ui/delete-button";
+import { RescheduleFlow } from "@/components/RescheduleFlow";
+import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 type Booking = {
@@ -54,10 +53,6 @@ export default function ManageBooking() {
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"view" | "reschedule">("view");
   const [busy, setBusy] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
-
   const fetchBooking = async () => {
     if (!token) return;
     setLoading(true);
@@ -67,25 +62,6 @@ export default function ManageBooking() {
   };
 
   useEffect(() => { fetchBooking(); /* eslint-disable-next-line */ }, [token]);
-
-  useEffect(() => {
-    const run = async () => {
-      if (!booking || mode !== "reschedule") return;
-      const { data } = await (supabase as any).rpc("get_booked_slots", {
-        _business_id: booking.business.id,
-        _date: format(selectedDate, "yyyy-MM-dd"),
-      });
-      setBookedTimes((data || []).map((r: any) => r.appointment_time?.slice(0, 5)));
-    };
-    run();
-  }, [booking, mode, selectedDate]);
-
-  const slots = useMemo(() => {
-    const out: string[] = [];
-    for (let h = 8; h < 20; h++) for (const m of [0, 30]) out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-    return out;
-  }, []);
-  const dates = useMemo(() => Array.from({ length: 14 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
 
   const handleCancel = async () => {
     if (!token) return;
@@ -100,22 +76,23 @@ export default function ManageBooking() {
     fetchBooking();
   };
 
-  const handleReschedule = async () => {
-    if (!token || !selectedTime) return;
+  const handleReschedule = async (date: Date, time: string) => {
+    if (!token) return;
     setBusy(true);
     const { data, error } = await (supabase as any).rpc("reschedule_appointment_by_token", {
       _token: token,
-      _new_date: format(selectedDate, "yyyy-MM-dd"),
-      _new_time: selectedTime,
+      _new_date: format(date, "yyyy-MM-dd"),
+      _new_time: time,
     });
     setBusy(false);
     if (error || !data?.success) {
+      haptic("error");
       toast({ title: "Could not reschedule", description: data?.error || error?.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Booking rescheduled!" });
+    haptic("success");
+    toast({ title: "Booking moved", description: `${format(date, "EEEE d MMMM")} at ${time}` });
     setMode("view");
-    setSelectedTime("");
     fetchBooking();
   };
 
@@ -189,6 +166,7 @@ export default function ManageBooking() {
         </motion.div>
 
         {/* Ticket */}
+        {mode === "view" && (
         <motion.div {...rise(1)} className="relative mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-[#111114]">
           {booking.business.banner_url && (
             <img src={booking.business.banner_url} alt="" className="absolute inset-x-0 top-0 h-28 w-full object-cover opacity-40" />
@@ -244,9 +222,10 @@ export default function ManageBooking() {
             )}
           </div>
         </motion.div>
+        )}
 
         {/* Quick actions */}
-        {!cancelled && (
+        {!cancelled && mode === "view" && (
           <motion.div {...rise(2)} className="mt-4 grid grid-cols-3 gap-2.5">
             <QuickAction icon={CalendarPlus} label="Calendar" onClick={addToCalendar} />
             <QuickAction
@@ -279,7 +258,7 @@ export default function ManageBooking() {
                 <>
                   <button
                     type="button"
-                    onClick={() => setMode("reschedule")}
+                    onClick={() => { haptic("medium"); setMode("reschedule"); }}
                     className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-[#0A0A0B] transition active:scale-[0.98]"
                     style={{ background: accent }}
                   >
@@ -302,68 +281,17 @@ export default function ManageBooking() {
               )}
             </motion.div>
           ) : (
-            <motion.div key="reschedule" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35, ease }} className="mt-6 rounded-[28px] border border-white/10 bg-[#111114] p-5">
-              <button type="button" onClick={() => setMode("view")} className="flex items-center gap-1.5 text-[13px] text-white/60 hover:text-white">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </button>
-
-              <p className="mt-5 text-[11px] uppercase tracking-wider text-white/40">New date</p>
-              <div className="mt-3 -mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-                {dates.map((d) => {
-                  const active = format(d, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
-                  return (
-                    <button
-                      key={d.toISOString()}
-                      type="button"
-                      onClick={() => { setSelectedDate(d); setSelectedTime(""); }}
-                      className={cn(
-                        "w-[60px] shrink-0 snap-start rounded-2xl border py-2.5 text-center transition active:scale-95",
-                        active ? "border-transparent text-[#0A0A0B]" : "border-white/10 text-white/80 hover:bg-white/5",
-                      )}
-                      style={active ? { background: accent } : undefined}
-                    >
-                      <div className="text-[10px] uppercase opacity-70">{format(d, "EEE")}</div>
-                      <div className="text-[17px] font-bold leading-tight">{format(d, "d")}</div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <p className="mt-5 text-[11px] uppercase tracking-wider text-white/40">New time</p>
-              <div className="mt-3 grid grid-cols-4 gap-2">
-                {slots.map((t) => {
-                  const taken = bookedTimes.includes(t);
-                  const active = t === selectedTime;
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      disabled={taken}
-                      onClick={() => setSelectedTime(t)}
-                      className={cn(
-                        "rounded-xl border py-2.5 text-[13px] font-medium tabular-nums transition active:scale-95",
-                        active ? "border-transparent text-[#0A0A0B]"
-                          : taken ? "cursor-not-allowed border-white/5 text-white/20 line-through"
-                            : "border-white/10 text-white/80 hover:bg-white/5",
-                      )}
-                      style={active ? { background: accent } : undefined}
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleReschedule}
-                disabled={!selectedTime || busy}
-                className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-[#0A0A0B] transition active:scale-[0.98] disabled:opacity-40"
-                style={{ background: accent }}
-              >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-5 w-5" /> Confirm {selectedTime ? `${format(selectedDate, "EEE d")} · ${selectedTime}` : "new time"}</>}
-              </button>
-            </motion.div>
+            <RescheduleFlow
+              key="reschedule"
+              businessId={booking.business.id}
+              currentDate={booking.appointment_date}
+              currentTime={booking.appointment_time}
+              duration={booking.service.duration || 30}
+              accent={accent}
+              busy={busy}
+              onBack={() => setMode("view")}
+              onConfirm={handleReschedule}
+            />
           )}
         </AnimatePresence>
 

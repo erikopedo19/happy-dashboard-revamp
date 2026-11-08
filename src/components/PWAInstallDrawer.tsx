@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Smartphone, Download, Share, MoreVertical } from "lucide-react";
 import { Button } from "@heroui/react";
+import { Wordmark } from "@/components/Wordmark";
 import {
   Drawer,
   DrawerClose,
@@ -71,7 +72,7 @@ export function PWAInstallDrawer() {
       </div>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>Install Cutzioo</DrawerTitle>
+          <DrawerTitle>Install <Wordmark /></DrawerTitle>
           <DrawerDescription>
             Add this app to your home screen for quick access.
           </DrawerDescription>

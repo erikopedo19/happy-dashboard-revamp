@@ -9,9 +9,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 
+import { Wordmark } from "@/components/Wordmark";
 const PERKS = [
-  { icon: CalendarClock, label: "Unlimited bookings & clients" },
-  { icon: Users, label: "Team members, stylists & map listing" },
+  { icon: CalendarClock, label: "Unlimited bookings" },
+  { icon: Users, label: "Team & map listing" },
 ];
 
 type PlanKey = "yearly" | "monthly";
@@ -29,7 +30,7 @@ const ALL_OPTIONS: {
     title: "Yearly",
     price: "€89.90",
     perMonth: "€7.49 / month",
-    sub: "billed once a year",
+    sub: "per year",
     badge: "Best value",
   },
   {
@@ -37,7 +38,7 @@ const ALL_OPTIONS: {
     title: "Monthly",
     price: "€8.99",
     perMonth: "€8.99 / month",
-    sub: "billed every month",
+    sub: "per month",
   },
 ];
 
@@ -93,7 +94,7 @@ export default function Pricing() {
       >
         <header className="pricing-header">
           <div className="pricing-wordmark">
-            Cutzioo <span className="pricing-badge">PRO</span>
+            <Wordmark /> <span className="pricing-badge">PRO</span>
           </div>
           <button
             type="button"
@@ -107,9 +108,9 @@ export default function Pricing() {
 
         <main className="pricing-scroll" aria-labelledby="pricing-title" tabIndex={0}>
           <div className="pricing-intro">
-            <p className="pricing-eyebrow">More room to grow</p>
-            <h1 id="pricing-title">Your craft.<br />Without limits.</h1>
-            <p className="pricing-description">All your bookings and clients in one place.<br />A little less admin. More time behind the chair.</p>
+            <p className="pricing-eyebrow">Cutzioo Pro</p>
+            <h1 id="pricing-title">No limits.</h1>
+            <p className="pricing-description">Every booking, client and team member.</p>
           </div>
 
           <motion.div
@@ -121,19 +122,19 @@ export default function Pricing() {
             <div className="pricing-pass-orbit" aria-hidden="true" />
             <div className="pricing-pass-top">
               <span className="pricing-pass-icon"><Crown aria-hidden="true" size={22} strokeWidth={1.75} /></span>
-              <span className="pricing-eyebrow">The Pro membership</span>
+              <span className="pricing-eyebrow">Pro</span>
               <ArrowUpRight aria-hidden="true" size={20} strokeWidth={1.75} />
             </div>
             <div className="pricing-pass-title">Made for your<br /><span>next chapter.</span></div>
             <div className="pricing-pass-bottom">
-              <span>Unlimited bookings. All yours.</span>
+              <span>Unlimited bookings.</span>
               <span className="pricing-pass-bars" aria-hidden="true" />
             </div>
           </motion.div>
 
           {/* Feature list card */}
           <section className="pricing-benefits" aria-labelledby="pricing-benefits-title">
-            <h2 id="pricing-benefits-title" className="pricing-eyebrow">Included with Pro</h2>
+            <h2 id="pricing-benefits-title" className="pricing-eyebrow">Included</h2>
             <ul>
               {PERKS.map((p, index) => (
                 <motion.li
@@ -153,8 +154,8 @@ export default function Pricing() {
           {STRIPE_TRIAL_ENABLED && (
             <div className="pricing-trial">
               <div>
-                <label htmlFor="pricing-free-trial">Start with 7 days free</label>
-                <p id="pricing-trial-description">No charge today, cancel any time</p>
+                <label htmlFor="pricing-free-trial">7 days free</label>
+                <p id="pricing-trial-description">No charge today</p>
               </div>
               <Switch
                 id="pricing-free-trial"
@@ -169,7 +170,7 @@ export default function Pricing() {
           {/* Highlight offer block */}
           <section className="pricing-offer" aria-labelledby="pricing-plan-title">
             <div className="pricing-section-heading">
-              <h2 id="pricing-plan-title" className="pricing-eyebrow">Your membership</h2>
+              <h2 id="pricing-plan-title" className="pricing-eyebrow">Plan</h2>
               <span>Cancel anytime</span>
             </div>
             <div className="pricing-options" role="group" aria-labelledby="pricing-plan-title">
@@ -214,7 +215,7 @@ export default function Pricing() {
           <div className="pricing-rating">
             <Star aria-hidden="true" size={15} strokeWidth={1.75} />
             <strong>4.8</strong>
-            <span>from barbers on Cutzioo</span>
+            <span>from barbers</span>
           </div>
         </main>
 
@@ -231,14 +232,13 @@ export default function Pricing() {
             aria-describedby="pricing-billing-summary"
             className="pricing-continue"
           >
-            Continue to checkout
+            Continue
             <ArrowRight aria-hidden="true" size={20} strokeWidth={1.75} />
           </button>
           <p className="pricing-secure">
             <ShieldCheck aria-hidden="true" size={15} strokeWidth={1.75} />
             Secure payment by Stripe
           </p>
-          <p className="pricing-secure">Cancel anytime in Settings → Subscription.</p>
         </footer>
       </motion.div>
     </div>

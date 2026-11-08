@@ -1,5 +1,6 @@
 /* Apple SF Pro system font stack — applied globally */
 :root {
+  --font-cal: 'Cal Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'SF Pro', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
 }
 html, body, #root, button, input, textarea, select {
@@ -153,7 +154,15 @@ body {
     overscroll-behavior-y: none;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2 {
+    font-family: var(--font-cal);
+    font-weight: 600;
+    font-synthesis-weight: none;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  h3, h4, h5, h6 {
     font-family: var(--font-apple);
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -1018,11 +1027,11 @@ body {
   animation: radar-dot-pulse 1.6s ease-in-out infinite;
 }
 
-/* Cal Sans display font utility — now maps to SF Pro for consistency */
+/* Cal Sans display font — logo wordmark and headlines */
 .font-cal {
-  font-family: var(--font-apple);
-  letter-spacing: -0.025em;
-  font-weight: 600;
+  font-family: var(--font-cal);
+  font-synthesis-weight: none;
+  letter-spacing: -0.01em;
 }
 
 /* ============================================================
@@ -1264,7 +1273,7 @@ html.is-native #root {
   padding: calc(env(safe-area-inset-top, 0px) + 12px) 24px 12px;
 }
 
-.pricing-wordmark { font-size: 1.375rem; font-weight: 700; letter-spacing: -0.055em; }
+.pricing-wordmark { font-family: var(--font-cal); font-synthesis-weight: none; font-size: 1.375rem; font-weight: 700; letter-spacing: -0.01em; }
 .pricing-badge {
   padding: 4px 8px;
   border: 1px solid var(--pw-border);
@@ -1320,7 +1329,7 @@ html.is-native #root {
   text-transform: uppercase;
 }
 .pricing-intro > .pricing-eyebrow { color: var(--pw-accent); }
-.pricing-intro h1 { margin-top: 10px; font-size: 1.75rem; font-weight: 650; line-height: 1.08; letter-spacing: -0.055em; }
+.pricing-intro h1 { margin-top: 10px; font-size: 1.75rem; font-weight: 650; line-height: 1.08; letter-spacing: -0.01em; }
 .pricing-description { margin-top: 10px; color: var(--pw-muted); font-size: 0.875rem; line-height: 1.55; }
 
 /* Frosted "membership pass" with a specular sheen sweeping across it. */
@@ -1382,7 +1391,7 @@ html.is-native #root {
   background: var(--pw-accent-soft);
   color: var(--pw-accent);
 }
-.pricing-pass-title { margin: 12px 0; font-size: 1.5rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.045em; }
+.pricing-pass-title { margin: 12px 0; font-size: 1.5rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.015em; }
 .pricing-pass-title > span { color: var(--pw-accent); }
 .pricing-pass-bottom { justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--pw-border); font-size: 0.75rem; color: var(--pw-muted); }
 .pricing-pass-bars {
@@ -1572,7 +1581,7 @@ body.is-native.platform-ios:has([data-glass-dock]) .pricing-footer {
 .cz-tick { fill: var(--cz-rose, #FF2D46); transform-origin: center; transform-box: fill-box; }
 .cz-curtain-logo .cz-glow { display: none; }
 .cz-draw { fill: none; stroke: #fff; stroke-width: 160; stroke-linejoin: round; stroke-dasharray: 1 2; stroke-dashoffset: 1; }
-.cz-wm { margin: 0; font-weight: 800; letter-spacing: -0.01em; color: #fff; opacity: 0; }
+.cz-wm { margin: 0; font-family: var(--font-cal); font-synthesis-weight: none; font-weight: 800; letter-spacing: -0.01em; color: #fff; opacity: 0; }
 
 /* soft rose halo — blooms in during the last stretch of the intro */
 .cz-glow {

@@ -92,6 +92,10 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
+				ripple: {
+					'0%, 100%': { transform: 'translate(-50%, -50%) scale(1)' },
+					'50%': { transform: 'translate(-50%, -50%) scale(0.9)' },
+				},
 				"accordion-down": {
 					from: { height: "0" },
 					to: { height: "var(--radix-accordion-content-height)" },
@@ -149,6 +153,7 @@ export default {
 				},
 			},
 			animation: {
+				ripple: 'ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite',
 				"accordion-down": "accordion-down 0.2s ease-out",
 				"accordion-up": "accordion-up 0.2s ease-out",
 				"fade-in-up": "fade-in-up 0.26s cubic-bezier(0.22, 1, 0.36, 1) both",

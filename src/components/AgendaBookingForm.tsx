@@ -29,6 +29,7 @@ interface Service {
 
 import { CancellationListButton } from "@/components/CancellationListButton";
 
+import { Wordmark } from "@/components/Wordmark";
 interface AgendaBookingFormProps {
   form: UseFormReturn<any>;
   services: Service[];
@@ -1349,7 +1350,7 @@ const AgendaBookingForm = ({
           rel="noreferrer"
           className="mx-auto mt-8 mb-24 flex w-fit items-center gap-1.5 text-[12px] text-gray-400 transition hover:text-gray-600 dark:text-white/35 dark:hover:text-white/60 sm:mb-2"
         >
-          This website is made with <span className="font-semibold text-gray-600 dark:text-white/70">Cutzioo</span>
+          This website is made with <span className="font-semibold text-gray-600 dark:text-white/70"><Wordmark /></span>
         </a>
       </div>
     </div>

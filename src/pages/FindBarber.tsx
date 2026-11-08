@@ -25,9 +25,11 @@ import {
   Home,
   MapPin,
   GalleryHorizontalEnd,
+  Radar,
 } from "lucide-react";
 import { SwipeDeck } from "@/components/SwipeDeck";
 import { QuickBookSheet } from "@/components/QuickBookSheet";
+import { SuggestBarberSheet } from "@/components/SuggestBarberSheet";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { haptic } from "@/lib/haptics";
@@ -131,6 +133,7 @@ const FindBarber = () => {
   const [minRating, setMinRating] = useState<"any" | "3" | "4" | "4.5">("any");
   const [swipeOpen, setSwipeOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -387,8 +390,8 @@ const FindBarber = () => {
         <main className="relative flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="relative min-h-screen bg-[#000000] pb-28">
       <Seo
-        title="Cutzio | Find Your Next Barber"
-        description="Discover independent barbers and stylists near you and book appointments in seconds with Cutzioo."
+        title="Find Barbers Near You – Book a Barber Online | Cutzioo"
+        description="Discover the best barbers near you. Compare haircut prices, real reviews and open times, then book your barber online in seconds with Cutzioo."
         path="/find-barber"
       />
       <AnimatePresence>
@@ -498,8 +501,26 @@ const FindBarber = () => {
         </div>
       </PageHeader>
 
+      <SuggestBarberSheet
+        open={suggestOpen}
+        onClose={() => setSuggestOpen(false)}
+        barbers={sortedBarbers}
+        userLocation={userLocation}
+      />
+
       <div className="relative z-10 max-w-5xl mx-auto px-5 py-5">
         <div className="-mx-5 mb-5 flex items-center gap-2.5 overflow-x-auto px-5 pb-1 scrollbar-hide">
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.95 }}
+            onClick={() => { haptic("medium"); setSuggestOpen(true); }}
+            className="flex h-14 shrink-0 items-center gap-2.5 rounded-[22px] border border-white/[0.08] bg-[#1C1C1E] pl-1.5 pr-5 text-[15px] font-medium text-white/80"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-[#FF2D46]/15 text-[#FF5A6E]">
+              <Radar className="h-[18px] w-[18px]" />
+            </span>
+            Suggest
+          </motion.button>
           {FILTER_OPTIONS.map((f, i) => {
             const active = sortFilter === f.key || (f.key === "default" && sortFilter === undefined);
             const Icon = f.icon;

@@ -52,6 +52,7 @@ import { isNative } from "./lib/native";
 import { setupQueryPersistence } from "./lib/queryPersist";
 
 
+import { Wordmark } from "@/components/Wordmark";
 // Route chunks warmed up in the background after first paint, so switching
 // pages never waits on a network download.
 const PRELOAD: Array<() => Promise<unknown>> = [];
@@ -197,7 +198,7 @@ class RouteErrorBoundary extends React.Component<{ children: React.ReactNode }, 
     return (
       <div className="grid min-h-dvh place-items-center bg-black px-6 text-center">
         <div className="space-y-4">
-          <p className="text-[15px] font-semibold text-white">A new version of Cutzioo is available</p>
+          <p className="text-[15px] font-semibold text-white">A new version of <Wordmark /> is available</p>
           <button
             onClick={() => { sessionStorage.removeItem("chunk-reload-at"); window.location.reload(); }}
             className="rounded-full bg-[#FF375F] px-6 py-2.5 text-[14px] font-semibold text-white"

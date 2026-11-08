@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
 import { AddonAdvisor } from "@/components/AddonAdvisor";
 
+import { PlanChangeOverlay, type PlanChangeItem } from "@/components/PlanChange";
 const fmt = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
 
@@ -38,6 +39,14 @@ const FREE_PLAN_LOSSES = [
   { icon: Users, label: "The Teams page is Pro-only" },
   { icon: BarChart3, label: "Reports & Analytics are Pro-only" },
   { icon: Globe, label: "Website tools are Pro-only" },
+];
+
+const DOWNGRADE_ITEMS: PlanChangeItem[] = [
+  { name: "Bookings through your link", after: "20 / month" },
+  { name: "Teams page", after: "Gone" },
+  { name: "Reports & Analytics", after: "Gone" },
+  { name: "Website tools", after: "Gone" },
+  { name: "Custom booking themes", after: "Default" },
 ];
 
 type ManageAction = "cancel" | "resume";
@@ -84,6 +93,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [noRecurringPlan, setNoRecurringPlan] = useState(false);
+  const [planAnim, setPlanAnim] = useState<{ mode: "downgrade" | "kept"; end: string | null } | null>(null);
 
   const shell = "rounded-2xl border border-border bg-card p-5";
 
@@ -150,26 +160,30 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
     </div>
   );
 
-  async function setAutoRenew(enabled: boolean) {
+  async function setAutoRenew(enabled: boolean, fromOverlay = false): Promise<boolean> {
     haptic("selection");
     setBusy(true);
     try {
       const result = await manageSubscription(enabled ? "resume" : "cancel");
       if (result.kind === "error") {
         toast.error("Couldn't update auto-renewal. Please try again.");
-        return;
+        return false;
       }
       if (result.kind === "fallback") {
         setNoRecurringPlan(true);
         setConfirmOpen(false);
-        return;
+        return false;
       }
-      toast.success(enabled ? "Auto-renewal turned on" : "Auto-renewal turned off");
+      if (!fromOverlay) {
+        setPlanAnim({ mode: enabled ? "kept" : "downgrade", end: result.subscriptionEnd ?? data?.subscription_end ?? null });
+      }
       if (result.emailPending) toast.info("Your membership was updated; the confirmation email is pending.");
       await refresh();
       window.dispatchEvent(new Event("premium:refresh"));
+      return true;
     } catch {
       toast.error("Couldn't update auto-renewal. Please try again.");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -192,7 +206,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
       const subscriptionEnd = result.kind === "success"
         ? result.subscriptionEnd ?? data?.subscription_end
         : data?.subscription_end;
-      toast.success(`Pro cancelled. You keep it until ${fmt(subscriptionEnd)}.`);
+      setPlanAnim({ mode: "downgrade", end: subscriptionEnd ?? null });
       if (result.emailPending) toast.info("Cancellation is confirmed; the confirmation email is pending.");
       await refresh();
       window.dispatchEvent(new Event("premium:refresh"));
@@ -420,6 +434,14 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
           </div>
         </DrawerContent>
       </Drawer>
+
+      <PlanChangeOverlay
+        mode={planAnim?.mode ?? null}
+        endLabel={fmt(planAnim?.end)}
+        items={DOWNGRADE_ITEMS}
+        onKeep={() => setAutoRenew(true, true)}
+        onClose={() => setPlanAnim(null)}
+      />
     </section>
   );
 }

@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check, Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium } from "@/hooks/use-premium";
 
+import { PlanUpgradeBadge, planGlowClass, useBurst } from "@/components/PlanChange";
+import { Wordmark } from "@/components/Wordmark";
+import { haptic } from "@/lib/haptics";
 export default function PricingSuccess() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -39,12 +42,24 @@ export default function PricingSuccess() {
   }, [sessionId, attempt]);
 
   const active = confirmed && isPremium;
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const { fire, layer } = useBurst();
+  useEffect(() => {
+    if (!active) return;
+    haptic("success");
+    const t = window.setTimeout(() => {
+      const r = badgeRef.current?.getBoundingClientRect();
+      if (r) fire(r.left + r.width / 2, r.top + r.height / 2);
+    }, 950);
+    return () => window.clearTimeout(t);
+  }, [active, fire]);
   return (
     <main className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-y-auto bg-background px-6 text-center text-foreground">
-      <div className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-        {active ? <Check className="h-10 w-10" /> : <Loader2 className={`h-9 w-9 ${waiting ? "" : "animate-spin"}`} />}
+      <div aria-hidden className={planGlowClass(active)} />
+      <div ref={badgeRef} className={active ? "text-[#30D158]" : "text-primary"}>
+        <PlanUpgradeBadge done={active} paused={waiting} />
       </div>
-      <h1 className="mt-6 text-3xl font-bold">{active ? "Cutzioo Pro is active" : waiting ? "Still checking your payment" : "Confirming your payment"}</h1>
+      <h1 className="mt-6 text-3xl font-bold">{active ? <><Wordmark /> Pro is active</> : waiting ? "Still checking your payment" : "Confirming your payment"}</h1>
       <p className="mt-3 max-w-sm text-sm text-muted-foreground">
         {active ? "Your membership is ready." : waiting ? "Your membership is not confirmed yet. Please check again before making another payment." : "Waiting for Stripe to confirm your membership."}
       </p>
@@ -54,6 +69,7 @@ export default function PricingSuccess() {
           <Button variant="ghost" onClick={() => navigate("/settings")}>Back to Settings</Button>
         </div>
       )}
+      {layer}
     </main>
   );
 }

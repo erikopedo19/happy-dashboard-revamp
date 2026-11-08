@@ -12,8 +12,10 @@
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:release": "bash scripts/ios-release.sh",
     "ios:upload": "UPLOAD=1 bash scripts/ios-release.sh",
-    "mobile": "npm --prefix expo run tunnel",
-    "mobile:lan": "npm --prefix expo run start"
+    "mobile:install": "npm --prefix expo install",
+    "mobile": "npm run mobile:install && npm --prefix expo run tunnel",
+    "mobile:lan": "npm run mobile:install && npm --prefix expo run start",
+    "mobile:build:ios": "npm run mobile:install && npm --prefix expo run build:ios"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -34,6 +36,7 @@
     "@devigner-ui/icons": "^3.3.0",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
+    "@fontsource/cal-sans": "^5.3.0",
     "@gsap/react": "^2.1.2",
     "@heroui/react": "^2.8.9",
     "@heroui/theme": "^2.4.26",

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpRight, MapPin, Clock, Phone, Star, Calendar, Globe, Music2, MessageCircle, Scissors, Check, Bell, Sparkles, Users } from "lucide-react";
 
+import { Wordmark } from "@/components/Wordmark";
 type Review = {
   id: string;
   rating: number;
@@ -694,7 +695,7 @@ const Microsite = () => {
           <div className="flex items-center justify-between border-t border-[color:var(--line)] py-5 text-[12px] text-[color:var(--muted)]">
             <span>© {new Date().getFullYear()} {businessName}</span>
             <a href="https://cutzioo.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 hover:text-[color:var(--fg)]">
-              Made with <span className="font-semibold text-[color:var(--fg)]">Cutzioo</span>
+              Made with <span className="font-semibold text-[color:var(--fg)]"><Wordmark /></span>
             </a>
           </div>
         </div>

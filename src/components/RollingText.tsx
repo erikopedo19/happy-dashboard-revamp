@@ -50,7 +50,7 @@ export function RollingText({
               }
               className="inline-block"
             >
-              {ch === " " ? " " : ch}
+              {ch === " " ? "\u00A0" : ch}
             </motion.span>
           </AnimatePresence>
         </span>
