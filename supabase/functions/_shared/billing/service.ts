@@ -1,12 +1,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { BillingSubscription, subscriptionFields, cancellationKey } from './logic.ts';
 export const adminClient = () => createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', { auth: { persistSession: false } });
-export async function stripeRequest(path: string, body?: URLSearchParams) {
+export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string) {
   const key = Deno.env.get('STRIPE_SECRET_KEY');
   if (!key) throw new Error('payment_config_missing');
   const response = await fetch(`https://api.stripe.com/v1${path}`, {
     method: body ? 'POST' : 'GET',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded', 'Stripe-Version': '2024-06-20' }, body,
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded', 'Stripe-Version': '2024-06-20', ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) }, body,
   });
   const data = await response.json();
   if (!response.ok) {
@@ -52,7 +52,7 @@ export async function syncSubscription(admin: ReturnType<typeof adminClient>, us
   if (lookupError) throw lookupError;
   const fields = subscriptionFields(sub, old?.subscription_end);
   const renewed = fields.subscribed && sub.status === 'active' && fields.subscription_end !== old?.subscription_end;
-  const { error } = await admin.from('subscribers').upsert({ user_id: userId, email, ...fields, updated_at: new Date().toISOString(), ...(sub.status === 'active' ? { payment_failed_at: null } : {}), ...(renewed ? { expiration_email_sent_at: null, expiry_reminder_sent_at: null } : {}) }, { onConflict: 'user_id' });
+  const { error } = await admin.from('subscribers').upsert({ user_id: userId, email, ...fields, updated_at: new Date().toISOString(), ...(sub.status === 'active' ? { payment_failed_at: null } : {}), ...(renewed ? { expiration_email_sent_at: null } : {}) }, { onConflict: 'user_id' });
   if (error) throw error;
   return fields;
 }
@@ -61,8 +61,19 @@ export async function cancellationEmail(admin: ReturnType<typeof adminClient>, u
   if (sub.status === 'canceled') await sendBillingEmail(admin, userId, email, `ended:${sub.id}`, 'ended', end);
 }
 export async function findSubscriptions(customer: string) {
-  const result = await stripeRequest(`/subscriptions?${new URLSearchParams({ customer, status: 'all', limit: '100' })}`);
-  return (result.data ?? []) as BillingSubscription[];
+  const subscriptions: BillingSubscription[] = [];
+  let cursor: string | undefined;
+  for (;;) {
+    const query = new URLSearchParams({ customer, status: 'all', limit: '100' });
+    if (cursor) query.set('starting_after', cursor);
+    const result = await stripeRequest(`/subscriptions?${query}`);
+    const page = (result.data ?? []) as BillingSubscription[];
+    subscriptions.push(...page);
+    if (!result.has_more || !page.length) break;
+    cursor = page[page.length - 1]?.id;
+    if (!cursor) break;
+  }
+  return subscriptions;
 }
 export function newestSubscription(subs: BillingSubscription[]) {
   return [...subs].filter(s => ['active', 'trialing', 'past_due', 'unpaid', 'canceled'].includes(s.status)).sort((a,b) => {

@@ -16,6 +16,8 @@ export interface SubscriptionRow {
   renewal_currency: string;
   stripe_subscription_id: string | null;
   has_recurring_subscription?: boolean;
+  billing_status?: string | null;
+  payment_failed_at?: string | null;
 }
 
 export interface SubscriptionState {
@@ -45,7 +47,7 @@ export function useSubscription(): SubscriptionState {
     const { data: row, error: err } = await supabase
       .from("subscribers")
       .select(
-        "subscribed, subscription_tier, subscription_end, subscription_start, auto_renew, cancel_at_period_end, renewal_amount, renewal_currency, stripe_subscription_id"
+        "subscribed, subscription_tier, subscription_end, subscription_start, auto_renew, cancel_at_period_end, renewal_amount, renewal_currency, stripe_subscription_id, billing_status, payment_failed_at"
       )
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false })
@@ -56,7 +58,7 @@ export function useSubscription(): SubscriptionState {
       setError("We couldn't load your subscription right now.");
       setData(null);
     } else {
-      setData(row ? { ...(row as unknown as SubscriptionRow), has_recurring_subscription: hasRecurring } : null);
+      setData(previous => row ? { ...(row as unknown as SubscriptionRow), has_recurring_subscription: hasRecurring ?? (previous?.stripe_subscription_id === row.stripe_subscription_id ? previous?.has_recurring_subscription : undefined) } : null);
     }
     setLoading(false);
   }, [user?.id]);
