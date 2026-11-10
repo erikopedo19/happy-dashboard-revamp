@@ -1779,6 +1779,45 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_checkout_attempts: {
+        Row: {
+          accepted_at: string
+          checkout_key: string
+          created_at: string
+          expires_at: string
+          plan: string
+          return_origin: string
+          stripe_session_id: string | null
+          terms_version: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          checkout_key?: string
+          created_at?: string
+          expires_at?: string
+          plan: string
+          return_origin: string
+          stripe_session_id?: string | null
+          terms_version: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          checkout_key?: string
+          created_at?: string
+          expires_at?: string
+          plan?: string
+          return_origin?: string
+          stripe_session_id?: string | null
+          terms_version?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           id: string
@@ -2003,6 +2042,32 @@ export type Database = {
         Returns: boolean
       }
       claim_referral: { Args: { p_code: string }; Returns: Json }
+      claim_subscription_checkout: {
+        Args: {
+          p_origin: string
+          p_plan: string
+          p_terms_version: string
+          p_user_id: string
+        }
+        Returns: {
+          accepted_at: string
+          checkout_key: string
+          created_at: string
+          expires_at: string
+          plan: string
+          return_origin: string
+          stripe_session_id: string | null
+          terms_version: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "subscription_checkout_attempts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       claim_waitlist_offer: { Args: { _token: string }; Returns: Json }
       clean_booking_link: { Args: { raw: string }; Returns: string }
       clean_display_name: { Args: { raw: string }; Returns: string }
