@@ -42,9 +42,10 @@ serve(async req => {
       if (!['active','trialing','past_due'].includes(subscription.status)) return json({ ok:false, error:'no_stripe_subscription' });
       subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
     }
-    const fields = await syncSubscription(admin,user.id,user.email,subscription);
+    const wasCancelling = !!subscription.cancel_at_period_end;
+    const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,subscription);
     let emailPending = false;
-    if (action === 'cancel' || action === 'sync') {
+    if (applied && (action === 'sync' || (action === 'cancel' && !body.already_cancelling))) {
       try { await cancellationEmail(admin,user.id,user.email,subscription,fields.subscription_end); }
       catch { emailPending = true; console.error('Cancellation confirmation pending; webhook will retry'); }
     }

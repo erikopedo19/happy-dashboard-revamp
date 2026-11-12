@@ -202,7 +202,7 @@ serve(async (req) => {
         if ((event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") && object.paid && ['subscription_create', 'subscription_cycle'].includes(object.billing_reason)) {
           await sendBillingEmail(supabase, owner.user_id, owner.email, `invoice:${object.id}`, "renewal", fields.subscription_end, (object.amount_paid ?? 0) / 100, (object.currency ?? "eur").toUpperCase());
         }
-        if (subscriptionEvent) await cancellationEmail(supabase, owner.user_id, owner.email, sub, fields.subscription_end);
+        if (subscriptionEvent && fields.applied) await cancellationEmail(supabase, owner.user_id, owner.email, sub, fields.subscription_end);
         break;
       }
     }

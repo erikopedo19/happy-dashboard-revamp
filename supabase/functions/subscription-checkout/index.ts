@@ -20,7 +20,9 @@ serve(async req => {
     if(!['https://cutzioo.com','https://www.cutzioo.com','https://happy-ios-dash.lovable.app','http://localhost:8080'].includes(origin) && !/^https:\/\/[a-zA-Z0-9-]+\.lovable\.app$/.test(origin)) return json({error:'invalid_return_url'},400);
     const {data:row,error:rowError}=await admin.from('subscribers').select('stripe_customer_id').eq('user_id',user.id).maybeSingle();
     if(rowError) throw rowError;
-    const customers= row?.stripe_customer_id ? [{id:row.stripe_customer_id}] : (await stripeRequest(`/customers?${new URLSearchParams({email:user.email,limit:'100'})}`)).data;
+    // Check the linked customer and every customer with this email; a separate customer can still bill twice.
+    const emailCustomers=(await stripeRequest(`/customers?${new URLSearchParams({email:user.email,limit:'100'})}`)).data ?? [];
+    const customers=[...new Map([...(row?.stripe_customer_id?[{id:row.stripe_customer_id}]:[]),...emailCustomers].map((customer:{id:string})=>[customer.id,customer])).values()];
     for(const customer of customers ?? []) {
       if((await findSubscriptions(customer.id)).some(sub => blocksNewCheckout(sub.status))) return json({error:'subscription_exists'},409);
     }
