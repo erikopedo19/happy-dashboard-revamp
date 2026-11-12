@@ -38,18 +38,18 @@ serve(async req => {
       const portal = await stripeRequest('/billing_portal/sessions',new URLSearchParams({ customer: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id, return_url:'https://cutzioo.com/settings' }));
       return json({ ok:true, url:portal.url });
     }
+    const wasCancelling = !!subscription.cancel_at_period_end;
     if (action === 'cancel' || action === 'resume') {
       if (!['active','trialing','past_due'].includes(subscription.status)) return json({ ok:false, error:'no_stripe_subscription' });
-      subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
+      if (wasCancelling !== (action === 'cancel')) subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }),`manage:${subscription.id}:${action}:${subscription.current_period_end ?? 0}`);
     }
-    const wasCancelling = !!subscription.cancel_at_period_end;
     const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,subscription);
     let emailPending = false;
-    if (applied && (action === 'sync' || (action === 'cancel' && !body.already_cancelling))) {
+    if (applied && (action === 'sync' || (action === 'cancel' && !wasCancelling))) {
       try { await cancellationEmail(admin,user.id,user.email,subscription,fields.subscription_end); }
       catch { emailPending = true; console.error('Cancellation confirmation pending; webhook will retry'); }
     }
-    if (action === 'resume') {
+    if (applied && action === 'resume' && wasCancelling) {
       try { await sendBillingEmail(admin,user.id,user.email,`resume:${subscription.id}:${subscription.current_period_end}:${subscription.canceled_at ?? 0}`,'resumed',fields.subscription_end); }
       catch { emailPending = true; }
     }
