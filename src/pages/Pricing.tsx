@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { X, Check, Crown, Star, CalendarClock, Users, ShieldCheck, ArrowUpRight, ArrowRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
+import { SUBSCRIPTION_TERMS_VERSION } from "@/lib/subscription-terms";
 import { supabase } from "@/integrations/supabase/client";
 import { STRIPE_PAYMENT_LINK, STRIPE_PAYMENT_LINK_YEARLY, STRIPE_TRIAL_ENABLED } from "@/lib/billingsdk-config";
 import { toast } from "sonner";
@@ -59,6 +62,7 @@ export default function Pricing() {
   const [plan, setPlan] = useState<PlanKey>(requestedPlan ?? OPTIONS[0]?.key ?? "monthly");
   const [freeTrial, setFreeTrial] = useState(STRIPE_TRIAL_ENABLED);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     if (requestedPlan) setPlan(requestedPlan);
@@ -68,16 +72,17 @@ export default function Pricing() {
 
   async function handleContinue() {
     if (checkoutBusy) return;
+    if (!termsAccepted) { toast.error("Please agree to the subscription terms to continue."); return; }
     haptic("medium");
     setCheckoutBusy(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate("/auth"); return; }
-      const { data, error } = await supabase.functions.invoke("subscription-checkout", { body: { plan, return_origin: window.location.origin } });
+      const { data, error } = await supabase.functions.invoke("subscription-checkout", { body: { plan, return_origin: window.location.origin, terms_accepted: true, terms_version: SUBSCRIPTION_TERMS_VERSION } });
       if (error || !data?.url) {
         let code = data?.error;
         if (error?.context instanceof Response) code = (await error.context.clone().json().catch(() => null))?.error;
-        toast.error(code === "subscription_exists" ? "You already have a subscription. Manage it in Settings instead." : "Checkout is unavailable. Please try again.");
+        toast.error(code === "subscription_exists" ? "You already have a subscription. Manage it in Settings instead." : code === "checkout_pending" ? "A checkout is already open. Finish it or try again in 30 minutes." : code === "terms_required" ? "Please agree to the subscription terms to continue." : "Checkout is unavailable. Please try again.");
         return;
       }
       window.location.assign(data.url);
@@ -225,10 +230,16 @@ export default function Pricing() {
               ? `${active.title} · ${active.price} ${freeTrial && STRIPE_TRIAL_ENABLED ? "after your free trial" : active.sub}`
               : "Secure payment by Stripe"}
           </p>
+          <label className="pricing-terms" htmlFor="pricing-terms">
+            <Checkbox id="pricing-terms" checked={termsAccepted} onCheckedChange={(value) => setTermsAccepted(value === true)} aria-describedby="pricing-terms-copy" />
+            <span id="pricing-terms-copy">
+              I agree to the <Link to="/terms#subscriptions">subscription terms</Link>: {active?.price ?? "Pro"} renews {active?.key === "yearly" ? "every year" : "every month"} until I cancel. I can cancel future renewals anytime; refunds follow the terms and my legal rights.
+            </span>
+          </label>
           <button
             type="button"
             onClick={handleContinue}
-            disabled={checkoutBusy}
+            disabled={checkoutBusy || !termsAccepted}
             aria-describedby="pricing-billing-summary"
             className="pricing-continue"
           >
