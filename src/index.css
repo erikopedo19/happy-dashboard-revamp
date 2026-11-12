@@ -1474,6 +1474,10 @@ html.is-native #root {
 }
 .light .pricing-footer { background: rgb(255 255 255 / 0.55); }
 .pricing-billing-summary { margin-bottom: 10px; font-size: 0.8125rem; text-align: center; color: var(--pw-text); }
+.pricing-terms { display: flex; align-items: flex-start; gap: 10px; margin: 0 2px 12px; color: var(--pw-muted); font-size: 0.75rem; line-height: 1.45; }
+.pricing-terms button { margin-top: 1px; flex-shrink: 0; }
+.pricing-terms a { color: var(--pw-text); text-decoration: underline; text-underline-offset: 3px; }
+.pricing-continue:disabled { cursor: not-allowed; opacity: 0.45; box-shadow: none; }
 .pricing-continue {
   display: flex;
   align-items: center;
