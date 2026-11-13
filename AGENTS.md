@@ -10,3 +10,5 @@ Membership checkout and management use authenticated Edge Functions and the shar
 Billing emails use a service-only delivery ledger and stable invoice/cancellation keys; this prevents duplicate confirmation emails across webhook retries and app synchronization.
 Organization checks used by RLS keep signed-in execute access through public invoker wrappers over private definer functions; revoking those wrappers breaks Agenda-related reads.
 `npm run build` regenerates `public/sitemap.xml` first (`scripts/generate-sitemap.mjs`, one `/b/:slug` entry per `list_public_profiles` row); it never fails the build if Supabase is unreachable. Page SEO goes through `src/components/Seo.tsx` (title, description, og image, JSON-LD) — don't add duplicate canonical/robots tags to index.html.
+Subscription checkout requires the current server-validated terms version and reuses one pending checkout per user; this records purchase consent and prevents duplicate paid subscriptions.
+Replaced or ended subscriptions cannot overwrite a member's different live subscription; this keeps duplicate cleanup from removing paid access.

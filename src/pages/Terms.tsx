@@ -55,6 +55,22 @@ export default function Terms() {
           </p>
         </section>
 
+        <section id="subscriptions" className="scroll-mt-20 space-y-2">
+          <h2 className="text-base font-semibold text-foreground">Subscriptions, Renewal and Refunds</h2>
+          <p>
+            Cutzioo Pro is a paid subscription for business use. Before purchase, checkout shows the price, currency and billing interval. By checking the agreement box and completing payment, you authorize Cutzioo, through Stripe, to charge that amount at the start of each billing period until you cancel.
+          </p>
+          <p>
+            You can cancel automatic renewal at any time in Settings → Subscription. Cancellation takes effect at the end of the current paid period; you keep Pro until then and will not be charged again. Cancellation is free.
+          </p>
+          <p>
+            Because Pro access starts immediately, partly used billing periods are not refunded unless applicable law requires a refund. Duplicate, mistaken or unauthorized charges will be refunded after review. Nothing in these terms limits mandatory consumer rights where they apply.
+          </p>
+          <p>
+            If a renewal payment fails, Stripe may retry it and Pro may be paused until payment is updated. We may change subscription prices for future periods only after giving notice before the change applies. For billing questions, contact hello@cutzioo.com.
+          </p>
+        </section>
+
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-foreground">6. Changes to These Terms</h2>
           <p>
@@ -69,7 +85,7 @@ export default function Terms() {
           </p>
         </section>
 
-        <p className="text-xs text-foreground/50 pt-4">Last updated: July 2026</p>
+        <p className="text-xs text-foreground/50 pt-4">Last updated: 1 November 2026 · Subscription terms version 2026-11-01</p>
       </main>
     </div>
   );

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, AlertCircle, RefreshCw, Check, CalendarClock, ChevronRight, CreditCard, ShieldCheck, Database, Building2, Palette, Users, BarChart3, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,32 +132,19 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   // so there is nothing to renew, cancel or pay for.
   const isComplimentary = isPro && (noRecurringPlan || data?.has_recurring_subscription === false || !data?.stripe_subscription_id);
   const s = STATUS_LABEL[isComplimentary ? "active" : status];
-
-  const summary = (
-    <div className="space-y-6">
-      <div>
-        <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>At a glance</p>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-          {[
-            ["Plan", isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"],
-            ["Status", s.label],
-            ["Started", fmt(data?.subscription_start)],
-            [isComplimentary || status === "canceling" ? "Access ends" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
-            ["Amount", isComplimentary ? "No recurring payment" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "—"],
-            ["Auto-renew", isComplimentary ? "Not applicable" : isPro ? (data?.auto_renew && !data?.cancel_at_period_end ? "On" : "Off") : "—"],
-          ].map(([label, value]) => (
-            <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3 last:border-b-0">
-              <span className="text-[15px]">{label}</span>
-              <span className="min-w-0 text-right text-[15px] text-muted-foreground tabular-nums break-words">{value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <p className={`px-4 text-[12px] leading-5 ${labelColor}`}>
-        {status === "canceling" ? "Your plan remains available until the access end date." : isPro ? "Your subscription details update when a billing change is confirmed." : "Upgrade to Pro for unlimited bookings and your website."}
-      </p>
-    </div>
-  );
+  const paymentIssue = !isComplimentary && (data?.billing_status === "past_due" || data?.billing_status === "unpaid");
+  const recurringActive = isPro && !isComplimentary && status === "active";
+  const headline = paymentIssue
+    ? "Your last payment failed. Update your card to avoid losing Pro."
+    : isComplimentary
+      ? "Pro was added to your account without a recurring payment."
+      : status === "canceling"
+        ? `Pro ends on ${fmt(data?.subscription_end)}. You will not be charged again.`
+        : recurringActive
+          ? `Renews automatically on ${fmt(data?.subscription_end)}.`
+          : status === "expired"
+            ? "Your Pro access has ended. Renew anytime to unlock Pro again."
+            : "Upgrade for unlimited bookings, teams, reports and your website.";
 
   async function setAutoRenew(enabled: boolean, fromOverlay = false): Promise<boolean> {
     haptic("selection");
@@ -248,128 +234,70 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
         <h2 id="subscription-title" className="mt-1 text-[30px] font-bold leading-tight">Subscription</h2>
       </div>
 
-      <Tabs defaultValue="manage" className="w-full">
+      <Tabs defaultValue="plan" className="w-full">
         <TabsList className="mb-5 grid w-full grid-cols-3">
-          <TabsTrigger value="manage">Manage</TabsTrigger>
-          <TabsTrigger value="summary">Summary</TabsTrigger>
+          <TabsTrigger value="plan">My plan</TabsTrigger>
+          <TabsTrigger value="terms">Terms</TabsTrigger>
           <TabsTrigger value="advisor">Add-ons</TabsTrigger>
         </TabsList>
-        <TabsContent value="summary">{summary}</TabsContent>
         <TabsContent value="advisor"><AddonAdvisor /></TabsContent>
-        <TabsContent value="manage" className="space-y-7">
-      <div>
-        <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Your plan</p>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
-            <span className="text-[16px]">Current plan</span>
-            <span className="max-w-[55%] truncate text-right text-[16px] text-muted-foreground">
-              {isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free plan"}
-            </span>
-          </div>
-          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
-            <span className="text-[16px]">Status</span>
-            <span className={`text-[16px] font-semibold ${s.tone}`}>{s.label}</span>
-          </div>
-          <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
-            <span className="text-[16px]">{isPro ? "Renewal amount" : "Bookings included"}</span>
-            <span className="text-right text-[16px] tabular-nums text-muted-foreground">
-              {isComplimentary ? "—" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {isComplimentary ? (
-        <div>
-          <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
+        <TabsContent value="terms">
           <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-            <div className="flex min-h-16 items-center gap-3 border-b border-border px-4 py-3">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary"><ShieldCheck className="h-4 w-4" /></span>
-              <div className="min-w-0">
-                <p className="text-[16px]">Pro access</p>
-                <p className="text-[12px] text-muted-foreground">No recurring payment is linked to this membership.</p>
+            {[
+              ["Renewal", "Paid plans renew automatically at the shown price until you cancel."],
+              ["Cancellation", "Cancel anytime. You keep Pro until the paid period ends and are not charged again."],
+              ["Refunds", "Partly used periods are not refunded unless the law requires it. Duplicate or mistaken charges are refunded."],
+            ].map(([label, text]) => (
+              <div key={label} className="border-b border-border px-4 py-3.5 last:border-b-0">
+                <p className="text-[15px] font-semibold">{label}</p>
+                <p className="mt-1 text-[13px] leading-5 text-muted-foreground">{text}</p>
               </div>
-            </div>
-            <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
-              <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />Pro access until</span>
-              <span className="text-right text-[16px] text-muted-foreground">{data?.subscription_end ? fmt(data.subscription_end) : "No end date"}</span>
-            </div>
-            <Button onClick={() => navigate("/pricing")} variant="ghost" className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
-              <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Subscribe to keep Pro</span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            ))}
           </div>
-          <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Your current Pro access is kept until its end date. Your data is kept when you move to the free plan.</p>
-        </div>
-      ) : isPro ? (
-        <>
-          <div>
-            <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Billing</p>
-            <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-              <div className="flex min-h-16 items-center justify-between gap-4 border-b border-border px-4 py-3">
+          <Button variant="ghost" onClick={() => navigate("/terms#subscriptions")} className="mt-3 w-full justify-between rounded-2xl px-4 text-primary">
+            Read full subscription terms <ChevronRight className="h-4 w-4" />
+          </Button>
+        </TabsContent>
+        <TabsContent value="plan" className="space-y-5">
+          <div className="overflow-hidden rounded-[28px] border border-border bg-card text-card-foreground">
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[16px]">Auto-renew</p>
-                  <p className="truncate text-[12px] text-muted-foreground">
-                    {data?.auto_renew && !data?.cancel_at_period_end ? "Renews automatically" : "Will not renew"}
-                  </p>
+                  <p className="text-[13px] text-muted-foreground">Current plan</p>
+                  <p className="mt-1 truncate text-[28px] font-bold leading-tight">{isPro ? data?.subscription_tier || "Cutzioo Pro" : "Free"}</p>
                 </div>
-                <Switch
-                  disabled={busy}
-                  checked={!!data?.auto_renew && !data?.cancel_at_period_end}
-                  onCheckedChange={setAutoRenew}
-                  className="data-[state=checked]:bg-primary"
-                  aria-label="Auto-renew subscription"
-                />
+                <span className={`rounded-full bg-muted px-3 py-1 text-[13px] font-semibold ${paymentIssue ? "text-destructive" : s.tone}`}>{paymentIssue ? "Payment issue" : s.label}</span>
               </div>
-              <div className="flex min-h-14 items-center justify-between gap-4 border-b border-border px-4 py-3">
-                <span className="flex items-center gap-2 text-[16px]"><CalendarClock className="h-4 w-4 text-muted-foreground" />{status === "canceling" ? "Access ends" : "Renewal date"}</span>
-                <span className="text-right text-[16px] text-muted-foreground">{fmt(data?.subscription_end)}</span>
-              </div>
-              <Button variant="ghost" disabled={busy} onClick={openBilling} className="h-14 w-full justify-between rounded-none border-0 px-4 text-[16px] font-normal text-primary shadow-none">
-                <span className="flex items-center gap-2"><CreditCard className="h-4 w-4" />Manage payment methods</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </Button>
+              <p className="mt-3 text-[14px] leading-5 text-muted-foreground">{headline}</p>
             </div>
-            <p className={`mt-2 px-4 text-[12px] leading-5 ${labelColor}`}>Billing changes are handled securely through Stripe.</p>
-          </div>
-
-          {(status === "active" || status === "canceling") && (
-            <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-              {status === "canceling" ? (
-                <Button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setAutoRenew(true)}
-                  className="h-14 w-full rounded-none border-0 bg-[#FF2D46] text-[16px] font-semibold text-white shadow-none hover:bg-[#E0152F]"
-                >
-                  {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Resume Pro
-                </Button>
+            {[
+              [isPro ? "Price" : "Bookings included", isComplimentary ? "No recurring payment" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"],
+              [status === "canceling" || isComplimentary ? "Pro access until" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
+              ["Automatic renewal", recurringActive ? "On" : "Off"],
+            ].map(([label, value]) => (
+              <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-t border-border px-5 py-3">
+                <span className="text-[15px]">{label}</span>
+                <span className="text-right text-[15px] tabular-nums text-muted-foreground">{value}</span>
+              </div>
+            ))}
+            <div className="space-y-2 border-t border-border p-4">
+              {paymentIssue ? (
+                <Button disabled={busy} onClick={openBilling} className="h-12 w-full rounded-2xl text-[15px]"><CreditCard />Update payment method</Button>
+              ) : status === "canceling" && !isComplimentary ? (
+                <Button disabled={busy} onClick={() => setAutoRenew(true)} className="h-12 w-full rounded-2xl text-[15px]">{busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}Turn renewal back on</Button>
+              ) : recurringActive ? (
+                <Button disabled={busy} variant="outline" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-12 w-full rounded-2xl text-[15px] text-destructive">Cancel subscription</Button>
               ) : (
-                <Button variant="ghost" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-14 w-full rounded-none border-0 text-[16px] font-normal text-destructive shadow-none hover:text-destructive">
-                  Cancel subscription
+                <Button onClick={() => navigate("/pricing")} className="h-12 w-full rounded-2xl text-[15px]"><ShieldCheck />{isComplimentary ? "Subscribe to keep Pro" : status === "expired" ? "Renew Cutzioo Pro" : "Upgrade to Pro"}</Button>
+              )}
+              {isPro && !isComplimentary && !paymentIssue && (
+                <Button variant="ghost" disabled={busy} onClick={openBilling} className="h-11 w-full justify-between rounded-2xl px-3 text-[15px] font-normal text-primary">
+                  <span className="flex items-center gap-2"><CreditCard />Payment methods & invoices</span><ChevronRight className="text-muted-foreground" />
                 </Button>
               )}
             </div>
-          )}
-        </>
-      ) : (
-        <div>
-          <p className={`mb-2 px-4 text-[12px] font-medium uppercase ${labelColor}`}>Cutzioo Pro</p>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
-            {["Unlimited bookings", "Team members and stylists", "Reports, analytics and your website"].map((feature) => (
-              <div key={feature} className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><Check className="h-4 w-4" /></span>
-                <span className="text-[15px]">{feature}</span>
-              </div>
-            ))}
-            <Button onClick={() => navigate("/pricing")} className="h-14 w-full rounded-none border-0 bg-primary px-4 text-[16px] text-primary-foreground shadow-none hover:bg-primary/90">
-              <ShieldCheck className="h-4 w-4" />{status === "expired" ? "Renew Cutzioo Pro" : "Upgrade to Pro"}
-            </Button>
           </div>
-        </div>
-      )}
-
+          <p className={`px-4 text-[12px] leading-5 ${labelColor}`}>Payments are processed securely by Stripe. Your data is kept if you move to Free.</p>
         </TabsContent>
       </Tabs>
 
