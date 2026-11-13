@@ -6,7 +6,7 @@ import { format, parseISO } from "date-fns";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { CalendarDays, Check, ChevronDown, ChevronRight, Clock, Loader2, MessageCircle, Phone, Scissors, Timer } from "lucide-react";
 import { RollingText } from "@/components/RollingText";
-import { TraceBorder } from "@/components/ui/trace-border";
+import { OpalBorder, OpalGlow } from "@/components/ui/opal-border";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,11 +187,7 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
 
       {next ? (
         <div className="relative">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-4 -bottom-2 top-4 rounded-[30px] opacity-70 blur-2xl"
-          style={{ background: "linear-gradient(115deg, #7B3FA0 0%, #A0527A 45%, #8A6A3A 100%)" }}
-        />
+        <OpalGlow radius={30} play={tracePlay} />
         <motion.button
           type="button"
           layoutId={`next-booking-${next.id}`}
@@ -207,7 +203,7 @@ export function NextBookingsCard({ currency = "EUR" }: { currency?: string | nul
             <div className="absolute -left-5 -top-11 h-44 w-44 rounded-full bg-[#7B3FA0]/30 blur-3xl" />
             <div className="absolute right-5 top-5 h-40 w-40 rounded-full bg-[#8A6A3A]/25 blur-3xl" />
           </div>
-          <TraceBorder radius={30} play={tracePlay} />
+          <OpalBorder radius={30} />
           <div className="relative flex w-full items-center gap-4">
           <motion.div
             layoutId={`next-booking-date-${next.id}`}
