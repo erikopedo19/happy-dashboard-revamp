@@ -1,10 +1,12 @@
 # Current work
 
-- [ ] Simplify subscription tabs and state-specific renewal, cancellation, and payment controls.
-- [ ] Require purchase-terms consent and disclose renewal, cancellation, and statutory refund rights.
-- [ ] Audit subscription lifecycle and verify available flows; authenticated billing needs an external Supabase test session.
-- [ ] Prevent double subscription charges and review existing duplicate charges.
-- [ ] Assess Lovable payments installation; requires Lovable Cloud, while this app uses connected Supabase and Stripe.
+- [x] Simplify subscription tabs and state-specific renewal, cancellation, and payment controls.
+- [x] Require purchase-terms consent and disclose renewal, cancellation, and statutory refund rights.
+- [x] Audit subscription lifecycle; 12 billing tests and 3 status tests pass.
+- [ ] Verify signed-in checkout, cancellation and renewal end-to-end; external Supabase session unavailable.
+- [x] Prevent double subscription charges; stopped the duplicate unpaid subscription.
+- [ ] Decide whether to refund one overlapping €8.99 charge; awaiting owner decision.
+- [ ] Lovable payments installation; blocked because it requires Lovable Cloud and this app uses its own connected backend and Stripe.
 
 - [x] Repair subscription controls when no manageable recurring plan exists; three regression tests pass.
 - [x] Repair team invitations and preserve selected pages when accepting; schema verified, two validation tests pass, email function deployed.
