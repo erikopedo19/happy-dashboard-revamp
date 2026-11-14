@@ -1,63 +1,39 @@
-## 1. Booking email — more details
+# Fix website styles and multi-service bookings
 
-Update `supabase/functions/send-booking-confirmation/index.ts`:
-- Add stylist row (name + small avatar circle) when `stylist_id` is set on the appointment.
-- Add address block with a "Open in Maps" link (`https://www.google.com/maps/search/?api=1&query=...`).
-- Add a clear breakdown card: Service · Duration (min) · Price.
-- Attach a generated `.ics` file (VEVENT with SUMMARY, LOCATION, DESCRIPTION, DTSTART/DTEND in the business timezone) so Apple/Google/Outlook can add to calendar in one tap. Also add a fallback "Add to Google Calendar" text link.
-- Keep the existing dark Reschedule / outlined Cancel buttons and minimal layout — just add the new rows above them.
+Both monitoring findings are real. Each fix reaches more than one small spot, so here is the plan before I change anything.
 
-DB: `get_appointment_by_token` already returns stylist? No — extend the payload the trigger sends so the function has `stylistName`, `stylistAvatar`, `address`, `latitude/longitude`, `durationMinutes`. Update `trigger_send_booking_email` to include those fields.
+## 1. Make the website style picker work again
 
-## 2. Agenda — past days are view-only
+**What's wrong:** The editor still offers Cinema, Editorial, Bold and Fresh and saves the choice. Since the recent redesign, though, every public website shows the same dark "street poster" look, so the choice does nothing.
 
-In `AgendaBookingForm.tsx`, `AppointmentForm.tsx`, and the mobile `LiquidGlassAgenda.tsx`:
-- Disable the "New booking" / "+" action when the selected date < today (business timezone).
-- Show a subtle banner: "Past day — view only. You can see appointments but can't add or edit them."
-- Disable edit/cancel actions on past appointments.
-- Keep DB trigger as-is (walk-in past bookings blocked by validation when `auth.uid()` is not the owner; owner path already allowed — we're just hiding UI so barbers don't book historically per user preference).
+**Fix:** Keep the new poster design, but give each style its own colors and type:
+- **Cinema:** the current dark poster look with rose highlights. Existing sites that use it won't change.
+- **Editorial:** a warm cream background, dark ink text, a rust highlight and a serif headline.
+- **Bold:** black with lime highlights and heavy condensed headlines.
+- **Fresh:** a clean white background, dark text, rose highlights and softer corners.
 
-## 3. Stories on Find Barber
+The editor's swatches will match what the public site shows, including Fresh, whose swatch currently shows blue while the site used rose. A barber's own brand color still overrides the highlight color, as it does today.
 
-### Storage
-- New private bucket `stories` (20 MB per file, images/videos).
-- RLS: owner (barber) can insert/update/delete their own folder `stories/{user_id}/*`. Everyone can read (public URL served through signed policy on `SELECT`).
+## 2. Book the full time and price for several services
 
-### DB
-```sql
-create table public.stories (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  media_url text not null,
-  media_type text not null check (media_type in ('image','video')),
-  music_track_id text,
-  music_title text,
-  music_artist text,
-  music_preview_url text,
-  duration_seconds int default 5,
-  created_at timestamptz default now(),
-  expires_at timestamptz default now() + interval '10 days'
-);
--- grants + RLS: barbers manage their own; anyone can select non-expired
-```
-Cron job (`pg_cron`) daily: delete rows where `expires_at < now()` and remove their storage objects via an edge function `cleanup-expired-stories`.
+**What's wrong:** Quick Book shows the combined length and price, but it only saves the first service. The calendar then blocks only that service's time, so another client can book the rest and cause a double booking. The saved price also leaves out the extra services.
 
-### Spotify integration
-- Add secrets `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` (Client Credentials flow — no user OAuth needed for search + 30s previews).
-- New edge function `spotify-search` (public): takes `q`, returns list of `{id, title, artist, preview_url, artwork}`. Uses client-credentials token cached in memory.
-- Trending: preload a curated playlist (Spotify's Top 50 - Global, id `37i9dQZEVXbMDoHDwVN2tF`) via `spotify-trending` when the picker opens with no query.
+**Fix:** Each appointment will store how long it actually lasts and its total price.
+- A multi-service booking blocks its full combined length on the public booking link, Quick Book, rescheduling, the Agenda (including drag-to-move and swaps), and the server's overlap checks.
+- The appointment saves the combined price, and the existing loyalty discount applies to that total.
+- The services are still listed by name on the appointment.
+- One-service bookings and all existing appointments work exactly as before.
 
-### UI
-- `src/components/stories/StoryUploader.tsx`: file input (image/video, ≤20MB client check + toast), preview, "Pick a song" opens `SpotifyMusicPicker.tsx` with search + trending list, "Publish".
-- `src/components/stories/StoriesRail.tsx` on `FindBarber` above the barbers list: horizontal avatars with gradient ring for barbers with active stories.
-- `src/components/stories/StoryViewer.tsx`: full-screen modal, auto-advance ~5s per story, plays music preview in background (muted by default with tap-to-unmute per iOS autoplay rules), swipe/tap navigation, close X.
-- Everyone can view (no login required); only barbers see the "+ Add story" tile (own row).
+## Checks
 
-## Technical
+- An automated test: a 30 + 45 minute booking blocks 75 minutes, and a second booking inside that time is rejected.
+- An automated test: the saved price equals the sum of the chosen services.
+- Phone screenshots of all four website styles on a public site.
+- Signed-in booking can't be tested from here, so the Agenda side will be checked against the code only.
 
-- New files: `supabase/functions/spotify-search/index.ts`, `supabase/functions/cleanup-expired-stories/index.ts`, `src/components/stories/*`.
-- Modified: `supabase/functions/send-booking-confirmation/index.ts`, DB trigger `trigger_send_booking_email`, agenda components, `src/pages/FindBarber.tsx`.
-- Secrets needed from user: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` (free — https://developer.spotify.com/dashboard).
-- Bucket `stories` created via `supabase--storage_create_bucket` (public read for simplicity so viewer can stream without signed URLs).
+## Technical details
 
-I'll request the Spotify secrets before wiring the music picker — everything else I can build immediately.
+- Website: add `data-theme` on `.street-site` and move its hard-coded colors and fonts into CSS variables, with one block per theme (`noir`, `editorial`, `mono`, `fresh`). Accent stays `brand_color` with the theme's own color as fallback.
+- Bookings: add a nullable `appointments.duration_minutes` column. Add optional `p_service_ids uuid[]` to `create_public_booking`, which validates that every service belongs to the business and is still offered, then sums duration and price.
+- Update `get_booked_slots`, `validate_appointment_availability`, `swap_or_move_appointment` and `reschedule_appointment_by_token` to use `COALESCE(a.duration_minutes, s.duration)`. Agenda and reschedule views read the same value.
+- `QuickBookSheet` sends all selected service ids.
