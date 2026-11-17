@@ -2,6 +2,7 @@
 
 - [ ] Make website style choices change the public site.
 - [ ] Make multi-service bookings reserve their full length and total price.
+- [ ] Daily morning AI briefing email from yesterday's sales, bookings and open tasks; recipient and task source to confirm.
 
 - [x] Simplify subscription tabs and state-specific renewal, cancellation, and payment controls.
 - [x] Require purchase-terms consent and disclose renewal, cancellation, and statutory refund rights.
