@@ -221,7 +221,8 @@ const Agenda = () => {
 
         return {
           ...apt,
-          totalDurationMinutes: (apt.service.duration || 0) + additionalDuration,
+          // Stored length covers multi-service visits; older bookings fall back to notes.
+          totalDurationMinutes: Number((apt as { duration_minutes?: number | null }).duration_minutes) || (apt.service.duration || 0) + additionalDuration,
         };
       }),
     [appointments, services]
