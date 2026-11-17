@@ -7,7 +7,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { inAppShell, shareFile, shareText } from "@/lib/share";
-import { money, setReportsCurrency } from "@/components/reports/money";
+import { money, moneySymbol, setReportsCurrency } from "@/components/reports/money";
+import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
 import { RevenueGoalCard, WinBackCard } from "@/components/reports/GrowthCards";
 import {
   RANGES, analyticsCsv, computeAnalytics, computeTrend, getRangeDates, initialsOf, rankCustomers,
@@ -140,6 +141,7 @@ const Reports = () => {
                   {...shared}
                   growth={
                     <div className="space-y-3">
+                      <RevenuePipelineCard compact currency={moneySymbol()} />
                       <RevenueGoalCard userId={uid} className="!rounded-[22px] !border-[0.5px] !border-white/10 !bg-[#1C1C1E]" />
                       <WinBackCard userId={uid} shopName={shopName} bookingLink={profile?.booking_link} limit={4} className="!rounded-[22px] !border-[0.5px] !border-white/10 !bg-[#1C1C1E]" />
                     </div>
