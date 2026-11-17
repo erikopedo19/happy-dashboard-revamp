@@ -1,5 +1,8 @@
 # Current work
 
+- [ ] Make website style choices change the public site.
+- [ ] Make multi-service bookings reserve their full length and total price.
+
 - [x] Simplify subscription tabs and state-specific renewal, cancellation, and payment controls.
 - [x] Require purchase-terms consent and disclose renewal, cancellation, and statutory refund rights.
 - [x] Audit subscription lifecycle; 12 billing tests and 3 status tests pass.
