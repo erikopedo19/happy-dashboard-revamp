@@ -121,7 +121,8 @@ const Reports = () => {
       return;
     }
     const result = await shareFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename, { title: `Cutzioo report, ${rangeLabel}` });
-    if (result === "downloaded") toast({ title: "Export ready", description: "Your analytics CSV has been downloaded." });
+    if (result === "unsupported") await shareText(csv, `Cutzioo report, ${rangeLabel}`);
+    else if (result === "downloaded") toast({ title: "Export ready", description: "Your analytics CSV has been downloaded." });
   }, [analytics, rangeLabel, range.startDate, range.endDate, toast]);
 
   const shopName = profile?.business_name || profile?.full_name;

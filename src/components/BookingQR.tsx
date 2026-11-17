@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { QrCode, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
-import { shareFile } from "@/lib/share";
+import { shareFile, shareLink } from "@/lib/share";
 import BookingQR3D from "@/lib/booking-qr-3d";
 
 interface BookingQRProps {
@@ -121,6 +121,9 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
         text: `Scan to book with ${displayName}`,
       });
       if (result === "downloaded") toast({ title: "Flyer saved" });
+      else if (result === "unsupported" && (await shareLink({ title: `Book with ${displayName}`, url })) === "copied") {
+        toast({ title: "Link copied", description: "This version of the app can't share images yet." });
+      }
     } catch {
       toast({ title: "Couldn't create flyer", variant: "destructive" });
     }

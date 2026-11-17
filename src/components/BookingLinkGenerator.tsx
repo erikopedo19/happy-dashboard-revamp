@@ -272,6 +272,9 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
       const result = await shareFile(blob, `cutzioo-${slugForShare}.png`, { title: sharePayload.title });
       if (result === "downloaded") {
         toast({ title: "Banner saved", description: copied ? "Link copied too. Paste it in your bio or story." : undefined });
+      } else if (result === "unsupported") {
+        const shared = await shareLink(sharePayload);
+        if (shared === "copied") toast({ title: "Link copied", description: "This version of the app can't share images yet." });
       }
     } catch {
       toast({ title: "Couldn't create the banner", variant: "destructive" });

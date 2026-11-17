@@ -85,12 +85,12 @@ export function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
 }
 
-/** Shares a file through the share sheet; downloads it where files can't be shared. */
+/** Shares a file through the share sheet; downloads it in a browser that can't share files. */
 export async function shareFile(
   blob: Blob,
   filename: string,
   meta: { title?: string; text?: string } = {},
-): Promise<"shared" | "downloaded" | "cancelled"> {
+): Promise<"shared" | "downloaded" | "cancelled" | "unsupported"> {
   const file = new File([blob], filename, { type: blob.type || "application/octet-stream" });
   if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     try {
@@ -100,6 +100,8 @@ export async function shareFile(
       if ((e as DOMException)?.name === "AbortError") return "cancelled";
     }
   }
+  // Inside the app a blob download goes nowhere; the caller shares the link instead.
+  if (inAppShell()) return "unsupported";
   downloadBlob(blob, filename);
   return "downloaded";
 }
