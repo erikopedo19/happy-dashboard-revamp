@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { displayBookingUrl, publicBookingUrl } from "@/lib/bookingUrl";
+import { copyText, openExternal, platformShareUrl, shareFile, shareLink as shareSheet, type SharePlatform } from "@/lib/share";
+import { generateShareBanner } from "@/lib/generateShareBanner";
+import { ShareBanner } from "@/components/ShareBanner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -19,6 +23,13 @@ import {
   Globe,
   Mail,
   ChevronDown,
+  MessageCircle,
+  MessageSquare,
+  Send,
+  Instagram,
+  Facebook,
+  Twitter,
+  ImageDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,6 +68,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
   const [bookingTheme, setBookingTheme] = useState<string>("default");
   const [brandColor, setBrandColor] = useState<string>("#E0152F");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [bannerBusy, setBannerBusy] = useState(false);
   const [showWebsiteInfo, setShowWebsiteInfo] = useState(false);
   const [websiteRequested, setWebsiteRequested] = useState(false);
   const { toast } = useToast();
@@ -143,10 +155,12 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
   const getBookingUrl = () => {
     const slug = profile?.booking_link || customSlug;
     if (!slug) return "";
-    return `${window.location.origin}/book/${slug}`;
+    return publicBookingUrl(slug);
   };
 
   const bookingUrl = getBookingUrl();
+  const slugForShare = profile?.booking_link || customSlug;
+  const shareDisplayUrl = displayBookingUrl(slugForShare);
 
   const updateSlug = async () => {
     if (!user) return;
@@ -226,30 +240,43 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
 
   const resetToSuggested = () => setCustomSlug(suggestedSlug);
 
-  const copyToClipboard = async () => {
-    if (!bookingUrl) return;
-    try {
-      await navigator.clipboard.writeText(bookingUrl);
-      haptic("success");
-    } catch {
-      toast({ title: "Copy failed", variant: "destructive" });
-    }
+  const shopName = (profile as any)?.business_name || profile?.full_name || "";
+  const sharePayload = {
+    title: shopName ? `Book with ${shopName}` : "Book an appointment",
+    text: shopName ? `Book your next appointment with ${shopName}` : "Book your next appointment",
+    url: bookingUrl,
   };
 
   const shareLink = async () => {
     if (!bookingUrl) return;
     haptic("light");
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Book an appointment",
-          url: bookingUrl,
-        });
-      } catch {
-        /* cancelled */
+    const result = await shareSheet(sharePayload);
+    if (result === "copied") toast({ title: "Link copied" });
+    if (result === "failed") toast({ title: "Couldn't share", description: bookingUrl, variant: "destructive" });
+  };
+
+  const shareTo = (platform: SharePlatform) => {
+    if (!bookingUrl) return;
+    haptic("light");
+    openExternal(platformShareUrl(platform, sharePayload));
+  };
+
+  /** Instagram and stories have no link composer: hand over the banner image and keep the link on the clipboard. */
+  const shareBannerImage = async () => {
+    if (!bookingUrl || bannerBusy) return;
+    haptic("light");
+    setBannerBusy(true);
+    try {
+      const blob = await generateShareBanner(shareDisplayUrl, shopName);
+      const copied = await copyText(bookingUrl);
+      const result = await shareFile(blob, `cutzioo-${slugForShare}.png`, { title: sharePayload.title });
+      if (result === "downloaded") {
+        toast({ title: "Banner saved", description: copied ? "Link copied too. Paste it in your bio or story." : undefined });
       }
-    } else {
-      copyToClipboard();
+    } catch {
+      toast({ title: "Couldn't create the banner", variant: "destructive" });
+    } finally {
+      setBannerBusy(false);
     }
   };
 
@@ -281,7 +308,6 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
 
   if (isLoading) return <BookingLinkSkeleton />;
 
-  const displayUrl = bookingUrl.replace(/^https?:\/\//, "");
   const bookingPreview = (
     <BookingLinkPreview
       name={(profile as any)?.business_name || profile?.full_name || "Your business"}
@@ -331,19 +357,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
           </span>
         </div>
 
-        <div className="relative mt-5 rounded-[16px] bg-black/40 border border-white/[0.08] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center gap-1.5 px-3 h-8 border-b border-white/[0.06]">
-            <span className="h-2 w-2 rounded-full bg-[#FF5F57]" />
-            <span className="h-2 w-2 rounded-full bg-[#FEBC2E]" />
-            <span className="h-2 w-2 rounded-full bg-[#28C840]" />
-          </div>
-          <div className="flex items-center gap-2 px-3.5 py-3">
-            <Globe className="h-4 w-4 shrink-0 text-[#FF5A6E]" />
-            <p className="min-w-0 text-[15px] font-semibold text-white break-all leading-snug select-all">
-              {displayUrl || <span className="text-white/30">set a name below</span>}
-            </p>
-          </div>
-        </div>
+        <ShareBanner displayUrl={shareDisplayUrl} shopName={shopName} className="relative mt-5" />
 
         <div className="relative grid grid-cols-3 gap-2 mt-3">
           <div className="arc-copy-scope h-[60px] rounded-[16px] bg-white/[0.06] border border-white/[0.06] flex items-center justify-center transition hover:bg-white/[0.09]">
@@ -369,11 +383,29 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
             type="button"
             onClick={openBookingPage}
             disabled={!bookingUrl}
-            className="h-[60px] rounded-[16px] bg-gradient-to-b from-[#FF5A6E] to-[#E0152F] text-white flex flex-col items-center justify-center gap-1 text-[12px] font-semibold shadow-[0_10px_24px_-10px_rgba(255,45,70,0.8),inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.97] transition disabled:opacity-40"
+            className="h-[60px] rounded-[16px] bg-gradient-to-b from-[#FF5A6E] via-[#FF2D46] to-[#E0152F] text-white flex flex-col items-center justify-center gap-1 text-[12px] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.97] transition disabled:opacity-40"
           >
             <ExternalLink className="h-4 w-4" />
             <span>Open</span>
           </button>
+        </div>
+
+        <div className="relative mt-4">
+          <p className="text-[12px] font-medium text-white/50">Send it straight to</p>
+          <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-8">
+            {SHARE_TARGETS.map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                disabled={!bookingUrl}
+                onClick={() => (key === "image" || key === "instagram" ? shareBannerImage() : shareTo(key))}
+                className="flex h-[58px] flex-col items-center justify-center gap-1 rounded-[14px] border border-white/[0.06] bg-white/[0.05] text-[11px] font-medium text-white/80 transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.09] active:scale-[0.97] disabled:opacity-40"
+              >
+                <Icon className="h-4 w-4" strokeWidth={2} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -423,7 +455,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
           </button>
         </div>
         <div className="flex items-center gap-2 rounded-[16px] bg-black/30 border border-white/[0.08] pl-1.5 pr-1.5 h-12 focus-within:border-[#FF2D46]/60 focus-within:shadow-[0_0_0_4px_rgba(255,45,70,0.12)] transition">
-          <span className="text-[12px] font-medium text-white/45 shrink-0 rounded-[10px] bg-white/[0.06] px-2 h-8 inline-flex items-center">/book/</span>
+          <span className="text-[12px] font-medium text-white/45 shrink-0 rounded-[10px] bg-white/[0.06] px-2 h-8 inline-flex items-center">cutzioo.com/</span>
           <input
             value={customSlug}
             onChange={(e) => setCustomSlug(e.target.value)}
@@ -646,6 +678,17 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
     </motion.div>
   );
 };
+
+const SHARE_TARGETS: { key: SharePlatform | "instagram" | "image"; label: string; Icon: typeof Mail }[] = [
+  { key: "whatsapp", label: "WhatsApp", Icon: MessageCircle },
+  { key: "instagram", label: "Instagram", Icon: Instagram },
+  { key: "facebook", label: "Facebook", Icon: Facebook },
+  { key: "x", label: "X", Icon: Twitter },
+  { key: "telegram", label: "Telegram", Icon: Send },
+  { key: "sms", label: "SMS", Icon: MessageSquare },
+  { key: "email", label: "Email", Icon: Mail },
+  { key: "image", label: "Save image", Icon: ImageDown },
+];
 
 const SECTION_CARD =
   "rounded-[24px] bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";

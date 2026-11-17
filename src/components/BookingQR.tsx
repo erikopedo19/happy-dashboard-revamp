@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { QrCode, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateBookingFlyer } from "@/lib/generateBookingFlyer";
+import { shareFile } from "@/lib/share";
 import BookingQR3D from "@/lib/booking-qr-3d";
 
 interface BookingQRProps {
@@ -109,37 +110,17 @@ export function BookingQR({ url, businessName, isPremium }: BookingQRProps) {
     );
   }
 
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(blobUrl);
-  };
-
-
   const handleShare = async () => {
     if (!qrBlob) return;
     try {
-      const flyer = await generateBookingFlyer(qrBlob, displayName);
-      const filename = `qr-${displayName.toLowerCase().replace(/\s+/g, "-")}.png`;
-      const file = new File([flyer], filename, { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            title: `Book with ${displayName}`,
-            text: `Scan to book with ${displayName}`,
-            files: [file],
-          });
-        } catch {
-          /* cancelled */
-        }
-      } else {
-        downloadBlob(flyer, filename);
-      }
+      const displayUrl = url.replace(/^https?:\/\//, "").replace(/^cutzioo\.com/, "Cutzioo.com");
+      const flyer = await generateBookingFlyer(qrBlob, displayName, displayUrl);
+      const filename = `qr-${displayName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "booking"}.png`;
+      const result = await shareFile(flyer, filename, {
+        title: `Book with ${displayName}`,
+        text: `Scan to book with ${displayName}`,
+      });
+      if (result === "downloaded") toast({ title: "Flyer saved" });
     } catch {
       toast({ title: "Couldn't create flyer", variant: "destructive" });
     }

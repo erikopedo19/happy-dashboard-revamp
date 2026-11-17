@@ -1,212 +1,26 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
-import { motion, AnimatePresence, animate, useMotionValue, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { Suspense, lazy, useCallback, useMemo, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar } from "@heroui/react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
-import {
-  ExpandableActionBar,
-  type ExpandableActionBarItem,
-} from "@/components/ui/be-ui-expanable-action-bar";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChartCard } from "@/components/ui/chart-card";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { inAppShell, shareFile, shareText } from "@/lib/share";
+import { money, setReportsCurrency } from "@/components/reports/money";
+import { RevenueGoalCard, WinBackCard } from "@/components/reports/GrowthCards";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  Activity,
-  ArrowDownRight,
-  ArrowUpRight,
-  CalendarDays,
-  ChevronRight,
-  Check,
-  Clock,
+  RANGES, analyticsCsv, computeAnalytics, computeTrend, getRangeDates, initialsOf, rankCustomers,
+  type AppointmentRow, type PrevRow, type RangeValue, type ReviewRow, type StylistRow, type TopCustomerRow,
+} from "@/components/reports/reportsData";
 
-  Crown,
-  DollarSign,
-  Download,
-  Flame,
-  Lightbulb,
-  Lock,
-  PieChart as PieChartIcon,
-  Scissors,
-  Sparkles,
-  Star,
-  TrendingUp,
-  Users,
-  X,
-} from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
-import { Link } from "react-router-dom";
-import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
-import { MobileReports } from "@/components/reports/MobileReports";
-import {
-  HeatmapCard, MetricHero, Reveal, ServiceMixCard, SparkKpi, buildSeries, pctDelta, type SeriesRow, type Totals,
-} from "@/components/reports/ReportsVisuals";
-
-type RangeValue =
-  | "today"
-  | "last7days"
-  | "last30days"
-  | "thisMonth"
-  | "lastMonth"
-  | "thisYear";
-
-interface AppointmentRow {
-  id: string;
-  appointment_date: string;
-  appointment_time: string;
-  price: number | null;
-  status: string | null;
-  stylist_id: string | null;
-  service_id: string;
-  customer_id: string;
-  service?: { id: string; name: string; color: string | null; duration: number | null } | null;
-}
-interface StylistRow {
-  id: string;
-  name: string;
-  title: string | null;
-  satisfaction: number | null;
-  status: string | null;
-  bookings_today: number | null;
-}
-interface ReviewRow {
-  id: string;
-  rating: number;
-  comment: string | null;
-  reviewer_name: string | null;
-  created_at: string;
-}
-interface ServiceRow { id: string; name: string; color: string | null }
-interface CustomerRow { id: string; name: string; email: string | null }
-interface TopCustomerRow {
-  id: string;
-  name: string;
-  bookings: number;
-  revenue: number;
-  lastVisit: string | null;
-  initials: string;
-}
+// Each layout is its own chunk: a phone never downloads the desktop charts, and the reverse.
+const DesktopReports = lazy(() => import("@/components/reports/DesktopReports"));
+const MobileReports = lazy(() => import("@/components/reports/MobileReports").then((m) => ({ default: m.MobileReports })));
 
 const db = supabase as any;
-
-const currency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-const numberFormat = new Intl.NumberFormat("en-US");
-
-const ACCENT = "#FF2D46";
-const SURFACE = "#121215";
-
-const iOS = {
-  blue: "#0A84FF",
-  green: "#30D158",
-  indigo: "#5E5CE6",
-  orange: "#FF9F0A",
-  pink: ACCENT,
-  rose: ACCENT,
-  rosesoft: "#FF5A6E",
-  yellow: "#FFD60A",
-  grey: "#8E8E93",
-  card: "#1C1C1E",
-  cardDark: "#000000",
-  surface: "#2C2C2E",
-  surfaceDark: "#1C1C1E",
-  glass: "rgba(255, 255, 255, 0.05)",
-  glassBorder: "rgba(255, 255, 255, 0.1)",
-  textPrimary: "#FFFFFF",
-  textSecondary: "#98989F",
-  accent: "#007AFF",
-  success: "#34C759",
-  warning: "#FF9500",
-  error: "#FF3B30",
-};
-
-const AVATAR_TINTS = [iOS.rose, iOS.blue, iOS.indigo, iOS.green, iOS.orange, iOS.yellow];
-
-const RANGES: { value: RangeValue; label: string; short: string }[] = [
-  { value: "today", label: "Today", short: "1D" },
-  { value: "last7days", label: "7 Days", short: "7D" },
-  { value: "last30days", label: "30 Days", short: "30D" },
-  { value: "thisMonth", label: "Month", short: "MTD" },
-  { value: "lastMonth", label: "Last Mo.", short: "LM" },
-  { value: "thisYear", label: "Year", short: "YTD" },
-];
-
-const getRangeDates = (range: RangeValue) => {
-  const now = new Date();
-  const start = new Date(now);
-  const end = new Date(now);
-  switch (range) {
-    case "today":
-      start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
-    case "last7days":
-      start.setDate(now.getDate() - 6); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
-    case "last30days":
-      start.setDate(now.getDate() - 29); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
-    case "thisMonth":
-      start.setDate(1); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
-    case "lastMonth":
-      start.setMonth(now.getMonth() - 1, 1); start.setHours(0, 0, 0, 0);
-      end.setMonth(now.getMonth(), 0); end.setHours(23, 59, 59, 999); break;
-    case "thisYear":
-      start.setMonth(0, 1); start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999); break;
-  }
-  const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86_400_000));
-  const prevStart = new Date(start);
-  prevStart.setDate(start.getDate() - days);
-  const prevEnd = new Date(start);
-  prevEnd.setDate(start.getDate() - 1);
-  return {
-    start, end, days, prevStart,
-    startDate: format(start, "yyyy-MM-dd"),
-    endDate: format(end, "yyyy-MM-dd"),
-    prevStartDate: format(prevStart, "yyyy-MM-dd"),
-    prevEndDate: format(prevEnd, "yyyy-MM-dd"),
-  };
-};
-
-const dayLabel = (date: string) =>
-  new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
-const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
-const stagger = (i: number) => ({ delay: i * 0.05, ...spring });
-
-function CountUp({ value, format, className }: { value: number; format: (n: number) => string; className?: string }) {
-  const mv = useMotionValue(0);
-  const text = useTransform(mv, (v) => format(v));
-  useEffect(() => {
-    const controls = animate(mv, value, { duration: 1.1, ease: [0.22, 1, 0.36, 1] });
-    return () => controls.stop();
-  }, [value, mv]);
-  return <motion.span className={className}>{text}</motion.span>;
-}
+const STATIC = 5 * 60_000;
+const NO_ROWS: never[] = [];
 
 const Reports = () => {
   const isMobile = useIsMobile();
@@ -214,1099 +28,131 @@ const Reports = () => {
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<RangeValue>("last30days");
   const range = useMemo(() => getRangeDates(dateRange), [dateRange]);
-  const { startDate, endDate } = range;
+  const uid = user?.id;
 
-  const { data: reviewsData } = useQuery<ReviewRow[]>({
-    queryKey: ["reports-reviews", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await db.rpc("get_reviews_for_business", { _business_id: user.id });
-      if (error) return [];
-      return (data || []) as ReviewRow[];
-    },
+  const { data: profile } = useQuery<{ currency: string | null; booking_link: string | null; business_name: string | null; full_name: string | null } | null>({
+    queryKey: ["reports-profile", uid],
+    enabled: !!uid,
+    staleTime: STATIC,
+    queryFn: async () => (await db.from("profiles").select("currency, booking_link, business_name, full_name").eq("id", uid).maybeSingle()).data ?? null,
+  });
+  setReportsCurrency(profile?.currency);
+
+  const { data: reviews = NO_ROWS as ReviewRow[] } = useQuery<ReviewRow[]>({
+    queryKey: ["reports-reviews", uid],
+    enabled: !!uid,
+    staleTime: STATIC,
+    queryFn: async () => ((await db.rpc("get_reviews_for_business", { _business_id: uid })).data || []) as ReviewRow[],
   });
 
-  const { data: customersData = [] } = useQuery<CustomerRow[]>({
-    queryKey: ["reports-customers", user?.id],
-    enabled: !!user,
+  // Team and service counts don't depend on the date range, so switching ranges only refetches bookings.
+  const { data: stylists = NO_ROWS as StylistRow[] } = useQuery<StylistRow[]>({
+    queryKey: ["reports-stylists", uid],
+    enabled: !!uid,
+    staleTime: STATIC,
     queryFn: async () => {
-      if (!user) return [];
-      const { data: rows } = await (supabase as any)
-        .from("customers").select("id, name, email").eq("user_id", user.id).order("name");
-      return (rows || []) as CustomerRow[];
+      const { data, error } = await db.from("stylists").select("id, name, title, satisfaction").eq("user_id", uid).order("name");
+      if (error) throw error;
+      return (data || []) as StylistRow[];
     },
   });
+  const { data: servicesCount = 0 } = useQuery<number>({
+    queryKey: ["reports-services-count", uid],
+    enabled: !!uid,
+    staleTime: STATIC,
+    queryFn: async () => (await db.from("services").select("id", { count: "exact", head: true }).eq("user_id", uid).is("deleted_at", null)).count ?? 0,
+  });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["reports-analytics", user?.id, dateRange, startDate, endDate],
-    enabled: !!user,
-    // Keep the previous range on screen while the new one loads — switching
-    // ranges feels instant instead of flashing empty charts.
+  const { data: appointments = NO_ROWS as AppointmentRow[], isLoading } = useQuery<AppointmentRow[]>({
+    queryKey: ["reports-appointments", uid, range.startDate, range.endDate],
+    enabled: !!uid,
+    // Keep the previous range on screen while the new one loads, so charts don't flash empty.
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      if (!user) return { appointments: [] as AppointmentRow[], stylists: [] as StylistRow[], services: [] as ServiceRow[] };
-      const [appointmentsResult, stylistsResult, servicesResult] = await Promise.all([
-        db.from("appointments").select(`id, appointment_date, appointment_time, price, status, stylist_id, service_id, customer_id, service:services(id, name, color, duration)`)
-          .eq("user_id", user.id).gte("appointment_date", startDate).lte("appointment_date", endDate)
-          .order("appointment_date", { ascending: true }).order("appointment_time", { ascending: true }),
-        db.from("stylists").select("id, name, title, satisfaction, status, bookings_today").eq("user_id", user.id).order("name"),
-        db.from("services").select("id, name, color").eq("user_id", user.id).is("deleted_at", null).order("name"),
-      ]);
-      if (appointmentsResult.error) throw appointmentsResult.error;
-      if (stylistsResult.error) throw stylistsResult.error;
-      if (servicesResult.error) throw servicesResult.error;
-      return {
-        appointments: (appointmentsResult.data || []) as AppointmentRow[],
-        stylists: (stylistsResult.data || []) as StylistRow[],
-        services: (servicesResult.data || []) as ServiceRow[],
-      };
+      const { data, error } = await db.from("appointments")
+        .select("id, appointment_date, appointment_time, price, status, stylist_id, service_id, customer_id, service:services(id, name, color, duration)")
+        .eq("user_id", uid).gte("appointment_date", range.startDate).lte("appointment_date", range.endDate)
+        .order("appointment_date", { ascending: true }).order("appointment_time", { ascending: true });
+      if (error) throw error;
+      return (data || []) as AppointmentRow[];
     },
   });
 
-  const { data: prevRows = [] } = useQuery<SeriesRow[]>({
-    queryKey: ["reports-prev", user?.id, range.prevStartDate, range.prevEndDate],
-    enabled: !!user,
+  const { data: prevRows = NO_ROWS as PrevRow[] } = useQuery<PrevRow[]>({
+    queryKey: ["reports-prev", uid, range.prevStartDate, range.prevEndDate],
+    enabled: !!uid,
     placeholderData: keepPreviousData,
-    queryFn: async () => {
-      const { data: rows, error } = await db.from("appointments")
-        .select("appointment_date, appointment_time, price, customer_id")
-        .eq("user_id", user!.id).gte("appointment_date", range.prevStartDate).lte("appointment_date", range.prevEndDate);
-      if (error) return [];
-      return (rows || []) as SeriesRow[];
-    },
+    queryFn: async () => ((await db.from("appointments").select("appointment_date, appointment_time, price, customer_id, status")
+      .eq("user_id", uid).gte("appointment_date", range.prevStartDate).lte("appointment_date", range.prevEndDate)).data || []) as PrevRow[],
   });
 
-  const trend = useMemo(() => {
-    const cur = (data?.appointments || []) as SeriesRow[];
-    const totalsOf = (rows: SeriesRow[]): Totals => ({
-      revenue: rows.reduce((s, r) => s + (r.price || 0), 0),
-      bookings: rows.length,
-      clients: new Set(rows.map((r) => r.customer_id).filter(Boolean)).size,
-    });
-    return {
-      series: buildSeries(cur, range.start, range.days),
-      prevSeries: buildSeries(prevRows, range.prevStart, range.days),
-      totals: totalsOf(cur),
-      prevTotals: totalsOf(prevRows),
-    };
-  }, [data, prevRows, range]);
+  const trend = useMemo(() => computeTrend(appointments, prevRows, range), [appointments, prevRows, range]);
+  const analytics = useMemo(() => computeAnalytics(appointments, stylists, servicesCount, range.days), [appointments, stylists, servicesCount, range.days]);
 
-  const analytics = useMemo(() => {
-    const appointments = data?.appointments || [];
-    const stylists = data?.stylists || [];
-    const services = data?.services || [];
-    const totalRevenue = appointments.reduce((s, a) => s + (a.price || 0), 0);
-    const completed = appointments.filter(a => a.status === "completed").length;
-    const scheduled = appointments.filter(a => a.status === "scheduled" || a.status === "confirmed").length;
-    const cancelled = appointments.filter(a => a.status === "cancelled").length;
-    const totalCustomers = new Set(appointments.map(a => a.customer_id)).size;
-    const averageTicket = appointments.length ? totalRevenue / appointments.length : 0;
-    const completionRate = appointments.length ? Math.round((completed / appointments.length) * 100) : 0;
-
-    const dailyMap = new Map<string, { date: string; revenue: number; appointments: number; completed: number }>();
-    appointments.forEach(a => {
-      const cur = dailyMap.get(a.appointment_date) || { date: a.appointment_date, revenue: 0, appointments: 0, completed: 0 };
-      cur.revenue += a.price || 0; cur.appointments += 1;
-      if (a.status === "completed") cur.completed += 1;
-      dailyMap.set(a.appointment_date, cur);
-    });
-    const revenueTrend = Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))
-      .map(i => ({ label: dayLabel(i.date), revenue: i.revenue, appointments: i.appointments, completed: i.completed }));
-
-    const serviceMap = new Map<string, { name: string; bookings: number; revenue: number }>();
-    appointments.forEach(a => {
-      const n = a.service?.name || "Service";
-      const e = serviceMap.get(n) || { name: n, bookings: 0, revenue: 0 };
-      e.bookings += 1; e.revenue += a.price || 0;
-      serviceMap.set(n, e);
-    });
-    const serviceBreakdown = Array.from(serviceMap.values()).sort((a, b) => b.bookings - a.bookings).slice(0, 6);
-
-    const stylistPerformance = stylists.map(s => {
-      const apts = appointments.filter(a => a.stylist_id === s.id);
-      const revenue = apts.reduce((sum, a) => sum + (a.price || 0), 0);
-      const done = apts.filter(a => a.status === "completed").length;
-      return {
-        id: s.id, name: s.name, title: s.title || "Stylist",
-        bookings: apts.length, completed: done, revenue,
-        satisfaction: s.satisfaction || 0,
-        score: revenue + done * 30 + (s.satisfaction || 0) * 100,
-      };
-    }).sort((a, b) => b.score - a.score);
-
-    const statusBreakdown = [
-      { name: "Completed", value: completed, fill: iOS.green },
-      { name: "Scheduled", value: scheduled, fill: iOS.blue },
-      { name: "Cancelled", value: cancelled, fill: iOS.pink },
-    ].filter(i => i.value > 0);
-
-    const dayOfWeekDemand = [0, 1, 2, 3, 4, 5, 6].map(dow => ({
-      day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dow],
-      count: appointments.filter(a => new Date(`${a.appointment_date}T00:00:00`).getDay() === dow).length,
-    }));
-
-    const hourlyDemand = Array.from({ length: 13 }, (_, i) => i + 8).map(hour => ({
-      hour: hour <= 12 ? `${hour}${hour === 12 ? "pm" : "am"}` : `${hour - 12}pm`,
-      count: appointments.filter(a => parseInt((a.appointment_time || "0").split(":")[0], 10) === hour).length,
-    }));
-    const peakHour = hourlyDemand.reduce((best, h) => (h.count > best.count ? h : best), hourlyDemand[0]);
-
-    const half = Math.floor(revenueTrend.length / 2);
-    const firstHalf = revenueTrend.slice(0, half).reduce((s, r) => s + r.revenue, 0);
-    const secondHalf = revenueTrend.slice(half).reduce((s, r) => s + r.revenue, 0);
-    const revenueDelta = firstHalf > 0 ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100) : 0;
-
-    const busiestDay = dayOfWeekDemand.reduce((best, d) => (d.count > best.count ? d : best), dayOfWeekDemand[0]);
-
-    // --- Extended stats (mobile) ---
-    const noShows = appointments.filter(a => a.status === "no_show" || a.status === "no-show" || a.status === "noshow").length;
-    const cancelRate = appointments.length ? Math.round((cancelled / appointments.length) * 100) : 0;
-    const minutesBooked = appointments.reduce((s, a) => s + (a.service?.duration || 0), 0);
-    const avgDuration = appointments.length ? Math.round(minutesBooked / appointments.length) : 0;
-    const perCustomer = new Map<string, number>();
-    appointments.forEach(a => perCustomer.set(a.customer_id, (perCustomer.get(a.customer_id) || 0) + 1));
-    const returningCustomers = Array.from(perCustomer.values()).filter(n => n > 1).length;
-    const returningRate = totalCustomers ? Math.round((returningCustomers / totalCustomers) * 100) : 0;
-    const rangeDays = Math.max(1, Math.round((getRangeDates(dateRange).end.getTime() - getRangeDates(dateRange).start.getTime()) / 86_400_000) + 1);
-    const revenuePerDay = totalRevenue / rangeDays;
-    const bookingsPerDay = appointments.length / rangeDays;
-    const activeDays = dailyMap.size;
-    const bestDay = Array.from(dailyMap.values()).reduce<{ date: string; revenue: number; appointments: number } | null>(
-      (best, d) => (!best || d.revenue > best.revenue ? d : best), null);
-    const topService = serviceBreakdown[0] || null;
-    const topServiceShare = topService && appointments.length ? Math.round((topService.bookings / appointments.length) * 100) : 0;
-    const hourOf = (a: AppointmentRow) => parseInt((a.appointment_time || "0").split(":")[0], 10);
-    const dayparts = [
-      { key: "Morning", range: "before 12", count: appointments.filter(a => hourOf(a) < 12).length },
-      { key: "Afternoon", range: "12 – 17", count: appointments.filter(a => hourOf(a) >= 12 && hourOf(a) < 17).length },
-      { key: "Evening", range: "after 17", count: appointments.filter(a => hourOf(a) >= 17).length },
-    ];
-    const weekendCount = appointments.filter(a => { const d = new Date(`${a.appointment_date}T00:00:00`).getDay(); return d === 0 || d === 6; }).length;
-    const weekendShare = appointments.length ? Math.round((weekendCount / appointments.length) * 100) : 0;
-    const upcomingRevenue = appointments.filter(a => a.status === "scheduled" || a.status === "confirmed").reduce((s, a) => s + (a.price || 0), 0);
-    const sortedDates = Array.from(dailyMap.keys()).sort();
-    let streak = 0;
-    for (let i = sortedDates.length - 1; i >= 0; i--) {
-      if (i === sortedDates.length - 1) { streak = 1; continue; }
-      const gap = (new Date(`${sortedDates[i + 1]}T00:00:00`).getTime() - new Date(`${sortedDates[i]}T00:00:00`).getTime()) / 86_400_000;
-      if (gap === 1) streak += 1; else break;
-    }
-    const heatmap = [0, 1, 2, 3, 4, 5, 6].map(dow =>
-      Array.from({ length: 13 }, (_, i) => i + 8).map(hour =>
-        appointments.filter(a => new Date(`${a.appointment_date}T00:00:00`).getDay() === dow && hourOf(a) === hour).length));
-    const heatMax = Math.max(1, ...heatmap.flat());
-    const quietHour = hourlyDemand.reduce((worst, h) => (h.count < worst.count ? h : worst), hourlyDemand[0]);
-
-    return {
-      totalRevenue, totalAppointments: appointments.length, totalCustomers,
-      averageTicket, completionRate, completedAppointments: completed,
-      scheduledAppointments: scheduled, cancelledAppointments: cancelled,
-      revenueTrend, serviceBreakdown, stylistPerformance, statusBreakdown, dayOfWeekDemand,
-      hourlyDemand, peakHour, busiestDay,
-      activeServices: services.length, activeStylists: stylists.length, revenueDelta,
-      noShows, cancelRate, minutesBooked, avgDuration, returningCustomers, returningRate,
-      rangeDays, revenuePerDay, bookingsPerDay, activeDays, bestDay, topService, topServiceShare,
-      dayparts, weekendShare, upcomingRevenue, streak, heatmap, heatMax, quietHour,
-    };
-  }, [data, dateRange]);
-
-  const weekdayBookings = useMemo(() => {
-    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const counts = [0, 0, 0, 0, 0, 0, 0];
-    (data?.appointments || []).forEach((a) => {
-      const d = new Date(`${a.appointment_date}T00:00:00`);
-      if (!Number.isNaN(d.getTime())) counts[d.getDay()] += 1;
-    });
-    return [1, 2, 3, 4, 5, 6, 0].map((i) => ({ label: labels[i], value: counts[i] }));
-  }, [data]);
-
-  const topCustomers = useMemo<TopCustomerRow[]>(() => {
-    if (!data?.appointments || !customersData.length) return [];
-    const map = new Map<string, { bookings: number; revenue: number; lastVisit: string | null }>();
-    data.appointments.forEach(apt => {
-      if (!apt.customer_id) return;
-      const prev = map.get(apt.customer_id) ?? { bookings: 0, revenue: 0, lastVisit: null };
-      map.set(apt.customer_id, {
-        bookings: prev.bookings + 1,
-        revenue: prev.revenue + (apt.price || 0),
-        lastVisit: !prev.lastVisit || apt.appointment_date > prev.lastVisit ? apt.appointment_date : prev.lastVisit,
-      });
-    });
-    return customersData.map(c => {
-      const s = map.get(c.id) ?? { bookings: 0, revenue: 0, lastVisit: null };
-      const parts = c.name.trim().split(" ");
-      const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
-      return { id: c.id, name: c.name, bookings: s.bookings, revenue: s.revenue, lastVisit: s.lastVisit, initials: initials.toUpperCase() };
-    }).filter(c => c.bookings > 0).sort((a, b) => b.revenue - a.revenue).slice(0, 8);
-  }, [data, customersData]);
-
-  const revenueChartConfig = { revenue: { label: "Revenue", color: iOS.blue } } satisfies ChartConfig;
-
-  const handleExport = () => {
-    const header = "label,revenue,appointments,completed";
-    const rows = analytics.revenueTrend.map(r => `${r.label},${r.revenue},${r.appointments},${r.completed}`).join("\n");
-    const blob = new Blob([`${header}\n${rows}`], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `reports-${dateRange}.csv`; a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Export ready", description: "Your analytics CSV has been downloaded." });
-  };
-
-  const revenueRef = useRef<HTMLDivElement>(null);
-  const insightsRef = useRef<HTMLDivElement>(null);
-  const kpisRef = useRef<HTMLDivElement>(null);
-  const statusRef = useRef<HTMLDivElement>(null);
-  const peakRef = useRef<HTMLDivElement>(null);
-  const servicesRef = useRef<HTMLDivElement>(null);
-  const stylistsRef = useRef<HTMLDivElement>(null);
-  const customersRef = useRef<HTMLDivElement>(null);
-  const reviewsRef = useRef<HTMLDivElement>(null);
-
-  const sectionRefs = {
-    revenue: revenueRef,
-    insights: insightsRef,
-    kpis: kpisRef,
-    status: statusRef,
-    peak: peakRef,
-    services: servicesRef,
-    stylists: stylistsRef,
-    customers: customersRef,
-    reviews: reviewsRef,
-  };
-
-  const [activeSection, setActiveSection] = useState("revenue");
-
-  const scrollTo = (id: string) => {
-    const ref = sectionRefs[id as keyof typeof sectionRefs];
-    if (ref?.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const actionItems: ExpandableActionBarItem[] = useMemo(
-    () => [
-      { id: "revenue", label: "Revenue", icon: <TrendingUp className="h-4 w-4" />, onClick: () => scrollTo("revenue") },
-      { id: "insights", label: "Insights", icon: <Lightbulb className="h-4 w-4" />, onClick: () => scrollTo("insights") },
-      { id: "kpis", label: "KPIs", icon: <Activity className="h-4 w-4" />, onClick: () => scrollTo("kpis") },
-      { id: "status", label: "Status", icon: <PieChartIcon className="h-4 w-4" />, onClick: () => scrollTo("status") },
-      { id: "peak", label: "Peak hours", icon: <Clock className="h-4 w-4" />, onClick: () => scrollTo("peak") },
-      { id: "services", label: "Services", icon: <Scissors className="h-4 w-4" />, onClick: () => scrollTo("services") },
-      { id: "stylists", label: "Stylists", icon: <Crown className="h-4 w-4" />, onClick: () => scrollTo("stylists") },
-      { id: "customers", label: "Customers", icon: <Users className="h-4 w-4" />, onClick: () => scrollTo("customers") },
-      { id: "reviews", label: "Reviews", icon: <Star className="h-4 w-4" />, onClick: () => scrollTo("reviews") },
-      { id: "export", label: "Export", icon: <Download className="h-4 w-4" />, onClick: handleExport },
-    ],
-    [handleExport],
+  // Only the clients that make the list are looked up, instead of the whole client book.
+  const ranked = useMemo(() => rankCustomers(appointments), [appointments]);
+  const rankedIds = useMemo(() => ranked.map((c) => c.id), [ranked]);
+  const { data: names } = useQuery<Record<string, string>>({
+    queryKey: ["reports-customer-names", uid, rankedIds],
+    enabled: !!uid && rankedIds.length > 0,
+    placeholderData: keepPreviousData,
+    staleTime: STATIC,
+    queryFn: async () => {
+      const { data } = await db.from("customers").select("id, name").in("id", rankedIds);
+      return Object.fromEntries(((data || []) as { id: string; name: string | null }[]).map((c) => [c.id, c.name || ""]));
+    },
+  });
+  const topCustomers = useMemo<TopCustomerRow[]>(
+    () => (names ? ranked.filter((c) => c.id in names).map((c) => ({ ...c, name: names[c.id] || "Client", initials: initialsOf(names[c.id]) })) : []),
+    [ranked, names],
   );
 
-  useEffect(() => {
-    if (isMobile) return;
-    const container = document.querySelector("main > div.relative.z-10.flex-1.overflow-auto");
-    if (!container) return;
+  const rangeLabel = RANGES.find((r) => r.value === dateRange)?.label ?? dateRange;
+  const handleExport = useCallback(async () => {
+    const csv = analyticsCsv(analytics, rangeLabel, money);
+    const filename = `cutzioo-report-${range.startDate}-to-${range.endDate}.csv`;
+    const canShareFiles = typeof navigator.canShare === "function"
+      && navigator.canShare({ files: [new File([csv], filename, { type: "text/csv" })] });
+    // Inside the app a browser download goes nowhere, so the report leaves through the share sheet.
+    if (inAppShell() && !canShareFiles) {
+      const result = await shareText(csv, `Cutzioo report, ${rangeLabel}`);
+      if (result === "copied") toast({ title: "Report copied", description: "Paste it into Notes, Mail or a spreadsheet." });
+      else if (result === "failed") toast({ title: "Couldn't export", description: "Try again from a browser.", variant: "destructive" });
+      return;
+    }
+    const result = await shareFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename, { title: `Cutzioo report, ${rangeLabel}` });
+    if (result === "downloaded") toast({ title: "Export ready", description: "Your analytics CSV has been downloaded." });
+  }, [analytics, rangeLabel, range.startDate, range.endDate, toast]);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { root: container, threshold: 0.4 },
-    );
-
-    Object.values(sectionRefs).forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
-    });
-
-    return () => observer.disconnect();
-  }, [isMobile]);
+  const shopName = profile?.business_name || profile?.full_name;
+  const shared = { analytics, trend, isLoading, topCustomers, reviews, dateRange, setDateRange, onExport: handleExport };
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="h-screen flex w-full overflow-hidden bg-[#0A0A0C] font-geist">
+      <div className="flex h-screen w-full overflow-hidden bg-[#0A0A0C] font-geist">
         <AppSidebar />
-        <main className="relative flex-1 flex flex-col overflow-y-auto bg-[#0A0A0C] text-white">
-          {/* iOS large-title header */}
-          <div className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0A0A0C]/95 backdrop-blur-xl">
-            <div className="px-4 md:px-8 pt-4 pb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <motion.div
-                  className="min-w-0 hidden md:block"
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={springSoft}
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
-                    Analytics
-                  </p>
-                  <h1 className="text-[34px] md:text-[40px] font-bold text-white tracking-[-0.03em] leading-none">
-                    Reports
-                  </h1>
-                </motion.div>
-              </div>
-
-              <motion.button
-                type="button"
-                onClick={handleExport}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={springSoft}
-                whileTap={{ scale: 0.94 }}
-                className="hidden md:inline-flex shrink-0 items-center gap-2 rounded-[12px] h-10 px-4 bg-[#121215] text-white text-[13px] font-semibold border border-white/[0.08] hover:bg-[#22222A] transition-colors"
-              >
-                <Download className="h-4 w-4" strokeWidth={2.3} />
-                Export
-              </motion.button>
-            </div>
-
-            {/* Apple-style segmented date range (desktop only; mobile view has its own) */}
-            {!isMobile && (
-              <div className="px-4 md:px-8 pb-4">
-                <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as RangeValue)} variant="segment">
-                  <TabsList className="w-full md:w-auto rounded-full bg-white/[0.06] p-1">
-                    {RANGES.map((r) => (
-                      <Fragment key={r.value}>
-                        <TabsTrigger
-                          value={r.value}
-                          className="flex-1 md:flex-none rounded-full tabular-nums text-[13px] font-medium data-[state=active]:text-white"
-                          indicatorClassName="bg-white/[0.14] rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
-                        >
-                          <span className="relative">{r.label}</span>
-                        </TabsTrigger>
-                      </Fragment>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              </div>
-            )}
-          </div>
-
-          <div className="relative z-10 flex-1 overflow-auto">
-            {isMobile && (
-              <MobileReports
-                analytics={analytics}
-                trend={trend}
-                isLoading={isLoading}
-                topCustomers={topCustomers}
-                reviews={reviewsData || []}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                onExport={handleExport}
-              />
-            )}
-            <div className={cn("w-full px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-6 pb-32 md:pb-10 max-w-[1320px] mx-auto", isMobile && "hidden")}>
-
-              {/* Hero — metric switcher with prior-period ghost line */}
-              <motion.div
-                id="revenue"
-                ref={sectionRefs.revenue}
-                initial={{ opacity: 0, transform: "translateY(16px)" }}
-                animate={{ opacity: 1, transform: "translateY(0px)" }}
-                transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
-              >
-                <MetricHero
-                  series={trend.series}
-                  prevSeries={trend.prevSeries}
-                  totals={trend.totals}
-                  prevTotals={trend.prevTotals}
-                  loading={isLoading}
-                  rangeLabel={RANGES.find((r) => r.value === dateRange)?.label}
-                  aside={<CompletionGauge value={analytics.completionRate} />}
-                />
-              </motion.div>
-
-              {/* KPI grid — count-up values, period deltas, drawn sparklines */}
-              <div id="kpis" ref={sectionRefs.kpis} className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-                <SparkKpi index={0} loading={isLoading}
-                  icon={<CalendarDays className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Bookings" value={trend.totals.bookings} format={(n) => numberFormat.format(Math.round(n))}
-                  delta={pctDelta(trend.totals.bookings, trend.prevTotals.bookings)}
-                  spark={trend.series.map((p) => p.bookings)} tint={iOS.rose}
-                  hint={`${analytics.completionRate}% completed`}
-                />
-                <SparkKpi index={1} loading={isLoading}
-                  icon={<Users className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Clients" value={trend.totals.clients} format={(n) => numberFormat.format(Math.round(n))}
-                  delta={pctDelta(trend.totals.clients, trend.prevTotals.clients)}
-                  spark={trend.series.map((p) => p.clients)} tint={iOS.indigo}
-                  hint={`${analytics.returningRate}% returning`}
-                />
-                <SparkKpi index={2} loading={isLoading}
-                  icon={<DollarSign className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Avg ticket" value={analytics.averageTicket || 0} format={(n) => currency.format(n)}
-                  delta={pctDelta(
-                    analytics.averageTicket || 0,
-                    trend.prevTotals.bookings ? trend.prevTotals.revenue / trend.prevTotals.bookings : 0,
-                  )}
-                  spark={trend.series.map((p) => (p.bookings ? p.revenue / p.bookings : 0))} tint={iOS.green}
-                  hint="Per booking"
-                />
-                <SparkKpi index={3} loading={isLoading}
-                  icon={<TrendingUp className="w-4 h-4" strokeWidth={2.3} />}
-                  label="Upcoming" value={analytics.upcomingRevenue || 0} format={(n) => currency.format(n)}
-                  spark={trend.series.map((p) => p.revenue)} tint={iOS.orange}
-                  hint={`${analytics.scheduledAppointments} still to come`}
-                />
-              </div>
-
-              {/* Smart insights */}
-              {analytics.totalAppointments > 0 && (
-                <div id="insights" ref={sectionRefs.insights} className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  <InsightCard
-                    index={0}
-                    icon={<Flame className="w-4 h-4" strokeWidth={2.3} />}
-                    tint={iOS.orange}
-                    title="Busiest day"
-                    text={`${analytics.busiestDay?.day ?? "—"} is your hottest day with ${analytics.busiestDay?.count ?? 0} bookings. Consider premium pricing.`}
-                  />
-                  <InsightCard
-                    index={1}
-                    icon={<Clock className="w-4 h-4" strokeWidth={2.3} />}
-                    tint="#FFFFFF"
-                    title="Fill your quiet hour"
-                    text={`${analytics.quietHour?.hour ?? "—"} is your slowest slot. A small discount there can turn dead time into revenue.`}
-                  />
-                  <InsightCard
-                    index={2}
-                    icon={<TrendingUp className="w-4 h-4" strokeWidth={2.3} />}
-                    tint={trend.totals.revenue >= trend.prevTotals.revenue ? iOS.green : iOS.pink}
-                    title={trend.totals.revenue >= trend.prevTotals.revenue ? "Trending up" : "Trending down"}
-                    text={
-                      trend.totals.revenue >= trend.prevTotals.revenue
-                        ? `Revenue is ${currency.format(trend.totals.revenue - trend.prevTotals.revenue)} ahead of the previous period. Keep it rolling.`
-                        : `Revenue is ${currency.format(trend.prevTotals.revenue - trend.totals.revenue)} behind the previous period. Share your booking link or run a promo.`
-                    }
-                  />
-                </div>
-              )}
-
-              {/* Heatmap + revenue mix */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 md:gap-5">
-                <Reveal><HeatmapCard grid={analytics.heatmap} max={analytics.heatMax} className="h-full" /></Reveal>
-                <Reveal delay={0.06}><ServiceMixCard services={analytics.serviceBreakdown} className="h-full" /></Reveal>
-              </div>
-
-              {/* Bookings by weekday — devignerui chart-card */}
-              {analytics.totalAppointments > 0 && (
-                <Reveal>
-                  <ChartCard
-                    title="Bookings by weekday"
-                    caption="Which days clients pick"
-                    total={analytics.totalAppointments}
-                    data={weekdayBookings}
-                    className="rounded-[24px] border border-white/[0.08] bg-[#121215] text-white"
-                  />
-                </Reveal>
-              )}
-
-
-              <RevenuePipelineCard />
-
-
-              {/* Status + busiest days */}
-              <div id="status" ref={sectionRefs.status} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                <SectionCard title="Booking status" subtitle="Distribution this period" delay={0.05}>
-                  {analytics.statusBreakdown.length === 0 ? (
-                    <EmptyMini />
-                  ) : (
-                    <div className="flex items-center gap-6">
-                      <div className="relative w-40 h-40 shrink-0">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={analytics.statusBreakdown}
-                              dataKey="value"
-                              nameKey="name"
-                              innerRadius={52}
-                              outerRadius={74}
-                              paddingAngle={5}
-                              cornerRadius={10}
-                              strokeWidth={0}
-                              animationDuration={1000}
-                            >
-                              {analytics.statusBreakdown.map((item) => (
-                                <Cell key={item.name} fill={item.fill} />
-                              ))}
-                            </Pie>
-                          </PieChart>
-                        </ResponsiveContainer>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-[28px] font-bold text-white tracking-tight tabular-nums">
-                            {analytics.completionRate}%
-                          </span>
-                          <span className="text-[9px] text-white/50 uppercase tracking-[0.14em] mt-1">done</span>
-                        </div>
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        {analytics.statusBreakdown.map((s, i) => (
-                          <motion.div
-                            key={s.name}
-                            initial={{ opacity: 0, x: -8 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={stagger(i)}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.fill }} />
-                              <span className="text-sm text-white truncate">{s.name}</span>
-                            </div>
-                            <span className="text-sm font-semibold text-white tabular-nums">{s.value}</span>
-                          </motion.div>
-                        ))}
-                      </div>
+        <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[#0A0A0C] text-white">
+          <Suspense fallback={null}>
+            {isMobile ? (
+              <div className="flex-1 overflow-y-auto overscroll-contain pt-4">
+                <MobileReports
+                  {...shared}
+                  growth={
+                    <div className="space-y-3">
+                      <RevenueGoalCard userId={uid} className="!rounded-[22px] !border-[0.5px] !border-white/10 !bg-[#1C1C1E]" />
+                      <WinBackCard userId={uid} shopName={shopName} bookingLink={profile?.booking_link} limit={4} className="!rounded-[22px] !border-[0.5px] !border-white/10 !bg-[#1C1C1E]" />
                     </div>
-                  )}
-                </SectionCard>
-
-                <SectionCard title="Busiest days" subtitle="Bookings by day of week" delay={0.1}>
-                  {analytics.dayOfWeekDemand.every((d) => d.count === 0) ? (
-                    <EmptyMini />
-                  ) : (
-                    <ChartContainer
-                      config={{ count: { label: "Bookings", color: iOS.indigo } }}
-                      className="h-[170px] w-full aspect-auto"
-                    >
-                      <BarChart data={analytics.dayOfWeekDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="24%">
-                        <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} />
-                        <YAxis hide />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
-                          {analytics.dayOfWeekDemand.map((entry, i) => {
-                            const max = Math.max(...analytics.dayOfWeekDemand.map((d) => d.count), 1);
-                            return <Cell key={i} fill={entry.count === max && entry.count > 0 ? ACCENT : `rgba(255,255,255,${0.08 + (entry.count / max) * 0.3})`} />;
-                          })}
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
-                  )}
-                </SectionCard>
-              </div>
-
-              {/* Peak hours */}
-              <SectionCard id="peak" forwardRef={sectionRefs.peak} title="Peak hours" subtitle="When your chair fills up" delay={0.12}>
-                {analytics.hourlyDemand.every((h) => h.count === 0) ? (
-                  <EmptyMini />
-                ) : (
-                  <ChartContainer
-                    config={{ count: { label: "Bookings", color: iOS.blue } }}
-                    className="h-[170px] w-full aspect-auto"
-                  >
-                    <BarChart data={analytics.hourlyDemand} margin={{ left: 0, right: 0, top: 10, bottom: 0 }} barCategoryGap="28%">
-                      <CartesianGrid vertical={false} strokeDasharray="3 8" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="hour" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} interval={1} />
-                      <YAxis hide />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="count" radius={[10, 10, 0, 0]} animationDuration={1000}>
-                        {analytics.hourlyDemand.map((entry, i) => {
-                          const max = Math.max(...analytics.hourlyDemand.map((h) => h.count), 1);
-                          const isPeak = entry.hour === analytics.peakHour?.hour && entry.count > 0;
-                          return <Cell key={i} fill={isPeak ? ACCENT : `rgba(255,255,255,${0.08 + (entry.count / max) * 0.3})`} />;
-                        })}
-                      </Bar>
-                    </BarChart>
-                  </ChartContainer>
-                )}
-              </SectionCard>
-
-              {/* Top services */}
-              <SectionCard id="services" forwardRef={sectionRefs.services} title="Top services" subtitle="Most booked in this period" delay={0.15}>
-                {analytics.serviceBreakdown.length === 0 ? (
-                  <EmptyMini />
-                ) : (
-                  <div className="space-y-4">
-                    {analytics.serviceBreakdown.map((s, idx) => {
-                      const max = analytics.serviceBreakdown[0]?.bookings || 1;
-                      const pct = (s.bookings / max) * 100;
-                      return (
-                        <motion.div
-                          key={s.name}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.05 * idx, ...springSoft }}
-                          className="space-y-2"
-                        >
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-7 h-7 rounded-[10px] bg-white/10 text-[11px] font-semibold text-white/50 flex items-center justify-center tabular-nums">
-                                {idx + 1}
-                              </span>
-                              <span className="font-medium text-white truncate">{s.name}</span>
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-xs text-white/50 tabular-nums">{currency.format(s.revenue)}</span>
-                              <span className="text-sm font-semibold text-white tabular-nums">{s.bookings}</span>
-                            </div>
-                          </div>
-                          <div className="h-2 rounded-[10px] bg-white/10 overflow-hidden">
-                            <motion.div
-                              className="h-full rounded-[10px] bg-[#FF2D46]"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${pct}%` }}
-                              transition={{ delay: 0.05 * idx + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                            />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-              </SectionCard>
-
-              {/* Stylist leaderboard */}
-              <SectionCard id="stylists" forwardRef={sectionRefs.stylists} title="Stylist leaderboard" subtitle="Ranked by revenue & satisfaction" delay={0.2}>
-                {analytics.stylistPerformance.length === 0 ? (
-                  <EmptyMini />
-                ) : (
-                  <div className="rounded-[16px] bg-white/5 overflow-hidden divide-y divide-white/[0.06]">
-                    {analytics.stylistPerformance.slice(0, 6).map((stylist, index) => (
-                      <motion.div
-                        key={stylist.id}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.05 * index, ...springSoft }}
-                        whileTap={{ scale: 0.98, backgroundColor: "rgba(255,255,255,0.1)" }}
-                        className="flex items-center gap-3.5 px-4 py-3.5 transition-colors"
-                      >
-                        <div
-                          className={cn(
-                            "w-10 h-10 rounded-[14px] flex items-center justify-center font-bold text-sm shrink-0",
-                            index === 0
-                              ? "bg-[#FFD60A] text-black"
-                              : index === 1
-                              ? "bg-[#22222A] text-white"
-                              : index === 2
-                              ? "bg-orange-500/25 text-orange-400"
-                              : "bg-white/10 text-white/50"
-                          )}
-                        >
-                          {index === 0 ? <Crown className="w-4 h-4" strokeWidth={2.3} /> : index + 1}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-[15px] text-white truncate">{stylist.name}</p>
-                          <div className="flex items-center gap-2 text-[11px] text-white/50 mt-0.5">
-                            <span>{stylist.bookings} bookings</span>
-                            <span>·</span>
-                            <span className="flex items-center gap-0.5">
-                              <Star className="w-3 h-3 fill-[#FFD60A] text-[#FFD60A]" />
-                              {stylist.satisfaction.toFixed(1)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-[15px] font-semibold text-white tabular-nums">
-                            {currency.format(stylist.revenue)}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-white/50 shrink-0" strokeWidth={2.3} />
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </SectionCard>
-
-              <TopCustomersSection id="customers" forwardRef={sectionRefs.customers} customers={topCustomers} />
-              <ReviewsSection id="reviews" forwardRef={sectionRefs.reviews} reviews={reviewsData || []} />
-            </div>
-          </div>
-
-          {/* Floating expandable action bar — PC only */}
-          {!isMobile && (
-            <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-50 flex justify-center">
-              <div className="pointer-events-auto">
-                <ExpandableActionBar
-                  items={actionItems}
-                  activeId={activeSection}
-                  onAction={(item) => {
-                    setActiveSection(item.id);
-                    item.onClick?.();
-                  }}
-                  classNames={{
-                    root: "drop-shadow-2xl",
-                    track: "bg-[#121215]/80 border-white/[0.08] shadow-2xl backdrop-blur-2xl",
-                    item: "group data-[active=true]:text-white",
-                    activeItem: "text-white",
-                  }}
+                  }
                 />
               </div>
-            </div>
-          )}
-
-          {!user && <LoginNudge delaySec={40} />}
+            ) : (
+              <DesktopReports {...shared} userId={uid} shopName={shopName} bookingLink={profile?.booking_link} />
+            )}
+          </Suspense>
         </main>
       </div>
     </SidebarProvider>
   );
 };
-
-function SectionCard({
-  id,
-  forwardRef,
-  title,
-  subtitle,
-  children,
-  delay = 0,
-}: {
-  id?: string;
-  forwardRef?: Ref<HTMLDivElement>;
-  title: string;
-  subtitle?: string;
-  children: ReactNode;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      id={id}
-      ref={forwardRef}
-      initial={{ opacity: 0, transform: "translateY(16px)" }}
-      whileInView={{ opacity: 1, transform: "translateY(0px)" }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1], delay: Math.min(delay, 0.1) }}
-      className="relative rounded-[28px] border border-white/[0.08] bg-[#121215]"
-    >
-      <div className="p-6 md:p-8">
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold text-white tracking-tight">{title}</h3>
-          {subtitle && <p className="text-sm text-white/50 mt-2">{subtitle}</p>}
-        </div>
-        {children}
-      </div>
-    </motion.div>
-  );
-}
-
-function TopCustomersSection({
-  id,
-  forwardRef,
-  customers,
-}: {
-  id?: string;
-  forwardRef?: Ref<HTMLDivElement>;
-  customers: TopCustomerRow[];
-}) {
-  return (
-    <SectionCard id={id} forwardRef={forwardRef} title="Best customers" subtitle="Ranked by spend this period" delay={0.25}>
-      {customers.length === 0 ? (
-        <EmptyMini />
-      ) : (
-        <div className="rounded-2xl bg-white/5 overflow-hidden divide-y divide-white/[0.06]">
-          {customers.map((c, i) => {
-            const tint = AVATAR_TINTS[i % AVATAR_TINTS.length];
-            const pct = Math.min(100, (c.revenue / (customers[0]?.revenue || 1)) * 100);
-            return (
-              <motion.div
-                key={c.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.045 * i, ...springSoft }}
-                whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                className="flex items-center gap-3.5 px-4 py-3.5"
-              >
-                <Avatar
-                  name={c.initials || "?"}
-                  className="h-10 w-10 rounded-[12px]"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-[15px] text-white truncate">{c.name}</p>
-                    {i === 0 && (
-                      <span className="inline-flex h-4 items-center px-1.5 text-[9px] font-bold uppercase tracking-wider bg-[#FFD60A] text-black rounded-[6px]">
-                        VIP
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-white/50 mt-0.5">
-                    {c.bookings} visit{c.bookings !== 1 ? "s" : ""}
-                    {c.lastVisit ? ` · ${formatDistanceToNow(new Date(c.lastVisit + "T00:00:00"), { addSuffix: true })}` : ""}
-                  </p>
-                </div>
-                <div className="text-right shrink-0 min-w-[75px]">
-                  <p className="text-[15px] font-semibold text-white tabular-nums">{currency.format(c.revenue)}</p>
-                  <div className="w-full h-1.5 rounded-[10px] bg-white/10 mt-1.5 overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-[10px]"
-                      style={{ backgroundColor: tint }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ delay: 0.045 * i + 0.25, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-    </SectionCard>
-  );
-}
-
-function ReviewsSection({
-  id,
-  forwardRef,
-  reviews,
-}: {
-  id?: string;
-  forwardRef?: Ref<HTMLDivElement>;
-  reviews: ReviewRow[];
-}) {
-  const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
-  const distribution = [5, 4, 3, 2, 1].map(star => ({ star, count: reviews.filter(r => r.rating === star).length }));
-  const maxCount = Math.max(...distribution.map(d => d.count), 1);
-
-  return (
-    <SectionCard id={id} forwardRef={forwardRef} title="Customer reviews" subtitle={`${reviews.length} review${reviews.length !== 1 ? "s" : ""} total`} delay={0.3}>
-      {reviews.length === 0 ? (
-        <EmptyMini />
-      ) : (
-        <div className="space-y-6">
-          <div className="flex items-center gap-6">
-            <motion.div
-              className="text-center shrink-0"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={springSoft}
-            >
-              <p className="text-5xl font-bold text-white tabular-nums tracking-[-0.025em] leading-none">
-                {avgRating.toFixed(1)}
-              </p>
-              <div className="flex justify-center gap-0.5 mt-2">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className={cn(
-                      "w-4 h-4",
-                      s <= Math.round(avgRating) ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30"
-                    )}
-                  />
-                ))}
-              </div>
-              <p className="text-[11px] text-white/50 mt-1.5">{reviews.length} reviews</p>
-            </motion.div>
-            <div className="flex-1 space-y-2">
-              {distribution.map(({ star, count }, i) => (
-                <motion.div
-                  key={star}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={stagger(i)}
-                  className="flex items-center gap-2.5"
-                >
-                  <span className="text-[11px] text-white/50 w-3 shrink-0 tabular-nums">{star}</span>
-                  <div className="flex-1 h-2 rounded-[10px] bg-white/10 overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-[10px] bg-[#FFD60A]"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(count / maxCount) * 100}%` }}
-                      transition={{ delay: i * 0.05 + 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    />
-                  </div>
-                  <span className="text-[11px] text-white/50 w-4 text-right tabular-nums shrink-0">{count}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-white/50">Recent</p>
-            {reviews.slice(0, 6).map((r, i) => (
-              <motion.div
-                key={r.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.045 * i, ...springSoft }}
-                className="rounded-[16px] bg-white/5 p-4 space-y-2"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} className={cn("w-3.5 h-3.5", s <= r.rating ? "fill-[#FFD60A] text-[#FFD60A]" : "text-white/30")} />
-                    ))}
-                  </div>
-                  <span className="text-[10px] text-white/50">
-                    {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
-                  </span>
-                </div>
-                {r.reviewer_name && <p className="text-sm font-semibold text-white">{r.reviewer_name}</p>}
-                {r.comment && <p className="text-sm text-white/50 leading-relaxed">&ldquo;{r.comment}&rdquo;</p>}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-    </SectionCard>
-  );
-}
-
-function InsightCard({ icon, tint, title, text, index = 0 }: {
-  icon: ReactNode; tint: string; title: string; text: string; index?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: 0.08 * index, ...springSoft }}
-      whileHover={{ y: -2 }}
-      className="relative rounded-[18px] bg-[#121215] border border-white/[0.08] p-5"
-    >
-      <div className="flex items-center gap-2.5 mb-2.5">
-        <div
-          className="w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${tint}20`, color: tint }}
-        >
-          {icon}
-        </div>
-        <div className="inline-flex items-center gap-1.5">
-          <Lightbulb className="w-3 h-3 text-white/50" strokeWidth={2.3} />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">Insight</span>
-        </div>
-      </div>
-      <p className="relative text-[15px] font-bold text-white tracking-tight">{title}</p>
-      <p className="relative text-[12px] text-white/50 mt-1 leading-relaxed">{text}</p>
-    </motion.div>
-  );
-}
-
-function EmptyMini() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={springSoft}
-      className="rounded-[16px] bg-white/5 p-10 text-center"
-    >
-      <div className="w-11 h-11 rounded-[14px] bg-white/10 mx-auto flex items-center justify-center">
-        <Sparkles className="w-4 h-4 text-white/50" strokeWidth={2.3} />
-      </div>
-      <p className="text-xs text-white/50 mt-3.5">No data in this range yet</p>
-    </motion.div>
-  );
-}
-
-function CompletionGauge({ value }: { value: number }) {
-  // Smooth iOS-style semicircular progress ring with a rose gradient
-  const radius = 82;
-  const stroke = 14;
-  const cx = 100;
-  const cy = 100;
-  const clamped = Math.max(0, Math.min(100, value));
-  const arc = Math.PI * radius; // semicircle length
-  const dash = (clamped / 100) * arc;
-
-  return (
-    <div className="relative w-[160px] h-[100px] shrink-0">
-      <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
-        <defs>
-          <linearGradient id="gauge-rose" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={iOS.rose} />
-            <stop offset="100%" stopColor={iOS.pink} />
-          </linearGradient>
-        </defs>
-        {/* background track */}
-        <path
-          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
-          fill="none"
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-        />
-        {/* filled progress arc */}
-        <motion.path
-          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
-          fill="none"
-          stroke="url(#gauge-rose)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={arc}
-          initial={{ strokeDashoffset: arc }}
-          animate={{ strokeDashoffset: arc - dash }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          style={{ filter: "drop-shadow(0 0 10px rgba(255,45,111,0.5))" }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-2 pointer-events-none">
-        <span className="text-[26px] font-bold text-white tabular-nums leading-none tracking-tight">
-          {value}%
-        </span>
-        <span className="text-[10px] uppercase tracking-[0.16em] text-[#FF2D46] mt-1 font-semibold">done</span>
-      </div>
-    </div>
-  );
-}
-
-function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
-  const [show, setShow] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  useEffect(() => {
-    if (sessionStorage.getItem("reports-login-nudge-dismissed")) return;
-    const t = setTimeout(() => setShow(true), delaySec * 1000);
-    return () => clearTimeout(t);
-  }, [delaySec]);
-  const close = () => {
-    setDismissed(true);
-    setShow(false);
-    sessionStorage.setItem("reports-login-nudge-dismissed", "1");
-  };
-  if (dismissed) return null;
-  return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ y: 120, opacity: 0, scale: 0.94 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 80, opacity: 0, scale: 0.96 }}
-          transition={{ type: "spring", stiffness: 360, damping: 30 }}
-          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
-        >
-          <div className="relative rounded-[26px] border border-white/[0.08] bg-[#121215] p-4">
-            <div className="relative flex items-center gap-3.5">
-              <motion.div
-                className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-[#FF2D46]"
-                animate={{ scale: [1, 1.06, 1] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Lock className="w-5 h-5 text-white" strokeWidth={2.4} />
-              </motion.div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold text-white leading-tight">
-                  Save your insights
-                </p>
-                <p className="text-[12px] text-white/50 mt-0.5">
-                  Sign in to unlock live tracking, exports & alerts.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Dismiss"
-                className="w-8 h-8 rounded-[12px] bg-white/10 text-white/50 flex items-center justify-center hover:bg-[#22222A] transition-colors shrink-0"
-              >
-                <X className="w-4 h-4" strokeWidth={2.4} />
-              </button>
-            </div>
-            <div className="relative mt-3.5 flex items-center gap-2.5">
-              <Link
-                to={`/auth?next=${encodeURIComponent(window.location.pathname)}`}
-                className="flex-1 h-11 rounded-[12px] bg-[#FF2D46] text-white text-[14px] font-semibold flex items-center justify-center active:scale-[0.98] transition-transform"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/auth?signup=1"
-                className="flex-1 h-11 rounded-[12px] bg-white/10 text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
-              >
-                Create account
-              </Link>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
 
 export default Reports;

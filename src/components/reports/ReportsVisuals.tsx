@@ -1,28 +1,20 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, animate, useMotionValue, useTransform, useReducedMotion, useInView } from "framer-motion";
-import { Area, ComposedChart, CartesianGrid, Cell, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { money } from "@/components/reports/money";
 
 export const EASE_OUT = [0.23, 1, 0.32, 1] as const;
-const ACCENT = "#FF2D46";
+export const ACCENT = "#FF2D46";
 export const MIX_COLORS = [ACCENT, "#FF9F0A", "#5E5CE6", "#0A84FF", "#30D158", "#FFD60A"];
 
-const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-const num = new Intl.NumberFormat("en-US");
-const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(Math.round(n)));
 
 export type MetricKey = "revenue" | "bookings" | "clients";
 export interface SeriesPoint { label: string; revenue: number; bookings: number; clients: number }
 export interface SeriesRow { appointment_date: string; appointment_time?: string | null; price: number | null; customer_id: string | null }
 export type Totals = Record<MetricKey, number>;
 
-const METRICS: { key: MetricKey; label: string; fmt: (n: number) => string }[] = [
-  { key: "revenue", label: "Revenue", fmt: (n) => currency.format(n) },
-  { key: "bookings", label: "Bookings", fmt: (n) => num.format(Math.round(n)) },
-  { key: "clients", label: "Clients", fmt: (n) => num.format(Math.round(n)) },
-];
 
 const dayMs = 86_400_000;
 const localDay = (s: string) => new Date(`${s}T00:00:00`).getTime();
@@ -98,111 +90,6 @@ export function Reveal({ children, className, delay = 0, id, innerRef }: { child
     >
       {children}
     </motion.div>
-  );
-}
-
-function MetricTabs({ value, onChange, id }: { value: MetricKey; onChange: (m: MetricKey) => void; id: string }) {
-  return (
-    <div role="tablist" className="inline-flex rounded-full bg-white/[0.06] p-1">
-      {METRICS.map((m) => (
-        <button
-          key={m.key}
-          role="tab"
-          aria-selected={value === m.key}
-          type="button"
-          onClick={() => { if (value !== m.key) { haptic("selection"); onChange(m.key); } }}
-          className={cn("relative rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-150", value === m.key ? "text-white" : "text-white/50 hover:text-white/75")}
-        >
-          {value === m.key && <motion.span layoutId={`${id}-metric-pill`} transition={{ type: "spring", duration: 0.3, bounce: 0 }} className="absolute inset-0 rounded-full bg-white/[0.14]" />}
-          <span className="relative">{m.label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ChartTip({ active, payload, label, fmt }: any) {
-  if (!active || !payload?.length) return null;
-  const cur = payload.find((p: any) => p.dataKey === "cur")?.value ?? 0;
-  const prev = payload.find((p: any) => p.dataKey === "prev")?.value;
-  return (
-    <div className="rounded-[14px] border border-white/[0.08] bg-[#1C1C1E]/95 px-3 py-2 text-[12px] shadow-2xl backdrop-blur-xl">
-      <p className="mb-1 font-medium text-white/50">{label}</p>
-      <p className="flex items-center gap-2 font-semibold text-white"><span className="h-2 w-2 rounded-full" style={{ background: ACCENT }} />{fmt(cur)}</p>
-      {prev != null && <p className="mt-0.5 flex items-center gap-2 text-white/50"><span className="h-0.5 w-2 rounded-full bg-white/40" />{fmt(prev)} before</p>}
-    </div>
-  );
-}
-
-/** Hero card: metric switcher, count-up total, period-over-period delta, area chart with the prior period ghosted behind it. */
-export function MetricHero({ series, prevSeries, totals, prevTotals, loading, compact: isCompact, aside, rangeLabel }: {
-  series: SeriesPoint[]; prevSeries: SeriesPoint[]; totals: Totals; prevTotals: Totals;
-  loading?: boolean; compact?: boolean; aside?: ReactNode; rangeLabel?: string;
-}) {
-  const [metric, setMetric] = useState<MetricKey>("revenue");
-  const m = METRICS.find((x) => x.key === metric)!;
-  const delta = pctDelta(totals[metric], prevTotals[metric]);
-  const data = useMemo(
-    () => series.map((p, i) => ({ label: p.label, cur: p[metric], prev: prevSeries[i]?.[metric] ?? 0 })),
-    [series, prevSeries, metric],
-  );
-  const best = data.reduce((b, d, i) => (d.cur > (data[b]?.cur ?? -1) ? i : b), 0);
-  const gid = isCompact ? "mh-grad-m" : "mh-grad";
-
-  return (
-    <div className={cn("relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#121215]", isCompact ? "p-4" : "p-6 md:p-8")}>
-      <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full opacity-60 blur-3xl" style={{ background: `radial-gradient(circle, ${ACCENT}40, transparent 70%)` }} />
-      <div className="relative flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <MetricTabs value={metric} onChange={setMetric} id={isCompact ? "m" : "d"} />
-          <div className="mt-4 flex items-end gap-3">
-            {loading ? (
-              <span className={cn("inline-block animate-pulse rounded-xl bg-white/10", isCompact ? "h-10 w-40" : "h-14 w-56")} />
-            ) : (
-              <CountUp key={metric} value={totals[metric]} format={m.fmt} className={cn("block font-bold leading-none tracking-[-0.035em] text-white tabular-nums", isCompact ? "text-[40px]" : "text-[48px] md:text-[60px]")} />
-            )}
-          </div>
-          <div className="mt-3 flex items-center gap-2 text-[12px] text-white/50">
-            <DeltaChip delta={delta} />
-            <span>vs {m.fmt(prevTotals[metric])} {rangeLabel === "Today" || rangeLabel === "Day" ? "yesterday" : "the period before"}</span>
-          </div>
-        </div>
-        {aside}
-      </div>
-
-      <div className={cn("relative mt-5 w-full", isCompact ? "-mx-1 h-[150px]" : "h-[240px] md:h-[300px]")}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart key={metric} data={data} margin={{ top: 10, right: 6, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={ACCENT} stopOpacity={0.42} />
-                <stop offset="70%" stopColor={ACCENT} stopOpacity={0.04} />
-                <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            {!isCompact && <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(255,255,255,0.07)" />}
-            <XAxis dataKey="label" tickLine={false} axisLine={false} interval="preserveStartEnd" minTickGap={24} dy={6}
-              tick={{ fontSize: 10.5, fill: "rgba(255,255,255,0.4)", fontWeight: 500 }} hide={isCompact} />
-            <YAxis hide={isCompact} tickLine={false} axisLine={false} width={40} tickFormatter={(v) => compact(Number(v))}
-              tick={{ fontSize: 10.5, fill: "rgba(255,255,255,0.4)", fontWeight: 500 }} />
-            <Tooltip cursor={{ stroke: "rgba(255,255,255,0.25)", strokeDasharray: "3 4" }} content={<ChartTip fmt={m.fmt} />} />
-            <Line type="monotone" dataKey="prev" stroke="rgba(255,255,255,0.28)" strokeWidth={1.5} strokeDasharray="4 5" dot={false} activeDot={false} isAnimationActive={false} />
-            <Area
-              type="monotone" dataKey="cur" stroke={ACCENT} strokeWidth={2.5} fill={`url(#${gid})`}
-              animationDuration={700} animationEasing="ease-out"
-              dot={(p: any) => (p.index === best && p.payload.cur > 0 ? <circle key="best" cx={p.cx} cy={p.cy} r={4} fill={ACCENT} stroke="#121215" strokeWidth={2} /> : <g key={p.index} />)}
-              activeDot={{ r: 5, strokeWidth: 2, stroke: "#121215", fill: ACCENT }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-      {!isCompact && (
-        <div className="relative mt-3 flex items-center gap-4 text-[11.5px] text-white/45">
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: ACCENT }} />This period</span>
-          <span className="flex items-center gap-1.5"><span className="h-0.5 w-3 rounded-full bg-white/40" />Previous period</span>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -325,6 +212,33 @@ export function HeatmapCard({ grid, max, className }: { grid: number[][]; max: n
   );
 }
 
+/** Ring chart drawn with stroked circles: no chart library, and it animates on the compositor. */
+export function Donut({ slices, active = null, onActive, thickness = 16 }: {
+  slices: { name: string; value: number; fill: string }[]; active?: number | null; onActive?: (i: number | null) => void; thickness?: number;
+}) {
+  const r = 50 - thickness / 2;
+  const c = 2 * Math.PI * r;
+  const total = slices.reduce((s, x) => s + x.value, 0) || 1;
+  const gap = slices.length > 1 ? 2.5 : 0;
+  let offset = 0;
+  return (
+    <svg viewBox="0 0 100 100" className="rp-donut h-full w-full -rotate-90" onPointerLeave={() => onActive?.(null)}>
+      {slices.map((s, i) => {
+        const len = (s.value / total) * c;
+        const dash = Math.max(0.5, len - gap);
+        const el = (
+          <circle key={s.name} cx="50" cy="50" r={r} fill="none" stroke={s.fill} strokeWidth={thickness} strokeLinecap="butt"
+            strokeDasharray={`${dash} ${c - dash}`} strokeDashoffset={-offset}
+            opacity={active == null || active === i ? 1 : 0.3} style={{ transition: "opacity 150ms ease" }}
+            onPointerEnter={() => onActive?.(i)} />
+        );
+        offset += len;
+        return el;
+      })}
+    </svg>
+  );
+}
+
 /** Revenue mix donut — hover a slice or legend row to focus it. */
 export function ServiceMixCard({ services, className, compact: isCompact }: { services: { name: string; bookings: number; revenue: number }[]; className?: string; compact?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
@@ -340,18 +254,11 @@ export function ServiceMixCard({ services, className, compact: isCompact }: { se
         {!isCompact && <p className="mt-1 text-sm text-white/50">Where your money comes from</p>}
       </div>
       {!data.length ? <p className="py-8 text-center text-[13px] text-white/40">No services booked in this range.</p> : (
-        <div className={cn("flex gap-5", isCompact ? "items-center" : "flex-col items-center sm:flex-row")}>
+        <div className={cn("flex gap-5", isCompact ? "flex-col items-center" : "flex-col items-center sm:flex-row")}>
           <div className="relative shrink-0" style={{ width: size, height: size }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={data} dataKey="value" nameKey="name" innerRadius="68%" outerRadius="100%" paddingAngle={3} cornerRadius={8} strokeWidth={0}
-                  animationDuration={700} animationEasing="ease-out" onMouseLeave={() => setActive(null)} onMouseEnter={(_, i) => setActive(i)}>
-                  {data.map((d, i) => <Cell key={d.name} fill={d.fill} opacity={active == null || active === i ? 1 : 0.3} style={{ transition: "opacity 150ms ease", outline: "none" }} />)}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
+            <Donut slices={data} active={active} onActive={setActive} />
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-              <p className={cn("font-bold tabular-nums text-white", isCompact ? "text-[18px]" : "text-[22px]")}>{currency.format(focus ? focus.revenue : total)}</p>
+              <p className={cn("font-bold tabular-nums text-white", isCompact ? "text-[18px]" : "text-[22px]")}>{money(focus ? focus.revenue : total)}</p>
               <p className="max-w-full truncate text-[10.5px] text-white/45">{focus ? `${Math.round((focus.revenue / Math.max(1, total)) * 100)}% · ${focus.name}` : "total"}</p>
             </div>
           </div>

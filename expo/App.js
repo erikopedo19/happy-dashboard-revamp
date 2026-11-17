@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, BackHandler, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, BackHandler, Linking, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Haptics from 'expo-haptics';
@@ -283,6 +283,11 @@ function Shell() {
     }
     if (message?.type === 'cutzio-theme') {
       setLightTheme(message.light === true);
+      return;
+    }
+    if (message?.type === 'cutzio-share') {
+      const text = [message.text, message.url].filter(Boolean).join(' ');
+      if (text) Share.share({ title: message.title, message: text }).catch(() => {});
       return;
     }
     if (message?.type === 'cutzio-push-request') {

@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { money } from "@/components/reports/money";
+import type { RangeValue, ReportsAnalytics, ReviewRow, TopCustomerRow } from "@/components/reports/reportsData";
 import { CountUp, EASE_OUT, Reveal, ServiceMixCard, pctDelta, type MetricKey, type SeriesPoint, type Totals } from "@/components/reports/ReportsVisuals";
 
 const ACCENT = "#FF2D46";
@@ -16,21 +18,17 @@ const YELLOW = "#FFD60A";
 const CARD = "#1C1C1E";
 const SPRING = { type: "spring" as const, duration: 0.45, bounce: 0 };
 
-const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const num = new Intl.NumberFormat("en-US");
 
-export type RangeValue = "today" | "last7days" | "last30days" | "thisMonth" | "lastMonth" | "thisYear";
 export const MOBILE_RANGES: { value: RangeValue; short: string; label: string }[] = [
   { value: "today", short: "D", label: "Day" }, { value: "last7days", short: "W", label: "7 days" }, { value: "last30days", short: "30D", label: "30 days" },
   { value: "thisMonth", short: "M", label: "Period" }, { value: "lastMonth", short: "LM", label: "Month" }, { value: "thisYear", short: "Y", label: "Period" },
 ];
 
-interface ReviewRow { id: string; rating: number; comment: string | null; reviewer_name: string | null; created_at: string }
-interface TopCustomerRow { id: string; name: string; bookings: number; revenue: number; lastVisit: string | null; initials: string }
 type Trend = { series: SeriesPoint[]; prevSeries: SeriesPoint[]; totals: Totals; prevTotals: Totals };
 
 const METRICS: { key: MetricKey; label: string; title: string; fmt: (n: number) => string }[] = [
-  { key: "revenue", label: "Revenue", title: "Total revenue", fmt: (n) => currency.format(n) },
+  { key: "revenue", label: "Revenue", title: "Total revenue", fmt: (n) => money(n) },
   { key: "bookings", label: "Bookings", title: "Total bookings", fmt: (n) => num.format(Math.round(n)) },
   { key: "clients", label: "Clients", title: "Unique clients", fmt: (n) => num.format(Math.round(n)) },
 ];
@@ -540,7 +538,7 @@ function RankedList({ rows }: { rows: { id: string; name: string; sub: string; v
               <span className="shrink-0 text-[11.5px] text-white/40">{r.sub}</span>
             </div>
           </div>
-          <p className="shrink-0 text-[15px] font-semibold tabular-nums text-white">{currency.format(r.value)}</p>
+          <p className="shrink-0 text-[15px] font-semibold tabular-nums text-white">{money(r.value)}</p>
         </li>
       ))}
     </ul>
@@ -597,8 +595,8 @@ function Reviews({ reviews }: { reviews: ReviewRow[] }) {
 
 /* ───────────────────────────── page ───────────────────────────── */
 
-export function MobileReports({ analytics, trend, isLoading, topCustomers, reviews, dateRange, setDateRange, onExport }: {
-  analytics: any; trend: Trend; isLoading: boolean; topCustomers: TopCustomerRow[]; reviews: ReviewRow[];
+export function MobileReports({ analytics, trend, isLoading, topCustomers, reviews, dateRange, setDateRange, onExport, growth }: {
+  analytics: ReportsAnalytics; growth?: ReactNode; trend: Trend; isLoading: boolean; topCustomers: TopCustomerRow[]; reviews: ReviewRow[];
   dateRange: RangeValue; setDateRange: (v: RangeValue) => void; onExport: () => void;
 }) {
   const reduce = useReducedMotion();
@@ -612,8 +610,8 @@ export function MobileReports({ analytics, trend, isLoading, topCustomers, revie
     const out: { color: string; title: string; body: string }[] = [];
     const diff = trend.totals.revenue - trend.prevTotals.revenue;
     out.push(diff >= 0
-      ? { color: GREEN, title: revDelta == null ? "Your first revenue this period" : `Revenue is up ${revDelta}%`, body: `You made ${currency.format(diff)} more than the period before. Keep the momentum going.` }
-      : { color: ACCENT, title: `Revenue is down ${Math.abs(revDelta ?? 0)}%`, body: `${currency.format(-diff)} behind the period before. Share your booking link or run a quick promo.` });
+      ? { color: GREEN, title: revDelta == null ? "Your first revenue this period" : `Revenue is up ${revDelta}%`, body: `You made ${money(diff)} more than the period before. Keep the momentum going.` }
+      : { color: ACCENT, title: `Revenue is down ${Math.abs(revDelta ?? 0)}%`, body: `${money(-diff)} behind the period before. Share your booking link or run a quick promo.` });
     if (a.busiestDay?.count) out.push({ color: ORANGE, title: `${a.busiestDay.day}s are your busiest`, body: `${a.busiestDay.count} bookings landed on ${a.busiestDay.day}. Consider premium pricing on that day.` });
     if (a.quietHour) out.push({ color: BLUE, title: `Fill your ${a.quietHour.hour} slot`, body: "It's your quietest hour. A small off-peak discount can turn dead time into revenue." });
     out.push({ color: INDIGO, title: `${a.returningRate ?? 0}% of clients came back`, body: a.returningRate >= 30 ? "Great loyalty — reward regulars to keep it that way." : "Send a rebook reminder after each visit to lift repeat bookings." });
@@ -665,10 +663,10 @@ export function MobileReports({ analytics, trend, isLoading, topCustomers, revie
       </Reveal>
 
       <Reveal className="mt-3 grid grid-cols-2 gap-3">
-        <Tile color={ACCENT} title="Per day" value={a.revenuePerDay ?? 0} format={(n) => currency.format(n)} sub="average revenue" loading={isLoading} />
+        <Tile color={ACCENT} title="Per day" value={a.revenuePerDay ?? 0} format={(n) => money(n)} sub="average revenue" loading={isLoading} />
         <Tile color={YELLOW} title="Bookings" value={a.bookingsPerDay ?? 0} format={(n) => n.toFixed(1)} unit="/day" sub={`${a.totalAppointments ?? 0} in total`} loading={isLoading} />
         <Tile color={INDIGO} title="Chair time" value={Number(fmtHours(a.minutesBooked ?? 0))} format={(n) => n.toFixed(n % 1 ? 1 : 0)} unit="h" sub={`~${a.avgDuration ?? 0} min each`} loading={isLoading} />
-        <Tile color={GREEN} title="Upcoming" value={a.upcomingRevenue ?? 0} format={(n) => currency.format(n)} sub={`${a.scheduledAppointments ?? 0} still to come`} loading={isLoading} />
+        <Tile color={GREEN} title="Upcoming" value={a.upcomingRevenue ?? 0} format={(n) => money(n)} sub={`${a.scheduledAppointments ?? 0} still to come`} loading={isLoading} />
         <Tile color={ORANGE} title="Cancels" value={a.cancelRate ?? 0} format={(n) => String(Math.round(n))} unit="%" sub={`${a.cancelledAppointments ?? 0} cancelled`} loading={isLoading} />
         <Tile color={a.noShows ? ACCENT : GREEN} title="No-shows" value={a.noShows ?? 0} format={(n) => String(Math.round(n))} sub={a.noShows ? "worth a follow-up" : "clean record"} loading={isLoading} />
         <Tile color={ORANGE} title="Streak" value={a.streak ?? 0} format={(n) => String(Math.round(n))} unit="d" sub="booked days in a row" loading={isLoading} />
@@ -684,7 +682,7 @@ export function MobileReports({ analytics, trend, isLoading, topCustomers, revie
               <p className="truncate text-[17px] font-bold text-white">{new Date(`${a.bestDay.date}T00:00:00`).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</p>
             </div>
             <div className="text-right">
-              <p className="text-[17px] font-bold tabular-nums text-white">{currency.format(a.bestDay.revenue)}</p>
+              <p className="text-[17px] font-bold tabular-nums text-white">{money(a.bestDay.revenue)}</p>
               <p className="text-[12px] text-white/40">{a.bestDay.appointments} bookings</p>
             </div>
           </Card>
@@ -705,7 +703,7 @@ export function MobileReports({ analytics, trend, isLoading, topCustomers, revie
         <>
           <SectionHeader title="Team" aside={`${a.stylistPerformance.length} stylists`} />
           <Reveal>
-            <RankedList rows={a.stylistPerformance.slice(0, 5).map((s: any, i: number) => ({
+            <RankedList rows={a.stylistPerformance.slice(0, 5).map((s, i) => ({
               id: s.id, name: s.name, sub: `${s.bookings} bookings`, value: s.revenue, tint: [ACCENT, BLUE, INDIGO, GREEN, ORANGE][i % 5],
             }))} />
           </Reveal>
@@ -720,6 +718,13 @@ export function MobileReports({ analytics, trend, isLoading, topCustomers, revie
               id: c.id, name: c.name, sub: `${c.bookings} ${c.bookings === 1 ? "visit" : "visits"}`, value: c.revenue, tint: [YELLOW, GREEN, BLUE, INDIGO, ACCENT][i % 5],
             }))} />
           </Reveal>
+        </>
+      )}
+
+      {growth && (
+        <>
+          <SectionHeader title="Grow" aside="keep clients coming back" />
+          <Reveal>{growth}</Reveal>
         </>
       )}
 

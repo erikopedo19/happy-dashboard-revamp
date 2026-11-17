@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/beui-tabs";
 import { PremiumGate } from "@/components/PremiumGate";
 import { CutziooLoader } from "@/components/CutziooLoader";
+import { shareOrigin } from "@/lib/bookingUrl";
 
 const upload = async (file: File, folder: string) => {
   const ext = file.name.split(".").pop();
@@ -126,7 +127,7 @@ export const MicrositeEditorPanel = () => {
   // Public URL — uses /site/slug on the current origin so the link always works
   // even before a wildcard subdomain is configured.
   const previewUrl = bookingLink ? `/site/${bookingLink}` : "";
-  const publicUrl = bookingLink ? `${window.location.origin}/site/${bookingLink}` : "";
+  const publicUrl = bookingLink ? `${shareOrigin()}/site/${bookingLink}` : "";
   const subdomainUrl = bookingLink ? `https://${bookingLink}.cutzioo.com` : "";
 
   const copy = async (url: string) => {
