@@ -129,6 +129,8 @@ export function openExternal(url: string) {
     window.location.href = url;
     return;
   }
-  const win = window.open(url, "_blank", "noopener,noreferrer");
-  if (!win) window.location.href = url;
+  // No "noopener" feature string: it makes window.open return null even on success.
+  const win = window.open(url, "_blank");
+  if (win) win.opener = null;
+  else window.location.href = url;
 }
