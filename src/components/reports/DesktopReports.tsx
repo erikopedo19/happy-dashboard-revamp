@@ -25,7 +25,7 @@ const TINTS = [ACCENT, BLUE, INDIGO, GREEN, ORANGE, YELLOW];
 const num = new Intl.NumberFormat("en-US");
 const fill = (v: number, i = 0) => ({ "--v": Math.max(0, Math.min(100, v)), "--i": Math.min(i, 8) }) as CSSProperties;
 
-type Trend = { series: SeriesPoint[]; prevSeries: SeriesPoint[]; totals: Totals; prevTotals: Totals };
+type Trend = { series: SeriesPoint[]; prevSeries: SeriesPoint[]; totals: Totals; prevTotals: Totals; prevAverageTicket: number };
 
 function Panel({ title, subtitle, aside, children, className }: { title: string; subtitle?: string; aside?: ReactNode; children: ReactNode; className?: string }) {
   return (
@@ -166,7 +166,6 @@ export default function DesktopReports({ analytics: a, trend, isLoading, topCust
       action: up ? null : { to: "/booking-page", label: "Share your booking link" } },
   ];
   const hours = (a.minutesBooked / 60).toFixed(a.minutesBooked % 60 ? 1 : 0);
-  const prevTicket = trend.prevTotals.bookings ? trend.prevTotals.revenue / trend.prevTotals.bookings : 0;
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const stars = [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length }));
   const starMax = Math.max(1, ...stars.map((s) => s.count));
@@ -238,7 +237,7 @@ export default function DesktopReports({ analytics: a, trend, isLoading, topCust
               value={trend.totals.clients} format={(n) => num.format(Math.round(n))} delta={pctDelta(trend.totals.clients, trend.prevTotals.clients)}
               spark={trend.series.map((p) => p.clients)} tint={INDIGO} hint={`${a.returningRate}% returning`} />
             <SparkKpi index={2} loading={isLoading} icon={<Wallet className="h-4 w-4" strokeWidth={2.3} />} label="Avg ticket"
-              value={a.averageTicket} format={money} delta={pctDelta(a.averageTicket, prevTicket)}
+              value={a.averageTicket} format={money} delta={pctDelta(a.averageTicket, trend.prevAverageTicket)}
               spark={trend.series.map((p) => (p.bookings ? p.revenue / p.bookings : 0))} tint={GREEN} hint="Per booking" />
             <SparkKpi index={3} loading={isLoading} icon={<TrendingUp className="h-4 w-4" strokeWidth={2.3} />} label="Upcoming"
               value={a.upcomingRevenue} format={money} spark={trend.series.map((p) => p.revenue)} tint={ORANGE} hint={`${a.scheduledAppointments} still to come`} />

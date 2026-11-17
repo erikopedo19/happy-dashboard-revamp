@@ -75,12 +75,20 @@ const totalsOf = (rows: PrevRow[]): Totals => ({
   clients: new Set(rows.map((r) => r.customer_id).filter(Boolean)).size,
 });
 
+/** Revenue per booking that was kept, the same rule the current period's average ticket uses. */
+function averageTicketOf(rows: PrevRow[]) {
+  let revenue = 0, kept = 0;
+  for (const r of rows) if (!isLost(r.status)) { revenue += r.price || 0; kept += 1; }
+  return kept ? revenue / kept : 0;
+}
+
 export function computeTrend(cur: PrevRow[], prev: PrevRow[], range: ReturnType<typeof getRangeDates>) {
   return {
     series: buildSeries(earningRows(cur), range.start, range.days),
     prevSeries: buildSeries(earningRows(prev), range.prevStart, range.days),
     totals: totalsOf(cur),
     prevTotals: totalsOf(prev),
+    prevAverageTicket: averageTicketOf(prev),
   };
 }
 
