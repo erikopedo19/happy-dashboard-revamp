@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useOnboardingVisibility } from "@/contexts/OnboardingContext";
 import { MobileDockInner } from "@/components/MobileDock";
 import { ClientMobileDockInner } from "@/components/ClientMobileDock";
+import { isPublicBookingPath } from "@/lib/bookingUrl";
 
 const HIDE_ON = ["/auth", "/login", "/superadmin", "/choose-role", "/choose-mode", "/complete-profile", "/onboarding", "/pricing"];
 const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing", "/b/", "/site/"];
@@ -43,6 +44,7 @@ export const PersistentDock = () => {
   if (!isMobile) return null;
   if (HIDE_ON.includes(location.pathname)) return null;
   if (HIDE_PREFIX.some((p) => location.pathname.startsWith(p))) return null;
+  if (isPublicBookingPath(location.pathname)) return null;
   if (!user && location.pathname === "/") return null;
   if (onboardingOpen) return null;
 

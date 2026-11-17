@@ -14,6 +14,12 @@ const RESERVED = new Set([
 
 const bookingPath = (slug: string) => (RESERVED.has(slug) ? `/book/${slug}` : `/${slug}`);
 
+/** True for a shop's short public page (/<slug>), which shows no app chrome. */
+export function isPublicBookingPath(pathname: string) {
+  const m = /^\/([^/]+)\/?$/.exec(pathname);
+  return !!m && !RESERVED.has(m[1]);
+}
+
 /** Dev servers and editor previews keep their own origin so links stay testable there. */
 export function shareOrigin() {
   if (typeof window === "undefined" || isNative() || (window as any).ReactNativeWebView) return PUBLIC_ORIGIN;
