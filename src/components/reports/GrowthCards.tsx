@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 import { toast } from "@/hooks/use-toast";
 import { publicBookingUrl } from "@/lib/bookingUrl";
-import { openExternal, shareLink } from "@/lib/share";
+import { openExternal, shareText } from "@/lib/share";
 import { money, moneySymbol } from "@/components/reports/money";
 import { initialsOf, isLost } from "@/components/reports/reportsData";
 
@@ -158,7 +158,7 @@ export function WinBackCard({ userId, shopName, bookingLink, className, limit = 
     const digits = (c.phone || "").replace(/[^\d+]/g, "");
     if (via === "whatsapp") return openExternal(`https://wa.me/${digits.replace(/^\+/, "")}?text=${encodeURIComponent(text)}`);
     if (via === "sms") return openExternal(`sms:${digits}?&body=${encodeURIComponent(text)}`);
-    const result = await shareLink({ text, url: url || text });
+    const result = await shareText(text);
     if (result === "copied") toast({ title: "Message copied", description: `Paste it to ${c.name}.` });
   };
 
