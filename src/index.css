@@ -2259,7 +2259,6 @@ html.cz-sheet-open::-webkit-scrollbar { display: none; }
   .st-spray-in { animation: none; }
   .st-btn, .st-pic { transition: none; }
 }
-||||||| parent of 80aca18 (Next booking card: Opal-style iridescent border glow replaces trace line)
 
 /* Opal border glow: composite-only rotation of a conic arc */
 .opal-spin { transform: translate(-50%, -50%) rotate(0turn); animation: opal-spin 6s linear infinite; will-change: transform; }
