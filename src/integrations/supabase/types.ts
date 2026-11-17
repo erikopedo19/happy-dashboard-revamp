@@ -109,6 +109,7 @@ export type Database = {
           created_at: string
           customer_id: string
           discount_percent: number
+          duration_minutes: number | null
           id: string
           notes: string | null
           org_id: string | null
@@ -131,6 +132,7 @@ export type Database = {
           created_at?: string
           customer_id: string
           discount_percent?: number
+          duration_minutes?: number | null
           id?: string
           notes?: string | null
           org_id?: string | null
@@ -153,6 +155,7 @@ export type Database = {
           created_at?: string
           customer_id?: string
           discount_percent?: number
+          duration_minutes?: number | null
           id?: string
           notes?: string | null
           org_id?: string | null
@@ -2085,6 +2088,7 @@ export type Database = {
           p_customer_phone: string
           p_notes?: string
           p_service_id: string
+          p_service_ids?: string[]
           p_stylist_id?: string
         }
         Returns: Json

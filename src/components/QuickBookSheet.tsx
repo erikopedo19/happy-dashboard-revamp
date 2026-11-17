@@ -264,6 +264,7 @@ const businessTz = settings?.timezone || getBrowserTimezone();
         p_customer_email: email.trim(),
         p_customer_phone: phone.trim() || null,
         p_service_id: selectedService.id,
+        p_service_ids: selectedServices.map((s) => s.id),
         p_appointment_date: format(date, "yyyy-MM-dd"),
         p_appointment_time: time,
         p_notes: selectedServices.length > 1 ? `Services: ${servicesLabel} (${totalDuration} min)` : null,
