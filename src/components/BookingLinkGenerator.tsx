@@ -273,7 +273,7 @@ const BookingLinkGenerator = ({ stickySave = false }: { stickySave?: boolean }) 
       if (result === "downloaded") {
         toast({ title: "Banner saved", description: copied ? "Link copied too. Paste it in your bio or story." : undefined });
       } else if (result === "unsupported") {
-        const shared = await shareLink(sharePayload);
+        const shared = await shareSheet(sharePayload);
         if (shared === "copied") toast({ title: "Link copied", description: "This version of the app can't share images yet." });
       }
     } catch {
