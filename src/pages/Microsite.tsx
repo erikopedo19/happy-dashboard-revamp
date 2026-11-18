@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+const MICROSITE_THEMES = ["noir", "editorial", "mono", "fresh"] as const;
+type MicrositeTheme = (typeof MICROSITE_THEMES)[number];
+const THEME_ACCENT: Record<MicrositeTheme, string> = { noir: "#FF2D46", editorial: "#B4532A", mono: "#D7FF3A", fresh: "#38BDF8" };
 import { Seo, SITE } from "@/components/Seo";
 
 type Review = {
@@ -152,7 +156,8 @@ const Microsite = () => {
     },
     m.website_url && { href: m.website_url, label: "Website" },
   ].filter(Boolean) as { href: string; label: string }[];
-  const accent: string = /^#[0-9a-f]{6}$/i.test(p.brand_color || "") && p.brand_color.toUpperCase() !== "#0A84FF" ? p.brand_color : "#FF2D46";
+  const themeId: MicrositeTheme = (MICROSITE_THEMES as readonly string[]).includes(m.theme) ? m.theme : "noir";
+  const accent: string = /^#[0-9a-f]{6}$/i.test(p.brand_color || "") && p.brand_color.toUpperCase() !== "#0A84FF" ? p.brand_color : THEME_ACCENT[themeId];
   const accentFg = onAccent(accent);
   const price = (v: number | null) => `$${Number(v || 0).toFixed(0)}`;
   const stars = (n: number) => "★★★★★".slice(0, Math.round(n)) + "☆☆☆☆☆".slice(0, 5 - Math.round(n));
@@ -180,7 +185,7 @@ const Microsite = () => {
   const headLast = words[words.length - 1] || businessName;
 
   return (
-    <div id="top" className="street-site min-h-screen overflow-x-clip pb-24 md:pb-0" style={{ "--accent": accent, "--accent-fg": accentFg } as React.CSSProperties}>
+    <div id="top" data-theme={themeId} className={`street-site st-theme-${themeId} min-h-screen overflow-x-clip pb-24 md:pb-0`} style={{ "--accent": accent, "--accent-fg": accentFg } as React.CSSProperties}>
       <Seo
         title={`${businessName}${place ? ` – Barber in ${place}` : ""} | Official Site`}
         description={`${tagline} Book ${businessName} online in seconds.`}
@@ -237,7 +242,7 @@ const Microsite = () => {
           {about && (
             <Card tag="About us" id="about">
               {about.split(/\n\n+/).map((para, i) => (
-                <p key={i} className={"text-[15px] leading-relaxed text-white/80" + (i ? " mt-3" : "")}>{para}</p>
+                <p key={i} className={"text-[15px] leading-relaxed opacity-80" + (i ? " mt-3" : "")}>{para}</p>
               ))}
             </Card>
           )}
@@ -275,10 +280,10 @@ const Microsite = () => {
                 {reviews.map((r) => (
                   <li key={r.id} className="st-note">
                     <p className="st-mono text-[11.5px] uppercase tracking-[0.12em] opacity-70">
-                      <span className="font-bold text-white">{r.reviewer_name || "anonymous"}</span> · {new Date(r.created_at).toLocaleDateString("en-US")}
+                      <span className="font-bold">{r.reviewer_name || "anonymous"}</span> · {new Date(r.created_at).toLocaleDateString("en-US")}
                       <span className="ml-2" style={{ color: accent }}>{stars(r.rating)}</span>
                     </p>
-                    {r.comment && <p className="mt-1.5 text-[15px] leading-snug text-white/85">"{r.comment}"</p>}
+                    {r.comment && <p className="mt-1.5 text-[15px] leading-snug opacity-90">"{r.comment}"</p>}
                   </li>
                 ))}
               </ul>
@@ -310,7 +315,7 @@ const Microsite = () => {
       </div>
 
       {/* Mobile sticky CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t-2 bg-[#0B0B0D] p-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden" style={{ borderColor: accent }}>
+      <div className="st-bottom-bar fixed inset-x-0 bottom-0 z-40 border-t-2 p-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden" style={{ borderColor: accent }}>
         <Link to={bookingUrl} className="st-btn flex w-full justify-center text-[16px]">Book appointment</Link>
       </div>
     </div>
