@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { OffersPanel } from "@/components/OffersPanel";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { ActiveBarbersCard } from "@/components/ActiveBarbersCard";
+import { DailyBriefingCard } from "@/components/DailyBriefingCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
@@ -402,6 +403,8 @@ export default function SuperAdminDashboard() {
           <StatCard icon={<Users className="w-4 h-4 text-muted-foreground" />} label="Free" value={stats.free} />
           <StatCard icon={<Calendar className="w-4 h-4 text-emerald-500" />} label="Bookings" value={totalBookings} />
         </div>
+
+        <DailyBriefingCard />
 
         <ActiveBarbersCard />
 

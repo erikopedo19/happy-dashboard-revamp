@@ -17,5 +17,7 @@ project_id = "idcifrhzlmxcdihzdtmn"
     verify_jwt = false
   [functions.send-marketing-emails]
     verify_jwt = false
+  [functions.owner-daily-briefing]
+    verify_jwt = false
 
 
