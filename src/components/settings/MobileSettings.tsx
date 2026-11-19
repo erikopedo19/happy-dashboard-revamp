@@ -34,6 +34,7 @@ import {
   Users,
   Play,
   BellRing,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -51,6 +52,7 @@ import { BoostBarbershopCard } from "@/components/BoostBarbershopCard";
 import { PayoutSettingsCard } from "@/components/PayoutSettingsCard";
 import BookingLinkGenerator from "@/components/BookingLinkGenerator";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
+import { ComebackCouponsCard } from "@/components/settings/ComebackCouponsCard";
 import { BrandImageUpload } from "@/components/BrandImageUpload";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { IdentityMissingBanner } from "@/components/IdentityMissingBanner";
@@ -94,6 +96,7 @@ type Panel =
   | "notifications"
   | "booking"
   | "social"
+  | "coupons"
   | "business"
   | "location"
   | "subscription"
@@ -357,6 +360,13 @@ export function MobileSettings(props: any) {
             label="Social media"
             value="Instagram · TikTok · WhatsApp"
             onClick={() => setPanel("social")}
+          />
+          <Row
+            icon={Gift}
+            tint="#FF2D46"
+            label="Comeback coupons"
+            value="Reward repeat clients"
+            onClick={() => setPanel("coupons")}
           />
           <Row
             icon={Banknote}
@@ -856,6 +866,12 @@ export function MobileSettings(props: any) {
               </PanelStack>
             )}
 
+            {panel === "coupons" && (
+              <PanelStack>
+                <ComebackCouponsCard />
+              </PanelStack>
+            )}
+
             {panel === "subscription" && (
               <PanelStack>
                 <SubscriptionPanel variant="mobile" />
@@ -1284,6 +1300,8 @@ function titleFor(p: Panel): string {
       return "Booking link";
     case "social":
       return "Social media";
+    case "coupons":
+      return "Comeback coupons";
     case "business":
       return "Business";
     case "location":

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ type Review = {
 
 type Service = { id: string; name: string; price: number | null; duration: number | null };
 
+type ShopProduct = { id: string; name: string; price: number | null; image_url: string | null; stock: number | null };
 type SiteData = {
   profile: Record<string, any>;
   microsite: Record<string, any> | null;
@@ -110,6 +112,19 @@ const Microsite = () => {
     };
   }, [slug]);
 
+  const ownerId: string | undefined = data?.profile?.id;
+  const { data: products = [] } = useQuery<ShopProduct[]>({
+    queryKey: ["microsite-products", ownerId],
+    enabled: !!ownerId,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data: rows } = await (supabase as any).from("products")
+        .select("id, name, price, image_url, stock").eq("user_id", ownerId).eq("is_active", true)
+        .order("created_at", { ascending: false }).limit(12);
+      return (rows || []) as ShopProduct[];
+    },
+  });
+
   if (loading) {
     return (
       <div className="street-site flex min-h-screen items-center justify-center">
@@ -166,6 +181,7 @@ const Microsite = () => {
   const nav = [
     about && { href: "#about", label: "About" },
     services.length > 0 && { href: "#services", label: "Prices" },
+    products.length > 0 && { href: "#shop", label: "Shop" },
     { href: "#work", label: "Gallery" },
     reviews.length > 0 && { href: "#reviews", label: "Reviews" },
     { href: "#visit", label: "Visit" },
@@ -261,6 +277,28 @@ const Microsite = () => {
                 ))}
               </ul>
               <p className="st-mono mt-4 text-[11px] uppercase tracking-[0.14em] opacity-50">* no hidden fees — book online 24/7</p>
+            </Card>
+          )}
+
+          {products.length > 0 && (
+            <Card tag="The shop" id="shop">
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-4">
+                {products.map((item) => (
+                  <li key={item.id}>
+                    <figure className="st-pic">
+                      {item.image_url
+                        ? <img src={item.image_url} alt={item.name} loading="lazy" decoding="async" className="aspect-square w-full object-cover" />
+                        : <div className="st-display flex aspect-square w-full items-center justify-center text-[34px] opacity-40">{item.name.slice(0, 1).toUpperCase()}</div>}
+                    </figure>
+                    <p className="mt-2.5 truncate font-bold uppercase tracking-wide">{item.name}</p>
+                    <p className="st-mono flex items-baseline justify-between gap-2 text-[12px]">
+                      <span className="st-display text-[16px]" style={{ color: accent }}>{price(item.price)}</span>
+                      <span className="uppercase tracking-[0.12em] opacity-50">{(item.stock ?? 0) > 0 ? "in stock" : "sold out"}</span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <p className="st-mono mt-4 text-[11px] uppercase tracking-[0.14em] opacity-50">* ask for these at your next visit</p>
             </Card>
           )}
 

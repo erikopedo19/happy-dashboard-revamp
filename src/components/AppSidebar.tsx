@@ -1,4 +1,4 @@
-import { Calendar, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Crown, AlertCircle } from "lucide-react";
+import { Calendar, Package, Users, Settings, Home, LogOut, Scissors, Globe, UserCheck, Briefcase, Mail, ChevronUp, User, Crown, AlertCircle } from "lucide-react";
 import logoMark from "@/assets/logo-mark.webp";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
@@ -67,6 +67,11 @@ const mainItems = [
     title: "Stylists",
     url: "/stylists",
     icon: UserCheck,
+  },
+  {
+    title: "Products",
+    url: "/products",
+    icon: Package,
   },
   {
     title: "Teams",

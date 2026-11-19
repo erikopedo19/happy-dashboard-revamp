@@ -5,7 +5,7 @@ const PUBLIC_ORIGIN = `https://${PUBLIC_HOST}`;
 
 /** First path segments owned by the app; a shop with one of these slugs keeps the /book/ prefix. */
 const RESERVED = new Set([
-  "auth", "choose-mode", "onboarding", "book", "b", "manage", "review", "waitlist", "bookingforms",
+  "auth", "c", "choose-mode", "onboarding", "book", "b", "manage", "review", "waitlist", "bookingforms",
   "find-barber", "find-barbershop", "my-bookings", "me", "favorites", "aggelies", "events", "app",
   "superadmin", "admin", "agenda", "customers", "choose-role", "complete-profile", "stylists", "teams",
   "reports", "services", "settings", "recap", "pricing", "payment-failed", "brand", "booking-page",

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ComebackOfferCard } from "@/components/comeback/ComebackOfferCard";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -236,6 +237,8 @@ export default function ManageBooking() {
             <QuickAction icon={Phone} label="Call" href={booking.business.phone ? `tel:${booking.business.phone}` : undefined} />
           </motion.div>
         )}
+
+        {!cancelled && mode === "view" && <ComebackOfferCard token={token} shopName={booking.business.name} className="mt-4" />}
 
         <AnimatePresence mode="wait" initial={false}>
           {mode === "view" ? (
