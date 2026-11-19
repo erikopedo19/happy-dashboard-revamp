@@ -62,7 +62,7 @@ export function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
                 Sign in
               </Link>
               <Link
-                to="/auth?signup=1"
+                to={`/auth?mode=signup&next=${encodeURIComponent(window.location.pathname)}`}
                 className="flex-1 h-11 rounded-[12px] bg-white/10 text-white text-[14px] font-semibold flex items-center justify-center border border-white/[0.08] active:scale-[0.98] transition-transform"
               >
                 Create account
