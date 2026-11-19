@@ -238,7 +238,7 @@ export default function ManageBooking() {
           </motion.div>
         )}
 
-        {!cancelled && mode === "view" && <ComebackOfferCard token={token} shopName={booking.business.name} className="mt-4" />}
+        {!cancelled && mode === "view" && <ComebackOfferCard token={token} businessId={booking.business.id} shopName={booking.business.name} className="mt-4" />}
 
         <AnimatePresence mode="wait" initial={false}>
           {mode === "view" ? (

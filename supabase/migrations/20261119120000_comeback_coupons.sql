@@ -131,6 +131,8 @@ REVOKE ALL ON FUNCTION public.get_comeback_program(text, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_comeback_program(text, uuid) TO anon, authenticated, service_role;
 
 -- Public, by the private booking token: how far this client is toward the reward.
+-- Only for a booking the shop has marked completed: anyone can create a booking under someone
+-- else's email and get its token, so a token for an unvisited booking must not reveal their visits.
 CREATE OR REPLACE FUNCTION public.get_comeback_progress_by_token(_token uuid)
 RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT jsonb_build_object(
@@ -142,6 +144,7 @@ RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $
   FROM public.appointments a
   JOIN public.comeback_programs cp ON cp.user_id = a.user_id
   WHERE a.cancel_token = _token
+    AND a.status = 'completed'
     AND cp.enabled
     AND public.comeback_owner_has_access(cp.user_id, cp.trial_started_at)
   LIMIT 1;
