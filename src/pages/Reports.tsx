@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { inAppShell, shareFile, shareText } from "@/lib/share";
 import { money, moneySymbol, setReportsCurrency } from "@/components/reports/money";
 import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
+import { LoginNudge } from "@/components/reports/LoginNudge";
 import { RevenueGoalCard, WinBackCard } from "@/components/reports/GrowthCards";
 import {
   RANGES, analyticsCsv, computeAnalytics, computeTrend, getRangeDates, initialsOf, rankCustomers,
@@ -152,6 +153,7 @@ const Reports = () => {
               <DesktopReports {...shared} userId={uid} shopName={shopName} bookingLink={profile?.booking_link} />
             )}
           </Suspense>
+          {!user && <LoginNudge delaySec={40} />}
         </main>
       </div>
     </SidebarProvider>
