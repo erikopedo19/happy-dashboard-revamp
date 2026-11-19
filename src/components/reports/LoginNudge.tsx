@@ -22,11 +22,11 @@ export function LoginNudge({ delaySec = 40 }: { delaySec?: number }) {
     <AnimatePresence>
       {show && (
         <motion.div
-          initial={{ y: 120, opacity: 0, scale: 0.94 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 80, opacity: 0, scale: 0.96 }}
+          initial={{ x: "-50%", y: 120, opacity: 0, scale: 0.94 }}
+          animate={{ x: "-50%", y: 0, opacity: 1, scale: 1 }}
+          exit={{ x: "-50%", y: 80, opacity: 0, scale: 0.96 }}
           transition={{ type: "spring", stiffness: 360, damping: 30 }}
-          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
+          className="fixed bottom-24 md:bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
         >
           <div className="relative rounded-[26px] border border-white/[0.08] bg-[#121215] p-4">
             <div className="relative flex items-center gap-3.5">
