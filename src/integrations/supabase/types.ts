@@ -1727,6 +1727,7 @@ export type Database = {
           created_at: string
           email: string
           expiration_email_sent_at: string | null
+          expiry_reminder_sent_at: string | null
           id: string
           payment_failed_at: string | null
           renewal_amount: number | null
@@ -1747,6 +1748,7 @@ export type Database = {
           created_at?: string
           email: string
           expiration_email_sent_at?: string | null
+          expiry_reminder_sent_at?: string | null
           id?: string
           payment_failed_at?: string | null
           renewal_amount?: number | null
@@ -1767,6 +1769,7 @@ export type Database = {
           created_at?: string
           email?: string
           expiration_email_sent_at?: string | null
+          expiry_reminder_sent_at?: string | null
           id?: string
           payment_failed_at?: string | null
           renewal_amount?: number | null

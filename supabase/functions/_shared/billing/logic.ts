@@ -33,3 +33,7 @@ export function cancellationKey(sub: BillingSubscription) {
 export function isSubscriptionCheckout(session: { mode?: string; payment_status?: string; status?: string }) {
   return session.mode === 'subscription' && session.status === 'complete' && ['paid', 'no_payment_required'].includes(session.payment_status ?? '');
 }
+// A paid renewal starts a new period, so both expiry emails must be allowed to send again.
+export function renewalResetFields(renewed: boolean) {
+  return renewed ? { expiration_email_sent_at: null, expiry_reminder_sent_at: null } : {};
+}

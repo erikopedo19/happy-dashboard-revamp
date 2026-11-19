@@ -41,7 +41,7 @@ serve(async req => {
     const wasCancelling = !!subscription.cancel_at_period_end;
     if (action === 'cancel' || action === 'resume') {
       if (!['active','trialing','past_due'].includes(subscription.status)) return json({ ok:false, error:'no_stripe_subscription' });
-      if (wasCancelling !== (action === 'cancel')) subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }),`manage:${subscription.id}:${action}:${subscription.current_period_end ?? 0}`);
+      if (wasCancelling !== (action === 'cancel')) subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
     }
     const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,subscription);
     let emailPending = false;

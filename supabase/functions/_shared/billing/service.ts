@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { BillingSubscription, subscriptionFields, cancellationKey } from './logic.ts';
+import { BillingSubscription, subscriptionFields, cancellationKey, renewalResetFields } from './logic.ts';
 import { shouldApplySubscription } from './purchase.ts';
 export const adminClient = () => createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', { auth: { persistSession: false } });
 export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string) {
@@ -54,7 +54,7 @@ export async function syncSubscription(admin: ReturnType<typeof adminClient>, us
   const fields = subscriptionFields(sub, old?.subscription_end);
   if (!shouldApplySubscription(old?.stripe_subscription_id, sub)) return { ...fields, applied: false };
   const renewed = fields.subscribed && sub.status === 'active' && fields.subscription_end !== old?.subscription_end;
-  const { error } = await admin.from('subscribers').upsert({ user_id: userId, email, ...fields, updated_at: new Date().toISOString(), ...(sub.status === 'active' ? { payment_failed_at: null } : {}), ...(renewed ? { expiration_email_sent_at: null } : {}) }, { onConflict: 'user_id' });
+  const { error } = await admin.from('subscribers').upsert({ user_id: userId, email, ...fields, updated_at: new Date().toISOString(), ...(sub.status === 'active' ? { payment_failed_at: null } : {}), ...renewalResetFields(renewed) }, { onConflict: 'user_id' });
   if (error) throw error;
   return { ...fields, applied: true };
 }
