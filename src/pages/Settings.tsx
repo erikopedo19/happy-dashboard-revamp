@@ -56,6 +56,7 @@ import { CancellationListExplainer } from "@/components/premium/CancellationList
 import { MobileSettings } from "@/components/settings/MobileSettings";
 import { ReviewRequestsCard } from "@/components/settings/ReviewRequestsCard";
 import { SocialLinksCard } from "@/components/settings/SocialLinksCard";
+import { ComebackCouponsCard } from "@/components/settings/ComebackCouponsCard";
 import { useRoleSwitch } from "@/hooks/use-role-switch";
 import { AppComingSoon } from "@/components/settings/AppComingSoon";
 import { getBrowserTimezone, listTimezones, formatTzLabel } from "@/lib/tz";
@@ -1072,6 +1073,7 @@ const Settings = () => {
 
                     <TabsContent value="booking" className="mt-0 space-y-6 animate-fade-in">
                       <BookingLinkGenerator />
+                      <ComebackCouponsCard />
                       <SocialLinksCard />
                     </TabsContent>
 
