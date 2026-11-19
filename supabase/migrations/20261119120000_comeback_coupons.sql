@@ -195,6 +195,8 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.customers c WHERE c.id = _customer_id AND c.user_id = auth.uid()) THEN
     RETURN jsonb_build_object('success', false, 'error', 'Client not found');
   END IF;
+  -- One redemption at a time per client, so a double tap can't spend the same reward twice.
+  PERFORM pg_advisory_xact_lock(hashtextextended(auth.uid()::text || ':' || _customer_id::text, 0));
   v_count := public.comeback_visit_count(auth.uid(), _customer_id, v_prog.period_days);
   IF v_count < v_prog.bookings_required THEN
     RETURN jsonb_build_object('success', false, 'error', 'This client has not earned the reward yet');
