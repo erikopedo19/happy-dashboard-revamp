@@ -51,7 +51,8 @@ export function ProductEditor({ open, product, userId, categories, currencySymbo
   };
 
   const save = async () => {
-    if (!userId || !valid) return;
+    if (!valid) return;
+    if (!userId) return toast({ title: "Sign in to save products", description: "Create a free account to keep this product." });
     setBusy("save");
     const row = {
       name: draft.name.trim(), description: draft.description.trim() || null, price, category: draft.category.trim() || null,
