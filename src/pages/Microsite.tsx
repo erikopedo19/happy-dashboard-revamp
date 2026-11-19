@@ -119,7 +119,7 @@ const Microsite = () => {
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data: rows } = await (supabase as any).from("products")
-        .select("id, name, price, image_url, stock").eq("user_id", ownerId).eq("is_active", true)
+        .select("id, name, price, image_url, stock").eq("user_id", ownerId).not("is_active", "is", false)
         .order("created_at", { ascending: false }).limit(12);
       return (rows || []) as ShopProduct[];
     },
