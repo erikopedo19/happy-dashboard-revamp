@@ -96,7 +96,8 @@ export function RevenuePipelineCard({
       if (cancelled) return;
       setSyncing(false);
       refetch();
-      qc.invalidateQueries({ queryKey: ["reports-analytics"] });
+      qc.invalidateQueries({ queryKey: ["reports-appointments"] });
+      qc.invalidateQueries({ queryKey: ["reports-month-revenue"] });
     })();
     return () => {
       cancelled = true;

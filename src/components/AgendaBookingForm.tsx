@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, CreditCard } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, CreditCard, Share2 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { getBookingDateLocale, type BookingLocale } from '@/lib/bookingLocales';
 import { UseFormReturn } from "react-hook-form";
@@ -30,6 +30,8 @@ interface Service {
 import { CancellationListButton } from "@/components/CancellationListButton";
 
 import { Wordmark } from "@/components/Wordmark";
+import { publicBookingUrl } from "@/lib/bookingUrl";
+import { shareLink } from "@/lib/share";
 interface AgendaBookingFormProps {
   form: UseFormReturn<any>;
   services: Service[];
@@ -99,6 +101,7 @@ const AgendaBookingForm = ({
   paymentsEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
+  const [friendShared, setFriendShared] = useState(false);
   const [selectedStylistId, setSelectedStylistId] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
@@ -185,7 +188,7 @@ const AgendaBookingForm = ({
     en: {
       service: "Select a service", dateTime: "Choose date and time", details: "Your details",
       continue: "Continue", back: "Back", selectedService: "Selected service", selectedServices: "Selected services",
-      total: "Total", book: "Book Appointment", bookAnother: "Book another", booked: "You’re booked",
+      total: "Total", book: "Book Appointment", bookAnother: "Book another", shareFriend: "Share with a friend", booked: "You’re booked",
       confirmation: "Confirmation just landed in your inbox.",
       tabService: "Service", tabTime: "Time", tabDetails: "Details",
       dateTimeShort: "Date & time", selectDate: "Select a date", noTimes: "No available times",
@@ -200,7 +203,7 @@ const AgendaBookingForm = ({
     el: {
       service: "Επιλέξτε υπηρεσία", dateTime: "Επιλέξτε ημερομηνία και ώρα", details: "Τα στοιχεία σας",
       continue: "Συνέχεια", back: "Πίσω", selectedService: "Επιλεγμένη υπηρεσία", selectedServices: "Επιλεγμένες υπηρεσίες",
-      total: "Σύνολο", book: "Κλείστε Ραντεβού", bookAnother: "Νέα κράτηση", booked: "Η κράτησή σας ολοκληρώθηκε",
+      total: "Σύνολο", book: "Κλείστε Ραντεβού", bookAnother: "Νέα κράτηση", shareFriend: "Μοιραστείτε το με έναν φίλο", booked: "Η κράτησή σας ολοκληρώθηκε",
       confirmation: "Η επιβεβαίωση στάλθηκε στο email σας.",
       tabService: "Υπηρεσία", tabTime: "Ώρα", tabDetails: "Στοιχεία",
       dateTimeShort: "Ημερομηνία & ώρα", selectDate: "Επιλέξτε ημερομηνία", noTimes: "Δεν υπάρχουν διαθέσιμες ώρες",
@@ -215,7 +218,7 @@ const AgendaBookingForm = ({
     es: {
       service: "Selecciona un servicio", dateTime: "Elige fecha y hora", details: "Tus datos",
       continue: "Continuar", back: "Atrás", selectedService: "Servicio seleccionado", selectedServices: "Servicios seleccionados",
-      total: "Total", book: "Reservar cita", bookAnother: "Nueva reserva", booked: "Reserva confirmada",
+      total: "Total", book: "Reservar cita", bookAnother: "Nueva reserva", shareFriend: "Compartir con un amigo", booked: "Reserva confirmada",
       confirmation: "Se ha enviado la confirmación a tu correo.",
       tabService: "Servicio", tabTime: "Hora", tabDetails: "Datos",
       dateTimeShort: "Fecha y hora", selectDate: "Elige una fecha", noTimes: "No hay horas disponibles",
@@ -230,7 +233,7 @@ const AgendaBookingForm = ({
     nl: {
       service: "Kies een dienst", dateTime: "Kies datum en tijd", details: "Jouw gegevens",
       continue: "Doorgaan", back: "Terug", selectedService: "Gekozen dienst", selectedServices: "Gekozen diensten",
-      total: "Totaal", book: "Afspraak boeken", bookAnother: "Nieuwe afspraak", booked: "Je afspraak staat",
+      total: "Totaal", book: "Afspraak boeken", bookAnother: "Nieuwe afspraak", shareFriend: "Deel met een vriend", booked: "Je afspraak staat",
       confirmation: "De bevestiging is naar je e-mail gestuurd.",
       tabService: "Dienst", tabTime: "Tijd", tabDetails: "Gegevens",
       dateTimeShort: "Datum & tijd", selectDate: "Kies een datum", noTimes: "Geen beschikbare tijden",
@@ -245,7 +248,7 @@ const AgendaBookingForm = ({
     pl: {
       service: "Wybierz usługę", dateTime: "Wybierz datę i godzinę", details: "Twoje dane",
       continue: "Dalej", back: "Wstecz", selectedService: "Wybrana usługa", selectedServices: "Wybrane usługi",
-      total: "Razem", book: "Zarezerwuj", bookAnother: "Nowa rezerwacja", booked: "Rezerwacja potwierdzona",
+      total: "Razem", book: "Zarezerwuj", bookAnother: "Nowa rezerwacja", shareFriend: "Poleć znajomemu", booked: "Rezerwacja potwierdzona",
       confirmation: "Potwierdzenie zostało wysłane na Twój e-mail.",
       tabService: "Usługa", tabTime: "Godzina", tabDetails: "Dane",
       dateTimeShort: "Data i godzina", selectDate: "Wybierz datę", noTimes: "Brak dostępnych godzin",
@@ -260,7 +263,7 @@ const AgendaBookingForm = ({
     de: {
       service: "Dienst auswählen", dateTime: "Datum und Uhrzeit wählen", details: "Deine Angaben",
       continue: "Weiter", back: "Zurück", selectedService: "Ausgewählte Dienstleistung", selectedServices: "Ausgewählte Dienstleistungen",
-      total: "Gesamt", book: "Termin buchen", bookAnother: "Weiteren Termin buchen", booked: "Termin bestätigt",
+      total: "Gesamt", book: "Termin buchen", bookAnother: "Weiteren Termin buchen", shareFriend: "Mit Freunden teilen", booked: "Termin bestätigt",
       confirmation: "Die Bestätigung wurde an deine E-Mail-Adresse gesendet.",
       tabService: "Dienstleistung", tabTime: "Uhrzeit", tabDetails: "Angaben",
       dateTimeShort: "Datum und Uhrzeit", selectDate: "Datum auswählen", noTimes: "Keine freien Zeiten",
@@ -275,7 +278,7 @@ const AgendaBookingForm = ({
     fr: {
       service: "Choisissez une prestation", dateTime: "Choisissez une date et une heure", details: "Vos informations",
       continue: "Continuer", back: "Retour", selectedService: "Prestation choisie", selectedServices: "Prestations choisies",
-      total: "Total", book: "Réserver", bookAnother: "Faire une autre réservation", booked: "Réservation confirmée",
+      total: "Total", book: "Réserver", bookAnother: "Faire une autre réservation", shareFriend: "Partager avec un ami", booked: "Réservation confirmée",
       confirmation: "La confirmation a été envoyée à votre adresse e-mail.",
       tabService: "Prestation", tabTime: "Heure", tabDetails: "Informations",
       dateTimeShort: "Date et heure", selectDate: "Choisissez une date", noTimes: "Aucun créneau disponible",
@@ -290,7 +293,7 @@ const AgendaBookingForm = ({
     it: {
       service: "Seleziona un servizio", dateTime: "Scegli data e ora", details: "I tuoi dati",
       continue: "Continua", back: "Indietro", selectedService: "Servizio selezionato", selectedServices: "Servizi selezionati",
-      total: "Totale", book: "Prenota appuntamento", bookAnother: "Prenota un altro appuntamento", booked: "Prenotazione confermata",
+      total: "Totale", book: "Prenota appuntamento", bookAnother: "Prenota un altro appuntamento", shareFriend: "Condividi con un amico", booked: "Prenotazione confermata",
       confirmation: "La conferma è stata inviata alla tua e-mail.",
       tabService: "Servizio", tabTime: "Orario", tabDetails: "Dati",
       dateTimeShort: "Data e ora", selectDate: "Seleziona una data", noTimes: "Nessun orario disponibile",
@@ -305,7 +308,7 @@ const AgendaBookingForm = ({
     bg: {
       service: "Изберете услуга", dateTime: "Изберете дата и час", details: "Вашите данни",
       continue: "Продължи", back: "Назад", selectedService: "Избрана услуга", selectedServices: "Избрани услуги",
-      total: "Общо", book: "Запази час", bookAnother: "Запази още един час", booked: "Резервацията е потвърдена",
+      total: "Общо", book: "Запази час", bookAnother: "Запази още един час", shareFriend: "Сподели с приятел", booked: "Резервацията е потвърдена",
       confirmation: "Потвърждението е изпратено на вашия имейл.",
       tabService: "Услуга", tabTime: "Час", tabDetails: "Данни",
       dateTimeShort: "Дата и час", selectDate: "Изберете дата", noTimes: "Няма свободни часове",
@@ -320,7 +323,7 @@ const AgendaBookingForm = ({
     ro: {
       service: "Alege un serviciu", dateTime: "Alege data și ora", details: "Datele tale",
       continue: "Continuă", back: "Înapoi", selectedService: "Serviciu selectat", selectedServices: "Servicii selectate",
-      total: "Total", book: "Programează-te", bookAnother: "Programează o altă vizită", booked: "Programare confirmată",
+      total: "Total", book: "Programează-te", bookAnother: "Programează o altă vizită", shareFriend: "Trimite unui prieten", booked: "Programare confirmată",
       confirmation: "Confirmarea a fost trimisă la adresa ta de e-mail.",
       tabService: "Serviciu", tabTime: "Ora", tabDetails: "Date",
       dateTimeShort: "Data și ora", selectDate: "Alege o dată", noTimes: "Nu există ore disponibile",
@@ -335,7 +338,7 @@ const AgendaBookingForm = ({
     sq: {
       service: "Zgjidhni një shërbim", dateTime: "Zgjidhni datën dhe orën", details: "Të dhënat tuaja",
       continue: "Vazhdoni", back: "Mbrapa", selectedService: "Shërbimi i zgjedhur", selectedServices: "Shërbimet e zgjedhura",
-      total: "Totali", book: "Rezervo takimin", bookAnother: "Rezervo një takim tjetër", booked: "Rezervimi u konfirmua",
+      total: "Totali", book: "Rezervo takimin", bookAnother: "Rezervo një takim tjetër", shareFriend: "Ndaje me një mik", booked: "Rezervimi u konfirmua",
       confirmation: "Konfirmimi u dërgua në adresën tuaj të email-it.",
       tabService: "Shërbimi", tabTime: "Ora", tabDetails: "Të dhënat",
       dateTimeShort: "Data dhe ora", selectDate: "Zgjidhni një datë", noTimes: "Nuk ka orare të lira",
@@ -494,6 +497,16 @@ const AgendaBookingForm = ({
     }
   };
 
+  const shareWithFriend = async () => {
+    const slug = (businessProfile as { booking_link?: string } | undefined)?.booking_link;
+    const url = slug ? publicBookingUrl(slug) : window.location.origin + window.location.pathname;
+    const result = await shareLink({ title: displayName, text: displayName, url });
+    if (result === "copied" || result === "shared") {
+      setFriendShared(true);
+      window.setTimeout(() => setFriendShared(false), 2000);
+    }
+  };
+
   const handleBookAnother = () => {
     form.reset();
     setSelectedDate(undefined);
@@ -573,11 +586,33 @@ const AgendaBookingForm = ({
               </div>
             </div>
           </motion.div>
-          <BookingButton
-            text={copy.bookAnother}
-            onClick={handleBookAnother}
-            className="w-auto px-8"
-          />
+          <div className="flex flex-col items-center gap-3">
+            <BookingButton
+              text={copy.bookAnother}
+              onClick={handleBookAnother}
+              className="w-auto px-8"
+            />
+            {!rescheduleAppointment && (
+              <button
+                type="button"
+                onClick={shareWithFriend}
+                className="inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold text-gray-700 transition-[background-color,transform] duration-150 ease-out hover:bg-black/[0.04] active:scale-[0.97] dark:text-white/80 dark:hover:bg-white/[0.06]"
+              >
+                {friendShared ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                {copy.shareFriend}
+              </button>
+            )}
+          </div>
+          <a
+            href="https://cutzioo.com"
+            target="_blank"
+            rel="noreferrer"
+            className="mx-auto mt-10 flex w-fit items-center gap-1.5 text-[12px] text-gray-400 transition-colors duration-150 hover:text-gray-600 dark:text-white/35 dark:hover:text-white/60"
+          >
+            Made with <span className="font-semibold text-gray-600 dark:text-white/70"><Wordmark /></span>
+            <span aria-hidden>·</span>
+            <span className="underline underline-offset-2">Get your own booking page</span>
+          </a>
         </div>
       </div>
     );
@@ -1350,7 +1385,9 @@ const AgendaBookingForm = ({
           rel="noreferrer"
           className="mx-auto mt-8 mb-24 flex w-fit items-center gap-1.5 text-[12px] text-gray-400 transition hover:text-gray-600 dark:text-white/35 dark:hover:text-white/60 sm:mb-2"
         >
-          This website is made with <span className="font-semibold text-gray-600 dark:text-white/70"><Wordmark /></span>
+          Made with <span className="font-semibold text-gray-600 dark:text-white/70"><Wordmark /></span>
+          <span aria-hidden>·</span>
+          <span className="underline underline-offset-2">Get your own booking page</span>
         </a>
       </div>
     </div>

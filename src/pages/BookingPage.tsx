@@ -28,6 +28,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { publicBookingUrl, shareOrigin } from "@/lib/bookingUrl";
 
 const springSoft = { type: "spring" as const, stiffness: 350, damping: 32 };
 
@@ -55,7 +56,7 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const siteUrl = slug ? `${window.location.origin}/site/${slug}` : "";
+  const siteUrl = slug ? `${shareOrigin()}/site/${slug}` : "";
   const [about, setAbout] = useState("");
   const [savedAbout, setSavedAbout] = useState("");
   const [saving, setSaving] = useState(false);
@@ -154,7 +155,7 @@ const MicrositePanel = ({ slug }: { slug: string }) => {
           className="flex w-full items-center gap-3 rounded-[14px] bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-left active:scale-[0.99] transition"
         >
           <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-[#8E8E93]">
-            {window.location.host}/site/<span className="text-white">{slug}</span>
+            {shareOrigin().replace(/^https?:\/\//, "")}/site/<span className="text-white">{slug}</span>
           </span>
           {copied ? <Check className="h-4 w-4 shrink-0 text-emerald-400" /> : <Copy className="h-4 w-4 shrink-0 text-[#8E8E93]" />}
         </button>
@@ -280,7 +281,7 @@ const BookingPage = () => {
   const fallbackSlug = cleanSlug((profile?.business_name || profile?.full_name || "").trim());
 
   const bookingUrl = (profile?.booking_link || fallbackSlug)
-    ? `${window.location.origin}/book/${profile?.booking_link || fallbackSlug}`
+    ? publicBookingUrl(profile?.booking_link || fallbackSlug)
     : "";
 
   if (!user) {

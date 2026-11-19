@@ -27,6 +27,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBookingLimit } from "@/hooks/use-booking-limit";
 import { haptic } from "@/lib/haptics";
+import { publicBookingUrl } from "@/lib/bookingUrl";
+import { shareLink as shareSheet } from "@/lib/share";
 import { isNative } from "@/lib/native";
 import { enableBookingPush, isBookingPushEnabled, pushSupported } from "@/lib/push";
 import { cn } from "@/lib/utils";
@@ -204,16 +206,9 @@ export function MobileDashboardIOS() {
       navigate("/booking-page");
       return;
     }
-    const url = `${window.location.origin}/book/${profile.booking_link}`;
-    try {
-      if (navigator.share) await navigator.share({ title: displayName, text: "Book your next cut", url });
-      else {
-        await navigator.clipboard.writeText(url);
-        toast({ title: "Booking link copied" });
-      }
-    } catch {
-      /* share sheet dismissed */
-    }
+    const url = publicBookingUrl(profile.booking_link);
+    const result = await shareSheet({ title: displayName, text: "Book your next cut", url });
+    if (result === "copied") toast({ title: "Booking link copied" });
   };
 
   const turnOnAlerts = async () => {

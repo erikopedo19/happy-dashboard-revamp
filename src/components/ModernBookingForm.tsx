@@ -615,7 +615,7 @@ const ModernBookingForm = ({
 
             {/* Footer */}
             <p className={`text-center ${getTextMutedClass()} text-xs mt-8`}>
-              Powered by Cutzio
+              Powered by Cutzioo
             </p>
           </div>
         </div>

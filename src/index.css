@@ -2313,3 +2313,23 @@ html.cz-sheet-open::-webkit-scrollbar { display: none; }
 .opal-spin { transform: translate(-50%, -50%) rotate(0turn); animation: opal-spin 6s linear infinite; will-change: transform; }
 @keyframes opal-spin { to { transform: translate(-50%, -50%) rotate(1turn); } }
 @media (prefers-reduced-motion: reduce) { .opal-spin { animation: none; } }
+
+/* Reports bars: the fill is a full-size block slid into an overflow-hidden track,
+   so growth is a transform (no layout) and rounded ends keep their shape. */
+.rp-fill-x {
+  transform: translateX(calc(var(--v, 0) * 1% - 100%));
+  transition: transform 600ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: calc(var(--i, 0) * 35ms);
+}
+.rp-fill-y {
+  transform: translateY(calc(100% - var(--v, 0) * 1%));
+  transition: transform 600ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: calc(var(--i, 0) * 25ms);
+}
+@starting-style {
+  .rp-fill-x { transform: translateX(-100%); }
+  .rp-fill-y { transform: translateY(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-fill-x, .rp-fill-y { transition: none; }
+}

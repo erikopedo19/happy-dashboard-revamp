@@ -66,6 +66,7 @@ const CustomDayOffIcon = ({ type, className }: { type: string; className?: strin
   );
 };
 import { cn } from "@/lib/utils";
+import { publicBookingUrl } from "@/lib/bookingUrl";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1178,7 +1179,7 @@ export const LiquidGlassAgenda = ({
                       className="w-full"
                       label="Copy booking link"
                       copiedLabel="Copied!"
-                      value={`${window.location.origin}/book/${bookingLink}`}
+                      value={publicBookingUrl(bookingLink)}
                     />
                   </div>
                 )}
