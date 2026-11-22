@@ -12,3 +12,6 @@ Organization checks used by RLS keep signed-in execute access through public inv
 `npm run build` regenerates `public/sitemap.xml` first (`scripts/generate-sitemap.mjs`, one `/b/:slug` entry per `list_public_profiles` row); it never fails the build if Supabase is unreachable. Page SEO goes through `src/components/Seo.tsx` (title, description, og image, JSON-LD) — don't add duplicate canonical/robots tags to index.html.
 Subscription checkout requires the current server-validated terms version and reuses one pending checkout per user; this records purchase consent and prevents duplicate paid subscriptions.
 Replaced or ended subscriptions cannot overwrite a member's different live subscription; this keeps duplicate cleanup from removing paid access.
+Booking PayPal uses the platform's PayPal app with each barber's PayPal email as payee, and marks a booking paid only after a server-side capture matches amount, currency and payee; this keeps barbers' money out of the platform account.
+Pro subscription payment methods (including PayPal) come from Stripe Checkout's dashboard-managed methods, not a separate PayPal billing flow, so Stripe stays the single source of truth for renewals and cancellations.
+Cancelling a past-due Pro plan ends it immediately and voids its open invoices; paid-up plans cancel at period end.
