@@ -1064,7 +1064,11 @@ export type Database = {
           description: string | null
           id: string
           kind: string
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
+          paypal_payee_email: string | null
           product_id: string | null
+          provider: string
           quantity: number
           service_id: string | null
           status: string
@@ -1090,7 +1094,11 @@ export type Database = {
           description?: string | null
           id?: string
           kind: string
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          paypal_payee_email?: string | null
           product_id?: string | null
+          provider?: string
           quantity?: number
           service_id?: string | null
           status?: string
@@ -1116,7 +1124,11 @@ export type Database = {
           description?: string | null
           id?: string
           kind?: string
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          paypal_payee_email?: string | null
           product_id?: string | null
+          provider?: string
           quantity?: number
           service_id?: string | null
           status?: string
@@ -1251,6 +1263,8 @@ export type Database = {
           notify_cancellation_alerts: boolean | null
           onboarding_completed: boolean | null
           payments_enabled: boolean
+          paypal_email: string | null
+          paypal_enabled: boolean
           phone: string | null
           rating: number | null
           rating_count: number | null
@@ -1306,6 +1320,8 @@ export type Database = {
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           payments_enabled?: boolean
+          paypal_email?: string | null
+          paypal_enabled?: boolean
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
@@ -1361,6 +1377,8 @@ export type Database = {
           notify_cancellation_alerts?: boolean | null
           onboarding_completed?: boolean | null
           payments_enabled?: boolean
+          paypal_email?: string | null
+          paypal_enabled?: boolean
           phone?: string | null
           rating?: number | null
           rating_count?: number | null
@@ -2202,6 +2220,7 @@ export type Database = {
           full_name: string
           id: string
           payments_enabled: boolean
+          paypal_enabled: boolean
           phone: string
           rating: number
           rating_count: number
