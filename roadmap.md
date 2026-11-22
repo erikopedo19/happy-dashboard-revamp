@@ -1,5 +1,9 @@
 # Current work
 
+- [ ] PayPal on booking pages: client pays the barber's own PayPal directly (barber adds PayPal email in Settings).
+- [ ] Fix Stripe booking-payment issues (connect country, tax, multi-service amount, error messages).
+- [ ] PayPal as a payment option for the Pro subscription, done legally.
+
 - [ ] Make website style choices change the public site.
 - [ ] Make multi-service bookings reserve their full length and total price.
 - [ ] Daily morning AI briefing email from yesterday's sales, bookings and open tasks; recipient and task source to confirm.
