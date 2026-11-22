@@ -15,6 +15,11 @@ const STRIPE_SECRET_KEY = (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
 const STRIPE_API = "https://api.stripe.com/v1";
 const PLATFORM_FEE_CENTS = 25; // 25 cent platform fee
 const STRIPE_CONNECT_SETUP_URL = "https://dashboard.stripe.com/connect";
+// Cutzioo's Stripe platform is in Greece, so payout accounts can be opened in Europe.
+const PAYOUT_COUNTRIES = new Set([
+  "GR", "CY", "ES", "NL", "PL", "DE", "FR", "IT", "PT", "IE", "BE", "AT", "LU", "MT", "SI", "SK",
+  "EE", "LV", "LT", "FI", "SE", "DK", "CZ", "HU", "RO", "BG", "HR", "NO", "IS", "LI", "GB", "CH",
+]);
 
 function form(obj: Record<string, string | number | boolean | undefined>) {
   const p = new URLSearchParams();
@@ -92,13 +97,16 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const action = String(body.action ?? "status");
-    const returnUrl = typeof body.return_url === "string" ? body.return_url : "";
+    const rawReturn = typeof body.return_url === "string" ? body.return_url : "";
+    const returnUrl = /^https:\/\/((www\.)?cutzioo\.com|[a-zA-Z0-9-]+\.lovable\.app)\//.test(rawReturn) || rawReturn.startsWith("http://localhost:8080/") ? rawReturn : "";
+    const requestedCountry = typeof body.country === "string" ? body.country.toUpperCase() : "GR";
+    const country = PAYOUT_COUNTRIES.has(requestedCountry) ? requestedCountry : "GR";
 
     console.log(`Processing stripe-connect action: ${action} for user: ${user.id}`);
 
     const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .select("stripe_account_id, currency, business_name, full_name, sender_email")
+      .select("stripe_account_id, currency, business_name, full_name, sender_email, booking_link")
       .eq("id", user.id)
       .maybeSingle();
     
@@ -207,9 +215,10 @@ serve(async (req) => {
             "/accounts",
             form({
               type: "express",
-              country: "US",
+              country,
               email: profile?.sender_email || user.email,
-              "business_profile[url]": `https://cutzioo.com/book/${user.id}`,
+              "business_profile[url]": profile?.booking_link ? `https://cutzioo.com/book/${profile.booking_link}` : "https://cutzioo.com",
+              "business_profile[mcc]": "7230",
               "business_profile[name]": profile?.business_name || profile?.full_name || "",
               "capabilities[card_payments][requested]": "true",
               "capabilities[transfers][requested]": "true",

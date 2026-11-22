@@ -37,3 +37,11 @@ export function isSubscriptionCheckout(session: { mode?: string; payment_status?
 export function renewalResetFields(renewed: boolean) {
   return renewed ? { expiration_email_sent_at: null, expiry_reminder_sent_at: null } : {};
 }
+
+// Cancelling a paid-up plan keeps Pro until the period ends. A plan whose payment
+// failed is ended now, so Stripe stops retrying the failed charge.
+export function cancelMode(status: string): 'period_end' | 'immediate' | null {
+  if (status === 'active' || status === 'trialing') return 'period_end';
+  if (status === 'past_due' || status === 'unpaid' || status === 'incomplete') return 'immediate';
+  return null;
+}

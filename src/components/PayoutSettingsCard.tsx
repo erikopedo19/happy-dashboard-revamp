@@ -14,6 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { RevenuePipelineCard } from "@/components/reports/RevenuePipelineCard";
+import { PayPalPayoutCard } from "@/components/PayPalPayoutCard";
+
+const PAYOUT_COUNTRIES: [string, string][] = [
+  ["GR", "Greece"], ["CY", "Cyprus"], ["ES", "Spain"], ["NL", "Netherlands"], ["PL", "Poland"], ["DE", "Germany"],
+  ["FR", "France"], ["IT", "Italy"], ["PT", "Portugal"], ["IE", "Ireland"], ["BE", "Belgium"], ["AT", "Austria"],
+  ["GB", "United Kingdom"], ["CH", "Switzerland"], ["SE", "Sweden"], ["DK", "Denmark"], ["FI", "Finland"],
+  ["CZ", "Czechia"], ["RO", "Romania"], ["BG", "Bulgaria"], ["HR", "Croatia"], ["HU", "Hungary"],
+];
 
 type Status = {
   stripe_account_id: string | null;
@@ -70,6 +78,7 @@ export function PayoutSettingsCard() {
   const [tab, setTab] = useState<"earnings" | "payouts">("earnings");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [country, setCountry] = useState("GR");
 
   const load = async () => {
     setLoading(true);
@@ -110,7 +119,7 @@ export function PayoutSettingsCard() {
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect", {
-        body: { action, return_url: `${window.location.origin}/settings` },
+        body: { action, country, return_url: `${window.location.origin}/settings` },
       });
 
       if (error) {
@@ -166,8 +175,8 @@ export function PayoutSettingsCard() {
         <div className="min-w-0 flex-1">
           <h3 className="text-[15.5px] font-semibold text-white">Payments & payouts</h3>
           <p className="text-[13px] text-white/45 mt-0.5">
-            Money from card bookings goes straight to your own Stripe account. Sales tax is calculated automatically and a
-            flat $0.25 platform fee is deducted per transaction.
+            Money from card bookings goes straight to your own Stripe account. Clients pay your listed price; a flat 0.25
+            platform fee is deducted per card payment.
           </p>
         </div>
         {ready && (
@@ -323,6 +332,21 @@ export function PayoutSettingsCard() {
               </div>
             )}
 
+            {!status?.stripe_account_id && (
+              <label className="mt-4 block">
+                <span className="text-[12.5px] text-white/50">Where is your business registered?</span>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="mt-1.5 w-full h-11 rounded-2xl bg-white/[0.05] border border-white/[0.06] px-4 text-[16px] text-white outline-none"
+                >
+                  {PAYOUT_COUNTRIES.map(([code, name]) => (
+                    <option key={code} value={code} className="bg-[#15151A]">{name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 onClick={() => run("onboard")}
@@ -350,6 +374,7 @@ export function PayoutSettingsCard() {
         )}
       </div>
     </motion.div>
+    <PayPalPayoutCard />
     </div>
   );
 }

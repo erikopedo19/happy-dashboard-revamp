@@ -282,7 +282,10 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             ))}
             <div className="space-y-2 border-t border-border p-4">
               {paymentIssue ? (
-                <Button disabled={busy} onClick={openBilling} className="h-12 w-full rounded-2xl text-[15px]"><CreditCard />Update payment method</Button>
+                <>
+                  <Button disabled={busy} onClick={openBilling} className="h-12 w-full rounded-2xl text-[15px]"><CreditCard />Update payment method</Button>
+                  <Button disabled={busy} variant="outline" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-12 w-full rounded-2xl text-[15px] text-destructive">Cancel subscription</Button>
+                </>
               ) : status === "canceling" && !isComplimentary ? (
                 <Button disabled={busy} onClick={() => setAutoRenew(true)} className="h-12 w-full rounded-2xl text-[15px]">{busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}Turn renewal back on</Button>
               ) : recurringActive ? (
@@ -307,14 +310,18 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             <div className="mb-4 text-center">
               <DrawerTitle className="text-[22px] font-bold tracking-tight">Cancel Cutzioo Pro?</DrawerTitle>
               <DrawerDescription className="mt-1.5 text-[13px]">
-                Your Pro access continues until the end of your current billing period.
+                {paymentIssue
+                  ? "Your last payment failed, so cancelling ends Pro now and clears the unpaid bill."
+                  : "Your Pro access continues until the end of your current billing period."}
               </DrawerDescription>
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.025] dark:border-white/[0.07] dark:bg-white/[0.04]">
               {[
-                { icon: CalendarClock, text: `Pro stays active until ${fmt(data?.subscription_end)}` },
-                { icon: ShieldCheck, text: "You won't be charged again" },
+                paymentIssue
+                  ? { icon: CalendarClock, text: "Pro ends today and your account moves to Free" }
+                  : { icon: CalendarClock, text: `Pro stays active until ${fmt(data?.subscription_end)}` },
+                { icon: ShieldCheck, text: paymentIssue ? "The failed payment won't be retried" : "You won't be charged again" },
                 { icon: Database, text: "Your data is kept. Renew anytime to get everything back." },
                 { icon: ShieldCheck, text: "Cancel anytime, no fees" },
               ].map(({ icon: Icon, text }) => (

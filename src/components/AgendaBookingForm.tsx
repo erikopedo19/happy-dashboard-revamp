@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, CreditCard, Share2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, User, Calendar as CalendarIcon, Check, Star, MapPin, Phone, Globe, CreditCard, Share2, Wallet } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { getBookingDateLocale, type BookingLocale } from '@/lib/bookingLocales';
 import { UseFormReturn } from "react-hook-form";
@@ -64,6 +64,8 @@ interface AgendaBookingFormProps {
   } | null;
   workingDays?: number[];
   paymentsEnabled?: boolean;
+  /** Barber accepts PayPal straight into their own PayPal account. */
+  paypalEnabled?: boolean;
 
   disabledDates?: string[];
 
@@ -99,6 +101,7 @@ const AgendaBookingForm = ({
   askNotes = true,
   submitLabel,
   paymentsEnabled = false,
+  paypalEnabled = false,
 }: AgendaBookingFormProps) => {
   const [step, setStep] = useState<"service" | "datetime" | "stylist" | "details" | "success">("service");
   const [friendShared, setFriendShared] = useState(false);
@@ -107,7 +110,8 @@ const AgendaBookingForm = ({
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [railOnOpenSlot, setRailOnOpenSlot] = useState(true);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
-  const [payMethod, setPayMethod] = useState<"shop" | "card">("shop");
+  const [payMethod, setPayMethod] = useState<"shop" | "card" | "paypal">("shop");
+  const onlinePayment = paymentsEnabled || paypalEnabled;
 
   const bookingTheme = businessProfile?.booking_theme || "default";
   const themeColors: Record<string, string> = {
@@ -481,7 +485,7 @@ const AgendaBookingForm = ({
     setSubmitError(null);
     values.service_ids = selectedServiceIds;
     if (selectedStylistId) values.stylist_id = selectedStylistId;
-    values.pay_method = paymentsEnabled ? payMethod : "shop";
+    values.pay_method = (payMethod === "card" && paymentsEnabled) || (payMethod === "paypal" && paypalEnabled) ? payMethod : "shop";
     const result = await onSubmit(values);
     if (!result) return;
     if (typeof result === 'object' && 'success' in result) {
@@ -1325,14 +1329,15 @@ const AgendaBookingForm = ({
                         />
                       )}
 
-                      {paymentsEnabled && !rescheduleAppointment && (
+                      {onlinePayment && !rescheduleAppointment && (
                         <div className="space-y-2">
                           <p className="text-gray-500 dark:text-[#8E8E93] text-sm">Payment</p>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className={cn("grid gap-2", paymentsEnabled && paypalEnabled ? "grid-cols-3" : "grid-cols-2")}>
                             {([
-                              { key: "shop" as const, label: "Pay at shop", icon: MapPin },
-                              { key: "card" as const, label: "Pay now by card", icon: CreditCard },
-                            ]).map(({ key, label, icon: Icon }) => (
+                              { key: "shop" as const, label: "Pay at shop", icon: MapPin, show: true },
+                              { key: "card" as const, label: paypalEnabled ? "Card" : "Pay now by card", icon: CreditCard, show: paymentsEnabled },
+                              { key: "paypal" as const, label: "PayPal", icon: Wallet, show: paypalEnabled },
+                            ]).filter((o) => o.show).map(({ key, label, icon: Icon }) => (
                               <button
                                 key={key}
                                 type="button"

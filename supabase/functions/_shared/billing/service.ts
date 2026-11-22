@@ -2,11 +2,11 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { BillingSubscription, subscriptionFields, cancellationKey, renewalResetFields } from './logic.ts';
 import { shouldApplySubscription } from './purchase.ts';
 export const adminClient = () => createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', { auth: { persistSession: false } });
-export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string) {
+export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string, method?: 'DELETE') {
   const key = Deno.env.get('STRIPE_SECRET_KEY');
   if (!key) throw new Error('payment_config_missing');
   const response = await fetch(`https://api.stripe.com/v1${path}`, {
-    method: body ? 'POST' : 'GET',
+    method: method ?? (body ? 'POST' : 'GET'),
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded', 'Stripe-Version': '2024-06-20', ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) }, body,
   });
   const data = await response.json();

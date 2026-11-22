@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { adminClient, stripeRequest, syncSubscription, findSubscriptions, newestSubscription, cancellationEmail, sendBillingEmail } from '../_shared/billing/service.ts';
-import { isSubscriptionCheckout } from '../_shared/billing/logic.ts';
+import { isSubscriptionCheckout, cancelMode } from '../_shared/billing/logic.ts';
 const json = (data: unknown, status=200) => new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -40,12 +40,22 @@ serve(async req => {
     }
     const wasCancelling = !!subscription.cancel_at_period_end;
     if (action === 'cancel' || action === 'resume') {
-      if (!['active','trialing','past_due'].includes(subscription.status)) return json({ ok:false, error:'no_stripe_subscription' });
-      if (wasCancelling !== (action === 'cancel')) subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
+      const mode = cancelMode(subscription.status);
+      if (!mode) return json({ ok:false, error:'no_stripe_subscription' });
+      if (action === 'cancel' && mode === 'immediate') {
+        // Failed payment: end the plan now and clear the unpaid bill, so the member is never charged after cancelling.
+        subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`, undefined, undefined, 'DELETE');
+        const open = await stripeRequest(`/invoices?${new URLSearchParams({ subscription: subscription.id, status: 'open', limit: '20' })}`);
+        for (const invoice of open.data ?? []) await stripeRequest(`/invoices/${encodeURIComponent(invoice.id)}/void`, new URLSearchParams());
+      } else if (action === 'resume' && mode === 'immediate') {
+        return json({ ok:false, error:'payment_update_required' });
+      } else if (wasCancelling !== (action === 'cancel')) {
+        subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
+      }
     }
     const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,subscription);
     let emailPending = false;
-    if (applied && (action === 'sync' || (action === 'cancel' && !wasCancelling))) {
+    if (applied && (action === 'sync' || (action === 'cancel' && (!wasCancelling || subscription.status === 'canceled')))) {
       try { await cancellationEmail(admin,user.id,user.email,subscription,fields.subscription_end); }
       catch { emailPending = true; console.error('Cancellation confirmation pending; webhook will retry'); }
     }

@@ -1,7 +1,9 @@
 // Creates a Stripe Checkout Session for a booking or a product sale.
-// - Money is routed to the owner's connected Stripe account (destination charge)
+// - Money is routed to the owner's connected Stripe account (destination charge,
+//   on behalf of the owner, so the barber is the seller on the customer's statement)
 // - A flat 25-minor-unit platform fee is deducted from the owner's payout
-// - Stripe Tax calculates sales tax from the buyer's location (separate line)
+// - Prices are the barber's final prices; the barber is responsible for their own VAT
+// - Booking amounts come from the saved appointment (all services + discounts)
 // - Terms of Service + Privacy Policy acceptance is mandatory
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -80,7 +82,7 @@ Deno.serve(async (req) => {
 
     if (!profile) return json({ error: "Business not found." }, 404);
     if (!profile.stripe_account_id || !profile.stripe_charges_enabled) {
-      return json({ error: "This business has not finished setting up online payments yet." }, 409);
+      return json({ error: "not_set_up", message: "This business has not finished setting up online payments yet." }, 409);
     }
 
     const currency = String(profile.currency || "eur").toLowerCase();
@@ -88,7 +90,6 @@ Deno.serve(async (req) => {
     // Price and label are always resolved server-side — never trusted from the client.
     let unitAmount = 0;
     let label = "";
-    let taxCode = "txcd_99999999"; // General - Tangible Goods
 
     if (b.kind === "product") {
       if (!b.product_id) return json({ error: "product_id is required." }, 400);
@@ -117,11 +118,22 @@ Deno.serve(async (req) => {
       }
       unitAmount = Math.round(Number(service.price ?? 0) * 100);
       label = service.name;
-      taxCode = "txcd_20030000"; // General - Services
+      if (b.appointment_id) {
+        // A booking can hold several services; charge the saved booking total, never the first service only.
+        const { data: appt } = await admin
+          .from("appointments")
+          .select("id, user_id, price, status, payment_status")
+          .eq("id", b.appointment_id)
+          .maybeSingle();
+        if (!appt || appt.user_id !== b.business_id) return json({ error: "booking_not_found", message: "Booking not found." }, 404);
+        if (appt.status === "cancelled") return json({ error: "booking_cancelled", message: "This booking was cancelled." }, 409);
+        if (appt.payment_status === "paid") return json({ error: "already_paid", message: "This booking is already paid." }, 409);
+        if (appt.price != null) unitAmount = Math.round(Number(appt.price) * 100);
+      }
     }
 
     if (!unitAmount || unitAmount < 100) {
-      return json({ error: "This item cannot be paid online (price is missing or too low)." }, 400);
+      return json({ error: "price_missing", message: "This item cannot be paid online (price is missing or too low)." }, 400);
     }
 
     const params = new URLSearchParams();
@@ -132,18 +144,11 @@ Deno.serve(async (req) => {
     params.append("line_items[0][quantity]", String(b.quantity));
     params.append("line_items[0][price_data][currency]", currency);
     params.append("line_items[0][price_data][unit_amount]", String(unitAmount));
-    // "exclusive" makes Stripe Tax show tax as its own line on top of the price.
-    params.append("line_items[0][price_data][tax_behavior]", "exclusive");
     params.append("line_items[0][price_data][product_data][name]", label);
-    params.append("line_items[0][price_data][product_data][tax_code]", taxCode);
-    // Stripe Tax: rate is derived from the buyer's address collected at checkout.
-    params.append("automatic_tax[enabled]", "true");
-    params.append("automatic_tax[liability][type]", "self");
-    params.append("billing_address_collection", "required");
-    params.append("tax_id_collection[enabled]", "true");
-    // Destination charge: the owner gets the payout, we keep a flat platform fee.
+    // Destination charge on behalf of the owner: the barber is the seller, we keep a flat platform fee.
     params.append("payment_intent_data[application_fee_amount]", String(PLATFORM_FEE_MINOR));
     params.append("payment_intent_data[transfer_data][destination]", profile.stripe_account_id);
+    params.append("payment_intent_data[on_behalf_of]", profile.stripe_account_id);
     params.append(
       "payment_intent_data[description]",
       `${label}: ${profile.business_name || profile.full_name || "Cutzioo"}`,
@@ -181,6 +186,6 @@ Deno.serve(async (req) => {
     return json({ url: session.url, session_id: session.id });
   } catch (e) {
     console.error("create-payment-checkout error:", e);
-    return json({ error: "Could not start checkout.", details: String((e as Error).message ?? e) }, 500);
+    return json({ error: "checkout_failed", message: "Card payment couldn't start. Your booking is kept — you can pay at the shop." }, 500);
   }
 });

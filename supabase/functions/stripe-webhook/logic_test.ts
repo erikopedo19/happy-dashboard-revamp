@@ -1,5 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { subscriptionFields, cancellationKey, isSubscriptionCheckout, renewalResetFields } from '../_shared/billing/logic.ts';
+import { subscriptionFields, cancellationKey, isSubscriptionCheckout, renewalResetFields, cancelMode } from '../_shared/billing/logic.ts';
 import { verifyStripeSignature } from './signature.ts';
 const start = Date.parse('2026-10-24T00:00:00Z') / 1000;
 const end = Date.parse('2026-11-24T00:00:00Z') / 1000;
@@ -54,4 +54,15 @@ Deno.test('Stripe rejects replayed signatures and accepts any matching rotated s
 Deno.test('renewal re-enables the expiry reminder and expired emails for the new period', () => {
   assertEquals(renewalResetFields(true),{ expiration_email_sent_at:null, expiry_reminder_sent_at:null });
   assertEquals(renewalResetFields(false),{});
+});
+
+Deno.test('cancelling a paid-up plan keeps Pro until the period ends', () => {
+  assertEquals(cancelMode('active'), 'period_end');
+});
+Deno.test('cancelling after a failed payment ends the plan now so no retry charge happens', () => {
+  assertEquals(cancelMode('past_due'), 'immediate');
+  assertEquals(cancelMode('unpaid'), 'immediate');
+});
+Deno.test('an already ended plan cannot be cancelled again', () => {
+  assertEquals(cancelMode('canceled'), null);
 });

@@ -67,6 +67,8 @@ interface BusinessProfile {
   total_bookings?: number | null;
   services_count?: number | null;
   stylists_count?: number | null;
+  payments_enabled?: boolean | null;
+  paypal_enabled?: boolean | null;
 }
 
 interface BookingError {
@@ -113,6 +115,56 @@ const Booking = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Coming back from Stripe or PayPal: confirm the payment, then tidy the address bar.
+  useEffect(() => {
+    const paypal = searchParams.get('paypal');
+    const orderId = searchParams.get('token');
+    const stripePaid = searchParams.get('paid') === '1';
+    if (!paypal && !stripePaid) return;
+    const clean = () => {
+      const next = new URLSearchParams(searchParams);
+      ['paypal', 'token', 'PayerID', 'paid'].forEach(k => next.delete(k));
+      const qs = next.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+    };
+    if (stripePaid) {
+      toast({ title: "Payment received", description: "Your booking is paid. A receipt is on its way to your email." });
+      clean();
+      return;
+    }
+    if (!orderId || !/^[A-Z0-9]+$/.test(orderId)) { clean(); return; }
+    let cancelled = false;
+    (async () => {
+      if (paypal === 'cancel') {
+        await supabase.functions.invoke('paypal-booking-checkout', { body: { action: 'cancel', order_id: orderId } });
+        if (!cancelled) toast({ title: "PayPal payment cancelled", description: "Your booking is kept — you can pay at the shop." });
+        clean();
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('paypal-booking-checkout', { body: { action: 'capture', order_id: orderId } });
+      if (cancelled) return;
+      let status = data?.status as string | undefined;
+      let reason = data?.reason as string | undefined;
+      if (error && 'context' in error) {
+        const body = await (error as { context: Response }).context.clone().json().catch(() => null);
+        status = body?.status ?? status;
+        reason = body?.reason ?? reason;
+      }
+      if (status === 'paid') {
+        toast({ title: "Paid with PayPal", description: "The money went straight to your barber. Your booking is paid." });
+      } else {
+        toast({
+          title: "PayPal payment didn't go through",
+          description: reason === 'declined' ? "PayPal declined the payment method. Your booking is kept — you can pay at the shop." : "No money was taken. Your booking is kept — you can pay at the shop.",
+          variant: "destructive",
+        });
+      }
+      clean();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const form = useForm<z.infer<typeof bookingSchema>>({
@@ -715,6 +767,7 @@ const Booking = () => {
         p_appointment_time: selectedTime,
         p_notes: values.notes || null,
         p_stylist_id: values.stylist_id || null,
+        p_service_ids: selectedServicesList.map(service => service.id),
       });
 
       if (rpcError || !rpcResult?.success) {
@@ -752,14 +805,20 @@ const Booking = () => {
       await queryClient.refetchQueries({ queryKey: ['public-appointments'], exact: false });
 
       // Offer online payment when the business has a connected payout account and the service is priced.
-      if (values.pay_method === 'card' && (businessProfile as any)?.payments_enabled && Number(primaryService.price) > 0) {
+      // The amount shown is the saved booking total (all services, any loyalty discount); the server re-checks it.
+      const bookingTotal = Number(rpcResult.final_price ?? selectedServicesList.reduce((sum, s) => sum + Number(s.price || 0), 0));
+      const wantsCard = values.pay_method === 'card' && businessProfile.payments_enabled;
+      const wantsPayPal = values.pay_method === 'paypal' && businessProfile.paypal_enabled;
+      if ((wantsCard || wantsPayPal) && bookingTotal > 0) {
         setCheckoutItem({
+          method: wantsPayPal ? "paypal" : "card",
           business_id: businessProfile.id,
+          business_name: businessProfile.full_name,
           kind: "booking",
           service_id: primaryService.id,
           appointment_id: rpcResult.appointment_id,
-          title: primaryService.name,
-          amount: Number(primaryService.price),
+          title: selectedServicesList.map(s => s.name).join(" + "),
+          amount: bookingTotal,
           currency: (businessProfile as any)?.currency || "EUR",
           customer_email: values.customer_email,
           customer_name: values.customer_name,
@@ -927,7 +986,8 @@ const Booking = () => {
         isTimeSlotAvailable={isTimeSlotAvailable}
         getAvailableStylistsForTime={getAvailableStylistsForTime}
         onSubmit={onSubmit}
-        paymentsEnabled={!!(businessProfile as any)?.payments_enabled}
+        paymentsEnabled={!!businessProfile?.payments_enabled}
+        paypalEnabled={!!businessProfile?.paypal_enabled}
         isLoading={isLoading}
         businessProfile={businessProfile}
         workingDays={settings?.working_days ?? [0,1,2,3,4,5,6]}
