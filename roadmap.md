@@ -5,6 +5,7 @@
 - [x] Fix Stripe booking-payment issues (connect country, tax, multi-service amount, error messages).
 - [ ] PayPal as a payment option for the Pro subscription: code ready; waits on owner turning on PayPal in Stripe Dashboard → Payment methods.
 - [x] Clear, working Cancel option for Stripe Pro subscriptions (also when a payment failed).
+- [x] "Pro expires soon" emails only for members whose Pro is really ending (cancelled or gifted).
 
 - [ ] Make website style choices change the public site.
 - [ ] Make multi-service bookings reserve their full length and total price.

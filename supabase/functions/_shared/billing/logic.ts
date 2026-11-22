@@ -45,3 +45,12 @@ export function cancelMode(status: string): 'period_end' | 'immediate' | null {
   if (status === 'past_due' || status === 'unpaid' || status === 'incomplete') return 'immediate';
   return null;
 }
+
+// "Pro expires soon" / "Pro has expired" emails are only for plans that are really
+// ending: gifted Pro (no Stripe subscription) or a Stripe plan that won't renew.
+// Auto-renewing members get the renewal receipt instead.
+export type ExpiryEmailRow = { stripe_subscription_id?: string | null; cancel_at_period_end?: boolean | null; auto_renew?: boolean | null };
+export const REALLY_ENDING_FILTER = 'stripe_subscription_id.is.null,cancel_at_period_end.eq.true,auto_renew.eq.false';
+export function planIsReallyEnding(row: ExpiryEmailRow) {
+  return !row.stripe_subscription_id || row.cancel_at_period_end === true || row.auto_renew === false;
+}

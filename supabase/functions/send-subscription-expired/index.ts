@@ -5,6 +5,7 @@ declare const Deno: { env: { get(key: string): string | undefined } };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // @ts-ignore
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { planIsReallyEnding, REALLY_ENDING_FILTER } from "../_shared/billing/logic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -134,9 +135,10 @@ serve(async (req: Request) => {
   // Pass 1: subscriptions that ended and were never notified
   const { data: expired, error } = await supabase
     .from("subscribers")
-    .select("id, user_id, email, subscription_end")
+    .select("id, user_id, email, subscription_end, stripe_subscription_id, cancel_at_period_end, auto_renew")
     .lt("subscription_end", now)
     .is("expiration_email_sent_at", null)
+    .or(REALLY_ENDING_FILTER)
     .limit(50);
 
   if (error) {
@@ -146,7 +148,8 @@ serve(async (req: Request) => {
   }
 
   let expiredSent = 0;
-  for (const row of expired ?? []) {
+  // Auto-renewing Stripe plans are kept in sync by Stripe itself; never mark them expired here.
+  for (const row of (expired ?? []).filter(planIsReallyEnding)) {
     const ok = await sendEmail(
       supabase, row,
       "expiration_email_sent_at",
@@ -162,11 +165,12 @@ serve(async (req: Request) => {
   const soon = new Date(Date.now() + REMIND_DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
   const { data: upcoming, error: upcomingErr } = await supabase
     .from("subscribers")
-    .select("id, user_id, email, subscription_end")
+    .select("id, user_id, email, subscription_end, stripe_subscription_id, cancel_at_period_end, auto_renew")
     .eq("subscribed", true)
     .gt("subscription_end", now)
     .lt("subscription_end", soon)
     .is("expiry_reminder_sent_at", null)
+    .or(REALLY_ENDING_FILTER)
     .limit(50);
 
   if (upcomingErr) {
@@ -176,7 +180,7 @@ serve(async (req: Request) => {
   }
 
   let reminderSent = 0;
-  for (const row of upcoming ?? []) {
+  for (const row of (upcoming ?? []).filter(planIsReallyEnding)) {
     const daysLeft = Math.max(1, Math.ceil((new Date(row.subscription_end).getTime() - Date.now()) / 86400000));
     const ok = await sendEmail(
       supabase, row,

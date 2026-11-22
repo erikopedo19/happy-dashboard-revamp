@@ -1,5 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { subscriptionFields, cancellationKey, isSubscriptionCheckout, renewalResetFields, cancelMode } from '../_shared/billing/logic.ts';
+import { subscriptionFields, cancellationKey, isSubscriptionCheckout, renewalResetFields, cancelMode, planIsReallyEnding } from '../_shared/billing/logic.ts';
 import { verifyStripeSignature } from './signature.ts';
 const start = Date.parse('2026-10-24T00:00:00Z') / 1000;
 const end = Date.parse('2026-11-24T00:00:00Z') / 1000;
@@ -65,4 +65,14 @@ Deno.test('cancelling after a failed payment ends the plan now so no retry charg
 });
 Deno.test('an already ended plan cannot be cancelled again', () => {
   assertEquals(cancelMode('canceled'), null);
+});
+
+Deno.test('expiry emails skip auto-renewing Stripe plans', () => {
+  assertEquals(planIsReallyEnding({ stripe_subscription_id: 'sub_1', cancel_at_period_end: false, auto_renew: true }), false);
+});
+Deno.test('expiry emails go to cancelled Stripe plans', () => {
+  assertEquals(planIsReallyEnding({ stripe_subscription_id: 'sub_1', cancel_at_period_end: true, auto_renew: false }), true);
+});
+Deno.test('expiry emails go to gifted Pro with an end date', () => {
+  assertEquals(planIsReallyEnding({ stripe_subscription_id: null, cancel_at_period_end: false, auto_renew: true }), true);
 });
