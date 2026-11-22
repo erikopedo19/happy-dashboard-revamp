@@ -1748,6 +1748,7 @@ export type Database = {
           expiry_reminder_sent_at: string | null
           id: string
           payment_failed_at: string | null
+          pro_cancelled_at: string | null
           renewal_amount: number | null
           renewal_currency: string
           stripe_customer_id: string | null
@@ -1769,6 +1770,7 @@ export type Database = {
           expiry_reminder_sent_at?: string | null
           id?: string
           payment_failed_at?: string | null
+          pro_cancelled_at?: string | null
           renewal_amount?: number | null
           renewal_currency?: string
           stripe_customer_id?: string | null
@@ -1790,6 +1792,7 @@ export type Database = {
           expiry_reminder_sent_at?: string | null
           id?: string
           payment_failed_at?: string | null
+          pro_cancelled_at?: string | null
           renewal_amount?: number | null
           renewal_currency?: string
           stripe_customer_id?: string | null

@@ -131,13 +131,17 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
   // Pro granted by Cutzioo (gift, promo or admin) has no Stripe subscription,
   // so there is nothing to renew, cancel or pay for.
   const isComplimentary = isPro && (noRecurringPlan || data?.has_recurring_subscription === false || !data?.stripe_subscription_id);
-  const s = STATUS_LABEL[isComplimentary ? "active" : status];
+  const giftedCancelled = isComplimentary && status === "canceling";
+  const giftedEndsNow = isComplimentary && !data?.subscription_end;
+  const s = STATUS_LABEL[status];
   const paymentIssue = !isComplimentary && (data?.billing_status === "past_due" || data?.billing_status === "unpaid");
   const recurringActive = isPro && !isComplimentary && status === "active";
   const headline = paymentIssue
     ? "Your last payment failed. Update your card to avoid losing Pro."
-    : isComplimentary
-      ? "Pro was added to your account without a recurring payment."
+    : giftedCancelled
+      ? `Pro ends on ${fmt(data?.subscription_end)}. Nothing will be charged.`
+      : isComplimentary
+      ? "Pro was added to your account for free. Nothing is ever charged."
       : status === "canceling"
         ? `Pro ends on ${fmt(data?.subscription_end)}. You will not be charged again.`
         : recurringActive
@@ -272,7 +276,7 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
             </div>
             {[
               [isPro ? "Price" : "Bookings included", isComplimentary ? "No recurring payment" : isPro ? money(data?.renewal_amount, data?.renewal_currency) : "20 / month"],
-              [status === "canceling" || isComplimentary ? "Pro access until" : "Next renewal", isPro ? fmt(data?.subscription_end) : "—"],
+              [status === "canceling" || isComplimentary ? "Pro access until" : "Next renewal", isPro ? (isComplimentary && !data?.subscription_end ? "No end date" : fmt(data?.subscription_end)) : "—"],
               ["Automatic renewal", recurringActive ? "On" : "Off"],
             ].map(([label, value]) => (
               <div key={label} className="flex min-h-14 items-center justify-between gap-4 border-t border-border px-5 py-3">
@@ -286,9 +290,9 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
                   <Button disabled={busy} onClick={openBilling} className="h-12 w-full rounded-2xl text-[15px]"><CreditCard />Update payment method</Button>
                   <Button disabled={busy} variant="outline" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-12 w-full rounded-2xl text-[15px] text-destructive">Cancel subscription</Button>
                 </>
-              ) : status === "canceling" && !isComplimentary ? (
-                <Button disabled={busy} onClick={() => setAutoRenew(true)} className="h-12 w-full rounded-2xl text-[15px]">{busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}Turn renewal back on</Button>
-              ) : recurringActive ? (
+              ) : status === "canceling" ? (
+                <Button disabled={busy} onClick={() => setAutoRenew(true)} className="h-12 w-full rounded-2xl text-[15px]">{busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}{isComplimentary ? "Keep Pro" : "Turn renewal back on"}</Button>
+              ) : recurringActive || (isComplimentary && status === "active") ? (
                 <Button disabled={busy} variant="outline" onClick={() => { haptic("warning"); setConfirmOpen(true); }} className="h-12 w-full rounded-2xl text-[15px] text-destructive">Cancel subscription</Button>
               ) : (
                 <Button onClick={() => navigate("/pricing")} className="h-12 w-full rounded-2xl text-[15px]"><ShieldCheck />{isComplimentary ? "Subscribe to keep Pro" : status === "expired" ? "Renew Cutzioo Pro" : "Upgrade to Pro"}</Button>
@@ -312,16 +316,20 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
               <DrawerDescription className="mt-1.5 text-[13px]">
                 {paymentIssue
                   ? "Your last payment failed, so cancelling ends Pro now and clears the unpaid bill."
-                  : "Your Pro access continues until the end of your current billing period."}
+                  : giftedEndsNow
+                    ? "Your free Pro has no end date, so cancelling ends it now."
+                    : isComplimentary
+                      ? "Your free Pro stays on until its end date."
+                      : "Your Pro access continues until the end of your current billing period."}
               </DrawerDescription>
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.025] dark:border-white/[0.07] dark:bg-white/[0.04]">
               {[
-                paymentIssue
+                paymentIssue || giftedEndsNow
                   ? { icon: CalendarClock, text: "Pro ends today and your account moves to Free" }
                   : { icon: CalendarClock, text: `Pro stays active until ${fmt(data?.subscription_end)}` },
-                { icon: ShieldCheck, text: paymentIssue ? "The failed payment won't be retried" : "You won't be charged again" },
+                { icon: ShieldCheck, text: paymentIssue ? "The failed payment won't be retried" : isComplimentary ? "Nothing is charged, now or later" : "You won't be charged again" },
                 { icon: Database, text: "Your data is kept. Renew anytime to get everything back." },
                 { icon: ShieldCheck, text: "Cancel anytime, no fees" },
               ].map(({ icon: Icon, text }) => (

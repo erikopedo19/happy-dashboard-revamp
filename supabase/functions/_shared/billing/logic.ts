@@ -54,3 +54,23 @@ export const REALLY_ENDING_FILTER = 'stripe_subscription_id.is.null,cancel_at_pe
 export function planIsReallyEnding(row: ExpiryEmailRow) {
   return !row.stripe_subscription_id || row.cancel_at_period_end === true || row.auto_renew === false;
 }
+
+// When a member cancels, every other live plan they have is stopped too, so a
+// duplicate subscription can never keep charging after they cancel.
+export function otherLiveSubscriptions(all: BillingSubscription[], primaryId: string) {
+  const seen = new Set<string>([primaryId]);
+  return all.filter((s) => {
+    if (seen.has(s.id) || !cancelMode(s.status)) return false;
+    seen.add(s.id);
+    return true;
+  });
+}
+
+// Gifted Pro has no card payments, so cancelling never charges anything.
+// Remaining dated time is kept; an open-ended gift ends now.
+export function giftedCancelFields(end: string | null, now = Date.now()) {
+  const nowIso = new Date(now).toISOString();
+  const base = { pro_cancelled_at: nowIso, auto_renew: false, cancel_at_period_end: true, updated_at: nowIso };
+  if (end && Date.parse(end) > now) return { ...base, endsNow: false as const };
+  return { ...base, subscribed: false, subscription_tier: null, subscription_end: nowIso, expiration_email_sent_at: nowIso, endsNow: true as const };
+}

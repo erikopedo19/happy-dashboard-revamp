@@ -12,3 +12,7 @@ test("paid cancellation preserves ending status through its access end", () => {
   expect(subscriptionStatus({ ...row, stripe_subscription_id: "sub_paid" }, now)).toBe("canceling");
   expect(subscriptionStatus(row, Date.parse("2026-12-24T00:00:00Z"))).toBe("expired");
 });
+test("gifted Pro the member cancelled shows as ending until its end date", () => {
+  expect(subscriptionStatus({ ...row, pro_cancelled_at: "2026-10-29T00:00:00Z" }, now)).toBe("canceling");
+  expect(subscriptionStatus({ ...row, pro_cancelled_at: "2026-10-29T00:00:00Z" }, Date.parse("2026-12-24T00:00:00Z"))).toBe("expired");
+});

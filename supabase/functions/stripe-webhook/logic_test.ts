@@ -76,3 +76,30 @@ Deno.test('expiry emails go to cancelled Stripe plans', () => {
 Deno.test('expiry emails go to gifted Pro with an end date', () => {
   assertEquals(planIsReallyEnding({ stripe_subscription_id: null, cancel_at_period_end: false, auto_renew: true }), true);
 });
+
+import { otherLiveSubscriptions, giftedCancelFields } from '../_shared/billing/logic.ts';
+Deno.test('cancelling stops every other live duplicate plan, not just the newest', () => {
+  const subs = [
+    { id: 'sub_new', customer: 'cus_1', status: 'active' },
+    { id: 'sub_dup', customer: 'cus_1', status: 'active' },
+    { id: 'sub_late', customer: 'cus_2', status: 'past_due' },
+    { id: 'sub_old', customer: 'cus_1', status: 'canceled' },
+    { id: 'sub_dup', customer: 'cus_1', status: 'active' },
+  ];
+  assertEquals(otherLiveSubscriptions(subs, 'sub_new').map((s) => s.id), ['sub_dup', 'sub_late']);
+});
+Deno.test('cancelling gifted Pro keeps remaining dated time and never charges', () => {
+  const now = Date.parse('2026-11-22T10:00:00Z');
+  const kept = giftedCancelFields('2026-12-09T00:00:00Z', now);
+  assertEquals(kept.endsNow, false);
+  assertEquals(kept.auto_renew, false);
+  assertEquals('subscribed' in kept, false);
+});
+Deno.test('cancelling open-ended gifted Pro ends it now', () => {
+  const now = Date.parse('2026-11-22T10:00:00Z');
+  const ended = giftedCancelFields(null, now);
+  assertEquals(ended.endsNow, true);
+  const fields = ended as { subscribed?: boolean; subscription_end?: string };
+  assertEquals(fields.subscribed, false);
+  assertEquals(fields.subscription_end, '2026-11-22T10:00:00.000Z');
+});

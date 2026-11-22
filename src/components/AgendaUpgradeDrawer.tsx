@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Globe, CalendarClock, Lock } from "lucide-react";
+import { Check } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { motion } from "framer-motion";
-import { usePremium } from "@/hooks/use-premium";
+import { usePremium, PREMIUM_LIMITS } from "@/hooks/use-premium";
 import { haptic } from "@/lib/haptics";
 
-import { Wordmark } from "@/components/Wordmark";
 const KEY = "agenda_upgrade_drawer_last_shown";
-const FREE_BOOKINGS = 15;
+const FREE_BOOKINGS = PREMIUM_LIMITS.freeBookingsPerMonth;
 
 /**
  * Shown at most once per day on the Agenda for free-tier users.
@@ -38,82 +37,53 @@ export function AgendaUpgradeDrawer({ suppress = false }: { suppress?: boolean }
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerContent className="bg-[#0F0F12] border-white/[0.06]">
-        <div className="mx-auto w-full max-w-md px-6 pb-8 pt-4 text-center">
-          {/* Illustration */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 240, damping: 22 }}
-            className="relative mx-auto mb-6 h-32 w-full max-w-[220px]"
-          >
-            <div
-              aria-hidden
-              className="absolute inset-0 rounded-[28px] blur-[42px] opacity-60 animate-aurora-drift"
-              style={{
-                background:
-                  "linear-gradient(120deg, #0A84FF, #5E5CE6 40%, #A855F7 65%, #FF4578)",
-              }}
-            />
-            <div className="relative h-full w-full rounded-[26px] border border-white/10 bg-[#17171C] overflow-hidden flex items-center justify-center">
-              <div
-                aria-hidden
-                className="absolute -top-10 right-[-20%] h-32 w-32 rounded-full blur-[38px] opacity-70"
-                style={{ background: "radial-gradient(circle, rgba(10,132,255,0.8), transparent 70%)" }}
-              />
-              <div
-                aria-hidden
-                className="absolute -bottom-10 left-[-15%] h-28 w-28 rounded-full blur-[36px] opacity-60"
-                style={{ background: "radial-gradient(circle, rgba(255,69,120,0.8), transparent 70%)" }}
-              />
-              <Globe className="relative h-12 w-12 text-white/90" strokeWidth={1.4} />
-            </div>
-          </motion.div>
-
-          <h2 className="text-[24px] font-bold tracking-tight text-white">Unlock <Wordmark /> Pro</h2>
-          <p className="mx-auto mt-2 max-w-[300px] text-[15px] leading-6 text-white/50">
-            You're on the free plan, with {FREE_BOOKINGS} bookings included. Upgrade for unlimited bookings
-            and your own barbershop website.
+      <DrawerContent className="border-border bg-background text-foreground">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 26 }}
+          className="mx-auto w-full max-w-md px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5"
+        >
+          <p className="text-[13px] font-semibold text-primary">Cutzioo Pro</p>
+          <h2 className="mt-1 text-[28px] font-bold leading-[1.1] tracking-tight">Your agenda, unlimited.</h2>
+          <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
+            The free plan includes {FREE_BOOKINGS} bookings a month.
           </p>
 
-          <div className="mt-5 space-y-2 text-left">
-            <Row icon={<CalendarClock className="h-4 w-4" />} label={`Only ${FREE_BOOKINGS} free bookings on this plan`} />
-            <Row icon={<Globe className="h-4 w-4" />} label="Free personal website, built on request" />
-            <Row icon={<Lock className="h-4 w-4" />} label="Reports, teams & map listing unlocked" />
-          </div>
+          <ul className="mt-6 space-y-3">
+            {[
+              "Unlimited bookings",
+              "Reports, teams and map listing",
+              "Your own barbershop website",
+            ].map((perk) => (
+              <li key={perk} className="flex items-center gap-3 text-[15px]">
+                <Check className="h-4 w-4 shrink-0 text-primary" strokeWidth={2.5} />
+                <span>{perk}</span>
+              </li>
+            ))}
+          </ul>
 
           <button
+            type="button"
             onClick={() => {
               haptic("medium");
               setOpen(false);
               navigate("/pricing");
             }}
-            className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-black active:scale-[0.98] transition-transform"
+            className="mt-7 h-14 w-full rounded-full bg-primary text-[16px] font-semibold text-primary-foreground transition active:scale-[0.98]"
           >
-            Explore more
-            <ChevronRight className="h-4 w-4" />
+            See Pro
           </button>
-
           <button
+            type="button"
             onClick={() => setOpen(false)}
-            className="mt-3 h-14 w-full rounded-full bg-white/[0.06] text-[16px] font-medium text-white/70 active:scale-[0.98] transition-transform"
+            className="mt-2 h-11 w-full text-[14px] font-medium text-muted-foreground"
           >
             Not now
           </button>
-        </div>
+        </motion.div>
       </DrawerContent>
     </Drawer>
-  );
-}
-
-function Row({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white/80">
-        {icon}
-      </span>
-      <span className="text-[14px] text-white/75">{label}</span>
-    </div>
   );
 }
 

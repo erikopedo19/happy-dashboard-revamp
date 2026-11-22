@@ -1,0 +1,1 @@
+ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS pro_cancelled_at timestamptz;

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Sparkles, X, Bell, Star, Unlock } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Check, X } from "lucide-react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { usePremium } from "@/hooks/use-premium";
 import { STRIPE_PAYMENT_LINK, STRIPE_PAYMENT_LINK_YEARLY, STRIPE_TRIAL_ENABLED, plans } from "@/lib/billingsdk-config";
@@ -53,10 +52,10 @@ const PLAN_OPTIONS = ALL_PLAN_OPTIONS.filter((option) =>
   option.key === "yearly" ? !!STRIPE_PAYMENT_LINK_YEARLY : !!STRIPE_PAYMENT_LINK
 );
 
-const TIMELINE = [
-  { icon: Unlock, title: "Today", body: "Full access to reports, themes, review emails and priority support." },
-  { icon: Bell, title: "Day 5", body: "We'll remind you before the trial ends. Check your inbox." },
-  { icon: Star, title: "Day 7", body: "You'll be charged unless you cancel anytime before." },
+const PERKS = [
+  "Unlimited bookings",
+  "Reports, teams and your own website",
+  "Cancel anytime. No charge after you cancel.",
 ];
 
 /**
@@ -114,125 +113,98 @@ export function UpgradeDrawer() {
   };
 
   const selectedPlan = PLAN_OPTIONS.find((option) => option.key === plan) ?? PLAN_OPTIONS[0] ?? MONTHLY_OPTION;
-  const steps = STRIPE_TRIAL_ENABLED
-    ? TIMELINE
-    : [
-        TIMELINE[0],
-        { icon: Bell, title: "Billing", body: selectedPlan.billing },
-        { icon: Star, title: "Anytime", body: "Cancel whenever you need, with no long-term commitment." },
-      ];
+  const yearlySaving = PRO_PLAN
+    ? Math.round((1 - Number(PRO_PLAN.yearlyPrice) / (Number(PRO_PLAN.monthlyPrice) * 12)) * 100)
+    : 0;
 
   if (loading || isPremium) return null;
 
-
   return (
     <Drawer open={open} onOpenChange={(v) => (v ? setOpen(true) : dismiss())}>
-      <DrawerContent className="border-white/[0.06] bg-[#0B0B0D] text-white">
-        <div className="relative mx-auto w-full max-w-md px-6 pb-8 pt-3">
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-[radial-gradient(80%_60%_at_50%_120%,rgba(225,29,72,0.35),transparent_70%)]" />
-
-          <div className="relative flex items-start justify-between">
-            <span className="text-[11px] leading-tight text-white/40">Secure<br />checkout</span>
+      <DrawerContent className="border-border bg-background text-foreground">
+        <div className="mx-auto w-full max-w-md px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-2">
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={dismiss}
               aria-label="Close"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition active:scale-95"
+              className="grid h-9 w-9 place-items-center rounded-full bg-muted text-muted-foreground transition active:scale-95"
             >
-              <X className="h-4 w-4 text-white" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="relative mx-auto mt-1 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-gradient-to-br from-[#FF7A45] to-[#E0152F] shadow-[0_16px_40px_-16px_rgba(225,29,72,0.8)]"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 26 }}
           >
-            <Crown className="h-8 w-8 text-white" />
-          </motion.div>
+            <p className="text-[13px] font-semibold text-primary">Cutzioo Pro</p>
+            <h2 className="mt-1 text-[28px] font-bold leading-[1.1] tracking-tight">Grow without limits.</h2>
 
-          <h2 className="relative mt-4 text-center text-[22px] font-bold leading-tight tracking-tight">
-            {STRIPE_TRIAL_ENABLED ? (
-              <>
-                Here&apos;s how your 7 days
-                <br />free trial works
-              </>
-            ) : (
-              <>
-                Unlock Cutzioo
-                <br />Pro
-              </>
-            )}
-          </h2>
-
-          {PLAN_OPTIONS.length > 1 && (
-            <div className="relative mx-auto mt-4 flex w-fit items-center rounded-full bg-white/[0.08] p-1">
-              {PLAN_OPTIONS.map((option) => (
-                <button
-                  type="button"
-                  key={option.key}
-                  aria-pressed={plan === option.key}
-                  onClick={() => {
-                    haptic("selection");
-                    setPlan(option.key);
-                  }}
-                  className={`relative h-11 rounded-full px-5 text-[14px] font-semibold transition-colors ${
-                    plan === option.key ? "text-black" : "text-white/60"
-                  }`}
-                >
-                  {plan === option.key && (
-                    <motion.span layoutId="paywall-plan" transition={{ type: "spring", stiffness: 480, damping: 38 }} className="absolute inset-0 rounded-full bg-white" />
-                  )}
-                  <span className="relative z-10">{option.title}</span>
-                </button>
+            <ul className="mt-6 space-y-3">
+              {PERKS.map((perk) => (
+                <li key={perk} className="flex items-center gap-3 text-[15px]">
+                  <Check className="h-4 w-4 shrink-0 text-primary" strokeWidth={2.5} />
+                  <span>{perk}</span>
+                </li>
               ))}
+            </ul>
+
+            <div className="mt-7 space-y-2" role="radiogroup" aria-label="Choose a plan">
+              {(PLAN_OPTIONS.length ? PLAN_OPTIONS : [MONTHLY_OPTION]).map((option) => {
+                const selected = option.key === selectedPlan.key;
+                return (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    key={option.key}
+                    onClick={() => {
+                      haptic("selection");
+                      setPlan(option.key);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition-colors ${
+                      selected ? "border-primary bg-primary/5" : "border-border bg-card"
+                    }`}
+                  >
+                    <span>
+                      <span className="flex items-center gap-2 text-[15px] font-semibold">
+                        {option.title}
+                        {option.key === "yearly" && yearlySaving > 0 && (
+                          <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                            Save {yearlySaving}%
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-0.5 block text-[13px] text-muted-foreground">{option.billing}</span>
+                    </span>
+                    <span className="text-[15px] font-semibold tabular-nums">{option.total}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
 
-          <div className="relative mt-6 space-y-4">
-            {steps.map((t) => (
-              <div key={t.title} className="flex gap-3">
-                <div className="flex flex-col items-center pt-1">
-                  <t.icon className="h-4 w-4 text-white" />
-                  <span className="mt-1 w-[3px] flex-1 rounded-full bg-gradient-to-b from-[#FF7A45] to-[#E0152F]" />
-                </div>
-                <div className="pb-1">
-                  <p className="text-[15px] font-semibold">{t.title}</p>
-                  <p className="text-[12.5px] leading-snug text-white/45">{t.body}</p>
-                </div>
-              </div>
-            ))}
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-4 w-4 text-[#FF7A45]" />
-              <p className="text-[15px] font-semibold">Unlimited bookings, unlocked</p>
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => {
+                haptic("medium");
+                setOpen(false);
+                navigate(`/pricing?plan=${selectedPlan.key}`);
+              }}
+              className="mt-6 h-14 w-full rounded-full bg-primary text-[16px] font-semibold text-primary-foreground transition active:scale-[0.98]"
+            >
+              {STRIPE_TRIAL_ENABLED ? "Start free trial" : "Continue"}
+            </button>
 
-          <Button
-            onPress={() => {
-              haptic("medium");
-              setOpen(false);
-              navigate(`/pricing?plan=${selectedPlan.key}`);
-            }}
-            className="relative mt-6 h-14 w-full rounded-full bg-[#EDEDED] text-[16px] font-semibold text-black"
-          >
-            {STRIPE_TRIAL_ENABLED ? "Try for €0.00" : `Continue with ${selectedPlan.title}`}
-          </Button>
-
-          <p className="relative mt-2.5 text-center text-[12px] text-white/45">
-            {STRIPE_TRIAL_ENABLED
-              ? `First 7 days free, then ${selectedPlan.billing}`
-              : `${selectedPlan.total} ${selectedPlan.cadence} · cancel anytime`}
-          </p>
-
-          <Button
-            variant="light"
-            onPress={dismiss}
-            className="relative mt-1 min-h-11 w-full text-center text-[13px] font-medium text-white/35 h-auto py-2"
-          >
-            Maybe later
-          </Button>
+            <button
+              type="button"
+              onClick={dismiss}
+              className="mt-2 h-11 w-full text-[14px] font-medium text-muted-foreground"
+            >
+              Not now
+            </button>
+          </motion.div>
         </div>
       </DrawerContent>
     </Drawer>

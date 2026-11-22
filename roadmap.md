@@ -1,5 +1,8 @@
 # Current work
 
+- [x] Cancel button for every Pro membership (paid and gifted); cancelling stops every live plan so nothing is charged afterwards.
+- [x] Minimal redesign of the Pro upgrade screens.
+
 - [x] PayPal on booking pages: client pays the barber's own PayPal directly (barber adds PayPal email in Settings).
 - [ ] Switch PayPal connection from test (sandbox) to live; waits on owner's live PayPal app.
 - [x] Fix Stripe booking-payment issues (connect country, tax, multi-service amount, error messages).

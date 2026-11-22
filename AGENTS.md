@@ -15,3 +15,4 @@ Replaced or ended subscriptions cannot overwrite a member's different live subsc
 Booking PayPal uses the platform's PayPal app with each barber's PayPal email as payee, and marks a booking paid only after a server-side capture matches amount, currency and payee; this keeps barbers' money out of the platform account.
 Pro subscription payment methods (including PayPal) come from Stripe Checkout's dashboard-managed methods, not a separate PayPal billing flow, so Stripe stays the single source of truth for renewals and cancellations.
 Cancelling a past-due Pro plan ends it immediately and voids its open invoices; paid-up plans cancel at period end.
+- Cancelling Pro stops every live Stripe plan the member has (not only the newest), and gifted Pro cancels server-side via `subscribers.pro_cancelled_at`; this guarantees no charge after cancelling.
