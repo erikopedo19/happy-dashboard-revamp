@@ -30,6 +30,7 @@ interface Service {
 import { CancellationListButton } from "@/components/CancellationListButton";
 
 import { Wordmark } from "@/components/Wordmark";
+import { ComebackOfferCard } from "@/components/comeback/ComebackOfferCard";
 import { publicBookingUrl } from "@/lib/bookingUrl";
 import { shareLink } from "@/lib/share";
 interface AgendaBookingFormProps {
@@ -590,6 +591,9 @@ const AgendaBookingForm = ({
               </div>
             </div>
           </motion.div>
+          {!rescheduleAppointment && (
+            <ComebackOfferCard businessId={(businessProfile as { id?: string } | undefined)?.id} shopName={displayName} className="mb-6 text-left" />
+          )}
           <div className="flex flex-col items-center gap-3">
             <BookingButton
               text={copy.bookAnother}

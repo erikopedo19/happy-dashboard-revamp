@@ -32,6 +32,7 @@ const moreItems: MoreItem[] = [
   { label: 'Customers', icon: 'users', path: '/customers' },
   { label: 'Booking', icon: 'globe', path: '/booking-page' },
   { label: 'Stylists', icon: 'user-check', path: '/stylists' },
+  { label: 'Products', icon: 'package', path: '/products' },
   { label: 'Teams', icon: 'briefcase', path: '/teams' },
   { label: 'Rent & Staff', icon: 'megaphone', path: '/aggelies/manage', isNew: true },
 ];

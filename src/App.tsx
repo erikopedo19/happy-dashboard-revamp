@@ -97,6 +97,8 @@ const WaitlistClaim = lazyRetry(() => import("./pages/WaitlistClaim"));
 const Landing = lazyRetry(() => import("./pages/Landing"));
 const Onboarding = lazyRetry(() => import("./pages/Onboarding"));
 const Microsite = lazyRetry(() => import("./pages/Microsite"));
+const ComebackCouponPage = lazyRetry(() => import("./pages/ComebackCouponPage"));
+const Products = lazyRetry(() => import("./pages/Products"));
 const MicrositeEditor = lazyRetry(() => import("./pages/MicrositeEditor"));
 const ChooseMode = lazyRetry(() => import("./pages/ChooseMode"));
 const OAuthConsent = lazyRetry(() => import("./pages/OAuthConsent"));
@@ -274,6 +276,7 @@ function AnimatedRoutes() {
       <Route path="/choose-role" element={<ProtectedRoute><ChooseRole /></ProtectedRoute>} />
       <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
       <Route path="/stylists" element={<ProtectedRoute><Stylists /></ProtectedRoute>} />
+      <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
       <Route path="/teams" element={<ProtectedRoute><PremiumGate featureName="Teams & Stylists"><Teams /></PremiumGate></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><PremiumGate featureName="Reports & Analytics"><Reports /></PremiumGate></ProtectedRoute>} />
       <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
@@ -287,6 +290,7 @@ function AnimatedRoutes() {
       <Route path="/booking-page" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
       <Route path="/microsite" element={<ProtectedRoute><MicrositeEditor /></ProtectedRoute>} />
       <Route path="/site/:slug" element={<Microsite />} />
+      <Route path="/c/:slug" element={<ComebackCouponPage />} />
       <Route path="/dbprevstats07" element={<ProtectedRoute><DbPrevStats /></ProtectedRoute>} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />

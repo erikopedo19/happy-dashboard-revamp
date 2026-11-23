@@ -7,7 +7,7 @@ import { ClientMobileDockInner } from "@/components/ClientMobileDock";
 import { isPublicBookingPath } from "@/lib/bookingUrl";
 
 const HIDE_ON = ["/auth", "/login", "/superadmin", "/choose-role", "/choose-mode", "/complete-profile", "/onboarding", "/pricing"];
-const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing", "/b/", "/site/"];
+const HIDE_PREFIX = ["/book/", "/onboarding", "/pricing", "/b/", "/site/", "/c/"];
 
 
 const CLIENT_ROUTES = [
