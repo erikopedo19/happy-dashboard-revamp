@@ -1,17 +1,13 @@
 // superadmin-users: list users + manage subscriptions. Caller must be the super admin.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { cancelMode } from "../_shared/billing/logic.ts";
 
 const SUPER_ADMIN_EMAIL = "erikballiu19@gmail.com";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-};
-
 const admin = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   { auth: { persistSession: false } }
 );
 
@@ -19,13 +15,14 @@ async function requireSuperAdmin(req: Request) {
   const auth = req.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return null;
   const userClient = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
     { global: { headers: { Authorization: auth } } }
   );
   const { data, error } = await userClient.auth.getUser();
   if (error || !data?.user) return null;
-  if (data.user.email?.toLowerCase() !== SUPER_ADMIN_EMAIL) return null;
+  const { data: allowed, error: permissionError } = await userClient.rpc("is_super_admin");
+  if (permissionError || allowed !== true) return null;
   return data.user;
 }
 
@@ -173,7 +170,7 @@ Deno.serve(async (req) => {
 
       const [{ data: profiles }, { data: subs }, { data: authSettings }, { data: fakeShopsSettings }, { data: totalBookingsData }, { count: fakeShopsCount }] = await Promise.all([
         admin.from("profiles").select("id, full_name, business_name, avatar_url, role, website_design_requested, heard_from").in("id", ids),
-        admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, updated_at"),
+        admin.from("subscribers").select("user_id, email, subscribed, subscription_tier, subscription_end, stripe_customer_id, stripe_subscription_id, billing_status, auto_renew, cancel_at_period_end, pro_cancelled_at, updated_at"),
         admin.from("app_settings").select("value").eq("key", "auth").maybeSingle(),
         admin.from("app_settings").select("value").eq("key", "fake_shops").maybeSingle(),
         admin.rpc("get_total_bookings"),
@@ -365,9 +362,15 @@ Deno.serve(async (req) => {
     // Find any existing row by user_id OR email (some rows may have been created by Stripe with email only).
     const { data: existingRows, error: findErr } = await admin
       .from("subscribers")
-      .select("id, user_id, email")
+      .select("id, user_id, email, stripe_subscription_id, billing_status")
       .or(`user_id.eq.${user_id},email.eq.${email}`);
     if (findErr) throw findErr;
+    // Access toggles do not cancel billing. Live provider plans must use manage-subscription.
+    if (existingRows?.some(row => row.stripe_subscription_id && cancelMode(row.billing_status ?? "active"))) {
+      return new Response(JSON.stringify({ error: "Use Cancel subscription to stop renewal; paid plans cannot be changed with gift controls." }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     let savedId: string | null = null;
     if (existingRows && existingRows.length > 0) {
@@ -416,11 +419,12 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (!savedId) throw new Error("Subscription was not saved");
     // Verify by re-reading
     const { data: verify } = await admin
       .from("subscribers")
       .select("user_id, email, subscribed, subscription_tier, subscription_end")
-      .eq("id", savedId!)
+      .eq("id", savedId)
       .maybeSingle();
 
     return new Response(JSON.stringify({ ok: true, subscriber: verify }), {

@@ -1,7 +1,9 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { adminClient, stripeRequest, syncSubscription, findSubscriptions, newestSubscription, cancellationEmail, sendBillingEmail } from '../_shared/billing/service.ts';
 import { isSubscriptionCheckout, cancelMode, otherLiveSubscriptions, giftedCancelFields, type BillingSubscription } from '../_shared/billing/logic.ts';
+import { MembershipRequest, MembershipRequestError, resolveMembershipTarget } from './request.ts';
 const json = (data: unknown, status=200) => new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 async function voidOpenInvoices(subscriptionId: string) {
   const open = await stripeRequest(`/invoices?${new URLSearchParams({ subscription: subscriptionId, status: 'open', limit: '20' })}`);
@@ -47,11 +49,23 @@ serve(async req => {
     const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');
     if (!token) return json({ error:'not_authenticated' },401);
     const { data, error } = await admin.auth.getUser(token);
-    const user = data.user;
-    if (error || !user?.email) return json({ error:'not_authenticated' },401);
-    const body = await req.json();
+    const caller = data.user;
+    if (error || !caller?.email) return json({ error:'not_authenticated' },401);
+    const parsed = MembershipRequest.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return json({ error:'invalid_request', details:parsed.error.flatten().fieldErrors },400);
+    const body = parsed.data;
     const action = body.action;
-    if (!['cancel','resume','sync','portal'].includes(action)) return json({ error:'invalid_action' },400);
+    const user = await resolveMembershipTarget(caller, body, async () => {
+      const client = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+        global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession:false },
+      });
+      const { data: allowed, error: permissionError } = await client.rpc('is_super_admin');
+      return !permissionError && allowed === true;
+    }, async id => {
+      const { data: target, error: targetError } = await admin.auth.admin.getUserById(id);
+      if (targetError) return null;
+      return target.user;
+    });
     const { data: subscriber, error: lookupError } = await admin.from('subscribers').select('stripe_customer_id,stripe_subscription_id,email,subscribed,subscription_end,pro_cancelled_at').eq('user_id',user.id).maybeSingle();
     if (lookupError) throw lookupError;
     let subscription;
@@ -64,13 +78,13 @@ serve(async req => {
       subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(session.subscription)}`);
     } else if (subscriber?.stripe_customer_id) {
       all = await findSubscriptions(subscriber.stripe_customer_id);
-      subscription = newestSubscription(all);
+      subscription = newestSubscription(all) ?? all.find(s => cancelMode(s.status));
     }
     if (!subscription) {
       const customers = await stripeRequest(`/customers?${new URLSearchParams({ email:user.email, limit:'100' })}`);
       const found = await Promise.all((customers.data ?? []).map((c: {id:string}) => findSubscriptions(c.id)));
       all = [...all, ...found.flat()];
-      subscription = newestSubscription(all);
+      subscription = newestSubscription(all) ?? all.find(s => cancelMode(s.status));
     }
     if (!subscription) {
       if (action === 'sync') return json({ ok:true, pending:false, has_subscription:false });
@@ -100,6 +114,7 @@ serve(async req => {
       }
     }
     const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,subscription);
+    if (action === 'cancel' && !applied) return json({ error:'membership_sync_pending' },409);
     let emailPending = false;
     if (applied && (action === 'sync' || (action === 'cancel' && (!wasCancelling || subscription.status === 'canceled')))) {
       try { await cancellationEmail(admin,user.id,user.email,subscription,fields.subscription_end); }
@@ -111,6 +126,7 @@ serve(async req => {
     }
     return json({ ok:true, ...fields, email_pending:emailPending });
   } catch(error) {
+    if (error instanceof MembershipRequestError) return json({ error:error.code },error.status);
     console.error('Membership operation failed',error instanceof Error ? error.message : 'unknown');
     return json({ error:'subscription_update_failed' },502);
   }

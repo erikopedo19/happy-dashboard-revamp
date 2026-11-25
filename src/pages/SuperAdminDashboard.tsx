@@ -24,6 +24,7 @@ import { DailyBriefingCard } from "@/components/DailyBriefingCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
+import { adminMembershipState, type AdminMembership } from "@/lib/admin-subscription";
 
 const TABS = [
   { key: "users", label: "Users", short: "Users", Icon: Users },
@@ -43,11 +44,8 @@ const tabMotion = {
 
 
 
-type Sub = {
-  subscribed: boolean;
+type Sub = AdminMembership & {
   subscription_tier: string | null;
-  subscription_end: string | null;
-  stripe_customer_id: string | null;
   active: boolean;
 } | null;
 
@@ -81,6 +79,9 @@ export default function SuperAdminDashboard() {
   const [busy, setBusy] = useState(true);
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
+  const [cancelling, setCancelling] = useState<Row | null>(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<TabKey>("users");
   const isMobile = useIsMobile();
@@ -269,6 +270,7 @@ export default function SuperAdminDashboard() {
 
 
   const quickToggle = async (row: Row, next: boolean) => {
+    if (!next) { requestCancellation(row); return; }
     const optimistic = rows.map((r) => r.id === row.id ? {
       ...r,
       subscription: {
@@ -291,6 +293,10 @@ export default function SuperAdminDashboard() {
 
   const saveEditing = async (form: { subscribed: boolean; subscription_tier: string; subscription_end: string }) => {
     if (!editing) return;
+    if (!form.subscribed && adminMembershipState(editing.subscription).canCancel) {
+      requestCancellation(editing);
+      return;
+    }
     setSaving(true);
     const { error } = await (supabase as any).functions.invoke("superadmin-users", {
       body: {
@@ -307,6 +313,39 @@ export default function SuperAdminDashboard() {
       toast.success("Subscription updated");
       setEditing(null);
       load();
+    }
+  };
+
+  const requestCancellation = (row: Row) => {
+    setEditing(null);
+    setCancelError(null);
+    setCancelling(row);
+    haptic("light");
+  };
+
+  const cancelMembership = async () => {
+    if (!cancelling || cancelBusy) return;
+    setCancelBusy(true);
+    setCancelError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-subscription", {
+        body: { action: "cancel", target_user_id: cancelling.id },
+      });
+      if (error || data?.ok !== true) {
+        throw new Error("Cancellation could not be confirmed. Please retry; renewal may still be on.");
+      }
+      toast.success("Subscription cancelled", {
+        description: data.email_pending
+          ? "Renewal is off. The confirmation email is pending delivery."
+          : "Renewal is off and the member’s confirmation email has been sent.",
+      });
+      setCancelling(null);
+      window.dispatchEvent(new Event("premium:refresh"));
+      await load();
+    } catch (error) {
+      setCancelError(error instanceof Error ? error.message : "Cancellation failed. Please try again.");
+    } finally {
+      setCancelBusy(false);
     }
   };
 
@@ -435,7 +474,7 @@ export default function SuperAdminDashboard() {
           <CardHeader className="gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>Users</CardTitle>
-              <CardDescription className="hidden sm:block">Manage subscriptions: flip premium on or off, or set a custom end date.</CardDescription>
+              <CardDescription className="hidden sm:block">Memberships, gifted access, and subscription cancellations.</CardDescription>
               <CardDescription className="sm:hidden">{filtered.length} of {rows.length}</CardDescription>
             </div>
             <div className="relative w-full sm:w-64">
@@ -461,6 +500,7 @@ export default function SuperAdminDashboard() {
                 const initials = (r.full_name || r.business_name || r.email || "?").trim()
                   .split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                 const active = !!r.subscription?.active;
+                const membership = adminMembershipState(r.subscription);
                 return (
                   <div key={r.id} className="flex items-center gap-3 p-3.5 transition-colors hover:bg-muted/40 sm:p-4">
                     <button type="button" onClick={() => setEditing(r)} className="relative shrink-0 rounded-full transition active:scale-95" aria-label="Edit subscription">
@@ -485,6 +525,7 @@ export default function SuperAdminDashboard() {
                         {r.email}
                         {r.subscription?.subscription_end ? ` · until ${new Date(r.subscription.subscription_end).toLocaleDateString()}` : ""}
                       </div>
+                      {(membership.paid || membership.ending) && <p className="mt-0.5 text-xs text-muted-foreground">{membership.label}</p>}
                       {r.website_design_requested && (
                         <Badge variant="outline" className="mt-1 flex w-fit items-center gap-1 border-rose-500/30 text-[10px] text-rose-500">
                           <Globe className="h-3 w-3" /> Website requested
@@ -494,8 +535,14 @@ export default function SuperAdminDashboard() {
                     <div className="flex shrink-0 items-center gap-3">
                       <div className="flex items-center gap-2">
                         {active ? <CheckCircle2 className="hidden h-4 w-4 text-emerald-500 sm:block" /> : <XCircle className="hidden h-4 w-4 text-muted-foreground sm:block" />}
-                        <Switch checked={!!r.subscription?.subscribed} onCheckedChange={(v) => { haptic("light"); quickToggle(r, v); }} />
+                        <Switch checked={!!r.subscription?.subscribed} disabled={membership.paid} onCheckedChange={(v) => { haptic("light"); quickToggle(r, v); }} aria-label={`Gifted Pro access for ${r.email}`} />
                       </div>
+                      {membership.canCancel && (
+                        <Button size="sm" variant="light" isIconOnly={isMobile} className="shrink-0 text-destructive" aria-label={`Cancel subscription for ${r.email}`} title="Cancel subscription" onPress={() => requestCancellation(r)}>
+                          <XCircle className="h-4 w-4" />
+                          {!isMobile && <span>Cancel subscription</span>}
+                        </Button>
+                      )}
                       <Button size="sm" variant="bordered" className="hidden sm:inline-flex" onPress={() => setEditing(r)}>Edit</Button>
                     </div>
                   </div>
@@ -638,7 +685,25 @@ export default function SuperAdminDashboard() {
       )}
       </AnimatePresence>
 
-      <EditDialog row={editing} onClose={() => setEditing(null)} onSave={saveEditing} saving={saving} />
+      <EditDialog row={editing} onClose={() => setEditing(null)} onSave={saveEditing} onCancel={() => { if (editing) requestCancellation(editing); }} saving={saving} />
+      <Dialog open={!!cancelling} onOpenChange={(open) => { if (!open && !cancelBusy) setCancelling(null); }}>
+        <DialogContent className="max-w-md space-y-4">
+          <DialogHeader>
+            <DialogTitle className="tracking-normal">Cancel this membership?</DialogTitle>
+            <DialogDescription className="break-words">{cancelling?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>All recurring Pro plans for this member will stop renewing, including PayPal payments made through Stripe Checkout.</p>
+            <p>Paid-up Pro stays available until its paid period ends. Plans with failed payments end immediately and their open invoices are voided. Gifted Pro keeps any remaining dated access.</p>
+            <p>The member will receive a cancellation confirmation email. Cancelling does not refund previous payments.</p>
+            {cancelError && <p role="alert" className="text-destructive">{cancelError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="bordered" isDisabled={cancelBusy} onPress={() => setCancelling(null)}>Keep membership</Button>
+            <Button variant="flat" className="bg-destructive text-destructive-foreground" isLoading={cancelBusy} isDisabled={cancelBusy} onPress={cancelMembership}>Confirm cancellation</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -884,15 +949,17 @@ function StripeConfigTab({ config, onChange, onSave, saving }: {
   );
 }
 
-function EditDialog({ row, onClose, onSave, saving }: {
+function EditDialog({ row, onClose, onSave, onCancel, saving }: {
   row: Row | null;
   onClose: () => void;
   onSave: (f: { subscribed: boolean; subscription_tier: string; subscription_end: string }) => void;
+  onCancel: () => void;
   saving: boolean;
 }) {
   const [subscribed, setSubscribed] = useState(false);
   const [tier, setTier] = useState("Pro");
   const [end, setEnd] = useState("");
+  const membership = adminMembershipState(row?.subscription ?? null);
 
   useEffect(() => {
     if (row) {
@@ -911,12 +978,21 @@ function EditDialog({ row, onClose, onSave, saving }: {
 
   return (
     <Dialog open={!!row} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="space-y-4">
         <DialogHeader>
           <DialogTitle>Manage subscription</DialogTitle>
           <DialogDescription>{row?.email}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        {membership.paid ? (
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <span className="text-muted-foreground">Pro membership</span>
+              <span className="font-medium">{membership.label}</span>
+            </div>
+            {row?.subscription?.subscription_end && <p className="text-muted-foreground">Access until {new Date(row.subscription.subscription_end).toLocaleDateString()}</p>}
+            <p className="text-muted-foreground">Card and PayPal subscription payments are managed through Stripe.</p>
+          </div>
+        ) : <div className="space-y-4">
           <div className="flex items-center justify-between rounded-xl border border-border p-3">
             <div>
               <p className="text-sm font-medium">Premium active</p>
@@ -947,12 +1023,13 @@ function EditDialog({ row, onClose, onSave, saving }: {
             <Button size="sm" variant="flat" onPress={() => setDuration(365)}>+1 year</Button>
             <Button size="sm" variant="light" onPress={() => setEnd("")}>No end</Button>
           </div>
-        </div>
+        </div>}
+        {membership.canCancel && <Button variant="light" className="justify-start text-destructive" onPress={onCancel}><XCircle className="h-4 w-4" /> Cancel subscription</Button>}
         <DialogFooter>
-          <Button variant="bordered" onPress={onClose}>Cancel</Button>
-          <Button onPress={() => onSave({ subscribed, subscription_tier: tier, subscription_end: end })} isDisabled={saving}>
+          <Button variant="bordered" onPress={onClose}>Close</Button>
+          {!membership.paid && <Button onPress={() => onSave({ subscribed, subscription_tier: tier, subscription_end: end })} isDisabled={saving}>
             {saving && <Loader2 className="w-3 h-3 mr-1 animate-spin" />} Save
-          </Button>
+          </Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

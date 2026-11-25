@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { BillingSubscription, subscriptionFields, cancellationKey, renewalResetFields } from './logic.ts';
+import { BillingSubscription, subscriptionFields, cancellationKey, renewalResetFields, cancelMode } from './logic.ts';
 import { shouldApplySubscription } from './purchase.ts';
 export const adminClient = () => createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', { auth: { persistSession: false } });
 export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string, method?: 'DELETE') {
@@ -78,8 +78,8 @@ export async function findSubscriptions(customer: string) {
   return subscriptions;
 }
 export function newestSubscription(subs: BillingSubscription[]) {
-  return [...subs].filter(s => ['active', 'trialing', 'past_due', 'unpaid', 'canceled'].includes(s.status)).sort((a,b) => {
-    const live = (s: BillingSubscription) => ['active','trialing','past_due'].includes(s.status) ? 1 : 0;
+  return [...subs].filter(s => cancelMode(s.status) !== null || s.status === 'canceled').sort((a,b) => {
+    const live = (s: BillingSubscription) => cancelMode(s.status) !== null ? 1 : 0;
     return live(b)-live(a) || (b.created ?? 0)-(a.created ?? 0);
   })[0] ?? null;
 }

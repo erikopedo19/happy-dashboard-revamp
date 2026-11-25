@@ -1,5 +1,9 @@
 # Current work
 
+- [x] Add Superadmin cancellation for member subscriptions, including PayPal paid through Stripe, with confirmation and provider-backed status.
+- [x] Verify administrator-only cancellation and existing member cancellation safeguards; 37 regression tests pass, live unauthorized calls rejected, mobile/desktop confirmation and retry checked with fixtures.
+- [ ] Verify Superadmin cancellation against a real member and received email; blocked by unavailable signed-in session on external Supabase.
+
 - [x] Cancel button for every Pro membership (paid and gifted); cancelling stops every live plan so nothing is charged afterwards.
 - [x] Minimal redesign of the Pro upgrade screens.
 

@@ -1,6 +1,7 @@
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import { subscriptionFields, cancellationKey, isSubscriptionCheckout, renewalResetFields, cancelMode, planIsReallyEnding } from '../_shared/billing/logic.ts';
 import { verifyStripeSignature } from './signature.ts';
+import { newestSubscription } from '../_shared/billing/service.ts';
 const start = Date.parse('2026-10-24T00:00:00Z') / 1000;
 const end = Date.parse('2026-11-24T00:00:00Z') / 1000;
 const sub = { id:'sub_test', customer:'cus_test', status:'active', current_period_start:start, current_period_end:end, items:{data:[{price:{unit_amount:899,currency:'eur'},quantity:1}]} };
@@ -65,6 +66,14 @@ Deno.test('cancelling after a failed payment ends the plan now so no retry charg
 });
 Deno.test('an already ended plan cannot be cancelled again', () => {
   assertEquals(cancelMode('canceled'), null);
+});
+Deno.test('an unpaid or incomplete live plan is selected for cancellation ahead of an ended plan', () => {
+  for (const status of ['unpaid', 'incomplete']) {
+    assertEquals(newestSubscription([
+      { id:'sub_ended', customer:'cus_test', status:'canceled', created:200 },
+      { id:'sub_pending', customer:'cus_test', status, created:100 },
+    ])?.id, 'sub_pending');
+  }
 });
 
 Deno.test('expiry emails skip auto-renewing Stripe plans', () => {
