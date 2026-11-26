@@ -332,7 +332,16 @@ export default function SuperAdminDashboard() {
         body: { action: "cancel", target_user_id: cancelling.id },
       });
       if (error || data?.ok !== true) {
-        throw new Error("Cancellation could not be confirmed. Please retry; renewal may still be on.");
+        let code = typeof data?.error === "string" ? data.error : undefined;
+        const context = (error as { context?: unknown } | null)?.context;
+        if (!code && context instanceof Response) code = (await context.clone().json().catch(() => null))?.error;
+        if (code === "no_membership") {
+          setCancelling(null);
+          await load();
+          toast.info("This member has no active membership to cancel.");
+          return;
+        }
+        throw new Error(code === "not_authorized" ? "Only a Superadmin can cancel another member's plan." : "Cancellation could not be confirmed. Please retry; renewal may still be on.");
       }
       toast.success("Subscription cancelled", {
         description: data.email_pending

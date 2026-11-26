@@ -51,8 +51,15 @@ const DOWNGRADE_ITEMS: PlanChangeItem[] = [
 type ManageAction = "cancel" | "resume";
 type ManageResult =
   | { kind: "fallback" }
-  | { kind: "error" }
+  | { kind: "error"; message?: string }
   | { kind: "success"; subscriptionEnd: string | null; emailPending: boolean };
+
+// Plain messages for answers the membership service can give instead of a generic failure.
+const MANAGE_ERRORS: Record<string, string> = {
+  no_membership: "There's no active membership to cancel. Your plan has been refreshed.",
+  payment_update_required: "Your last payment failed. Update your card first, or cancel instead.",
+  not_authenticated: "Please sign in again, then try once more.",
+};
 
 async function manageSubscription(action: ManageAction): Promise<ManageResult> {
   const { data, error } = await supabase.functions.invoke("manage-subscription", {
@@ -76,7 +83,7 @@ async function manageSubscription(action: ManageAction): Promise<ManageResult> {
   }
 
   if (errorCode === "no_stripe_subscription") return { kind: "fallback" };
-  if (error || errorCode || data?.ok !== true) return { kind: "error" };
+  if (error || errorCode || data?.ok !== true) return { kind: "error", message: errorCode ? MANAGE_ERRORS[errorCode] : undefined };
   return { kind: "success", subscriptionEnd: data.subscription_end ?? null, emailPending: data.email_pending === true };
 }
 
@@ -156,7 +163,8 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
     try {
       const result = await manageSubscription(enabled ? "resume" : "cancel");
       if (result.kind === "error") {
-        toast.error("Couldn't update auto-renewal. Please try again.");
+        toast.error(result.message ?? "Couldn't update auto-renewal. Please try again.");
+        await refresh();
         return false;
       }
       if (result.kind === "fallback") {
@@ -184,7 +192,12 @@ export function SubscriptionPanel({ variant = "desktop" }: { variant?: "desktop"
     try {
       const result = await manageSubscription("cancel");
       if (result.kind === "error") {
-        toast.error("Couldn't cancel your subscription. Please try again.");
+        toast.error(result.message ?? "Couldn't cancel your subscription. Please try again.");
+        if (result.message) {
+          setConfirmOpen(false);
+          await refresh();
+          window.dispatchEvent(new Event("premium:refresh"));
+        }
         return;
       }
       if (result.kind === "fallback") {

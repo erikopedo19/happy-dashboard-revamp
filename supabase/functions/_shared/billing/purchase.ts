@@ -5,7 +5,8 @@ export function hasPurchaseConsent(body: { terms_accepted?: unknown; terms_versi
 export function blocksNewCheckout(status: string) {
   return ['active', 'trialing', 'past_due', 'unpaid', 'incomplete', 'paused'].includes(status);
 }
-// An ended or replaced subscription must not overwrite the membership linked to another live subscription.
+// An ended plan only changes the membership it is linked to. It must not overwrite
+// another live subscription, or remove gifted Pro from a member with no linked plan.
 export function shouldApplySubscription(storedSubscriptionId: string | null | undefined, incoming: { id: string; status: string }) {
-  return !storedSubscriptionId || storedSubscriptionId === incoming.id || ['active', 'trialing', 'past_due'].includes(incoming.status);
+  return storedSubscriptionId === incoming.id || ['active', 'trialing', 'past_due'].includes(incoming.status);
 }

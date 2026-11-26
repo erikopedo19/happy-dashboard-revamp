@@ -2,21 +2,25 @@ import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { adminClient, stripeRequest, syncSubscription, findSubscriptions, newestSubscription, cancellationEmail, sendBillingEmail } from '../_shared/billing/service.ts';
-import { isSubscriptionCheckout, cancelMode, otherLiveSubscriptions, giftedCancelFields, type BillingSubscription } from '../_shared/billing/logic.ts';
+import { isSubscriptionCheckout, cancelMode, otherLiveSubscriptions, giftedCancelFields, membershipAfterCancel, uniqueSubscriptions, type BillingSubscription } from '../_shared/billing/logic.ts';
 import { MembershipRequest, MembershipRequestError, resolveMembershipTarget } from './request.ts';
 const json = (data: unknown, status=200) => new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 async function voidOpenInvoices(subscriptionId: string) {
   const open = await stripeRequest(`/invoices?${new URLSearchParams({ subscription: subscriptionId, status: 'open', limit: '20' })}`);
   for (const invoice of open.data ?? []) await stripeRequest(`/invoices/${encodeURIComponent(invoice.id)}/void`, new URLSearchParams());
 }
-async function stopSubscription(sub: BillingSubscription) {
+// Returns the plan as Stripe reports it after stopping, so the membership records the real outcome.
+async function stopSubscription(sub: BillingSubscription): Promise<BillingSubscription> {
   const mode = cancelMode(sub.status);
   if (mode === 'immediate') {
-    await stripeRequest(`/subscriptions/${encodeURIComponent(sub.id)}`, undefined, undefined, 'DELETE');
+    const ended = await stripeRequest(`/subscriptions/${encodeURIComponent(sub.id)}`, undefined, undefined, 'DELETE');
     await voidOpenInvoices(sub.id);
-  } else if (mode === 'period_end' && !sub.cancel_at_period_end) {
-    await stripeRequest(`/subscriptions/${encodeURIComponent(sub.id)}`, new URLSearchParams({ cancel_at_period_end: 'true' }));
+    return ended;
   }
+  if (mode === 'period_end' && !sub.cancel_at_period_end) {
+    return await stripeRequest(`/subscriptions/${encodeURIComponent(sub.id)}`, new URLSearchParams({ cancel_at_period_end: 'true' }));
+  }
+  return sub;
 }
 type SubscriberRow = { subscribed?: boolean | null; subscription_end?: string | null; pro_cancelled_at?: string | null } | null;
 // Gifted Pro (no Stripe plan): nothing is ever charged, so cancel only changes access.
@@ -76,15 +80,14 @@ serve(async req => {
       if (session.client_reference_id !== user.id) return json({ error:'not_authorized' },403);
       if (!isSubscriptionCheckout(session)) return json({ ok:true, pending:true });
       subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(session.subscription)}`);
-    } else if (subscriber?.stripe_customer_id) {
-      all = await findSubscriptions(subscriber.stripe_customer_id);
-      subscription = newestSubscription(all) ?? all.find(s => cancelMode(s.status));
-    }
-    if (!subscription) {
+    } else {
+      // Look at the linked customer and every customer with this email, so a plan on a
+      // second Stripe customer can't keep charging after the member cancels.
       const customers = await stripeRequest(`/customers?${new URLSearchParams({ email:user.email, limit:'100' })}`);
-      const found = await Promise.all((customers.data ?? []).map((c: {id:string}) => findSubscriptions(c.id)));
-      all = [...all, ...found.flat()];
-      subscription = newestSubscription(all) ?? all.find(s => cancelMode(s.status));
+      const ids = new Set<string>((customers.data ?? []).map((c: {id:string}) => c.id));
+      if (subscriber?.stripe_customer_id) ids.add(subscriber.stripe_customer_id);
+      all = uniqueSubscriptions(await Promise.all([...ids].map(id => findSubscriptions(id))));
+      subscription = newestSubscription(all);
     }
     if (!subscription) {
       if (action === 'sync') return json({ ok:true, pending:false, has_subscription:false });
@@ -96,27 +99,30 @@ serve(async req => {
       return json({ ok:true, url:portal.url });
     }
     const wasCancelling = !!subscription.cancel_at_period_end;
-    if (action === 'cancel' || action === 'resume') {
+    if (action === 'cancel') {
+      // No live plan left (only ended ones): this is gifted Pro or nothing to stop.
+      if (!cancelMode(subscription.status)) return await manageGifted(admin, user.id, user.email, subscriber, action);
+      // Stop every live plan: paid-up plans end at period end; failed-payment plans end now
+      // and their unpaid bills are voided, so nothing is charged after cancelling.
+      const stopped: BillingSubscription[] = [];
+      for (const sub of [subscription, ...otherLiveSubscriptions(all, subscription.id)]) stopped.push(await stopSubscription(sub));
+      const result = membershipAfterCancel(stopped) ?? subscription;
+      const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,result);
+      let emailPending = false;
+      try { await cancellationEmail(admin,user.id,user.email,result,fields.subscription_end); }
+      catch { emailPending = true; console.error('Cancellation confirmation pending; webhook will retry'); }
+      if (!applied) console.warn('Cancelled plan was not linked to this membership; Stripe renewal is stopped');
+      return json({ ok:true, ...fields, email_pending:emailPending });
+    }
+    if (action === 'resume') {
       const mode = cancelMode(subscription.status);
       if (!mode) return await manageGifted(admin, user.id, user.email, subscriber, action);
-      if (action === 'cancel' && mode === 'immediate') {
-        // Failed payment: end the plan now and clear the unpaid bill, so the member is never charged after cancelling.
-        subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`, undefined, undefined, 'DELETE');
-        await voidOpenInvoices(subscription.id);
-      } else if (action === 'resume' && mode === 'immediate') {
-        return json({ ok:false, error:'payment_update_required' });
-      } else if (wasCancelling !== (action === 'cancel')) {
-        subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:String(action==='cancel') }));
-      }
-      // Any duplicate live plan is stopped too, so nothing is charged after cancelling.
-      if (action === 'cancel') {
-        for (const extra of otherLiveSubscriptions(all, subscription.id)) await stopSubscription(extra);
-      }
+      if (mode === 'immediate') return json({ ok:false, error:'payment_update_required' });
+      if (wasCancelling) subscription = await stripeRequest(`/subscriptions/${encodeURIComponent(subscription.id)}`,new URLSearchParams({ cancel_at_period_end:'false' }));
     }
     const { applied, ...fields } = await syncSubscription(admin,user.id,user.email,subscription);
-    if (action === 'cancel' && !applied) return json({ error:'membership_sync_pending' },409);
     let emailPending = false;
-    if (applied && (action === 'sync' || (action === 'cancel' && (!wasCancelling || subscription.status === 'canceled')))) {
+    if (applied && action === 'sync') {
       try { await cancellationEmail(admin,user.id,user.email,subscription,fields.subscription_end); }
       catch { emailPending = true; console.error('Cancellation confirmation pending; webhook will retry'); }
     }

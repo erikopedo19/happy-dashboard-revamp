@@ -112,3 +112,28 @@ Deno.test('cancelling open-ended gifted Pro ends it now', () => {
   assertEquals(fields.subscribed, false);
   assertEquals(fields.subscription_end, '2026-11-22T10:00:00.000Z');
 });
+
+import { membershipAfterCancel, uniqueSubscriptions } from '../_shared/billing/logic.ts';
+import { shouldApplySubscription } from '../_shared/billing/purchase.ts';
+
+Deno.test('cancelling keeps the paid-up plan as the membership, not the plan ended for a failed payment', () => {
+  const paidUp = { id: 'sub_paid', customer: 'cus_1', status: 'active', cancel_at_period_end: true, current_period_end: 2_000_000_000, created: 1 };
+  const failed = { id: 'sub_failed', customer: 'cus_1', status: 'canceled', current_period_end: 1_900_000_000, created: 2 };
+  assertEquals(membershipAfterCancel([failed, paidUp])?.id, 'sub_paid');
+  assertEquals(membershipAfterCancel([failed])?.id, 'sub_failed');
+});
+
+Deno.test('a paused plan is ended immediately on cancel so it can never resume charging', () => {
+  assertEquals(cancelMode('paused'), 'immediate');
+});
+
+Deno.test('plans on the linked customer and on email-matched customers are all considered once', () => {
+  const a = { id: 'sub_a', customer: 'cus_1', status: 'active' };
+  const b = { id: 'sub_b', customer: 'cus_2', status: 'active' };
+  assertEquals(uniqueSubscriptions([[a], [a, b]]).map((s) => s.id), ['sub_a', 'sub_b']);
+});
+
+Deno.test('an old ended Stripe plan cannot remove gifted Pro from a member with no linked plan', () => {
+  assertEquals(shouldApplySubscription(null, { id: 'sub_old', status: 'canceled' }), false);
+  assertEquals(shouldApplySubscription(null, { id: 'sub_new', status: 'active' }), true);
+});

@@ -42,7 +42,7 @@ export function renewalResetFields(renewed: boolean) {
 // failed is ended now, so Stripe stops retrying the failed charge.
 export function cancelMode(status: string): 'period_end' | 'immediate' | null {
   if (status === 'active' || status === 'trialing') return 'period_end';
-  if (status === 'past_due' || status === 'unpaid' || status === 'incomplete') return 'immediate';
+  if (status === 'past_due' || status === 'unpaid' || status === 'incomplete' || status === 'paused') return 'immediate';
   return null;
 }
 
@@ -73,4 +73,19 @@ export function giftedCancelFields(end: string | null, now = Date.now()) {
   const base = { pro_cancelled_at: nowIso, auto_renew: false, cancel_at_period_end: true, updated_at: nowIso };
   if (end && Date.parse(end) > now) return { ...base, endsNow: false as const };
   return { ...base, subscribed: false, subscription_tier: null, subscription_end: nowIso, expiration_email_sent_at: nowIso, endsNow: true as const };
+}
+
+// After cancelling, record the plan that still gives paid time (a paid-up plan
+// ending at period end) before any plan that was ended immediately.
+export function membershipAfterCancel(results: BillingSubscription[]) {
+  const live = results.filter((s) => cancelMode(s.status) !== null);
+  const pick = (list: BillingSubscription[]) => [...list].sort((a, b) => (b.current_period_end ?? 0) - (a.current_period_end ?? 0) || (b.created ?? 0) - (a.created ?? 0))[0];
+  return pick(live) ?? pick(results) ?? null;
+}
+
+// Merge plans found on the linked Stripe customer and on every customer with the member's email.
+export function uniqueSubscriptions(lists: BillingSubscription[][]) {
+  const byId = new Map<string, BillingSubscription>();
+  for (const list of lists) for (const sub of list) if (!byId.has(sub.id)) byId.set(sub.id, sub);
+  return [...byId.values()];
 }
