@@ -2,7 +2,7 @@
 
 - [x] Recheck published Pro purchase consent and sign-in handoff; 37 purchase, access, cancellation and reminder regression checks pass (2026-11-25).
 - [x] Inspect live reminder records: daily job ran November 25; latest reminder recorded November 22. No checkout attempts or provider-linked member plans found.
-- [ ] Complete a real Pro purchase and verify unlocked access and received emails; waits on user's chosen non-Pro email and user-entered card payment. External Supabase does not provide a signed-in test session. Auto-renewing plans receive receipts, not expiry reminders; ending-plan reminders currently use a three-day window.
+- [ ] Complete a real Pro purchase and verify unlocked access and received emails; account erikballiu19@gmail.com confirmed on Free with no Stripe plans (2026-11-26); waits on user-entered card payment. External Supabase does not provide a signed-in test session. Auto-renewing plans receive receipts, not expiry reminders; ending-plan reminders currently use a three-day window.
 
 - [x] Add Superadmin cancellation for member subscriptions, including PayPal paid through Stripe, with confirmation and provider-backed status.
 - [x] Verify administrator-only cancellation and existing member cancellation safeguards; 37 regression tests pass, live unauthorized calls rejected, mobile/desktop confirmation and retry checked with fixtures.
